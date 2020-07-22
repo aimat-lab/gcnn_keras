@@ -1,4 +1,4 @@
-# GCN Keras
+# Keras GCN
 
 A set of Layer classes for tensorflow keras to handle graph convolutions.
 
@@ -14,10 +14,10 @@ A set of Layer classes for tensorflow keras to handle graph convolutions.
 <a name="general"></a>
 # General
 
-The package in [gcnn](gcnn) contains several layer classes to build up graph convolution models. 
-Some common models in literature are implemented in literature.
+The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
+Some models are given as an example.
 A documentation is generated in [docs](docs).
-
+Any comments or suggestions are very welcome.
 
 <a name="installation"></a>
 # Installation
@@ -32,7 +32,11 @@ pip install -e ./gcnn_keras
 # Implementation details
 
 The major issue for graphs is their flexible size and shape. To handle flexible input tensors with keras,
-either zero-padding plus masking or ragged/sparse tensors can be used. Here ragged Tensors and sparse matrices are used.
+either zero-padding plus masking or ragged/sparse tensors can be used.
+
+* Masking
+Masking can be achieved by multipling with the mask or by flattening the batch-dimension of the input tensor, using tf.boolean_mask and by keeping track of their indizes.
+Depending on the sparsity of the input this may be the fastest solution or completely unpractical.
 
 * Ragged Tensor
 Ragged Tensors already come with a flexible batch-dimension and are most suited for graphs. However Keras support for ragged tensor is limited for the moment.
@@ -41,7 +45,8 @@ The ragged Tensor is simply a flatten tensor plus row_length index.
 <a name="datasets"></a>
 # Datasets
 
-In [data](gcnn/data) there are simple file handling classes.
+Common datasets for learning electronic structure properties are QM9 and QM7b.
+In [data](gcnn/data) there are simple file handling classes
 
 <a name="examples"></a>
 # Examples

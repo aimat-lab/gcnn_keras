@@ -1,0 +1,1 @@
+recursive-include kgcnn *.py *.json *.yaml *.md
