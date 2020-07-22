@@ -34,19 +34,16 @@ pip install -e ./gcnn_keras
 The major issue for graphs is their flexible size and shape. To handle flexible input tensors with keras,
 either zero-padding plus masking or ragged/sparse tensors can be used.
 
-* Masking
-Masking can be achieved by multipling with the mask or by flattening the batch-dimension of the input tensor, using tf.boolean_mask and by keeping track of their indizes.
-Depending on the sparsity of the input this may be the fastest solution or completely unpractical.
-
 * Ragged Tensor
 Ragged Tensors already come with a flexible batch-dimension and are most suited for graphs. However Keras support for ragged tensor is limited for the moment.
 The ragged Tensor is simply a flatten tensor plus row_length index.
 
+* Sparse Tensor
+
 <a name="datasets"></a>
 # Datasets
 
-Common datasets for learning electronic structure properties are QM9 and QM7b.
-In [data](gcnn/data) there are simple file handling classes
+In [data](kgcnn/data) there are simple file handling classes
 
 <a name="examples"></a>
 # Examples
