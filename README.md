@@ -44,8 +44,8 @@ The first index of incoming node i is expected to be sorted for faster pooling o
 In principle also the adjacency matrix can be represented as ragged tensor of shape `(batch,None,None)` but will be dense within each graph.
 
 * Padded Tensor:
-The node- and edgelists are given by a full-rank tensor of shape `(batch,N<sub>max</sub>,features)` with N<sub>max</sub> being the maximum number of edges or nodes in the dataset, 
-by padding all unused entries with zero and marking them in an additional mask tensor of shape (batch,N<sub>max</sub>). 
+The node- and edgelists are given by a full-rank tensor of shape `(batch,Nmax,features)` with N<sub>max</sub> being the maximum number of edges or nodes in the dataset, 
+by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,Nmax,feautures)`. 
 This is only practical for highly connected graphs of similar shapes. 
 Applying the mask is done by simply multiplying with the mask tensor. For pooling layers *tf.boolean_mask()* may be slower but can be favourable.
 Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,M)` with number of nodes N and edges per Node M.
