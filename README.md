@@ -1,6 +1,6 @@
-# Keras GCN
+# Keras Graph Convolutions
 
-A set of Layer classes for tensorflow keras to handle graph convolutions.
+A set of layers for graph convolutions in tensorflow keras.
 
 # Table of Contents
 * [General](#general)
@@ -17,7 +17,8 @@ A set of Layer classes for tensorflow keras to handle graph convolutions.
 The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
 Some models are given as an example.
 A documentation is generated in [docs](docs).
-Any comments or suggestions are very welcome.
+This repo is still under construction.
+!! Any comments, suggestions or help are very welcome !! 
 
 <a name="installation"></a>
 # Installation
@@ -37,10 +38,10 @@ Depending on the task those representations can also be combined by casting from
 For more flexibility and a flatten batch-dimension, a dataloader from tf.keras.utils.Sequence is typically used. 
 
 * Ragged Tensor:
-Here the nodelist of shape (batch,None,nodefeatures) and edgelist of shape (batch,None,edgefeatures) are given by ragged tensors with ragged dimension (None,).
-The graph structure is represented by an indexlist of shape (batch,None,2) with index of incoming i and outgoing j node as (i,j). 
-The first index of incoming node i is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with (j,i) is required for undirected graphs.
-In principle also the adjacency matrix can be represented as ragged tensor of shape (batch,None,None) but will be dense within each graph.
+Here the nodelist of shape `(batch,None,nodefeatures)` and edgelist of shape `(batch,None,edgefeatures)` are given by ragged tensors with ragged dimension (None,).
+The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming i and outgoing j node as `(i,j)`. 
+The first index of incoming node i is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs.
+In principle also the adjacency matrix can be represented as ragged tensor of shape `(batch,None,None)` but will be dense within each graph.
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape (batch,Nmax,features) with Nmax being the maximum number of edges or nodes in the dataset, 
