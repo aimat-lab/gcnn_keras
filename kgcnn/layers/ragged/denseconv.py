@@ -58,7 +58,7 @@ class DenseRagged(tf.keras.layers.Layer):
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
         self.bias_regularizer = ks.regularizers.get(bias_regularizer)
         self.kernel_constraint = ks.constraints.get(kernel_constraint)
-        self.bias_constraint = ks.constraints.get(bias_constraint))
+        self.bias_constraint = ks.constraints.get(bias_constraint)
     
         self._supports_ragged_inputs = True 
         

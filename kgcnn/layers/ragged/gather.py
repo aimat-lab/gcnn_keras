@@ -15,7 +15,7 @@ class GatherNodes(ks.layers.Layer):
     The feature of gathered ingoing and outgoing nodes are concatenated according to index tensor.
     
     Args:
-        **kwargs : arguments for layer base class
+        **kwargs
         
     Example:
         out = GatherNodes()([input_node,input_edge_index])   
@@ -54,7 +54,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
     The feature of gathered outgoing nodes are the connected nodes at index[1].
     
     Args:
-        **kwargs : arguments for layer base class
+        **kwargs
         
     Example:
         out = GatherNodesOutgoing()([input_node,input_edge_index])   
@@ -83,9 +83,48 @@ class GatherNodesOutgoing(ks.layers.Layer):
         return out     
     
     
+class GatherState(ks.layers.Layer):
+    """ 
+    Gathers a global state for nodes or edges.
+    
+    Args:
+        **kwargs
+        
+    Example:
+        out = GatherState()([state_node,input_edge])   
+    
+    Input:
+        List of state and node/edge [State,Node/Edge] of shape [(batch,F_s),(batch,None,F_n)]
+        Here state is a dense tensor and node/edgelist is a ragged tensor.
+        
+    Return:
+        A tensor with shape (batch,None,F_s)
+    """
+    def __init__(self, **kwargs):
+        super(GatherState, self).__init__(**kwargs) 
+        self._supports_ragged_inputs = True          
+    def build(self, input_shape):
+        super(GatherState, self).build(input_shape)          
+    def call(self, inputs):
+        env,nod= inputs
+        target_len = nod.row_lengths()
+        out = tf.repeat(env,target_len,axis=0)
+        return out           
+      
+    
 class LazyConcatenateNodes(ks.layers.Layer):
     """ 
+    Concatenate Ragged Nodetensors without checking shape.
     
+    Args:
+        **kwargs
+    
+    Input:
+        [NodeList1,NodeList2] of shape [(batch,None,F),(batch,None,F)]
+        Two ragged tensors of nodes with similar ragged dimension. 
+    
+    Output:
+        Concatenated Nodes with shape (batch,None,F+F) where the row_splits of node 1 are kept.
     """
     def __init__(self, **kwargs):
         super(LazyConcatenateNodes, self).__init__(**kwargs) 
