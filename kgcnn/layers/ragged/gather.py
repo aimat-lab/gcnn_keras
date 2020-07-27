@@ -109,6 +109,7 @@ class GatherState(ks.layers.Layer):
         env,nod= inputs
         target_len = nod.row_lengths()
         out = tf.repeat(env,target_len,axis=0)
+        out = tf.RaggedTensor.from_row_splits(out,nod.row_splits)
         return out           
       
     
