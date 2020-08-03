@@ -1,5 +1,5 @@
 """@package: Keras Layers for gathering nodes using ragged tensors
-@author: Patrick Reiser
+@author: Patrick
 """
 
 import tensorflow as tf
@@ -36,11 +36,12 @@ class GatherNodes(ks.layers.Layer):
         super(GatherNodes, self).build(input_shape)          
     def call(self, inputs):
         nod,edgeind = inputs
-        shiftind = edgeind.values +tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
-        nodind = shiftind
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)  
         dens = nod.values
-        g1 = tf.gather(dens,nodind[:,0])
-        g2 = tf.gather(dens,nodind[:,1])
+        g1 = tf.gather(dens,shiftind[:,0])
+        g2 = tf.gather(dens,shiftind[:,1])
         get = tf.concat([g1,g2],axis=1)
         out = tf.RaggedTensor.from_row_splits(get,edgeind.row_splits)         
         return out     
@@ -61,12 +62,12 @@ class GatherNodesOutgoing(ks.layers.Layer):
     
     Input:
         [NodeList,EdgeIndex] of shape [(batch,None,F_n),(batch,None,2)] with both being ragged tensors.
-        None gives the ragged dimension and F_n is the node feature dimension.
+        None represents the ragged dimension and F_n is the node feature dimension.
         
     Output:
         Gathered outgoing nodes with dimension of index Tensor,
         with entries at index node(index([1])) of shape (batch,None,F_n)
-        the length matches the index Tensor.
+        The length matches the index Tensor.
     """
     def __init__(self, **kwargs):
         super(GatherNodesOutgoing, self).__init__(**kwargs) 
@@ -75,13 +76,53 @@ class GatherNodesOutgoing(ks.layers.Layer):
         super(GatherNodesOutgoing, self).build(input_shape)          
     def call(self, inputs):
         nod,edgeind = inputs
-        shiftind = edgeind.values +tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)       
         nodind = shiftind
         dens = nod.values
         g2= tf.gather(dens,nodind[:,1])
         out = tf.RaggedTensor.from_row_splits(g2,edgeind.row_splits)         
         return out     
+  
     
+class GatherNodesIngoing(ks.layers.Layer):
+    """ 
+    Gathers Ingoing Nodes from ragged tensor by index provided by a ragged index tensor in mini-batches.
+    A Edge at index is the connection for node(index([0])) to node(index([1]))
+    The feature of gathered ingoing nodes at index[0] for the edges in edge tensor.
+    
+    Args:
+        **kwargs
+        
+    Example:
+        out = GatherNodesIngoing()([input_node,input_edge_index])   
+    
+    Input:
+        [NodeList,EdgeIndex] of shape [(batch,None,F_n),(batch,None,2)] with both being ragged tensors.
+        None gives the ragged dimension and F_n is the node feature dimension.
+        
+    Output:
+        Gathered ingoing nodes with dimension of index Tensor,
+        with entries at index node(index([0])) of shape (batch,None,F_n)
+        The length matches the index Tensor.
+    """
+    def __init__(self, **kwargs):
+        super(GatherNodesIngoing, self).__init__(**kwargs) 
+        self._supports_ragged_inputs = True          
+    def build(self, input_shape):
+        super(GatherNodesIngoing, self).build(input_shape)          
+    def call(self, inputs):
+        nod,edgeind = inputs
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        nodind = shiftind
+        dens = nod.values
+        g1= tf.gather(dens,nodind[:,0])
+        out = tf.RaggedTensor.from_row_splits(g1,edgeind.row_splits)         
+        return out  
+
     
 class GatherState(ks.layers.Layer):
     """ 
@@ -94,8 +135,8 @@ class GatherState(ks.layers.Layer):
         out = GatherState()([state_node,input_edge])   
     
     Input:
-        List of state and node/edge [State,Node/Edge] of shape [(batch,F_s),(batch,None,F_n)]
-        Here state is a dense tensor and node/edgelist is a ragged tensor.
+        List of state and ragged node/edgelist [State,Node/Edge] of shape [(batch,F_s),(batch,None,F_n)]
+        Here state is simply a tensor and node/edgelist is a ragged tensor.
         
     Return:
         A tensor with shape (batch,None,F_s)
@@ -121,8 +162,8 @@ class LazyConcatenateNodes(ks.layers.Layer):
         **kwargs
     
     Input:
-        [NodeList1,NodeList2] of shape [(batch,None,F),(batch,None,F)]
-        Two ragged tensors of nodes with similar ragged dimension. 
+        [NodeList1,NodeList2,...] of shape [(batch,None,F_n),(batch,None,F_n),...]
+        Ragged tensors of nodes with similar ragged dimension. 
     
     Output:
         Concatenated Nodes with shape (batch,None,F+F) where the row_splits of node 1 are kept.

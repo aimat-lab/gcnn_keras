@@ -1,5 +1,5 @@
 """@package: Keras Convolutional Layers for Graph Convolutions using ragged tensors
-@author: Patrick Reiser
+@author: Patrick
 """
 
 import tensorflow as tf

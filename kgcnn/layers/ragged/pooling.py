@@ -1,5 +1,5 @@
 """@package: Keras Layers for graph pooling using ragged tensors
-@author: Patrick Reiser
+@author: Patrick
 """
 
 import tensorflow as tf
@@ -32,7 +32,7 @@ class PoolingNodes(ks.layers.Layer):
         super(PoolingNodes, self).build(input_shape)
     def call(self, inputs):
         node = inputs
-        out = self.pool_methode(node,axis=1)
+        out = self.pool_method(node,axis=1)
         return out
 
 
@@ -91,9 +91,11 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         super(PoolingEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
         nod,edge,edgeind = inputs
-        shiftind = edgeind.values +tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
         dens = edge.values
         nodind = shiftind[:,0]
-        get = pool_method(dens,nodind)
+        get = self.pool_method(dens,nodind)
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits)       
         return out     

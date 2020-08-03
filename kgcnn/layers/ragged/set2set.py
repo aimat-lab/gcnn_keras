@@ -1,5 +1,5 @@
 """@package: Layers for Set2Set Readout.
-@author: Patrick Reiser
+@author: Patrick
 
 The Set2Set was used by Gilmer et al. 2017 for Graph convolutions readout.
 It is defined by Vinyals et al. 2016 in https://arxiv.org/abs/1511.06391
