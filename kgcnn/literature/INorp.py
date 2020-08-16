@@ -12,7 +12,7 @@ from kgcnn.layers.set2set import Set2Set
 from kgcnn.layers.batch import RaggedToDisjoint,CastListToRagged
 
 
-def getmodelINOP(
+def getmodelINORP(
             input_nodedim,
             input_edgedim,
             input_envdim,
