@@ -1,6 +1,6 @@
 """Example learning
 """
-
+import time
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as ks
@@ -67,21 +67,28 @@ optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
               metrics=['mean_absolute_error', 'mean_squared_error'])
-
 print(model.summary())
+
 trainlossall = []
 testlossall = []
 validlossall = []
 epo = 400
 epostep = 10
+
+start = time.process_time()
 for iepoch in range(0,epo,epostep):
+
     hist = model.fit(xtrain, ytrain, 
               epochs=iepoch+epostep,
               initial_epoch=iepoch,
               batch_size=48
               )
+
     trainlossall.append(hist.history['mean_absolute_error'][-1])
     testlossall.append(model.evaluate(xval, yval)[1])    
+
+stop = time.process_time()
+print("Print Time for taining: ",stop - start)
 
 trainlossall =np.array(trainlossall)
 testlossall = np.array(testlossall)
