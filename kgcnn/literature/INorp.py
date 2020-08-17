@@ -9,7 +9,7 @@ from kgcnn.layers.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoi
 from kgcnn.layers.conv import ConvFlatten
 from kgcnn.layers.pooling import PoolingEdgesPerNode,PoolingNodes
 from kgcnn.layers.set2set import Set2Set
-from kgcnn.layers.batch import RaggedToDisjoint,CastListToRagged
+from kgcnn.layers.batch import RaggedToDisjoint,CastListToRagged,CastRaggedToList,CorrectIndexListForSubGraph
 
 
 def getmodelINORP(
@@ -28,7 +28,7 @@ def getmodelINORP(
             set2set_dim = 32,
             use_pooling = True,
             add_env = True,
-            pooling_method = "segment_mean",
+            pooling_method = 'segment_mean',
             **kwargs
             ):
 
@@ -43,25 +43,21 @@ def getmodelINORP(
     
     
     ev = GatherState()([uenv,node_len])
-
-    
     # n-Layer Step
     for i in range(0,Depth):
         #upd = GatherNodes()([n,edi])
         eu1 = GatherNodesIngoing()([n,edi])
         eu2 = GatherNodesOutgoing()([n,edi])
-        upd = ks.layers.Concatenate(axis=-1)([eu2,eu1])
+        upd = ks.layers.Concatenate()([eu2,eu1])
         eu = ks.layers.Concatenate(axis=-1)([upd,ed])
-        
         for j in range(len(edge_dim)-1):
             eu = ConvFlatten(edge_dim[j],use_bias=use_bias,activation=activation)(eu)
         eu = ConvFlatten(edge_dim[-1],use_bias=use_bias,activation=activation)(eu)
-        nu = PoolingEdgesPerNode(pooling_method=pooling_method )([eu,edi]) # Summing for each node connection
-        
-        nu = ks.layers.Concatenate(axis=-1)([n,nu])
+        nu = PoolingEdgesPerNode(pooling_method= pooling_method )([eu,edi]) # Summing for each node connection
         if(add_env == True):
-            nu = ks.layers.Concatenate()([nu,ev]) # Concatenate node features with new edge updates
-       
+            nu = ks.layers.Concatenate()([n,nu,ev]) # Concatenate node features with new edge updates
+        else:
+            nu = ks.layers.Concatenate()([n,nu]) # Concatenate node features with new edge updates
         for j in range(len(node_dim)-1):
             nu = ConvFlatten(node_dim[j],use_bias=use_bias,activation=activation)(nu)
         n = ConvFlatten(node_dim[-1],use_bias=use_bias,activation='linear')(nu)
@@ -77,8 +73,8 @@ def getmodelINORP(
     
     if(len(output_dim)>0):
         for j in range(len(output_dim)-1):
-            out =  ConvFlatten(output_dim[j],activation=activation,use_bias=use_bias)(out)
-        main_output =  ConvFlatten(output_dim[-1],name='main_output',activation=output_activ)(out)
+            out =  ks.layers.Dense(output_dim[j],activation=activation,use_bias=use_bias)(out)
+        main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activ)(out)
     else:
         main_output = out
     
