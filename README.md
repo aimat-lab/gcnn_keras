@@ -4,8 +4,8 @@ A set of layers for graph convolutions in tensorflow keras.
 
 # Table of Contents
 * [General](#general)
-* [Implementation details](#implementation-details)
 * [Installation](#installation)
+* [Implementation details](#implementation-details)
 * [Datasets](#datasets)
 * [Examples](#examples)
 * [Tests](#tests)
@@ -36,18 +36,18 @@ pip install -e ./gcnn_keras
 The most frequent usage for graph convolutions are either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
 Graphs can be represented by a connection table and feature information. Typical quantities in tensorform to describe a graph are listed below.
 
-* $n$: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
-* $$e$$: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
-* $$m$$: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
-* $$A$$: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and 0 otherwise. 
-* $$E$$: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that are have $A(i,j) \neq 0$ are meaningful.
+* `n`: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
+* `e`: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
+* `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
+* `A`: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and 0 otherwise. 
+* `E`: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that are have `A(i,j) not 0` are meaningful.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Most graph implementations use a disjoint representation within a single graph. 
 As a result, the batched subgraphs are converted into a larger graph which can be treated the same way as a single graph. 
 However, for some layers, like e.g. pooling layers the division into subgraphs has to be treated explicitly and is commonly done by a subgraph id-tensor of the former batch assignment.
 The figure below shows the idea of disjoint subgraphs. 
 
-Here, a set of conversion layers in layers.disjoint.batch are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can be used for a single graph. 
+Here, a set of conversion layers in [kgcnn.layers.disjoint.batch](layers.disjoint.batch) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can be used for a single graph. 
 The graph tensors to pass between layers then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
 
 Nonetheless, batched representations which are kept between keras layers via ragged, sparse, padded+mask tensors are still investigated in layers.ragged and layers.padded with some pros and cons depending on the situation. 
@@ -61,14 +61,12 @@ Morover for more flexibility, a dataloader from tf.keras.utils.Sequence is often
 Here, 
 
 * Ragged Tensor:
-
 Here the nodelist of shape `(batch,None,nodefeatures)` and edgelist of shape `(batch,None,edgefeatures)` are given by ragged tensors with ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming i and outgoing j node as `(i,j)`. 
 The first index of incoming node i is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs.
 In principle also the adjacency matrix can be represented as ragged tensor of shape `(batch,None,None)` but will be dense within each graph.
 
 * Padded Tensor:
-
 The node- and edgelists are given by a full-rank tensor of shape `(batch,Nmax,features)` with N<sub>max</sub> being the maximum number of edges or nodes in the dataset, 
 by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,Nmax,feautures)`. 
 This is only practical for highly connected graphs of similar shapes. 
