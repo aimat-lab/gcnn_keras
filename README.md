@@ -58,8 +58,8 @@ Nonetheless, batched representations, which are kept between keras layers via ra
 
 In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. 
 Depending on the task those representations can be combined by casting from one to the other.
-Morover for more flexibility, a dataloader from tf.keras.utils.Sequence is often used used. 
-Here, 
+Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used used. 
+Here, the input forms below are most suitable. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/data/utils.py)
 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
@@ -76,7 +76,7 @@ Besides the adjacencymatrix also the index list can be arranged in a matrix form
 <a name="literature"></a>
 # Literature
 The following models are implemented in [literature](kgcnn/literature):
-* **[INorp](kcgnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
+* **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
 
 <a name="datasets"></a>
 # Datasets
