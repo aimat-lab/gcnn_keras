@@ -32,15 +32,15 @@ pip install -e ./gcnn_keras
 <a name="implementation-details"></a>
 # Implementation details
 
-## Representation
+### Representation
 The most frequent usage for graph convolutions are either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
 Graphs can be represented by a connection table and feature information. Typical quantities in tensorform to describe a graph are listed below.
 
-* $$n$$: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
+* $n$: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * $$e$$: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
 * $$m$$: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
 * $$A$$: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and 0 otherwise. 
-* $$E$$: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that are have $$A(i,j) \neq 0$$ are meaningful.
+* $$E$$: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that are have $A(i,j) \neq 0$ are meaningful.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Most graph implementations use a disjoint representation within a single graph. 
 As a result, the batched subgraphs are converted into a larger graph which can be treated the same way as a single graph. 
@@ -53,7 +53,7 @@ The graph tensors to pass between layers then do not have a batch dimension anym
 Nonetheless, batched representations which are kept between keras layers via ragged, sparse, padded+mask tensors are still investigated in layers.ragged and layers.padded with some pros and cons depending on the situation. 
 
 
-## Input
+### Input
 
 In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. 
 Depending on the task those representations can be combined by casting from one to the other.
