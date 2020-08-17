@@ -48,7 +48,7 @@ def getmodelINORP(
         #upd = GatherNodes()([n,edi])
         eu1 = GatherNodesIngoing()([n,edi])
         eu2 = GatherNodesOutgoing()([n,edi])
-        upd = ks.layers.Concatenate()([eu2,eu1])
+        upd = ks.layers.Concatenate(axis=-1)([eu2,eu1])
         eu = ks.layers.Concatenate(axis=-1)([upd,ed])
         for j in range(len(edge_dim)-1):
             eu = ConvFlatten(edge_dim[j],use_bias=use_bias,activation=activation)(eu)
