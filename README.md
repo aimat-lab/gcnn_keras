@@ -76,7 +76,7 @@ Besides the adjacencymatrix also the index list can be arranged in a matrix form
 <a name="literature"></a>
 # Literature
 The following models are implemented in [literature](kgcnn/literature):
-* **[INorp](kcgnn/)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
+* **[INorp](kcgnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
 
 <a name="datasets"></a>
 # Datasets
