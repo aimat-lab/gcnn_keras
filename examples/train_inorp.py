@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from kgcnn.data.qm.setupQM import qm7b_download_dataset
 from kgcnn.data.qm.QMFile import QM7bFile
 from kgcnn.literature.INorp import getmodelINORP
-#from gcnn.literature.modelINOP import getmodelINOP
+
 
 # Download Dataset
 qm7b_download_dataset("")
