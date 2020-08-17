@@ -41,7 +41,7 @@ Graphs can be represented by a connection table plus feature information. Typica
 * `e`: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
 * `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
 * `A`: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and 0 otherwise. 
-* `E`: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that are have `A(i,j) not 0` are meaningful.
+* `E`: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that have `A(i,j) not 0` are meaningful.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Most graph implementations use a disjoint representation within a single graph. 
 As a result, the batched subgraphs are converted into a larger graph which can be treated the same way as a single graph. 
@@ -63,20 +63,24 @@ Here, the input forms below are most suitable. Tools for converting numpy or sci
 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
-The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming i and outgoing j node as `(i,j)`. 
-The first index of incoming node i is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs.
+The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
+The first index of incoming node `i` is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs.
 In principle also the adjacency matrix can be represented as ragged tensor of shape `(batch,None,None)` but will be dense within each graph.
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
 by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,N)`. 
 This is only practical for highly connected graphs of similar shapes. 
-Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,L)` with number of nodes N and edges per Node L.
+Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,L)` with number of nodes `N` and edges per Node `L`.
 
 <a name="literature"></a>
 # Literature
 The following models are implemented in [literature](kgcnn/literature):
 * **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
+* **[Megnet](kgcnn/literature/Megnet.py)** [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)
+* **[NMPN](kgcnn/literature/NMPN.py)** [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
+* **[Schnet](kgcnn/literature/Schnet.py)** [SchNet – A deep learning architecture for molecules and materials ](https://aip.scitation.org/doi/10.1063/1.5019779) by Schütt et al. (2017)
+
 
 <a name="datasets"></a>
 # Datasets
