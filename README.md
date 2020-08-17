@@ -69,9 +69,9 @@ In principle also the adjacency matrix can be represented as ragged tensor of sh
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
-by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,N,F)`. 
+by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,N)`. 
 This is only practical for highly connected graphs of similar shapes. 
-Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,M)` with number of nodes N and edges per Node M.
+Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,L)` with number of nodes N and edges per Node L.
 
 <a name="literature"></a>
 # Literature
