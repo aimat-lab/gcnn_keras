@@ -5,11 +5,11 @@ https://github.com/higgsfield/interaction_network_pytorch
 import tensorflow.keras as ks
 import tensorflow as tf
 
-from kgcnn.layers.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing
-from kgcnn.layers.conv import ConvFlatten
-from kgcnn.layers.pooling import PoolingEdgesPerNode,PoolingNodes
-from kgcnn.layers.set2set import Set2Set
-from kgcnn.layers.batch import RaggedToDisjoint,CastListToRagged,CastRaggedToList,CorrectIndexListForSubGraph
+from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing
+from kgcnn.layers.disjoint.conv import ConvFlatten
+from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes
+from kgcnn.layers.disjoint.set2set import Set2Set
+from kgcnn.layers.disjoint.batch import RaggedToDisjoint,CastListToRagged,CastRaggedToList,CorrectIndexListForSubGraph
 
 
 def getmodelINORP(
