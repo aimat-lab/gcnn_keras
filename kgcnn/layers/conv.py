@@ -33,9 +33,9 @@ class ConvFlatten(ks.layers.Layer):
                  **kwargs):
         
         super(ConvFlatten, self).__init__(**kwargs)
-        #self.channels = channels
-        #self.use_bias = use_bias
-        #self.activation = activation
+        self.channels = channels
+        self.use_bias = use_bias
+        self.activation = activation
         
         #Conv Layer from keras
         #self.lay_conv1 = ks.layers.Conv1D(channels,kernel_size=1, activation=self.activation,use_bias=self.use_bias) 
@@ -46,7 +46,9 @@ class ConvFlatten(ks.layers.Layer):
     def call(self, inputs):
         node= inputs
         #Expand dim to apply a Conv1D on the list.
-        bn = K.expand_dims(node ,axis = 0)
+        #bn = K.expand_dims(node ,axis = 0)
+        bn = node
         bn = self.lay_conv1(bn)
-        out = K.squeeze(bn,axis=0)
+        out = bn
+        #out = K.squeeze(bn,axis=0)
         return out
