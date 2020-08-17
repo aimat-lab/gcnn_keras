@@ -48,7 +48,7 @@ As a result, the batched subgraphs are converted into a larger graph which can b
 However, for some layers, like e.g. pooling layers the division into subgraphs has to be treated explicitly and is commonly solved by a subgraph id-tensor of the former batch assignment.
 The figure below shows the idea of disjoint subgraphs. 
 
-Here, a set of conversion layers in [disjoint](kgcnn.layers.disjoint.batch) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
+Here, a set of conversion layers in [disjoint](kgcnn/layers/disjoint) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
 The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
 
 Nonetheless, batched representations, which are kept between keras layers via ragged, sparse, padded+mask tensors, are still investigated in [ragged](kgcnn.layers.disjoint.ragged) and -...- with some pros and cons depending on the situation. 
@@ -75,6 +75,8 @@ Besides the adjacencymatrix also the index list can be arranged in a matrix form
 
 <a name="literature"></a>
 # Literature
+The following models are implemented in [literature](kgcnn/literature):
+* **[INorp](kcgnn/)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
 
 <a name="datasets"></a>
 # Datasets
