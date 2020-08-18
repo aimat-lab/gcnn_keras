@@ -77,7 +77,7 @@ Besides the adjacencymatrix also the index list can be arranged in a matrix form
 
 <a name="literature"></a>
 # Literature
-The following models are implemented in [literature](kgcnn/literature):
+The version of the following models are implemented in [literature](kgcnn/literature):
 * **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics) by Battaglia et al. (2016)
 * **[Megnet](kgcnn/literature/Megnet.py)**: [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)
 * **[NMPN](kgcnn/literature/NMPN.py)**: [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
