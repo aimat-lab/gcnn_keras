@@ -73,11 +73,15 @@ class QM7bFile:
         self.ylabels = None
         self.coulmat = None
         self.distmat = None
+        self.invdistmat = None
         self.atomlables = None
         self.proton = None
         
-        self.bonds = None
-        self.bondcoulomb = None
+        #bond-like properties
+        self.bonds_index = None
+        self.bonds_coulomb = None
+        self.bonds_invdist = None
+        self.bonds_dist = None
         
         self.filepath = filepath
         if(filepath != None):
@@ -114,21 +118,23 @@ class QM7bFile:
         b = np.expand_dims(z, axis = len(z.shape))
         zz = a*b
         c = coulmat*zz
+        dinv = np.array(c)
         with np.errstate(divide='ignore', invalid='ignore'):
             c = np.true_divide(1,c)
             c[c == np.inf] = 0
             c = np.nan_to_num(c)
         c[...,indslie,indslie] = 0
-        return c,np.around(prot),numat
+        dinv[...,indslie,indslie] = 0
+        return c,dinv,np.around(prot),numat
 
     
-    def _bonds(self,coulomb):
+    def make_bonds(self,coulomb,dist,invdist):
         """bond list of coulomb interactions for (N,N) -> (N*N-N,2),(N*N-N,)"""
         index1 = np.tile(np.expand_dims(np.arange(0,coulomb.shape[0]),axis=1),(1,coulomb.shape[1]))
         index2 = np.tile(np.expand_dims(np.arange(0,coulomb.shape[1]),axis=0),(coulomb.shape[0],1))
         mask = index1 != index2
         index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
-        return index12[mask],coulomb[mask]
+        return index12[mask],coulomb[mask],dist[mask],invdist[mask]
     
     def loadQM7b(self,filepath=None):
         """Load QM7b dataset from file."""
@@ -140,28 +146,22 @@ class QM7bFile:
         self.DataSetLength = len(y)
         self.ylabels = y
         
-        c,z,n = self._coulombmat_to_dist_z(X)
+        c,dinv,z,n = self._coulombmat_to_dist_z(X)
+        
         self.coulmat = [X[i][:n[i],:n[i]] for i in range(self.DataSetLength)]
         self.proton = [z[i][:n[i]] for i in range(self.DataSetLength)]
+        self.invdistmat = [dinv[i][:n[i],:n[i]]*0.52917721090380 for i in range(self.DataSetLength)]
         self.numatoms = n
+        self.distmat = [c[i][:n[i],:n[i]]*0.52917721090380 for i in range(self.DataSetLength)]
+        self.coodinates =  [self._coordinates_from_distancematrix(x) for x in self.distmat ]
+        self.atomlables = [[self.Zlist[int(x)] for x in self.proton[i]] for i in range(self.DataSetLength)]
         
-        dlist = []
-        zlist = []
-        atstr = []
-        for i in range(0,self.DataSetLength):
-            dlist.append(c[i][:n[i],:n[i]]*0.52917721090380)#bohr to A
-            z_i = z[i][:n[i]]
-            zlist.append(z_i)
-            atstr.append([self.Zlist[int(x)] for x in z_i])
+        bonds = [self.make_bonds(self.coulmat[i],self.distmat[i],self.invdistmat[i]) for i in range(self.DataSetLength)]
         
-        clist =  [self._coordinates_from_distancematrix(x) for x in dlist]
-        self.coodinates = clist
-        self.atomlables = atstr
-        self.distmat = dlist
-        
-        bonds = [self._bonds(x) for x in self.coulmat]
-        self.bonds = [x[0] for x in bonds]
-        self.bondcoulomb = [x[1] for x in bonds]
+        self.bond_index = [x[0] for x in bonds]
+        self.bonds_coulomb = [x[1] for x in bonds]
+        self.bonds_dist = [x[2] for x in bonds]
+        self.bonds_invdist = [x[3] for x in bonds]
         
         return X,y
 

@@ -26,7 +26,7 @@ def qm7b_download_dataset(path,overwrite=False):
         open(datapath,'wb').write(r.content) 
         print("done")
     else:
-        print("QM7b database already exists")
+        print("Data: QM7b database already exists")
         
     return datapath
 
@@ -46,7 +46,7 @@ def qm7_download_dataset(path,overwrite=False):
         open(datapath,'wb').write(r.content) 
         print("done")
     else:
-        print("QM7 database already exists")
+        print("Data: QM7 database already exists")
         
     return datapath
 
@@ -66,7 +66,7 @@ def qm9_download_dataset(path,overwrite=False):
         open(os.path.join(path,'dsgdb9nsd.xyz.tar.bz2'),'wb').write(r.content) 
         print("done")
     else:
-        print("Dataset found ... done")
+        print("Data: Dataset found ... done")
     return os.path.join(path,'dsgdb9nsd.xyz.tar.bz2') 
 
 
