@@ -96,7 +96,8 @@ class Set2Set(ks.layers.Layer):
             self._pool = K.mean
         elif(self.pooling_method == 'sum'):
             self._pool = K.sum        
-        #...
+        else:
+            raise TypeError("Unknown pooling, choose: 'mean', 'sum', ...")
         
         if(self.init_qstar == 'mean'):
             self.qstar0 = self.init_qstar_mean

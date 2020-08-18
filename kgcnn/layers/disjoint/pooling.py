@@ -36,7 +36,8 @@ class PoolingEdgesPerNode(ks.layers.Layer):
             self._pool = tf.math.segment_mean
         elif(self.pooling_method == "segment_sum"):
             self._pool = tf.math.segment_sum
-        #...
+        else:
+            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
         
     def build(self, input_shape):
         super(PoolingEdgesPerNode, self).build(input_shape)
@@ -75,7 +76,8 @@ class PoolingNodes(ks.layers.Layer):
             self._pool = tf.math.segment_mean
         elif(self.pooling_method == "segment_sum"):
             self._pool = tf.math.segment_sum
-        #...
+        else:
+            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
             
     def build(self, input_shape):
         super(PoolingNodes, self).build(input_shape)
@@ -87,7 +89,7 @@ class PoolingNodes(ks.layers.Layer):
         #Output should have correct shape
         return out
     def get_config(self):
-        config = super(PoolingEdgesPerNode, self).get_config()
+        config = super(PoolingNodes, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config 
 
@@ -115,7 +117,8 @@ class PoolingAllEdges(ks.layers.Layer):
             self._pool = tf.math.segment_mean
         elif(self.pooling_method == "segment_sum"):
             self._pool = tf.math.segment_sum
-        #...
+        else:
+            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
             
     def build(self, input_shape):
         super(PoolingAllEdges, self).build(input_shape)
@@ -127,6 +130,6 @@ class PoolingAllEdges(ks.layers.Layer):
         #Output already has correct shape
         return out
     def get_config(self):
-        config = super(PoolingEdgesPerNode, self).get_config()
+        config = super(PoolingAllEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config 

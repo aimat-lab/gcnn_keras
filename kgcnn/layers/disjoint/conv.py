@@ -14,7 +14,7 @@ class ConvFlatten(ks.layers.Layer):
     """
     Layer to handle trainable weights. Possible ways to do it:
         1. use add_weights and use K.dot
-        2. use keras.Dense with added first dimension
+        2. use keras.Dense (with optinal added first dimension)
         3. use keras.Conv1D(kernel=1) and added first dimension
     
     Args:
@@ -33,9 +33,9 @@ class ConvFlatten(ks.layers.Layer):
                  **kwargs):
         
         super(ConvFlatten, self).__init__(**kwargs)
-        self.channels = channels
-        self.use_bias = use_bias
-        self.activation = activation
+        #self.channels = channels
+        #self.use_bias = use_bias
+        #self.activation = activation
         
         #Conv Layer from keras
         #self.lay_conv1 = ks.layers.Conv1D(channels,kernel_size=1, activation=self.activation,use_bias=self.use_bias) 
