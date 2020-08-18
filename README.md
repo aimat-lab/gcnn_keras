@@ -48,6 +48,8 @@ As a result, the batched subgraphs are converted into a larger graph which can b
 However, for some layers, like e.g. pooling layers the division into subgraphs has to be treated explicitly and is commonly solved by a subgraph id-tensor of the former batch assignment.
 The figure below shows the idea of disjoint subgraphs. 
 
+![disjoint](docs/disjoint.png "Dijoint subgraph representation")
+
 Here, a set of conversion layers in [disjoint](kgcnn/layers/disjoint) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
 The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
 
