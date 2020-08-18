@@ -23,18 +23,30 @@ class PoolingNodes(ks.layers.Layer):
         Pooled Nodes of shape (batch,<F_n>)
     """
     def __init__(self,
-                 pooling_method = tf.math.reduce_mean ,
+                 pooling_method = "reduce_mean" ,
                  **kwargs):
         super(PoolingNodes, self).__init__(**kwargs)
-        self.pool_method = pooling_method
+        self.pooling_method = pooling_method
+        
+        if(self.pooling_method == "reduce_mean"):
+            self._pool = tf.math.reduce_mean
+        elif(self.pooling_method == "reduce_sum"):
+            self._pool = tf.math.reduce_sum
+        else:
+            raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
+        
         self._supports_ragged_inputs = True 
     def build(self, input_shape):
         super(PoolingNodes, self).build(input_shape)
     def call(self, inputs):
         node = inputs
-        out = self.pool_method(node,axis=1)
+        out = self._pool(node,axis=1)
         return out
-
+    def get_config(self):
+        config = super(PoolingNodes, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        return config 
+    
 
 class PoolingAllEdges(ks.layers.Layer):
     """
@@ -55,14 +67,25 @@ class PoolingAllEdges(ks.layers.Layer):
                  **kwargs):
         super(PoolingAllEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
-        self.pool_method  = pooling_method 
+        self.pooling_method  = pooling_method 
+        
+        if(self.pooling_method == "reduce_mean"):
+            self._pool = tf.math.reduce_mean
+        elif(self.pooling_method == "reduce_sum"):
+            self._pool = tf.math.reduce_sum
+        else:
+            raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
+        
     def build(self, input_shape):
         super(PoolingAllEdges, self).build(input_shape)
     def call(self, inputs):
         edge = inputs        #Apply segmented mean
-        out = self.pool_method(edge,axis=1)
+        out = self._pool(edge,axis=1)
         return out
-
+    def get_config(self):
+        config = super(PoolingAllEdges, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        return config 
 
 
 class PoolingEdgesPerNode(ks.layers.Layer):
@@ -70,7 +93,8 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
     Args:
-        pooling_method : tf.function to pool edges compatible with ragged tensors.
+        pooling_method (str): tf.function to pool edges compatible with ragged tensors.
+        ragged_validate (bool): False
         **kwargs
     
     Inputs:
@@ -82,11 +106,21 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.
     """
     def __init__(self, 
-                 pooling_method=tf.math.segment_mean,
+                 pooling_method="segment_mean",
+                 ragged_validate = False,
                  **kwargs):
         super(PoolingEdgesPerNode, self).__init__(**kwargs) 
         self._supports_ragged_inputs = True          
-        self.pool_method  = pooling_method 
+        self.pooling_method  = pooling_method
+        
+        if(self.pooling_method == "segment_mean"):
+            self._pool = tf.math.segment_mean
+        elif(self.pooling_method == "segment_sum"):
+            self._pool = tf.math.segment_sum
+        else:
+            raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
+        
+        self.ragged_validate = ragged_validate
     def build(self, input_shape):
         super(PoolingEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
@@ -96,6 +130,11 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
         dens = edge.values
         nodind = shiftind[:,0]
-        get = self.pool_method(dens,nodind)
-        out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=False)       
+        get = self._pool(dens,nodind)
+        out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
+    def get_config(self):
+        config = super(PoolingEdgesPerNode, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        config.update({"ragged_validate": self.ragged_validate})
+        return config  

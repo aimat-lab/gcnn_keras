@@ -29,7 +29,7 @@ class CastRaggedToDense(tf.keras.layers.Layer):
         return inputs.to_tensor()
 
 
-class CastRaggedToFlatten(ks.layers.Layer):
+class CastRaggedToList(ks.layers.Layer):
     """
     Cast a ragged tensor input to a value plus row_length tensor.
     Args:
@@ -42,10 +42,10 @@ class CastRaggedToFlatten(ks.layers.Layer):
         A tuple [Values,Row_length] extracted from the ragged tensor
     """
     def __init__(self, **kwargs):
-        super(CastRaggedToFlatten, self).__init__(**kwargs)
+        super(CastRaggedToList, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
     def build(self, input_shape):
-        super(CastRaggedToFlatten, self).build(input_shape)
+        super(CastRaggedToList, self).build(input_shape)
     def call(self, inputs):
         tens = inputs
         flat_tens = tens.values

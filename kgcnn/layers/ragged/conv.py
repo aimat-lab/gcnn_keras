@@ -94,4 +94,29 @@ class DenseRagged(tf.keras.layers.Layer):
             outputs = tf.ragged.map_flat_values(tf.nn.bias_add,outputs, self.bias)
         
         outputs =  tf.ragged.map_flat_values(self.activation,outputs)
-        return outputs    
+        return outputs
+    
+    def get_config(self):
+        config = super(DenseRagged, self).get_config()
+        config.update({
+        'units':
+            self.units,
+        'activation':
+            ks.activations.serialize(self.activation),
+        'use_bias':
+            self.use_bias,
+        'kernel_initializer':
+            ks.initializers.serialize(self.kernel_initializer),
+        'bias_initializer':
+            ks.initializers.serialize(self.bias_initializer),
+        'kernel_regularizer':
+            ks.regularizers.serialize(self.kernel_regularizer),
+        'bias_regularizer':
+            ks.regularizers.serialize(self.bias_regularizer),
+        'kernel_constraint':
+            ks.constraints.serialize(self.kernel_constraint),
+        'bias_constraint':
+            ks.constraints.serialize(self.bias_constraint)
+        })
+        return config
+ 

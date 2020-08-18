@@ -61,7 +61,7 @@ class Set2Set(ks.layers.Layer):
     def __init__(   self, 
                     channels,
                     T=3,
-                    pool_method = K.mean,
+                    pooling_method = 'mean',
                     init_qstar = 'mean',
                     #Args for LSTM
                     activation="tanh",
@@ -93,9 +93,17 @@ class Set2Set(ks.layers.Layer):
         ## Number of Channels to use in LSTM
         self.channels = channels
         self.T = T # Number of Iterations to work on memory
-        self.pool_method = pool_method
+        self.pooling_method = pooling_method
+        self.init_qstar = init_qstar
         
-        if(init_qstar == 'mean'):
+        if(self.pooling_method == 'mean'):
+            self._pool = K.mean
+        elif(self.pooling_method == 'sum'):
+            self._pool = K.sum        
+        else:
+            raise TypeError("Unknown pooling, choose: mean, sum, ...")
+        
+        if(self.init_qstar == 'mean'):
             self.qstar0 = self.init_qstar_mean
         else:
             self.qstar0 = self.init_qstar_0
@@ -174,7 +182,7 @@ class Set2Set(ks.layers.Layer):
         Note:
             can apply sum or mean etc.
         """
-        fet = self.pool_method(fm*fq,axis=1) #(batch*num,1)
+        fet = self._pool(fm*fq,axis=1) #(batch*num,1)
         return fet
     
     def get_scale_per_batch(self,x):
@@ -214,4 +222,11 @@ class Set2Set(ks.layers.Layer):
         qstar = K.concatenate([q,rt],axis=1) #(batch,2*feat)
         qstar = K.expand_dims(qstar,axis=1) #(batch,1,2*feat)
         return qstar
-        
+    
+    def get_config(self):
+        config = super(Set2Set, self).get_config()
+        config.update({"channels": self.channels})
+        config.update({"T": self.T})
+        config.update({"pooling_method": self.pooling_method})
+        config.update({"init_qstar": self.init_qstar})
+        return config 
