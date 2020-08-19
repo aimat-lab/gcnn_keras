@@ -17,7 +17,7 @@ qm7b_download_dataset("")
 
 # Read dataset
 qm7b = QM7bFile("qm7b.mat")
-y_data = qm7b.ylabels[:,8] + 7.0 # HOMO + some offset
+y_data = qm7b.ylabels[:,9] + 2.0 # LUMO + some offset
 x_data = [qm7b.proton, 
           [np.expand_dims(x,axis=-1) for x in qm7b.bonds_invdist],
           qm7b.bond_index, 
