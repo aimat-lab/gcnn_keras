@@ -53,9 +53,9 @@ The figure below shows the idea of disjoint subgraphs.
 Here, a set of conversion layers in [disjoint](kgcnn/layers/disjoint) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
 The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
 
-Nonetheless, batched representations, which are kept between keras layers via ragged, sparse, padded+mask tensors, are can be good alternatives. 
+Nonetheless, batched representations, which are kept between keras layers via ragged, sparse, padded+mask tensors, can be good alternatives. 
 
-Especially with ragged tensosrs, there is clean way of passing batched graphs between layers. A complete set of layers that work solemnly with ragged tensors and offer the best interface in the spirit of keras are given in[ragged](kgcnn/layers/ragged).
+Especially with ragged tensosrs, there is clean way of passing batched graphs between layers. A complete set of layers that work solemnly with ragged tensors and offer the best interface in the spirit of keras are given in [ragged](kgcnn/layers/ragged).
 
 Finally padded tensors do have some niche usage for graphs of similar shape. Layers handling padded tensors are given in [padded](kgcnn/layers/padded) with some pros and cons depending on the situation. 
 
