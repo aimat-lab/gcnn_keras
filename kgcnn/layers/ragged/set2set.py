@@ -175,10 +175,13 @@ class Set2Set(ks.layers.Layer):
     def f_et(self,fm,fq):
         """
         Function to compute scalar from m and q
+        
         Args:
             [m,q] of shape [(batch*num,feat),(batch*num,feat)]
+        
         Returns:
             et of shape #(batch*num,)
+        
         Note:
             can apply sum or mean etc.
         """

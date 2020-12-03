@@ -98,17 +98,19 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         **kwargs
     
     Inputs:
-        [Node, edge and edgeindex] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2)]
+        [node, edge and edgeindex] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2)]
         Note that the ragged dimension of edge and edgeindex has to match. 
         And that the edgeindexlist is sorted for the first, ingoing node index to apply e.g. segment_mean
     
     Outputs:
         Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.
     """
+    
     def __init__(self, 
                  pooling_method="segment_mean",
                  ragged_validate = False,
                  **kwargs):
+        """Initialize layer."""
         super(PoolingEdgesPerNode, self).__init__(**kwargs) 
         self._supports_ragged_inputs = True          
         self.pooling_method  = pooling_method
@@ -122,8 +124,10 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
+        """Build layer."""
         super(PoolingEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
+        """Forward pass."""
         nod,edge,edgeind = inputs
         shift1 = edgeind.values
         shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
@@ -134,6 +138,64 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
     def get_config(self):
+        config = super(PoolingEdgesPerNode, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        config.update({"ragged_validate": self.ragged_validate})
+        return config
+
+
+class PoolingWeightedEdgesPerNode(ks.layers.Layer):
+    """ 
+    Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
+    
+    Args:
+        pooling_method (str): tf.function to pool edges compatible with ragged tensors.
+        ragged_validate (bool): False
+        **kwargs
+    
+    Inputs:
+        [node, edge, edgeindex, weight] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2),(batch,None,1)]
+        Note that the ragged dimension of edge and edgeindex and weight has to match. 
+        And that the edgeindexlist is sorted for the first, ingoing node index to apply e.g. segment_mean
+        The weight is the entry in the ajacency matrix for the edges in the list and must be broadcasted or match in dimension.
+    
+    Outputs:
+        Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.     
+    """
+    
+    def __init__(self, 
+                 pooling_method="segment_mean",
+                 ragged_validate = False,
+                 **kwargs):
+        """Initialize layer."""
+        super(PoolingEdgesPerNode, self).__init__(**kwargs) 
+        self._supports_ragged_inputs = True          
+        self.pooling_method  = pooling_method
+        
+        if(self.pooling_method == "segment_mean"):
+            self._pool = tf.math.segment_mean
+        elif(self.pooling_method == "segment_sum"):
+            self._pool = tf.math.segment_sum
+        else:
+            raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
+        
+        self.ragged_validate = ragged_validate
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingEdgesPerNode, self).build(input_shape)          
+    def call(self, inputs):
+        """Forward pass."""
+        nod,edge,edgeind,weights = inputs
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        dens = edge.values * weights.values
+        nodind = shiftind[:,0]
+        get = self._pool(dens,nodind)
+        out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
+        return out     
+    def get_config(self):
+        """Update layer config."""
         config = super(PoolingEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})

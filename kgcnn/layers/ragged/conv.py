@@ -45,6 +45,7 @@ class DenseRagged(tf.keras.layers.Layer):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
+        """Initialize layer same as Dense."""
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
         
@@ -63,7 +64,7 @@ class DenseRagged(tf.keras.layers.Layer):
         self._supports_ragged_inputs = True 
         
     def build(self, input_shape):
-        
+        """Build layer's kernel and bias."""
         last_dim = input_shape[-1]
         
         # Add Kernel 
@@ -89,6 +90,7 @@ class DenseRagged(tf.keras.layers.Layer):
         super(DenseRagged, self).build(input_shape)  #should set sef.built = True
         
     def call(self, inputs):
+        """Forward pass."""
         outputs = tf.ragged.map_flat_values(tf.matmul,inputs, self.kernel)
         if self.use_bias:
             outputs = tf.ragged.map_flat_values(tf.nn.bias_add,outputs, self.bias)
@@ -97,6 +99,7 @@ class DenseRagged(tf.keras.layers.Layer):
         return outputs
     
     def get_config(self):
+        """Update config."""
         config = super(DenseRagged, self).get_config()
         config.update({
         'units':

@@ -11,7 +11,7 @@ import tensorflow.keras.backend as K
 class GatherNodes(ks.layers.Layer):
     """ 
     Gathers Nodes from ragged tensor by index provided by a ragged index tensor in mini-batches.
-    A Edge at index is the connection for node(index([0])) to node(index([1]))
+    A edge at index is the connection for node(index([0])) to node(index([1]))
     The feature of gathered ingoing and outgoing nodes are concatenated according to index tensor.
     
     Args:
@@ -182,12 +182,14 @@ class GatherState(ks.layers.Layer):
         config = super(GatherState, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
         return config 
+
     
 class LazyConcatenateNodes(ks.layers.Layer):
     """ 
-    Concatenate Ragged Nodetensors without checking shape.
+    Concatenate ragged nodetensors without checking shape. Ragged dimension only at first axis.
     
     Args:
+        axis (int): Axis to concatenate. Default is -1.
         ragged_validate (bool): False
         **kwargs
     
@@ -196,24 +198,28 @@ class LazyConcatenateNodes(ks.layers.Layer):
         Ragged tensors of nodes with similar ragged dimension. 
     
     Output:
-        Concatenated Nodes with shape (batch,None,F+F) where the row_splits of node 1 are kept.
+        Concatenated Nodes with shape (batch,None,sum(F)) where the row_splits of first nodelist are kept.
     """
     def __init__(self,
+                 axis = -1,
                  ragged_validate = False,
                  **kwargs):
+        """Initialize layer."""
         super(LazyConcatenateNodes, self).__init__(**kwargs) 
         self._supports_ragged_inputs = True 
-        self.ragged_validate = ragged_validate         
+        self.ragged_validate = ragged_validate   
+        self.axis = axis
     def build(self, input_shape):
+        """Build layer."""
         super(LazyConcatenateNodes, self).build(input_shape)          
     def call(self, inputs):
-        node,node2 = inputs
-        dens = node.values
-        dens2 = node2.values
-        out = tf.keras.backend.concatenate([dens,dens2],axis=-1)
-        out = tf.RaggedTensor.from_row_splits(out,node.row_splits,validate=self.ragged_validate) 
+        """Forward pass."""
+        out = tf.keras.backend.concatenate([x.values for x in inputs],axis=self.axis)
+        out = tf.RaggedTensor.from_row_splits(out,inputs[0].row_splits,validate=self.ragged_validate) 
         return out     
     def get_config(self):
+        """Update config."""
         config = super(LazyConcatenateNodes, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
+        config.update({"axis": self.axis})
         return config 
