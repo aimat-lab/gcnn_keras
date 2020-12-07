@@ -68,7 +68,7 @@ Here, the following input forms are listed. Tools for converting numpy or scipy 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an edge-weight ragged tensor is to be provided.
+The first index of incoming node `i` is expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an edge-weight ragged tensor is to be provided `(batch,None,1)`.
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
