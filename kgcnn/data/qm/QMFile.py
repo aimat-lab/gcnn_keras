@@ -8,62 +8,13 @@ import numpy as np
 import os
 from scipy.io import loadmat
 
-
-class QM9File:
-    """
-    Class to represent a QM9 Datafile. Used as a Fileloader. 
-    """
-    #static
-    AtomDictionary = {'H': 1,'C': 6,'N':7,'O':8,'F':9}
-    LabelsProperty = ["index","A","B","C","mu","alpha","homo","lumo","gap","r2","zpve","U0","U","H","G","Cv"]
-    
-    def __init__(self,filepath=None):
-        
-        #Paramter Molecule 
-        self.NumAtom = None
-        self.ProtonNumber = None
-        self.AtomList = None
-        self.Coord3DAtom = None
-        self.NumFreq = None
-        self.Freq = None
-        self.Mulligan = None
-        self.Smiles = None
-        self.InChI = None
-        self.Labels = None
-        
-        self.filepath = filepath  
-        if(filepath != None):
-            self.loadQM9XYZ(filepath)
-        
-    def loadQM9XYZ(self,filepath):
-        """
-        loading function of Qm9File
-        @TODO: only use read_csv once for total file and then read values
-        """
-        self.NumAtom = int(pd.read_csv(filepath,engine='python',nrows=1,header=None).loc[0,0])
-        self.Labels = pd.read_csv(filepath,sep=' |\t',engine='python',skiprows=1,nrows=1,header=None).loc[0,1:].values.tolist()
-        tempAtomCoord = pd.read_csv(filepath,sep='\t',engine='python', skiprows=2, skipfooter=3,header=None)
-        for j in range(1,5):
-            if tempAtomCoord[j].dtype == 'O':
-                tempAtomCoord[j] = tempAtomCoord[j].str.replace('*^','e',regex=False).astype(float)
-        self.AtomList = tempAtomCoord.loc[:,0].tolist()
-        self.Coord3DAtom = np.array(tempAtomCoord.loc[:,1:3])
-        self.Mulligan = np.array(tempAtomCoord.loc[:,4])
-        tempFreq = pd.read_csv(filepath,sep=' |\t',engine='python',skiprows=self.NumAtom+2,nrows=1,header=None)
-        self.NumFreq = int(tempFreq.shape[1])
-        self.Freq = np.array(tempFreq)
-        self.Smiles = pd.read_csv(filepath,sep=' |\t',engine='python',skiprows=self.NumAtom+3,nrows=1,header=None).iloc[0,:].tolist()
-        self.InChI = pd.read_csv(filepath,sep=' |\t',engine='python',skiprows=self.NumAtom+4,nrows=1,header=None).iloc[0,:].tolist()
-        #Calculate ProtonNumber
-        self.ProtonNumber = pd.DataFrame(self.AtomList).replace(self.AtomDictionary)[0].tolist()
-        self.ProtonNumber = np.array(self.ProtonNumber)
     
 
 class QM7bFile:
-    """
-    Class for QM7b Datafile (which is the full database). A Fileloader. 
-    """
+    """Class for QM7b Datafile (which is the full dataset). A Fileloader."""
+
     def __init__(self,filepath=None):
+        """Initialize with filepath."""
         #General
         self.DataSetLength = 7211
         self.Zlist = ['','H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca']
@@ -88,7 +39,7 @@ class QM7bFile:
             self.loadQM7b(filepath)
     
     def _coordinates_from_distancematrix(self,DistIn,use_center = None,dim=3):
-        """Computes list of coordinates from a distance matrix of shape (N,N)"""
+        """Compute list of coordinates from a distance matrix of shape (N,N)."""
         DistIn = np.array(DistIn)
         dimIn = DistIn.shape[-1]   
         if use_center is None:
@@ -105,7 +56,7 @@ class QM7bFile:
         return distout
     
     def _coulombmat_to_dist_z(self,coulmat):
-        """ coulomatrix to distance+atomic number (...,N,N)-> (...,N,N)+(...,N), (...,1)"""
+        """Cast coulomatrix to distance+atomic number (...,N,N)-> (...,N,N)+(...,N), (...,1)."""
         indslie = np.arange(0,coulmat.shape[-1])
         z = coulmat[...,indslie,indslie]
         prot = np.power(2*z,1/2.4)
@@ -127,9 +78,8 @@ class QM7bFile:
         dinv[...,indslie,indslie] = 0
         return c,dinv,np.around(prot),numat
 
-    
     def make_bonds(self,coulomb,dist,invdist):
-        """bond list of coulomb interactions for (N,N) -> (N*N-N,2),(N*N-N,)"""
+        """Make bond list of coulomb interactions for (N,N) -> (N*N-N,2),(N*N-N,)."""
         index1 = np.tile(np.expand_dims(np.arange(0,coulomb.shape[0]),axis=1),(1,coulomb.shape[1]))
         index2 = np.tile(np.expand_dims(np.arange(0,coulomb.shape[1]),axis=0),(coulomb.shape[0],1))
         mask = index1 != index2
