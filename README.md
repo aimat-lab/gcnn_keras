@@ -1,6 +1,6 @@
 # Keras Graph Convolutions
 
-A set of layers for graph convolutions in tensorflow keras.
+A set of layers for graph convolutions in tensorflow keras that use ragged tensors.
 
 # Table of Contents
 * [General](#general)
