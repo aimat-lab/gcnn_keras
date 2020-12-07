@@ -19,7 +19,7 @@ The package in [kgcnn](kgcnn) contains several layer classes to build up graph c
 Some models are given as an example.
 A documentation is generated in [docs](docs).
 This repo is still under construction.
-!! Any comments, suggestions or help are very welcome !! 
+Any comments, suggestions or help are very welcome!
 
 <a name="installation"></a>
 # Installation
@@ -53,10 +53,8 @@ The figure below shows the idea of disjoint subgraphs.
 Here, a set of conversion layers in [disjoint](kgcnn/layers/disjoint) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
 The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
 
-Nonetheless, batched representations, which are kept between keras layers via ragged, sparse, padded+mask tensors, can be good alternatives. 
-
-Especially with ragged tensosrs, there is clean way of passing batched graphs between layers. A complete set of layers that work solemnly with ragged tensors and offer the best interface in the spirit of keras are given in [ragged](kgcnn/layers/ragged).
-
+For a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized here by using ragged, sparse or padded tensors.
+Especially with ragged tensosrs, there is clean way of passing batched graphs between layers. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
 Finally padded tensors do have some niche usage for graphs of similar shape. Layers handling padded tensors are given in [padded](kgcnn/layers/padded) with some pros and cons depending on the situation. 
 
 
@@ -70,8 +68,7 @@ Here, the following input forms are listed. Tools for converting numpy or scipy 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is expected to be sorted for faster pooling opertions. Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs.
-In principle also the adjacency matrix can be represented as ragged tensor of shape `(batch,None,None)` but will be dense within each graph.
+The first index of incoming node `i` is expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an edge-weight ragged tensor is to be provided.
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
@@ -79,7 +76,6 @@ by padding all unused entries with zero and marking them in an additional mask t
 This is only practical for highly connected graphs of similar shapes. 
 Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,L)` with number of nodes `N` and edges per Node `L`.
 
-* Sparse Tensor:
 
 <a name="literature"></a>
 # Literature
@@ -93,7 +89,7 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 <a name="datasets"></a>
 # Datasets
 
-In [data](kgcnn/data) there are simple file handling classes
+In [data](kgcnn/data) there are simple data handling tools that are used for examples.
 
 <a name="examples"></a>
 # Examples
