@@ -123,3 +123,27 @@ class DenseRagged(tf.keras.layers.Layer):
         })
         return config
  
+    
+class ActivationRagged(tf.keras.layers.Layer):
+    """
+    Applies an activation function to an output.
+    
+    Arguments:
+        activation: Activation function, such as `tf.nn.relu`, or string name of built-in.
+    """
+    
+    def __init__(self, activation, **kwargs):
+        super(ActivationRagged, self).__init__(**kwargs)
+        self.activation = ks.activations.get(activation)
+        
+    def call(self, inputs):
+        out = tf.ragged.map_flat_values(self.activation,inputs)
+        return out
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    def get_config(self):
+        config = {'activation': ks.activations.serialize(self.activation)}
+        base_config = super(ActivationRagged, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))

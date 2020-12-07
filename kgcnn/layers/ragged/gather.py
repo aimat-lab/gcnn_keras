@@ -145,6 +145,7 @@ class GatherNodesIngoing(ks.layers.Layer):
         config = super(GatherNodesIngoing, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
         return config 
+
     
 class GatherState(ks.layers.Layer):
     """ 
@@ -185,8 +186,9 @@ class GatherState(ks.layers.Layer):
 
     
 class LazyConcatenateNodes(ks.layers.Layer):
-    """ 
-    Concatenate ragged nodetensors without checking shape. Ragged dimension only at first axis.
+    """Concatenate ragged nodetensors without checking shape.
+    
+    Ragged dimension only at first axis.
     
     Args:
         axis (int): Axis to concatenate. Default is -1.
@@ -200,6 +202,7 @@ class LazyConcatenateNodes(ks.layers.Layer):
     Output:
         Concatenated Nodes with shape (batch,None,sum(F)) where the row_splits of first nodelist are kept.
     """
+
     def __init__(self,
                  axis = -1,
                  ragged_validate = False,

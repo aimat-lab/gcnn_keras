@@ -1,11 +1,10 @@
 """@package: Keras Layers for Graph Convolutions using ragged tensors
-@author: Patrick
+@author: Patrick, 
 """
 
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
-
 
 
 class CastRaggedToDense(tf.keras.layers.Layer):
@@ -31,6 +30,7 @@ class CastRaggedToDense(tf.keras.layers.Layer):
     def call(self, inputs):
         """Forward pass."""
         return inputs.to_tensor()
+
 
 
 class CastRaggedToList(ks.layers.Layer):
@@ -62,6 +62,7 @@ class CastRaggedToList(ks.layers.Layer):
         return (flat_tens,row_lengths)
 
 
+
 class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
     """
     Cast a sparse batched adjacency matrices to a ragged index list plus connection weights.
@@ -72,7 +73,8 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         **kwargs
     
     Input:
-        A sparse Tensor (tf.sparse) of shape (batch,N,N)
+        A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
+        The sparse tensor has then the shape of maximum nuber of nodes in the batch.
     
     Output:
         A tuple [edge_index,edge_weight] of both ragged tensors.
@@ -104,10 +106,16 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
             indexlist = tf.gather(indexlist,node_order,axis=0)
             valuelist = tf.gather(valuelist,node_order,axis=0)
         
-        edge_index = tf.RaggedTensor.from_value_rowids(indexlist[:,1:],indexlist[:,0])
-        edge_weight = tf.RaggedTensor.from_value_rowids(tf.expand_dims(valuelist,axis=-1),indexlist[:,0])
+        edge_index = tf.RaggedTensor.from_value_rowids(indexlist[:,1:],indexlist[:,0],validate=self.ragged_validate)
+        edge_weight = tf.RaggedTensor.from_value_rowids(tf.expand_dims(valuelist,axis=-1),indexlist[:,0],validate=self.ragged_validate)
         
         return edge_index,edge_weight
-
+    
+    def get_config(self):
+        """Update config."""
+        config = super(CastAdjacencyMatrixToRaggedList, self).get_config()
+        config.update({"ragged_validate": self.ragged_validate})
+        config.update({"sort_index": self.sort_index})
+        return config 
 
 

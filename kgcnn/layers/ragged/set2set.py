@@ -88,7 +88,7 @@ class Set2Set(ks.layers.Layer):
                     time_major=False,
                     unroll=False,
                   **kwargs):
-        
+        """Initialize layer."""
         super(Set2Set, self).__init__(**kwargs)
         ## Number of Channels to use in LSTM
         self.channels = channels
@@ -138,6 +138,7 @@ class Set2Set(ks.layers.Layer):
         self._supports_ragged_inputs = True  
         
     def build(self, input_shape):
+        """Build layer."""
         super(Set2Set, self).build(input_shape)
     def call(self, inputs):
         x_ragged = inputs
@@ -174,7 +175,7 @@ class Set2Set(ks.layers.Layer):
 
     def f_et(self,fm,fq):
         """
-        Function to compute scalar from m and q
+        Function to compute scalar from m and q.
         
         Args:
             [m,q] of shape [(batch*num,feat),(batch*num,feat)]
@@ -232,4 +233,5 @@ class Set2Set(ks.layers.Layer):
         config.update({"T": self.T})
         config.update({"pooling_method": self.pooling_method})
         config.update({"init_qstar": self.init_qstar})
+        #For LSTM
         return config 

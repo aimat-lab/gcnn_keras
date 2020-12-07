@@ -43,6 +43,7 @@ class PoolingNodes(ks.layers.Layer):
         out = self._pool(node,axis=1)
         return out
     def get_config(self):
+        """Update layer config."""
         config = super(PoolingNodes, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config 
@@ -83,13 +84,14 @@ class PoolingAllEdges(ks.layers.Layer):
         out = self._pool(edge,axis=1)
         return out
     def get_config(self):
+        """Update layer config."""
         config = super(PoolingAllEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config 
 
 
 class PoolingEdgesPerNode(ks.layers.Layer):
-    """ 
+    r""" 
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
     Args:
@@ -138,6 +140,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
     def get_config(self):
+        """Update layer config."""
         config = super(PoolingEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
@@ -145,7 +148,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
 
 class PoolingWeightedEdgesPerNode(ks.layers.Layer):
-    """ 
+    r""" 
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
     Args:
@@ -168,7 +171,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
                  ragged_validate = False,
                  **kwargs):
         """Initialize layer."""
-        super(PoolingEdgesPerNode, self).__init__(**kwargs) 
+        super(PoolingWeightedEdgesPerNode, self).__init__(**kwargs) 
         self._supports_ragged_inputs = True          
         self.pooling_method  = pooling_method
         
@@ -182,7 +185,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingEdgesPerNode, self).build(input_shape)          
+        super(PoolingWeightedEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
         """Forward pass."""
         nod,edge,edgeind,weights = inputs
@@ -192,11 +195,12 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         dens = edge.values * weights.values
         nodind = shiftind[:,0]
         get = self._pool(dens,nodind)
+        #It is also possible to get spits from index, but faster this way.
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingEdgesPerNode, self).get_config()
+        config = super(PoolingWeightedEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
         return config  
