@@ -13,7 +13,8 @@ import pandas as pd
 
 def qm7b_download_dataset(path,overwrite=False):
     """
-    Downloads the Qm7b dataset from http://www.quantum-machine.org/data/qm7b.mat
+    Downloads the Qm7b dataset from http://www.quantum-machine.org/data/qm7b.mat web.
+    
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
@@ -33,7 +34,8 @@ def qm7b_download_dataset(path,overwrite=False):
 
 def qm7_download_dataset(path,overwrite=False):
     """
-    Downloads the Qm7 dataset from http://www.quantum-machine.org/data/qm7.mat
+    Downloads the Qm7 dataset from http://www.quantum-machine.org/data/qm7.mat web.
+    
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
@@ -55,6 +57,7 @@ def qm7_download_dataset(path,overwrite=False):
 def qm9_download_dataset(path,overwrite=False):
     """
     Downloads qm9 dataset as zip-file
+    
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
@@ -72,7 +75,8 @@ def qm9_download_dataset(path,overwrite=False):
 
 def qm9_extract_dataset(path,load=False):
     """
-    Extracts dsgdb9nsd.xyz zip-file and puts out a FileList
+    Extracts dsgdb9nsd.xyz zip-file and puts out a file list.
+    
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
