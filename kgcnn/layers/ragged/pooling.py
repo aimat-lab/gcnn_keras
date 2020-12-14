@@ -153,6 +153,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     
     Args:
         pooling_method (str): tf.function to pool edges compatible with ragged tensors.
+        weights_normalized (bool): Whether weights are already normalized. Has to be set also to True if segment_mean is used. Default is True.
         ragged_validate (bool): False
         **kwargs
     
@@ -168,6 +169,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     
     def __init__(self, 
                  pooling_method="segment_mean",
+                 weights_normalized = True,
                  ragged_validate = False,
                  **kwargs):
         """Initialize layer."""
@@ -181,7 +183,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             self._pool = tf.math.segment_sum
         else:
             raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
-        
+        self.weights_normalized = weights_normalized
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
         """Build layer."""
@@ -192,9 +194,12 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         shift1 = edgeind.values
         shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
         shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
-        dens = edge.values * weights.values
+        wval = weights.values
+        dens = edge.values * wval
         nodind = shiftind[:,0]
         get = self._pool(dens,nodind)
+        if(self.weights_normalized == False):
+            get = tf.math.divide_no_nan(get , tf.math.segment_sum(wval,nodind))
         #It is also possible to get spits from index, but faster this way.
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
@@ -203,4 +208,5 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         config = super(PoolingWeightedEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
+        config.update({"weights_normalized": self.weights_normalized})
         return config  
