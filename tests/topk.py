@@ -1,6 +1,4 @@
 """
-Created on Thu Dec 17 17:04:26 2020
-
 @author: Patrick
 """
 
