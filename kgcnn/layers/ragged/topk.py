@@ -13,6 +13,10 @@ class PoolingTopK(ks.layers.Layer):
     
     Args:
         k : relative number of nodes to remove
+        kernel_initializer : 'glorot_uniform'
+        kernel_regularizer : None
+        kernel_constraint : None
+        ragged_validate : False
         **kwargs
     
     Inputs:
@@ -131,7 +135,7 @@ class PoolingTopK(ks.layers.Layer):
         clean_edge_feat_sorted = tf.gather(clean_edge_feat,batch_order,axis=0)
         
         #Build ragged tensors again for node, edgeindex and edge
-        out_node = tf.RaggedTensor.from_value_rowids(pooled_n,pooled_id,validate=self.ragged_validate)
+        out_node = tf.RaggedTensor.from_value_rowids(gated_n,pooled_id,validate=self.ragged_validate)
         out_edge_index = tf.RaggedTensor.from_value_rowids(out_indexlist,clean_edge_ids,validate=self.ragged_validate)
         out_edge = tf.RaggedTensor.from_value_rowids(clean_edge_feat_sorted,clean_edge_ids,validate=self.ragged_validate)
         
