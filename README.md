@@ -49,8 +49,8 @@ Most graph implementations use a disjoint representation within a single graph. 
 
 ![disjoint](docs/disjoint.png "Dijoint subgraph representation")
 
-A set of layers that use disjoint graphs representations is kept in [disjoint](kgcnn/layers/disjoint), for example to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
-The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is usually the primary way of using graph convolutions.
+A set of layers that use disjoint graphs representations is kept in [disjoint](kgcnn/layers/disjoint) for compatibility, for example to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
+The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers.
 
 Finally padded tensors do have some niche usage for graphs of similar shape. Layers handling padded tensors are given in [padded](kgcnn/layers/padded) with some pros and cons depending on the situation. 
 
