@@ -102,23 +102,23 @@ class PoolingTopK(ks.layers.Layer):
         gated_n = pooled_n *ks.backend.expand_dims(tf.keras.activations.sigmoid(pooled_score),axis=-1)
         
         #Make index map for new nodes towards old index
-        index_new_nodes = ks.backend.arange(pooled_index.shape[0],dtype=index_dtype)
-        old_shape = tf.cast(ks.backend.expand_dims(nvalue.shape[0]),dtype=index_dtype)
+        index_new_nodes = ks.backend.arange(tf.shape(pooled_index)[0],dtype=index_dtype)
+        old_shape = tf.cast(ks.backend.expand_dims(tf.shape(nvalue)[0]),dtype=index_dtype)
         map_index = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1),index_new_nodes,old_shape)
         
         #Shift also edgeindex by batch offset
+        edge_ids = edgeind.value_rowids()
         shift1 = edgeind.values
-        shift2 = tf.expand_dims(tf.repeat(nrowsplit[:-1],edgeind.row_lengths()),axis=1)
+        shift2 = tf.expand_dims(tf.gather(nrowsplit[:-1],edge_ids),axis=1)
         shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
         shiftind = tf.cast(shiftind,dtype=index_dtype)
-        edge_ids = edgeind.value_rowids()
         
         #Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind,axis=-1) == ks.backend.expand_dims(ks.backend.expand_dims(removed_index,axis=0),axis=0)  #this creates large tensor (batch*#edges,2,remove)
         mask_edge = tf.math.logical_not(ks.backend.any(ks.backend.any(mask_edge,axis=-1),axis=-1))
         clean_shiftind = shiftind[mask_edge]
         clean_edge_ids = edge_ids[mask_edge]
-        clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids),clean_edge_ids)
+        #clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids),clean_edge_ids)
         
         # Map edgeindex to new index
         new_edge_index = tf.concat([ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,0]),axis=-1),ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,1]),axis=-1)],axis=-1)
@@ -126,8 +126,8 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index_sorted = tf.gather(new_edge_index ,batch_order,axis=0)
         
         #Remove the batch offset from edge indices again for ragged tensor output
-        batch_index = tf.expand_dims(tf.repeat(tf.cumsum(pooled_len,exclusive=True),clean_edge_len),axis=1)
-        out_indexlist = new_edge_index_sorted - tf.cast(batch_index ,dtype=index_dtype)
+        batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len,exclusive=True),clean_edge_ids),axis=1)
+        out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset ,dtype=index_dtype)
         
         #Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat.values
