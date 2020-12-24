@@ -35,12 +35,12 @@ pip install -e ./gcnn_keras
 
 ### Representation
 The most frequent usage for graph convolutions are either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
-Graphs can be represented by a connection table plus feature information. Typical quantities in tensorform to describe a graph are listed below.
+Graphs can be represented by a connection index list plus feature information. Typical quantities in tensorform to describe a graph are listed below.
 
 * `n`: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * `e`: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
 * `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
-* `A`: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and 0 otherwise. 
+* `A`: Adjacency matrix of shape `([batch],N,N)` where `N` is the number of nodes. A connection is marked by 1 and has 0 otherwise. 
 * `E`: Edgefeature matrix of shape `([batch],N,N,Fe)` where `N` is the number of nodes and `Fe` is the edge feature dimension. Only entries that have `A(i,j) not 0` are meaningful.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Most graph implementations use a disjoint representation within a single graph. 
@@ -50,11 +50,12 @@ The figure below shows the idea of disjoint subgraphs.
 
 ![disjoint](docs/disjoint.png "Dijoint subgraph representation")
 
-Here, a set of conversion layers in [disjoint](kgcnn/layers/disjoint) are used to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
-The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is the primary way of using graph convolutions.
+A set of layers that use disjoint graphs representations is kept in [disjoint](kgcnn/layers/disjoint), for example to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
+The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers. This is usually the primary way of using graph convolutions.
 
-For a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized here by using ragged, sparse or padded tensors.
+Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged, sparse or padded tensors.
 Especially with ragged tensosrs, there is clean way of passing batched graphs between layers. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
+
 Finally padded tensors do have some niche usage for graphs of similar shape. Layers handling padded tensors are given in [padded](kgcnn/layers/padded) with some pros and cons depending on the situation. 
 
 
@@ -68,7 +69,7 @@ Here, the following input forms are listed. Tools for converting numpy or scipy 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an edge-weight ragged tensor is to be provided `(batch,None,1)`.
+The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an additional edge-feature tensor with edge weights as ragged tensor is to be provided `(batch,None,1)`.
 
 * Padded Tensor:
 The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
