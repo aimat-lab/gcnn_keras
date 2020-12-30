@@ -57,19 +57,27 @@ The first index of incoming node `i` is usually expected to be sorted for faster
 
 ### Model
 
-Models can be set up in a functional.
+Models can be set up in a functional. Example message passing from fundamental operations:
 
 
 ```python
-from kgcnn.layers.ragged.gather import GatherNodesIngoing,GatherNodesOutgoing
-from kgcnn.layers.ragged.conv import DenseRagged
+import tensorflow as tf
+import tensorflow.keras as ks
+from kgcnn.layers.ragged.gather import GatherNodes
+from kgcnn.layers.ragged.conv import DenseRagged  # Will most likely be supported by keras.Dense in the future
 from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode
 
-node_input = ks.layers.Input(shape=(None,input_nodedim),name='node_input',dtype ="float32",ragged=True)
-edge_index_input = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
+feature_dim = 10
+n = ks.layers.Input(shape=(None,feature_dim),name='node_input',dtype ="float32",ragged=True)
+ei = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
 
+n_in_out = GatherNodes()([n,ei])
+node_messages = DenseRagged(feature_dim)(n_in_out)
+node_updates = PoolingEdgesPerNode()([n,node_messages,ei])
+n_node_updates = ks.layers.Concatenate(axis=-1)([n,node_updates])
+n_embed = DenseRagged(feature_dim)(n_node_updates)
 
-
+message_passing = ks.models.Model(inputs=[n,ei], outputs=n_embed)
 ```
 
 
