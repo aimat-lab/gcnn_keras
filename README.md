@@ -44,11 +44,7 @@ Graphs can be represented by a connection index list plus feature information. T
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
 
-Most graph implementations use a disjoint representation within a single graph. As a result, the batched subgraphs are converted into a larger graph which can be treated the same way as a single graph. However, for some layers, like e.g. pooling layers the division into subgraphs has to be treated explicitly and is commonly solved by a subgraph id-tensor of the former batch assignment.
-
-A set of layers that use disjoint graphs representations is kept in [disjoint](kgcnn/layers/disjoint) for compatibility, for example to map a batched input into a disjoint subgraph representation. Note: The same convolution layers can also be used for a single large graph. 
-The graph tensors, which are passed between layers, then do not have a batch dimension anymore and must treated with care when using standard keras layers.
-Finally padded tensors do have some niche usage for graphs of similar shape. Layers handling padded tensors are given in [padded](kgcnn/layers/padded) with some pros and cons depending on the situation. 
+Many graph implementations use also a disjoint representation [disjoint](kgcnn/layers/disjoint) or padded tensors [padded](kgcnn/layers/padded).
 
 
 ### Input
