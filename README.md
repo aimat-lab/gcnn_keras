@@ -44,7 +44,7 @@ Graphs can be represented by a connection index list plus feature information. T
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
 
-Many graph implementations use also a disjoint representation [disjoint](kgcnn/layers/disjoint) or padded tensors [padded](kgcnn/layers/padded).
+Many graph implementations use also a [disjoint](kgcnn/layers/disjoint) representation or [padded](kgcnn/layers/padded) tensors.
 
 
 ### Input
@@ -75,9 +75,9 @@ n_in_out = GatherNodes()([n,ei])
 node_messages = DenseRagged(feature_dim)(n_in_out)
 node_updates = PoolingEdgesPerNode()([n,node_messages,ei])
 n_node_updates = ks.layers.Concatenate(axis=-1)([n,node_updates])
-n_embed = DenseRagged(feature_dim)(n_node_updates)
+n_embedd = DenseRagged(feature_dim)(n_node_updates)
 
-message_passing = ks.models.Model(inputs=[n,ei], outputs=n_embed)
+message_passing = ks.models.Model(inputs=[n,ei], outputs=n_embedd)
 ```
 
 
