@@ -53,10 +53,24 @@ In order to input batched tensors of variable length with keras, either zero-pad
 
 Here, for ragged tensors, the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` have one ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly obtained from a list of numpy arrays: `tf.constant()` for example with 
+The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly obtained from a list of numpy arrays: `tf.ragged.constant(indices,ragged_rank=1,inner_shape=(2,))` which yields shape `(batch,None,2)`.
 
 ### Model
 
+Models can be set up in a functional.
+
+
+```python
+from kgcnn.layers.ragged.gather import GatherNodesIngoing,GatherNodesOutgoing
+from kgcnn.layers.ragged.conv import DenseRagged
+from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode
+
+node_input = ks.layers.Input(shape=(None,input_nodedim),name='node_input',dtype ="float32",ragged=True)
+edge_index_input = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
+
+
+
+```
 
 
 
