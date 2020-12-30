@@ -53,21 +53,14 @@ Finally padded tensors do have some niche usage for graphs of similar shape. Lay
 
 ### Input
 
-In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. 
-Depending on the task those representations can be combined by casting from one to the other.
-Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used. 
-Here, the following input forms are listed. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/data/utils.py).
+In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used to input disjoint graph representations. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/data/utils.py).
 
 * Ragged Tensor:
 Here the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` are given by ragged tensors with ragged dimension `(None,)`.
 The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. To represent the adjacency matrix with non-integer entries, an additional edge-feature tensor with edge weights as ragged tensor is to be provided `(batch,None,1)`.
+The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly 
 
-* Padded Tensor:
-The node- and edgelists are given by a full-rank tensor of shape `(batch,N,F)` with `N` or `M` being the maximum number of edges or nodes in the dataset, 
-by padding all unused entries with zero and marking them in an additional mask tensor of same shape `(batch,N)`. 
-This is only practical for highly connected graphs of similar shapes. 
-Besides the adjacencymatrix also the index list can be arranged in a matrix form with a max number of edges for faster node pooling, e.g. `(batch,N,L)` with number of nodes `N` and edges per Node `L`.
+
 
 
 <a name="literature"></a>
