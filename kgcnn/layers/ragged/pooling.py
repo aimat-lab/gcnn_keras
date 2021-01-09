@@ -1,7 +1,3 @@
-"""@package: Keras Layers for graph pooling using ragged tensors
-@author: Patrick
-"""
-
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
@@ -9,7 +5,7 @@ import tensorflow.keras.backend as K
 
     
 class PoolingNodes(ks.layers.Layer):
-    """
+    r"""
     Layer for pooling of nodefeatures over all nodes in graph. Which gives $1/n \sum_i node(i)$.
     
     Args:
@@ -22,9 +18,11 @@ class PoolingNodes(ks.layers.Layer):
     Outputs:
         Pooled Nodes of shape (batch,<F_n>)
     """
+    
     def __init__(self,
                  pooling_method = "reduce_mean" ,
                  **kwargs):
+        """Initialize layer."""
         super(PoolingNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         
@@ -37,8 +35,10 @@ class PoolingNodes(ks.layers.Layer):
         
         self._supports_ragged_inputs = True 
     def build(self, input_shape):
+        """Build layer."""
         super(PoolingNodes, self).build(input_shape)
     def call(self, inputs):
+        """Forward pass."""
         node = inputs
         out = self._pool(node,axis=1)
         return out
@@ -50,7 +50,7 @@ class PoolingNodes(ks.layers.Layer):
     
 
 class PoolingAllEdges(ks.layers.Layer):
-    """
+    r"""
     Layer for pooling of edgefeatures over all edges in graph. Which gives $1/n \sum_{ij} edge(i,j)$.
     
     Args:
@@ -63,9 +63,11 @@ class PoolingAllEdges(ks.layers.Layer):
     Outputs:
         Pooled edges of shape (batch,<F_e>)
     """
+    
     def __init__(self, 
                  pooling_method = tf.math.reduce_mean,
                  **kwargs):
+        """Initialize layer."""
         super(PoolingAllEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
         self.pooling_method  = pooling_method 
@@ -78,8 +80,10 @@ class PoolingAllEdges(ks.layers.Layer):
             raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
         
     def build(self, input_shape):
+        """Build layer."""
         super(PoolingAllEdges, self).build(input_shape)
     def call(self, inputs):
+        """Forward pass."""
         edge = inputs        #Apply segmented mean
         out = self._pool(edge,axis=1)
         return out
@@ -91,18 +95,22 @@ class PoolingAllEdges(ks.layers.Layer):
 
 
 class PoolingEdgesPerNode(ks.layers.Layer):
-    r""" 
-    Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
+    r"""
+    Layer for pooling of edgefeatures or messages for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
+    
+    Some layer arguments allow faster performance if set differently.
     
     Args:
-        pooling_method (str): tf.function to pool edges compatible with ragged tensors.
+        pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is 'segment_mean'.
+        node_indexing (str): If indices refer to sample- or in-batch-wise indexing. Default is 'sample'.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): False
         **kwargs
     
     Inputs:
-        [node, edge and edgeindex] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2)]
+        [node, edge ,edgeindex] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2)]
         Note that the ragged dimension of edge and edgeindex has to match. 
-        And that the edgeindexlist is sorted for the first, ingoing node index to apply e.g. segment_mean
     
     Outputs:
         Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.
@@ -110,12 +118,18 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     
     def __init__(self, 
                  pooling_method="segment_mean",
+                 node_indexing = "sample",
+                 is_sorted = False,
+                 has_unconnected = True,
                  ragged_validate = False,
                  **kwargs):
         """Initialize layer."""
         super(PoolingEdgesPerNode, self).__init__(**kwargs) 
         self._supports_ragged_inputs = True          
         self.pooling_method  = pooling_method
+        self.node_indexing = node_indexing
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
         
         if(self.pooling_method == "segment_mean"):
             self._pool = tf.math.segment_mean
@@ -131,12 +145,31 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass."""
         nod,edge,edgeind = inputs
-        shift1 = edgeind.values
-        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
-        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
-        dens = edge.values
+        if(self.node_indexing == 'batch'):
+            shiftind = edgeind.values
+        elif(self.node_indexing == 'sample'): 
+            shift1 = edgeind.values
+            shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+            shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
         nodind = shiftind[:,0]
+        dens = edge.values
+        if(self.is_sorted==False):        
+            #Sort edgeindices
+            node_order = tf.argsort(nodind,axis=0,direction='ASCENDING',stable=True)
+            nodind = tf.gather(nodind,node_order,axis=0)
+            dens = tf.gather(dens,node_order,axis=0)
+        
+        #Pooling via e.g. segment_sum
         get = self._pool(dens,nodind)
+        
+        if(self.has_unconnected == True):
+            #Need to fill tensor since not all nodes are also in pooled
+            #Does not happen if all nodes are also connected
+            pooled_index,_ = tf.unique(nodind)
+            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get, tf.shape(nod.values))
+            
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
     def get_config(self):
@@ -144,32 +177,37 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         config = super(PoolingEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
+        config.update({"node_indexing": self.node_indexing})
+        config.update({"is_sorted": self.is_sorted})
+        config.update({"has_unconnected": self.has_unconnected})
         return config
 
 
 class PoolingWeightedEdgesPerNode(ks.layers.Layer):
-    r""" 
+    r"""
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
     Args:
-        pooling_method (str): tf.function to pool edges compatible with ragged tensors.
-        weights_normalized (bool): Whether weights are already normalized. Has to be set also to True if segment_mean is used. Default is True.
+        pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is "segment_sum".
+        normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
+        node_indexing (str): If indices refer to sample- or in-batch-wise indexing. Default is 'sample'.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): False
         **kwargs
     
     Inputs:
         [node, edge, edgeindex, weight] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2),(batch,None,1)]
-        Note that the ragged dimension of edge and edgeindex and weight has to match. 
-        And that the edgeindexlist is sorted for the first, ingoing node index to apply e.g. segment_mean
-        The weight is the entry in the ajacency matrix for the edges in the list and must be broadcasted or match in dimension.
+        Note that the ragged dimensions of edge and edgeindex and weight has to match. 
+        The weight can be the entry in the ajacency matrix for the edges in the list and must be broadcasted or match in dimension.
     
     Outputs:
         Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.     
     """
     
     def __init__(self, 
-                 pooling_method="segment_mean",
-                 weights_normalized = True,
+                 pooling_method="segment_sum",
+                 weights_normalized = False,
                  ragged_validate = False,
                  **kwargs):
         """Initialize layer."""
@@ -183,7 +221,8 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             self._pool = tf.math.segment_sum
         else:
             raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
-        self.weights_normalized = weights_normalized
+            
+        self.normalize_by_weights = normalize_by_weights
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
         """Build layer."""
@@ -191,16 +230,37 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass."""
         nod,edge,edgeind,weights = inputs
-        shift1 = edgeind.values
-        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
-        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        if(self.node_indexing == 'batch'):
+            shiftind = edgeind.values
+        elif(self.node_indexing == 'sample'): 
+            shift1 = edgeind.values
+            shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+            shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        
+        #Multiply by weights
         wval = weights.values
         dens = edge.values * wval
         nodind = shiftind[:,0]
+        
+        if(self.is_sorted==False):        
+            #Sort edgeindices
+            node_order = tf.argsort(nodind,axis=0,direction='ASCENDING',stable=True)
+            nodind = tf.gather(nodind,node_order,axis=0)
+            dens = tf.gather(dens,node_order,axis=0)
+        #Do the pooling
         get = self._pool(dens,nodind)
-        if(self.weights_normalized == False):
+        
+        if(self.normalize_by_weights == True):
             get = tf.math.divide_no_nan(get , tf.math.segment_sum(wval,nodind))
-        #It is also possible to get spits from index, but faster this way.
+        
+        if(self.has_unconnected == True):
+            #Need to fill tensor since not all nodes are also in pooled
+            #Does not happen if all nodes are also connected
+            pooled_index,_ = tf.unique(nodind)
+            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get, tf.shape(nod.values))
+        
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
     def get_config(self):
@@ -208,5 +268,9 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         config = super(PoolingWeightedEdgesPerNode, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
-        config.update({"weights_normalized": self.weights_normalized})
+        config.update({"node_indexing": self.node_indexing})
+        config.update({"is_sorted": self.is_sorted})
+        config.update({"has_unconnected": self.has_unconnected})
+        config.update({"ragged_validate": self.ragged_validate})
+        config.update({"normalize_by_weights": self.weights_normalized})
         return config  

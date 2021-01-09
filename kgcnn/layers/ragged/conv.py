@@ -1,7 +1,3 @@
-"""@package: Keras Convolutional Layers for Graph Convolutions using ragged tensors
-@author: Patrick
-"""
-
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
@@ -32,7 +28,8 @@ class DenseRagged(tf.keras.layers.Layer):
         N-D tensor with shape: `(batch_size, ..., units)`.
         For instance, for a 2D input with shape `(batch_size, input_dim)`,
         the output would have shape `(batch_size, units)`.
-  """
+    """
+    
     def __init__(self, 
                  units,
                  activation=None,
@@ -133,17 +130,21 @@ class ActivationRagged(tf.keras.layers.Layer):
     """
     
     def __init__(self, activation, **kwargs):
+        """Initialize layer same as Activation."""
         super(ActivationRagged, self).__init__(**kwargs)
         self.activation = ks.activations.get(activation)
         
     def call(self, inputs):
+        """Forward pass."""
         out = tf.ragged.map_flat_values(self.activation,inputs)
         return out
 
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         return input_shape
 
     def get_config(self):
+        """Update config."""
         config = {'activation': ks.activations.serialize(self.activation)}
         base_config = super(ActivationRagged, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

@@ -1,7 +1,3 @@
-"""@package: Keras Layers for Graph Convolutions using ragged tensors
-@author: Patrick, 
-"""
-
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
@@ -9,13 +5,14 @@ import tensorflow.keras.backend as K
 
 class CastRaggedToDense(tf.keras.layers.Layer):
     """
-    Layer to cast a ragged tensor to tensor.
+    Layer to cast a ragged tensor to a dense tensor.
     
     Args:
         **kwargs
     
     Input:
         Ragged Tensor of shape (batch,...)
+        
     Output:
         input.to_tensor()
     """
@@ -33,7 +30,7 @@ class CastRaggedToDense(tf.keras.layers.Layer):
 
 
 
-class CastRaggedToList(ks.layers.Layer):
+class CastRaggedToValues(ks.layers.Layer):
     """
     Cast a ragged tensor input to a value plus row_length tensor.
     
@@ -49,11 +46,11 @@ class CastRaggedToList(ks.layers.Layer):
     
     def __init__(self, **kwargs):
         """Initialize layer."""
-        super(CastRaggedToList, self).__init__(**kwargs)
+        super(CastRaggedToValues, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
     def build(self, input_shape):
         """Build layer."""
-        super(CastRaggedToList, self).build(input_shape)
+        super(CastRaggedToValues, self).build(input_shape)
     def call(self, inputs):
         """Forward pass."""
         tens = inputs
@@ -77,7 +74,7 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         The sparse tensor has then the shape of maximum nuber of nodes in the batch.
     
     Output:
-        A tuple [edge_index,edge_weight] of both ragged tensors.
+        A tuple [edge_index,edge_weight] which are both ragged tensors.    
     """
     
     def __init__(self,sort_index = False,ragged_validate=False ,**kwargs):
@@ -109,8 +106,7 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         edge_index = tf.RaggedTensor.from_value_rowids(indexlist[:,1:],indexlist[:,0],validate=self.ragged_validate)
         edge_weight = tf.RaggedTensor.from_value_rowids(tf.expand_dims(valuelist,axis=-1),indexlist[:,0],validate=self.ragged_validate)
         
-        return edge_index,edge_weight
-    
+        return edge_index,edge_weight 
     def get_config(self):
         """Update config."""
         config = super(CastAdjacencyMatrixToRaggedList, self).get_config()
