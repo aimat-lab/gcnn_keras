@@ -43,7 +43,7 @@ def invert_distance(d,nan=0,posinf=0,neginf=0):
     return c
 
 
-def distance_to_gaussdistance(Distance, GBins = 25, GRange = 4.0, GSigma = 0.3):
+def distance_to_gaussdistance(Distance, GBins = 20, GRange = 4, GSigma = 0.4):
     """ 
     Convert distance array to smooth one-hot representation using Gaussian functions.
     Changes shape for gaussian distance (...,) -> (...,GBins)
@@ -51,9 +51,9 @@ def distance_to_gaussdistance(Distance, GBins = 25, GRange = 4.0, GSigma = 0.3):
     
     Args:
         Distance (numpy array): Array of distances of shape (...,)
-        GBins (int): number of Bins to sample distance from, default = 30
+        GBins (int): number of Bins to sample distance from, default = 25
         GRange (value): maximum distance to be captured by bins, default = 5.0
-        GSigma (value): sigma of the gaussian function, determining the width/sharpness, default = 0.2
+        GSigma (value): sigma of the gaussian function, determining the width/sharpness, default = 0.5
     
     Returns:
         Numpy array of gaussian distance with expanded last axis (...,GBins)
@@ -117,4 +117,63 @@ def get_connectivity_from_inversedistancematrix(invdistmat,protons,radii_dict=No
     damp[damp<cutoff] = 0
     bond_tab = np.round(damp)          
     return bond_tab
+
+
+def define_adjacency_from_distance(DistanceMatrix,max_distance=np.inf,max_neighbours=np.inf,exclusive=True,self_loops=False):
+    """
+    Construct adjacency matrix from a distance matrix by distance and number of neighbours. Works for batches.
+    
+    This does take into account special bonds (e.g. chemical) just a general distance measure.
+    Tries to connect nearest neighbours.
+
+    Args:
+        DistanceMatrix (np.array): Distance Matrix of shape (...,N,N)
+        max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to np.inf.
+        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to np.inf.
+        exclusive (bool, optional): Whether both max distance and Neighbours must be fullfileed. Defaults to True.
+        self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
+
+    Returns:
+        GraphAdjacency (np.array): Adjacency Matrix of shape (...,N,N) of dtype=np.bool.
+        GraphIndices (np.array): Flatten indizes from former array that have Adjacency == True.
+
+    """
+    DistanceMatrix = np.array(DistanceMatrix)
+    NumAtoms = DistanceMatrix.shape[-1]
+    if(exclusive==True):
+        GraphAdjacency = np.ones_like(DistanceMatrix,dtype = np.bool)
+    else:
+        GraphAdjacency = np.zeros_like(DistanceMatrix,dtype = np.bool)
+    inddiag = np.arange(NumAtoms) 
+    #Make Indix Matrix
+    indarr = np.indices(DistanceMatrix.shape)
+    re_order =np.append (np.arange(1,len(DistanceMatrix.shape)+1),0)
+    GraphIndices = indarr.transpose(re_order) 
+    #print(GraphIndices.shape)
+    #Add Max Radius
+    if(max_distance is not None):
+        temp = DistanceMatrix < max_distance
+        #temp[...,inddiag,inddiag] = False
+        if(exclusive==True):
+            GraphAdjacency = np.logical_and(GraphAdjacency, temp)
+        else:
+            GraphAdjacency = np.logical_or(GraphAdjacency, temp)
+    # Add #Nieghbours
+    if(max_neighbours is not None):
+        max_neighbours = min(max_neighbours,NumAtoms)
+        SortingIndex = np.argsort(DistanceMatrix,axis=-1)
+        #SortedDistance = np.take_along_axis(self.DistanceMatrix, SortingIndex, axis=-1)
+        ind_sorted_red = SortingIndex[...,:max_neighbours+1]
+        temp = np.zeros_like(DistanceMatrix,dtype = np.bool)
+        np.put_along_axis(temp,ind_sorted_red, True,axis=-1)
+        if(exclusive==True):
+            GraphAdjacency = np.logical_and(GraphAdjacency, temp)
+        else:
+            GraphAdjacency = np.logical_or(GraphAdjacency, temp)
+    # Allow self-loops
+    if(self_loops == False):
+        GraphAdjacency[...,inddiag,inddiag] = False
+
+    GraphIndices = GraphIndices[GraphAdjacency]
+    return GraphAdjacency,GraphIndices
 

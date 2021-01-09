@@ -4,16 +4,17 @@ import os
 import requests
 import numpy as np
 import shutil
-from kgcnn.data.qm.methods import coordinates_to_distancematrix,invert_distance,get_connectivity_from_inversedistancematrix,distance_to_gaussdistance
+from kgcnn.data.qm.methods import coordinates_to_distancematrix,invert_distance,get_connectivity_from_inversedistancematrix,distance_to_gaussdistance,define_adjacency_from_distance
 
 
 def qm9_download_dataset(path,overwrite=False):
     """
-    Downloads qm9 dataset as zip-file
+    Download qm9 dataset as zip-file.
     
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+        
     """
     if(os.path.exists(os.path.join(path,'dsgdb9nsd.xyz.tar.bz2')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
@@ -33,6 +34,7 @@ def qm9_extract_dataset(path,load=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+        
     """
     if(os.path.exists(os.path.join(path,'dsgdb9nsd.xyz')) == False):
         print("Creating directory ... ", end='', flush=True)
@@ -137,10 +139,13 @@ def make_qm9_graph(qm9):
         qm9 (list): Full qm9 dataset as python list.
 
     Returns:
-        graphlist (list): List of graph ojects.
+        graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
         
         labels: All labels of qm9
-        nodes: list of atomic numbers for emebdding layer
+        nodes: List of atomic numbers for emebdding layer
+        edges: Edgefeatures (inverse distance, gauss distance)
+        edge_idx: Edge indices (N,2)
+        gstates: Graph states, mean moleculare weight - 7 g/mol
 
     """
     ## For graph
@@ -171,20 +176,26 @@ def make_qm9_graph(qm9):
     coord = [np.array(x) for x in coord]
     edge_idx = []
     edges = []
+    edges_inv = []
     for i in range(len(labels)):
         xyz = coord[i]
         dist = coordinates_to_distancematrix(xyz)
         invdist = invert_distance(dist)
         ats = outzval[i]
-        cons = get_connectivity_from_inversedistancematrix(invdist,ats)
+        #cons = get_connectivity_from_inversedistancematrix(invdist,ats)
+        cons,_ = define_adjacency_from_distance(dist,max_distance=4,max_neighbours=15,exclusive=True,self_loops=False)
         index1 = np.tile(np.expand_dims(np.arange(0,dist.shape[0]),axis=1),(1,dist.shape[1]))
         index2 = np.tile(np.expand_dims(np.arange(0,dist.shape[1]),axis=0),(dist.shape[0],1))
         mask = np.array(cons,dtype=np.bool)
         index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
         edge_idx.append(index12[mask])
-        edges.append(dist[mask])
-    edge_len = np.array([len(x) for x in edges],dtype=np.int)
-    edges = [distance_to_gaussdistance(x) for x in edges]
+        dist_masked = distance_to_gaussdistance(dist[mask])
+        invdist_masked = np.expand_dims(invdist[mask],axis=-1)
+        edges.append(dist_masked)
+        edges_inv.append(invdist_masked)
+    edge_len = np.array([len(x) for x in edge_idx],dtype=np.int)
+    #edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
+    edges = [edges[i] for i in range(len(edge_idx))]
 
     return labels,nodes,edges,edge_idx,gstates
 
@@ -193,10 +204,15 @@ def qm9_graph():
     Get list of graphs np.arrays for qm9 dataset.
 
     Returns:
-        out_graph (list): labels,nodes,edges,edge_idx,gstates.
-
+        graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
+        
+        labels: All labels of qm9
+        nodes: List of atomic numbers for emebdding layer
+        edges: Edgefeatures (inverse distance, gauss distance)
+        edge_idx: Edge indices (N,2)
+        gstates: Graph states, mean moleculare weight - 7 g/mol
+        
     """
-    
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
     if(os.path.exists(os.path.join(local_path,"qm9.pickle"))==False):
