@@ -1,4 +1,3 @@
 # Modes of usage
 
-* Disjoint:
-* Ragged:
+disjoint, ragged, sparse, padded
