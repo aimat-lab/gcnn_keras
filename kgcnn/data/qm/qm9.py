@@ -131,12 +131,18 @@ def qm9_write_pickle(path):
     return qm9
 
 
-def make_qm9_graph(qm9):
+
+def make_qm9_graph(qm9,
+                   max_distance=4,max_neighbours=15,        
+                   gauss_distance = {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4} ):
     """
     Make graph objects from qm9 dataset.
 
     Args:
         qm9 (list): Full qm9 dataset as python list.
+        max_distance (int): 4
+        max_neighbours (int): 15
+        gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
 
     Returns:
         graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
@@ -176,32 +182,46 @@ def make_qm9_graph(qm9):
     coord = [np.array(x) for x in coord]
     edge_idx = []
     edges = []
-    edges_inv = []
     for i in range(len(labels)):
         xyz = coord[i]
         dist = coordinates_to_distancematrix(xyz)
         invdist = invert_distance(dist)
         ats = outzval[i]
         #cons = get_connectivity_from_inversedistancematrix(invdist,ats)
-        cons,_ = define_adjacency_from_distance(dist,max_distance=4,max_neighbours=15,exclusive=True,self_loops=False)
+        cons,_ = define_adjacency_from_distance(dist,max_distance=max_distance,max_neighbours=max_neighbours,exclusive=True,self_loops=False)
         index1 = np.tile(np.expand_dims(np.arange(0,dist.shape[0]),axis=1),(1,dist.shape[1]))
         index2 = np.tile(np.expand_dims(np.arange(0,dist.shape[1]),axis=0),(dist.shape[0],1))
         mask = np.array(cons,dtype=np.bool)
         index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
         edge_idx.append(index12[mask])
-        dist_masked = distance_to_gaussdistance(dist[mask])
-        invdist_masked = np.expand_dims(invdist[mask],axis=-1)
+        if(gauss_distance is not None):
+            dist_masked = distance_to_gaussdistance(dist[mask],GBins = gauss_distance['GBins'], GRange = gauss_distance['GRange'], GSigma = gauss_distance['GSigma'])
+        else:
+            #dist_masked = np.expand_dims(dist[mask],axis=-1)
+            dist_masked = np.expand_dims(invdist[mask],axis=-1)
+        
         edges.append(dist_masked)
-        edges_inv.append(invdist_masked)
+        
     edge_len = np.array([len(x) for x in edge_idx],dtype=np.int)
     #edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
     edges = [edges[i] for i in range(len(edge_idx))]
 
+
     return labels,nodes,edges,edge_idx,gstates
 
-def qm9_graph():
+
+
+def qm9_graph(max_distance = 4,
+        max_neighbours = 15,
+        gauss_distance = {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
+        ):
     """
     Get list of graphs np.arrays for qm9 dataset.
+    
+    Args:
+        max_distance (int): 4
+        max_neighbours (int): 15
+        gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
 
     Returns:
         graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
@@ -228,7 +248,7 @@ def qm9_graph():
     
     #Make graph
     print("Making graph ...", end='', flush=True)
-    out_graph = make_qm9_graph(qm9)
+    out_graph = make_qm9_graph(qm9,max_distance=max_distance,max_neighbours=max_neighbours,gauss_distance=gauss_distance)
     print('done')
     
     return out_graph
