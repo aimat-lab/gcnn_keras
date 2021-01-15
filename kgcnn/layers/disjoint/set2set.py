@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Aug 16 10:44:16 2020
-
-@author: Patrick
-"""
-
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
+# Order Matters: Sequence to sequence for sets
+# by Vinyals et al. 2016
+# https://arxiv.org/abs/1511.06391
 
 
 class Set2Set(ks.layers.Layer):
