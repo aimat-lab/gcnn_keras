@@ -41,6 +41,9 @@ class PoolingNodes(ks.layers.Layer):
         """Forward pass."""
         node = inputs
         out = self._pool(node,axis=1)
+        #nv = node.values
+        #nids = node.value_rowids()
+        #out = tf.math.segment_sum(nv,nids)
         return out
     def get_config(self):
         """Update layer config."""
@@ -207,7 +210,10 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     
     def __init__(self, 
                  pooling_method="segment_sum",
-                 weights_normalized = False,
+                 normalize_by_weights = False,
+                 node_indexing = "sample",
+                 is_sorted = False,
+                 has_unconnected = True,
                  ragged_validate = False,
                  **kwargs):
         """Initialize layer."""
@@ -223,6 +229,9 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
             
         self.normalize_by_weights = normalize_by_weights
+        self.node_indexing = node_indexing
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
         """Build layer."""
@@ -253,7 +262,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         get = self._pool(dens,nodind)
         
         if(self.normalize_by_weights == True):
-            get = tf.math.divide_no_nan(get , tf.math.segment_sum(wval,nodind))
+            get = tf.math.divide_no_nan(get , tf.math.segment_sum(wval,nodind)) # +tf.eps
         
         if(self.has_unconnected == True):
             #Need to fill tensor since not all nodes are also in pooled

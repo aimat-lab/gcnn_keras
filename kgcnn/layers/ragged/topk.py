@@ -1,7 +1,3 @@
-"""@package: Keras Layers for graph pooling using ragged tensors
-@author: Patrick, 
-"""
-
 import tensorflow as tf
 import tensorflow.keras as ks
 
@@ -29,6 +25,7 @@ class PoolingTopK(ks.layers.Layer):
         Pooled edge indices of shape (batch,None,2)
         Pooled edge features of shape (batch,None,F_e)
     """
+    
     def __init__(self,
                  k = 0.1 ,
                  kernel_initializer = 'glorot_uniform',

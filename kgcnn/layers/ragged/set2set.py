@@ -1,25 +1,22 @@
-"""@package: Layers for Set2Set Readout.
-@author: Patrick
-
-The Set2Set was used by Gilmer et al. 2017 for Graph convolutions readout.
-It is defined by Vinyals et al. 2016 in https://arxiv.org/abs/1511.06391
-The idea is to create a Seq2Seq using a “content” based attention via LSTMs.
-This should basically implement the encoder of chapter 4.2. in the paper.
-Note: Here it is used as a more sensitive averaging of e.g. node features
-The labeling should match the paper.
-
-"""
-
-
 import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
 
+# Order Matters: Sequence to sequence for sets
+# by Vinyals et al. 2016
+# https://arxiv.org/abs/1511.06391
+
+
 class Set2Set(ks.layers.Layer):
     """
     Set2Set layer. The Reading to Memory has to be handled seperately.
+    
     Uses a keras LSTM layer for the updates.
+    The idea is to create a Seq2Seq using a “content” based attention via LSTMs.
+    This should basically implement the encoder of chapter 4.2. in the paper.
+    Note: Here it is used as a more sensitive averaging of e.g. node features
+    The labeling should match the paper.
     
     Args:
         channels (int): Number of channels for LSTM.

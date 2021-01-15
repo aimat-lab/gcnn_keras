@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
-
+    
 class DenseRagged(tf.keras.layers.Layer):
     """
     Custom Dense Layer for ragged input. The dense layer can be used as convolutional unit.
@@ -31,17 +31,17 @@ class DenseRagged(tf.keras.layers.Layer):
     """
     
     def __init__(self, 
-                 units,
-                 activation=None,
-                 use_bias=True,
-                 kernel_initializer='glorot_uniform',
-                 bias_initializer='zeros',
-                 kernel_regularizer=None,
-                 bias_regularizer=None,
-                 activity_regularizer=None,
-                 kernel_constraint=None,
-                 bias_constraint=None,
-                 **kwargs):
+                  units,
+                  activation=None,
+                  use_bias=True,
+                  kernel_initializer='glorot_uniform',
+                  bias_initializer='zeros',
+                  kernel_regularizer=None,
+                  bias_regularizer=None,
+                  activity_regularizer=None,
+                  kernel_constraint=None,
+                  bias_constraint=None,
+                  **kwargs):
         """Initialize layer same as Dense."""
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)

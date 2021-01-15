@@ -106,6 +106,7 @@ class GatherNodes(ks.layers.Layer):
         g2 = tf.gather(dens,shiftind[:,1])
         get = tf.concat([g1,g2],axis=1)
         out = tf.RaggedTensor.from_row_splits(get,edgeind.row_splits,validate=self.ragged_validate)         
+        #out = edgeind.with_values(get)
         return out     
     def get_config(self):
         """Update config."""
@@ -167,6 +168,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
         dens = nod.values
         g2= tf.gather(dens,nodind[:,1])
         out = tf.RaggedTensor.from_row_splits(g2,edgeind.row_splits,validate=self.ragged_validate)         
+        #out = edgeind.with_values(g2)
         return out  
     def get_config(self):
         """Update config."""
@@ -228,6 +230,7 @@ class GatherNodesIngoing(ks.layers.Layer):
         dens = nod.values
         g1= tf.gather(dens,nodind[:,0])
         out = tf.RaggedTensor.from_row_splits(g1,edgeind.row_splits,validate=self.ragged_validate)         
+        #out = edgeind.with_values(g1)
         return out  
     def get_config(self):
         """Update config."""
