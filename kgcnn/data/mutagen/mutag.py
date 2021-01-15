@@ -6,7 +6,6 @@ import numpy as np
 import shutil
 
 
-
 def mutag_download_dataset(path,overwrite=False):
     """
     Download Mutag as zip-file.
@@ -157,4 +156,4 @@ def mutag_graph():
     print('done')
     return data
 
-labels,nodes,edge_indices,edges = mutag_graph()
+# labels,nodes,edge_indices,edges = mutag_graph()
