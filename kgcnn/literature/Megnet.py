@@ -1,16 +1,11 @@
-"""@package: Model for the MEGnet as defined by Chen et al. 2019
-https://doi.org/10.1021/acs.chemmater.9b01294
-
-"""
-
 import tensorflow.keras as ks
 import tensorflow as tf
 
 from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing,GatherNodes
-from kgcnn.layers.disjoint.conv import ConvFlatten
+from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
-from kgcnn.layers.disjoint.batch import RaggedToDisjoint,CastListToRagged,CastRaggedToList,CorrectIndexListForSubGraph
+from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
 
 
 
@@ -28,26 +23,51 @@ def softplus2(x):
 
 class MEGnetBlock(ks.layers.Layer):
     """
-    Layer for the MEGnet block
+    Megnet Block.
+    
+    Args:
+        NodeEmbed (list, optional): List of node embedding dimension. Defaults to [16,16,16].
+        EdgeEmbed (list, optional): List of edge embedding dimension. Defaults to [16,16,16].
+        EnvEmbed (list, optional): List of environment embedding dimension. Defaults to [16,16,16].
+        activation (func, optional): Activation function. Defaults to softplus2.
+        use_bias (bool, optional): Use bias. Defaults to True.
+        is_sorted (bool, optional): Edge index list is sorted. Defaults to True.
+        has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
+        **kwargs
+    Inputs:
+        [node_input,edge_input,edge_index_input,env_input,len_node,len_edge]
+    Returns:
+        vp,ep,up
     """
-    def __init__(self,NodeEmbed=[16,16,16], EdgeEmbed=[16,16,16], EnvEmbed=[16,16,16] , activation=softplus2,use_bias = True ,**kwargs):
+    
+    def __init__(self,NodeEmbed=[16,16,16], 
+                 EdgeEmbed=[16,16,16], 
+                 EnvEmbed=[16,16,16] , 
+                 activation=softplus2,
+                 use_bias = True,
+                 is_sorted = True,
+                 has_unconnected=False,
+                 **kwargs):
+        """Initialize layer."""
         super(MEGnetBlock, self).__init__(**kwargs)
         self.NodeEmbed = NodeEmbed
         self.EdgeEmbed = EdgeEmbed
         self.EnvEmbed = EnvEmbed
         self.activation = activation
         self.use_bias = use_bias
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
         #Node
-        self.lay_phi_n = ConvFlatten(self.NodeEmbed[0],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_n_1 = ConvFlatten(self.NodeEmbed[1],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_n_2 = ConvFlatten(self.NodeEmbed[2],activation='linear',use_bias=self.use_bias)
-        self.lay_esum = PoolingEdgesPerNode()
+        self.lay_phi_n = DenseDisjoint(self.NodeEmbed[0],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_n_1 = DenseDisjoint(self.NodeEmbed[1],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_n_2 = DenseDisjoint(self.NodeEmbed[2],activation='linear',use_bias=self.use_bias)
+        self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted,has_unconnected=self.has_unconnected)
         self.lay_gather_un = GatherState()
         self.lay_conc_nu = ks.layers.Concatenate(axis=-1)
         #Edge
-        self.lay_phi_e = ConvFlatten(self.EdgeEmbed[0],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_e_1 = ConvFlatten(self.EdgeEmbed[1],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_e_2 = ConvFlatten(self.EdgeEmbed[2],activation='linear',use_bias=self.use_bias)
+        self.lay_phi_e = DenseDisjoint(self.EdgeEmbed[0],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_e_1 = DenseDisjoint(self.EdgeEmbed[1],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_e_2 = DenseDisjoint(self.EdgeEmbed[2],activation='linear',use_bias=self.use_bias)
         self.lay_gather_n = GatherNodes()
         self.lay_gather_ue = GatherState()
         self.lay_conc_enu = ks.layers.Concatenate(axis=-1)
@@ -60,8 +80,10 @@ class MEGnetBlock(ks.layers.Layer):
         self.lay_phi_u_2 = ks.layers.Dense(self.EnvEmbed[2],activation='linear',use_bias=self.use_bias)
         
     def build(self, input_shape):
+        """Build layer."""
         super(MEGnetBlock, self).build(input_shape)
     def call(self, inputs):
+        """Forward pass."""
         #Calculate edge Update
         node_input,edge_input,edge_index_input,env_input,len_node,len_edge = inputs
         e_n = self.lay_gather_n([node_input,edge_index_input])
@@ -71,7 +93,7 @@ class MEGnetBlock(ks.layers.Layer):
         ep = self.lay_phi_e_1(ep) # Learning of Update Functions
         ep = self.lay_phi_e_2(ep) # Learning of Update Functions
         #Calculate Node update
-        vb = self.lay_esum([ep,edge_index_input]) # Summing for each node connections
+        vb = self.lay_esum([node_input,ep,edge_index_input]) # Summing for each node connections
         v_u = self.lay_gather_un([env_input,len_node])
         vc = self.lay_conc_nu([vb,node_input,v_u]) # Concatenate node features with new edge updates
         vp = self.lay_phi_n(vc) # Learning of Update Functions
@@ -86,13 +108,13 @@ class MEGnetBlock(ks.layers.Layer):
         up = self.lay_phi_u_2(up) # Learning of Update Functions        
         return vp,ep,up
     def compute_output_shape(self, input_shape):
+        """Compute output shape."""
         is_node,is_edge,is_edge_index,is_env,_,_ = input_shape
         return((is_node[0],self.NodeEmbed),(is_edge[0],self.EdgeEmbed),(is_env[0],self.EnvEmbed))
 
 
 
-def getmodelMegnet(  
-                input_type = "raggged",
+def getmodelMegnet(input_type = "raggged",
                 nfeat_edge: int = None,
                 nfeat_global: int = None,
                 nfeat_node: int = None,
@@ -115,15 +137,51 @@ def getmodelMegnet(
                 dropout: float = None,
                 dropout_on_predict: bool = False,
                 is_classification: bool = False,
-                use_set2set = True,
+                use_set2set:bool = True,
                 npass: int = 3,
-                set2set_init = '0',
-                set2set_pool = "sum",
-                **kwargs
-                  ):
-
+                set2set_init:str = '0',
+                set2set_pool:str = "sum",
+                is_sorted:bool = True,
+                has_unconnected:bool = False,
+                **kwargs):
+    """
+    Get Megnet model.
+    
+    Args:
+        input_type (str): Input type, only "raggged" supported.
+        nfeat_edge (int): Edge feature dimension. Default is None.
+        nfeat_global (int): State feature dimension. Default is None.
+        nfeat_node (int): Node feature dimension. Default is None.
+        nblocks (int): Number of block. Default is 3.
+        n1 (int): n1 parameter. Default is 64.
+        n2 (int): n2 parameter. Default is 32.
+        n3 (int): n3 parameter. Default is 16.
+        set2set_dim (int): Set2set dimension. Default is 16.
+        nvocal (int): Vocabulary for emebdding layer. Default is 95.
+        embedding_dim (int): Dimension for emebdding layer. Default is 16.
+        nbvocal (int): Vocabulary for emebdding layer. Default is None.
+        bond_embedding_dim (int): Dimension for emebdding layer. Default is None.
+        ngvocal (int): Vocabulary for emebdding layer. Default is None.
+        global_embedding_dim (int): Dimension for emebdding layer. Default is None.
+        ntarget (int): Target dimension. Default is 1.
+        use_bias (bools): Use bias. Default is True.
+        act (func): Activation function. Default is softplus2.
+        l2_coef (float): Regularization coefficient. Default is None.
+        has_ff (bool): Feed forward layer. Default is True.
+        dropout (float): Use dropout. Default is None.
+        dropout_on_predict (bool): Use dropout on prediction. Default is False.
+        is_classification (bool): . Default is False.
+        use_set2set (bool): Use set2set. Default isTrue.
+        npass (int): Set2Set iterations. Default is 3.
+        set2set_init (str): Initialize method. Default is '0'.
+        set2set_pool (str): Pooling method in set2set. Default is "sum".
+        is_sorted (bool): Are edge indices sorted. Default is True.
+        has_unconnected (bool): Has unconnected nodes. Default is False.
+    
+    Returns:
+        model (tf.keras.models.Model)
+    """
     # Inputs
-
     if nfeat_node is None:
         node_input =  ks.Input(shape=(None,),dtype='int32', name='atom_int_input',ragged=True)  # only z as feature
         n =  ks.layers.Embedding(nvocal, embedding_dim, name='atom_embedding')(node_input)
@@ -146,7 +204,7 @@ def getmodelMegnet(
     edge_index_input = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
     
     
-    n,node_len,ed,edge_len,edi = RaggedToDisjoint()([n,ed,edge_index_input])
+    n,node_len,ed,edge_len,edi = CastRaggedToDisjoint()([n,ed,edge_index_input])
    
       
     # Get the setting for the training kwarg of Dropout
@@ -160,26 +218,32 @@ def getmodelMegnet(
     vp = n
     up = uenv
     ep = ed
-    vp = ConvFlatten(n1,activation=act)(vp)
-    vp = ConvFlatten(n2,activation=act)(vp)
-    ep = ConvFlatten(n1,activation=act)(ep)
-    ep = ConvFlatten(n2,activation=act)(ep)
-    up = ConvFlatten(n1,activation=act)(up)
-    up = ConvFlatten(n2,activation=act)(up)
+    vp = DenseDisjoint(n1,activation=act)(vp)
+    vp = DenseDisjoint(n2,activation=act)(vp)
+    ep = DenseDisjoint(n1,activation=act)(ep)
+    ep = DenseDisjoint(n2,activation=act)(ep)
+    up = DenseDisjoint(n1,activation=act)(up)
+    up = DenseDisjoint(n2,activation=act)(up)
     ep2 = ep
     vp2 = vp
     up2 = up
     for i in range(0,nblocks):
         if(has_ff == True and i>0):
-                vp2 = ConvFlatten(n1,activation=act)(vp)
-                vp2 = ConvFlatten(n2,activation=act)(vp2)
-                ep2 = ConvFlatten(n1,activation=act)(ep)
-                ep2 = ConvFlatten(n2,activation=act)(ep2)
-                up2 = ConvFlatten(n1,activation=act)(up)
-                up2 = ConvFlatten(n2,activation=act)(up2)
+            vp2 = DenseDisjoint(n1,activation=act)(vp)
+            vp2 = DenseDisjoint(n2,activation=act)(vp2)
+            ep2 = DenseDisjoint(n1,activation=act)(ep)
+            ep2 = DenseDisjoint(n2,activation=act)(ep2)
+            up2 = DenseDisjoint(n1,activation=act)(up)
+            up2 = DenseDisjoint(n2,activation=act)(up2)
             
         #MEGnetBlock
-        vp2,ep2,up2 = MEGnetBlock(NodeEmbed=[n1,n1,n2],EdgeEmbed=[n1,n1,n2],EnvEmbed=[n1,n1,n2],activation=act,name='megnet_%d'%i)([vp2,ep2,edi,up2,node_len,edge_len])
+        vp2,ep2,up2 = MEGnetBlock(NodeEmbed=[n1,n1,n2],
+                                  EdgeEmbed=[n1,n1,n2],
+                                  EnvEmbed=[n1,n1,n2],
+                                  activation=act,
+                                  is_sorted = is_sorted,
+                                  has_unconnected = has_unconnected,
+                                  name='megnet_%d'%i)([vp2,ep2,edi,up2,node_len,edge_len])
         # skip connection
         
         if dropout:
@@ -192,8 +256,8 @@ def getmodelMegnet(
         ep = ks.layers.Add()([ep2 ,ep])
 
     if(use_set2set == True):
-        vp = ConvFlatten(set2set_dim,activation='linear')(vp)
-        ep = ConvFlatten(set2set_dim,activation='linear')(ep)
+        vp = DenseDisjoint(set2set_dim,activation='linear')(vp)
+        ep = DenseDisjoint(set2set_dim,activation='linear')(ep)
         vp = Set2Set(set2set_dim,T=npass,pooling_method=set2set_pool,init_qstar = set2set_init)([vp,node_len])
         ep = Set2Set(set2set_dim,T=npass,pooling_method=set2set_pool,init_qstar = set2set_init)([ep,edge_len])
     else:

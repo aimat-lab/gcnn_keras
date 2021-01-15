@@ -5,23 +5,22 @@ from kgcnn.layers.ragged.gather import SampleToBatchIndexing,GatherState,GatherN
 from kgcnn.layers.ragged.conv import DenseRagged
 from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes
 from kgcnn.layers.ragged.set2set import Set2Set
+from kgcnn.layers.ragged.casting import CastRaggedToDense
 
 
 # 'Interaction Networks for Learning about Objects,Relations and Physics'
-#
-#
-#http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics
-#https://github.com/higgsfield/interaction_network_pytorch
+# by Peter W. Battaglia, Razvan Pascanu, Matthew Lai, Danilo Rezende, Koray Kavukcuoglu
+# http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics
+# https://github.com/higgsfield/interaction_network_pytorch
 
 
 
-def getmodelINORP(
-            input_nodedim,
+def getmodelINORP(input_nodedim,
             input_edgedim,
             input_envdim,
             nvocal = 95, #not in original paper
             nembed_dim = 50, #not in original paper
-            input_type = "ragged",
+            input_type = "ragged",  #not used atm
             depth = 1,
             edge_dim = [100,100,100,100,50],
             node_dim = [100,50],
@@ -31,12 +30,16 @@ def getmodelINORP(
             activation = 'relu',
             use_set2set = False, #not in original paper
             set2set_dim = 32, #not in original paper
-            use_pooling = True,
+            graph_labeling = True,
             add_env = True,
             pooling_method = "segment_mean",
-            **kwargs
-            ):
-
+            is_sorted= True,
+            has_unconnected=False,
+            **kwargs):
+    """
+    Get Interaction Network
+    """
+    
     if(input_nodedim == None):
         node_input = ks.layers.Input(shape=(None,),name='node_input',dtype ="float32",ragged=True)
         n =  ks.layers.Embedding(nvocal, nembed_dim , name='node_embedding')(node_input)
@@ -63,7 +66,7 @@ def getmodelINORP(
         for j in range(len(edge_dim)-1):
             eu = DenseRagged(edge_dim[j],use_bias=use_bias,activation=activation)(eu)
         eu = DenseRagged(edge_dim[-1],use_bias=use_bias,activation=activation)(eu)
-        nu = PoolingEdgesPerNode(pooling_method= pooling_method,is_sorted=True,has_unconnected=False ,node_indexing = 'batch')([n,eu,edi]) # Summing for each node connection
+        nu = PoolingEdgesPerNode(pooling_method= pooling_method,is_sorted=is_sorted,has_unconnected=has_unconnected,node_indexing = 'batch')([n,eu,edi]) # Summing for each node connection
         if(add_env == True):
             nu = ks.layers.Concatenate()([n,nu,ev]) # Concatenate node features with new edge updates
         else:
@@ -72,21 +75,25 @@ def getmodelINORP(
             nu = DenseRagged(node_dim[j],use_bias=use_bias,activation=activation)(nu)
         n = DenseRagged(node_dim[-1],use_bias=use_bias,activation='linear')(nu)
     
-    if(use_set2set == True):
-        #output
-        outSS = DenseRagged(set2set_dim)(n)
-        out = Set2Set(set2set_dim)(outSS)
-    elif(use_pooling==True):
-        out = PoolingNodes()(n)
-    else:
-        out = n    
     
-    if(len(output_dim)>0):
+    if(graph_labeling == True):
+        if(use_set2set == True):
+            #output
+            outSS = DenseRagged(set2set_dim)(n)
+            out = Set2Set(set2set_dim)(outSS)
+        else:
+            out = PoolingNodes()(n)
+        
         for j in range(len(output_dim)-1):
             out =  ks.layers.Dense(output_dim[j],activation=activation,use_bias=use_bias)(out)
         main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activ)(out)
-    else:
-        main_output = out
+        
+    else: #Node labeling
+        out = n    
+        for j in range(len(output_dim)-1):
+            out =  DenseRagged(output_dim[j],activation=activation,use_bias=use_bias)(out)
+        main_output = DenseRagged(output_dim[-1],name='main_output',activation=output_activ)(out)
+        main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
     
     model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input], outputs=main_output)
     
