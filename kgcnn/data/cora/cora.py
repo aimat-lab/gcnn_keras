@@ -5,7 +5,6 @@ import requests
 import numpy as np
 import shutil
 import scipy.sparse as sp
-#import pandas as pd
 
 
 def cora_download_dataset(path,overwrite=False):
@@ -15,8 +14,7 @@ def cora_download_dataset(path,overwrite=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
-    """
-    
+    """ 
     if(os.path.exists(os.path.join(path,'cora.npz')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
         data_url = "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz"
@@ -30,10 +28,21 @@ def cora_download_dataset(path,overwrite=False):
 
 
 def cora_make_grph(loader):
-    
-  
+    """
+    Load the cora dataset.
 
-    # Test index   
+    Args:
+        loader (dict): Dictionary from .npz file.
+
+    Returns:
+        A (sp.csr_matrix): Adjacency matrix.
+        X (sp.csr_matrix): Node features.
+        labels (np.array): Labels.
+
+    """   
+    A = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
+                 loader['adj_indptr']), shape=loader['adj_shape'])
+ 
     # adj_data = loader['adj_data']
     # adj_ind = loader['adj_indices']
     # adj_indptr = loader['adj_indptr']
@@ -50,33 +59,38 @@ def cora_make_grph(loader):
     # adj_idx_list = np.concatenate(adj_idx_list,axis=0)
     # adj_val_list = np.concatenate(adj_val_list,axis=0)
     
-    A = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
-                   loader['adj_indptr']), shape=loader['adj_shape'])
     
     X = sp.csr_matrix((loader['attr_data'], loader['attr_indices'],
                            loader['attr_indptr']), shape=loader['attr_shape'])
-    
-    attr_data = loader['attr_data']
-    attr_ind = loader['attr_indices']
-    attr_indptr = loader['attr_indptr']
-    attr_shape = loader['attr_shape']  
-
-    attr_idx_list = []
-    attr_val_list = []
-    for i in range(attr_shape[0]):
-        cols = np.expand_dims(attr_ind[attr_indptr[i]:attr_indptr[i+1]],axis=0)
-        colval = attr_data[attr_indptr[i]:attr_indptr[i+1]]
-        colval_padded = np.zeros(attr_shape[1])
-        colval_padded[cols] = colval
-        attr_val_list.append(colval_padded)
-        attr_idx_list.append(cols)
         
-    attr_val_list = np.array(attr_val_list)
+    # attr_data = loader['attr_data']
+    # attr_ind = loader['attr_indices']
+    # attr_indptr = loader['attr_indptr']
+    # attr_shape = loader['attr_shape']  
+    # attr_idx_list = []
+    # attr_val_list = []
+    # for i in range(attr_shape[0]):
+    #     cols = np.expand_dims(attr_ind[attr_indptr[i]:attr_indptr[i+1]],axis=0)
+    #     colval = attr_data[attr_indptr[i]:attr_indptr[i+1]]
+    #     colval_padded = np.zeros(attr_shape[1])
+    #     colval_padded[cols] = colval
+    #     attr_val_list.append(colval_padded)
+    #     attr_idx_list.append(cols) 
+    # attr_val_list = np.array(attr_val_list)
     
-    return A,X
+    labels = loader.get('labels')
+    
+    return A,X,labels
 
 
 def cora_graph():
+    """
+    Load and convert cora citation dataset.
+
+    Returns:
+        data (list): Contains [A,X,labels]. With adjacency matrix A, node features X.
+
+    """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
     if(os.path.exists(os.path.join(local_path,"cora.npz"))==False):
@@ -87,6 +101,3 @@ def cora_graph():
     data  = cora_make_grph(loader)
     
     return data
-
-
-out=  cora_graph()
