@@ -171,7 +171,8 @@ class PoolingEdgesPerNode(ks.layers.Layer):
             #Need to fill tensor since not all nodes are also in pooled
             #Does not happen if all nodes are also connected
             pooled_index,_ = tf.unique(nodind)
-            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get, tf.shape(nod.values))
+            outtarget_shape = tf.shape(nod.values,out_type=nodind.dtype)
+            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get,outtarget_shape)        
             
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
@@ -268,7 +269,9 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             #Need to fill tensor since not all nodes are also in pooled
             #Does not happen if all nodes are also connected
             pooled_index,_ = tf.unique(nodind)
-            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get, tf.shape(nod.values))
+            #outtarget_shape = (tf.shape(nod.values,out_type=nodind.dtype)[0],ks.backend.int_shape(nod.values)[-1])
+            outtarget_shape = tf.shape(nod.values,out_type=nodind.dtype)
+            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get,outtarget_shape)
         
         out = tf.RaggedTensor.from_row_splits(get,nod.row_splits,validate=self.ragged_validate)       
         return out     
