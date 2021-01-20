@@ -17,9 +17,13 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 
 def getmodelINORP(input_nodedim,
             input_edgedim,
-            input_envdim,
+            input_envdim,      
             nvocal = 95, #not in original paper
-            nembed_dim = 50, #not in original paper
+            evocal = 4, #not in original paper
+            uvocal  = 25,
+            node_embed_dim = 16, #not in original paper
+            edge_embed_dim = 8, #not in original paper
+            env_embed_dim = 16,
             input_type = "ragged",  #not used atm
             depth = 1,
             edge_dim = [100,100,100,100,50],
@@ -42,19 +46,29 @@ def getmodelINORP(input_nodedim,
     
     if(input_nodedim == None):
         node_input = ks.layers.Input(shape=(None,),name='node_input',dtype ="float32",ragged=True)
-        n =  ks.layers.Embedding(nvocal, nembed_dim , name='node_embedding')(node_input)
+        n =  ks.layers.Embedding(nvocal, node_embed_dim , name='node_embedding')(node_input)
     else:
         node_input = ks.layers.Input(shape=(None,input_nodedim),name='node_input',dtype ="float32",ragged=True)
         n = node_input
-    edge_input = ks.layers.Input(shape=(None,input_edgedim),name='edge_input',dtype ="float32",ragged=True)
+    if(input_edgedim == None):
+        edge_input = ks.layers.Input(shape=(None,),name='edge_input',dtype ="float32",ragged=True)
+        ed = ks.layers.Embedding(evocal, edge_embed_dim , name='edge_embedding')(edge_input)
+    else:
+        edge_input = ks.layers.Input(shape=(None,input_edgedim),name='edge_input',dtype ="float32",ragged=True)
+        ed = edge_input
+        
     edge_index_input = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
-    env_input = ks.Input(shape=(input_envdim,), dtype='float32' ,name='state_feature_input')
     
-    ed = edge_input
+    if(input_envdim==None):
+        env_input = ks.Input(shape=[], dtype='float32' ,name='state_feature_input')
+        uenv = ks.layers.Embedding(uvocal, env_embed_dim, name='state_embedding')(env_input)
+    else:
+        env_input = ks.Input(shape=(input_envdim,), dtype='float32' ,name='state_feature_input')
+        uenv = env_input
+     
+    #Preprocessing
     edi = SampleToBatchIndexing()([n,edge_index_input])
-    uenv = env_input
-    
-    
+     
     ev = GatherState()([uenv,n])
     # n-Layer Step
     for i in range(0,depth):
