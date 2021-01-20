@@ -23,8 +23,8 @@ x_data = [mutag_data[1],mutag_data[3],mutag_data[2],np.array([len(x) for x in mu
 #Make test/train split
 inds = np.arange(len(y_data))
 inds = shuffle(inds)
-ind_val = inds[:20]
-ind_train = inds[20:]
+ind_val = inds[:40]
+ind_train = inds[40:]
 
 # Select train/test data
 xtrain = [[x[i] for i in ind_train] for x in x_data]
