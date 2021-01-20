@@ -63,7 +63,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
             #Need to fill tensor since not all nodes are also in pooled
             #Does not happen if all nodes are also connected
             pooled_index,_ = tf.unique(nodind)
-            outtarget_shape = tf.shape(nod,out_type=nodind.dtype)
+            outtarget_shape = (tf.shape(nod,out_type=nodind.dtype)[0],ks.backend.int_shape(dens)[-1])
             get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get, outtarget_shape)
             
         out = get
