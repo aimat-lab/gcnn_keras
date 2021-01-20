@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from kgcnn.layers.ragged.gather import SampleToBatchIndexing,GatherState,GatherNodesIngoing,GatherNodesOutgoing
 from kgcnn.layers.ragged.conv import DenseRagged
-from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes
+from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingWeightedEdgesPerNode
 from kgcnn.layers.ragged.set2set import Set2Set
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 
@@ -17,7 +17,8 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 
 def getmodelINORP(input_nodedim,
             input_edgedim,
-            input_envdim,      
+            input_envdim,
+            use_edge_weights = False,
             nvocal = 95, #not in original paper
             evocal = 4, #not in original paper
             uvocal  = 25,
@@ -66,6 +67,10 @@ def getmodelINORP(input_nodedim,
         env_input = ks.Input(shape=(input_envdim,), dtype='float32' ,name='state_feature_input')
         uenv = env_input
      
+    if(use_edge_weights == True):
+        edge_weight_input = ks.layers.Input(shape=(None,1),name='edge_weight_input',dtype ="float32",ragged=True)
+        ew = edge_weight_input
+        
     #Preprocessing
     edi = SampleToBatchIndexing()([n,edge_index_input])
      
@@ -80,7 +85,10 @@ def getmodelINORP(input_nodedim,
         for j in range(len(edge_dim)-1):
             eu = DenseRagged(edge_dim[j],use_bias=use_bias,activation=activation)(eu)
         eu = DenseRagged(edge_dim[-1],use_bias=use_bias,activation=activation)(eu)
-        nu = PoolingEdgesPerNode(pooling_method= pooling_method,is_sorted=is_sorted,has_unconnected=has_unconnected,node_indexing = 'batch')([n,eu,edi]) # Summing for each node connection
+        if(use_edge_weights == True):
+            nu = PoolingWeightedEdgesPerNode(pooling_method= pooling_method,is_sorted=is_sorted,has_unconnected=has_unconnected,node_indexing = 'batch')([n,eu,edi,ew]) # Summing for each node connection
+        else:
+            nu = PoolingEdgesPerNode(pooling_method= pooling_method,is_sorted=is_sorted,has_unconnected=has_unconnected,node_indexing = 'batch')([n,eu,edi]) # Summing for each node connection
         if(add_env == True):
             nu = ks.layers.Concatenate()([n,nu,ev]) # Concatenate node features with new edge updates
         else:
@@ -109,7 +117,10 @@ def getmodelINORP(input_nodedim,
         main_output = DenseRagged(output_dim[-1],name='main_output',activation=output_activ)(out)
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
     
-    model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input], outputs=main_output)
+    if(use_edge_weights == True):
+        model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input,edge_weight_input], outputs=main_output)
+    else:
+        model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input], outputs=main_output)
     
     return model
 
