@@ -42,7 +42,8 @@ xtrain = [make_ragged(x) for x in xtrain[:3]] + [tf.constant(xtrain[3])]
 
 model = getmodelINORP(input_nodedim = None,
             input_edgedim = None,
-            input_envdim = None,      
+            input_envdim = None, 
+            use_edge_weights = False,
             nvocal = 60, #not in original paper
             evocal = 4, #not in original paper
             uvocal  = 30,
