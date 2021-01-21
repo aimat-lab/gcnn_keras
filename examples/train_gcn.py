@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as ks
 import matplotlib as mpl
-mpl.use('Agg')
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 #from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -22,6 +22,18 @@ edge_weight = np.expand_dims(edge_weight,axis=-1)
 labels = np.expand_dims(y_data,axis=-1)
 labels = np.array(labels==np.arange(70),dtype=np.float)
 
+#Make test/train split
+inds = np.arange(len(y_data))
+inds = shuffle(inds)
+ind_val = inds[:1000]
+ind_train = inds[1000:]
+val_mask = np.zeros_like(y_data)
+train_mask = np.zeros_like(y_data)
+val_mask[ind_val] = 1
+train_mask[ind_train] = 1
+val_mask = np.expand_dims(val_mask,axis=0)
+train_mask = np.expand_dims(train_mask,axis=0)
+
 #Make ragged graph tensors
 xtrain = [tf.RaggedTensor.from_row_lengths(nodes,np.array([len(nodes)],dtype=np.int)),
         tf.RaggedTensor.from_row_lengths(edge_index,np.array([len(edge_index)],dtype=np.int)),
@@ -34,27 +46,29 @@ ytrain = np.expand_dims(labels,axis=0)
 model = getmodelGCN(
             input_nodedim= 8710,
             input_type = "ragged",  #not used atm
-            depth = 4,
-            node_dim = 128,
-            hidden_dim = 128,
-            output_dim = [128,70],
+            depth = 3,
+            node_dim = 70,
+            hidden_dim = 70,
+            output_dim = [70,70,70],
             use_bias = True,
             activation = tf.keras.layers.LeakyReLU(alpha=0.1),
             graph_labeling = False,
             output_activ = 'softmax',
+            has_unconnected=True,
             )
 
 
 learning_rate_start = 1e-3
-learning_rate_stop = 1e-5
-epo = 500
-epomin = 400
+learning_rate_stop = 1e-4
+epo = 200
+epomin = 180
+epostep = 10
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
 
 cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start,learning_rate_stop,epomin,epo))
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizer,
-              metrics = ['accuracy'])
+              weighted_metrics = ['categorical_accuracy'])
 
 print(model.summary())
 
@@ -62,32 +76,37 @@ trainlossall = []
 testlossall = []
 validlossall = []
 
-epostep = 10
-
 start = time.process_time()
 
-hist = model.fit(xtrain, ytrain, 
-          epochs=epo,
-          batch_size=1,
-          callbacks=[cbks],
-          verbose=1
-          )
+for iepoch in range(0,epo,epostep):
 
-trainlossall = hist.history['accuracy']
+    hist = model.fit(xtrain, ytrain, 
+              epochs=iepoch+epostep,
+              initial_epoch=iepoch,
+              batch_size=1,
+              callbacks=[cbks],
+              verbose=1,
+              sample_weight = train_mask
+              )
+
+    trainlossall.append(hist.history)
+    testlossall.append(model.evaluate(xtrain, ytrain,sample_weight=val_mask))    
 
 stop = time.process_time()
 print("Print Time for taining: ",stop - start)
 
-trainlossall =np.array(trainlossall)
+testlossall = np.array(testlossall)
+trainlossall = np.concatenate([x['categorical_accuracy'] for x in trainlossall])
 
 
 #Plot loss vs epochs    
 plt.figure()
-plt.plot(np.arange(trainlossall.shape[0]),trainlossall,label='Training Loss',c='blue')
-#plt.plot(np.arange(epostep,epo+epostep,epostep),testlossall,label='Test Loss',c='red')
+plt.plot(np.arange(1,len(trainlossall)+1),trainlossall,label='Training Loss',c='blue')
+plt.plot(np.arange(epostep,epo+epostep,epostep),testlossall[:,1],label='Test Loss',c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Accurarcy')
 plt.title('GCN')
 plt.legend(loc='lower right',fontsize='x-large')
 plt.savefig('GCN_loss.png')
 plt.show()
+
