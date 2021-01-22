@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow.keras as ks
 import tensorflow as tf
-import scipy.sparse as sp
+
 
 from kgcnn.layers.ragged.gather import GatherNodesOutgoing,SampleToBatchIndexing
 from kgcnn.layers.ragged.conv import DenseRagged,ActivationRagged
@@ -14,73 +14,7 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 # https://arxiv.org/abs/1609.02907
 # https://github.com/tkipf/gcn
 
-
-def precompute_adjacency_scaled(A,add_identity = True):
-    """
-    Precompute the scaled adjacency matrix A_scaled = D^-0.5 (A + I) D^-0.5.
-
-    Args:
-        A (np.array,scipy.sparse): Adjacency matrix of shape (N,N).
-        add_identity (bool, optional): Whether to add identity. Defaults to True.
-
-    Returns:
-        np.array: D^-0.5 (A + I) D^-0.5.
-
-    """
-    if(isinstance(A,np.ndarray)):
-        A = np.array(A,dtype=np.float)
-        if(add_identity==True):
-            A = A +  np.identity(A.shape[0])
-        rowsum = np.sum(A,axis=-1)
-        d_ii = np.power(rowsum, -0.5).flatten()
-        d_ii[np.isinf(d_ii)] = 0.
-        D = np.zeros_like(A)
-        D[np.arange(A.shape[0]),np.arange(A.shape[0])] = d_ii
-        return np.matmul(D,np.matmul(A,D))
-    elif(isinstance(A,sp.csr.csr_matrix) or
-         isinstance(A,sp.coo.coo_matrix)):
-        adj = sp.coo_matrix(A)
-        adj = adj + sp.eye(adj.shape[0])
-        rowsum = np.array(adj.sum(1))
-        d_ii = np.power(rowsum, -0.5).flatten()
-        d_ii[np.isinf(d_ii)] = 0.
-        D = sp.diags(d_ii)
-        return adj.transpose().dot(D).transpose().dot(D).tocoo()    
-    else:
-        raise TypeError("Error: Matrix format not supported:",type(A))
-
-
-def scaled_adjacency_to_list(A,Ascaled):
-    """
-    Map adjacency matrix to index list plus edge weights.
-
-    Args:
-        A (np.array): Original Adjacency matrix of shape (N,N).
-        Ascaled (np.array,scipy.sparse): Scaled Adjacency matrix of shape (N,N). A_scaled = D^-0.5 (A + I) D^-0.5.
-
-    Returns:
-        edge_index (np.array): Indexlist of shape (N,2).
-        edge_weight (np.array): Entries of Adjacency matrix of shape (N,N)
-        
-    """
-    if(isinstance(A,np.ndarray)):
-        A = np.array(A,dtype=np.bool)
-        edge_weight = Ascaled[A]
-        index1 = np.tile(np.expand_dims(np.arange(0,A.shape[0]),axis=1),(1,A.shape[1]))
-        index2 = np.tile(np.expand_dims(np.arange(0,A.shape[1]),axis=0),(A.shape[0],1))
-        index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
-        edge_index = index12[A]
-        return edge_index,edge_weight
-    elif(isinstance(Ascaled,sp.csr.csr_matrix) or
-         isinstance(Ascaled,sp.coo.coo_matrix)):
-        ei1 =  np.array(Ascaled.row.tolist(),dtype=np.int)
-        ei2 =  np.array(Ascaled.col.tolist(),dtype=np.int)
-        edge_index = np.concatenate([np.expand_dims(ei1,axis=-1),np.expand_dims(ei2,axis=-1)],axis=-1)
-        edge_weight = np.array(Ascaled.data)
-        return edge_index,edge_weight
-    else:
-        raise TypeError("Error: Matrix format not supported:",type(A))
-        
+       
 
 
 def getmodelGCN(input_nodedim,
