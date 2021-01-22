@@ -9,14 +9,15 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 
 from kgcnn.data.cora.cora import cora_graph
-from kgcnn.literature.GCN import getmodelGCN,precompute_adjacency_scaled,scaled_adjacency_to_list
+from kgcnn.literature.GCN import getmodelGCN
+from kgcnn.utils.adj import precompute_adjacency_scaled,scaled_adjacency_to_list,make_undirected
 from kgcnn.utils.learning import lr_lin_reduction
 
 
 # Download Dataset
 A_data,X_data,y_data = cora_graph()
-A_scaled = precompute_adjacency_scaled(A_data)
-edge_index,edge_weight = scaled_adjacency_to_list(A_data,A_scaled)
+A_scaled = precompute_adjacency_scaled(make_undirected(A_data))
+edge_index,edge_weight = scaled_adjacency_to_list(A_scaled)
 nodes = X_data.todense()
 edge_weight = np.expand_dims(edge_weight,axis=-1)
 labels = np.expand_dims(y_data,axis=-1)
@@ -47,9 +48,9 @@ model = getmodelGCN(
             input_nodedim= 8710,
             input_type = "ragged",  #not used atm
             depth = 3,
-            node_dim = 70,
-            hidden_dim = 70,
-            output_dim = [70,70,70],
+            node_dim = 140,
+            hidden_dim = 140,
+            output_dim = [140,70,70],
             use_bias = True,
             activation = tf.keras.layers.LeakyReLU(alpha=0.1),
             graph_labeling = False,
@@ -60,8 +61,8 @@ model = getmodelGCN(
 
 learning_rate_start = 1e-3
 learning_rate_stop = 1e-4
-epo = 200
-epomin = 180
+epo = 300
+epomin = 260
 epostep = 10
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
 
