@@ -22,12 +22,19 @@ class PoolingTopK(ks.layers.Layer):
         Edge index tensor of shape (batch*None,2)   
     
     Outputs:
+        [
         Pooled nodes of shape (batch*None,F_n)
         Pooled node length of shape (batch,)
         Pooled edge features of shape (batch*None,F_e)
         Pooled edge length tensor of shape (batch,)
         Pooled edge indices of shape (batch*None,2)
+        ],
+        [
+        Map nodes (batch*None,)
+        Map edges (batch*None,)
+        ]
     """
+    
     def __init__(self,
                  k = 0.1 ,
                  kernel_initializer = 'glorot_uniform',
@@ -41,7 +48,6 @@ class PoolingTopK(ks.layers.Layer):
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
         self.kernel_constraint = ks.constraints.get(kernel_constraint)
 
-        self._supports_ragged_inputs = True 
     def build(self, input_shape):
         super(PoolingTopK, self).build(input_shape)
 
@@ -64,7 +70,7 @@ class PoolingTopK(ks.layers.Layer):
         #Get node properties from ragged tensor
         nvalue = node
         nrowlength = tf.cast(nodelen,dtype = index_dtype)
-        nids = tf.repeat(ks.backend.arange(tf.shape(nrowlength)[0],dtype=index_dtype),nrowlength)
+        nids = tf.repeat(tf.range(tf.shape(nrowlength)[0],dtype=index_dtype),nrowlength)
         
         #Use kernel p to get score
         norm_p = ks.backend.sqrt(ks.backend.sum(ks.backend.square(self.kernel_p),axis=-1,keepdims=True))
@@ -98,13 +104,13 @@ class PoolingTopK(ks.layers.Layer):
         gated_n = pooled_n *ks.backend.expand_dims(tf.keras.activations.sigmoid(pooled_score),axis=-1)
         
         #Make index map for new nodes towards old index
-        index_new_nodes = ks.backend.arange(tf.shape(pooled_index)[0],dtype=index_dtype)
+        index_new_nodes = tf.range(tf.shape(pooled_index)[0],dtype=index_dtype)
         old_shape = tf.cast(ks.backend.expand_dims(tf.shape(nvalue)[0]),dtype=index_dtype)
         map_index = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1),index_new_nodes,old_shape)
         
         #Shift also edgeindex by batch offset
         shiftind = tf.cast(edgeind,dtype=index_dtype) #already shifted by batch offset (subgraphs)
-        edge_ids = tf.repeat(ks.backend.arange(tf.shape(edgelen)[0],dtype=index_dtype),edgelen)
+        edge_ids = tf.repeat(tf.range(tf.shape(edgelen)[0],dtype=index_dtype),edgelen)
         
         #Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind,axis=-1) == ks.backend.expand_dims(ks.backend.expand_dims(removed_index,axis=0),axis=0)  #this creates large tensor (batch*#edges,2,remove)
@@ -126,6 +132,11 @@ class PoolingTopK(ks.layers.Layer):
         clean_edge_feat = edge_feat[mask_edge]
         clean_edge_feat_sorted = tf.gather(clean_edge_feat,batch_order,axis=0)
         
+        #Make edge feature map for new edge features
+        edge_position_old = tf.range(tf.shape(edgefeat)[0],dtype=index_dtype)
+        edge_position_new =  edge_position_old[mask_edge]
+        edge_position_new = tf.gather(edge_position_new,batch_order,axis=0)
+        
         #Collect output tensors
         out_node = gated_n
         out_nlen = pooled_len
@@ -133,8 +144,12 @@ class PoolingTopK(ks.layers.Layer):
         out_elen = clean_edge_len
         out_edge_index = out_indexlist
         
+        #Collect reverse pooling info
+        out_pool = pooled_index
+        
         out = [out_node,out_nlen,out_edge,out_elen,out_edge_index]
-        return out
+        out_map = [out_pool,edge_position_new]
+        return out,out_map
     
     
     def get_config(self):
@@ -150,3 +165,60 @@ class PoolingTopK(ks.layers.Layer):
             ks.constraints.serialize(self.kernel_constraint),
         })
         return config 
+    
+
+
+
+class UnPoolingTopK(ks.layers.Layer):
+    """
+    Layer for unpooling of nodes. Disjoint representation including length tensor of graphs in batch.
+    
+    The edge index information are not reverted since the tensor before pooling can be reused. Same holds for batch-assignment node_len und edge_len information.
+    
+    Args:
+        **kwargs
+    
+    Inputs:
+        Old node tensor of shape (batch*None,F_n)
+        Old node length tensor of shape (batch,)
+        Old edge feature tensor of shape (batch*None,F_e)
+        Old edge length tensor of shape (batch,)
+        Old index tensor of shape (batch*None,2) 
+        Node index map (batch*None,)
+        Edge index map (batch*None,)
+        Pooled node tensor of shape (batch*None,F_n)
+        Pooled node length tensor of shape (batch,)
+        Pooled edge feature tensor of shape (batch*None,F_e)
+        Pooled edge length tensor of shape (batch,)
+        Pooled index tensor of shape (batch*None,2) 
+    
+    Outputs:
+        Unpooled node tensor of shape (batch*None,F_n)
+        Unpooled node length tensor of shape (batch,)
+        Unpooled edge feature tensor of shape (batch*None,F_e)
+        Unpooled edge length tensor of shape (batch,)
+        Unpooled index tensor of shape (batch*None,2)
+
+    """
+    def __init__(self,
+                 **kwargs):
+        super(UnPoolingTopK, self).__init__(**kwargs)
+
+
+    def build(self, input_shape):
+        super(UnPoolingTopK, self).build(input_shape)
+
+        
+    def call(self, inputs):    
+        node_old,nodelen_old,edge_old,edgelen_old,edgeind_old, map_node, map_edge , node_new,nodelen_new,edge_new,edgelen_new,edgeind_new = inputs
+        
+        index_dtype = map_node.dtype
+        node_shape = ks.backend.concatenate([tf.cast(tf.shape(node_old)[0],dtype=index_dtype),tf.cast(tf.shape(node_new)[1],dtype=index_dtype)])
+        out_node = tf.scatter_nd(ks.backend.expand_dims(map_node,axis=-1),node_new,node_shape)
+        
+        index_dtype = map_edge.dtype
+        edge_shape = ks.backend.concatenate([tf.cast(tf.shape(edge_old)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new)[1],dtype=index_dtype)])
+        out_edge = tf.scatter_nd(ks.backend.expand_dims(map_edge,axis=-1),edge_new,edge_shape)
+
+        outlist = [out_node,nodelen_old,out_edge,edgelen_old,edgeind_old]
+        return outlist
