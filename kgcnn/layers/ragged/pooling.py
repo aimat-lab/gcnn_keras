@@ -168,9 +168,9 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         get = self._pool(dens,nodind)
         
         if(self.has_unconnected == True):
-            #Need to fill tensor since not all nodes are also in pooled
+            #Need to fill tensor since the maximum node may not be also in pooled
             #Does not happen if all nodes are also connected
-            pooled_index,_ = tf.unique(nodind)
+            pooled_index = tf.range(tf.shape(get)[0])# tf.unique(nodind)
             outtarget_shape = (tf.shape(nod.values,out_type=nodind.dtype)[0],ks.backend.int_shape(dens)[-1])
             get = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1), get,outtarget_shape)        
             

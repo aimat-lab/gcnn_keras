@@ -31,11 +31,14 @@ class PoolingTopK(ks.layers.Layer):
                  kernel_initializer = 'glorot_uniform',
                  kernel_regularizer = None,
                  kernel_constraint=None,
+                 node_indexing = 'sample',
                  ragged_validate = False,
                  **kwargs):
+        """Initialize layer."""
         super(PoolingTopK, self).__init__(**kwargs)
         self.k = k
         self.ragged_validate = ragged_validate
+        self.node_indexing = node_indexing
         
         self.kernel_initializer = ks.initializers.get(kernel_initializer)
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
@@ -43,6 +46,7 @@ class PoolingTopK(ks.layers.Layer):
 
         self._supports_ragged_inputs = True 
     def build(self, input_shape):
+        """Build layer."""
         super(PoolingTopK, self).build(input_shape)
 
         self.units_p = input_shape[0][-1]
@@ -56,6 +60,7 @@ class PoolingTopK(ks.layers.Layer):
 
         
     def call(self, inputs):
+        """Forward Pass"""
         node,edgeind,edgefeat = inputs
         
         #Determine index dtype
@@ -99,17 +104,23 @@ class PoolingTopK(ks.layers.Layer):
         gated_n = pooled_n *ks.backend.expand_dims(tf.keras.activations.sigmoid(pooled_score),axis=-1)
         
         #Make index map for new nodes towards old index
-        index_new_nodes = ks.backend.arange(tf.shape(pooled_index)[0],dtype=index_dtype)
+        index_new_nodes = tf.range(tf.shape(pooled_index)[0],dtype=index_dtype)
         old_shape = tf.cast(ks.backend.expand_dims(tf.shape(nvalue)[0]),dtype=index_dtype)
         map_index = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1),index_new_nodes,old_shape)
         
         #Shift also edgeindex by batch offset
-        edge_ids = edgeind.value_rowids()
-        shift1 = edgeind.values
-        shift2 = tf.expand_dims(tf.gather(nrowsplit[:-1],edge_ids),axis=1)
-        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
-        shiftind = tf.cast(shiftind,dtype=index_dtype)
-        
+        if(self.node_indexing == 'batch'):
+            shiftind = tf.cast(edgeind,dtype=index_dtype) #already shifted by batch offset (subgraphs)
+            edge_ids  = edgefeat.value_rowids()
+        elif(self.node_indexing == 'sample'):
+            edge_ids = edgeind.value_rowids()
+            shift1 = edgeind.values
+            shift2 = tf.expand_dims(tf.gather(nrowsplit[:-1],edge_ids),axis=1)
+            shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+            shiftind = tf.cast(shiftind,dtype=index_dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+
         #Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind,axis=-1) == ks.backend.expand_dims(ks.backend.expand_dims(removed_index,axis=0),axis=0)  #this creates large tensor (batch*#edges,2,remove)
         mask_edge = tf.math.logical_not(ks.backend.any(ks.backend.any(mask_edge,axis=-1),axis=-1))
@@ -123,21 +134,36 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index_sorted = tf.gather(new_edge_index ,batch_order,axis=0)
         
         #Remove the batch offset from edge indices again for ragged tensor output
-        batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len,exclusive=True),clean_edge_ids),axis=1)
-        out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset ,dtype=index_dtype)
-        
+        if(self.node_indexing == 'batch'):
+            out_indexlist = new_edge_index_sorted
+        elif(self.node_indexing == 'sample'):
+            batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len,exclusive=True),clean_edge_ids),axis=1)
+            out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset ,dtype=index_dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+            
         #Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat.values
         clean_edge_feat = edge_feat[mask_edge]
         clean_edge_feat_sorted = tf.gather(clean_edge_feat,batch_order,axis=0)
+        
+        #Make edge feature map for new edge features
+        edge_position_old = tf.range(tf.shape(edge_feat)[0],dtype=index_dtype)
+        edge_position_new =  edge_position_old[mask_edge]
+        edge_position_new = tf.gather(edge_position_new,batch_order,axis=0)
         
         #Build ragged tensors again for node, edgeindex and edge
         out_node = tf.RaggedTensor.from_value_rowids(gated_n,pooled_id,validate=self.ragged_validate)
         out_edge_index = tf.RaggedTensor.from_value_rowids(out_indexlist,clean_edge_ids,validate=self.ragged_validate)
         out_edge = tf.RaggedTensor.from_value_rowids(clean_edge_feat_sorted,clean_edge_ids,validate=self.ragged_validate)
         
+        # Build map
+        map_node = pooled_index
+        map_edge = edge_position_new
+        
+        out_map = [map_node,map_edge]
         out = [out_node,out_edge_index,out_edge]
-        return out
+        return out,out_map
     
     
     def get_config(self):
@@ -156,4 +182,67 @@ class PoolingTopK(ks.layers.Layer):
         return config 
     
 
+class UnPoolingTopK(ks.layers.Layer):
+    """
+    Layer for unpooling of nodes. Disjoint representation including length tensor of graphs in batch.
+    
+    The edge index information are not reverted since the tensor before pooling can be reused. Same holds for batch-assignment node_len und edge_len information.
+    
+    Args:
+        **kwargs
+    
+    Inputs:
+        Old node ragged tensor of shape (batch,None,F_n)
+        Old edge index ragged tensor of shape (batch,None,2)
+        Old edge feature tensor of shape (batch,None,F_e)
+        Node index map (batch*None,)
+        Edge index map (batch*None,)
+        Pooled node ragged tensor of shape (batch,None,F_n)
+        Pooled edge index ragged tensor of shape (batch,None,2)
+        Pooled edge feature tensor of shape (batch,None,F_e)
+    
+    Outputs:
+        Unpooled node ragged tensor of shape (batch,None,F_n)
+        Unpooled edge index ragged tensor of shape (batch,None,2)
+        Unpooled edge feature tensor of shape (batch,None,F_e)
 
+    """
+    def __init__(self,
+                 ragged_validate = False,
+                 **kwargs):
+        """Initialize layer."""
+        super(UnPoolingTopK, self).__init__(**kwargs)
+        self.ragged_validate = ragged_validate
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(UnPoolingTopK, self).build(input_shape)
+
+        
+    def call(self, inputs):
+        """Forward Pass"""
+        node_old,edgeind_old,edge_old, map_node, map_edge, node_new,edgeind_new,edge_new = inputs
+        
+        index_dtype = map_node.dtype
+        node_old_value = node_old.values
+        node_new_value = node_new.values
+        node_shape = ks.backend.concatenate([tf.cast(tf.shape(node_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(node_new_value)[1],dtype=index_dtype)])
+        out_node_value = tf.scatter_nd(ks.backend.expand_dims(map_node,axis=-1),node_new_value,node_shape)
+        out_node = tf.RaggedTensor.from_row_splits(out_node_value,node_old.row_splits,validate=self.ragged_validate)
+        
+        
+        index_dtype = map_edge.dtype
+        edge_old_value = edge_old.values
+        edge_new_value = edge_new.values
+        edge_shape = ks.backend.concatenate([tf.cast(tf.shape(edge_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new_value)[1],dtype=index_dtype)])
+        out_edge_value = tf.scatter_nd(ks.backend.expand_dims(map_edge,axis=-1),edge_new_value,edge_shape)
+        out_edge = tf.RaggedTensor.from_row_splits(out_edge_value,edge_old.row_splits,validate=self.ragged_validate)
+
+        outlist = [out_node,edgeind_old,out_edge]
+        return outlist
+    
+    def get_config(self):
+        """Update layer config."""
+        config = super(UnPoolingTopK, self).get_config()
+        config.update({"ragged_validate": self.ragged_validate})
+        return config
