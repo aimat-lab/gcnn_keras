@@ -41,6 +41,7 @@ class PoolingTopK(ks.layers.Layer):
                  kernel_regularizer = None,
                  kernel_constraint=None,
                  **kwargs):
+        """Initialize Layer."""
         super(PoolingTopK, self).__init__(**kwargs)
         self.k = k
         
@@ -49,6 +50,7 @@ class PoolingTopK(ks.layers.Layer):
         self.kernel_constraint = ks.constraints.get(kernel_constraint)
 
     def build(self, input_shape):
+        """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
 
         self.units_p = input_shape[0][-1]
@@ -62,6 +64,7 @@ class PoolingTopK(ks.layers.Layer):
 
         
     def call(self, inputs):
+        """Forward pass."""
         node,nodelen,edgefeat,edgelen,edgeind = inputs
         
         #Determine index dtype
@@ -200,24 +203,28 @@ class UnPoolingTopK(ks.layers.Layer):
         Unpooled index tensor of shape (batch*None,2)
 
     """
+    
     def __init__(self,
                  **kwargs):
+        """Initialize Layer."""
         super(UnPoolingTopK, self).__init__(**kwargs)
 
 
     def build(self, input_shape):
+        """Build Layer."""
         super(UnPoolingTopK, self).build(input_shape)
 
         
-    def call(self, inputs):    
+    def call(self, inputs):
+        """Forward pass."""
         node_old,nodelen_old,edge_old,edgelen_old,edgeind_old, map_node, map_edge , node_new,nodelen_new,edge_new,edgelen_new,edgeind_new = inputs
         
         index_dtype = map_node.dtype
-        node_shape = ks.backend.concatenate([tf.cast(tf.shape(node_old)[0],dtype=index_dtype),tf.cast(tf.shape(node_new)[1],dtype=index_dtype)])
+        node_shape = tf.stack([tf.cast(tf.shape(node_old)[0],dtype=index_dtype),tf.cast(tf.shape(node_new)[1],dtype=index_dtype)])
         out_node = tf.scatter_nd(ks.backend.expand_dims(map_node,axis=-1),node_new,node_shape)
         
         index_dtype = map_edge.dtype
-        edge_shape = ks.backend.concatenate([tf.cast(tf.shape(edge_old)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new)[1],dtype=index_dtype)])
+        edge_shape = tf.stack([tf.cast(tf.shape(edge_old)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new)[1],dtype=index_dtype)])
         out_edge = tf.scatter_nd(ks.backend.expand_dims(map_edge,axis=-1),edge_new,edge_shape)
 
         outlist = [out_node,nodelen_old,out_edge,edgelen_old,edgeind_old]
