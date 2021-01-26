@@ -133,7 +133,7 @@ class ActivationRagged(tf.keras.layers.Layer):
         """Initialize layer same as Activation."""
         super(ActivationRagged, self).__init__(**kwargs)
         self.activation = ks.activations.get(activation)
-        
+        self._supports_ragged_inputs = True 
     def call(self, inputs):
         """Forward pass."""
         out = tf.ragged.map_flat_values(self.activation,inputs)
