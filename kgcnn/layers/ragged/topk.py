@@ -21,9 +21,15 @@ class PoolingTopK(ks.layers.Layer):
         Edge feature tensor of shape (batch,None,F_e)
     
     Outputs:
+        [
         Pooled nodes of shape (batch,None,F_n)
         Pooled edge indices of shape (batch,None,2)
         Pooled edge features of shape (batch,None,F_e)
+        ],
+        [
+        Map nodes (batch*None,)
+        Map edges (batch*None,)
+        ]
     """
     
     def __init__(self,
@@ -60,7 +66,7 @@ class PoolingTopK(ks.layers.Layer):
 
         
     def call(self, inputs):
-        """Forward Pass"""
+        """Forward Pass."""
         node,edgeind,edgefeat = inputs
         
         #Determine index dtype
@@ -207,6 +213,7 @@ class UnPoolingTopK(ks.layers.Layer):
         Unpooled edge feature tensor of shape (batch,None,F_e)
 
     """
+    
     def __init__(self,
                  ragged_validate = False,
                  **kwargs):
@@ -226,7 +233,7 @@ class UnPoolingTopK(ks.layers.Layer):
         index_dtype = map_node.dtype
         node_old_value = node_old.values
         node_new_value = node_new.values
-        node_shape = ks.backend.concatenate([tf.cast(tf.shape(node_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(node_new_value)[1],dtype=index_dtype)])
+        node_shape = tf.stack([tf.cast(tf.shape(node_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(node_new_value)[1],dtype=index_dtype)])
         out_node_value = tf.scatter_nd(ks.backend.expand_dims(map_node,axis=-1),node_new_value,node_shape)
         out_node = tf.RaggedTensor.from_row_splits(out_node_value,node_old.row_splits,validate=self.ragged_validate)
         
@@ -234,7 +241,7 @@ class UnPoolingTopK(ks.layers.Layer):
         index_dtype = map_edge.dtype
         edge_old_value = edge_old.values
         edge_new_value = edge_new.values
-        edge_shape = ks.backend.concatenate([tf.cast(tf.shape(edge_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new_value)[1],dtype=index_dtype)])
+        edge_shape = tf.stack([tf.cast(tf.shape(edge_old_value)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new_value)[1],dtype=index_dtype)])
         out_edge_value = tf.scatter_nd(ks.backend.expand_dims(map_edge,axis=-1),edge_new_value,edge_shape)
         out_edge = tf.RaggedTensor.from_row_splits(out_edge_value,edge_old.row_splits,validate=self.ragged_validate)
 
