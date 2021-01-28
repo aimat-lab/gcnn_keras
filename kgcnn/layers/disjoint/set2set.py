@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
+
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391
@@ -130,9 +131,11 @@ class Set2Set(ks.layers.Layer):
         
         
     def build(self, input_shape):
+        """Build layer."""
         super(Set2Set, self).build(input_shape)
         
     def call(self, inputs):
+        """Forward pass."""
         x, batch_num = inputs
         batch_shape = K.shape(batch_num)
         
@@ -165,37 +168,41 @@ class Set2Set(ks.layers.Layer):
 
     def f_et(self,fm,fq):
         """
-        Function to compute scalar from m and q
+        Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
             [m,q] of shape [(batch*num,feat),(batch*num,feat)]
+            
         Returns:
-            et of shape #(batch*num,)
-        Note:
-            can apply sum or mean etc.
+            et of shape #(batch*num,)  
         """
         fet = self._pool(fm*fq,axis=1) #(batch*num,1)
         return fet
     
     def get_scale_per_batch(self,x):
+        """Get rescaleing for the batch."""
         return tf.keras.backend.max(x,axis=0,keepdims=True)
     
     def get_scale_per_sample(self,x,ind,rep):
+        """Get rescaleing for the sample."""
         out = tf.math.segment_max(x,ind)#(batch,)
         out = tf.repeat(out,rep)#(batch*num,)
         return out
     
     def get_norm(self,x,ind,rep):
+        """Compute Norm."""
         norm = tf.math.segment_sum(x,ind) #(batch,)
         norm = tf.math.reciprocal_no_nan(norm)#(batch,)
         norm = tf.repeat(norm,rep,axis=0) #(batch*num,)
         return norm
         
     def init_qstar_0(self,m,batch_index,batch_num):
+        """Initialize the q0 with zeros."""
         batch_shape = K.shape(batch_num)
         return tf.zeros((batch_shape[0],1,2*self.channels))
     
     def init_qstar_mean(self,m,batch_index,batch_num):
+        """Initialize the q0 with mean."""
         # use q0=avg(m) (or q0=0)
         #batch_shape = K.shape(batch_num)
         q = tf.math.segment_mean(m,batch_index) # (batch,feat)
@@ -216,9 +223,11 @@ class Set2Set(ks.layers.Layer):
         return qstar
     
     def get_config(self):
+        """Make config for layer."""
         config = super(Set2Set, self).get_config()
         config.update({"channels": self.channels})
         config.update({"T": self.T})
         config.update({"pooling_method": self.pooling_method})
         config.update({"init_qstar": self.init_qstar})
+        lstm_conf = self.lay_lstm.get_config()
         return config 

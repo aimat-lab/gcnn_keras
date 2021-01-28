@@ -2,37 +2,40 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 
-
 class PoolingTopK(ks.layers.Layer):
     """
-    Layer for pooling of nodes. Disjoint representation including length tensor of graphs in batch.
+    Layer for pooling of nodes. Disjoint representation including length tensor.
+    
+    This implements a learnable score vector plus gate. Implements gPool of Gao et al.
     
     Args:
         k : relative number of nodes to remove
-        kernel_initializer : 'glorot_uniform',
-        kernel_regularizer : None,
-        kernel_constraint : None,
+        kernel_initializer : Score initialization. Default is 'glorot_uniform',
+        kernel_regularizer : Score regularization. Default is None.
+        kernel_constraint : Score constrain. Default is None.
         **kwargs
     
     Inputs:
-        Node tensor of shape (batch*None,F_n)
-        Node length tensor of shape (batch,)
-        Edge feature tensor of shape (batch*None,F_e)
-        Edge length tensor of shape (batch,)
-        Edge index tensor of shape (batch*None,2)   
+        List of tensors [nodes, node_length, edges, edge_length, edge_indices]
+        nodes (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Node length tensor of the numer of nodes
+                                 in each graph of shape (batch,)
+        edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+        edge_length (tf.tensor): Edge length tensor of the numer of edges
+                                 in each graph of shape (batch,)
+        edge_indices (tf.tensor): Flatten edge index list tensor of shape (batch*None,2)   
     
     Outputs:
-        [
-        Pooled nodes of shape (batch*None,F_n)
-        Pooled node length of shape (batch,)
-        Pooled edge features of shape (batch*None,F_e)
-        Pooled edge length tensor of shape (batch,)
-        Pooled edge indices of shape (batch*None,2)
-        ],
-        [
-        Map nodes (batch*None,)
-        Map edges (batch*None,)
-        ]
+        Tuple [nodes, node_length, edges, edge_length, edge_indices],[map_nodes,map_edges]
+        nodes (tf.tensor): Pooled node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Pooled node length tensor of the numer of nodes
+                                 in each graph of shape (batch,)
+        edges (tf.tensor): Pooled edge feature list of shape (batch*None,F)
+        edge_length (tf.tensor): Pooled edge length tensor of the numer of edges
+                                 in each graph of shape (batch,)
+        edge_indices (tf.tensor): Pooled edge index list tensor of shape (batch*None,2) 
+        map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)
+        map_edges (tf.tensor): Index map between original and pooled edges of shape (batch*None,)
     """
     
     def __init__(self,
@@ -176,32 +179,36 @@ class UnPoolingTopK(ks.layers.Layer):
     """
     Layer for unpooling of nodes. Disjoint representation including length tensor of graphs in batch.
     
-    The edge index information are not reverted since the tensor before pooling can be reused. Same holds for batch-assignment node_len und edge_len information.
+    The edge index information are not reverted since the tensor before pooling can be reused. 
+    Same holds for batch-assignment in number of nodes and edges information.
     
     Args:
         **kwargs
     
     Inputs:
-        Old node tensor of shape (batch*None,F_n)
-        Old node length tensor of shape (batch,)
-        Old edge feature tensor of shape (batch*None,F_e)
-        Old edge length tensor of shape (batch,)
-        Old index tensor of shape (batch*None,2) 
-        Node index map (batch*None,)
-        Edge index map (batch*None,)
-        Pooled node tensor of shape (batch*None,F_n)
-        Pooled node length tensor of shape (batch,)
-        Pooled edge feature tensor of shape (batch*None,F_e)
-        Pooled edge length tensor of shape (batch,)
-        Pooled index tensor of shape (batch*None,2) 
+        List [node,node_length,edge,edge_length,edge_indices,map_node,map_edge,node_pool,node_length_pool,edge_pool,edge_length_pool,edge_indices_pool]
+        node (tf.tensor): Original node tensor of shape (batch*None,F_n)
+        node_length (tf.tensor): Original node length tensor of shape (batch,)
+        edge (tf.tensor): Original edge feature tensor of shape (batch*None,F_e)
+        edge_length (tf.tensor): Original edge length tensor of shape (batch,)
+        edge_indices (tf.tensor): Original index tensor of shape (batch*None,2) 
+        map_node (tf.tensor): Index map between original and pooled nodes (batch*None,)
+        map_edge (tf.tensor): Index map between original and pooled edges (batch*None,)
+        node_pool (tf.tensor): Pooled node tensor of shape (batch*None,F_n)
+        node_length_pool (tf.tensor): Pooled node length tensor of shape (batch,)
+        edge_pool (tf.tensor): Pooled edge feature tensor of shape (batch*None,F_e)
+        edge_length_pool (tf.tensor): Pooled edge length tensor of shape (batch,)
+        edge_indices (tf.tensor): Pooled index tensor of shape (batch*None,2) 
     
     Outputs:
-        Unpooled node tensor of shape (batch*None,F_n)
-        Unpooled node length tensor of shape (batch,)
-        Unpooled edge feature tensor of shape (batch*None,F_e)
-        Unpooled edge length tensor of shape (batch,)
-        Unpooled index tensor of shape (batch*None,2)
-
+        List [nodes, node_length, edges, edge_length, edge_indices]
+        nodes (tf.tensor): Unpooled node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Unpooled node length tensor of the numer of nodes
+                                 in each graph of shape (batch,)
+        edges (tf.tensor): Unpooled edge feature list of shape (batch*None,F)
+        edge_length (tf.tensor): Unpooled edge length tensor of the numer of edges
+                                 in each graph of shape (batch,)
+        edge_indices (tf.tensor): Unpooled edge index list tensor of shape (batch*None,2)
     """
     
     def __init__(self,

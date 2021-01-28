@@ -7,20 +7,27 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     """
     Pooling all edges or edgelike features per node, corresponding to node assigned by edge indexlist.
     
-    If graphs were in batch mode, the indices must be corrected for disjoint graphs.
+    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
     Apply e.g. segment_mean for index[0] incoming nodes. 
-    Important: edge-index[:,0] must be sorted for segment-operation.
+    Important: edge_index[:,0] are sorted for segment-operation.
     
     Args:
-        pooling_method (str): Pooling method to use i.e. segement_function.
+        pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         **kwargs
+        
     Input: 
-        List of [node,edgelist,indextensor] of shape [(batch*None,F_n),(batch*None,F),(batch*None,2)]
-        The index for segment reduction is taken to be indextensor[:,0].
+        List of tensors [node,edges,edge_indices]
+        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+        edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+        edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+                                  The index for segment reduction is taken from edge_indices[:,0].
+    
     Output:
-        A pooled tensor of shape (batch*<None>, <F>) which should match nodelist.
-        Provided that edgeindex were correctly sorted and match each node in flatten tensor.
-        Otherwise change is_sorted and has_unconnected.
+        features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
+                              The size will match the flatten node tensor.
+                              Output shape is (batch*None, F).
     """
     
     def __init__(self, 
@@ -75,6 +82,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         return config  
         
 
+
 class PoolingNodes(ks.layers.Layer):
     """
     Polling all nodes per batch. The batch assignment is given by a length-tensor.
@@ -82,11 +90,16 @@ class PoolingNodes(ks.layers.Layer):
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
         **kwargs
+    
     Input: 
-        List of tensor [nodelist,nodelength] of shape [(batch*None,F),(batch,)]
-        The batch-tensor keeps the batch assignment.
+        List of tensors [nodes, node_length] 
+        nodes (tf.tensor): Flatten node features of shape (batch*None,F)
+        node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+    
     Output:
-        A list of averaged nodes matching batchdimension (batch,<F>)
+        features (tf.tensor): Pooled node feature list of shape (batch,F)
+                              where F is the feature dimension and holds a pooled 
+                              node feature for each graph.
     """
 
     def __init__(self,  
@@ -121,18 +134,25 @@ class PoolingNodes(ks.layers.Layer):
         return config 
 
 
+
 class PoolingAllEdges(ks.layers.Layer):
     """
-    Pooling all edges per batch. The batch assignment is given by a length-tensor.
+    Pooling all edges per graph. The batch assignment is given by a length-tensor.
 
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
         **kwargs
+
     Input: 
-        List of tensor [egdelist,edgelength] of shape [(batch*None,F),(batch,)]
-        The batch-tensor keeps the batch assignment.
+        List of tensors [egdes,edge_length] 
+        edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+        edge_length (tf.tensor): Number of edges in each graph of shape (batch*None,F)
+                                 Keeps the batch assignment.
+
     Output:
-        A list of averaged edges matching batchdimension (batch,<F>)
+        features (tf.tensor): A pooled edges feature list of shape (batch,F).
+                              where F is the feature dimension and holds a pooled 
+                              edge feature for each graph.
     """
     
     def __init__(self,
