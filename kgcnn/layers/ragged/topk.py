@@ -7,29 +7,29 @@ class PoolingTopK(ks.layers.Layer):
     """
     Layer for pooling of nodes.
     
+    This implements a learnable score vector plus gate. Implements gPool of Gao et al.
+    
     Args:
-        k : relative number of nodes to remove
-        kernel_initializer : 'glorot_uniform'
-        kernel_regularizer : None
-        kernel_constraint : None
-        ragged_validate : False
+        k (float): relative number of nodes to remove. Default is 0.1
+        kernel_initializer (str): Score initialization. Default is 'glorot_uniform',
+        kernel_regularizer (str): Score regularization. Default is None.
+        kernel_constraint (str): Score constrain. Default is None.
+        ragged_validate (bool): To validate output ragged tensor. Defualt is False.
         **kwargs
     
     Inputs:
-        Node ragged tensor of shape (batch,None,F_n)
-        Edge index ragged tensor of shape (batch,None,2)
-        Edge feature tensor of shape (batch,None,F_e)
+        List [nodes,edge_index, edges]
+        nodes (tf.ragged): Node ragged feature tensor of shape (batch,None,F)
+        edge_index (tf.ragged): Edge indices ragged tensor of shape (batch,None,2)
+        edges (tf.ragged): Edge feature tensor of shape (batch,None,F)
     
     Outputs:
-        [
-        Pooled nodes of shape (batch,None,F_n)
-        Pooled edge indices of shape (batch,None,2)
-        Pooled edge features of shape (batch,None,F_e)
-        ],
-        [
-        Map nodes (batch*None,)
-        Map edges (batch*None,)
-        ]
+        Tuple [nodes,edge_indices,edges],[map_nodes,map_edges]
+        nodes (tf.ragged): Pooled node features of shape (batch,None,F)
+        edge_indices (tf.ragged): Pooled edge indices of shape (batch,None,2)
+        edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)
+        map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)
+        map_edges (tf.tensor): Index map between original and pooled edges (batch*None,)
     """
     
     def __init__(self,
@@ -190,28 +190,31 @@ class PoolingTopK(ks.layers.Layer):
 
 class UnPoolingTopK(ks.layers.Layer):
     """
-    Layer for unpooling of nodes. Disjoint representation including length tensor of graphs in batch.
+    Layer for unpooling of nodes.
     
-    The edge index information are not reverted since the tensor before pooling can be reused. Same holds for batch-assignment node_len und edge_len information.
+    The edge index information are not reverted since the tensor before pooling can be reused. 
+    Same holds for batch-assignment in number of nodes and edges information.
     
     Args:
+        ragged_validate (bool): To validate ragged output tensor. Default is False.
         **kwargs
     
     Inputs:
-        Old node ragged tensor of shape (batch,None,F_n)
-        Old edge index ragged tensor of shape (batch,None,2)
-        Old edge feature tensor of shape (batch,None,F_e)
-        Node index map (batch*None,)
-        Edge index map (batch*None,)
-        Pooled node ragged tensor of shape (batch,None,F_n)
-        Pooled edge index ragged tensor of shape (batch,None,2)
-        Pooled edge feature tensor of shape (batch,None,F_e)
+        List [nodes,edge_indices,edges,map_nodes,map_edges,nodes_pool,edge_indices_pool,edges_pool]
+        nodes (tf.ragged): Original node ragged tensor of shape (batch,None,F)
+        edge_indices (tf.ragged): Original edge index ragged tensor of shape (batch,None,2)
+        edges (tf.ragged): Original edge feature tensor of shape (batch,None,F)
+        map_nodes (tf.tensor): Node index map (batch*None,)
+        map_edges (tf.tensor): Edge index map (batch*None,)
+        nodes_pool (tf.ragged): Pooled node ragged tensor of shape (batch,None,F)
+        edge_indices_pool (tf.ragged): Pooled edge index ragged tensor of shape (batch,None,2)
+        edges_pool (tf.ragged): Pooled edge feature tensor of shape (batch,None,F)
     
     Outputs:
-        Unpooled node ragged tensor of shape (batch,None,F_n)
-        Unpooled edge index ragged tensor of shape (batch,None,2)
-        Unpooled edge feature tensor of shape (batch,None,F_e)
-
+        List [nodes,edge_index,edges]
+        nodes (tf.ragged): Unpooled node ragged tensor of shape (batch,None,F_n)
+        edge_index (tf.ragged): Unpooled edge index ragged tensor of shape (batch,None,2)
+        edges (tf.ragged): Unpooled edge feature tensor of shape (batch,None,F_e)
     """
     
     def __init__(self,

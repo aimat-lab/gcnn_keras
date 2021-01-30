@@ -15,7 +15,7 @@ class Set2Set(ks.layers.Layer):
     Uses a keras LSTM layer for the updates.
     The idea is to create a Seq2Seq using a “content” based attention via LSTMs.
     This should basically implement the encoder of chapter 4.2. in the paper.
-    Note: Here it is used as a more sensitive averaging of e.g. node features
+    Note: Here it is used as a more sensitive averaging of e.g. node features.
     The labeling should match the paper.
     
     Args:
@@ -50,10 +50,10 @@ class Set2Set(ks.layers.Layer):
         **kwargs
     
     Input:
-        Ragged nodelist of shape (batch,None,F)
+        nodes (tf.ragged): Ragged nodelist of shape (batch,None,F)
     
     Outout:
-        Pooled node tensor of shape (batch,1,2*channels)
+        features (tf.ragged): Pooled node tensor of shape (batch,1,2*channels)
     """
     def __init__(   self, 
                     channels,
@@ -138,6 +138,7 @@ class Set2Set(ks.layers.Layer):
         """Build layer."""
         super(Set2Set, self).build(input_shape)
     def call(self, inputs):
+        """Forward pass."""
         x_ragged = inputs
         x = x_ragged.values 
         batch_num = x_ragged.row_lengths()
@@ -172,39 +173,41 @@ class Set2Set(ks.layers.Layer):
 
     def f_et(self,fm,fq):
         """
-        Function to compute scalar from m and q.
+        Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
             [m,q] of shape [(batch*num,feat),(batch*num,feat)]
-        
+            
         Returns:
-            et of shape #(batch*num,)
-        
-        Note:
-            can apply sum or mean etc.
+            et of shape #(batch*num,)  
         """
         fet = self._pool(fm*fq,axis=1) #(batch*num,1)
         return fet
     
     def get_scale_per_batch(self,x):
+        """Get rescaleing for the batch."""
         return tf.keras.backend.max(x,axis=0,keepdims=True)
     
     def get_scale_per_sample(self,x,ind,rep):
+        """Get rescaleing for the sample."""
         out = tf.math.segment_max(x,ind)#(batch,)
         out = tf.repeat(out,rep)#(batch*num,)
         return out
     
     def get_norm(self,x,ind,rep):
+        """Compute Norm."""
         norm = tf.math.segment_sum(x,ind) #(batch,)
         norm = tf.math.reciprocal_no_nan(norm)#(batch,)
         norm = tf.repeat(norm,rep,axis=0) #(batch*num,)
         return norm
         
     def init_qstar_0(self,m,batch_index,batch_num):
+        """Initialize the q0 with zeros."""
         batch_shape = K.shape(batch_num)
         return tf.zeros((batch_shape[0],1,2*self.channels))
     
     def init_qstar_mean(self,m,batch_index,batch_num):
+        """Initialize the q0 with mean."""
         # use q0=avg(m) (or q0=0)
         #batch_shape = K.shape(batch_num)
         q = tf.math.segment_mean(m,batch_index) # (batch,feat)
@@ -225,6 +228,7 @@ class Set2Set(ks.layers.Layer):
         return qstar
     
     def get_config(self):
+        """Make config for layer."""
         config = super(Set2Set, self).get_config()
         config.update({"channels": self.channels})
         config.update({"T": self.T})

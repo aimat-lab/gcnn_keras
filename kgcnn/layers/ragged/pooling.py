@@ -13,10 +13,10 @@ class PoolingNodes(ks.layers.Layer):
         **kwargs
     
     Inputs:
-        Node ragged tensor of shape (batch,None,F_n)
+        nodes (tf.ragged): Node ragged tensor of shape (batch,None,F)
     
     Outputs:
-        Pooled Nodes of shape (batch,<F_n>)
+        features (tf.tensor): Pooled node features of shape (batch,F)
     """
     
     def __init__(self,
@@ -61,10 +61,10 @@ class PoolingAllEdges(ks.layers.Layer):
         **kwargs
     
     Inputs:
-        Edge ragged tensor of shape (batch,None,F_e)
+        edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
     
     Outputs:
-        Pooled edges of shape (batch,<F_e>)
+        features (tf.tensor): Pooled edge features of shape (batch,F)
     """
     
     def __init__(self, 
@@ -105,18 +105,22 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     
     Args:
         pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is 'segment_mean'.
-        node_indexing (str): If indices refer to sample- or in-batch-wise indexing. Default is 'sample'.
+        node_indexing (str): If indices refer to sample- or batch-wise indexing. Default is 'sample'.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
-        ragged_validate (bool): False
+        ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs
     
     Inputs:
-        [node, edge ,edgeindex] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2)]
-        Note that the ragged dimension of edge and edgeindex has to match. 
+        List [node, edge ,edgeindex] 
+        node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
+        edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+        edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
+                                Note that the ragged dimension of edge and edgeindex has to match. 
     
     Outputs:
-        Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.
+        features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+                              The edge feautres are chosen for index tensor according to index(0).
     """
     
     def __init__(self, 
@@ -194,19 +198,24 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     Args:
         pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is "segment_sum".
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
-        node_indexing (str): If indices refer to sample- or in-batch-wise indexing. Default is 'sample'.
+        node_indexing (str): If indices refer to sample- or batch-wise indexing. Default is 'sample'.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
-        ragged_validate (bool): False
+        ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs
     
     Inputs:
-        [node, edge, edgeindex, weight] ragged tensors of shape [(batch,None,F_n),(batch,None,F_e),(batch,None,2),(batch,None,1)]
-        Note that the ragged dimensions of edge and edgeindex and weight has to match. 
-        The weight can be the entry in the ajacency matrix for the edges in the list and must be broadcasted or match in dimension.
-    
+        List [node, edge ,edge_index, weight] 
+        node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
+        edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+        edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
+                                Note that the ragged dimension of edge and edge index has to match. 
+        weights (tf.ragged): The weights could be the entry in the ajacency matrix for each edgs in the list 
+                             and must be broadcasted or match in dimension. Shape is e.g. (batch,None,1).
+      
     Outputs:
-        Pooled Nodes of shape (batch,None,<F_e>) where the ragged dimension matches the nodes.     
+        features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+                              The edge feautres are chosen for index tensor according to index(0). 
     """
     
     def __init__(self, 

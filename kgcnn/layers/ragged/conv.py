@@ -127,6 +127,12 @@ class ActivationRagged(tf.keras.layers.Layer):
     
     Arguments:
         activation: Activation function, such as `tf.nn.relu`, or string name of built-in.
+    
+    Input:
+        Ragged tensor of shape e.g. (batch,None,F)
+    
+    Output:
+        Elementwise activation of flat values.
     """
     
     def __init__(self, activation, **kwargs):

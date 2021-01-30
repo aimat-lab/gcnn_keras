@@ -11,10 +11,10 @@ class CastRaggedToDense(tf.keras.layers.Layer):
         **kwargs
     
     Input:
-        Ragged Tensor of shape (batch,...)
+        Ragged Tensor (tf.ragged) of shape e.g. (batch,None,F)
         
     Output:
-        input.to_tensor()
+        Input.to_tensor()
     """
     
     def __init__(self, **kwargs):
@@ -38,10 +38,13 @@ class CastRaggedToValues(ks.layers.Layer):
         **kwargs
     
     Input:
-        inputs: A ragged Tensor (tf.ragged)
+        Ragged Tensor (tf.ragged) of shape e.g. (batch,None,F)
     
     Output:
-        A tuple [values,row_length] extracted from the ragged tensor
+        List [values,row_length]
+        values (tf.tensor): Flatten value list of shape (batch*None,F)
+        row_length (tf.tensor): Row length tensor of numer of nodes/edges in 
+                                each graph of shape (batch,)
     """
     
     def __init__(self, **kwargs):
@@ -56,7 +59,7 @@ class CastRaggedToValues(ks.layers.Layer):
         tens = inputs
         flat_tens = tens.values
         row_lengths = tens.row_lengths()
-        return (flat_tens,row_lengths)
+        return [flat_tens,row_lengths]
 
 
 
@@ -71,13 +74,15 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
     
     Input:
         A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
-        The sparse tensor has then the shape of maximum nuber of nodes in the batch.
+        The sparse tensor that has the shape of maximum number of nodes in the batch.
     
     Output:
-        A tuple [edge_index,edge_weight] which are both ragged tensors.    
+        A tuple [edge_index,edges]
+        edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
+        edges (tf.ragged): Edge feature list of shape (batch,None,F)
     """
     
-    def __init__(self,sort_index = False,ragged_validate=False ,**kwargs):
+    def __init__(self,sort_index = True,ragged_validate=False ,**kwargs):
         """Initialize layer."""
         super(CastAdjacencyMatrixToRaggedList, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
@@ -106,7 +111,7 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         edge_index = tf.RaggedTensor.from_value_rowids(indexlist[:,1:],indexlist[:,0],validate=self.ragged_validate)
         edge_weight = tf.RaggedTensor.from_value_rowids(tf.expand_dims(valuelist,axis=-1),indexlist[:,0],validate=self.ragged_validate)
         
-        return edge_index,edge_weight 
+        return [edge_index,edge_weight]
     def get_config(self):
         """Update config."""
         config = super(CastAdjacencyMatrixToRaggedList, self).get_config()
