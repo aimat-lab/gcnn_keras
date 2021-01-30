@@ -6,19 +6,12 @@ from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
+from kgcnn.utils.activ import softplus2
 
+# Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
+# by Chi Chen, Weike Ye, Yunxing Zuo, Chen Zheng, and Shyue Ping Ong*
+# https://github.com/materialsvirtuallab/megnet
 
-
-def softplus2(x):
-    """
-    out = log(exp(x)+1) - log(2)
-    softplus function that is 0 at x=0, the implementation aims at avoiding overflow
-    Args:
-        x: (Tensor) input tensor
-    Returns:
-         (Tensor) output tensor
-    """
-    return ks.backend.relu(x) + ks.backend.log(0.5*ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
 
 class MEGnetBlock(ks.layers.Layer):
@@ -114,106 +107,129 @@ class MEGnetBlock(ks.layers.Layer):
 
 
 
-def getmodelMegnet(input_type = "raggged",
-                nfeat_edge: int = None,
-                nfeat_global: int = None,
-                nfeat_node: int = None,
-                nblocks: int = 3,
-                n1: int = 64,
-                n2: int = 32,
-                n3: int = 16,
-                set2set_dim: int = 16,
-                nvocal: int = 95,
-                embedding_dim: int = 16,
-                nbvocal: int = None,
-                bond_embedding_dim: int = None,
-                ngvocal: int = None,
-                global_embedding_dim: int = None,
-                ntarget: int = 1,
-                use_bias = True,
-                act = softplus2,
-                l2_coef: float = None,
-                has_ff :bool = True,
-                dropout: float = None,
-                dropout_on_predict: bool = False,
-                is_classification: bool = False,
-                use_set2set:bool = True,
-                npass: int = 3,
-                set2set_init:str = '0',
-                set2set_pool:str = "sum",
-                is_sorted:bool = True,
-                has_unconnected:bool = False,
-                **kwargs):
+def getmodelMegnet(
+                    # Input
+                    input_node_shape,
+                    input_edge_shape,
+                    input_state_shape,
+                    input_node_vocab = 95,
+                    input_edge_vocab = 5,
+                    input_state_vocab = 100,
+                    input_node_embedd = 64,
+                    input_edge_embedd = 64,
+                    input_state_embedd = 64,
+                    input_type = 'ragged', 
+                    # Output
+                    output_embedd = 'graph', #Only graph possible for megnet
+                    output_use_bias = [True,True,True],
+                    output_dim = [32,16,1],
+                    output_activation = ['softplus2','softplus2','sigmoid'],
+                    output_kernel_regularizer = [None,None,None],
+                    output_activity_regularizer = [None,None,None],
+                    output_bias_regularizer = [None,None,None],
+                    output_type = 'padded',
+                    #Model specs
+                    is_sorted:bool = True,
+                    has_unconnected:bool = False,
+                    nblocks: int = 3,
+                    n1: int = 64,
+                    n2: int = 32,
+                    n3: int = 16,
+                    set2set_dim: int = 16,
+                    use_bias = True,
+                    act = 'softplus2',
+                    l2_coef: float = None,
+                    has_ff :bool = True,
+                    dropout: float = None,
+                    dropout_on_predict: bool = False,
+                    use_set2set:bool = True,
+                    npass: int = 3,
+                    set2set_init:str = '0',
+                    set2set_pool:str = "sum",
+                    **kwargs):
     """
     Get Megnet model.
     
     Args:
-        input_type (str): Input type, only "raggged" supported.
-        nfeat_edge (int): Edge feature dimension. Default is None.
-        nfeat_global (int): State feature dimension. Default is None.
-        nfeat_node (int): Node feature dimension. Default is None.
+        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
+        input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
+        input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
+        input_node_vocab (int): Node input embedding vocabulary. Default is 95.
+        input_edge_vocab (int): Edge input embedding vocabulary. Default is 5.
+        input_state_vocab (int): State input embedding vocabulary. Default is 100.
+        input_node_embedd (int): Node input embedding dimension. Default is 64.
+        input_edge_embedd (int): Edge input embedding dimension. Default is 64.
+        input_state_embedd (int): State embedding dimension. Default is 64.
+        input_type (str): Specify input type. Only 'ragged' is supported. 
+        
+        output_embedd (str): Graph or node embedding of the graph network. Default is 'graph'.
+        output_use_bias (bool,list): Use bias for output. Optionally list for multiple layer. Defautl is [True,True,True].
+        output_dim (list): Output dimension. Optionally list for multiple layer. Default is [32,16,1].
+        output_activation (list): Activation function. Optionally list for multiple layer. Defautl is ['softplus2','softplus2','sigmoid'].
+        output_kernel_regularizer (list): Kernel regularizer for output. Optionally list for multiple layer. Defautl is [None,None,None].
+        output_activity_regularizer (list): Activity regularizer for output. Optionally list for multiple layer. Defautl is [None,None,None].
+        output_bias_regularizer (list): Bias regularizer for output. Optionally list for multiple layer. Defautl is [None,None,None].
+        output_type (str): Tensor output type. Default is 'padded'.
+        
+        is_sorted (bool): Are edge indices sorted. Default is True.
+        has_unconnected (bool): Has unconnected nodes. Default is False.
         nblocks (int): Number of block. Default is 3.
         n1 (int): n1 parameter. Default is 64.
         n2 (int): n2 parameter. Default is 32.
         n3 (int): n3 parameter. Default is 16.
         set2set_dim (int): Set2set dimension. Default is 16.
-        nvocal (int): Vocabulary for emebdding layer. Default is 95.
-        embedding_dim (int): Dimension for emebdding layer. Default is 16.
-        nbvocal (int): Vocabulary for emebdding layer. Default is None.
-        bond_embedding_dim (int): Dimension for emebdding layer. Default is None.
-        ngvocal (int): Vocabulary for emebdding layer. Default is None.
-        global_embedding_dim (int): Dimension for emebdding layer. Default is None.
-        ntarget (int): Target dimension. Default is 1.
         use_bias (bools): Use bias. Default is True.
         act (func): Activation function. Default is softplus2.
         l2_coef (float): Regularization coefficient. Default is None.
         has_ff (bool): Feed forward layer. Default is True.
         dropout (float): Use dropout. Default is None.
         dropout_on_predict (bool): Use dropout on prediction. Default is False.
-        is_classification (bool): . Default is False.
         use_set2set (bool): Use set2set. Default isTrue.
         npass (int): Set2Set iterations. Default is 3.
         set2set_init (str): Initialize method. Default is '0'.
         set2set_pool (str): Pooling method in set2set. Default is "sum".
-        is_sorted (bool): Are edge indices sorted. Default is True.
-        has_unconnected (bool): Has unconnected nodes. Default is False.
     
     Returns:
-        model (tf.keras.models.Model)
+        model (tf.keras.models.Model): MEGnet model.
     """
-    # Inputs
-    if nfeat_node is None:
-        node_input =  ks.Input(shape=(None,),dtype='int32', name='atom_int_input',ragged=True)  # only z as feature
-        n =  ks.layers.Embedding(nvocal, embedding_dim, name='atom_embedding')(node_input)
-    else:
-        node_input = ks.Input(shape=(None,nfeat_node), dtype='float32' ,name='atom_feature_input',ragged=True)
-        n = node_input
-    if nfeat_edge is None:
-        edge_input =  ks.Input(shape=(None,), dtype='int32', name='bond_int_input',ragged=True)
-        ed =  ks.layers.Embedding(nbvocal, bond_embedding_dim, name='bond_embedding')(edge_input)
-    else:
-        edge_input = ks.Input(shape=(None,nfeat_edge), dtype='float32' ,name='bond_feature_input',ragged=True)
-        ed = edge_input
-    if nfeat_global is None:
-        env_input =  ks.Input(shape=(), dtype='int32', name='state_int_input')
-        uenv = ks.layers.Embedding(ngvocal, global_embedding_dim, name='state_embedding')(env_input)
-    else:
-        env_input = ks.Input(shape=(nfeat_global,), dtype='float32' ,name='state_feature_input')
-        uenv = env_input
     
+    if(len(input_node_shape) == 1):
+        node_input = ks.layers.Input(shape=input_node_shape,name='node_input',dtype ="float32",ragged=True)
+        n =  ks.layers.Embedding(input_node_vocab, input_node_embedd , name='node_embedding')(node_input)
+    else:
+        node_input = ks.layers.Input(shape=input_node_shape,name='node_input',dtype ="float32",ragged=True)
+        n = node_input
+        
+    if(len(input_edge_shape)== 1):
+        edge_input = ks.layers.Input(shape=input_edge_shape,name='edge_input',dtype ="float32",ragged=True)
+        ed = ks.layers.Embedding(input_edge_vocab, input_state_embedd , name='edge_embedding')(edge_input)
+    else:
+        edge_input = ks.layers.Input(shape=input_edge_shape,name='edge_input',dtype ="float32",ragged=True)
+        ed = edge_input
+        
     edge_index_input = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
     
+    if(len(input_state_shape) == 0):
+        env_input = ks.Input(shape=input_state_shape, dtype='float32' ,name='state_input')
+        uenv = ks.layers.Embedding(input_state_vocab,input_state_embedd, name='state_embedding')(env_input)
+    else:
+        env_input = ks.Input(shape=input_state_shape, dtype='float32' ,name='state_input')
+        uenv = env_input
+
     
     n,node_len,ed,edge_len,edi = CastRaggedToDisjoint()([n,ed,edge_index_input])
    
       
-    # Get the setting for the training kwarg of Dropout
     dropout_training = True if dropout_on_predict else None
     if l2_coef is not None:
         reg = ks.regularizers.l2(l2_coef)
     else:
         reg = None
-        
+    
+    if(isinstance(act,str)):
+        if(act == 'softplus2'):
+            act = softplus2
+    
     #starting 
     vp = n
     up = uenv
@@ -271,17 +287,14 @@ def getmodelMegnet(input_type = "raggged",
     
     if dropout:
         final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec, training=dropout_training)
-    # final dense layers
-    final_vec = ks.layers.Dense(n2, activation=act, kernel_regularizer=reg, name='readout_0')(final_vec)
-    final_vec = ks.layers.Dense(n3, activation=act, kernel_regularizer=reg, name='readout_1')(final_vec)
     
-    if is_classification:
-        final_act = 'sigmoid'
-    else:
-        final_act = None
+    # final dense layers   
+    for j in range(len(output_dim)-1):
+        final_vec =  ks.layers.Dense(output_dim[j],output_activation[j],use_bias=output_use_bias[j],
+                               bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(final_vec)
+    main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
+                                   bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(final_vec)
         
-    main_output = ks.layers.Dense(ntarget, activation=final_act, name='readout_2')(final_vec)
-    
     
     model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input], outputs=main_output)   
 
