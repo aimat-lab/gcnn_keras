@@ -29,7 +29,7 @@ class GatherNodes(ks.layers.Layer):
         """Build layer."""
         super(GatherNodes, self).build(input_shape)          
     def call(self, inputs):
-        """Forward path."""
+        """Forward pass."""
         node,edge_index = inputs
         indexlist = edge_index 
         node1Exp = tf.gather(node,indexlist[:,0],axis=0)
@@ -66,7 +66,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesOutgoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward path."""
+        """Forward pass."""
         node,edge_index = inputs
         indexlist = edge_index 
         out = tf.gather(node,indexlist[:,1],axis=0)
@@ -75,7 +75,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
 
 class GatherNodesIngoing(ks.layers.Layer):
     """
-    Gather nodes by edge indexlist. Indexlist must match flatten nodes. 
+    Gather nodes by edge indexlist. Indexlist must match flatten nodes.
     
     If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
     For ingoing nodes, layer uses only index[0].
@@ -101,7 +101,7 @@ class GatherNodesIngoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesIngoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward path."""
+        """Forward pass."""
         node,edge_index = inputs
         indexlist = edge_index 
         out = tf.gather(node,indexlist[:,0],axis=0)
@@ -135,7 +135,7 @@ class GatherState(ks.layers.Layer):
         """Build layer."""
         super(GatherState, self).build(input_shape)          
     def call(self, inputs):
-        """Forward path."""
+        """Forward pass."""
         env,target_len = inputs
         out = tf.repeat(env,target_len,axis=0)
         return out     

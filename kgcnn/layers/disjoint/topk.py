@@ -9,10 +9,10 @@ class PoolingTopK(ks.layers.Layer):
     This implements a learnable score vector plus gate. Implements gPool of Gao et al.
     
     Args:
-        k : relative number of nodes to remove
-        kernel_initializer : Score initialization. Default is 'glorot_uniform',
-        kernel_regularizer : Score regularization. Default is None.
-        kernel_constraint : Score constrain. Default is None.
+        k (float): relative number of nodes to remove. Default is 0.1
+        kernel_initializer (str): Score initialization. Default is 'glorot_uniform',
+        kernel_regularizer (str): Score regularization. Default is None.
+        kernel_constraint (bool): Score constrain. Default is None.
         **kwargs
     
     Inputs:
