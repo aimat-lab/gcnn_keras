@@ -9,16 +9,19 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 
 from kgcnn.data.mutagen.mutag import mutag_graph
-from kgcnn.literature.INorp import getmodelINORP
+from kgcnn.literature.Unet import getmodelUnet
 from kgcnn.utils.learning import lr_lin_reduction
-
+from kgcnn.utils.adj import add_self_loops_to_indexlist
 
 # Download Dataset
 mutag_data = mutag_graph()
 y_data = mutag_data[0]
 y_data[y_data<0] = 0
 y_data = np.expand_dims(y_data,axis=-1)
-x_data = [mutag_data[1],mutag_data[3],mutag_data[2],np.array([len(x) for x in mutag_data[1]])]
+x_data = [mutag_data[1],None,mutag_data[2]]
+x_data[2] = [add_self_loops_to_indexlist(x) for x in x_data[2]]
+x_data[1] = [np.ones_like(x,dtype=np.float) for x in x_data[2]]
+x_data.append(np.array([[len(x)] for x in mutag_data[1]]))
 
 #Make test/train split
 inds = np.arange(len(y_data))
@@ -36,40 +39,34 @@ def make_ragged(inlist):
     return tf.RaggedTensor.from_row_lengths(np.concatenate(inlist,axis=0), np.array([len(x) for x in inlist],dtype=np.int))
 
 #Make ragged graph tensors plus normal tensor for graph state
-xval = [make_ragged(x) for x in xval[:3]]  + [tf.constant(xval[3])]
-xtrain = [make_ragged(x) for x in xtrain[:3]] + [tf.constant(xtrain[3])]
+xval = [make_ragged(x) for x in xval[:3]]   + [tf.constant(xval[3])] 
+xtrain = [make_ragged(x) for x in xtrain[:3]]  + [tf.constant(xtrain[3])] 
 
 
-model = getmodelINORP(
-                    input_node_shape = [None],
-                    input_edge_shape = [None],
-                    input_state_shape = [],
-                    input_node_vocab = 60,
-                    input_edge_vocab = 4,
-                    input_state_vocab = 30,
-                    input_node_embedd = 16,
-                    input_edge_embedd = 8,
-                    input_state_embedd = 16,
-                    input_type = 'ragged', 
-                    # Output
-                    output_embedd = 'graph',
-                    output_dim = [16,8,1],
-                    output_use_bias = [True,True,False],
-                    output_activation = ['relu','relu','sigmoid'],
-                    output_type = 'padded',
-                    # Model
-                    is_sorted = False,
-                    has_unconnected = False,
-                    depth = 1,
-                    node_dim = [16,16],
-                    edge_dim = [16,16],
-                    state_dim = [],
-                    use_bias = True,
-                    activation = 'relu',
-                    use_set2set = False, #not in original paper
-                    set2set_dim = 32, #not in original paper
-                    pooling_method = "segment_mean"
-            )
+model = getmodelUnet(
+                input_node_shape = [None],
+                input_edge_shape = [None,1],
+                input_state_shape = [1],
+                input_node_vocab = 60,
+                input_node_embedd = 128,
+                input_type = 'ragged', 
+                # Output
+                output_embedd = 'graph',
+                output_use_bias = [True,False],
+                output_dim = [25,1],
+                output_activation = ['relu','sigmoid'],
+                output_type = 'padded',
+                #Model specific
+                hidden_dim = 128,
+                depth = 4,
+                k = 0.3,
+                score_initializer = 'ones',
+                use_bias = True,
+                activation = 'relu',
+                is_sorted=False,
+                has_unconnected=True,
+                use_reconnect = True
+        )
 
 
 learning_rate_start = 1e-4
@@ -88,7 +85,7 @@ trainlossall = []
 testlossall = []
 validlossall = []
 
-epostep = 10
+epostep = 2
 
 start = time.process_time()
 

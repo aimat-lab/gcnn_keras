@@ -43,36 +43,40 @@ xval = [make_ragged(x) for x in xval[:3]] + [tf.constant(xval[3])]
 xtrain = [make_ragged(x) for x in xtrain[:3]] + [tf.constant(xtrain[3])]
 
 
-model =  getmodelMegnet(input_type = "raggged",
-                nfeat_edge= 20,
-                nfeat_global = 1,
-                nfeat_node= None,
-                nblocks= 3,
-                n1= 64,
-                n2= 32,
-                n3= 16,
-                set2set_dim= 16,
-                nvocal= 10,
-                embedding_dim= 16,
-                nbvocal= None,
-                bond_embedding_dim= None,
-                ngvocal= None,
-                global_embedding_dim= None,
-                ntarget= 1,
-                use_bias = True,
-                act = softplus2,
-                l2_coef= None,
-                has_ff = True,
-                dropout= None,
-                dropout_on_predict= False,
-                is_classification = False,
-                use_set2set= True,
-                npass= 3,
-                set2set_init= '0',
-                set2set_pool= "sum",
-                is_sorted = True,
-                has_unconnected = False,
-               )
+model =  getmodelMegnet(
+                    # Input
+                    input_node_shape = [None],
+                    input_edge_shape = [None,20],
+                    input_state_shape = [1],
+                    input_node_vocab = 10,
+                    input_node_embedd = 16,
+                    input_edge_embedd = 16,
+                    input_type = 'ragged', 
+                    # Output
+                    output_embedd = 'graph', #Only graph possible for megnet
+                    output_use_bias = [True,True,True],
+                    output_dim = [32,16,1],
+                    output_activation = ['softplus2','softplus2','linear'],
+                    output_type = 'padded',
+                    #Model specs
+                    is_sorted = True,
+                    has_unconnected = False,
+                    nblocks = 3,
+                    n1= 64,
+                    n2 = 32,
+                    n3= 16,
+                    set2set_dim = 16,
+                    use_bias = True,
+                    act = 'softplus2',
+                    l2_coef = None,
+                    has_ff = True,
+                    dropout = None,
+                    dropout_on_predict = False,
+                    use_set2set = True,
+                    npass= 3,
+                    set2set_init = '0',
+                    set2set_pool = "sum"
+                    )
 
 
 learning_rate_start = 0.5e-3

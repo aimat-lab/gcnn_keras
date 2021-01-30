@@ -39,27 +39,36 @@ def make_ragged(inlist):
     return tf.RaggedTensor.from_row_lengths(np.concatenate(inlist,axis=0), np.array([len(x) for x in inlist],dtype=np.int))
 
 #Make ragged graph tensors plus normal tensor for graph state
-xval = [make_ragged(x) for x in xval[:3]] 
-xtrain = [make_ragged(x) for x in xtrain[:3]] 
+xval = [make_ragged(x) for x in xval[:3]] + [tf.constant(xval[3])]
+xtrain = [make_ragged(x) for x in xtrain[:3]] + [tf.constant(xtrain[3])]
 
 
 model = getmodelSchnet(
-            input_nodedim = None,
-            input_edgedim = 20,
-            output_dim = 1,
-            input_type = "ragged",
-            depth = 4,
-            nvocal = 10,
-            node_dim = 128,
-            use_bias = True,
-            cfconv_pool = "segment_sum",
-            out_MLP = [128,64], #MLP at the end
-            graph_embedd = True,
-            out_pooling_method = "segment_sum",
-            out_scale_pos = 0,
-            output_activation = 'linear',
-            is_sorted= True,
-            has_unconnected=False
+                #Input
+                input_node_shape = [None],
+                input_edge_shape = [None,20],
+                input_state_shape = [],
+                input_node_vocab = 10,
+                input_node_embedd = 128,
+                input_edge_embedd = 64,
+                input_state_embedd = 64,
+                input_type = 'ragged', 
+                # Output
+                output_embedd = 'graph',
+                output_use_bias = [True,True,True],
+                output_dim = [128,64,1],
+                output_activation = ['shifted_softplus','shifted_softplus','linear'],
+                output_type = 'padded',
+                #Model specific
+                depth = 4,
+                node_dim = 128,
+                use_bias = True,
+                activation = 'shifted_softplus',
+                cfconv_pool = "segment_sum",
+                out_pooling_method = "segment_sum",
+                out_scale_pos = 0,
+                is_sorted= True,
+                has_unconnected=False ,
             )
 
 

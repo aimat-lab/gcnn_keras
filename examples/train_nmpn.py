@@ -27,7 +27,7 @@ data_unit = 'eV'
 inds = np.arange(len(y_data))
 inds = shuffle(inds)
 ind_val = inds[:13000]
-ind_train = inds[13000:]
+ind_train = inds[90000:]
 
 # Select train/test data
 xtrain = [[x[i] for i in ind_train] for x in x_data]
@@ -39,26 +39,33 @@ def make_ragged(inlist):
     return tf.RaggedTensor.from_row_lengths(np.concatenate(inlist,axis=0), np.array([len(x) for x in inlist],dtype=np.int))
 
 #Make ragged graph tensors plus normal tensor for graph state
-xval = [make_ragged(x) for x in xval[:3]]
-xtrain = [make_ragged(x) for x in xtrain[:3]]
+xval = [make_ragged(x) for x in xval[:3]] + [tf.constant(xval[3])]
+xtrain = [make_ragged(x) for x in xtrain[:3]] + [tf.constant(xtrain[3])]
 
 
 model = getmodelNMPN(
-            input_nodedim = None,
-            input_edgedim = 20,
-            input_envdim = 1,
-            output_dim = 1,
-            nvocal= 10,
-            embedding_dim= 32,
-            input_type = "ragged",
-            depth = 3,
-            node_dim = 64,
-            use_set2set = True,
-            set2set_dim = 32,
-            use_bias = True,
-            activation = 'selu',
-            is_sorted = True,
-            has_unconnected  = False,
+                # Input
+                input_node_shape = [None],
+                input_edge_shape = [None,20],
+                input_state_shape = [1],
+                input_node_vocab = 10,
+                input_node_embedd = 32,
+                input_type = 'ragged', 
+                # Output
+                output_embedd = 'graph',
+                output_use_bias = [True,True,False],
+                output_dim = [25,10,1],
+                output_activation = ['relu','relu','linear'],
+                output_type = 'padded',
+                #Model specific
+                depth = 3,
+                node_dim = 64,
+                use_set2set = True,
+                set2set_dim = 32,
+                use_bias = True,
+                activation = 'selu',
+                is_sorted = True,
+                has_unconnected = False
             )
 
 
