@@ -37,26 +37,35 @@ train_mask = np.expand_dims(train_mask,axis=0)
 
 #Make ragged graph tensors
 xtrain = [tf.RaggedTensor.from_row_lengths(nodes,np.array([len(nodes)],dtype=np.int)),
-        tf.RaggedTensor.from_row_lengths(edge_index,np.array([len(edge_index)],dtype=np.int)),
         tf.RaggedTensor.from_row_lengths(edge_weight,np.array([len(edge_weight)],dtype=np.int)),
+        tf.RaggedTensor.from_row_lengths(edge_index,np.array([len(edge_index)],dtype=np.int)),
         ]
 
 ytrain = np.expand_dims(labels,axis=0)
 
 
 model = getmodelGCN(
-            input_nodedim= 8710,
-            input_type = "ragged",  #not used atm
-            depth = 3,
-            node_dim = 140,
-            hidden_dim = 140,
-            output_dim = [140,70,70],
-            use_bias = True,
-            activation = tf.keras.layers.LeakyReLU(alpha=0.1),
-            graph_labeling = False,
-            output_activ = 'softmax',
-            has_unconnected=True,
-            )
+                    input_node_shape = [None,8710],
+                    input_edge_shape = [None,1],
+                    input_state_shape = [1],
+                    input_type = 'ragged', 
+                    # Output
+                    output_embedd = 'graph',
+                    output_use_bias = [True,True,False],
+                    output_dim = [140,70,70],
+                    output_activation = ['relu',
+                                         'relu',
+                                         'softmax'],
+                    output_type = 'padded',
+                    #model specs
+                    depth = 3,
+                    node_dim = 140,
+                    hidden_dim = 140,
+                    use_bias = True,
+                    activation = 'relu',
+                    graph_labeling = False,
+                    has_unconnected=True,
+                    )
 
 
 learning_rate_start = 1e-3

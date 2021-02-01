@@ -27,7 +27,7 @@ data_unit = 'eV'
 inds = np.arange(len(y_data))
 inds = shuffle(inds)
 ind_val = inds[:13000]
-ind_train = inds[90000:]
+ind_train = inds[13000:]
 
 # Select train/test data
 xtrain = [[x[i] for i in ind_train] for x in x_data]
@@ -55,7 +55,7 @@ model = getmodelNMPN(
                 output_embedd = 'graph',
                 output_use_bias = [True,True,False],
                 output_dim = [25,10,1],
-                output_activation = ['relu','relu','linear'],
+                output_activation = ['selu','selu','linear'],
                 output_type = 'padded',
                 #Model specific
                 depth = 3,
