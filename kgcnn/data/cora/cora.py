@@ -88,8 +88,9 @@ def cora_graph():
     Load and convert cora citation dataset.
 
     Returns:
-        data (list): Contains [A,X,labels]. With adjacency matrix A, node features X.
-
+        A (sp.csr_matrix): Adjacency matrix.
+        X (sp.csr_matrix): Node features.
+        labels (np.array): Labels.
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
