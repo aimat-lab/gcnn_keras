@@ -2,8 +2,10 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
+from kgcnn.utils.activ import kgcnn_custom_act 
 
-class MLPdisjoint(ks.layers.Layer):
+
+class MLP(ks.layers.Layer):
     """
     Multilayer perceptron that consist of N dense keras layers.
         
@@ -32,61 +34,65 @@ class MLPdisjoint(ks.layers.Layer):
                  mlp_bias_regularizer=None,
                  **kwargs):
         """Init MLP as for dense."""
-        super(MLPdisjoint, self).__init__(**kwargs) 
+        super(MLP, self).__init__(**kwargs) 
         
+        # Make to one element list
         if(isinstance(mlp_units,int)):
-            mlp_units = [mlp_units]
+            mlp_units = [mlp_units] 
+        if(isinstance(mlp_use_bias,list) == False and isinstance(mlp_use_bias,tuple)==False):
+            mlp_use_bias = [mlp_use_bias for i in mlp_units ] 
+        if(isinstance(mlp_activation,list) == False and isinstance(mlp_activation,tuple)==False):
+            mlp_activation = [mlp_activation for i in mlp_units ] 
+        if(isinstance(mlp_activity_regularizer,list) == False and isinstance(mlp_activity_regularizer,tuple)==False):
+            mlp_activity_regularizer = [mlp_activity_regularizer for i in mlp_units ] 
+        if(isinstance(mlp_kernel_regularizer,list) == False and isinstance(mlp_kernel_regularizer,tuple)==False):
+            mlp_kernel_regularizer = [mlp_kernel_regularizer for i in mlp_units]
+        if(isinstance(mlp_bias_regularizer,list) == False and isinstance(mlp_bias_regularizer,tuple)==False):
+            mlp_bias_regularizer = [mlp_bias_regularizer for i in mlp_units ]
+        
+        # Serialized props
         self.mlp_units = mlp_units 
+        self.mlp_use_bias = mlp_use_bias
+        self.mlp_activation = [x if isinstance(x,str) or isinstance(x,dict) else ks.activations.serialize(x) for x in mlp_activation]
+        self.mlp_activity_regularizer = [x if isinstance(x,str) or isinstance(x,dict) else ks.activations.serialize(x) for x in mlp_activity_regularizer]
+        self.mlp_kernel_regularizer = [x if isinstance(x,str) or isinstance(x,dict) else ks.activations.serialize(x) for x in mlp_kernel_regularizer]
+        self.mlp_bias_regularizer = [x if isinstance(x,str) or isinstance(x,dict) else ks.activations.serialize(x) for x in mlp_bias_regularizer]
+          
+        # Deserialized props
+        self.des_mlp_activation = [ks.activations.deserialize(x,custom_objects=kgcnn_custom_act) for x in self.mlp_activation]
+        self.des_mlp_activity_regularizer =[ ks.regularizers.deserialize(x) for x in self.mlp_activity_regularizer]
+        self.des_mlp_kernel_regularizer = [ks.regularizers.deserialize(x) for x in self.mlp_kernel_regularizer ]
+        self.des_mlp_bias_regularizer = [ks.regularizers.deserialize(x)  for x in self.mlp_bias_regularizer]
         
-        if
-        self.mlp_use_bias = mlp_use_bias  
-        
-        self.mlp_activ = ks.activations.deserialize(dense_activ,custom_objects={'leaky_softplus':leaky_softplus,'shifted_softplus':shifted_softplus})
-        self.mlp_activ_last_serialize = dense_activ_last
-        self.mlp_activ_last = ks.activations.deserialize(dense_activ_last,custom_objects={'leaky_softplus':leaky_softplus,'shifted_softplus':shifted_softplus})
-        self.mlp_activity_regularizer = ks.regularizers.get(dense_activity_regularizer)
-        self.mlp_kernel_regularizer = ks.regularizers.get(dense_kernel_regularizer)
-        self.mlp_bias_regularizer = ks.regularizers.get(dense_bias_regularizer)
-        self.mlp_use = dropout_use
-        self.mlp_dropout = dropout_dropout
-        
-        self.mlp_dense_activ = [ks.layers.Dense(
-                                self.dense_units,
-                                use_bias=self.dense_bias,
-                                activation=self.dense_activ,
+        self.mlp_dense_list = [ks.layers.Dense(
+                                self.mlp_units[i],
+                                use_bias=self.mlp_use_bias[i],
                                 name=self.name+'_dense_'+str(i),
-                                activity_regularizer= self.dense_activity_regularizer,
-                                kernel_regularizer=self.dense_kernel_regularizer,
-                                bias_regularizer=self.dense_bias_regularizer
-                                ) for i in range(self.dense_depth-1)]
+                                activation=self.des_mlp_activation[i],
+                                activity_regularizer=self.des_mlp_activity_regularizer[i],
+                                kernel_regularizer=self.des_mlp_kernel_regularizer[i],
+                                bias_regularizer=self.des_mlp_bias_regularizer[i]
+                                ) for i in range(len(self.mlp_units))]
 
 
     def build(self, input_shape):
         """Build layer."""
-        super(MLPdisjoint, self).build(input_shape)          
+        super(MLP, self).build(input_shape)          
     def call(self, inputs,training=False):
         """Forward pass."""
         x = inputs
-        for i in range(self.dense_depth-1):
-            x = self.mlp_dense_activ[i](x)
-            if(self.dropout_use == True):
-                x = self.mlp_dropout(x,training=training)
-        x = self.mlp_dense_last(x)
+        for i in range(len(self.mlp_units)):
+            x = self.mlp_dense_list[i](x)
         out = x
         return out
     def get_config(self):
         """Update config."""
-        config = super(MLPdisjoint, self).get_config()
-        config.update({"dense_units": self.dense_units,
-                       'dense_depth': self.dense_depth,
-                       'dense_bias': self.dense_bias,
-                       'dense_bias_last': self.dense_bias_last,
-                       'dense_activ' : self.dense_activ_serialize,
-                       'dense_activ_last' : self.dense_activ_last_serialize,
-                       'dense_activity_regularizer': ks.regularizers.serialize(self.dense_activity_regularizer),
-                       'dense_kernel_regularizer': ks.regularizers.serialize(self.dense_kernel_regularizer),
-                       'dense_bias_regularizer': ks.regularizers.serialize(self.dense_bias_regularizer),
-                       'dropout_use': self.dropout_use,
-                       'dropout_dropout': self.dropout_dropout
+        config = super(MLP, self).get_config()
+        config.update({"mlp_units": self.mlp_units,
+                       'mlp_use_bias': self.mlp_use_bias,
+                       'mlp_activation' : self.mlp_activation,
+                       'mlp_activity_regularizer': self.mlp_activity_regularizer,
+                       'mlp_kernel_regularizer': self.mlp_kernel_regularizer,
+                       'mlp_bias_regularizer': self.mlp_bias_regularizer,
                        })
         return config

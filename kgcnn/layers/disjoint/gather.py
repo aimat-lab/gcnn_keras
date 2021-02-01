@@ -10,33 +10,51 @@ class GatherNodes(ks.layers.Layer):
     If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
     
     Args:
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
         **kwargs
         
     Input:
-        List of tensors [node,edge_index]
+        List of tensors [node,node_length,edge_index]
         node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
         edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+        edge_length (tf.tensor): Number of edges in each graph (batch,)
         
     Output:
         features (tf.tensor): Gathered node features of (ingoing,outgoing) nodes.        
                               Output shape is (batch*None,F+F).
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, node_indexing = 'batch', **kwargs):
         """Initialize layer."""
-        super(GatherNodes, self).__init__(**kwargs)          
+        super(GatherNodes, self).__init__(**kwargs)
+        self.node_indexing = node_indexing
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodes, self).build(input_shape)          
     def call(self, inputs):
         """Forward pass."""
-        node,edge_index = inputs
-        indexlist = edge_index 
+        node,node_len,edge_index,edge_len = inputs
+        if(self.node_indexing == 'batch'):
+            indexlist = edge_index 
+        elif(self.node_indexing == 'sample'):
+            shift1 = edge_index
+            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            indexlist = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
         node1Exp = tf.gather(node,indexlist[:,0],axis=0)
         node2Exp = tf.gather(node,indexlist[:,1],axis=0)
         out = K.concatenate([node1Exp,node2Exp],axis=1)
         return out     
-    
+    def get_config(self):
+        """Update config."""
+        config = super(GatherNodes, self).get_config()
+        config.update({"node_indexing": self.node_indexing})
+        return config 
+
+
 
 class GatherNodesOutgoing(ks.layers.Layer):
     """
@@ -46,32 +64,50 @@ class GatherNodesOutgoing(ks.layers.Layer):
     For outgoing nodes, layer uses only index[1].
     
     Args:
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
         **kwargs
         
     Input: 
-        List of tensors [node,edge_index]
+        List of tensors [node,node_length,edge_index]
         node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
         edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
                                 For ingoing gather nodes according to index[1]
+        edge_length (tf.tensor): Number of edges in each graph (batch,)
     
     Output:
         features (tf.tensor): A list of gathered outgoing node features from indexlist.        
                               Output shape is (batch*None,F).
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, node_indexing = 'batch',**kwargs):
         """Initialize layer."""
-        super(GatherNodesOutgoing, self).__init__(**kwargs)          
+        super(GatherNodesOutgoing, self).__init__(**kwargs)
+        self.node_indexing = node_indexing          
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodesOutgoing, self).build(input_shape)          
     def call(self, inputs):
         """Forward pass."""
-        node,edge_index = inputs
-        indexlist = edge_index 
+        node,node_len,edge_index,edge_len = inputs
+        # node,edge_index= inputs
+        if(self.node_indexing == 'batch'):
+            indexlist = edge_index 
+        elif(self.node_indexing == 'sample'):
+            shift1 = edge_index
+            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            indexlist = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...") 
         out = tf.gather(node,indexlist[:,1],axis=0)
         return out     
-
+    def get_config(self):
+        """Update config."""
+        config = super(GatherNodesOutgoing, self).get_config()
+        config.update({"node_indexing": self.node_indexing})
+        return config 
+    
 
 class GatherNodesIngoing(ks.layers.Layer):
     """
@@ -81,32 +117,50 @@ class GatherNodesIngoing(ks.layers.Layer):
     For ingoing nodes, layer uses only index[0].
     
     Args:
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
         **kwargs
     
     Input:
-        List of tensors [node,edge_index]
+        List of tensors [node,node_len,edge_index]
         node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
         edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
                                 For ingoing gather nodes according to index[0]
+        edge_length (tf.tensor): Number of edges in each graph (batch,)
     
     Output:
         features (tf.tensor): A list of gathered ingoing node features from indexlist.        
                               Output shape is (batch*None,F).
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, node_indexing = 'batch',**kwargs):
         """Initialize layer."""
-        super(GatherNodesIngoing, self).__init__(**kwargs)          
+        super(GatherNodesIngoing, self).__init__(**kwargs)
+        self.node_indexing = node_indexing          
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodesIngoing, self).build(input_shape)          
     def call(self, inputs):
         """Forward pass."""
-        node,edge_index = inputs
-        indexlist = edge_index 
+        node,node_len,edge_index,edge_len = inputs
+        # node,edge_index= inputs
+        if(self.node_indexing == 'batch'):
+            indexlist = edge_index 
+        elif(self.node_indexing == 'sample'):
+            shift1 = edge_index
+            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            indexlist = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...") 
         out = tf.gather(node,indexlist[:,0],axis=0)
         return out     
-
+    def get_config(self):
+        """Update config."""
+        config = super(GatherNodesIngoing, self).get_config()
+        config.update({"node_indexing": self.node_indexing})
+        return config 
+    
     
 class GatherState(ks.layers.Layer):
     """

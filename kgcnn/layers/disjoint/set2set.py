@@ -230,4 +230,29 @@ class Set2Set(ks.layers.Layer):
         config.update({"pooling_method": self.pooling_method})
         config.update({"init_qstar": self.init_qstar})
         lstm_conf = self.lay_lstm.get_config()
+        lstm_param = ["activation",
+                    "recurrent_activation",
+                    "use_bias",
+                    "kernel_initializer",
+                    "recurrent_initializer",
+                    "bias_initializer",
+                    "unit_forget_bias",
+                    "kernel_regularizer",
+                    "recurrent_regularizer",
+                    "bias_regularizer",
+                    "activity_regularizer",
+                    "kernel_constraint",
+                    "recurrent_constraint",
+                    "bias_constraint",
+                    "dropout",
+                    "recurrent_dropout",
+                    "implementation",
+                    "return_sequences", #Should not be changed here
+                    "return_state", #Should not be changed here
+                    "go_backwards", #Should not be changed here
+                    "stateful",
+                    "time_major",
+                    "unroll"]
+        for x in lstm_param:
+            config.update({x :lstm_conf[x] })
         return config 
