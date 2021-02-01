@@ -2,75 +2,18 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing,GatherNodes
-from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint,CastValuesToRagged
+from kgcnn.layers.disjoint.mlp import MLP
+from kgcnn.layers.disjoint.update import ApplyMessage,GRUupdate
+from kgcnn.layers.ragged.conv import DenseRagged
+from kgcnn.layers.ragged.casting import CastRaggedToDense
 
 # Neural Message Passing for Quantum Chemistry
 # by Justin Gilmer, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, George E. Dahl
 # http://arxiv.org/abs/1704.01212    
 
-
-class ApplyMessage(ks.layers.Layer):
-    """
-    Message Pass.
-    
-    Args:
-        shape_msg (int): Message dimension.
-    Inputs:
-        [edge_message, nodes]
-    Outputs
-        edge updates
-    """
-    def __init__(self,shape_msg,**kwargs):
-        """Initialize layer."""
-        super(ApplyMessage, self).__init__(**kwargs) 
-        self.mat_shape_msg = shape_msg
-    def build(self, input_shape):
-        """Build layer."""
-        super(ApplyMessage, self).build(input_shape)          
-    def call(self, inputs):
-        """Forward pass."""
-        dens_e,dens_n = inputs
-        dens_m= tf.reshape(dens_e,(ks.backend.shape(dens_e)[0],self.mat_shape_msg,self.mat_shape_msg))
-        out = tf.keras.backend.batch_dot(dens_m,dens_n) 
-        return out     
-    def compute_output_shape(self, input_shape):
-        """Compute output shape."""
-        shape_msg,shape_node = input_shape
-        return (shape_node[0],self.mat_shape_msg)
-
-
-class GRUupdate(ks.layers.Layer):
-    """
-    Gated recurrent unit update.
-    
-    Args:
-        channels (int):
-    Inputs:
-        [nodes, updates]
-    Outputs
-        node updates    
-    """
-    def __init__(self,channels,**kwargs):
-        """Initialize layer."""
-        super(GRUupdate, self).__init__(**kwargs) 
-        self.gru = tf.keras.layers.GRUCell(channels)
-    def build(self, input_shape):
-        """Build layer."""
-        #self.gru.build(channels)
-        super(GRUupdate, self).build(input_shape)          
-    def call(self, inputs):
-        """Forward pass."""
-        n,eu = inputs
-        # Apply GRU for update node state
-        out,_ = self.gru(eu,[n])
-        return out     
-    def compute_output_shape(self, input_shape):
-        """Compute output shape."""
-        shape_node,shape_msg = input_shape
-        return (shape_node[0],self.channels)
 
 
 def getmodelNMPN(
@@ -170,38 +113,40 @@ def getmodelNMPN(
     n,node_len,ed,edge_len,edi = CastRaggedToDisjoint()([n,ed,edge_index_input])
     #uenv = env_input
        
-    n = DenseDisjoint(node_dim)(n)
-    EdgNet = DenseDisjoint(node_dim*node_dim,activation=activation)(ed)
+    n = ks.layers.Dense(node_dim)(n)
+    EdgNet = ks.layers.Dense(node_dim*node_dim,activation=activation)(ed)
     gru = GRUupdate(node_dim)
     
 
     for i in range(0,depth):
-        eu = GatherNodesOutgoing()([n,edi])
+        eu = GatherNodesOutgoing()([n,node_len,edi,edge_len])
         eu = ApplyMessage(node_dim)([EdgNet,eu])
-        eu = PoolingEdgesPerNode(is_sorted=is_sorted,has_unconnected=has_unconnected)([n,eu,edi]) # Summing for each node connections
+        eu = PoolingEdgesPerNode(is_sorted=is_sorted,has_unconnected=has_unconnected)([n,node_len,eu,edge_len,edi]) # Summing for each node connections
         n = gru([n,eu])
       
     
     if(output_embedd == 'graph'):
         if(use_set2set == True):
             #output
-            outSS = DenseDisjoint(set2set_dim)(n)
+            outSS = ks.layers.Dense(set2set_dim)(n)
             out = Set2Set(set2set_dim)([outSS,node_len])
         else:
             out = PoolingNodes()([n,node_len])
         
-        for j in range(len(output_dim)-1):
-            out =  ks.layers.Dense(output_dim[j],output_activation[j],use_bias=output_use_bias[j],
-                                   bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(out)
-        main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
-                                       bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(out)
+        # final dense layers 
+        main_output = MLP(output_dim,
+                        mlp_use_bias = output_use_bias,
+                        mlp_activation = output_activation,
+                        mlp_activity_regularizer=output_kernel_regularizer,
+                        mlp_kernel_regularizer=output_kernel_regularizer,
+                        mlp_bias_regularizer=output_bias_regularizer)(out)         
         
     else: #Node labeling
         out = n    
         for j in range(len(output_dim)-1):
-            out =  Dense(output_dim[j],activation=output_activation[j],use_bias=output_use_bias[j],
+            out =  DenseRagged(output_dim[j],activation=output_activation[j],use_bias=output_use_bias[j],
                                bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(out)
-        main_output = Dense(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
+        main_output = DenseRagged(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
                                   bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(out)
         
         main_output = CastValuesToRagged()([main_output,node_len])

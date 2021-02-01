@@ -2,13 +2,13 @@ import tensorflow.keras as ks
 import tensorflow as tf
 
 from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing,GatherNodes
-from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint,CastValuesToRagged
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.utils.activ import shifted_softplus
-
+from kgcnn.layers.disjoint.mlp import MLP
+from kgcnn.layers.disjoint.conv import cfconv
 
 # Model Schnet as defined 
 # by Schuett et al. 2018
@@ -17,63 +17,7 @@ from kgcnn.utils.activ import shifted_softplus
 # https://aip.scitation.org/doi/pdf/10.1063/1.5019779
 
 
-
-class cfconvList(ks.layers.Layer):
-    """
-    Convolution layer.
-    
-    Args:
-        Alldim (int): 64 
-        activation (str): 'selu'
-        use_bias (bool): True
-        cfconv_pool (str): 'segment_sum'
-        is_sorted (bool): True
-        has_unconnected (bool): False
-    
-    Input:
-        [node,edge,edge_index,node_len]
-    
-    Output:
-        node_update
-    """
-    
-    def __init__(self, Alldim=64, 
-                 activation='selu',
-                 use_bias = True,
-                 cfconv_pool = 'segment_sum',
-                 is_sorted = True,
-                 has_unconnected=False,
-                 **kwargs):
-        """Initialize Layer."""
-        super(cfconvList, self).__init__(**kwargs)
-        self.activation = activation
-        self.use_bias = use_bias
-        self.cfconv_pool=cfconv_pool
-        self.Alldim = Alldim
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
-        #Layer
-        self.lay_dense1 = DenseDisjoint(units=self.Alldim,activation=self.activation,use_bias=self.use_bias)
-        self.lay_dense2 = DenseDisjoint(units=self.Alldim,activation='linear',use_bias=self.use_bias)
-        self.lay_sum = PoolingEdgesPerNode(pooling_method=self.cfconv_pool,is_sorted = self.is_sorted , has_unconnected=self.has_unconnected)
-        self.gather_n = GatherNodesOutgoing()
-    def build(self, input_shape):
-        """Build layer."""
-        super(cfconvList, self).build(input_shape)
-    def call(self, inputs):
-        """Forward pass: Calculate edge update."""
-        node, edge, indexlis, bn = inputs
-        x = self.lay_dense1(edge)
-        x = self.lay_dense2(x)
-        node2Exp = self.gather_n([node,indexlis])
-        x = node2Exp*x
-        x= self.lay_sum([node,x,indexlis])
-        return x
-    def compute_output_shape(self, input_shape):
-        """Compute output shape."""
-        return (input_shape)
- 
-    
+  
     
 class interaction(ks.layers.Layer):
     """
@@ -88,7 +32,7 @@ class interaction(ks.layers.Layer):
         has_unconnected (bool): False
     
     Input:
-        [node,edge,edge_index,node_len]
+        [node,node_len,edge,edge_len,edge_index]
     
     Output:
         node_update
@@ -112,26 +56,23 @@ class interaction(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         #Layers
-        self.lay_cfconv = cfconvList(self.Alldim,activation=self.activation,use_bias=self.use_bias_cfconv,cfconv_pool = self.cfconv_pool,has_unconnected=self.has_unconnected,is_sorted=self.is_sorted)
-        self.lay_dense1 = DenseDisjoint(units=self.Alldim,activation='linear',use_bias =False)
-        self.lay_dense2 = DenseDisjoint(units=self.Alldim,activation=self.activation,use_bias =self.use_bias)
-        self.lay_dense3 = DenseDisjoint(units=self.Alldim,activation='linear',use_bias =self.use_bias)
+        self.lay_cfconv = cfconv(self.Alldim,activation=self.activation,use_bias=self.use_bias_cfconv,cfconv_pool = self.cfconv_pool,has_unconnected=self.has_unconnected,is_sorted=self.is_sorted)
+        self.lay_dense1 = ks.layers.Dense(units=self.Alldim,activation='linear',use_bias =False)
+        self.lay_dense2 = ks.layers.Dense(units=self.Alldim,activation=self.activation,use_bias =self.use_bias)
+        self.lay_dense3 = ks.layers.Dense(units=self.Alldim,activation='linear',use_bias =self.use_bias)
         self.lay_add = ks.layers.Add()     
     def build(self, input_shape):
         """Build layer."""
         super(interaction, self).build(input_shape)
     def call(self, inputs):
         """Forward pass: Calculate node update."""
-        node, edge, indexlis, bn = inputs
+        node, bn, edge,edge_len, indexlis = inputs
         x = self.lay_dense1(node)
-        x = self.lay_cfconv([x,edge,indexlis,bn])
+        x = self.lay_cfconv([x,bn,edge,edge_len,indexlis])
         x = self.lay_dense2(x)
         x = self.lay_dense3(x)
         out = self.lay_add([node ,x])
         return out
-    def compute_output_shape(self, input_shape):
-        """Compute output shape."""
-        return (input_shape)
 
 
 
@@ -248,27 +189,30 @@ def getmodelSchnet(
     
 
     if(len(input_node_shape)>1 and input_node_shape[-1] != node_dim):
-        n = DenseDisjoint(node_dim,activation='linear')(n)
+        n = ks.layers.Dense(node_dim,activation='linear')(n)
     
     
     for i in range(0,depth):
-        n = interaction(node_dim,use_bias=use_bias,activation=activation,cfconv_pool=cfconv_pool)([n,ed,edi,node_len])
+        n = interaction(node_dim,use_bias=use_bias,activation=activation,cfconv_pool=cfconv_pool)([n,node_len,ed,edge_len,edi])
      
-    if(len(output_dim)>0):
-        for i in range(len(output_dim)-1):
-            n = DenseDisjoint(output_dim[i],activation=activation,use_bias=use_bias)(n)
-        n = DenseDisjoint(output_dim[-1],activation='linear',use_bias=use_bias)(n)
+    if(len(output_dim)>1):
+        n = MLP(output_dim[:-1],
+                mlp_use_bias = output_use_bias[:-1],
+                mlp_activation = output_activation[:-1],
+                mlp_activity_regularizer=output_kernel_regularizer[:-1],
+                mlp_kernel_regularizer=output_kernel_regularizer[:-1],
+                mlp_bias_regularizer=output_bias_regularizer[:-1])(n) 
     
     
     if(output_embedd == 'graph'):
         if(out_scale_pos == 0):
-            n = DenseDisjoint(output_dim[-1],activation=output_activation[-1],use_bias=use_bias)(n)
+            n = ks.layers.Dense(output_dim[-1],activation=output_activation[-1],use_bias=output_use_bias[-1],bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(n)
         out = PoolingNodes(pooling_method=out_pooling_method)([n,node_len])
         if(out_scale_pos == 1):
-            out = ks.layers.Dense(output_dim[-1],activation=output_activation[-1])(out)
-        main_output =  ks.layers.Flatten(name='main_output')(out) #will be dense
+            out = ks.layers.Dense(output_dim[-1],activation=output_activation[-1],use_bias=output_use_bias[-1],bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(out)
+        main_output =  ks.layers.Flatten()(out) #will be dense
     else: #node embedding
-        out = DenseDisjoint(output_dim[-1],activation=output_activation[-1])(n)
+        out = ks.layers.Dense(output_dim[-1],activation=output_activation[-1],use_bias=output_use_bias[-1],bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(n)
         main_output = CastValuesToRagged()([out,node_len])
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
     

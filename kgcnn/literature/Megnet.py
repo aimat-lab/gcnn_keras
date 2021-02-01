@@ -2,11 +2,11 @@ import tensorflow.keras as ks
 import tensorflow as tf
 
 from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing,GatherNodes
-from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
 from kgcnn.utils.activ import softplus2
+from kgcnn.layers.disjoint.mlp import MLP
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
 # by Chi Chen, Weike Ye, Yunxing Zuo, Chen Zheng, and Shyue Ping Ong*
@@ -51,16 +51,16 @@ class MEGnetBlock(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         #Node
-        self.lay_phi_n = DenseDisjoint(self.NodeEmbed[0],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_n_1 = DenseDisjoint(self.NodeEmbed[1],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_n_2 = DenseDisjoint(self.NodeEmbed[2],activation='linear',use_bias=self.use_bias)
+        self.lay_phi_n = ks.layers.Dense(self.NodeEmbed[0],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_n_1 = ks.layers.Dense(self.NodeEmbed[1],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_n_2 = ks.layers.Dense(self.NodeEmbed[2],activation='linear',use_bias=self.use_bias)
         self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted,has_unconnected=self.has_unconnected)
         self.lay_gather_un = GatherState()
         self.lay_conc_nu = ks.layers.Concatenate(axis=-1)
         #Edge
-        self.lay_phi_e = DenseDisjoint(self.EdgeEmbed[0],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_e_1 = DenseDisjoint(self.EdgeEmbed[1],activation=self.activation,use_bias=self.use_bias)
-        self.lay_phi_e_2 = DenseDisjoint(self.EdgeEmbed[2],activation='linear',use_bias=self.use_bias)
+        self.lay_phi_e = ks.layers.Dense(self.EdgeEmbed[0],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_e_1 = ks.layers.Dense(self.EdgeEmbed[1],activation=self.activation,use_bias=self.use_bias)
+        self.lay_phi_e_2 = ks.layers.Dense(self.EdgeEmbed[2],activation='linear',use_bias=self.use_bias)
         self.lay_gather_n = GatherNodes()
         self.lay_gather_ue = GatherState()
         self.lay_conc_enu = ks.layers.Concatenate(axis=-1)
@@ -79,14 +79,14 @@ class MEGnetBlock(ks.layers.Layer):
         """Forward pass."""
         #Calculate edge Update
         node_input,edge_input,edge_index_input,env_input,len_node,len_edge = inputs
-        e_n = self.lay_gather_n([node_input,edge_index_input])
+        e_n = self.lay_gather_n([node_input,len_node,edge_index_input,len_edge])
         e_u = self.lay_gather_ue([env_input,len_edge])
         ec = self.lay_conc_enu([e_n,edge_input,e_u])
         ep = self.lay_phi_e(ec) # Learning of Update Functions
         ep = self.lay_phi_e_1(ep) # Learning of Update Functions
         ep = self.lay_phi_e_2(ep) # Learning of Update Functions
         #Calculate Node update
-        vb = self.lay_esum([node_input,ep,edge_index_input]) # Summing for each node connections
+        vb = self.lay_esum([node_input,len_node,ep,len_edge,edge_index_input]) # Summing for each node connections
         v_u = self.lay_gather_un([env_input,len_node])
         vc = self.lay_conc_nu([vb,node_input,v_u]) # Concatenate node features with new edge updates
         vp = self.lay_phi_n(vc) # Learning of Update Functions
@@ -100,10 +100,7 @@ class MEGnetBlock(ks.layers.Layer):
         up = self.lay_phi_u_1(up)
         up = self.lay_phi_u_2(up) # Learning of Update Functions        
         return vp,ep,up
-    def compute_output_shape(self, input_shape):
-        """Compute output shape."""
-        is_node,is_edge,is_edge_index,is_env,_,_ = input_shape
-        return((is_node[0],self.NodeEmbed),(is_edge[0],self.EdgeEmbed),(is_env[0],self.EnvEmbed))
+
 
 
 
@@ -234,23 +231,23 @@ def getmodelMegnet(
     vp = n
     up = uenv
     ep = ed
-    vp = DenseDisjoint(n1,activation=act)(vp)
-    vp = DenseDisjoint(n2,activation=act)(vp)
-    ep = DenseDisjoint(n1,activation=act)(ep)
-    ep = DenseDisjoint(n2,activation=act)(ep)
-    up = DenseDisjoint(n1,activation=act)(up)
-    up = DenseDisjoint(n2,activation=act)(up)
+    vp = ks.layers.Dense(n1,activation=act)(vp)
+    vp = ks.layers.Dense(n2,activation=act)(vp)
+    ep = ks.layers.Dense(n1,activation=act)(ep)
+    ep = ks.layers.Dense(n2,activation=act)(ep)
+    up = ks.layers.Dense(n1,activation=act)(up)
+    up = ks.layers.Dense(n2,activation=act)(up)
     ep2 = ep
     vp2 = vp
     up2 = up
     for i in range(0,nblocks):
         if(has_ff == True and i>0):
-            vp2 = DenseDisjoint(n1,activation=act)(vp)
-            vp2 = DenseDisjoint(n2,activation=act)(vp2)
-            ep2 = DenseDisjoint(n1,activation=act)(ep)
-            ep2 = DenseDisjoint(n2,activation=act)(ep2)
-            up2 = DenseDisjoint(n1,activation=act)(up)
-            up2 = DenseDisjoint(n2,activation=act)(up2)
+            vp2 = ks.layers.Dense(n1,activation=act)(vp)
+            vp2 = ks.layers.Dense(n2,activation=act)(vp2)
+            ep2 = ks.layers.Dense(n1,activation=act)(ep)
+            ep2 = ks.layers.Dense(n2,activation=act)(ep2)
+            up2 = ks.layers.Dense(n1,activation=act)(up)
+            up2 = ks.layers.Dense(n2,activation=act)(up2)
             
         #MEGnetBlock
         vp2,ep2,up2 = MEGnetBlock(NodeEmbed=[n1,n1,n2],
@@ -272,8 +269,8 @@ def getmodelMegnet(
         ep = ks.layers.Add()([ep2 ,ep])
 
     if(use_set2set == True):
-        vp = DenseDisjoint(set2set_dim,activation='linear')(vp)
-        ep = DenseDisjoint(set2set_dim,activation='linear')(ep)
+        vp = ks.layers.Dense(set2set_dim,activation='linear')(vp)
+        ep = ks.layers.Dense(set2set_dim,activation='linear')(ep)
         vp = Set2Set(set2set_dim,T=npass,pooling_method=set2set_pool,init_qstar = set2set_init)([vp,node_len])
         ep = Set2Set(set2set_dim,T=npass,pooling_method=set2set_pool,init_qstar = set2set_init)([ep,edge_len])
     else:
@@ -288,12 +285,13 @@ def getmodelMegnet(
     if dropout:
         final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec, training=dropout_training)
     
-    # final dense layers   
-    for j in range(len(output_dim)-1):
-        final_vec =  ks.layers.Dense(output_dim[j],output_activation[j],use_bias=output_use_bias[j],
-                               bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(final_vec)
-    main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
-                                   bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(final_vec)
+    # final dense layers 
+    main_output = MLP(output_dim,
+                    mlp_use_bias = output_use_bias,
+                    mlp_activation = output_activation,
+                    mlp_activity_regularizer=output_kernel_regularizer,
+                    mlp_kernel_regularizer=output_kernel_regularizer,
+                    mlp_bias_regularizer=output_bias_regularizer)(final_vec)     
         
     
     model = ks.models.Model(inputs=[node_input,edge_input,edge_index_input,env_input], outputs=main_output)   

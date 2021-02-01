@@ -1,11 +1,13 @@
 import tensorflow.keras as ks
 import tensorflow as tf
 
-from kgcnn.layers.ragged.gather import SampleToBatchIndexing,GatherState,GatherNodesIngoing,GatherNodesOutgoing
+from kgcnn.layers.ragged.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing
 from kgcnn.layers.ragged.conv import DenseRagged
 from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingWeightedEdgesPerNode
 from kgcnn.layers.ragged.set2set import Set2Set
-from kgcnn.layers.ragged.casting import CastRaggedToDense
+from kgcnn.layers.ragged.casting import CastRaggedToDense,ChangeIndexing
+from kgcnn.layers.disjoint.mlp import MLP
+from kgcnn.layers.ragged.mlp import MLPRagged
 
 
 # 'Interaction Networks for Learning about Objects,Relations and Physics'
@@ -112,7 +114,7 @@ def getmodelINORP(  # Input
         uenv = env_input
         
     #Preprocessing
-    edi = SampleToBatchIndexing()([n,edge_index_input])
+    edi = ChangeIndexing()([n,edge_index_input])
      
     ev = GatherState()([uenv,n])
     # n-Layer Step
@@ -144,19 +146,22 @@ def getmodelINORP(  # Input
         else:
             out = PoolingNodes()(n)
         
-        for j in range(len(output_dim)-1):
-            out =  ks.layers.Dense(output_dim[j],output_activation[j],use_bias=output_use_bias[j],
-                                   bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(out)
-        main_output =  ks.layers.Dense(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
-                                       bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(out)
+        main_output = MLP(output_dim,
+                        mlp_use_bias = output_use_bias,
+                        mlp_activation = output_activation,
+                        mlp_activity_regularizer=output_kernel_regularizer,
+                        mlp_kernel_regularizer=output_kernel_regularizer,
+                        mlp_bias_regularizer=output_bias_regularizer)(out)    
         
     else: #Node labeling
         out = n    
-        for j in range(len(output_dim)-1):
-            out =  DenseRagged(output_dim[j],activation=output_activation[j],use_bias=output_use_bias[j],
-                               bias_regularizer=output_bias_regularizer[j],activity_regularizer=output_activity_regularizer[j],kernel_regularizer=output_kernel_regularizer[j])(out)
-        main_output = DenseRagged(output_dim[-1],name='main_output',activation=output_activation[-1],use_bias=output_use_bias[-1],
-                                  bias_regularizer=output_bias_regularizer[-1],activity_regularizer=output_activity_regularizer[-1],kernel_regularizer=output_kernel_regularizer[-1])(out)
+        main_output = MLPRagged(output_dim,
+                                mlp_use_bias = output_use_bias,
+                                mlp_activation = output_activation,
+                                mlp_activity_regularizer=output_kernel_regularizer,
+                                mlp_kernel_regularizer=output_kernel_regularizer,
+                                mlp_bias_regularizer=output_bias_regularizer)(out)    
+        
         
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
     

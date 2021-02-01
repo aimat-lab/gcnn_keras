@@ -2,7 +2,6 @@ import tensorflow.keras as ks
 import tensorflow as tf
 
 from kgcnn.layers.disjoint.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing,GatherNodes
-from kgcnn.layers.disjoint.conv import DenseDisjoint
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint,CastValuesToRagged
@@ -10,6 +9,8 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
 from kgcnn.layers.disjoint.topk import PoolingTopK,UnPoolingTopK
 from kgcnn.layers.disjoint.connect import AdjacencyPower
+from kgcnn.layers.disjoint.mlp import MLP
+
 
 # Graph U-Nets
 # by Hongyang Gao, Shuiwang Ji
@@ -126,9 +127,9 @@ def getmodelUnet(
         
         n,node_len,ed,edge_len,edi = i_graph
         #GCN layer
-        eu = GatherNodesOutgoing()([n,edi])
-        eu = DenseDisjoint(hidden_dim,use_bias=use_bias,activation='linear')(eu)
-        nu = PoolingEdgesPerNode(pooling_method= 'segment_mean',is_sorted=is_sorted,has_unconnected=has_unconnected)([n,eu,edi]) # Summing for each node connection
+        eu = GatherNodesOutgoing()([n,node_len,edi,edge_len])
+        eu = ks.layers.Dense(hidden_dim,use_bias=use_bias,activation='linear')(eu)
+        nu = PoolingEdgesPerNode(pooling_method= 'segment_mean',is_sorted=is_sorted,has_unconnected=has_unconnected)([n,node_len,eu,edge_len,edi]) # Summing for each node connection
         n = ks.layers.Activation(activation=activation)(nu)    
         
         if(use_reconnect == True):
@@ -151,9 +152,9 @@ def getmodelUnet(
         #skip connection
         n = ks.layers.Add()([n,o_graph[0]])
         #GCN
-        eu = GatherNodesOutgoing()([n,edi])
-        eu = DenseDisjoint(hidden_dim,use_bias=use_bias,activation='linear')(eu)
-        nu = PoolingEdgesPerNode(pooling_method= 'segment_mean',is_sorted=is_sorted,has_unconnected=has_unconnected)([n,eu,edi]) # Summing for each node connection
+        eu = GatherNodesOutgoing()([n,node_len,edi,edge_len])
+        eu = ks.layers.Dense(hidden_dim,use_bias=use_bias,activation='linear')(eu)
+        nu = PoolingEdgesPerNode(pooling_method= 'segment_mean',is_sorted=is_sorted,has_unconnected=has_unconnected)([n,node_len,eu,edge_len,edi]) # Summing for each node connection
         n = ks.layers.Activation(activation=activation)(nu)
         
         ui_graph = [n,node_len,ed,edge_len,edi]
@@ -164,12 +165,21 @@ def getmodelUnet(
     node_len = ui_graph[1]
     if(output_embedd == 'graph'):
         out = PoolingNodes(pooling_method='segment_mean')([n,node_len])
-        for j in range(len(output_dim)-1):
-            out =  ks.layers.Dense(output_dim[j],activation=activation,use_bias=use_bias)(out)
-        out =  ks.layers.Dense(output_dim[-1],activation=output_activation[-1])(out)
-        main_output = ks.layers.Flatten(name='flat_output')(out) #will be dense
+        
+        out = MLP(output_dim,
+                mlp_use_bias = output_use_bias,
+                mlp_activation = output_activation,
+                mlp_activity_regularizer=output_kernel_regularizer,
+                mlp_kernel_regularizer=output_kernel_regularizer,
+                mlp_bias_regularizer=output_bias_regularizer)(out)     
+        main_output = ks.layers.Flatten()(out) #will be dense
     else: #node embedding
-        out = DenseDisjoint(output_dim,activation=output_activation)(n)
+        out = ML(output_dim,
+                mlp_use_bias = output_use_bias,
+                mlp_activation = output_activation,
+                mlp_activity_regularizer=output_kernel_regularizer,
+                mlp_kernel_regularizer=output_kernel_regularizer,
+                mlp_bias_regularizer=output_bias_regularizer)(n)     
         main_output = CastValuesToRagged()([out,node_len])
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
     
