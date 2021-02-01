@@ -83,7 +83,7 @@ def scaled_adjacency_to_list(Ascaled):
 
 def make_undirected(A):
     """
-    Make adjacency matrix undirected. This adds edge if directed.
+    Make adjacency matrix undirected. This adds edges if directed.
 
     Args:
         A (np.array,scipy.sparse): Adjacency matrix.
@@ -103,3 +103,50 @@ def make_undirected(A):
         Aout = (adj_t>adj).multiply(adj_t)+(adj>adj_t).multiply(adj)+adj-(adj!=adj_t).multiply(adj)
         return Aout.tocoo()
          
+
+
+def add_self_loops_to_indexlist(indices):
+    """
+    Add self-loops to edge index list, i.e. [[0,0],[1,1]...] and sort the final output. 
+    
+    Note: It applies unique to the index list, removes duplicate edges.
+
+    Args:
+        indices (np.array): Index list of shape (N,3).
+
+    Returns:
+        out_indices (np.array): Sorted index list with self-loops.
+
+    """
+    max_ind = np.max(indices)
+    self_loops = np.arange(max_ind+1,dtype=np.int)
+    self_loops = np.concatenate([np.expand_dims(self_loops,axis=-1),np.expand_dims(self_loops,axis=-1)],axis=-1)
+    added_loops = np.concatenate([indices,self_loops],axis=0)
+    clean_index = np.unique(added_loops,axis=0)
+    index_order = np.argsort(clean_index[:,0])
+    out_indices = clean_index[index_order]
+    return out_indices
+
+
+
+def indexlist_sort(indexlist,vals):
+    """
+    Sort index list.
+
+    Args:
+        indexlist (np.array): Edge indices.
+        vals (np.array): Edge values.
+
+    Returns:
+        ind2 (np.array): Sorted indices.
+        val2 (np.array): Edge values matching sorted indices.
+
+    """
+    order1 = np.argsort(indexlist[:,1],axis=0,kind='mergesort') #stable!
+    ind1 = indexlist[order1]
+    val1 = vals[order1]
+    order2 = np.argsort(ind1[:,0],axis=0,kind='mergesort')
+    ind2 = ind1[order2]
+    val2 = val1[order2]
+    return ind2,val2
+    
