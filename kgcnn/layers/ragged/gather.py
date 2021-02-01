@@ -4,55 +4,7 @@ import tensorflow.keras.backend as K
 
 
 
-class SampleToBatchIndexing(ks.layers.Layer):
-    """
-    Change indexing from a sample-wise to a in-batch labeling. This is equivalent to disjoint indexing.
-    
-    Note that Gather- and Pooling-layers require node_indexing = "batch" as argument if index is shifted by the number of nodes in batch.
-    This can enable faster gathering and pooling for some layers.
-    
-    Example:
-        edge_index = SampleToBatchIndexing()([input_node,input_edge_index]) 
-        [[0,1],[1,0],...],[[0,2],[1,2],...],...] to [[0,1],[1,0],...],[[5,7],[6,7],...],...] 
-        
-    Args:
-        ragged_validate (bool): False
-        **kwargs
-    
-    Input:
-        [NodeList,EdgeIndex] of shape [(batch,None,F_n),(batch,None,2)] with both being ragged tensors.
-        None gives the ragged dimension and F_n is the node feature dimension.
-        
-    Output:
-        Edge index tensor,
-        with indices now address nodes with respect to the batch and not per single graph anymore.
-    """
-    
-    def __init__(self, 
-                 ragged_validate = False,
-                 **kwargs):
-        """Initialize layer."""
-        super(SampleToBatchIndexing, self).__init__(**kwargs) 
-        self.ragged_validate = ragged_validate
-        self._supports_ragged_inputs = True   
-    def build(self, input_shape):
-        """Build layer."""
-        super(SampleToBatchIndexing, self).build(input_shape)
-    def call(self, inputs):
-        """Forward pass."""
-        nod,edgeind = inputs
-        shift1 = edgeind.values
-        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
-        shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)  
-        out = tf.RaggedTensor.from_row_splits(shiftind,edgeind.row_splits,validate=self.ragged_validate)
-        return out
-    def get_config(self):
-        """Update config."""
-        config = super(SampleToBatchIndexing, self).get_config()
-        config.update({"ragged_validate": self.ragged_validate})
-        return config    
-
-    
+   
 class GatherNodes(ks.layers.Layer):
     """
     Gather nodes from ragged tensor by indices provided by a ragged index tensor in mini-batches.

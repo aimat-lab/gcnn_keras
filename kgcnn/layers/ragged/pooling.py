@@ -191,6 +191,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         return config
 
 
+
 class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     r"""
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
@@ -268,6 +269,8 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             node_order = tf.argsort(nodind,axis=0,direction='ASCENDING',stable=True)
             nodind = tf.gather(nodind,node_order,axis=0)
             dens = tf.gather(dens,node_order,axis=0)
+            wval = tf.gather(wval,node_order,axis=0)
+        
         #Do the pooling
         get = self._pool(dens,nodind)
         

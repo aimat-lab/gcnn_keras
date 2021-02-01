@@ -2,7 +2,12 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as K
 
+from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes,PoolingWeightedEdgesPerNode
+from kgcnn.layers.ragged.gather import GatherState,GatherNodesIngoing,GatherNodesOutgoing
+from kgcnn.utils.activ import kgcnn_custom_act
     
+
+
 class DenseRagged(tf.keras.layers.Layer):
     """
     Custom Dense Layer for ragged input. The dense layer can be used as convolutional unit.
@@ -154,3 +159,91 @@ class ActivationRagged(tf.keras.layers.Layer):
         config = {'activation': ks.activations.serialize(self.activation)}
         base_config = super(ActivationRagged, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+    
+
+
+class GCN(ks.layers.Layer):
+    """
+    Graph convolution according to Kipf et al.
+    
+    Computes graph conv as $sigma(A*(WX+b))$ where A is the precomputed adjacency matrix.
+    In place of A, edges and edge indices are used. A is considered pre-sacled. Otherwise use e.g. segment-mean, scale by weights etc.
+    Edges must be broadcasted to node feautres X.
+    
+    Args:
+        units (int): Output dimension/ units of dense layer.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
+        activation (str): Activation function 'relu'.
+        pooling_method (str): Pooling method for summing edges 'segment_sum'.
+        use_bias (bool): Whether to use bias. Default is False,
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
+        **kwargs
+        
+    Input: 
+        [node,edge,edge_index]
+        nodes (tf.tensor): Ragged node feature list of shape (batch,None,F)
+        edges (tf.tensor): Ragged edge feature list of shape (batch,None,F)
+        edge_index (tf.tensor): Edge indices for (batch,None,2) 
+    
+    Output:
+        features (tf.tensor): A list of updated node features.        
+                              Output shape is (batch*None,F).
+    """
+    
+    def __init__(self, 
+                 units,
+                 node_indexing = 'batch',
+                 activation='relu',
+                 pooling_method= 'segment_sum',
+                 use_bias = False,
+                 is_sorted=False,
+                 has_unconnected=True,
+                 normalize_by_weights = False,
+                 **kwargs):
+        """Initialize layer."""
+        super(GCN, self).__init__(**kwargs)
+        self.units = units
+        self.node_indexing = node_indexing 
+        self.normalize_by_weights = normalize_by_weights
+        self.use_bias = use_bias
+        self.pooling_method = pooling_method
+        self.has_unconnected = has_unconnected
+        self.is_sorted = is_sorted
+        self.activation = activation
+        
+        self.deserial_activation = ks.activations.deserialize(activation,custom_objects=kgcnn_custom_act) if isinstance(activation,str) or isinstance(activation,dict) else activation
+        #Layers
+        self.lay_gather = GatherNodesOutgoing(node_indexing = self.node_indexing)
+        self.lay_dense = DenseRagged(self.units,use_bias=self.use_bias,activation='linear')
+        self.lay_pool = PoolingWeightedEdgesPerNode(pooling_method= self.pooling_method,is_sorted=self.is_sorted,
+                                                    has_unconnected=self.has_unconnected,node_indexing = self.node_indexing,
+                                                    normalize_by_weights = self.normalize_by_weights)
+        self.lay_act = ActivationRagged(self.deserial_activation)
+    def build(self, input_shape):
+        """Build layer."""
+        super(GCN, self).build(input_shape)          
+    def call(self, inputs):
+        """Forward pass."""
+        node,edges,edge_index = inputs
+        no = self.lay_gather([node,edge_index])
+        no = self.lay_dense(no)
+        nu = self.lay_pool([node,no,edge_index,edges]) # Summing for each node connection
+        out = self.lay_act(nu)
+        return out     
+    def get_config(self):
+        """Update config."""
+        config = super(GatherNodesOutgoing, self).get_config()
+        config.update({"units": self.units})
+        config.update({"node_indexing": self.node_indexing})
+        config.update({"normalize_by_weights": self.normalize_by_weights})
+        config.update({"use_bias": self.use_bias})
+        config.update({"pooling_method": self.pooling_method})
+        config.update({"has_unconnected": self.has_unconnected})
+        config.update({"is_sorted": self.is_sorted})
+        config.update({"activation": self.activation})
+        return config 
+
+

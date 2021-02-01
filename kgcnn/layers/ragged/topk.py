@@ -28,8 +28,8 @@ class PoolingTopK(ks.layers.Layer):
         nodes (tf.ragged): Pooled node features of shape (batch,None,F)
         edge_indices (tf.ragged): Pooled edge indices of shape (batch,None,2)
         edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)
-        map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)
-        map_edges (tf.tensor): Index map between original and pooled edges (batch*None,)
+        map_nodes (tf.ragged): Index map between original and pooled nodes (batch,None)
+        map_edges (tf.ragged): Index map between original and pooled edges (batch,None)
     """
     
     def __init__(self,
@@ -164,8 +164,9 @@ class PoolingTopK(ks.layers.Layer):
         out_edge = tf.RaggedTensor.from_value_rowids(clean_edge_feat_sorted,clean_edge_ids,validate=self.ragged_validate)
         
         # Build map
-        map_node = pooled_index
-        map_edge = edge_position_new
+        map_node = tf.RaggedTensor.from_row_lengths(pooled_index,pooled_len,validate=self.ragged_validate)
+        map_edge = tf.RaggedTensor.from_value_rowids(edge_position_new,clean_edge_ids,validate=self.ragged_validate)
+        
         
         out_map = [map_node,map_edge]
         out = [out_node,out_edge_index,out_edge]
@@ -204,8 +205,8 @@ class UnPoolingTopK(ks.layers.Layer):
         nodes (tf.ragged): Original node ragged tensor of shape (batch,None,F)
         edge_indices (tf.ragged): Original edge index ragged tensor of shape (batch,None,2)
         edges (tf.ragged): Original edge feature tensor of shape (batch,None,F)
-        map_nodes (tf.tensor): Node index map (batch*None,)
-        map_edges (tf.tensor): Edge index map (batch*None,)
+        map_nodes (tf.ragged): Node index map (batch,None)
+        map_edges (tf.ragged): Edge index map (batch,None)
         nodes_pool (tf.ragged): Pooled node ragged tensor of shape (batch,None,F)
         edge_indices_pool (tf.ragged): Pooled edge index ragged tensor of shape (batch,None,2)
         edges_pool (tf.ragged): Pooled edge feature tensor of shape (batch,None,F)
@@ -232,6 +233,9 @@ class UnPoolingTopK(ks.layers.Layer):
     def call(self, inputs):
         """Forward Pass"""
         node_old,edgeind_old,edge_old, map_node, map_edge, node_new,edgeind_new,edge_new = inputs
+        
+        map_node = map_node.values
+        map_edge = map_edge.values
         
         index_dtype = map_node.dtype
         node_old_value = node_old.values

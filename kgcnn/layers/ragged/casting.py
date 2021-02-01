@@ -120,3 +120,66 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         return config 
 
 
+
+class ChangeIndexing(ks.layers.Layer):
+    """
+    Change indexing between sample-wise and in-batch labeling. 'Bath' is equivalent to disjoint indexing.
+    
+    Note that ragged Gather- and Pooling-layers require node_indexing = "batch" as argument if index is shifted by the number of nodes in batch.
+    This can enable faster gathering and pooling for some layers.
+    
+    Example:
+        edge_index = ChangeIndexingRagged()([input_node,input_edge_index]) 
+        [[0,1],[1,0],...],[[0,2],[1,2],...],...] to [[0,1],[1,0],...],[[5,7],[6,7],...],...] 
+        
+    Args:
+        to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
+                           The disjoint representation assigns nodes within the 'batch'.
+                           It changes "sample" to "batch" or "batch" to "sample."
+                           Default is 'batch'.
+        from_indexing (str): Index convention that has been set for the input.
+                             Default is 'sample'.  
+        ragged_validate (bool): Validate ragged tensor. Default is False.
+        **kwargs
+    
+    Input:
+        List [nodes,edge_indices]
+        nodes (tf.ragged): Ragged node feature list of shape (batch,None,F).
+        edge_indices (tf.ragged): Ragged edge indices of shape (batch,None,2).
+        
+    Output:
+        edge_indices (tf.ragged): Ragged tensor of edge indices with modified index reference.
+    """
+    
+    def __init__(self, to_indexing = 'batch',from_indexing = 'sample' ,
+                 ragged_validate = False,
+                 **kwargs):
+        """Initialize layer."""
+        super(ChangeIndexing, self).__init__(**kwargs) 
+        self.ragged_validate = ragged_validate
+        self.to_indexing = to_indexing 
+        self.from_indexing = from_indexing
+        self._supports_ragged_inputs = True   
+    def build(self, input_shape):
+        """Build layer."""
+        super(ChangeIndexing, self).build(input_shape)
+    def call(self, inputs):
+        """Forward pass."""
+        nod,edgeind = inputs
+        shift1 = edgeind.values
+        shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
+        
+        if(self.to_indexing == 'batch' and self.from_indexing == 'sample'):        
+            shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)   
+        elif(self.to_indexing == 'sample'and self.from_indexing == 'batch'):
+            shiftind = shift1 - tf.cast(shift2,dtype=shift1.dtype)    
+        else:
+            raise TypeError("Unknown index change, use: 'sample', 'batch', ...")
+        
+        out = tf.RaggedTensor.from_row_splits(shiftind,edgeind.row_splits,validate=self.ragged_validate)
+        return out
+    def get_config(self):
+        """Update config."""
+        config = super(ChangeIndexing, self).get_config()
+        config.update({"ragged_validate": self.ragged_validate})
+        return config    
