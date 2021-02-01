@@ -53,6 +53,19 @@ def mutag_extract_dataset(path,load=False):
 
 
 def mutag_load(path):
+    """
+    Load, convert MUTAG dataset.
+
+    Args:
+        path (str): Filepath to database.
+
+    Returns:
+        labels (np.array): Labels.
+        nodes (list): Node features.
+        edge_indices (list): List of edge indices of connections per molecule.
+        edges (list): List of edge features
+
+    """
     ##A
     mutag_A = []
     open_file = open(os.path.join(path,"MUTAG","MUTAG_A.txt"),"r")
@@ -145,6 +158,16 @@ def mutag_load(path):
 
 
 def mutag_graph():
+    """
+    Get MUTAG dataset.
+
+    Returns:
+        List [labels,nodes,edge_indices,edges].
+        labels (np.array): Labels.
+        nodes (list): Node features.
+        edge_indices (list): List of edge indices of connections per molecule.
+        edges (list): List of edge features
+    """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
     if(os.path.exists(os.path.join(local_path,"MUTAG"))==False):

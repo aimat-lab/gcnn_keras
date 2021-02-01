@@ -198,8 +198,12 @@ def mutagenicity_graph():
     Generate list of mutagenicity graphs.
 
     Returns:
-        data (list): labels,nodes,edge_indices,edges,atoms.
-
+        List [labels,nodes,edge_indices,edges,atoms]
+        labels_clean (list): Mutagenity label (0,1).
+        nodes_clean (list): Atoms as Atomnumber array.
+        edge_indices_clean (list): Bond indices (i,j).
+        edges_clean (list): Bond type.
+        atoms_clean (list): Atom list as string.
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
