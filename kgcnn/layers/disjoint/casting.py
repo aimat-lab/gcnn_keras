@@ -41,6 +41,8 @@ class CastRaggedToValues(ks.layers.Layer):
             outpart = tens.row_lengths()
         elif(self.partition_type == "row_splits"):
             outpart = tens.row_splits
+        elif(self.partition_type == "value_rowids"):
+            outpart = tens.value_rowids()
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
             
@@ -103,7 +105,9 @@ class CastMaskedToValues(ks.layers.Layer):
         if(self.partition_type == "row_length"):
             outpart = row_lengths
         elif(self.partition_type == "row_splits"):
-            outpart = tf.cumsum(row_lengths)
+            outpart = tf.concat([tf.zeros_like(row_lengths[0:1]),tf.cumsum(row_lengths)],axis=0)
+        elif(self.partition_type == "value_rowids"):
+            outpart = tf.repeat(tf.range(shape_tens[0]),row_lengths)
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
         
@@ -151,7 +155,9 @@ class CastBatchToValues(ks.layers.Layer):
         if(self.partition_type == "row_length"):
             outpart = out_len
         elif(self.partition_type == "row_splits"):
-            outpart = tf.cumsum(out_len)
+            outpart = tf.concat([tf.zeros_like(out_len[0:1]),tf.cumsum(out_len)],axis=0)
+        elif(self.partition_type == "value_rowids"):
+            outpart = tf.repeat(tf.range(tf.shape(out_len)[0]),out_len)
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
         return [out,outpart]
@@ -193,16 +199,23 @@ class CastValuesToBatch(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass."""
         infeat,inpartition = inputs
-         if(self.partition_type == "row_length"):
+        outsh = K.int_shape(infeat)
+        
+        if(self.partition_type == "row_length"):
             ref = inpartition
+            insh = K.shape(ref)
+            out = K.reshape(infeat,(insh[0],-1,outsh[-1]))
         elif(self.partition_type == "row_splits"):
-            ref = inpartition[-1]
+            ref = inpartition[:-1]
+            insh = K.shape(ref)
+            out = K.reshape(infeat,(insh[0],-1,outsh[-1]))
+        elif(self.partition_type == "value_rowids"):
+            ref = tf.math.segment_sum(tf.ones_like(inpartition),inpartition)
+            insh = K.shape(ref)
+            out = K.reshape(infeat,(insh[0],-1,outsh[-1]))
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
-        return [out,outpart]
-        outsh = K.int_shape(infeat)
-        insh = K.shape(ref)
-        out = K.reshape(infeat,(insh[0],insh[1],outsh[-1]))
+
         return out     
     def get_config(self):
         """Update layer config."""
@@ -244,12 +257,16 @@ class CastValuesToPadded(ks.layers.Layer):
         """Forward pass."""
         nod,npartin = inputs
         
+        #Just make ragged tensor.
         if(self.partition_type == "row_length"):
             n_len = npartin
             out = tf.RaggedTensor.from_row_lengths(nod,n_len)
         elif(self.partition_type == "row_splits"):
             out = tf.RaggedTensor.from_row_splits(nod,npartin)
-            n_len = out.row_lenghts()
+            n_len = out.row_lengths()
+        elif(self.partition_type == "value_rowids"):
+            out = tf.RaggedTensor.from_value_rowids(nod,npartin)
+            n_len = out.row_lengths()
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
         
@@ -272,7 +289,7 @@ class CastValuesToPadded(ks.layers.Layer):
 
 class CastValuesToRagged(ks.layers.Layer):
     """
-    Layer to make ragged tensor from a flatten value tensor plus row_length tensor.
+    Layer to make ragged tensor from a flatten value tensor plus row partition tensor.
     
     Args:
         partition_type (str): Partition tensor type. Default is "row_length".
@@ -305,6 +322,8 @@ class CastValuesToRagged(ks.layers.Layer):
             out = tf.RaggedTensor.from_row_lengths(nod,n_part)
         elif(self.partition_type == "row_splits"):
             out = tf.RaggedTensor.from_row_splits(nod,n_part)
+        elif(self.partition_type == "value_rowids"):
+            out = tf.RaggedTensor.from_value_rowids(nod,n_part)
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
             
@@ -363,10 +382,17 @@ class ChangeIndexing(ks.layers.Layer):
         #splits[1:] - splits[:-1]
         if(self.partition_type == "row_length"):
             shift_index = tf.expand_dims(tf.repeat(tf.cumsum(part_node,exclusive=True),part_edge),axis=1)
+        elif(self.partition_type == "row_splits"):
+            edge_len = part_edge[1:] - part_edge[:-1]
+            shift_index = tf.expand_dims(tf.repeat(part_node[:-1], edge_len ),axis=1)
+        elif(self.partition_type == "value_rowids"):
+            node_len = tf.math.segment_sum(tf.ones_like(part_node),part_node)
+            edge_len = tf.math.segment_sum(tf.ones_like(part_edge),part_edge)
+            shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
             
-        
+        # Add or substract batch offset from index tensor
         if(self.to_indexing == 'batch' and self.from_indexing == 'sample'):        
             indexlist = edge_index + tf.cast(shift_index,dtype=edge_index.dtype)  
         elif(self.to_indexing == 'sample'and self.from_indexing == 'batch'):
