@@ -174,7 +174,7 @@ def getmodelUnet(
                 mlp_bias_regularizer=output_bias_regularizer)(out)     
         main_output = ks.layers.Flatten()(out) #will be dense
     else: #node embedding
-        out = ML(output_dim,
+        out = MLP(output_dim,
                 mlp_use_bias = output_use_bias,
                 mlp_activation = output_activation,
                 mlp_activity_regularizer=output_kernel_regularizer,
