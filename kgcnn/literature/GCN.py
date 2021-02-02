@@ -7,6 +7,7 @@ from kgcnn.layers.ragged.conv import GCN,DenseRagged
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.mlp import MLPRagged
 from kgcnn.layers.disjoint.mlp import MLP
+from kgcnn.layers.disjoint.pooling import PoolingNodes
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
