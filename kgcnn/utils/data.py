@@ -11,7 +11,6 @@ def save_list(outlist,fname):
 
     Returns:
         None.
-
     """
     with open(fname,'wb') as f: 
         pickle.dump(outlist, f)
@@ -26,7 +25,6 @@ def load_list(fname):
 
     Returns:
         outlist (list): Pickle object.
-
     """
     with open(fname,'rb') as f: 
         outlist = pickle.load(f)

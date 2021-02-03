@@ -17,7 +17,6 @@ def lr_lin_reduction(learning_rate_start = 1e-3,learning_rate_stop = 1e-5,epo = 
     
     Example:
         lr_schedule_lin = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction)
-
     """
     def lr_out_lin(epoch):
         if(epoch < epomin):

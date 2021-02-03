@@ -13,7 +13,6 @@ def precompute_adjacency_scaled(A,add_identity = True):
 
     Returns:
         np.array: D^-0.5 (A + I) D^-0.5.
-
     """
     if(isinstance(A,np.ndarray)):
         A = np.array(A,dtype=np.float)
@@ -30,8 +29,10 @@ def precompute_adjacency_scaled(A,add_identity = True):
         Di[np.arange(A.shape[0]),np.arange(A.shape[0])] = d_ii
         Dj[np.arange(A.shape[1]),np.arange(A.shape[1])] = d_jj
         return np.matmul(Di,np.matmul(A,Dj))
-    elif(isinstance(A,sp.csr.csr_matrix) or
-         isinstance(A,sp.coo.coo_matrix)):
+    elif(isinstance(A,sp.bsr.bsr_matrix) or
+         isinstance(A,sp.csc.csc_matrix) or
+         isinstance(A,sp.coo.coo_matrix) or
+         isinstance(A,sp.csr.csr_matrix)):
         adj = sp.coo_matrix(A)
         if(add_identity==True):
             adj = adj + sp.eye(adj.shape[0])
@@ -56,9 +57,10 @@ def scaled_adjacency_to_list(Ascaled):
         Ascaled (np.array,scipy.sparse): Scaled Adjacency matrix of shape (N,N). A_scaled = D^-0.5 (A + I) D^-0.5.
 
     Returns:
-        edge_index (np.array): Indexlist of shape (N,2).
-        edge_weight (np.array): Entries of Adjacency matrix of shape (N,N)
+        list: [edge_index, edge_weight]
         
+        - edge_index (np.array): Indexlist of shape (N,2).
+        - edge_weight (np.array): Entries of Adjacency matrix of shape (N,N)
     """
     if(isinstance(Ascaled,np.ndarray)):
         A = np.array(Ascaled>0,dtype=np.bool)
@@ -68,8 +70,10 @@ def scaled_adjacency_to_list(Ascaled):
         index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
         edge_index = index12[A]
         return edge_index,edge_weight
-    elif(isinstance(Ascaled,sp.csr.csr_matrix) or
-         isinstance(Ascaled,sp.coo.coo_matrix)):
+    elif(isinstance(A,sp.bsr.bsr_matrix) or
+         isinstance(A,sp.csc.csc_matrix) or
+         isinstance(A,sp.coo.coo_matrix) or
+         isinstance(A,sp.csr.csr_matrix)):
         Ascaled = Ascaled.tocoo()
         ei1 =  np.array(Ascaled.row.tolist(),dtype=np.int)
         ei2 =  np.array(Ascaled.col.tolist(),dtype=np.int)
@@ -89,15 +93,16 @@ def make_undirected(A):
         A (np.array,scipy.sparse): Adjacency matrix.
 
     Returns:
-        A (np.array,scipy.sparse): undirected Adjacency matrix. This has A=A^T.
-
+        (np.array,scipy.sparse): undirected Adjacency matrix. This has A=A^T.
     """
     if(isinstance(A,np.ndarray)):
         At = np.transpose(A)
         Aout = (At>A)*At+(A>=At)*A
         return Aout
-    elif(isinstance(A,sp.csr.csr_matrix) or
-         isinstance(A,sp.coo.coo_matrix)):
+    elif(isinstance(A,sp.bsr.bsr_matrix) or
+         isinstance(A,sp.csc.csc_matrix) or
+         isinstance(A,sp.coo.coo_matrix) or
+         isinstance(A,sp.csr.csr_matrix)):
         adj = sp.coo_matrix(A)
         adj_t = sp.coo_matrix(A).transpose()
         Aout = (adj_t>adj).multiply(adj_t)+(adj>adj_t).multiply(adj)+adj-(adj!=adj_t).multiply(adj)
@@ -116,7 +121,6 @@ def add_self_loops_to_indexlist(indices):
 
     Returns:
         out_indices (np.array): Sorted index list with self-loops.
-
     """
     max_ind = np.max(indices)
     self_loops = np.arange(max_ind+1,dtype=np.int)
@@ -138,9 +142,10 @@ def indexlist_sort(indexlist,vals):
         vals (np.array): Edge values.
 
     Returns:
-        ind2 (np.array): Sorted indices.
-        val2 (np.array): Edge values matching sorted indices.
-
+        list: [ind,val]
+        
+        - ind (np.array): Sorted indices.
+        - val (np.array): Edge values matching sorted indices.
     """
     order1 = np.argsort(indexlist[:,1],axis=0,kind='mergesort') #stable!
     ind1 = indexlist[order1]

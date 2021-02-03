@@ -8,6 +8,7 @@ def shifted_softplus(x):
     
     Args:
         x : single values to apply activation to using tf.keras functions
+    
     Returns:
         out : log(exp(x)+1) - log(2)
     """
@@ -18,10 +19,12 @@ def softplus2(x):
     """
     out = log(exp(x)+1) - log(2)
     softplus function that is 0 at x=0, the implementation aims at avoiding overflow
+    
     Args:
         x: (Tensor) input tensor
+    
     Returns:
-         (Tensor) output tensor
+         Tensor: output tensor
     """
     return ks.backend.relu(x) + ks.backend.log(0.5*ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
