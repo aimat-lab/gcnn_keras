@@ -30,12 +30,6 @@ class interaction(ks.layers.Layer):
         cfconv_pool (str): 'segment_sum'
         is_sorted (bool): True
         has_unconnected (bool): False
-    
-    Input:
-        [node,node_len,edge,edge_len,edge_index]
-    
-    Output:
-        node_update
     """
     
     def __init__(self, Alldim=64, 
@@ -65,7 +59,14 @@ class interaction(ks.layers.Layer):
         """Build layer."""
         super(interaction, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass: Calculate node update."""
+        """Forward pass: Calculate node update.
+            
+        Args:
+            [node,node_len,edge,edge_len,edge_index]
+        
+        Returns:
+            node_update
+        """
         node, bn, edge,edge_len, indexlis = inputs
         x = self.lay_dense1(node)
         x = self.lay_cfconv([x,bn,edge,edge_len,indexlis])

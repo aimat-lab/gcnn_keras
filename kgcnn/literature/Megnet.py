@@ -27,10 +27,6 @@ class MEGnetBlock(ks.layers.Layer):
         is_sorted (bool, optional): Edge index list is sorted. Defaults to True.
         has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
         **kwargs
-    Inputs:
-        [node_input,edge_input,edge_index_input,env_input,len_node,len_edge]
-    Returns:
-        vp,ep,up
     """
     
     def __init__(self,NodeEmbed=[16,16,16], 
@@ -76,7 +72,13 @@ class MEGnetBlock(ks.layers.Layer):
         """Build layer."""
         super(MEGnetBlock, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+            
+        Args:
+            [node_input,edge_input,edge_index_input,env_input,len_node,len_edge]
+        Returns:
+            vp,ep,up
+        """
         #Calculate edge Update
         node_input,edge_input,edge_index_input,env_input,len_node,len_edge = inputs
         e_n = self.lay_gather_n([node_input,len_node,edge_index_input,len_edge])
