@@ -17,12 +17,6 @@ class MLP(ks.layers.Layer):
         mlp_kernel_regularizer (list, optional): Kernel regularizer identifier. Defaults to None.
         mlp_bias_regularizer (list, optional): Bias regularizer identifier. Defaults to None.
         **kwargs 
-
-    Args:
-        inputs (tf.tensor): Input tensor of shape (...,N).
-
-    Returns:
-        out (tf.tensor): MLP pass.
     """
     
     def __init__(self,
@@ -79,7 +73,15 @@ class MLP(ks.layers.Layer):
         """Build layer."""
         super(MLP, self).build(input_shape)          
     def call(self, inputs,training=False):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            inputs (tf.tensor): Input tensor of shape (...,N).
+
+        Returns:
+            out (tf.tensor): MLP pass.
+        
+        """
         x = inputs
         for i in range(len(self.mlp_units)):
             x = self.mlp_dense_list[i](x)

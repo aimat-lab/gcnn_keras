@@ -18,7 +18,6 @@ class Set2Set(ks.layers.Layer):
         T (int): iteratrions T=3
         pooling_method : 'mean'
         init_qstar: 'mean'
-        
         activation : "tanh"
         recurrent_activation : "sigmoid"
         use_bias : True
@@ -43,13 +42,6 @@ class Set2Set(ks.layers.Layer):
         time_major : False
         unroll : False
         **kwargs
-    
-    Input:
-        List of [nodefeatures,batch_length] of shape [(batch*None,F),(batch,)]
-        The assignment of batches or subgraphs is given by the number of nodes in batch_length.
-    
-    Outout:
-        Pooled node tensor of shape (batch,1,2*channels)
     """
     def __init__(   self, 
                     channels,
@@ -81,7 +73,7 @@ class Set2Set(ks.layers.Layer):
                     time_major=False,
                     unroll=False,
                   **kwargs):
-        
+        """Init layer."""
         super(Set2Set, self).__init__(**kwargs)
         ## Number of Channels to use in LSTM
         self.channels = channels
@@ -135,7 +127,17 @@ class Set2Set(ks.layers.Layer):
         super(Set2Set, self).build(input_shape)
         
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        List of [nodes, batch_length]
+        
+        Args:
+            nodes (tf.tensor): List of nodefeatures of shape (batch*None,F)
+            batch_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+        
+        Returns:
+            feature (tf.tensor): Pooled node tensor of shape (batch,1,2*channels)
+        """
         x, batch_num = inputs
         batch_shape = K.shape(batch_num)
         
@@ -171,10 +173,11 @@ class Set2Set(ks.layers.Layer):
         Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
-            [m,q] of shape [(batch*num,feat),(batch*num,feat)]
+             m (tf.tensor): of shape (batch*num,feat)
+             q (tf.tensor): of shape (batch*num,feat)
             
         Returns:
-            et of shape #(batch*num,)  
+            et (tf.tensor): of shape (batch*num,)  
         """
         fet = self._pool(fm*fq,axis=1) #(batch*num,1)
         return fet

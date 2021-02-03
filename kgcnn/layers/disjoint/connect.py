@@ -13,19 +13,6 @@ class AdjacencyPower(ks.layers.Layer):
     Args:
         n (int): Power of the adjacency matrix. Default is 2.
         **kwargs
-        
-    Input: 
-        List of tensors [edge_indices, edges, edge_length,node_length] 
-        edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
-        edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
-        
-    Output:
-        List of tensors [edge_indices, edges, edge_len]
-        edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
-        edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
     """
     
     def __init__(self, n=2, **kwargs):
@@ -36,7 +23,23 @@ class AdjacencyPower(ks.layers.Layer):
         """Build layer."""
         super(AdjacencyPower, self).build(input_shape)          
     def call(self, inputs):
-        """Forward path."""
+        """Forward path.
+        
+        Inputs List [edge_indices, edges, edge_length, node_length] 
+        
+        Args: 
+            edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
+            edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+            
+        Returns:
+            List: [edge_indices, edges, edge_len]
+            
+            - edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
+            - edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
+            - edge_length (tf.tensor): Number of edges in each graph (batch,)
+        """
         edge_index,edge,edge_len,node_len = inputs
         
         #batchwise indexing

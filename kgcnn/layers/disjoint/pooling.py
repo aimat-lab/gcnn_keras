@@ -16,20 +16,6 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         **kwargs
-        
-    Input: 
-        List of tensors [node,node_length,edges,edge_length,edge_indices]
-        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each graph (batch,)
-        edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-                                  The index for segment reduction is taken from edge_indices[:,0].
-    
-    Output:
-        features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
-                              The size will match the flatten node tensor.
-                              Output shape is (batch*None, F).
     """
     
     def __init__(self, 
@@ -56,7 +42,23 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         """Build layer."""
         super(PoolingEdgesPerNode, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [node, node_length, edges, edge_length, edge_indices]
+        
+        Args: 
+            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+                                      The index for segment reduction is taken from edge_indices[:,0].
+    
+        Returns:
+            features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
+            The size will match the flatten node tensor.
+            Output shape is (batch*None, F).
+        """
         nod,node_len,edge,edge_len,edgeind = inputs
         
         if(self.node_indexing == 'batch'):
@@ -113,22 +115,6 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         **kwargs
-        
-    Input: 
-        List of tensors [node,node_length,edges,edge_length,edge_indices]
-        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each graph (batch,)
-        edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-                                  The index for segment reduction is taken from edge_indices[:,0].
-        weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list 
-                             and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
-    
-    Output:
-        features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
-                              The size will match the flatten node tensor.
-                              Output shape is (batch*None, F).
     """
     
     def __init__(self, 
@@ -157,7 +143,25 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         """Build layer."""
         super(PoolingWeightedEdgesPerNode, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [node, node_length, edges, edge_length, edge_indices]
+        
+        Args: 
+            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+                                      The index for segment reduction is taken from edge_indices[:,0].
+            weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list 
+                                 and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
+    
+        Returns:
+            features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
+            The size will match the flatten node tensor.
+            Output shape is (batch*None, F).
+        """
         nod,node_len,edge,edge_len,edgeind,weights = inputs
         
         if(self.node_indexing == 'batch'):
@@ -214,16 +218,6 @@ class PoolingNodes(ks.layers.Layer):
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
         **kwargs
-    
-    Input: 
-        List of tensors [nodes, node_length] 
-        nodes (tf.tensor): Flatten node features of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
-    
-    Output:
-        features (tf.tensor): Pooled node feature list of shape (batch,F)
-                              where F is the feature dimension and holds a pooled 
-                              node feature for each graph.
     """
 
     def __init__(self,  
@@ -244,7 +238,19 @@ class PoolingNodes(ks.layers.Layer):
         """Build layer."""
         super(PoolingNodes, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [nodes, node_length] 
+        
+        Args: 
+            nodes (tf.tensor): Flatten node features of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+    
+        Returns:
+            features (tf.tensor): Pooled node feature list of shape (batch,F)
+            where F is the feature dimension and holds a pooled 
+            node feature for each graph.
+        """
         node,len_node = inputs        
         len_shape_int = K.shape(len_node)
         batchi = tf.repeat(K.arange(0,len_shape_int[0],1),len_node)
@@ -266,17 +272,6 @@ class PoolingAllEdges(ks.layers.Layer):
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
         **kwargs
-
-    Input: 
-        List of tensors [egdes,edge_length] 
-        edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-        edge_length (tf.tensor): Number of edges in each graph of shape (batch*None,F)
-                                 Keeps the batch assignment.
-
-    Output:
-        features (tf.tensor): A pooled edges feature list of shape (batch,F).
-                              where F is the feature dimension and holds a pooled 
-                              edge feature for each graph.
     """
     
     def __init__(self,
@@ -297,7 +292,20 @@ class PoolingAllEdges(ks.layers.Layer):
         """Build layer."""
         super(PoolingAllEdges, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [egdes, edge_length] 
+        
+        Args: 
+            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            edge_length (tf.tensor): Number of edges in each graph of shape (batch*None,F)
+                                     Keeps the batch assignment.
+    
+        Returns:
+            features (tf.tensor): A pooled edges feature list of shape (batch,F).
+            where F is the feature dimension and holds a pooled 
+            edge feature for each graph.
+        """
         edge,len_edge = inputs
         len_shape = K.shape(len_edge)
         batchi = tf.repeat(K.arange(0,len_shape[0],1),len_edge)

@@ -26,19 +26,6 @@ class GCN(ks.layers.Layer):
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
         **kwargs
-        
-    Input: 
-        [node,node_length,edge,edge_length,edge_index]
-        nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each graph (batch,)
-        edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        edge_index (tf.tensor): Edge indices for disjoint representation of shape
-                                (batch*None,2) that corresponds to indexing 'batch'.
-    
-    Output:
-        features (tf.tensor): A list of updated node features.        
-                              Output shape is (batch*None,F).
     """
     
     def __init__(self, 
@@ -74,7 +61,22 @@ class GCN(ks.layers.Layer):
         """Build layer."""
         super(GCN, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs list [node, node_length, edge, edge_length, edge_index]
+        
+        Args: 
+            nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_index (tf.tensor): Edge indices for disjoint representation of shape
+                                    (batch*None,2) that corresponds to indexing 'batch'.
+        
+        Returns:
+            features (tf.tensor): A list of updated node features.        
+            Output shape is (batch*None,F).
+        """
         node,node_len,edges,edge_len,edge_index = inputs
         no = self.lay_gather([node,node_len,edge_index,edge_len])
         no = self.lay_dense(no)
@@ -109,18 +111,6 @@ class cfconv(ks.layers.Layer):
         cfconv_pool (str): Pooling method. Default is 'segment_sum'.
         is_sorted (bool): If edge indices are sorted. Default is True.
         has_unconnected (bool): If graph has unconnected nodes. Default is False.
-    
-    Input:
-        [node,node_length,edge,edge_length,edge_index]
-        nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each graph (batch,)
-        edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        edge_index (tf.tensor): Edge indices for disjoint representation of shape
-                                (batch*None,2) that corresponds to indexing 'batch'.
-    
-    Output:
-        node_update (tf.tensor): Updated node features of shape (batch*None,F)
     """
     
     def __init__(self, units, 
@@ -148,7 +138,21 @@ class cfconv(ks.layers.Layer):
         """Build layer."""
         super(cfconv, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass: Calculate edge update."""
+        """Forward pass: Calculate edge update.
+        
+        Inputs [node, node_length, edge, edge_length, edge_index]
+        
+        Args:
+            nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_index (tf.tensor): Edge indices for disjoint representation of shape
+                                    (batch*None,2) that corresponds to indexing 'batch'.
+        
+        Returns:
+            node_update (tf.tensor): Updated node features of shape (batch*None,F)
+        """
         node, bn, edge, edge_len, indexlis = inputs
         x = self.lay_dense1(edge)
         x = self.lay_dense2(x)

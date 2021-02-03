@@ -13,17 +13,6 @@ class GatherNodes(ks.layers.Layer):
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
         **kwargs
-        
-    Input:
-        List of tensors [node,node_length,edge_index]
-        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
-        edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-        
-    Output:
-        features (tf.tensor): Gathered node features of (ingoing,outgoing) nodes.        
-                              Output shape is (batch*None,F+F).
     """
     
     def __init__(self, node_indexing = 'batch', **kwargs):
@@ -34,7 +23,20 @@ class GatherNodes(ks.layers.Layer):
         """Build layer."""
         super(GatherNodes, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [node, node_length, edge_index]
+        
+        Args:
+            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
+            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            
+        Returns:
+            features (tf.tensor): Gathered node features of (ingoing,outgoing) nodes.        
+            Output shape is (batch*None,F+F).  
+        """
         node,node_len,edge_index,edge_len = inputs
         if(self.node_indexing == 'batch'):
             indexlist = edge_index 
@@ -67,18 +69,6 @@ class GatherNodesOutgoing(ks.layers.Layer):
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
         **kwargs
-        
-    Input: 
-        List of tensors [node,node_length,edge_index]
-        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
-        edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-                                For ingoing gather nodes according to index[1]
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-    
-    Output:
-        features (tf.tensor): A list of gathered outgoing node features from indexlist.        
-                              Output shape is (batch*None,F).
     """
     
     def __init__(self, node_indexing = 'batch',**kwargs):
@@ -89,7 +79,22 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesOutgoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [node, node_length, edge_index]
+        
+        Args: 
+            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
+            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+                                    For ingoing gather nodes according to index[1]
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+        
+        Returns:
+            features (tf.tensor): A list of gathered outgoing node features from indexlist.        
+            Output shape is (batch*None,F).
+        
+        """
         node,node_len,edge_index,edge_len = inputs
         # node,edge_index= inputs
         if(self.node_indexing == 'batch'):
@@ -120,18 +125,6 @@ class GatherNodesIngoing(ks.layers.Layer):
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
         **kwargs
-    
-    Input:
-        List of tensors [node,node_len,edge_index]
-        node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-        node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
-        edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-                                For ingoing gather nodes according to index[0]
-        edge_length (tf.tensor): Number of edges in each graph (batch,)
-    
-    Output:
-        features (tf.tensor): A list of gathered ingoing node features from indexlist.        
-                              Output shape is (batch*None,F).
     """
     
     def __init__(self, node_indexing = 'batch',**kwargs):
@@ -142,7 +135,21 @@ class GatherNodesIngoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesIngoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+
+        Inputs List of [node, node_len, edge_index]
+        
+        Args:
+            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            node_length (tf.tensor): Number of nodes in each subgrap of shape (batch,)
+            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+                                    For ingoing gather nodes according to index[0]
+            edge_length (tf.tensor): Number of edges in each graph (batch,)
+    
+        Returns:
+            features (tf.tensor): A list of gathered ingoing node features from indexlist.        
+            Output shape is (batch*None,F).
+        """
         node,node_len,edge_index,edge_len = inputs
         # node,edge_index= inputs
         if(self.node_indexing == 'batch'):
@@ -170,16 +177,6 @@ class GatherState(ks.layers.Layer):
 
     Args:
         **kwargs
-    
-    Input:
-        List of tensors [environment,target_length]
-        environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
-        target_length (tf.tensor): Number of nodes or edges in each graph of shape (batch,)
-                                   This can be either node or edge specific.
-
-    Return:
-        features (tf.tensor): A tensor with repeated single state for each graph.
-                              Output shape is (batch*N,F).
     """
     
     def __init__(self, **kwargs):
@@ -189,7 +186,19 @@ class GatherState(ks.layers.Layer):
         """Build layer."""
         super(GatherState, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [environment, target_length]
+        
+        Args:
+            environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
+            target_length (tf.tensor): Number of nodes or edges in each graph of shape (batch,)
+                                       This can be either node or edge specific.
+
+        Returns:
+            features (tf.tensor): A tensor with repeated single state for each graph.
+            Output shape is (batch*N,F).
+        """
         env,target_len = inputs
         out = tf.repeat(env,target_len,axis=0)
         return out     
