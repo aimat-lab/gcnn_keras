@@ -1,0 +1,1614 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kgcnn.layers.disjoint package &#8212; kgcnn 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kgcnn.layers.padded package" href="kgcnn.layers.padded.html" />
+    <link rel="prev" title="kgcnn.layers package" href="kgcnn.layers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.padded.html" title="kgcnn.layers.padded package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.html" title="kgcnn.layers package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.layers.html" accesskey="U">kgcnn.layers package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.layers.disjoint package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kgcnn-layers-disjoint-package">
+<h1>kgcnn.layers.disjoint package<a class="headerlink" href="#kgcnn-layers-disjoint-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.casting">
+<span id="kgcnn-layers-disjoint-casting-module"></span><h2>kgcnn.layers.disjoint.casting module<a class="headerlink" href="#module-kgcnn.layers.disjoint.casting" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastBatchToValues">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastBatchToValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastBatchToValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer to squeeze the batch dimension. For graphs of the same size in batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type for output. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastBatchToValues.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastBatchToValues.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastBatchToValues.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastBatchToValues.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs tf.tensor values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>values</strong> (<em>tf.tensor</em>) – Feature tensor with explicit batch dimension of shape (batch,N,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[values, value_partition]</p>
+<ul class="simple">
+<li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).</p></li>
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastBatchToValues.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastBatchToValues.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastMaskedToValues">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastMaskedToValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastMaskedToValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Cast a zero-padded tensor plus mask input to a single list plus row_partition tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type for output. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastMaskedToValues.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastMaskedToValues.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastMaskedToValues.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastMaskedToValues.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list: [padded_values,mask]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>padded_values</strong> (<em>tf.tensor</em>) – Zero padded feature tensor of shape (batch,N,F).
+where F denotes the feature dimension and N the maximum
+number of edges/nodes in graph.</p></li>
+<li><p><strong>mask</strong> (<em>tf.tensor</em>) – Boolean mask of shape (batch,N),
+where N is the maximum number of nodes or edges.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[values, value_partition]</p>
+<ul class="simple">
+<li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
+The output shape is given (batch[Mask],F).</p></li>
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastMaskedToValues.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastMaskedToValues.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToDisjoint">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastRaggedToDisjoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToDisjoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Transform ragged tensor input to disjoint graph representation.</p>
+<p>Disjoint graph representation has disjoint subgraphs within a single graph.
+Batch dimension is flatten for this representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_indexing</strong> (<em>str</em>) – The index refer to the overall ‘batch’ or to single ‘sample’.
+The disjoint representation assigns nodes within the ‘batch’.
+It changes “sample” to “batch” or “batch” to “sample.”
+Default is ‘batch’.</p></li>
+<li><p><strong>from_indexing</strong> (<em>str</em>) – Index convention that has been set for the input.
+Default is ‘sample’.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [node, edge, edgeindex]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.ragged</em>) – Node feature ragged tensor of shape (batch,None,F)
+where None stands for a flexible graph size and
+F the node feature dimension.</p></li>
+<li><p><strong>edge</strong> (<em>tf.ragged</em>) – Edge feature ragged tensor of shape (batch,None,F)
+where None stands for a flexible graph size and
+F the edge feature dimension.</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Edge indices as a list of shape (batch,None,2)
+which has index pairs [i,j] matching nodes
+within each sample. Assumes ‘sample’ indexing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[nodes,node_partition,edges,edge_partition,edge_index]</p>
+<ul class="simple">
+<li><p>nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)</p></li>
+<li><p>node_partition (tf.tensor): Node assignment to each graph, for example number of nodes in each graph of shape (batch,).</p></li>
+<li><p>edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)</p></li>
+<li><p>edge_partition (tf.tensor): Edge assignment to each graph, for example number of edges in each graph of shape (batch,).</p></li>
+<li><p>edge_index (tf.tensor): Edge indices for disjoint representation of shape
+(batch*None,2) that corresponds to indexing ‘batch’.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToDisjoint.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToValues">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastRaggedToValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Cast a ragged tensor with one ragged dimension, like node feature list to a single value plus partition tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type for output. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToValues.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToValues.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToValues.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToValues.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs tf.ragged feature tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>features</strong> (<em>tf.ragged</em>) – Ragged tensor of shape (batch,None,F) ,
+where None is the number of nodes or edges in each graph and
+F denotes the feature dimension.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[values, value_partition]</p>
+<ul class="simple">
+<li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).</p></li>
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph. Default is row_length.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastRaggedToValues.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastRaggedToValues.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToBatch">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastValuesToBatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Add batchdim according to a reference. For graphs of the same size in batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type for output. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToBatch.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToBatch.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToBatch.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToBatch.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list [values, value_partition]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>tf.tensor</em>) – Flatten feature tensor of shape (batch*N,F).</p></li>
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Feature tensor of shape (batch,N,F).
+The first and second dimensions is reshaped according to a reference tensor.
+F denotes the feature dimension. Requires graphs of identical size in batch.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToBatch.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToBatch.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToPadded">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastValuesToPadded</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToPadded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer to add zero padding for a fixed size tensor having an explicit batch-dimension.</p>
+<p>The layer maps disjoint representation to padded tensor plus mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToPadded.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToPadded.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToPadded.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToPadded.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [values, value_partition]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>tf.tensor</em>) – Feature tensor with flatten batch dimension of shape (batch*None,F).</p></li>
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[values,mask]</p>
+<ul class="simple">
+<li><p>values (tf.tensor): Padded feature tensor with shape (batch,N,F)</p></li>
+<li><p>mask (tf.tensor): Boolean mask of shape (batch,N)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToPadded.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToPadded.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToRagged">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">CastValuesToRagged</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToRagged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer to make ragged tensor from a flatten value tensor plus row partition tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToRagged.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToRagged.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToRagged.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToRagged.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [values, value_partition]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>tf.tensor</em>) – Feature tensor of nodes/edges of shape (batch*None,F)
+where F stands for the feature dimension and None represents
+the flexible size of the graphs.</p></li>
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A ragged feature tensor of shape (batch,None,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.CastValuesToRagged.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.CastValuesToRagged.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.casting.ChangeIndexing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.casting.</code><code class="sig-name descname">ChangeIndexing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.ChangeIndexing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Shift the index for flatten index-tensors to assign nodes in a disjoint graph representation or vice-versa.</p>
+<p class="rubric">Example</p>
+<p>Flatten operation changes index tensor as [[0,1,2],[0,1],[0,1]] -&gt; [0,1,2,0,1,0,1] with
+requires a subsequent index-shift of [0,1,2,1,1,0,1] -&gt; [0,1,2,3+0,3+1,5+0,5+1].
+This is equivalent to a single graph with disconnected subgraphs.
+Therfore tf.gather will find the correct nodes for a 1D tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_indexing</strong> (<em>str</em>) – The index refer to the overall ‘batch’ or to single ‘sample’.
+The disjoint representation assigns nodes within the ‘batch’.
+It changes “sample” to “batch” or “batch” to “sample.”
+Default is ‘batch’.</p></li>
+<li><p><strong>from_indexing</strong> (<em>str</em>) – Index convention that has been set for the input.
+Default is ‘sample’.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.ChangeIndexing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.ChangeIndexing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.ChangeIndexing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.ChangeIndexing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [node_partition, edge_index, edge_partition]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Node assignment to each graph, for example number of nodes in each graph of shape (batch,).</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge-index list of shape (batch*None,2)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Edge assignment to each graph, for example number of edges in each graph of shape (batch,).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Corrected edge-index list to match the nodes
+in the flatten nodelist. Shape is (batch*None,2).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>edge_index (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.casting.ChangeIndexing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.casting.ChangeIndexing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.connect">
+<span id="kgcnn-layers-disjoint-connect-module"></span><h2>kgcnn.layers.disjoint.connect module<a class="headerlink" href="#module-kgcnn.layers.disjoint.connect" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.connect.AdjacencyPower">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.connect.</code><code class="sig-name descname">AdjacencyPower</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.connect.AdjacencyPower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Computes powers of the adjacency matrix.</p>
+<p>Note: Layer casts to dense until sparse matmul is supported. This is very inefficient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Power of the adjacency matrix. Default is 2.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.connect.AdjacencyPower.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.connect.AdjacencyPower.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.connect.AdjacencyPower.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.connect.AdjacencyPower.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward path.</p>
+<p>Inputs List [edge_indices, edges, edge_length, node_length]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list of shape (batch*None,2)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten adjacency entries of shape (batch*None,1)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[edge_indices, edges, edge_len]</p>
+<ul class="simple">
+<li><p>edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)</p></li>
+<li><p>edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)</p></li>
+<li><p>edge_length (tf.tensor): Number of edges in each graph (batch,)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.connect.AdjacencyPower.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.connect.AdjacencyPower.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.conv">
+<span id="kgcnn-layers-disjoint-conv-module"></span><h2>kgcnn.layers.disjoint.conv module<a class="headerlink" href="#module-kgcnn.layers.disjoint.conv" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.conv.GCN">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.conv.</code><code class="sig-name descname">GCN</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.GCN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Graph convolution according to Kipf et al.</p>
+<p>Computes graph conv as $sigma(A*(WX+b))$ where A is the precomputed adjacency matrix.
+In place of A, edges and edge indices are used. A is considered pre-sacled. Otherwise use e.g. segment-mean, scale by weights etc.
+Edges must be broadcasted to node feautres X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>units</strong> (<em>int</em>) – Output dimension/ units of dense layer.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>activation</strong> (<em>str</em>) – Activation function ‘relu’.</p></li>
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method for summing edges ‘segment_sum’.</p></li>
+<li><p><strong>use_bias</strong> (<em>bool</em>) – Whether to use bias. Default is False,</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>normalize_by_weights</strong> (<em>bool</em>) – Normalize the pooled output by the sum of weights. Default is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.GCN.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.GCN.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.GCN.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.GCN.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list [node, node_length, edge, edge_length, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature list of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Edge indices for disjoint representation of shape
+(batch*None,2) that corresponds to indexing ‘batch’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of updated node features.
+Output shape is (batch*None,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.GCN.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.GCN.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.conv.cfconv">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.conv.</code><code class="sig-name descname">cfconv</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.cfconv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Convolution layer of Schnet. Disjoint representation.</p>
+<p>Edges are proccessed by 2 Dense layers, multiplied on outgoing nodefeatures and pooled for ingoing node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>units</strong> (<em>int</em>) – Units for Dense layer.</p></li>
+<li><p><strong>activation</strong> (<em>str</em>) – Activation function. Default is ‘selu’.</p></li>
+<li><p><strong>use_bias</strong> (<em>bool</em>) – Use bias. Default is True.</p></li>
+<li><p><strong>cfconv_pool</strong> (<em>str</em>) – Pooling method. Default is ‘segment_sum’.</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If edge indices are sorted. Default is True.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If graph has unconnected nodes. Default is False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.cfconv.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.cfconv.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.cfconv.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.cfconv.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass: Calculate edge update.</p>
+<p>Inputs [node, node_length, edge, edge_length, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature list of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Edge indices for disjoint representation of shape
+(batch*None,2) that corresponds to indexing ‘batch’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Updated node features of shape (batch*None,F)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>node_update (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.conv.cfconv.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.cfconv.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.gather">
+<span id="kgcnn-layers-disjoint-gather-module"></span><h2>kgcnn.layers.disjoint.gather module<a class="headerlink" href="#module-kgcnn.layers.disjoint.gather" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodes">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.gather.</code><code class="sig-name descname">GatherNodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gather nodes by edge indexlist. Indexlist must match flatten nodes.</p>
+<p>If graphs indices were in ‘sample’ mode, the indices must be corrected for disjoint graphs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodes.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodes.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodes.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodes.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, node_length, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Gathered node features of (ingoing,outgoing) nodes.
+Output shape is (batch*None,F+F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodes.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodes.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesIngoing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.gather.</code><code class="sig-name descname">GatherNodesIngoing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesIngoing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gather nodes by edge indexlist. Indexlist must match flatten nodes.</p>
+<p>If graphs indices were in ‘sample’ mode, the indices must be corrected for disjoint graphs.
+For ingoing nodes, layer uses only index[0].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesIngoing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesIngoing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesIngoing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesIngoing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, node_len, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)
+For ingoing gather nodes according to index[0]</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of gathered ingoing node features from indexlist.
+Output shape is (batch*None,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesIngoing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesIngoing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesOutgoing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.gather.</code><code class="sig-name descname">GatherNodesOutgoing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesOutgoing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gather nodes by edge indexlist. Indexlist must match flatten nodes.</p>
+<p>If graphs indices were in ‘sample’ mode, the indices must be corrected for disjoint graphs.
+For outgoing nodes, layer uses only index[1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesOutgoing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesOutgoing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesOutgoing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesOutgoing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, node_length, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)
+For ingoing gather nodes according to index[1]</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of gathered outgoing node features from indexlist.
+Output shape is (batch*None,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherNodesOutgoing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherNodesOutgoing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.gather.GatherState">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.gather.</code><code class="sig-name descname">GatherState</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer to repeat environment or global state for node or edge lists. The node or edge lists are flattened.</p>
+<p>To repeat the correct environment for each sample, a tensor with the target length is required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherState.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherState.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherState.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherState.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [environment, target_length]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>environment</strong> (<em>tf.tensor</em>) – List of graph specific feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>target_length</strong> (<em>tf.tensor</em>) – Number of nodes or edges in each graph of shape (batch,)
+This can be either node or edge specific.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with repeated single state for each graph.
+Output shape is (batch*N,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.mlp">
+<span id="kgcnn-layers-disjoint-mlp-module"></span><h2>kgcnn.layers.disjoint.mlp module<a class="headerlink" href="#module-kgcnn.layers.disjoint.mlp" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.mlp.MLP">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.mlp.</code><code class="sig-name descname">MLP</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.mlp.MLP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Multilayer perceptron that consist of N dense keras layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mlp_units</strong> (<em>list</em>) – Size of hidden layers for each layer.</p></li>
+<li><p><strong>mlp_use_bias</strong> (<em>list</em><em>, </em><em>optional</em>) – Use bias for hidden layers. Defaults to True.</p></li>
+<li><p><strong>mlp_activation</strong> (<em>list</em><em>, </em><em>optional</em>) – Activity identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_activity_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Activity regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_kernel_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Kernel regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_bias_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Bias regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.mlp.MLP.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.mlp.MLP.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.mlp.MLP.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">training</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.mlp.MLP.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>tf.tensor</em>) – Input tensor of shape (…,N).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MLP pass.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>out (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.mlp.MLP.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.mlp.MLP.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.pooling">
+<span id="kgcnn-layers-disjoint-pooling-module"></span><h2>kgcnn.layers.disjoint.pooling module<a class="headerlink" href="#module-kgcnn.layers.disjoint.pooling" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingAllEdges">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.pooling.</code><code class="sig-name descname">PoolingAllEdges</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingAllEdges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Pooling all edges per graph. The batch assignment is given by a length-tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingAllEdges.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingAllEdges.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingAllEdges.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingAllEdges.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [egdes, edge_length]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph of shape (batch*None,F)
+Keeps the batch assignment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A pooled edges feature list of shape (batch,F).
+where F is the feature dimension and holds a pooled
+edge feature for each graph.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingAllEdges.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingAllEdges.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.pooling.</code><code class="sig-name descname">PoolingEdgesPerNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Pooling all edges or edgelike features per node, corresponding to node assigned by edge indexlist.</p>
+<p>If graphs indices were in ‘sample’ mode, the indices must be corrected for disjoint graphs.
+Apply e.g. segment_mean for index[0] incoming nodes.
+Important: edge_index[:,0] are sorted for segment-operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function. Default is ‘segment_mean’.</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, node_length, edges, edge_length, edge_indices]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list tensor of shape (batch*None,2)
+The index for segment reduction is taken from edge_indices[:,0].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Flatten feature tensor of pooled edge features for each node.
+The size will match the flatten node tensor.
+Output shape is (batch*None, F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingNodes">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.pooling.</code><code class="sig-name descname">PoolingNodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Polling all nodes per batch. The batch assignment is given by a length-tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingNodes.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingNodes.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingNodes.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingNodes.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [nodes, node_length]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node features of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node feature list of shape (batch,F)
+where F is the feature dimension and holds a pooled
+node feature for each graph.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingNodes.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingNodes.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.pooling.</code><code class="sig-name descname">PoolingWeightedEdgesPerNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge indexlist.</p>
+<p>If graphs indices were in ‘sample’ mode, the indices must be corrected for disjoint graphs.
+Apply e.g. segment_mean for index[0] incoming nodes.
+Important: edge_index[:,0] could be sorted for segment-operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function. Default is ‘segment_mean’.</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, node_length, edges, edge_length, edge_indices]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list tensor of shape (batch*None,2)
+The index for segment reduction is taken from edge_indices[:,0].</p></li>
+<li><p><strong>weights</strong> (<em>tf.tensor</em>) – The weights could be the entry in the ajacency matrix for each edge in the list
+and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Flatten feature tensor of pooled edge features for each node.
+The size will match the flatten node tensor.
+Output shape is (batch*None, F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.set2set">
+<span id="kgcnn-layers-disjoint-set2set-module"></span><h2>kgcnn.layers.disjoint.set2set module<a class="headerlink" href="#module-kgcnn.layers.disjoint.set2set" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.set2set.</code><code class="sig-name descname">Set2Set</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Set2Set layer. The Reading to Memory has to be handled seperately.
+Uses a keras LSTM layer for the updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> (<em>int</em>) – Number of channels for LSTM.</p></li>
+<li><p><strong>T</strong> (<em>int</em>) – iteratrions T=3</p></li>
+<li><p><strong>pooling_method</strong> – ‘mean’</p></li>
+<li><p><strong>init_qstar</strong> – ‘mean’</p></li>
+<li><p><strong>activation</strong> – “tanh”</p></li>
+<li><p><strong>recurrent_activation</strong> – “sigmoid”</p></li>
+<li><p><strong>use_bias</strong> – True</p></li>
+<li><p><strong>kernel_initializer</strong> – “glorot_uniform”</p></li>
+<li><p><strong>recurrent_initializer</strong> – “orthogonal”</p></li>
+<li><p><strong>bias_initializer</strong> – “zeros”</p></li>
+<li><p><strong>unit_forget_bias</strong> – True</p></li>
+<li><p><strong>kernel_regularizer</strong> – None</p></li>
+<li><p><strong>recurrent_regularizer</strong> – None</p></li>
+<li><p><strong>bias_regularizer</strong> – None</p></li>
+<li><p><strong>activity_regularizer</strong> – None</p></li>
+<li><p><strong>kernel_constraint</strong> – None</p></li>
+<li><p><strong>recurrent_constraint</strong> – None</p></li>
+<li><p><strong>bias_constraint</strong> – None</p></li>
+<li><p><strong>dropout</strong> – 0.0</p></li>
+<li><p><strong>recurrent_dropout</strong> – 0.0</p></li>
+<li><p><strong>implementation</strong> – 2</p></li>
+<li><p><strong>return_sequences</strong> – False</p></li>
+<li><p><strong>return_state</strong> – False</p></li>
+<li><p><strong>go_backwards</strong> – False</p></li>
+<li><p><strong>stateful</strong> – False</p></li>
+<li><p><strong>time_major</strong> – False</p></li>
+<li><p><strong>unroll</strong> – False</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>List of [nodes, batch_length]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – List of nodefeatures of shape (batch*None,F)</p></li>
+<li><p><strong>batch_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node tensor of shape (batch,1,2*channels)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>feature (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.f_et">
+<code class="sig-name descname">f_et</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fm</span></em>, <em class="sig-param"><span class="n">fq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.f_et" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute scalar from m and q. Can apply sum or mean etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m</strong> (<em>tf.tensor</em>) – of shape (batch*num,feat)</p></li>
+<li><p><strong>q</strong> (<em>tf.tensor</em>) – of shape (batch*num,feat)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>of shape (batch*num,)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>et (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make config for layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.get_norm">
+<code class="sig-name descname">get_norm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ind</span></em>, <em class="sig-param"><span class="n">rep</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.get_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Norm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.get_scale_per_batch">
+<code class="sig-name descname">get_scale_per_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.get_scale_per_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rescaleing for the batch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.get_scale_per_sample">
+<code class="sig-name descname">get_scale_per_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ind</span></em>, <em class="sig-param"><span class="n">rep</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.get_scale_per_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rescaleing for the sample.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.init_qstar_0">
+<code class="sig-name descname">init_qstar_0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">batch_index</span></em>, <em class="sig-param"><span class="n">batch_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.init_qstar_0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the q0 with zeros.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.set2set.Set2Set.init_qstar_mean">
+<code class="sig-name descname">init_qstar_mean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">batch_index</span></em>, <em class="sig-param"><span class="n">batch_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.init_qstar_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the q0 with mean.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.topk">
+<span id="kgcnn-layers-disjoint-topk-module"></span><h2>kgcnn.layers.disjoint.topk module<a class="headerlink" href="#module-kgcnn.layers.disjoint.topk" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.topk.PoolingTopK">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.topk.</code><code class="sig-name descname">PoolingTopK</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.PoolingTopK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of nodes. Disjoint representation including length tensor.</p>
+<p>This implements a learnable score vector plus gate. Implements gPool of Gao et al.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<em>float</em>) – relative number of nodes to remove. Default is 0.1</p></li>
+<li><p><strong>kernel_initializer</strong> (<em>str</em>) – Score initialization. Default is ‘glorot_uniform’,</p></li>
+<li><p><strong>kernel_regularizer</strong> (<em>str</em>) – Score regularization. Default is None.</p></li>
+<li><p><strong>kernel_constraint</strong> (<em>bool</em>) – Score constrain. Default is None.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.topk.PoolingTopK.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.PoolingTopK.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build Layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.topk.PoolingTopK.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.PoolingTopK.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [nodes, node_length, edges, edge_length, edge_indices]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Node length tensor of the numer of nodes
+in each graph of shape (batch,)</p></li>
+<li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Edge length tensor of the numer of edges
+in each graph of shape (batch,)</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten edge index list tensor of shape (batch*None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[nodes, node_length, edges, edge_length, edge_indices],[map_nodes,map_edges]</p>
+<ul class="simple">
+<li><p>nodes (tf.tensor): Pooled node feature tensor of shape (batch*None,F)</p></li>
+<li><p>node_length (tf.tensor): Pooled node length tensor of the numer of nodes in each graph of shape (batch,)</p></li>
+<li><p>edges (tf.tensor): Pooled edge feature list of shape (batch*None,F)</p></li>
+<li><p>edge_length (tf.tensor): Pooled edge length tensor of the numer of edges in each graph of shape (batch,)</p></li>
+<li><p>edge_indices (tf.tensor): Pooled edge index list tensor of shape (batch*None,2)</p></li>
+<li><p>map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)</p></li>
+<li><p>map_edges (tf.tensor): Index map between original and pooled edges of shape (batch*None,)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.topk.PoolingTopK.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.PoolingTopK.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.topk.UnPoolingTopK">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.topk.</code><code class="sig-name descname">UnPoolingTopK</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.UnPoolingTopK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for unpooling of nodes. Disjoint representation including length tensor of graphs in batch.</p>
+<p>The edge index information are not reverted since the tensor before pooling can be reused.
+Same holds for batch-assignment in number of nodes and edges information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.topk.UnPoolingTopK.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.UnPoolingTopK.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build Layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.topk.UnPoolingTopK.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.UnPoolingTopK.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs [node, node_length, edge, edge_length, edge_indices, map_node, map_edge, node_pool, node_length_pool, edge_pool, edge_length_pool, edge_indices_pool]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.tensor</em>) – Original node tensor of shape (batch*None,F_n)</p></li>
+<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Original node length tensor of shape (batch,)</p></li>
+<li><p><strong>edge</strong> (<em>tf.tensor</em>) – Original edge feature tensor of shape (batch*None,F_e)</p></li>
+<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Original edge length tensor of shape (batch,)</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Original index tensor of shape (batch*None,2)</p></li>
+<li><p><strong>map_node</strong> (<em>tf.tensor</em>) – Index map between original and pooled nodes (batch*None,)</p></li>
+<li><p><strong>map_edge</strong> (<em>tf.tensor</em>) – Index map between original and pooled edges (batch*None,)</p></li>
+<li><p><strong>node_pool</strong> (<em>tf.tensor</em>) – Pooled node tensor of shape (batch*None,F_n)</p></li>
+<li><p><strong>node_length_pool</strong> (<em>tf.tensor</em>) – Pooled node length tensor of shape (batch,)</p></li>
+<li><p><strong>edge_pool</strong> (<em>tf.tensor</em>) – Pooled edge feature tensor of shape (batch*None,F_e)</p></li>
+<li><p><strong>edge_length_pool</strong> (<em>tf.tensor</em>) – Pooled edge length tensor of shape (batch,)</p></li>
+<li><p><strong>edge_indices</strong> – Pooled index tensor of shape (batch*None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[nodes, node_length, edges, edge_length, edge_indices]</p>
+<ul class="simple">
+<li><p>nodes (tf.tensor): Unpooled node feature tensor of shape (batch*None,F)</p></li>
+<li><p>node_length (tf.tensor): Unpooled node length tensor of the numer of nodes in each graph of shape (batch,)</p></li>
+<li><p>edges (tf.tensor): Unpooled edge feature list of shape (batch*None,F)</p></li>
+<li><p>edge_length (tf.tensor): Unpooled edge length tensor of the numer of edges in each graph of shape (batch,)</p></li>
+<li><p>edge_indices (tf.tensor): Unpooled edge index list tensor of shape (batch*None,2)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint.update">
+<span id="kgcnn-layers-disjoint-update-module"></span><h2>kgcnn.layers.disjoint.update module<a class="headerlink" href="#module-kgcnn.layers.disjoint.update" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.update.ApplyMessage">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.update.</code><code class="sig-name descname">ApplyMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.ApplyMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Apply message by edge matrix multiplication.</p>
+<p>The message dimension must be suitable for matrix multiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>target_shape</strong> (<em>int</em>) – Target dimension. Message dimension must match target_shape*node_shape.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.ApplyMessage.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.ApplyMessage.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.ApplyMessage.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.ApplyMessage.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [message, nodes]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>tf.tensor</em>) – Message tensor flattened that can be reshaped to (batch*None,target_shape,node_shape)</p></li>
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Node feature list of shape (batch*None,F)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Element-wise matmul of message and node features of output shape (batch,target_shape)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>node_updates (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.ApplyMessage.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.ApplyMessage.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.disjoint.update.GRUupdate">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.update.</code><code class="sig-name descname">GRUupdate</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.GRUupdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gated recurrent unit update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>units</strong> (<em>int</em>) – Units for GRU.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.GRUupdate.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.GRUupdate.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.GRUupdate.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.GRUupdate.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [nodes, updates]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature list of shape (batch*None,F)</p></li>
+<li><p><strong>updates</strong> (<em>tf.tensor</em>) – Matching node updates of same shape (batch*None,F)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Updated nodes of shape (batch*None,F)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>updated_nodes (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.update.GRUupdate.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.update.GRUupdate.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.disjoint">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kgcnn.layers.disjoint" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">kgcnn.layers.disjoint package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.casting">kgcnn.layers.disjoint.casting module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.connect">kgcnn.layers.disjoint.connect module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.conv">kgcnn.layers.disjoint.conv module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.gather">kgcnn.layers.disjoint.gather module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.mlp">kgcnn.layers.disjoint.mlp module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.pooling">kgcnn.layers.disjoint.pooling module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.set2set">kgcnn.layers.disjoint.set2set module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.topk">kgcnn.layers.disjoint.topk module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint.update">kgcnn.layers.disjoint.update module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.disjoint">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kgcnn.layers.html"
+                        title="previous chapter">kgcnn.layers package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="kgcnn.layers.padded.html"
+                        title="next chapter">kgcnn.layers.padded package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/kgcnn.layers.disjoint.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.padded.html" title="kgcnn.layers.padded package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.html" title="kgcnn.layers package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.layers.html" >kgcnn.layers package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.layers.disjoint package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, aimat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

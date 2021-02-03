@@ -1,0 +1,1284 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kgcnn.layers.ragged package &#8212; kgcnn 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kgcnn.literature package" href="kgcnn.literature.html" />
+    <link rel="prev" title="kgcnn.layers.padded package" href="kgcnn.layers.padded.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.literature.html" title="kgcnn.literature package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.padded.html" title="kgcnn.layers.padded package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.layers.html" accesskey="U">kgcnn.layers package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.layers.ragged package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kgcnn-layers-ragged-package">
+<h1>kgcnn.layers.ragged package<a class="headerlink" href="#kgcnn-layers-ragged-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.casting">
+<span id="kgcnn-layers-ragged-casting-module"></span><h2>kgcnn.layers.ragged.casting module<a class="headerlink" href="#module-kgcnn.layers.ragged.casting" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.casting.</code><code class="sig-name descname">CastAdjacencyMatrixToRaggedList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Cast a sparse batched adjacency matrices to a ragged index list plus connection weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sort_index</strong> (<em>bool</em>) – If indices are sorted in sparse matrix.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – Validate ragged tensor.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>adjacency</strong> (<em>tf.sparse</em>) – A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
+The sparse tensor that has the shape of maximum number of nodes in the batch.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[edge_index,edges]</p>
+<ul class="simple">
+<li><p>edge_index (tf.ragged): Edge indices list of shape (batch,None,2)</p></li>
+<li><p>edges (tf.ragged): Edge feature list of shape (batch,None,1)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastAdjacencyMatrixToRaggedList.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToDense">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.casting.</code><code class="sig-name descname">CastRaggedToDense</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToDense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer to cast a ragged tensor to a dense tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToDense.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToDense.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToDense.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToDense.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>features</strong> (<em>tf.ragged</em>) – Feature ragged tensor of shape e.g. (batch,None,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Input.to_tensor() with zero padding.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tf.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToValues">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.casting.</code><code class="sig-name descname">CastRaggedToValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Cast a ragged tensor with one ragged dimension, like node feature list to a single value plus partition tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type for output. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToValues.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToValues.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToValues.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToValues.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs tf.ragged feature tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>features</strong> (<em>tf.ragged</em>) – Ragged tensor of shape (batch,None,F) ,
+where None is the number of nodes or edges in each graph and
+F denotes the feature dimension.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[values, value_partition]</p>
+<ul class="simple">
+<li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).</p></li>
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+Yields the assignment of nodes/edges per graph. Default is row_length.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.CastRaggedToValues.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.CastRaggedToValues.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.casting.ChangeIndexing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.casting.</code><code class="sig-name descname">ChangeIndexing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.ChangeIndexing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Change indexing between sample-wise and in-batch labeling. ‘Bath’ is equivalent to disjoint indexing.</p>
+<p>Note that ragged Gather- and Pooling-layers require node_indexing = “batch” as argument if index is shifted by the number of nodes in batch.
+This can enable faster gathering and pooling for some layers.</p>
+<p class="rubric">Example</p>
+<p>edge_index = ChangeIndexingRagged()([input_node,input_edge_index])
+[[0,1],[1,0],…],[[0,2],[1,2],…],…] to [[0,1],[1,0],…],[[5,7],[6,7],…],…]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_indexing</strong> (<em>str</em>) – The index refer to the overall ‘batch’ or to single ‘sample’.
+The disjoint representation assigns nodes within the ‘batch’.
+It changes “sample” to “batch” or “batch” to “sample.”
+Default is ‘batch’.</p></li>
+<li><p><strong>from_indexing</strong> (<em>str</em>) – Index convention that has been set for the input.
+Default is ‘sample’.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – Validate ragged tensor. Default is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.ChangeIndexing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.ChangeIndexing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.ChangeIndexing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.ChangeIndexing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list [nodes,edge_indices]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Ragged node feature list of shape (batch,None,F).</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.ragged</em>) – Ragged edge indices of shape (batch,None,2).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Ragged tensor of edge indices with modified index reference.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>edge_indices (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.casting.ChangeIndexing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.casting.ChangeIndexing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.connect">
+<span id="kgcnn-layers-ragged-connect-module"></span><h2>kgcnn.layers.ragged.connect module<a class="headerlink" href="#module-kgcnn.layers.ragged.connect" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.conv">
+<span id="kgcnn-layers-ragged-conv-module"></span><h2>kgcnn.layers.ragged.conv module<a class="headerlink" href="#module-kgcnn.layers.ragged.conv" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.conv.ActivationRagged">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.conv.</code><code class="sig-name descname">ActivationRagged</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.ActivationRagged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Applies an activation function to an output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>activation</strong> – Activation function, such as <cite>tf.nn.relu</cite>, or string name of built-in.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.ActivationRagged.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.ActivationRagged.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tensor</strong> (<em>tf.ragged</em>) – Ragged tensor of shape e.g. (batch,None,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Elementwise activation of flat values.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tf.ragged</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.ActivationRagged.compute_output_shape">
+<code class="sig-name descname">compute_output_shape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.ActivationRagged.compute_output_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute output shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.ActivationRagged.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.ActivationRagged.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.conv.DenseRagged">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.conv.</code><code class="sig-name descname">DenseRagged</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.DenseRagged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Custom Dense Layer for ragged input. The dense layer can be used as convolutional unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>units</strong> – Positive integer, dimensionality of the output space.</p></li>
+<li><p><strong>activation</strong> – Activation function to use. If you don’t specify anything, no activation is applied (ie. “linear” activation: <cite>a(x) = x</cite>).</p></li>
+<li><p><strong>use_bias</strong> – Boolean, whether the layer uses a bias vector.</p></li>
+<li><p><strong>kernel_initializer</strong> – Initializer for the <cite>kernel</cite> weights matrix.</p></li>
+<li><p><strong>bias_initializer</strong> – Initializer for the bias vector.</p></li>
+<li><p><strong>kernel_regularizer</strong> – Regularizer function applied to the <cite>kernel</cite> weights matrix.</p></li>
+<li><p><strong>bias_regularizer</strong> – Regularizer function applied to the bias vector.</p></li>
+<li><p><strong>activity_regularizer</strong> – Regularizer function applied to the output of the layer (its “activation”)..</p></li>
+<li><p><strong>kernel_constraint</strong> – Constraint function applied to the <cite>kernel</cite> weights matrix.</p></li>
+<li><p><strong>bias_constraint</strong> – Constraint function applied to the bias vector.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Input shape:</dt><dd><p>N-D tensor with shape: <cite>(batch_size, …, input_dim)</cite>.
+The most common situation would be
+a 2D input with shape <cite>(batch_size, input_dim)</cite>.</p>
+</dd>
+<dt>Output shape:</dt><dd><p>N-D tensor with shape: <cite>(batch_size, …, units)</cite>.
+For instance, for a 2D input with shape <cite>(batch_size, input_dim)</cite>,
+the output would have shape <cite>(batch_size, units)</cite>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.DenseRagged.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.DenseRagged.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer’s kernel and bias.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.DenseRagged.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.DenseRagged.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.DenseRagged.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.DenseRagged.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.conv.GCN">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.conv.</code><code class="sig-name descname">GCN</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.GCN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Graph convolution according to Kipf et al.</p>
+<p>Computes graph conv as $sigma(A*(WX+b))$ where A is the precomputed adjacency matrix.
+In place of A, edges and edge indices are used. A is considered pre-sacled. Otherwise use e.g. segment-mean, scale by weights etc.
+Edges must be broadcasted to node feautres X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>units</strong> (<em>int</em>) – Output dimension/ units of dense layer.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>activation</strong> (<em>str</em>) – Activation function ‘relu’.</p></li>
+<li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method for summing edges ‘segment_sum’.</p></li>
+<li><p><strong>use_bias</strong> (<em>bool</em>) – Whether to use bias. Default is False,</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>normalize_by_weights</strong> (<em>bool</em>) – Normalize the pooled output by the sum of weights. Default is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.GCN.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.GCN.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.GCN.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.GCN.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs list of [node, edge, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Ragged node feature list of shape (batch,None,F)</p></li>
+<li><p><strong>edges</strong> (<em>tf.ragged</em>) – Ragged edge feature list of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Edge indices for (batch,None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of updated node features.
+Output shape is (batch,None,F).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.conv.GCN.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.conv.GCN.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.gather">
+<span id="kgcnn-layers-ragged-gather-module"></span><h2>kgcnn.layers.ragged.gather module<a class="headerlink" href="#module-kgcnn.layers.ragged.gather" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.gather.GatherNodes">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.gather.</code><code class="sig-name descname">GatherNodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gather nodes from ragged tensor by indices provided by a ragged index tensor in mini-batches.</p>
+<p>An edge at index is the connection for node(index([0])) to node(index([1]))
+The features of gathered ingoing and outgoing nodes are concatenated according to index tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – False</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – ‘sample’</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>out = GatherNodes()([input_node,input_edge_index])</p>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodes.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodes.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodes.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodes.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [nodes, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Node feature tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Ragged edge indices of shape (batch,None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Gathered node features with entries at index (node(index([0])),node(index([1]))) of shape (batch,None,F+F)
+The length matches the index Tensor.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodes.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodes.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesIngoing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.gather.</code><code class="sig-name descname">GatherNodesIngoing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesIngoing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gathers ingoing nodes from ragged tensor by index provided by a ragged index tensor in mini-batches.</p>
+<p>An edge at index is the connection for node(index([0])) to node(index([1]))
+The feature of gathered ingoing nodes at index[0] for the edges in edge tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – False</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – ‘sample’</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>out = GatherNodesIngoing()([input_node,input_edge_index])</p>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesIngoing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesIngoing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesIngoing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesIngoing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs of List [nodes, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Node feature tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Ragged edge indices of shape (batch,None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Gathered ingoing nodes with entries at index
+node(index([1])) of shape (batch,None,F)
+The length matches the index Tensor at axis=1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesIngoing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesIngoing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesOutgoing">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.gather.</code><code class="sig-name descname">GatherNodesOutgoing</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesOutgoing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gathers Outgoing Nodes from ragged tensor by index provided by a ragged index tensor in mini-batches.</p>
+<p>An edge at index is the connection for node(index([0])) to node(index([1]))
+The feature of gathered outgoing nodes are the connected nodes at index[1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – False</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – ‘sample’</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>out = GatherNodesOutgoing()([input_node,input_edge_index])</p>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesOutgoing.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesOutgoing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesOutgoing.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesOutgoing.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [nodes, edge_index]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Node feature tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Ragged edge indices of shape (batch,None,2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Gathered outgoing nodes with entries at index
+node(index([1])) of shape (batch,None,F)
+The length matches the index Tensor at axis=1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherNodesOutgoing.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherNodesOutgoing.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.gather.GatherState">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.gather.</code><code class="sig-name descname">GatherState</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Gathers a global state for nodes or edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – False</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>out = GatherState()([state,nodes])</p>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherState.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherState.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherState.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherState.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [state, target]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> (<em>tf.tensor</em>) – Environment or global graph state tensor of shape (batch,F)</p></li>
+<li><p><strong>target</strong> (<em>tf.raged</em>) – Ragged node/edgelist (batch,None,F)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A ragged tensor with shape (batch,None,F)
+The corresponding state of each graph is repeated to
+match the target tensor.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>states (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.GatherState.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.GatherState.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.gather.LazyConcatenateNodes">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.gather.</code><code class="sig-name descname">LazyConcatenateNodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.LazyConcatenateNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Concatenate ragged nodetensors without checking shape.</p>
+<p>Ragged dimension only at first axis. Can be replaced with standard concat function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>int</em>) – Axis to concatenate. Default is -1.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – False</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.LazyConcatenateNodes.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.LazyConcatenateNodes.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.LazyConcatenateNodes.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.LazyConcatenateNodes.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>list</em>) – [nodes,nodes,…] of shape [(batch,None,F),(batch,None,F),…]</p></li>
+<li><p><strong>ragged tensors of nodes with similar ragged dimension None.</strong> (<em>of</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Concatenated Nodes with shape (batch,None,Sum(F))
+where the row_splits of first nodelist are kept.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>nodes (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.gather.LazyConcatenateNodes.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.gather.LazyConcatenateNodes.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.mlp">
+<span id="kgcnn-layers-ragged-mlp-module"></span><h2>kgcnn.layers.ragged.mlp module<a class="headerlink" href="#module-kgcnn.layers.ragged.mlp" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.mlp.MLPRagged">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.mlp.</code><code class="sig-name descname">MLPRagged</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.mlp.MLPRagged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Multilayer perceptron that consist of N dense keras layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mlp_units</strong> (<em>list</em>) – Size of hidden layers for each layer.</p></li>
+<li><p><strong>mlp_use_bias</strong> (<em>list</em><em>, </em><em>optional</em>) – Use bias for hidden layers. Defaults to True.</p></li>
+<li><p><strong>mlp_activation</strong> (<em>list</em><em>, </em><em>optional</em>) – Activity identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_activity_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Activity regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_kernel_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Kernel regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>mlp_bias_regularizer</strong> (<em>list</em><em>, </em><em>optional</em>) – Bias regularizer identifier. Defaults to None.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.mlp.MLPRagged.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.mlp.MLPRagged.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.mlp.MLPRagged.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">training</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.mlp.MLPRagged.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>tf.ragged</em>) – Input ragged tensor of shape (…,N).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MLP pass.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tf.ragged</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.mlp.MLPRagged.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.mlp.MLPRagged.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.pooling">
+<span id="kgcnn-layers-ragged-pooling-module"></span><h2>kgcnn.layers.ragged.pooling module<a class="headerlink" href="#module-kgcnn.layers.ragged.pooling" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.pooling.PoolingAllEdges">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.pooling.</code><code class="sig-name descname">PoolingAllEdges</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingAllEdges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of edgefeatures over all edges in graph. Which gives $1/n sum_{ij} edge(i,j)$.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> – tf.function to pool all edges with ragged tensors.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingAllEdges.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingAllEdges.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingAllEdges.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingAllEdges.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>edges</strong> (<em>tf.ragged</em>) – Edge feature ragged tensor of shape (batch,None,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled edge features of shape (batch,F)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingAllEdges.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingAllEdges.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.pooling.PoolingEdgesPerNode">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.pooling.</code><code class="sig-name descname">PoolingEdgesPerNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingEdgesPerNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of edgefeatures or messages for each ingoing node in graph. Which gives $1/n sum_{j} edge(i,j)$.</p>
+<p>Some layer arguments allow faster performance if set differently.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – tf.function to pool edges compatible with ragged tensors. Default is ‘segment_mean’.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – If indices refer to sample- or batch-wise indexing. Default is ‘sample’.</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – To validate the ragged output tensor. Defualt is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List of [node, edge, edgeindex]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.ragged</em>) – Node ragged tensors of shape (batch,None,F_n)</p></li>
+<li><p><strong>edge</strong> (<em>tf.ragged</em>) – Edge feature ragged tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Edge index list as ragged tensor of shape (batch,None,2)
+Note that the ragged dimension of edge and edgeindex has to match.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+The edge feautres are chosen for index tensor according to index(0).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingEdgesPerNode.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.pooling.PoolingNodes">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.pooling.</code><code class="sig-name descname">PoolingNodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of nodefeatures over all nodes in graph. Which gives $1/n sum_i node(i)$.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> – tf.function to pool all nodes compatible with ragged tensors.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingNodes.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingNodes.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingNodes.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingNodes.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nodes</strong> (<em>tf.ragged</em>) – Node ragged tensor of shape (batch,None,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node features of shape (batch,F)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingNodes.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingNodes.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.pooling.</code><code class="sig-name descname">PoolingWeightedEdgesPerNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n sum_{j} edge(i,j)$.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pooling_method</strong> (<em>str</em>) – tf.function to pool edges compatible with ragged tensors. Default is “segment_sum”.</p></li>
+<li><p><strong>normalize_by_weights</strong> (<em>bool</em>) – Normalize the pooled output by the sum of weights. Default is False.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – If indices refer to sample- or batch-wise indexing. Default is ‘sample’.</p></li>
+<li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – To validate the ragged output tensor. Defualt is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<p>Inputs List [node, edge, edge_index, weight]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> (<em>tf.ragged</em>) – Node ragged tensors of shape (batch,None,F_n)</p></li>
+<li><p><strong>edge</strong> (<em>tf.ragged</em>) – Edge feature ragged tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Edge index list as ragged tensor of shape (batch,None,2)
+Note that the ragged dimension of edge and edge index has to match.</p></li>
+<li><p><strong>weights</strong> (<em>tf.ragged</em>) – The weights could be the entry in the ajacency matrix for each edgs in the list
+and must be broadcasted or match in dimension. Shape is e.g. (batch,None,1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+The edge feautres are chosen for index tensor according to index(0).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.pooling.PoolingWeightedEdgesPerNode.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.set2set">
+<span id="kgcnn-layers-ragged-set2set-module"></span><h2>kgcnn.layers.ragged.set2set module<a class="headerlink" href="#module-kgcnn.layers.ragged.set2set" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.set2set.</code><code class="sig-name descname">Set2Set</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Set2Set layer. The Reading to Memory has to be handled seperately.</p>
+<p>Uses a keras LSTM layer for the updates.
+The idea is to create a Seq2Seq using a “content” based attention via LSTMs.
+This should basically implement the encoder of chapter 4.2. in the paper.
+Note: Here it is used as a more sensitive averaging of e.g. node features.
+The labeling should match the paper.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> (<em>int</em>) – Number of channels for LSTM.</p></li>
+<li><p><strong>T</strong> (<em>int</em>) – iteratrions T=3</p></li>
+<li><p><strong>pool_method</strong> – tensorflow.keras.backend.mean</p></li>
+<li><p><strong>init_qstar</strong> – ‘mean’</p></li>
+<li><p><strong>activation</strong> – “tanh”</p></li>
+<li><p><strong>recurrent_activation</strong> – “sigmoid”</p></li>
+<li><p><strong>use_bias</strong> – True</p></li>
+<li><p><strong>kernel_initializer</strong> – “glorot_uniform”</p></li>
+<li><p><strong>recurrent_initializer</strong> – “orthogonal”</p></li>
+<li><p><strong>bias_initializer</strong> – “zeros”</p></li>
+<li><p><strong>unit_forget_bias</strong> – True</p></li>
+<li><p><strong>kernel_regularizer</strong> – None</p></li>
+<li><p><strong>recurrent_regularizer</strong> – None</p></li>
+<li><p><strong>bias_regularizer</strong> – None</p></li>
+<li><p><strong>activity_regularizer</strong> – None</p></li>
+<li><p><strong>kernel_constraint</strong> – None</p></li>
+<li><p><strong>recurrent_constraint</strong> – None</p></li>
+<li><p><strong>bias_constraint</strong> – None</p></li>
+<li><p><strong>dropout</strong> – 0.0</p></li>
+<li><p><strong>recurrent_dropout</strong> – 0.0</p></li>
+<li><p><strong>implementation</strong> – 2</p></li>
+<li><p><strong>return_sequences</strong> – False</p></li>
+<li><p><strong>return_state</strong> – False</p></li>
+<li><p><strong>go_backwards</strong> – False</p></li>
+<li><p><strong>stateful</strong> – False</p></li>
+<li><p><strong>time_major</strong> – False</p></li>
+<li><p><strong>unroll</strong> – False</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nodes</strong> (<em>tf.ragged</em>) – Ragged nodelist of shape (batch,None,F)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pooled node tensor of shape (batch,1,2*channels)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>features (tf.ragged)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.f_et">
+<code class="sig-name descname">f_et</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fm</span></em>, <em class="sig-param"><span class="n">fq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.f_et" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute scalar from m and q. Can apply sum or mean etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>m</strong> (<em>tf.tensor</em>) – of shape (batch*num,feat)</p></li>
+<li><p><strong>q</strong> (<em>tf.tensor</em>) – of shape (batch*num,feat)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>of shape (batch*num,)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>et (tf.tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make config for layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.get_norm">
+<code class="sig-name descname">get_norm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ind</span></em>, <em class="sig-param"><span class="n">rep</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.get_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Norm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.get_scale_per_batch">
+<code class="sig-name descname">get_scale_per_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.get_scale_per_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rescaleing for the batch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.get_scale_per_sample">
+<code class="sig-name descname">get_scale_per_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ind</span></em>, <em class="sig-param"><span class="n">rep</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.get_scale_per_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rescaleing for the sample.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.init_qstar_0">
+<code class="sig-name descname">init_qstar_0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">batch_index</span></em>, <em class="sig-param"><span class="n">batch_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.init_qstar_0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the q0 with zeros.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.set2set.Set2Set.init_qstar_mean">
+<code class="sig-name descname">init_qstar_mean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">batch_index</span></em>, <em class="sig-param"><span class="n">batch_num</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.set2set.Set2Set.init_qstar_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the q0 with mean.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.topk">
+<span id="kgcnn-layers-ragged-topk-module"></span><h2>kgcnn.layers.ragged.topk module<a class="headerlink" href="#module-kgcnn.layers.ragged.topk" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.topk.PoolingTopK">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.topk.</code><code class="sig-name descname">PoolingTopK</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.PoolingTopK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for pooling of nodes.</p>
+<p>This implements a learnable score vector plus gate. Implements gPool of Gao et al.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<em>float</em>) – relative number of nodes to remove. Default is 0.1</p></li>
+<li><p><strong>kernel_initializer</strong> (<em>str</em>) – Score initialization. Default is ‘glorot_uniform’,</p></li>
+<li><p><strong>kernel_regularizer</strong> (<em>str</em>) – Score regularization. Default is None.</p></li>
+<li><p><strong>kernel_constraint</strong> (<em>str</em>) – Score constrain. Default is None.</p></li>
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – To validate output ragged tensor. Defualt is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.PoolingTopK.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.PoolingTopK.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.PoolingTopK.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.PoolingTopK.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward Pass.</p>
+<p>Inputs list of [nodes,edge_index, edges]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Node ragged feature tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_index</strong> (<em>tf.ragged</em>) – Edge indices ragged tensor of shape (batch,None,2)</p></li>
+<li><p><strong>edges</strong> (<em>tf.ragged</em>) – Edge feature tensor of shape (batch,None,F)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[nodes,edge_indices,edges],[map_nodes,map_edges]</p>
+<ul class="simple">
+<li><p>nodes (tf.ragged): Pooled node features of shape (batch,None,F)</p></li>
+<li><p>edge_indices (tf.ragged): Pooled edge indices of shape (batch,None,2)</p></li>
+<li><p>edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)</p></li>
+<li><p>map_nodes (tf.ragged): Index map between original and pooled nodes (batch,None)</p></li>
+<li><p>map_edges (tf.ragged): Index map between original and pooled edges (batch,None)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.PoolingTopK.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.PoolingTopK.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kgcnn.layers.ragged.topk.UnPoolingTopK">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.ragged.topk.</code><code class="sig-name descname">UnPoolingTopK</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.UnPoolingTopK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Layer for unpooling of nodes.</p>
+<p>The edge index information are not reverted since the tensor before pooling can be reused.
+Same holds for batch-assignment in number of nodes and edges information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ragged_validate</strong> (<em>bool</em>) – To validate ragged output tensor. Default is False.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.UnPoolingTopK.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.UnPoolingTopK.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build layer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.UnPoolingTopK.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.UnPoolingTopK.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward Pass.</p>
+<p>Inputs list of [nodes, edge_indices, edges, map_nodes, map_edges, nodes_pool, edge_indices_pool, edges_pool]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>tf.ragged</em>) – Original node ragged tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_indices</strong> (<em>tf.ragged</em>) – Original edge index ragged tensor of shape (batch,None,2)</p></li>
+<li><p><strong>edges</strong> (<em>tf.ragged</em>) – Original edge feature tensor of shape (batch,None,F)</p></li>
+<li><p><strong>map_nodes</strong> (<em>tf.ragged</em>) – Node index map (batch,None)</p></li>
+<li><p><strong>map_edges</strong> (<em>tf.ragged</em>) – Edge index map (batch,None)</p></li>
+<li><p><strong>nodes_pool</strong> (<em>tf.ragged</em>) – Pooled node ragged tensor of shape (batch,None,F)</p></li>
+<li><p><strong>edge_indices_pool</strong> (<em>tf.ragged</em>) – Pooled edge index ragged tensor of shape (batch,None,2)</p></li>
+<li><p><strong>edges_pool</strong> (<em>tf.ragged</em>) – Pooled edge feature tensor of shape (batch,None,F)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[nodes,edge_index,edges]</p>
+<ul class="simple">
+<li><p>nodes (tf.ragged): Unpooled node ragged tensor of shape (batch,None,F_n)</p></li>
+<li><p>edge_index (tf.ragged): Unpooled edge index ragged tensor of shape (batch,None,2)</p></li>
+<li><p>edges (tf.ragged): Unpooled edge feature tensor of shape (batch,None,F_e)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.ragged.topk.UnPoolingTopK.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.ragged.topk.UnPoolingTopK.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update layer config.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.layers.ragged.update">
+<span id="kgcnn-layers-ragged-update-module"></span><h2>kgcnn.layers.ragged.update module<a class="headerlink" href="#module-kgcnn.layers.ragged.update" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.layers.ragged">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kgcnn.layers.ragged" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">kgcnn.layers.ragged package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.casting">kgcnn.layers.ragged.casting module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.connect">kgcnn.layers.ragged.connect module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.conv">kgcnn.layers.ragged.conv module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.gather">kgcnn.layers.ragged.gather module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.mlp">kgcnn.layers.ragged.mlp module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.pooling">kgcnn.layers.ragged.pooling module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.set2set">kgcnn.layers.ragged.set2set module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.topk">kgcnn.layers.ragged.topk module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged.update">kgcnn.layers.ragged.update module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.layers.ragged">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kgcnn.layers.padded.html"
+                        title="previous chapter">kgcnn.layers.padded package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="kgcnn.literature.html"
+                        title="next chapter">kgcnn.literature package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/kgcnn.layers.ragged.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.literature.html" title="kgcnn.literature package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.padded.html" title="kgcnn.layers.padded package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.layers.html" >kgcnn.layers package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.layers.ragged package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, aimat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kgcnn.utils package &#8212; kgcnn 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="kgcnn.literature package" href="kgcnn.literature.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.literature.html" title="kgcnn.literature package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" accesskey="U">kgcnn package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.utils package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kgcnn-utils-package">
+<h1>kgcnn.utils package<a class="headerlink" href="#kgcnn-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.utils.activ">
+<span id="kgcnn-utils-activ-module"></span><h2>kgcnn.utils.activ module<a class="headerlink" href="#module-kgcnn.utils.activ" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.utils.activ.leaky_softplus">
+<code class="sig-prename descclassname">kgcnn.utils.activ.</code><code class="sig-name descname">leaky_softplus</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.activ.leaky_softplus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Leaky softplus activation function similar to leakyRELU but smooth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Leaking slope. The default is 0.3.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>lambda function of x.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>func</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.activ.shifted_softplus">
+<code class="sig-prename descclassname">kgcnn.utils.activ.</code><code class="sig-name descname">shifted_softplus</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.activ.shifted_softplus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shifted softplus activation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – single values to apply activation to using tf.keras functions</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>log(exp(x)+1) - log(2)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>out</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.activ.softplus2">
+<code class="sig-prename descclassname">kgcnn.utils.activ.</code><code class="sig-name descname">softplus2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.activ.softplus2" title="Permalink to this definition">¶</a></dt>
+<dd><p>out = log(exp(x)+1) - log(2)
+softplus function that is 0 at x=0, the implementation aims at avoiding overflow</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – (Tensor) input tensor</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>output tensor</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.utils.adj">
+<span id="kgcnn-utils-adj-module"></span><h2>kgcnn.utils.adj module<a class="headerlink" href="#module-kgcnn.utils.adj" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.utils.adj.add_self_loops_to_indexlist">
+<code class="sig-prename descclassname">kgcnn.utils.adj.</code><code class="sig-name descname">add_self_loops_to_indexlist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indices</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.adj.add_self_loops_to_indexlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add self-loops to edge index list, i.e. [[0,0],[1,1]…] and sort the final output.</p>
+<p>Note: It applies unique to the index list, removes duplicate edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>np.array</em>) – Index list of shape (N,3).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sorted index list with self-loops.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>out_indices (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.adj.indexlist_sort">
+<code class="sig-prename descclassname">kgcnn.utils.adj.</code><code class="sig-name descname">indexlist_sort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexlist</span></em>, <em class="sig-param"><span class="n">vals</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.adj.indexlist_sort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort index list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexlist</strong> (<em>np.array</em>) – Edge indices.</p></li>
+<li><p><strong>vals</strong> (<em>np.array</em>) – Edge values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[ind,val]</p>
+<ul class="simple">
+<li><p>ind (np.array): Sorted indices.</p></li>
+<li><p>val (np.array): Edge values matching sorted indices.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.adj.make_undirected">
+<code class="sig-prename descclassname">kgcnn.utils.adj.</code><code class="sig-name descname">make_undirected</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.adj.make_undirected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make adjacency matrix undirected. This adds edges if directed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>A</strong> (<em>np.array</em><em>,</em><em>scipy.sparse</em>) – Adjacency matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>undirected Adjacency matrix. This has A=A^T.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.array,scipy.sparse)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.adj.precompute_adjacency_scaled">
+<code class="sig-prename descclassname">kgcnn.utils.adj.</code><code class="sig-name descname">precompute_adjacency_scaled</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">add_identity</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.adj.precompute_adjacency_scaled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precompute the scaled adjacency matrix A_scaled = D^-0.5 (A + I) D^-0.5.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> (<em>np.array</em><em>,</em><em>scipy.sparse</em>) – Adjacency matrix of shape (N,N).</p></li>
+<li><p><strong>add_identity</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to add identity. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>D^-0.5 (A + I) D^-0.5.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.adj.scaled_adjacency_to_list">
+<code class="sig-prename descclassname">kgcnn.utils.adj.</code><code class="sig-name descname">scaled_adjacency_to_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ascaled</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.adj.scaled_adjacency_to_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map adjacency matrix to index list plus edge weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Ascaled</strong> (<em>np.array</em><em>,</em><em>scipy.sparse</em>) – Scaled Adjacency matrix of shape (N,N). A_scaled = D^-0.5 (A + I) D^-0.5.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>[edge_index, edge_weight]</p>
+<ul class="simple">
+<li><p>edge_index (np.array): Indexlist of shape (N,2).</p></li>
+<li><p>edge_weight (np.array): Entries of Adjacency matrix of shape (N,N)</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.utils.data">
+<span id="kgcnn-utils-data-module"></span><h2>kgcnn.utils.data module<a class="headerlink" href="#module-kgcnn.utils.data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.utils.data.load_list">
+<code class="sig-prename descclassname">kgcnn.utils.data.</code><code class="sig-name descname">load_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.data.load_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a pickled list from file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – Filepath to load.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Pickle object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>outlist (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.utils.data.save_list">
+<code class="sig-prename descclassname">kgcnn.utils.data.</code><code class="sig-name descname">save_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outlist</span></em>, <em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.data.save_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a pickled list to file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outlist</strong> (<em>list</em>) – List of eg. np.arrays.</p></li>
+<li><p><strong>fname</strong> (<em>str</em>) – Filepath to save.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.utils.learning">
+<span id="kgcnn-utils-learning-module"></span><h2>kgcnn.utils.learning module<a class="headerlink" href="#module-kgcnn.utils.learning" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.utils.learning.lr_lin_reduction">
+<code class="sig-prename descclassname">kgcnn.utils.learning.</code><code class="sig-name descname">lr_lin_reduction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">learning_rate_start</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">learning_rate_stop</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">epo</span><span class="o">=</span><span class="default_value">10000</span></em>, <em class="sig-param"><span class="n">epomin</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.learning.lr_lin_reduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make learning rate schedule function for linear reduction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>learning_rate_start</strong> (<em>float</em><em>, </em><em>optional</em>) – Learning rate to start with. The default is 1e-3.</p></li>
+<li><p><strong>learning_rate_stop</strong> (<em>float</em><em>, </em><em>optional</em>) – Final learning rate at the end of epo. The default is 1e-5.</p></li>
+<li><p><strong>epo</strong> (<em>int</em><em>, </em><em>optional</em>) – Total number of epochs to reduce learning rate towards. The default is 10000.</p></li>
+<li><p><strong>epomin</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum number of epochs at beginning to leave learning rate constant. The default is 1000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Function to use with LearningRateScheduler.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>func</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>lr_schedule_lin = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.utils.loader">
+<span id="kgcnn-utils-loader-module"></span><h2>kgcnn.utils.loader module<a class="headerlink" href="#module-kgcnn.utils.loader" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="kgcnn.utils.loader.GraphLoaderList">
+<em class="property">class </em><code class="sig-prename descclassname">kgcnn.utils.loader.</code><code class="sig-name descname">GraphLoaderList</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">node</span></em>, <em class="sig-param"><span class="n">edge_index</span></em>, <em class="sig-param"><span class="n">edge</span></em>, <em class="sig-param"><span class="n">state</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">32</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">input_type</span><span class="o">=</span><span class="default_value">'ragged'</span></em>, <em class="sig-param"><span class="n">output_embedd</span><span class="o">=</span><span class="default_value">'graph'</span></em>, <em class="sig-param"><span class="n">output_type</span><span class="o">=</span><span class="default_value">'padded'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.loader.GraphLoaderList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.utils.data_utils.Sequence</span></code></p>
+<p>Data loader for graphs using tensorflow.keras.utils.Sequence.</p>
+<p>Note: Not tested yet.</p>
+<dl class="py method">
+<dt id="kgcnn.utils.loader.GraphLoaderList.on_epoch_end">
+<code class="sig-name descname">on_epoch_end</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.utils.loader.GraphLoaderList.on_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates indexes after each epoch.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.utils.loss">
+<span id="kgcnn-utils-loss-module"></span><h2>kgcnn.utils.loss module<a class="headerlink" href="#module-kgcnn.utils.loss" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kgcnn.utils" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">kgcnn.utils package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.activ">kgcnn.utils.activ module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.adj">kgcnn.utils.adj module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.data">kgcnn.utils.data module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.learning">kgcnn.utils.learning module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.loader">kgcnn.utils.loader module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils.loss">kgcnn.utils.loss module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kgcnn.literature.html"
+                        title="previous chapter">kgcnn.literature package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/kgcnn.utils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.literature.html" title="kgcnn.literature package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.utils package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, aimat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

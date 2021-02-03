@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kgcnn.data.qm package &#8212; kgcnn 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kgcnn.layers package" href="kgcnn.layers.html" />
+    <link rel="prev" title="kgcnn.data.mutagen package" href="kgcnn.data.mutagen.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.html" title="kgcnn.layers package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.data.mutagen.html" title="kgcnn.data.mutagen package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.data.html" accesskey="U">kgcnn.data package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.data.qm package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kgcnn-data-qm-package">
+<h1>kgcnn.data.qm package<a class="headerlink" href="#kgcnn-data-qm-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-kgcnn.data.qm.methods">
+<span id="kgcnn-data-qm-methods-module"></span><h2>kgcnn.data.qm.methods module<a class="headerlink" href="#module-kgcnn.data.qm.methods" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.data.qm.methods.coordinates_to_distancematrix">
+<code class="sig-prename descclassname">kgcnn.data.qm.methods.</code><code class="sig-name descname">coordinates_to_distancematrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Coord3D</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.methods.coordinates_to_distancematrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform coordinates to distance matrix. Will apply transformation on last dimension.
+Changing of shape (…,N,3) -&gt; (…,N,N)</p>
+<dl class="simple">
+<dt>Arg:</dt><dd><dl class="simple">
+<dt>Coord3D (numpy array):  Coordinates of shape (…,N,3) for cartesian coordinates (x,y,z)</dt><dd><p>and N the number of atoms or points. Coordinates are last dimension.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Distance matrix as numpy array with shape (…,N,N) where N is the number of atoms</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.methods.define_adjacency_from_distance">
+<code class="sig-prename descclassname">kgcnn.data.qm.methods.</code><code class="sig-name descname">define_adjacency_from_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">DistanceMatrix</span></em>, <em class="sig-param"><span class="n">max_distance</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">max_neighbours</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">exclusive</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">self_loops</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.methods.define_adjacency_from_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct adjacency matrix from a distance matrix by distance and number of neighbours. Works for batches.</p>
+<p>This does take into account special bonds (e.g. chemical) just a general distance measure.
+Tries to connect nearest neighbours.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DistanceMatrix</strong> (<em>np.array</em>) – Distance Matrix of shape (…,N,N)</p></li>
+<li><p><strong>max_distance</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum distance to allow connections, can also be None. Defaults to np.inf.</p></li>
+<li><p><strong>max_neighbours</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of neighbours, can also be None. Defaults to np.inf.</p></li>
+<li><p><strong>exclusive</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether both max distance and Neighbours must be fullfileed. Defaults to True.</p></li>
+<li><p><strong>self_loops</strong> (<em>bool</em><em>, </em><em>optional</em>) – Allow self-loops on diagonal. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>GraphAdjacency,GraphIndices</p>
+<ul class="simple">
+<li><p>GraphAdjacency (np.array): Adjacency Matrix of shape (…,N,N) of dtype=np.bool.</p></li>
+<li><p>GraphIndices (np.array): Flatten indizes from former array that have Adjacency == True.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.methods.distance_to_gaussdistance">
+<code class="sig-prename descclassname">kgcnn.data.qm.methods.</code><code class="sig-name descname">distance_to_gaussdistance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Distance</span></em>, <em class="sig-param"><span class="n">GBins</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">GRange</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">GSigma</span><span class="o">=</span><span class="default_value">0.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.methods.distance_to_gaussdistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert distance array to smooth one-hot representation using Gaussian functions.
+Changes shape for gaussian distance (…,) -&gt; (…,GBins)
+The Default values match units in Angstroem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Distance</strong> (<em>numpy array</em>) – Array of distances of shape (…,)</p></li>
+<li><p><strong>GBins</strong> (<em>int</em>) – number of Bins to sample distance from, default = 25</p></li>
+<li><p><strong>GRange</strong> (<em>value</em>) – maximum distance to be captured by bins, default = 5.0</p></li>
+<li><p><strong>GSigma</strong> (<em>value</em>) – sigma of the gaussian function, determining the width/sharpness, default = 0.5</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Numpy array of gaussian distance with expanded last axis (…,GBins)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.methods.get_connectivity_from_inversedistancematrix">
+<code class="sig-prename descclassname">kgcnn.data.qm.methods.</code><code class="sig-name descname">get_connectivity_from_inversedistancematrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">invdistmat</span></em>, <em class="sig-param"><span class="n">protons</span></em>, <em class="sig-param"><span class="n">radii_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">k1</span><span class="o">=</span><span class="default_value">16.0</span></em>, <em class="sig-param"><span class="n">k2</span><span class="o">=</span><span class="default_value">1.3333333333333333</span></em>, <em class="sig-param"><span class="n">cutoff</span><span class="o">=</span><span class="default_value">0.85</span></em>, <em class="sig-param"><span class="n">force_bonds</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.methods.get_connectivity_from_inversedistancematrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get connectivity table from inverse distance matrix defined at last dimensions (…,N,N) and corresponding bond-radii. Keeps shape with (…,N,N).
+Covalent radii, from Pyykko and Atsumi, Chem. Eur. J. 15, 2009, 188-197.
+Values for metals decreased by 10% according to Robert Paton’s Sterimol implementation.
+Partially based on code from Robert Paton’s Sterimol script, which based this part on Grimme’s D3 code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>invdistmat</strong> (<em>numpy array</em>) – inverse distance matrix defined at last dimensions (…,N,N)
+distances must be in Angstroem not in Bohr</p></li>
+<li><p><strong>protons</strong> (<em>numpy array</em>) – An array of atomic numbers matching the invdistmat (…,N),
+for which the radii are to be computed.</p></li>
+<li><p><strong>radii_dict</strong> (<em>numpy array</em>) – covalent radii for each element. If default=None, stored values are used. Otherwise array with covalent bonding radii.
+example: np.array([0, 0.34, 0.46, 1.2, …]) from {‘H’: 0.34, ‘He’: 0.46, ‘Li’: 1.2, …}</p></li>
+<li><p><strong>k1</strong> (<em>value</em>) – default = 16</p></li>
+<li><p><strong>k2</strong> (<em>value</em>) – default = 4.0/3.0</p></li>
+<li><p><strong>cutoff</strong> (<em>value</em>) – cutoff value to set values to Zero (no bond) default = 0.85</p></li>
+<li><p><strong>force_bonds</strong> (<em>value</em>) – whether to force at least one bond in the bond table per atom (default = True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Retruns:</dt><dd><p>Connectivity table with 1 for chemical bond and zero otherwise of shape (…,N,N) -&gt; (…,N,N)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.methods.invert_distance">
+<code class="sig-prename descclassname">kgcnn.data.qm.methods.</code><code class="sig-name descname">invert_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">nan</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">posinf</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">neginf</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.methods.invert_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invert distance array, e.g. distance matrix. Inversion is done for all entries.
+Keeping of shape (…,) -&gt; (…,)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> (<em>numpy array</em>) – array of distance values of shape (…,)</p></li>
+<li><p><strong>nan</strong> (<em>value</em>) – replacement for np.nan after division, default = 0</p></li>
+<li><p><strong>posinf</strong> (<em>value</em>) – replacement for np.inf after division, default = 0</p></li>
+<li><p><strong>neginf</strong> (<em>value</em>) – replacement for -np.inf after division, default = 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Inverted distance array as numpy array of identical shape (…,) and
+replaces np.nan and np.inf with e.g. 0</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.data.qm.qm9">
+<span id="kgcnn-data-qm-qm9-module"></span><h2>kgcnn.data.qm.qm9 module<a class="headerlink" href="#module-kgcnn.data.qm.qm9" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.make_qm9_graph">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">make_qm9_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">qm9</span></em>, <em class="sig-param"><span class="n">max_distance</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">max_neighbours</span><span class="o">=</span><span class="default_value">15</span></em>, <em class="sig-param"><span class="n">gauss_distance</span><span class="o">=</span><span class="default_value">{'GBins': 20, 'GRange': 4, 'GSigma': 0.4}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.make_qm9_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make graph objects from qm9 dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qm9</strong> (<em>list</em>) – Full qm9 dataset as python list.</p></li>
+<li><p><strong>max_distance</strong> (<em>int</em>) – 4</p></li>
+<li><p><strong>max_neighbours</strong> (<em>int</em>) – 15</p></li>
+<li><p><strong>gauss_distance</strong> (<em>dict</em>) – {‘GBins’ : 20, ‘GRange’  : 4, ‘GSigma’ : 0.4}</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>List of graph props [labels, nodes, edges, edge_idx,gstates]</p>
+<ul class="simple">
+<li><p>labels: All labels of qm9</p></li>
+<li><p>nodes: List of atomic numbers for emebdding layer</p></li>
+<li><p>edges: Edgefeatures (inverse distance, gauss distance)</p></li>
+<li><p>edge_idx: Edge indices (N,2)</p></li>
+<li><p>gstates: Graph states, mean moleculare weight - 7 g/mol</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.qm9_download_dataset">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">qm9_download_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.qm9_download_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download qm9 dataset as zip-file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datadir</strong> – (str) filepath if empty use user-default path</p></li>
+<li><p><strong>overwrite</strong> – (bool) overwrite existing database, default:False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filepath</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>os.path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.qm9_extract_dataset">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">qm9_extract_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">load</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.qm9_extract_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract dsgdb9nsd.xyz zip-file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datadir</strong> – (str) filepath if empty use user-default path</p></li>
+<li><p><strong>overwrite</strong> – (bool) overwrite existing database, default:False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filepath</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>os.path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.qm9_graph">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">qm9_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_distance</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">max_neighbours</span><span class="o">=</span><span class="default_value">15</span></em>, <em class="sig-param"><span class="n">gauss_distance</span><span class="o">=</span><span class="default_value">{'GBins': 20, 'GRange': 4, 'GSigma': 0.4}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.qm9_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of graphs np.arrays for qm9 dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_distance</strong> (<em>int</em>) – 4</p></li>
+<li><p><strong>max_neighbours</strong> (<em>int</em>) – 15</p></li>
+<li><p><strong>gauss_distance</strong> (<em>dict</em>) – {‘GBins’ : 20, ‘GRange’  : 4, ‘GSigma’ : 0.4}</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>List of graph props [labels, nodes, edges, edge_idx, gstates]</p>
+<ul class="simple">
+<li><p>labels: All labels of qm9</p></li>
+<li><p>nodes: List of atomic numbers for emebdding layer</p></li>
+<li><p>edges: Edgefeatures (inverse distance, gauss distance)</p></li>
+<li><p>edge_idx: Edge indices (N,2)</p></li>
+<li><p>gstates: Graph states, mean moleculare weight - 7 g/mol</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.qm9_remove_extracted_dataset">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">qm9_remove_extracted_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.qm9_remove_extracted_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove qm9 extracted folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Parent directory of dsgdb9nsd.xyz.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kgcnn.data.qm.qm9.qm9_write_pickle">
+<code class="sig-prename descclassname">kgcnn.data.qm.qm9.</code><code class="sig-name descname">qm9_write_pickle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.data.qm.qm9.qm9_write_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read .xyz files and store them as pickle python object ca. 200 MB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Parent directory with dsgdb9nsd.xyz in it.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Full qm9 dataset as python list.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>qm9 (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-kgcnn.data.qm">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-kgcnn.data.qm" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">kgcnn.data.qm package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-kgcnn.data.qm.methods">kgcnn.data.qm.methods module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.data.qm.qm9">kgcnn.data.qm.qm9 module</a></li>
+<li><a class="reference internal" href="#module-kgcnn.data.qm">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kgcnn.data.mutagen.html"
+                        title="previous chapter">kgcnn.data.mutagen package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="kgcnn.layers.html"
+                        title="next chapter">kgcnn.layers package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/kgcnn.data.qm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.layers.html" title="kgcnn.layers package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kgcnn.data.mutagen.html" title="kgcnn.data.mutagen package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kgcnn 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >kgcnn</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="kgcnn.html" >kgcnn package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="kgcnn.data.html" >kgcnn.data package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kgcnn.data.qm package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, aimat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>
