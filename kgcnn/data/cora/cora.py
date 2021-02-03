@@ -14,6 +14,9 @@ def cora_download_dataset(path,overwrite=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+    
+    Returns:
+        os.path: Filepath
     """ 
     if(os.path.exists(os.path.join(path,'cora.npz')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
@@ -35,10 +38,11 @@ def cora_make_grph(loader):
         loader (dict): Dictionary from .npz file.
 
     Returns:
-        A (sp.csr_matrix): Adjacency matrix.
-        X (sp.csr_matrix): Node features.
-        labels (np.array): Labels.
-
+        list: [A,X,labels]
+        
+        - A (sp.csr_matrix): Adjacency matrix.
+        - X (sp.csr_matrix): Node features.
+        - labels (np.array): Labels.
     """   
     A = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
                  loader['adj_indptr']), shape=loader['adj_shape'])
@@ -88,9 +92,11 @@ def cora_graph():
     Load and convert cora citation dataset.
 
     Returns:
-        A (sp.csr_matrix): Adjacency matrix.
-        X (sp.csr_matrix): Node features.
-        labels (np.array): Labels.
+        list: [A,X,labels]
+        
+        - A (sp.csr_matrix): Adjacency matrix.
+        - X (sp.csr_matrix): Node features.
+        - labels (np.array): Labels.
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
