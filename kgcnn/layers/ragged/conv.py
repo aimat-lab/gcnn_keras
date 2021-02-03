@@ -132,12 +132,6 @@ class ActivationRagged(tf.keras.layers.Layer):
     
     Arguments:
         activation: Activation function, such as `tf.nn.relu`, or string name of built-in.
-    
-    Input:
-        Ragged tensor of shape e.g. (batch,None,F)
-    
-    Output:
-        Elementwise activation of flat values.
     """
     
     def __init__(self, activation, **kwargs):
@@ -146,7 +140,14 @@ class ActivationRagged(tf.keras.layers.Layer):
         self.activation = ks.activations.get(activation)
         self._supports_ragged_inputs = True 
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            tensor (tf.ragged): Ragged tensor of shape e.g. (batch,None,F)
+        
+        Returns:
+            tf.ragged: Elementwise activation of flat values.
+        """
         out = tf.ragged.map_flat_values(self.activation,inputs)
         return out
 
@@ -181,16 +182,6 @@ class GCN(ks.layers.Layer):
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
         **kwargs
-        
-    Input: 
-        [node,edge,edge_index]
-        nodes (tf.tensor): Ragged node feature list of shape (batch,None,F)
-        edges (tf.tensor): Ragged edge feature list of shape (batch,None,F)
-        edge_index (tf.tensor): Edge indices for (batch,None,2) 
-    
-    Output:
-        features (tf.tensor): A list of updated node features.        
-                              Output shape is (batch*None,F).
     """
     
     def __init__(self, 
@@ -222,11 +213,24 @@ class GCN(ks.layers.Layer):
                                                     has_unconnected=self.has_unconnected,node_indexing = self.node_indexing,
                                                     normalize_by_weights = self.normalize_by_weights)
         self.lay_act = ActivationRagged(self.deserial_activation)
+        self._supports_ragged_inputs = True  
     def build(self, input_shape):
         """Build layer."""
         super(GCN, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs list of [node, edge, edge_index]
+        
+        Args: 
+            nodes (tf.ragged): Ragged node feature list of shape (batch,None,F)
+            edges (tf.ragged): Ragged edge feature list of shape (batch,None,F)
+            edge_index (tf.ragged): Edge indices for (batch,None,2) 
+        
+        Returns:
+            features (tf.ragged): A list of updated node features.        
+            Output shape is (batch,None,F).
+        """
         node,edges,edge_index = inputs
         no = self.lay_gather([node,edge_index])
         no = self.lay_dense(no)

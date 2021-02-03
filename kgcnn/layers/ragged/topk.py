@@ -16,20 +16,6 @@ class PoolingTopK(ks.layers.Layer):
         kernel_constraint (str): Score constrain. Default is None.
         ragged_validate (bool): To validate output ragged tensor. Defualt is False.
         **kwargs
-    
-    Inputs:
-        List [nodes,edge_index, edges]
-        nodes (tf.ragged): Node ragged feature tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Edge indices ragged tensor of shape (batch,None,2)
-        edges (tf.ragged): Edge feature tensor of shape (batch,None,F)
-    
-    Outputs:
-        Tuple [nodes,edge_indices,edges],[map_nodes,map_edges]
-        nodes (tf.ragged): Pooled node features of shape (batch,None,F)
-        edge_indices (tf.ragged): Pooled edge indices of shape (batch,None,2)
-        edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)
-        map_nodes (tf.ragged): Index map between original and pooled nodes (batch,None)
-        map_edges (tf.ragged): Index map between original and pooled edges (batch,None)
     """
     
     def __init__(self,
@@ -66,7 +52,24 @@ class PoolingTopK(ks.layers.Layer):
 
         
     def call(self, inputs):
-        """Forward Pass."""
+        """Forward Pass.
+        
+        Inputs list of [nodes,edge_index, edges]
+        
+        Args: 
+            nodes (tf.ragged): Node ragged feature tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Edge indices ragged tensor of shape (batch,None,2)
+            edges (tf.ragged): Edge feature tensor of shape (batch,None,F)
+    
+        Returns:
+            tuple: [nodes,edge_indices,edges],[map_nodes,map_edges]
+            
+            - nodes (tf.ragged): Pooled node features of shape (batch,None,F)
+            - edge_indices (tf.ragged): Pooled edge indices of shape (batch,None,2)
+            - edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)
+            - map_nodes (tf.ragged): Index map between original and pooled nodes (batch,None)
+            - map_edges (tf.ragged): Index map between original and pooled edges (batch,None)
+        """
         node,edgeind,edgefeat = inputs
         
         #Determine index dtype
@@ -199,23 +202,6 @@ class UnPoolingTopK(ks.layers.Layer):
     Args:
         ragged_validate (bool): To validate ragged output tensor. Default is False.
         **kwargs
-    
-    Inputs:
-        List [nodes,edge_indices,edges,map_nodes,map_edges,nodes_pool,edge_indices_pool,edges_pool]
-        nodes (tf.ragged): Original node ragged tensor of shape (batch,None,F)
-        edge_indices (tf.ragged): Original edge index ragged tensor of shape (batch,None,2)
-        edges (tf.ragged): Original edge feature tensor of shape (batch,None,F)
-        map_nodes (tf.ragged): Node index map (batch,None)
-        map_edges (tf.ragged): Edge index map (batch,None)
-        nodes_pool (tf.ragged): Pooled node ragged tensor of shape (batch,None,F)
-        edge_indices_pool (tf.ragged): Pooled edge index ragged tensor of shape (batch,None,2)
-        edges_pool (tf.ragged): Pooled edge feature tensor of shape (batch,None,F)
-    
-    Outputs:
-        List [nodes,edge_index,edges]
-        nodes (tf.ragged): Unpooled node ragged tensor of shape (batch,None,F_n)
-        edge_index (tf.ragged): Unpooled edge index ragged tensor of shape (batch,None,2)
-        edges (tf.ragged): Unpooled edge feature tensor of shape (batch,None,F_e)
     """
     
     def __init__(self,
@@ -231,7 +217,27 @@ class UnPoolingTopK(ks.layers.Layer):
 
         
     def call(self, inputs):
-        """Forward Pass"""
+        """Forward Pass.
+        
+        Inputs list of [nodes, edge_indices, edges, map_nodes, map_edges, nodes_pool, edge_indices_pool, edges_pool]
+        
+        Args:
+            nodes (tf.ragged): Original node ragged tensor of shape (batch,None,F)
+            edge_indices (tf.ragged): Original edge index ragged tensor of shape (batch,None,2)
+            edges (tf.ragged): Original edge feature tensor of shape (batch,None,F)
+            map_nodes (tf.ragged): Node index map (batch,None)
+            map_edges (tf.ragged): Edge index map (batch,None)
+            nodes_pool (tf.ragged): Pooled node ragged tensor of shape (batch,None,F)
+            edge_indices_pool (tf.ragged): Pooled edge index ragged tensor of shape (batch,None,2)
+            edges_pool (tf.ragged): Pooled edge feature tensor of shape (batch,None,F)
+    
+        Returns:
+            list: [nodes,edge_index,edges]
+            
+            - nodes (tf.ragged): Unpooled node ragged tensor of shape (batch,None,F_n)
+            - edge_index (tf.ragged): Unpooled edge index ragged tensor of shape (batch,None,2)
+            - edges (tf.ragged): Unpooled edge feature tensor of shape (batch,None,F_e)
+        """
         node_old,edgeind_old,edge_old, map_node, map_edge, node_new,edgeind_new,edge_new = inputs
         
         map_node = map_node.values

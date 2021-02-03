@@ -48,12 +48,6 @@ class Set2Set(ks.layers.Layer):
         time_major : False
         unroll : False
         **kwargs
-    
-    Input:
-        nodes (tf.ragged): Ragged nodelist of shape (batch,None,F)
-    
-    Outout:
-        features (tf.ragged): Pooled node tensor of shape (batch,1,2*channels)
     """
     def __init__(   self, 
                     channels,
@@ -138,7 +132,14 @@ class Set2Set(ks.layers.Layer):
         """Build layer."""
         super(Set2Set, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            nodes (tf.ragged): Ragged nodelist of shape (batch,None,F)
+        
+        Returns:
+            features (tf.ragged): Pooled node tensor of shape (batch,1,2*channels)
+        """
         x_ragged = inputs
         x = x_ragged.values 
         batch_num = x_ragged.row_lengths()
@@ -172,14 +173,14 @@ class Set2Set(ks.layers.Layer):
         return qstar
 
     def f_et(self,fm,fq):
-        """
-        Function to compute scalar from m and q. Can apply sum or mean etc.
+        """Compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
-            [m,q] of shape [(batch*num,feat),(batch*num,feat)]
+             m (tf.tensor): of shape (batch*num,feat)
+             q (tf.tensor): of shape (batch*num,feat)
             
         Returns:
-            et of shape #(batch*num,)  
+            et (tf.tensor): of shape (batch*num,)  
         """
         fet = self._pool(fm*fq,axis=1) #(batch*num,1)
         return fet

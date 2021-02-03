@@ -9,12 +9,6 @@ class CastRaggedToDense(tf.keras.layers.Layer):
     
     Args:
         **kwargs
-    
-    Input:
-        Ragged Tensor (tf.ragged) of shape e.g. (batch,None,F)
-        
-    Output:
-        Input.to_tensor()
     """
     
     def __init__(self, **kwargs):
@@ -25,42 +19,70 @@ class CastRaggedToDense(tf.keras.layers.Layer):
         """Build layer."""
         super(CastRaggedToDense, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            features (tf.ragged): Feature ragged tensor of shape e.g. (batch,None,F)
+        
+        Returns:
+            tf.tensor: Input.to_tensor() with zero padding.        
+        """
         return inputs.to_tensor()
-
 
 
 class CastRaggedToValues(ks.layers.Layer):
     """
-    Cast a ragged tensor input to a value plus row_length tensor.
+    Cast a ragged tensor with one ragged dimension, like node feature list to a single value plus partition tensor.
     
     Args:
+        partition_type (str): Partition tensor type for output. Default is "row_length".
         **kwargs
-    
-    Input:
-        Ragged Tensor (tf.ragged) of shape e.g. (batch,None,F)
-    
-    Output:
-        List [values,row_length]
-        values (tf.tensor): Flatten value list of shape (batch*None,F)
-        row_length (tf.tensor): Row length tensor of numer of nodes/edges in 
-                                each graph of shape (batch,)
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, partition_type = "row_length", **kwargs):
         """Initialize layer."""
         super(CastRaggedToValues, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
+        self.partition_type = partition_type
     def build(self, input_shape):
         """Build layer."""
         super(CastRaggedToValues, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs tf.ragged feature tensor.
+        
+        Args:
+            features (tf.ragged): Ragged tensor of shape (batch,None,F) ,
+                                  where None is the number of nodes or edges in each graph and
+                                  F denotes the feature dimension.
+    
+        Returns:
+            list: [values, value_partition]
+            
+            - values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+              Yields the assignment of nodes/edges per graph. Default is row_length.
+        """
         tens = inputs
         flat_tens = tens.values
-        row_lengths = tens.row_lengths()
-        return [flat_tens,row_lengths]
-
+        
+        if(self.partition_type == "row_length"):
+            outpart = tens.row_lengths()
+        elif(self.partition_type == "row_splits"):
+            outpart = tens.row_splits
+        elif(self.partition_type == "value_rowids"):
+            outpart = tens.value_rowids()
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
+            
+        return [flat_tens,outpart]
+    def get_config(self):
+        """Update layer config."""
+        config = super(CastRaggedToValues, self).get_config()
+        config.update({"partition_type": self.partition_type})
+        return config  
+    
 
 
 class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
@@ -71,15 +93,6 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         sort_index (bool): If indices are sorted in sparse matrix.
         ragged_validate (bool): Validate ragged tensor.
         **kwargs
-    
-    Input:
-        A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
-        The sparse tensor that has the shape of maximum number of nodes in the batch.
-    
-    Output:
-        A tuple [edge_index,edges]
-        edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
-        edges (tf.ragged): Edge feature list of shape (batch,None,F)
     """
     
     def __init__(self,sort_index = True,ragged_validate=False ,**kwargs):
@@ -92,7 +105,18 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         """Build layer."""
         super(CastAdjacencyMatrixToRaggedList, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            adjacency (tf.sparse): A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
+                                   The sparse tensor that has the shape of maximum number of nodes in the batch.
+        
+        Returns:
+            list: [edge_index,edges]
+            
+            - edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
+            - edges (tf.ragged): Edge feature list of shape (batch,None,1)
+        """
         indexlist = inputs.indices
         valuelist = inputs.values
         if(self.sort_index==True):
@@ -131,7 +155,7 @@ class ChangeIndexing(ks.layers.Layer):
     Example:
         edge_index = ChangeIndexingRagged()([input_node,input_edge_index]) 
         [[0,1],[1,0],...],[[0,2],[1,2],...],...] to [[0,1],[1,0],...],[[5,7],[6,7],...],...] 
-        
+    
     Args:
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
                            The disjoint representation assigns nodes within the 'batch'.
@@ -141,14 +165,6 @@ class ChangeIndexing(ks.layers.Layer):
                              Default is 'sample'.  
         ragged_validate (bool): Validate ragged tensor. Default is False.
         **kwargs
-    
-    Input:
-        List [nodes,edge_indices]
-        nodes (tf.ragged): Ragged node feature list of shape (batch,None,F).
-        edge_indices (tf.ragged): Ragged edge indices of shape (batch,None,2).
-        
-    Output:
-        edge_indices (tf.ragged): Ragged tensor of edge indices with modified index reference.
     """
     
     def __init__(self, to_indexing = 'batch',from_indexing = 'sample' ,
@@ -164,7 +180,17 @@ class ChangeIndexing(ks.layers.Layer):
         """Build layer."""
         super(ChangeIndexing, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs list [nodes,edge_indices]    
+        
+        Args:
+            nodes (tf.ragged): Ragged node feature list of shape (batch,None,F).
+            edge_indices (tf.ragged): Ragged edge indices of shape (batch,None,2).
+            
+        Returns:
+            edge_indices (tf.ragged): Ragged tensor of edge indices with modified index reference.  
+        """
         nod,edgeind = inputs
         shift1 = edgeind.values
         shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1],edgeind.row_lengths()),axis=1)
@@ -182,4 +208,6 @@ class ChangeIndexing(ks.layers.Layer):
         """Update config."""
         config = super(ChangeIndexing, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
+        config.update({"from_indexing": self.from_indexing})
+        config.update({"to_indexing": self.to_indexing})
         return config    

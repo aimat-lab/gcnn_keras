@@ -19,16 +19,6 @@ class GatherNodes(ks.layers.Layer):
         
     Example:
         out = GatherNodes()([input_node,input_edge_index])   
-    
-    Input:
-        List [nodes,edge_index] 
-        nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
-        
-    Output:
-        features (tf.ragged): Gathered node features with entries at index 
-                              (node(index([0])),node(index([1]))) of shape (batch,None,F+F)
-                              The length matches the index Tensor.
     """
     
     def __init__(self, 
@@ -44,7 +34,18 @@ class GatherNodes(ks.layers.Layer):
         """Build layer."""
         super(GatherNodes, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [nodes, edge_index] 
+        
+        Args:
+            nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+        
+        Returns:
+            features (tf.ragged): Gathered node features with entries at index (node(index([0])),node(index([1]))) of shape (batch,None,F+F)
+            The length matches the index Tensor.
+        """
         nod,edgeind = inputs
         if(self.node_indexing == 'batch'):
             shiftind = edgeind.values
@@ -83,16 +84,6 @@ class GatherNodesOutgoing(ks.layers.Layer):
         
     Example:
         out = GatherNodesOutgoing()([input_node,input_edge_index])   
-    
-    Input:
-        List [nodes,edge_index]
-        nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
-        
-    Output:
-        features (tf.ragged): Gathered outgoing nodes with entries at index 
-                              node(index([1])) of shape (batch,None,F)
-                              The length matches the index Tensor at axis=1.
     """
     
     def __init__(self, 
@@ -108,7 +99,19 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesOutgoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [nodes, edge_index]
+        
+        Args:
+            nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+            
+        Returns:
+            features (tf.ragged): Gathered outgoing nodes with entries at index 
+            node(index([1])) of shape (batch,None,F)
+            The length matches the index Tensor at axis=1.
+        """
         nod,edgeind = inputs
         if(self.node_indexing == 'batch'):
             shiftind = edgeind.values
@@ -146,16 +149,6 @@ class GatherNodesIngoing(ks.layers.Layer):
         
     Example:
         out = GatherNodesIngoing()([input_node,input_edge_index])   
-    
-    Input:
-        List [nodes,edge_index]
-        nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
-        
-    Output:
-        features (tf.ragged): Gathered ingoing nodes with entries at index 
-                              node(index([1])) of shape (batch,None,F)
-                              The length matches the index Tensor at axis=1.
     """
     
     def __init__(self,
@@ -171,7 +164,19 @@ class GatherNodesIngoing(ks.layers.Layer):
         """Build layer."""
         super(GatherNodesIngoing, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs of List [nodes, edge_index]
+        
+        Args:
+            nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+            
+        Returns:
+            features (tf.ragged): Gathered ingoing nodes with entries at index 
+            node(index([1])) of shape (batch,None,F)
+            The length matches the index Tensor at axis=1.
+        """
         nod,edgeind = inputs
         if(self.node_indexing == 'batch'):
             shiftind = edgeind.values
@@ -205,16 +210,6 @@ class GatherState(ks.layers.Layer):
         
     Example:
         out = GatherState()([state,nodes])   
-    
-    Input:
-        List [state,target] 
-        state (tf.tensor): Environment or global graph state tensor of shape (batch,F)
-        target (tf.raged): Ragged node/edgelist (batch,None,F)
-        
-    Return:
-        states (tf.ragged): A ragged tensor with shape (batch,None,F)
-                            The corresponding state of each graph is repeated to 
-                            match the target tensor.
     """
     
     def __init__(self,
@@ -228,7 +223,19 @@ class GatherState(ks.layers.Layer):
         """Build layer."""
         super(GatherState, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [state, target] 
+        
+        Args:
+            state (tf.tensor): Environment or global graph state tensor of shape (batch,F)
+            target (tf.raged): Ragged node/edgelist (batch,None,F)
+            
+        Returns:
+            states (tf.ragged): A ragged tensor with shape (batch,None,F)
+            The corresponding state of each graph is repeated to 
+            match the target tensor.
+        """
         env,nod= inputs
         target_len = nod.row_lengths()
         out = tf.repeat(env,target_len,axis=0)
@@ -251,14 +258,6 @@ class LazyConcatenateNodes(ks.layers.Layer):
         axis (int): Axis to concatenate. Default is -1.
         ragged_validate (bool): False
         **kwargs
-    
-    Input:
-        List [nodes,nodes,...] of shape [(batch,None,F),(batch,None,F),...]
-        of ragged tensors of nodes with similar ragged dimension None. 
-    
-    Output:
-        nodes (tf.ragged): Concatenated Nodes with shape (batch,None,Sum(F)) 
-                           where the row_splits of first nodelist are kept.
     """
 
     def __init__(self,
@@ -274,7 +273,16 @@ class LazyConcatenateNodes(ks.layers.Layer):
         """Build layer."""
         super(LazyConcatenateNodes, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            nodes (list): [nodes,nodes,...] of shape [(batch,None,F),(batch,None,F),...]
+            of ragged tensors of nodes with similar ragged dimension None. 
+        
+        Returns:
+            nodes (tf.ragged): Concatenated Nodes with shape (batch,None,Sum(F)) 
+            where the row_splits of first nodelist are kept.
+        """
         out = tf.keras.backend.concatenate([x.values for x in inputs],axis=self.axis)
         out = tf.RaggedTensor.from_row_splits(out,inputs[0].row_splits,validate=self.ragged_validate) 
         return out     

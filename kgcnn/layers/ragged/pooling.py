@@ -11,12 +11,6 @@ class PoolingNodes(ks.layers.Layer):
     Args:
         pooling_method : tf.function to pool all nodes compatible with ragged tensors.
         **kwargs
-    
-    Inputs:
-        nodes (tf.ragged): Node ragged tensor of shape (batch,None,F)
-    
-    Outputs:
-        features (tf.tensor): Pooled node features of shape (batch,F)
     """
     
     def __init__(self,
@@ -38,7 +32,14 @@ class PoolingNodes(ks.layers.Layer):
         """Build layer."""
         super(PoolingNodes, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Args:
+            nodes (tf.ragged): Node ragged tensor of shape (batch,None,F)
+    
+        Returns:
+            features (tf.tensor): Pooled node features of shape (batch,F)
+        """
         node = inputs
         out = self._pool(node,axis=1)
         #nv = node.values
@@ -59,12 +60,6 @@ class PoolingAllEdges(ks.layers.Layer):
     Args:
         pooling_method : tf.function to pool all edges with ragged tensors.
         **kwargs
-    
-    Inputs:
-        edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
-    
-    Outputs:
-        features (tf.tensor): Pooled edge features of shape (batch,F)
     """
     
     def __init__(self, 
@@ -86,7 +81,14 @@ class PoolingAllEdges(ks.layers.Layer):
         """Build layer."""
         super(PoolingAllEdges, self).build(input_shape)
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+            
+        Args:
+            edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+    
+        Returns:
+            features (tf.tensor): Pooled edge features of shape (batch,F)
+        """
         edge = inputs        #Apply segmented mean
         out = self._pool(edge,axis=1)
         return out
@@ -110,17 +112,6 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs
-    
-    Inputs:
-        List [node, edge ,edgeindex] 
-        node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
-        edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
-                                Note that the ragged dimension of edge and edgeindex has to match. 
-    
-    Outputs:
-        features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
-                              The edge feautres are chosen for index tensor according to index(0).
     """
     
     def __init__(self, 
@@ -150,7 +141,20 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         """Build layer."""
         super(PoolingEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List of [node, edge, edgeindex] 
+        
+        Args:
+            node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
+            edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
+                                    Note that the ragged dimension of edge and edgeindex has to match. 
+        
+        Returns:
+            features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+            The edge feautres are chosen for index tensor according to index(0).
+        """
         nod,edge,edgeind = inputs
         if(self.node_indexing == 'batch'):
             shiftind = edgeind.values
@@ -204,19 +208,6 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs
-    
-    Inputs:
-        List [node, edge ,edge_index, weight] 
-        node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
-        edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
-        edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
-                                Note that the ragged dimension of edge and edge index has to match. 
-        weights (tf.ragged): The weights could be the entry in the ajacency matrix for each edgs in the list 
-                             and must be broadcasted or match in dimension. Shape is e.g. (batch,None,1).
-      
-    Outputs:
-        features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
-                              The edge feautres are chosen for index tensor according to index(0). 
     """
     
     def __init__(self, 
@@ -248,7 +239,22 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         """Build layer."""
         super(PoolingWeightedEdgesPerNode, self).build(input_shape)          
     def call(self, inputs):
-        """Forward pass."""
+        """Forward pass.
+        
+        Inputs List [node, edge, edge_index, weight] 
+        
+        Args:
+            node (tf.ragged): Node ragged tensors of shape (batch,None,F_n)
+            edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+            edge_index (tf.ragged): Edge index list as ragged tensor of shape (batch,None,2)
+                                    Note that the ragged dimension of edge and edge index has to match. 
+            weights (tf.ragged): The weights could be the entry in the ajacency matrix for each edgs in the list 
+                                 and must be broadcasted or match in dimension. Shape is e.g. (batch,None,1).
+          
+        Returns:
+            features (tf.ragged): Pooled node features of shape (batch,None,F) where the ragged dimension matches the nodes.
+            The edge feautres are chosen for index tensor according to index(0). 
+        """
         nod,edge,edgeind,weights = inputs
         if(self.node_indexing == 'batch'):
             shiftind = edgeind.values
