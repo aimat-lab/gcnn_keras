@@ -14,6 +14,9 @@ def mutagenicity_download_dataset(path,overwrite=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'Mutagenicity.zip')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
@@ -33,6 +36,9 @@ def mutagenicity_extract_dataset(path,load=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'Mutagenicity')) == True):
         print("Directory for extraction exists ... done")
@@ -61,12 +67,13 @@ def mutagenicity_load(path):
         path (str): path location.
 
     Returns:
-        labels_clean (list): Mutagenity label (0,1).
-        nodes_clean (list): Atoms as Atomnumber array.
-        edge_indices_clean (list): Bond indices (i,j).
-        edges_clean (list): Bond type.
-        atoms_clean (list): Atom list as string.
-
+        list: [labels, nodes, edge_indices, edges, atoms]
+        
+        - labels (list): Mutagenity label (0,1).
+        - nodes (list): Atoms as Atomnumber array.
+        - edge_indices (list): Bond indices (i,j).
+        - edges (list): Bond type.
+        - atoms (list): Atom list as string.
     """
     # path = os.path.split(os.path.realpath(__file__))[0]
     mutagenicity_download_dataset(path)
@@ -198,12 +205,13 @@ def mutagenicity_graph():
     Generate list of mutagenicity graphs.
 
     Returns:
-        List [labels,nodes,edge_indices,edges,atoms]
-        labels_clean (list): Mutagenity label (0,1).
-        nodes_clean (list): Atoms as Atomnumber array.
-        edge_indices_clean (list): Bond indices (i,j).
-        edges_clean (list): Bond type.
-        atoms_clean (list): Atom list as string.
+        ist: [labels, nodes, edge_indices, edges, atoms]
+        
+        - labels (list): Mutagenity label (0,1).
+        - nodes (list): Atoms as Atomnumber array.
+        - edge_indices (list): Bond indices (i,j).
+        - edges (list): Bond type.
+        - atoms (list): Atom list as string.
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)

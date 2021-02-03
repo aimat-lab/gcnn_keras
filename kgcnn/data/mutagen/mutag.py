@@ -13,6 +13,9 @@ def mutag_download_dataset(path,overwrite=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'MUTAG.zip')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
@@ -32,6 +35,9 @@ def mutag_extract_dataset(path,load=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'MUTAG')) == True):
         print("Directory for extraction exists ... done")
@@ -60,11 +66,12 @@ def mutag_load(path):
         path (str): Filepath to database.
 
     Returns:
-        labels (np.array): Labels.
-        nodes (list): Node features.
-        edge_indices (list): List of edge indices of connections per molecule.
-        edges (list): List of edge features
-
+        list: [labels, nodes, edge_indices, edges]
+        
+        - labels (np.array): Labels.
+        - nodes (list): Node features.
+        - edge_indices (list): List of edge indices of connections per molecule.
+        - edges (list): List of edge features
     """
     ##A
     mutag_A = []
@@ -162,11 +169,12 @@ def mutag_graph():
     Get MUTAG dataset.
 
     Returns:
-        List [labels,nodes,edge_indices,edges].
-        labels (np.array): Labels.
-        nodes (list): Node features.
-        edge_indices (list): List of edge indices of connections per molecule.
-        edges (list): List of edge features
+        list: [labels, nodes, edge_indices, edges]
+        
+        - labels (np.array): Labels.
+        - nodes (list): Node features.
+        - edge_indices (list): List of edge indices of connections per molecule.
+        - edges (list): List of edge features
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
