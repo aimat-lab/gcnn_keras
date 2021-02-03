@@ -134,9 +134,10 @@ def define_adjacency_from_distance(DistanceMatrix,max_distance=np.inf,max_neighb
         self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
 
     Returns:
-        GraphAdjacency (np.array): Adjacency Matrix of shape (...,N,N) of dtype=np.bool.
-        GraphIndices (np.array): Flatten indizes from former array that have Adjacency == True.
-
+        tuple: GraphAdjacency,GraphIndices
+        
+        - GraphAdjacency (np.array): Adjacency Matrix of shape (...,N,N) of dtype=np.bool.
+        - GraphIndices (np.array): Flatten indizes from former array that have Adjacency == True.
     """
     DistanceMatrix = np.array(DistanceMatrix)
     NumAtoms = DistanceMatrix.shape[-1]

@@ -14,7 +14,9 @@ def qm9_download_dataset(path,overwrite=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
-        
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'dsgdb9nsd.xyz.tar.bz2')) == False or overwrite == True):
         print("Downloading dataset...", end='', flush=True)
@@ -34,7 +36,9 @@ def qm9_extract_dataset(path,load=False):
     Args:
         datadir: (str) filepath if empty use user-default path
         overwrite: (bool) overwrite existing database, default:False
-        
+    
+    Returns:
+        os.path: Filepath
     """
     if(os.path.exists(os.path.join(path,'dsgdb9nsd.xyz')) == False):
         print("Creating directory ... ", end='', flush=True)
@@ -68,7 +72,6 @@ def qm9_remove_extracted_dataset(path):
 
     Returns:
         None.
-
     """
     if(os.path.exists(os.path.join(path,'dsgdb9nsd.xyz')) == True):
         print("Clean up unzipped folder...", end='', flush=True)
@@ -87,7 +90,6 @@ def qm9_write_pickle(path):
 
     Returns:
         qm9 (list): Full qm9 dataset as python list.
-
     """
     datasetsize = 133885
     qm9 = []
@@ -145,14 +147,13 @@ def make_qm9_graph(qm9,
         gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
 
     Returns:
-        graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
+        list: List of graph props [labels, nodes, edges, edge_idx,gstates]
         
-        labels: All labels of qm9
-        nodes: List of atomic numbers for emebdding layer
-        edges: Edgefeatures (inverse distance, gauss distance)
-        edge_idx: Edge indices (N,2)
-        gstates: Graph states, mean moleculare weight - 7 g/mol
-
+        - labels: All labels of qm9
+        - nodes: List of atomic numbers for emebdding layer
+        - edges: Edgefeatures (inverse distance, gauss distance)
+        - edge_idx: Edge indices (N,2)
+        - gstates: Graph states, mean moleculare weight - 7 g/mol
     """
     ## For graph
     
@@ -224,14 +225,13 @@ def qm9_graph(max_distance = 4,
         gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
 
     Returns:
-        graphlist (list): List of graph ojects: labels,nodes,edges,edge_idx,gstates
+        list: List of graph props [labels, nodes, edges, edge_idx, gstates]
         
-        labels: All labels of qm9
-        nodes: List of atomic numbers for emebdding layer
-        edges: Edgefeatures (inverse distance, gauss distance)
-        edge_idx: Edge indices (N,2)
-        gstates: Graph states, mean moleculare weight - 7 g/mol
-        
+        - labels: All labels of qm9
+        - nodes: List of atomic numbers for emebdding layer
+        - edges: Edgefeatures (inverse distance, gauss distance)
+        - edge_idx: Edge indices (N,2)
+        - gstates: Graph states, mean moleculare weight - 7 g/mol   
     """
     local_path = os.path.split(os.path.realpath(__file__))[0]
     print("Database path:",local_path)
