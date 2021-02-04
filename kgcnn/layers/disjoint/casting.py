@@ -35,7 +35,7 @@ class CastRaggedToValues(ks.layers.Layer):
             list: [values, value_partition]
             
             - values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
-            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
               Yields the assignment of nodes/edges per graph. Default is row_length.
         """
         tens = inputs
@@ -91,7 +91,7 @@ class CastMaskedToValues(ks.layers.Layer):
             
             - values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
               The output shape is given (batch[Mask],F).
-            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
               Yields the assignment of nodes/edges per graph in batch. Default is row_length.
         """
         tens,mask = inputs
@@ -112,7 +112,7 @@ class CastMaskedToValues(ks.layers.Layer):
         if(self.partition_type == "row_length"):
             outpart = row_lengths
         elif(self.partition_type == "row_splits"):
-            outpart = tf.concat([tf.zeros_like(row_lengths[0:1]),tf.cumsum(row_lengths)],axis=0)
+            outpart = tf.pad(tf.cumsum(row_lengths),[[1,0]])
         elif(self.partition_type == "value_rowids"):
             outpart = tf.repeat(tf.range(shape_tens[0]),row_lengths)
         else:
@@ -154,7 +154,7 @@ class CastBatchToValues(ks.layers.Layer):
             list: [values, value_partition] 
             
             - values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
-            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
               Yields the assignment of nodes/edges per graph in batch. Default is row_length.
         """
         feat = inputs
@@ -166,7 +166,7 @@ class CastBatchToValues(ks.layers.Layer):
         if(self.partition_type == "row_length"):
             outpart = out_len
         elif(self.partition_type == "row_splits"):
-            outpart = tf.concat([tf.zeros_like(out_len[0:1]),tf.cumsum(out_len)],axis=0)
+            outpart = tf.pad(tf.cumsum(out_len),[[1,0]]) 
         elif(self.partition_type == "value_rowids"):
             outpart = tf.repeat(tf.range(tf.shape(out_len)[0]),out_len)
         else:
@@ -203,7 +203,7 @@ class CastValuesToBatch(ks.layers.Layer):
                 
         Args: 
             values (tf.tensor): Flatten feature tensor of shape (batch*N,F).
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
                                          Yields the assignment of nodes/edges per graph in batch. Default is row_length.
                                       
         Returns:
@@ -262,7 +262,7 @@ class CastValuesToPadded(ks.layers.Layer):
         
         Args:
             values (tf.tensor): Feature tensor with flatten batch dimension of shape (batch*None,F).
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
                                          Yields the assignment of nodes/edges per graph in batch. Default is row_length.
             
         Returns:
@@ -328,7 +328,7 @@ class CastValuesToRagged(ks.layers.Layer):
             values (tf.tensor): Feature tensor of nodes/edges of shape (batch*None,F)
                                 where F stands for the feature dimension and None represents
                                 the flexible size of the graphs.
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
                                          Yields the assignment of nodes/edges per graph in batch. Default is row_length.
             
         Returns:

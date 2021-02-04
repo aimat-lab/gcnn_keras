@@ -12,13 +12,15 @@ class AdjacencyPower(ks.layers.Layer):
         
     Args:
         n (int): Power of the adjacency matrix. Default is 2.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
-    def __init__(self, n=2, **kwargs):
+    def __init__(self,partition_type = "row_length" ,n=2, **kwargs):
         """Initialize layer."""
         super(AdjacencyPower, self).__init__(**kwargs)          
         self.n = n
+        self.partition_type = partition_type
     def build(self, input_shape):
         """Build layer."""
         super(AdjacencyPower, self).build(input_shape)          
@@ -30,17 +32,33 @@ class AdjacencyPower(ks.layers.Layer):
         Args: 
             edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
             edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
-            edge_length (tf.tensor): Number of edges in each graph (batch,)
-            node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
+            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
             
         Returns:
             List: [edge_indices, edges, edge_len]
             
             - edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
             - edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
-            - edge_length (tf.tensor): Number of edges in each graph (batch,)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+              Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
         """
-        edge_index,edge,edge_len,node_len = inputs
+        edge_index,edge,edge_part,node_part = inputs
+        
+        # Cast to length tensor
+        if(self.partition_type == "row_length"):
+            edge_len = edge_part
+            node_len = node_part
+        elif(self.partition_type == "row_splits"):
+            edge_len = edge_part[1:] - edge_part[:-1]
+            node_len = node_part[1:] - node_part[:-1]
+        elif(self.partition_type == "value_rowids"):            
+            edge_len = tf.math.segment_sum(tf.ones_like(edge_part),edge_part)
+            node_len = tf.math.segment_sum(tf.ones_like(node_part),node_part)
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
         
         #batchwise indexing
         shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
@@ -76,11 +94,21 @@ class AdjacencyPower(ks.layers.Layer):
         new_edge_index = ind[mask]
         new_edge = tf.expand_dims(out[mask],axis=-1 )
         
-        return [new_edge_index,new_edge,new_edge_len]
+        if(self.partition_type == "row_length"):
+            new_edge_part = new_edge_len
+        elif(self.partition_type == "row_splits"):
+            new_edge_part =  tf.pad(tf.cumsum(new_edge_len),[[1,0]]) 
+        elif(self.partition_type == "value_rowids"):            
+            new_edge_part = tf.repeat(tf.range(tf.shape(new_edge_len)[0]),new_edge_len)
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
+        
+        return [new_edge_index,new_edge,new_edge_part]
     
     def get_config(self):
         """Update layer config."""
         config = super(AdjacencyPower, self).get_config()
         config.update({"n": self.n})
+        config.update({"partition_type": self.partition_type})
         return config  
     
