@@ -18,6 +18,7 @@ class Set2Set(ks.layers.Layer):
         T (int): iteratrions T=3
         pooling_method : 'mean'
         init_qstar: 'mean'
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         activation : "tanh"
         recurrent_activation : "sigmoid"
         use_bias : True
@@ -48,6 +49,7 @@ class Set2Set(ks.layers.Layer):
                     T=3,
                     pooling_method = 'mean',
                     init_qstar = 'mean',
+                    partition_type = "row_length",
                     #Args for LSTM
                     activation="tanh",
                     recurrent_activation="sigmoid",
@@ -80,6 +82,7 @@ class Set2Set(ks.layers.Layer):
         self.T = T # Number of Iterations to work on memory
         self.pooling_method = pooling_method
         self.init_qstar = init_qstar
+        self.partition_type = partition_type
     
         if(self.pooling_method == 'mean'):
             self._pool = K.mean
@@ -129,24 +132,36 @@ class Set2Set(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        List of [nodes, batch_length]
+        List of [nodes, node_partition]
         
         Args:
             nodes (tf.tensor): List of nodefeatures of shape (batch*None,F)
-            batch_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
         
         Returns:
             feature (tf.tensor): Pooled node tensor of shape (batch,1,2*channels)
         """
-        x, batch_num = inputs
-        batch_shape = K.shape(batch_num)
+        x, batch_part = inputs
+        
+        if(self.partition_type == "row_length"):
+            batch_num = batch_part
+            batch_shape = K.shape(batch_num)
+            batch_index = tf.repeat(K.arange(0,batch_shape[0],1),batch_num) #(batch*num,) ex: [0,0,0,1,2,2,2,...]
+        elif(self.partition_type == "row_splits"):
+            batch_num = batch_part[1:] - batch_part[:-1]
+            batch_shape = K.shape(batch_num)
+            batch_index = tf.repeat(K.arange(0,batch_shape[0],1),batch_num) #(batch*num,) ex: [0,0,0,1,2,2,2,...]
+        elif(self.partition_type == "value_rowids"):
+            batch_index = batch_part #(batch*num,) ex: [0,0,0,1,2,2,2,...]
+            batch_num = tf.math.segment_sum(tf.ones_like(batch_part),batch_part)
+            batch_shape = K.shape(batch_num)
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
         
         #Reading to memory removed here, is to be done by seperately
-        m = x # (batch,feat)
-        
-        #Compute batchindex for averaging
-        batch_index = tf.repeat(K.arange(0,batch_shape[0],1),batch_num) #(batch*num,) ex: [0,0,0,1,2,2,2,...]
-        
+        m = x # (batch*None,feat)
+          
         # Initialize q0 and r0
         qstar = self.qstar0(m,batch_index,batch_num)
         
@@ -232,6 +247,7 @@ class Set2Set(ks.layers.Layer):
         config.update({"T": self.T})
         config.update({"pooling_method": self.pooling_method})
         config.update({"init_qstar": self.init_qstar})
+        config.update({"partition_type": self.partition_type})
         lstm_conf = self.lay_lstm.get_config()
         lstm_param = ["activation",
                     "recurrent_activation",

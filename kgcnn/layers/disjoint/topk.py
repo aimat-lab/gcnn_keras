@@ -13,6 +13,9 @@ class PoolingTopK(ks.layers.Layer):
         kernel_initializer (str): Score initialization. Default is 'glorot_uniform',
         kernel_regularizer (str): Score regularization. Default is None.
         kernel_constraint (bool): Score constrain. Default is None.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
@@ -21,6 +24,8 @@ class PoolingTopK(ks.layers.Layer):
                  kernel_initializer = 'glorot_uniform',
                  kernel_regularizer = None,
                  kernel_constraint=None,
+                 partition_type = "row_length",
+                 node_indexing = "batch",
                  **kwargs):
         """Initialize Layer."""
         super(PoolingTopK, self).__init__(**kwargs)
@@ -30,6 +35,9 @@ class PoolingTopK(ks.layers.Layer):
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
         self.kernel_constraint = ks.constraints.get(kernel_constraint)
 
+        self.partition_type = partition_type
+        self.node_indexing = node_indexing
+        
     def build(self, input_shape):
         """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
@@ -47,34 +55,58 @@ class PoolingTopK(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs list of [nodes, node_length, edges, edge_length, edge_indices]
+        Inputs list of [nodes, node_partition, edges, edge_partition, edge_indices]
             
         Args:
             nodes (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_length (tf.tensor): Node length tensor of the numer of nodes
-                                     in each graph of shape (batch,)
+            node_partition (tf.tensor): Node length tensor of the numer of nodes
+                                        in each graph of shape (batch,)
             edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            edge_length (tf.tensor): Edge length tensor of the numer of edges
-                                     in each graph of shape (batch,)
+            edge_partition (tf.tensor): Edge length tensor of the numer of edges
+                                        in each graph of shape (batch,)
             edge_indices (tf.tensor): Flatten edge index list tensor of shape (batch*None,2)   
         
         Returns:
-            Tuple: [nodes, node_length, edges, edge_length, edge_indices],[map_nodes,map_edges]
+            Tuple: [nodes, node_partition, edges, edge_partition, edge_indices],[map_nodes,map_edges]
             
             - nodes (tf.tensor): Pooled node feature tensor of shape (batch*None,F)
-            - node_length (tf.tensor): Pooled node length tensor of the numer of nodes in each graph of shape (batch,)
+            - node_partition (tf.tensor): Pooled node length tensor of the numer of nodes in each graph of shape (batch,)
             - edges (tf.tensor): Pooled edge feature list of shape (batch*None,F)
-            - edge_length (tf.tensor): Pooled edge length tensor of the numer of edges in each graph of shape (batch,)
+            - edge_partition (tf.tensor): Pooled edge length tensor of the numer of edges in each graph of shape (batch,)
             - edge_indices (tf.tensor): Pooled edge index list tensor of shape (batch*None,2) 
             - map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)
             - map_edges (tf.tensor): Index map between original and pooled edges of shape (batch*None,)
         """
-        node,nodelen,edgefeat,edgelen,edgeind = inputs
+        node,node_part,edgefeat,edge_part,edgeindref = inputs
         
         #Determine index dtype
-        index_dtype = edgeind.dtype
+        index_dtype = edgeindref.dtype
         
-        #Get node properties from ragged tensor
+        #Make partition tensors
+        if(self.partition_type == "row_length"):
+            edgelen = edge_part
+            nodelen = node_part
+        elif(self.partition_type == "row_splits"):
+            edgelen = edge_part[1:] - edge_part[:-1]
+            nodelen = node_part[1:] - node_part[:-1]
+        elif(self.partition_type == "value_rowids"):
+            edgelen = tf.math.segment_sum(tf.ones_like(edge_part),edge_part)
+            nodelen = tf.math.segment_sum(tf.ones_like(node_part),node_part)
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")        
+        
+        # Shift index if necessary
+        if(self.node_indexing == 'batch'):
+            edgeind = edgeindref
+        elif(self.node_indexing == 'sample'):
+            shift1 = edgeindref
+            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(nodelen,exclusive=True),edgelen),axis=1)
+            edgeind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+    
+        
+        #Get node properties 
         nvalue = node
         nrowlength = tf.cast(nodelen,dtype = index_dtype)
         nids = tf.repeat(tf.range(tf.shape(nrowlength)[0],dtype=index_dtype),nrowlength)
@@ -146,16 +178,29 @@ class PoolingTopK(ks.layers.Layer):
         
         #Collect output tensors
         out_node = gated_n
-        out_nlen = pooled_len
         out_edge = clean_edge_feat_sorted
-        out_elen = clean_edge_len
         out_edge_index = out_indexlist
+        
+        #Shift length to partition required
+        if(self.partition_type == "row_length"):
+            out_np = pooled_len
+            out_ep = clean_edge_len
+        elif(self.partition_type == "row_splits"):
+            out_np = tf.pad(tf.cumsum(pooled_len),[[1,0]])
+            out_ep = tf.pad(tf.cumsum(clean_edge_len),[[1,0]])
+        elif(self.partition_type == "value_rowids"):
+            out_np = pooled_id
+            out_ep = clean_edge_ids
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")        
         
         #Collect reverse pooling info
         out_pool = pooled_index
+        out_pool_edge = edge_position_new
         
-        out = [out_node,out_nlen,out_edge,out_elen,out_edge_index]
-        out_map = [out_pool,edge_position_new]
+        #Output list
+        out = [out_node,out_np,out_edge,out_ep,out_edge_index]
+        out_map = [out_pool,out_pool_edge]
         return out,out_map
     
     
@@ -171,6 +216,8 @@ class PoolingTopK(ks.layers.Layer):
         'kernel_constraint':
             ks.constraints.serialize(self.kernel_constraint),
         })
+        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing})
         return config 
     
 
@@ -201,29 +248,29 @@ class UnPoolingTopK(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs [node, node_length, edge, edge_length, edge_indices, map_node, map_edge, node_pool, node_length_pool, edge_pool, edge_length_pool, edge_indices_pool]
+        Inputs [node, node_partition, edge, edge_partition, edge_indices, map_node, map_edge, node_pool, node_partition_pool, edge_pool, edge_partition_pool, edge_indices_pool]
         
         Args:        
             node (tf.tensor): Original node tensor of shape (batch*None,F_n)
-            node_length (tf.tensor): Original node length tensor of shape (batch,)
+            node_partition (tf.tensor): Original node partition tensor, e.g. length tensor of shape (batch,)
             edge (tf.tensor): Original edge feature tensor of shape (batch*None,F_e)
-            edge_length (tf.tensor): Original edge length tensor of shape (batch,)
+            edge_partition (tf.tensor): Original edge partition tensor, e.g. length tensor of shape (batch,)
             edge_indices (tf.tensor): Original index tensor of shape (batch*None,2) 
             map_node (tf.tensor): Index map between original and pooled nodes (batch*None,)
             map_edge (tf.tensor): Index map between original and pooled edges (batch*None,)
             node_pool (tf.tensor): Pooled node tensor of shape (batch*None,F_n)
-            node_length_pool (tf.tensor): Pooled node length tensor of shape (batch,)
+            node_partition_pool (tf.tensor): Pooled node partition tensor, e.g. length tensor of shape (batch,)
             edge_pool (tf.tensor): Pooled edge feature tensor of shape (batch*None,F_e)
-            edge_length_pool (tf.tensor): Pooled edge length tensor of shape (batch,)
+            edge_partition_pool (tf.tensor): Pooled edge partition tensor, e.g. length tensor of shape (batch,)
             edge_indices (tf.tensor): Pooled index tensor of shape (batch*None,2) 
         
         Returns:
             List: [nodes, node_length, edges, edge_length, edge_indices]
             
             - nodes (tf.tensor): Unpooled node feature tensor of shape (batch*None,F)
-            - node_length (tf.tensor): Unpooled node length tensor of the numer of nodes in each graph of shape (batch,)
+            - node_partition (tf.tensor): Unpooled node lpartition tensor, e.g. length tensor of shape (batch,)
             - edges (tf.tensor): Unpooled edge feature list of shape (batch*None,F)
-            - edge_length (tf.tensor): Unpooled edge length tensor of the numer of edges in each graph of shape (batch,)
+            - edge_partition (tf.tensor): Unpooled edge partition tensor, e.g. length tensor of shape (batch,)
             - edge_indices (tf.tensor): Unpooled edge index list tensor of shape (batch*None,2)
         """
         node_old,nodelen_old,edge_old,edgelen_old,edgeind_old, map_node, map_edge , node_new,nodelen_new,edge_new,edgelen_new,edgeind_new = inputs

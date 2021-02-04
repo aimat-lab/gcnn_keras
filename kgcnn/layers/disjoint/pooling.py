@@ -13,8 +13,11 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
@@ -23,6 +26,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
                  node_indexing = "batch",
                  is_sorted = True,
                  has_unconnected = False,
+                 partition_type = "row_length",
                  **kwargs):
         """Initialize layer."""
         super(PoolingEdgesPerNode, self).__init__(**kwargs)
@@ -30,6 +34,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         self.node_indexing = node_indexing
+        self.partition_type = partition_type
         
         if(self.pooling_method == "segment_mean"):
             self._pool = tf.math.segment_mean
@@ -44,13 +49,15 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs List of [node, node_length, edges, edge_length, edge_indices]
+        Inputs List of [node, node_partition, edges, edge_partition, edge_indices]
         
         Args: 
             node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
             edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
             edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
                                       The index for segment reduction is taken from edge_indices[:,0].
     
@@ -59,13 +66,25 @@ class PoolingEdgesPerNode(ks.layers.Layer):
             The size will match the flatten node tensor.
             Output shape is (batch*None, F).
         """
-        nod,node_len,edge,edge_len,edgeind = inputs
+        nod,node_part,edge,edge_part,edgeind = inputs
         
         if(self.node_indexing == 'batch'):
-            shiftind = edgeind
-        elif(self.node_indexing == 'sample'): 
+            shiftind = edgeind 
+        elif(self.node_indexing == 'sample'):
             shift1 = edgeind
-            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            if(self.partition_type == "row_length"):
+                edge_len = edge_part
+                node_len = node_part
+                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            elif(self.partition_type == "row_splits"):
+                edge_len = edge_part[1:] - edge_part[:-1]
+                shift2 = tf.expand_dims(tf.repeat(node_part[:-1],edge_len),axis=1)
+            elif(self.partition_type == "value_rowids"):
+                edge_len = tf.math.segment_sum(tf.ones_like(edge_part),edge_part)
+                node_len = tf.math.segment_sum(tf.ones_like(node_part),node_part)
+                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            else:
+                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
             shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
         else:
             raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
@@ -97,6 +116,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         config.update({"is_sorted": self.is_sorted})
         config.update({"has_unconnected": self.has_unconnected})
         config.update({"node_indexing": self.node_indexing})
+        config.update({"partition_type": self.partition_type})
         return config  
         
     
@@ -113,7 +133,11 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
@@ -123,6 +147,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
                  node_indexing = "batch",
                  has_unconnected = False,
                  normalize_by_weights = False,
+                 partition_type = "row_length",
                  **kwargs):
         """Initialize layer."""
         super(PoolingWeightedEdgesPerNode, self).__init__(**kwargs)
@@ -131,6 +156,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         self.normalize_by_weights = normalize_by_weights
+        self.partition_type = partition_type
         
         if(self.pooling_method == "segment_mean"):
             self._pool = tf.math.segment_mean
@@ -145,15 +171,17 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs List of [node, node_length, edges, edge_length, edge_indices]
+        Inputs List of [node, node_partition, edges, edge_partition, edge_indices]
         
         Args: 
             node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_length (tf.tensor): Number of nodes in each graph (batch,)
+            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
             edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-            edge_length (tf.tensor): Number of edges in each graph (batch,)
+            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
             edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-                                      The index for segment reduction is taken from edge_indices[:,0].
+                                      The index for segment reduction is taken from edge_indices[:,0] (ingoing node).
             weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list 
                                  and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
     
@@ -162,13 +190,25 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
             The size will match the flatten node tensor.
             Output shape is (batch*None, F).
         """
-        nod,node_len,edge,edge_len,edgeind,weights = inputs
+        nod,node_part,edge,edge_part,edgeind,weights = inputs
         
         if(self.node_indexing == 'batch'):
-            shiftind = edgeind
-        elif(self.node_indexing == 'sample'): 
+            shiftind = edgeind 
+        elif(self.node_indexing == 'sample'):
             shift1 = edgeind
-            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            if(self.partition_type == "row_length"):
+                edge_len = edge_part
+                node_len = node_part
+                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            elif(self.partition_type == "row_splits"):
+                edge_len = edge_part[1:] - edge_part[:-1]
+                shift2 = tf.expand_dims(tf.repeat(node_part[:-1],edge_len),axis=1)
+            elif(self.partition_type == "value_rowids"):
+                edge_len = tf.math.segment_sum(tf.ones_like(edge_part),edge_part)
+                node_len = tf.math.segment_sum(tf.ones_like(node_part),node_part)
+                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len,exclusive=True),edge_len),axis=1)
+            else:
+                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
             shiftind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
         else:
             raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
@@ -207,6 +247,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
         config.update({"has_unconnected": self.has_unconnected})
         config.update({"node_indexing": self.node_indexing})
         config.update({"normalize_by_weights": self.normalize_by_weights})
+        config.update({"partition_type": self.partition_type})
         return config  
 
 
@@ -217,15 +258,18 @@ class PoolingNodes(ks.layers.Layer):
     
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
 
     def __init__(self,  
                  pooling_method = "segment_mean",
+                 partition_type = "row_length",
                  **kwargs):
         """Initialize layer."""
         super(PoolingNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
+        self.partition_type = partition_type
         
         if(self.pooling_method == "segment_mean"):
             self._pool = tf.math.segment_mean
@@ -240,20 +284,31 @@ class PoolingNodes(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs List of [nodes, node_length] 
+        Inputs List of [nodes, node_partition] 
         
         Args: 
             nodes (tf.tensor): Flatten node features of shape (batch*None,F)
-            node_length (tf.tensor): Number of nodes in each graph of shape (batch,)
+            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
     
         Returns:
             features (tf.tensor): Pooled node feature list of shape (batch,F)
             where F is the feature dimension and holds a pooled 
             node feature for each graph.
         """
-        node,len_node = inputs        
-        len_shape_int = K.shape(len_node)
-        batchi = tf.repeat(K.arange(0,len_shape_int[0],1),len_node)
+        node,node_part = inputs 
+        
+        if(self.partition_type == "row_length"):
+            node_len = node_part
+            batchi = tf.repeat(tf.range(tf.shape(node_len)[0]),node_len)
+        elif(self.partition_type == "row_splits"):
+            node_len = node_part[1:] - node_part[:-1]
+            batchi = tf.repeat(tf.range(tf.shape(node_len)[0]),node_len)
+        elif(self.partition_type == "value_rowids"):
+            batchi = node_part
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        
         out = self._pool(node,batchi)
         #Output should have correct shape
         return out
@@ -261,6 +316,7 @@ class PoolingNodes(ks.layers.Layer):
         """Update layer config."""
         config = super(PoolingNodes, self).get_config()
         config.update({"pooling_method": self.pooling_method})
+        config.update({"partition_type": self.partition_type})
         return config 
 
 
@@ -271,15 +327,18 @@ class PoolingAllEdges(ks.layers.Layer):
 
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
     def __init__(self,
                  pooling_method = "segment_mean",
+                 partition_type = "row_length",
                  **kwargs):
         """Initialize layer."""
         super(PoolingAllEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
+        self.partition_type = partition_type
         
         if(self.pooling_method == "segment_mean"):
             self._pool = tf.math.segment_mean
@@ -294,21 +353,31 @@ class PoolingAllEdges(ks.layers.Layer):
     def call(self, inputs):
         """Forward pass.
         
-        Inputs List of [egdes, edge_length] 
+        Inputs List of [egdes, edge_partition] 
         
         Args: 
             edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            edge_length (tf.tensor): Number of edges in each graph of shape (batch*None,F)
-                                     Keeps the batch assignment.
+            edge_partition (tf.tensor): Row partition for edges. This can be either row_length, value_rowids, row_splits etc.
+                                        Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
     
         Returns:
             features (tf.tensor): A pooled edges feature list of shape (batch,F).
             where F is the feature dimension and holds a pooled 
             edge feature for each graph.
         """
-        edge,len_edge = inputs
-        len_shape = K.shape(len_edge)
-        batchi = tf.repeat(K.arange(0,len_shape[0],1),len_edge)
+        edge,edge_part = inputs
+        
+        if(self.partition_type == "row_length"):
+            edge_len = edge_part
+            batchi = tf.repeat(tf.range(tf.shape(edge_len)[0]),edge_len)
+        elif(self.partition_type == "row_splits"):
+            edge_len = edge_part[1:] - edge_part[:-1]
+            batchi = tf.repeat(tf.range(tf.shape(edge_len)[0]),edge_len)
+        elif(self.partition_type == "value_rowids"):
+            batchi = edge_part
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        
         out = self._pool(edge,batchi)
         #Output already has correct shape
         return out
@@ -316,4 +385,5 @@ class PoolingAllEdges(ks.layers.Layer):
         """Update layer config."""
         config = super(PoolingAllEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
+        config.update({"partition_type": self.partition_type})
         return config 
