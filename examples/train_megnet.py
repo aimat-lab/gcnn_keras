@@ -24,10 +24,13 @@ y_data = (np.expand_dims(y_data,axis=-1)-y_mean)
 data_unit = 'eV'
 
 #Make test/train split
+VALSIZE = 100
+TRAINSIZE = 2000
+print("Training Size:",TRAINSIZE," Validation Size:",VALSIZE )
 inds = np.arange(len(y_data))
 inds = shuffle(inds)
-ind_val = inds[:13000]
-ind_train = inds[13000:]
+ind_val = inds[:VALSIZE ]
+ind_train = inds[VALSIZE:(VALSIZE + TRAINSIZE)]
 
 # Select train/test data
 xtrain = [[x[i] for i in ind_train] for x in x_data]
