@@ -35,11 +35,11 @@ pip install -e ./gcnn_keras
 
 ### Representation
 The most frequent usage for graph convolutions is either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
-Graphs can be represented by a connection index list plus feature information. Typical quantities in tensorform to describe a graph are listed below.
+Graphs can be represented by a connection index list plus feature information. Typical quantities in tensor format to describe a graph are listed below.
 
 * `n`: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * `e`: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
-* `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The values denote a connection of incoming i and outgoing j node as `(i,j)`.
+* `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i,j)`.
 * `u`: Graph state information of shape `([batch],F)` where `F` denotes the feature dimension.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
