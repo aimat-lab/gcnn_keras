@@ -46,6 +46,9 @@ def getmodelNMPN(
                 activation = 'selu',
                 is_sorted:bool = True,
                 has_unconnected:bool = False,
+                set2set_init:str = '0',
+                set2set_pool:str = "sum",
+                out_pool = "segment_sum",
                 **kwargs
             ):
     """
@@ -80,6 +83,10 @@ def getmodelNMPN(
         activation (str, optional): Activation function to use. Defaults to 'selu'.
         is_sorted (bool): Are edge indices sorted. Default is True.
         has_unconnected (bool): Has unconnected nodes. Default is False.
+        set2set_init (str): Initialize method. Default is '0'.
+        set2set_pool (str): Pooling method in set2set. Default is "sum".
+        out_pool (str): Final node pooling in place of set2set.
+        
         **kwargs
 
     Returns:
@@ -129,9 +136,9 @@ def getmodelNMPN(
         if(use_set2set == True):
             #output
             outSS = ks.layers.Dense(set2set_dim)(n)
-            out = Set2Set(set2set_dim)([outSS,node_len])
+            out = Set2Set(set2set_dim,pooling_method=set2set_pool,init_qstar = set2set_init)([outSS,node_len])
         else:
-            out = PoolingNodes()([n,node_len])
+            out = PoolingNodes(pooling_method = out_pool)([n,node_len])
         
         # final dense layers 
         main_output = MLP(output_dim,
