@@ -12,7 +12,7 @@ setup(
     description="General Base Layers for Graph Convolutions with tensorflow.keras",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=['numpy',"scikit-learn","pandas"],
     extras_require={
         "tf": ["tensorflow>=2.2.0"],
