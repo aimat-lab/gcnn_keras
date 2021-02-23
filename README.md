@@ -24,11 +24,16 @@ Any comments, suggestions or help are very welcome!
 <a name="installation"></a>
 # Installation
 
-Clone repository and install with editable mode:
+Clone repository https://github.com/aimat-lab/gcnn_keras and install with editable mode:
 
 ```bash
 pip install -e ./gcnn_keras
 ```
+or latest
+```bash
+pip install kgcnn
+```
+
 
 <a name="implementation-details"></a>
 # Implementation details
