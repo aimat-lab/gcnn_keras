@@ -87,7 +87,7 @@
 <dd class="field-even"><p><p>[values, value_partition]</p>
 <ul class="simple">
 <li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).</p></li>
-<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
 </ul>
 </p>
@@ -145,7 +145,7 @@ where N is the maximum number of nodes or edges.</p></li>
 <ul class="simple">
 <li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
 The output shape is given (batch[Mask],F).</p></li>
-<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
 </ul>
 </p>
@@ -270,7 +270,7 @@ F denotes the feature dimension.</p>
 <dd class="field-even"><p><p>[values, value_partition]</p>
 <ul class="simple">
 <li><p>values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).</p></li>
-<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p>value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph. Default is row_length.</p></li>
 </ul>
 </p>
@@ -317,7 +317,7 @@ Yields the assignment of nodes/edges per graph. Default is row_length.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>values</strong> (<em>tf.tensor</em>) – Flatten feature tensor of shape (batch*N,F).</p></li>
-<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
 </ul>
 </dd>
@@ -369,7 +369,7 @@ F denotes the feature dimension. Requires graphs of identical size in batch.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>values</strong> (<em>tf.tensor</em>) – Feature tensor with flatten batch dimension of shape (batch*None,F).</p></li>
-<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
 </ul>
 </dd>
@@ -425,7 +425,7 @@ Yields the assignment of nodes/edges per graph in batch. Default is row_length.<
 <li><p><strong>values</strong> (<em>tf.tensor</em>) – Feature tensor of nodes/edges of shape (batch*None,F)
 where F stands for the feature dimension and None represents
 the flexible size of the graphs.</p></li>
-<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, row_id, row_splits etc.
+<li><p><strong>value_partition</strong> (<em>tf.tensor</em>) – Row partition tensor. This can be either row_length, value_rowids, row_splits etc.
 Yields the assignment of nodes/edges per graph in batch. Default is row_length.</p></li>
 </ul>
 </dd>
@@ -520,6 +520,7 @@ in the flatten nodelist. Shape is (batch*None,2).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n</strong> (<em>int</em>) – Power of the adjacency matrix. Default is 2.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -540,8 +541,10 @@ in the flatten nodelist. Shape is (batch*None,2).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list of shape (batch*None,2)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten adjacency entries of shape (batch*None,1)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -549,7 +552,8 @@ in the flatten nodelist. Shape is (batch*None,2).</p>
 <ul class="simple">
 <li><p>edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)</p></li>
 <li><p>edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)</p></li>
-<li><p>edge_length (tf.tensor): Number of edges in each graph (batch,)</p></li>
+<li><p>edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </p>
 </dd>
@@ -590,6 +594,7 @@ For disjoint representation ‘batch’ is default.</p></li>
 <li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
 <li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
 <li><p><strong>normalize_by_weights</strong> (<em>bool</em>) – Normalize the pooled output by the sum of weights. Default is False.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -604,14 +609,16 @@ For disjoint representation ‘batch’ is default.</p></li>
 <dt id="kgcnn.layers.disjoint.conv.GCN.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.GCN.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs list [node, node_length, edge, edge_length, edge_index]</p>
+<p>Inputs list [node, node_partition, edge, edge_partition, edge_index]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature list of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Edge indices for disjoint representation of shape
 (batch*None,2) that corresponds to indexing ‘batch’.</p></li>
 </ul>
@@ -649,6 +656,9 @@ Output shape is (batch*None,F).</p>
 <li><p><strong>cfconv_pool</strong> (<em>str</em>) – Pooling method. Default is ‘segment_sum’.</p></li>
 <li><p><strong>is_sorted</strong> (<em>bool</em>) – If edge indices are sorted. Default is True.</p></li>
 <li><p><strong>has_unconnected</strong> (<em>bool</em>) – If graph has unconnected nodes. Default is False.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
 </ul>
 </dd>
 </dl>
@@ -662,14 +672,16 @@ Output shape is (batch*None,F).</p>
 <dt id="kgcnn.layers.disjoint.conv.cfconv.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.conv.cfconv.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass: Calculate edge update.</p>
-<p>Inputs [node, node_length, edge, edge_length, edge_index]</p>
+<p>Inputs [node, node_partition, edge, edge_partition, edge_index]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature list of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Edge indices for disjoint representation of shape
 (batch*None,2) that corresponds to indexing ‘batch’.</p></li>
 </ul>
@@ -705,6 +717,7 @@ Output shape is (batch*None,F).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
 For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -724,9 +737,11 @@ For disjoint representation ‘batch’ is default.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -759,6 +774,7 @@ For ingoing nodes, layer uses only index[0].</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
 For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -778,10 +794,12 @@ For disjoint representation ‘batch’ is default.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)
 For ingoing gather nodes according to index[0]</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -814,6 +832,7 @@ For outgoing nodes, layer uses only index[1].</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
 For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -833,10 +852,12 @@ For disjoint representation ‘batch’ is default.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each subgrap of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_index</strong> (<em>tf.tensor</em>) – Flatten edge indices of shape (batch*None,2)
 For ingoing gather nodes according to index[1]</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -862,10 +883,13 @@ Output shape is (batch*None,F).</p>
 <em class="property">class </em><code class="sig-prename descclassname">kgcnn.layers.disjoint.gather.</code><code class="sig-name descname">GatherState</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
 <p>Layer to repeat environment or global state for node or edge lists. The node or edge lists are flattened.</p>
-<p>To repeat the correct environment for each sample, a tensor with the target length is required.</p>
+<p>To repeat the correct environment for each sample, a tensor with the target length/partition is required.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -883,8 +907,8 @@ Output shape is (batch*None,F).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>environment</strong> (<em>tf.tensor</em>) – List of graph specific feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>target_length</strong> (<em>tf.tensor</em>) – Number of nodes or edges in each graph of shape (batch,)
-This can be either node or edge specific.</p></li>
+<li><p><strong>target_partition</strong> (<em>tf.tensor</em>) – Assignment of nodes or edges to each graph in batch.
+Default is row_length of shape (batch,).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -895,6 +919,12 @@ Output shape is (batch*N,F).</p>
 <dd class="field-odd"><p>features (tf.tensor)</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kgcnn.layers.disjoint.gather.GatherState.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.gather.GatherState.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config.</p>
 </dd></dl>
 
 </dd></dl>
@@ -963,6 +993,7 @@ Output shape is (batch*N,F).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -977,13 +1008,13 @@ Output shape is (batch*N,F).</p>
 <dt id="kgcnn.layers.disjoint.pooling.PoolingAllEdges.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingAllEdges.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs List of [egdes, edge_length]</p>
+<p>Inputs List of [egdes, edge_partition]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph of shape (batch*None,F)
-Keeps the batch assignment.</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edges. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1017,8 +1048,11 @@ Important: edge_index[:,0] are sorted for segment-operation.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function. Default is ‘segment_mean’.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
 <li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
 <li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -1033,14 +1067,16 @@ Important: edge_index[:,0] are sorted for segment-operation.</p>
 <dt id="kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs List of [node, node_length, edges, edge_length, edge_indices]</p>
+<p>Inputs List of [node, node_partition, edges, edge_partition, edge_indices]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list tensor of shape (batch*None,2)
 The index for segment reduction is taken from edge_indices[:,0].</p></li>
 </ul>
@@ -1073,6 +1109,7 @@ Output shape is (batch*None, F).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -1087,12 +1124,13 @@ Output shape is (batch*None, F).</p>
 <dt id="kgcnn.layers.disjoint.pooling.PoolingNodes.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingNodes.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs List of [nodes, node_length]</p>
+<p>Inputs List of [nodes, node_partition]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node features of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1127,7 +1165,11 @@ Important: edge_index[:,0] could be sorted for segment-operation.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pooling_method</strong> (<em>str</em>) – Pooling method to use i.e. segement_function. Default is ‘segment_mean’.</p></li>
 <li><p><strong>is_sorted</strong> (<em>bool</em>) – If the edge indices are sorted for first ingoing index. Default is False.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
 <li><p><strong>has_unconnected</strong> (<em>bool</em>) – If unconnected nodes are allowed. Default is True.</p></li>
+<li><p><strong>normalize_by_weights</strong> (<em>bool</em>) – Normalize the pooled output by the sum of weights. Default is False.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -1142,16 +1184,18 @@ Important: edge_index[:,0] could be sorted for segment-operation.</p>
 <dt id="kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.pooling.PoolingWeightedEdgesPerNode.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs List of [node, node_length, edges, edge_length, edge_indices]</p>
+<p>Inputs List of [node, node_partition, edges, edge_partition, edge_indices]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Number of edges in each graph (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Row partition for edge. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)</p></li>
 <li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten index list tensor of shape (batch*None,2)
-The index for segment reduction is taken from edge_indices[:,0].</p></li>
+The index for segment reduction is taken from edge_indices[:,0] (ingoing node).</p></li>
 <li><p><strong>weights</strong> (<em>tf.tensor</em>) – The weights could be the entry in the ajacency matrix for each edge in the list
 and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).</p></li>
 </ul>
@@ -1191,6 +1235,7 @@ Uses a keras LSTM layer for the updates.</p>
 <li><p><strong>T</strong> (<em>int</em>) – iteratrions T=3</p></li>
 <li><p><strong>pooling_method</strong> – ‘mean’</p></li>
 <li><p><strong>init_qstar</strong> – ‘mean’</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>activation</strong> – “tanh”</p></li>
 <li><p><strong>recurrent_activation</strong> – “sigmoid”</p></li>
 <li><p><strong>use_bias</strong> – True</p></li>
@@ -1228,12 +1273,13 @@ Uses a keras LSTM layer for the updates.</p>
 <dt id="kgcnn.layers.disjoint.set2set.Set2Set.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.set2set.Set2Set.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>List of [nodes, batch_length]</p>
+<p>List of [nodes, node_partition]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nodes</strong> (<em>tf.tensor</em>) – List of nodefeatures of shape (batch*None,F)</p></li>
-<li><p><strong>batch_length</strong> (<em>tf.tensor</em>) – Number of nodes in each graph of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Row partition for nodes. This can be either row_length, value_rowids, row_splits etc.
+Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1319,6 +1365,9 @@ Uses a keras LSTM layer for the updates.</p>
 <li><p><strong>kernel_initializer</strong> (<em>str</em>) – Score initialization. Default is ‘glorot_uniform’,</p></li>
 <li><p><strong>kernel_regularizer</strong> (<em>str</em>) – Score regularization. Default is None.</p></li>
 <li><p><strong>kernel_constraint</strong> (<em>bool</em>) – Score constrain. Default is None.</p></li>
+<li><p><strong>node_indexing</strong> (<em>str</em>) – Indices refering to ‘sample’ or to the continous ‘batch’.
+For disjoint representation ‘batch’ is default.</p></li>
+<li><p><strong>partition_type</strong> (<em>str</em>) – Partition tensor type to assign nodes/edges to batch. Default is “row_length”.</p></li>
 <li><p><strong>**kwargs</strong> – </p></li>
 </ul>
 </dd>
@@ -1333,26 +1382,26 @@ Uses a keras LSTM layer for the updates.</p>
 <dt id="kgcnn.layers.disjoint.topk.PoolingTopK.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.PoolingTopK.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs list of [nodes, node_length, edges, edge_length, edge_indices]</p>
+<p>Inputs list of [nodes, node_partition, edges, edge_partition, edge_indices]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nodes</strong> (<em>tf.tensor</em>) – Flatten node feature tensor of shape (batch*None,F)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Node length tensor of the numer of nodes
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Node length tensor of the numer of nodes
 in each graph of shape (batch,)</p></li>
 <li><p><strong>edges</strong> (<em>tf.tensor</em>) – Flatten edge feature list of shape (batch*None,F)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Edge length tensor of the numer of edges
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Edge length tensor of the numer of edges
 in each graph of shape (batch,)</p></li>
 <li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Flatten edge index list tensor of shape (batch*None,2)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>[nodes, node_length, edges, edge_length, edge_indices],[map_nodes,map_edges]</p>
+<dd class="field-even"><p><p>[nodes, node_partition, edges, edge_partition, edge_indices],[map_nodes,map_edges]</p>
 <ul class="simple">
 <li><p>nodes (tf.tensor): Pooled node feature tensor of shape (batch*None,F)</p></li>
-<li><p>node_length (tf.tensor): Pooled node length tensor of the numer of nodes in each graph of shape (batch,)</p></li>
+<li><p>node_partition (tf.tensor): Pooled node length tensor of the numer of nodes in each graph of shape (batch,)</p></li>
 <li><p>edges (tf.tensor): Pooled edge feature list of shape (batch*None,F)</p></li>
-<li><p>edge_length (tf.tensor): Pooled edge length tensor of the numer of edges in each graph of shape (batch,)</p></li>
+<li><p>edge_partition (tf.tensor): Pooled edge length tensor of the numer of edges in each graph of shape (batch,)</p></li>
 <li><p>edge_indices (tf.tensor): Pooled edge index list tensor of shape (batch*None,2)</p></li>
 <li><p>map_nodes (tf.tensor): Index map between original and pooled nodes (batch*None,)</p></li>
 <li><p>map_edges (tf.tensor): Index map between original and pooled edges of shape (batch*None,)</p></li>
@@ -1395,21 +1444,21 @@ Same holds for batch-assignment in number of nodes and edges information.</p>
 <dt id="kgcnn.layers.disjoint.topk.UnPoolingTopK.call">
 <code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kgcnn.layers.disjoint.topk.UnPoolingTopK.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forward pass.</p>
-<p>Inputs [node, node_length, edge, edge_length, edge_indices, map_node, map_edge, node_pool, node_length_pool, edge_pool, edge_length_pool, edge_indices_pool]</p>
+<p>Inputs [node, node_partition, edge, edge_partition, edge_indices, map_node, map_edge, node_pool, node_partition_pool, edge_pool, edge_partition_pool, edge_indices_pool]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node</strong> (<em>tf.tensor</em>) – Original node tensor of shape (batch*None,F_n)</p></li>
-<li><p><strong>node_length</strong> (<em>tf.tensor</em>) – Original node length tensor of shape (batch,)</p></li>
+<li><p><strong>node_partition</strong> (<em>tf.tensor</em>) – Original node partition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p><strong>edge</strong> (<em>tf.tensor</em>) – Original edge feature tensor of shape (batch*None,F_e)</p></li>
-<li><p><strong>edge_length</strong> (<em>tf.tensor</em>) – Original edge length tensor of shape (batch,)</p></li>
+<li><p><strong>edge_partition</strong> (<em>tf.tensor</em>) – Original edge partition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p><strong>edge_indices</strong> (<em>tf.tensor</em>) – Original index tensor of shape (batch*None,2)</p></li>
 <li><p><strong>map_node</strong> (<em>tf.tensor</em>) – Index map between original and pooled nodes (batch*None,)</p></li>
 <li><p><strong>map_edge</strong> (<em>tf.tensor</em>) – Index map between original and pooled edges (batch*None,)</p></li>
 <li><p><strong>node_pool</strong> (<em>tf.tensor</em>) – Pooled node tensor of shape (batch*None,F_n)</p></li>
-<li><p><strong>node_length_pool</strong> (<em>tf.tensor</em>) – Pooled node length tensor of shape (batch,)</p></li>
+<li><p><strong>node_partition_pool</strong> (<em>tf.tensor</em>) – Pooled node partition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p><strong>edge_pool</strong> (<em>tf.tensor</em>) – Pooled edge feature tensor of shape (batch*None,F_e)</p></li>
-<li><p><strong>edge_length_pool</strong> (<em>tf.tensor</em>) – Pooled edge length tensor of shape (batch,)</p></li>
+<li><p><strong>edge_partition_pool</strong> (<em>tf.tensor</em>) – Pooled edge partition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p><strong>edge_indices</strong> – Pooled index tensor of shape (batch*None,2)</p></li>
 </ul>
 </dd>
@@ -1417,9 +1466,9 @@ Same holds for batch-assignment in number of nodes and edges information.</p>
 <dd class="field-even"><p><p>[nodes, node_length, edges, edge_length, edge_indices]</p>
 <ul class="simple">
 <li><p>nodes (tf.tensor): Unpooled node feature tensor of shape (batch*None,F)</p></li>
-<li><p>node_length (tf.tensor): Unpooled node length tensor of the numer of nodes in each graph of shape (batch,)</p></li>
+<li><p>node_partition (tf.tensor): Unpooled node lpartition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p>edges (tf.tensor): Unpooled edge feature list of shape (batch*None,F)</p></li>
-<li><p>edge_length (tf.tensor): Unpooled edge length tensor of the numer of edges in each graph of shape (batch,)</p></li>
+<li><p>edge_partition (tf.tensor): Unpooled edge partition tensor, e.g. length tensor of shape (batch,)</p></li>
 <li><p>edge_indices (tf.tensor): Unpooled edge index list tensor of shape (batch*None,2)</p></li>
 </ul>
 </p>
