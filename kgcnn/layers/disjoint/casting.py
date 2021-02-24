@@ -416,7 +416,11 @@ class ChangeIndexing(ks.layers.Layer):
         if(self.to_indexing == 'batch' and self.from_indexing == 'sample'):        
             indexlist = edge_index + tf.cast(shift_index,dtype=edge_index.dtype)  
         elif(self.to_indexing == 'sample'and self.from_indexing == 'batch'):
-            indexlist = edge_index - tf.cast(shift_index,dtype=edge_index.dtype)  
+            indexlist = edge_index - tf.cast(shift_index,dtype=edge_index.dtype) 
+        elif(self.to_indexing == 'sample'and self.from_indexing == 'sample'):
+            indexlist = edge_index 
+        elif(self.to_indexing == 'batch' and self.from_indexing == 'batch'):
+            indexlist = edge_index 
         else:
             raise TypeError("Unknown index change, use: 'sample', 'batch', ...")
         
