@@ -15,6 +15,8 @@ class PoolingTopK(ks.layers.Layer):
         kernel_regularizer (str): Score regularization. Default is None.
         kernel_constraint (str): Score constrain. Default is None.
         ragged_validate (bool): To validate output ragged tensor. Defualt is False.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For ragged representation 'sample' is default.
         **kwargs
     """
     
@@ -79,6 +81,7 @@ class PoolingTopK(ks.layers.Layer):
         nvalue = node.values
         nrowsplit = tf.cast(node.row_splits,dtype = index_dtype)
         nrowlength = tf.cast(node.row_lengths(),dtype = index_dtype)
+        erowlength = tf.cast(edgeind.row_lengths(),dtype = index_dtype)
         nids = node.value_rowids()
         
         #Use kernel p to get score
@@ -135,7 +138,7 @@ class PoolingTopK(ks.layers.Layer):
         mask_edge = tf.math.logical_not(ks.backend.any(ks.backend.any(mask_edge,axis=-1),axis=-1))
         clean_shiftind = shiftind[mask_edge]
         clean_edge_ids = edge_ids[mask_edge]
-        #clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids),clean_edge_ids)
+        clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids),clean_edge_ids)
         
         # Map edgeindex to new index
         new_edge_index = tf.concat([ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,0]),axis=-1),ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,1]),axis=-1)],axis=-1)
@@ -166,9 +169,19 @@ class PoolingTopK(ks.layers.Layer):
         out_edge_index = tf.RaggedTensor.from_value_rowids(out_indexlist,clean_edge_ids,validate=self.ragged_validate)
         out_edge = tf.RaggedTensor.from_value_rowids(clean_edge_feat_sorted,clean_edge_ids,validate=self.ragged_validate)
         
-        # Build map
-        map_node = tf.RaggedTensor.from_row_lengths(pooled_index,pooled_len,validate=self.ragged_validate)
-        map_edge = tf.RaggedTensor.from_value_rowids(edge_position_new,clean_edge_ids,validate=self.ragged_validate)
+        # Collect reverse pooling info   
+        # Remove batch offset for old indicies -> but with new length
+        if(self.node_indexing == 'batch'):
+            out_pool = pooled_index
+            out_pool_edge = edge_position_new
+        elif(self.node_indexing == 'sample'):
+            out_pool = pooled_index - tf.cast( tf.repeat(tf.cumsum(nrowlength,exclusive=True),pooled_len) ,dtype=index_dtype)
+            out_pool_edge = edge_position_new - tf.cast( tf.gather(tf.cumsum(erowlength,exclusive=True),clean_edge_ids) ,dtype=index_dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        
+        map_node = tf.RaggedTensor.from_row_lengths(out_pool,pooled_len,validate=self.ragged_validate)
+        map_edge = tf.RaggedTensor.from_value_rowids(out_pool_edge,clean_edge_ids,validate=self.ragged_validate)
         
         
         out_map = [map_node,map_edge]
@@ -189,6 +202,7 @@ class PoolingTopK(ks.layers.Layer):
         'kernel_constraint':
             ks.constraints.serialize(self.kernel_constraint),
         })
+        config.update({"node_indexing": self.node_indexing})
         return config 
     
 
@@ -201,15 +215,19 @@ class UnPoolingTopK(ks.layers.Layer):
     
     Args:
         ragged_validate (bool): To validate ragged output tensor. Default is False.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For ragged representation 'sample' is default.
         **kwargs
     """
     
     def __init__(self,
                  ragged_validate = False,
+                 node_indexing = 'sample',
                  **kwargs):
         """Initialize layer."""
         super(UnPoolingTopK, self).__init__(**kwargs)
         self.ragged_validate = ragged_validate
+        self.node_indexing = node_indexing
 
     def build(self, input_shape):
         """Build layer."""
@@ -243,6 +261,16 @@ class UnPoolingTopK(ks.layers.Layer):
         map_node = map_node.values
         map_edge = map_edge.values
         
+        # Add batch offset for old indicies -> but with new length
+        if(self.node_indexing == 'batch'):
+            map_node = map_node
+            map_edge = map_edge
+        elif(self.node_indexing == 'sample'):
+            map_node = map_node + tf.cast( tf.repeat(node_old.row_splits[:-1],node_new.row_lengths()) ,dtype=map_node.dtype)
+            map_edge = map_edge + tf.cast( tf.gather(edge_old.row_splits[:-1],edge_new.value_rowids()) ,dtype=map_node.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        
         index_dtype = map_node.dtype
         node_old_value = node_old.values
         node_new_value = node_new.values
@@ -265,4 +293,5 @@ class UnPoolingTopK(ks.layers.Layer):
         """Update layer config."""
         config = super(UnPoolingTopK, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
+        config.update({"node_indexing": self.node_indexing})
         return config
