@@ -95,20 +95,11 @@ class PoolingTopK(ks.layers.Layer):
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")        
         
-        # Shift index if necessary
-        if(self.node_indexing == 'batch'):
-            edgeind = edgeindref
-        elif(self.node_indexing == 'sample'):
-            shift1 = edgeindref
-            shift2 = tf.expand_dims(tf.repeat(tf.cumsum(nodelen,exclusive=True),edgelen),axis=1)
-            edgeind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-    
         
         #Get node properties 
         nvalue = node
         nrowlength = tf.cast(nodelen,dtype = index_dtype)
+        erowlength = tf.cast(edgelen,dtype = index_dtype)
         nids = tf.repeat(tf.range(tf.shape(nrowlength)[0],dtype=index_dtype),nrowlength)
         
         #Use kernel p to get score
@@ -147,9 +138,20 @@ class PoolingTopK(ks.layers.Layer):
         old_shape = tf.cast(ks.backend.expand_dims(tf.shape(nvalue)[0]),dtype=index_dtype)
         map_index = tf.scatter_nd(ks.backend.expand_dims(pooled_index,axis=-1),index_new_nodes,old_shape)
         
-        #Shift also edgeindex by batch offset
-        shiftind = tf.cast(edgeind,dtype=index_dtype) #already shifted by batch offset (subgraphs)
+        # Shift index if necessary
         edge_ids = tf.repeat(tf.range(tf.shape(edgelen)[0],dtype=index_dtype),edgelen)
+        
+        if(self.node_indexing == 'batch'):
+            edgeind = edgeindref
+        elif(self.node_indexing == 'sample'):
+            shift1 = edgeindref
+            shift2 = tf.expand_dims(tf.gather(tf.cumsum(nrowlength,exclusive=True),edge_ids),axis=1)
+            edgeind = shift1 + tf.cast(shift2,dtype=shift1.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        
+        shiftind = tf.cast(edgeind,dtype=index_dtype) #already shifted by batch offset (subgraphs)
+        
         
         #Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind,axis=-1) == ks.backend.expand_dims(ks.backend.expand_dims(removed_index,axis=0),axis=0)  #this creates large tensor (batch*#edges,2,remove)
@@ -162,9 +164,15 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index = tf.concat([ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,0]),axis=-1),ks.backend.expand_dims(tf.gather(map_index,clean_shiftind[:,1]),axis=-1)],axis=-1)
         batch_order = tf.argsort(new_edge_index[:,0],axis=0,direction='ASCENDING',stable=True)
         new_edge_index_sorted = tf.gather(new_edge_index ,batch_order,axis=0)
-        
-        #For disjoint representation the batch offset does not need to be removed       
-        out_indexlist = new_edge_index_sorted
+              
+        #Remove the batch offset from edge indices again for indexing type
+        if(self.node_indexing == 'batch'):
+            out_indexlist = new_edge_index_sorted
+        elif(self.node_indexing == 'sample'):
+            batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len,exclusive=True),clean_edge_ids),axis=1)
+            out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset ,dtype=index_dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
         
         #Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat
@@ -194,11 +202,19 @@ class PoolingTopK(ks.layers.Layer):
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")        
         
-        #Collect reverse pooling info
-        out_pool = pooled_index
-        out_pool_edge = edge_position_new
+        # Collect reverse pooling info   
+        # Remove batch offset for old indicies -> but with new length
+        if(self.node_indexing == 'batch'):
+            out_pool = pooled_index
+            out_pool_edge = edge_position_new
+        elif(self.node_indexing == 'sample'):
+            out_pool = pooled_index - tf.cast( tf.repeat(tf.cumsum(nrowlength,exclusive=True),pooled_len) ,dtype=index_dtype)
+            out_pool_edge = edge_position_new - tf.cast( tf.gather(tf.cumsum(erowlength,exclusive=True),clean_edge_ids) ,dtype=index_dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
         
-        #Output list
+        
+        # Output list
         out = [out_node,out_np,out_edge,out_ep,out_edge_index]
         out_map = [out_pool,out_pool_edge]
         return out,out_map
@@ -231,14 +247,20 @@ class UnPoolingTopK(ks.layers.Layer):
     Same holds for batch-assignment in number of nodes and edges information.
     
     Args:
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
     
     def __init__(self,
+                 node_indexing = "batch",
+                 partition_type = "row_length",
                  **kwargs):
         """Initialize Layer."""
         super(UnPoolingTopK, self).__init__(**kwargs)
-
+        self.partition_type = partition_type
+        self.node_indexing = node_indexing
 
     def build(self, input_shape):
         """Build Layer."""
@@ -265,15 +287,46 @@ class UnPoolingTopK(ks.layers.Layer):
             edge_indices (tf.tensor): Pooled index tensor of shape (batch*None,2) 
         
         Returns:
-            List: [nodes, node_length, edges, edge_length, edge_indices]
+            List: [nodes, node_partition, edges, edge_partition, edge_indices]
             
             - nodes (tf.tensor): Unpooled node feature tensor of shape (batch*None,F)
-            - node_partition (tf.tensor): Unpooled node lpartition tensor, e.g. length tensor of shape (batch,)
+            - node_partition (tf.tensor): Unpooled node partition tensor, e.g. length tensor of shape (batch,)
             - edges (tf.tensor): Unpooled edge feature list of shape (batch*None,F)
             - edge_partition (tf.tensor): Unpooled edge partition tensor, e.g. length tensor of shape (batch,)
             - edge_indices (tf.tensor): Unpooled edge index list tensor of shape (batch*None,2)
         """
-        node_old,nodelen_old,edge_old,edgelen_old,edgeind_old, map_node, map_edge , node_new,nodelen_new,edge_new,edgelen_new,edgeind_new = inputs
+        node_old,nodepart_old,edge_old,edgepart_old,edgeind_old, map_node, map_edge , node_new,nodpart_new,edge_new,edgepart_new,edgeind_new = inputs
+        
+        #Make partition tensors
+        if(self.partition_type == "row_length"):
+            nrowlength = nodepart_old
+            erowlength = edgepart_old
+            pool_node_len = nodpart_new
+            pool_edge_id = tf.repeat(tf.range(tf.shape(edgepart_new)[0]),edgepart_new)
+        elif(self.partition_type == "row_splits"):
+            nrowlength = nodepart_old[1:] - nodepart_old[:-1]
+            erowlength = edgepart_old[1:] - edgepart_old[:-1]
+            pool_node_len = nodpart_new[1:] - nodpart_new[:-1]
+            pool_edge_len = edgepart_new[1:] - edgepart_new[:-1]
+            pool_edge_id = tf.repeat(tf.range(tf.shape(pool_edge_len)[0]),pool_edge_len)
+        elif(self.partition_type == "value_rowids"):
+            nrowlength = tf.math.segment_sum(tf.ones_like(nodepart_old),nodepart_old)
+            erowlength = tf.math.segment_sum(tf.ones_like(edgepart_old),edgepart_old)
+            pool_node_len = tf.math.segment_sum(tf.ones_like(nodpart_new),nodpart_new)
+            pool_edge_id = edgepart_new
+        else:
+            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...") 
+        
+        # Correct map index for flatten batch offset
+        if(self.node_indexing == 'batch'):
+            map_node = map_node
+            map_edge = map_edge
+        elif(self.node_indexing == 'sample'):
+            map_node = map_node + tf.cast( tf.repeat(tf.cumsum(nrowlength,exclusive=True),pool_node_len ) ,dtype=map_node.dtype)
+            map_edge = map_edge + tf.cast( tf.gather(tf.cumsum(erowlength,exclusive=True),pool_edge_id) ,dtype=map_edge.dtype)
+        else:
+            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        
         
         index_dtype = map_node.dtype
         node_shape = tf.stack([tf.cast(tf.shape(node_old)[0],dtype=index_dtype),tf.cast(tf.shape(node_new)[1],dtype=index_dtype)])
@@ -283,5 +336,12 @@ class UnPoolingTopK(ks.layers.Layer):
         edge_shape = tf.stack([tf.cast(tf.shape(edge_old)[0],dtype=index_dtype),tf.cast(tf.shape(edge_new)[1],dtype=index_dtype)])
         out_edge = tf.scatter_nd(ks.backend.expand_dims(map_edge,axis=-1),edge_new,edge_shape)
 
-        outlist = [out_node,nodelen_old,out_edge,edgelen_old,edgeind_old]
+        outlist = [out_node,nodepart_old,out_edge,edgepart_old,edgeind_old]
         return outlist
+    
+    def get_config(self):
+        """Update layer config."""
+        config = super(UnPoolingTopK, self).get_config()
+        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing})
+        return config 
