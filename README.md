@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/kgcnn/badge/?version=latest)](https://kgcnn.readthedocs.io/en/latest/?badge=latest)
 # Keras Graph Convolutions
 
 A set of layers for graph convolutions in tensorflow keras that use ragged tensors.
