@@ -51,7 +51,7 @@ Graphs can be represented by a connection index list plus feature information. T
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
 
-Many graph implementations use also a [disjoint](kgcnn/layers/disjoint) representation and sparse or [padded](kgcnn/layers/padded) tensors.
+Many graph implementations use also a [disjoint](kgcnn/layers/disjoint) representation and [sparse](kgcnn/layers/sparse) or [padded](kgcnn/layers/padded) tensors.
 
 
 ### Input
