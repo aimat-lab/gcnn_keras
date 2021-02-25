@@ -85,7 +85,7 @@ class CastRaggedToValues(ks.layers.Layer):
     
 
 
-class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
+class CastSparseAdjacencyMatrixToRaggedList(ks.layers.Layer):
     """
     Cast a sparse batched adjacency matrices to a ragged index list plus connection weights.
     
@@ -97,13 +97,13 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
     
     def __init__(self,sort_index = True,ragged_validate=False ,**kwargs):
         """Initialize layer."""
-        super(CastAdjacencyMatrixToRaggedList, self).__init__(**kwargs)
+        super(CastSparseAdjacencyMatrixToRaggedList, self).__init__(**kwargs)
         self._supports_ragged_inputs = True 
         self.sort_index = sort_index
         self.ragged_validate = ragged_validate
     def build(self, input_shape):
         """Build layer."""
-        super(CastAdjacencyMatrixToRaggedList, self).build(input_shape)
+        super(CastSparseAdjacencyMatrixToRaggedList, self).build(input_shape)
     def call(self, inputs):
         """Forward pass.
         
@@ -138,7 +138,7 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
         return [edge_index,edge_weight]
     def get_config(self):
         """Update config."""
-        config = super(CastAdjacencyMatrixToRaggedList, self).get_config()
+        config = super(CastSparseAdjacencyMatrixToRaggedList, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
         config.update({"sort_index": self.sort_index})
         return config 
@@ -147,7 +147,7 @@ class CastAdjacencyMatrixToRaggedList(ks.layers.Layer):
 
 class ChangeIndexing(ks.layers.Layer):
     """
-    Change indexing between sample-wise and in-batch labeling. 'Bath' is equivalent to disjoint indexing.
+    Change indexing between sample-wise and in-batch labeling. 'batch' is equivalent to disjoint indexing.
     
     Note that ragged Gather- and Pooling-layers require node_indexing = "batch" as argument if index is shifted by the number of nodes in batch.
     This can enable faster gathering and pooling for some layers.
@@ -200,9 +200,9 @@ class ChangeIndexing(ks.layers.Layer):
         elif(self.to_indexing == 'sample'and self.from_indexing == 'batch'):
             shiftind = shift1 - tf.cast(shift2,dtype=shift1.dtype)
         elif(self.to_indexing == 'sample'and self.from_indexing == 'sample'):
-            indexlist = edge_index 
+            shiftind = shift1
         elif(self.to_indexing == 'batch' and self.from_indexing == 'batch'):
-            indexlist = edge_index 
+            shiftind = shift1
         else:
             raise TypeError("Unknown index change, use: 'sample', 'batch', ...")
         
