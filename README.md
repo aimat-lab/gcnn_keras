@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/kgcnn.svg)](https://badge.fury.io/py/kgcnn)
 # Keras Graph Convolutions
 
-A set of layers for graph convolutions in tensorflow keras that use ragged tensors.
+A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
 # Table of Contents
 * [General](#general)
