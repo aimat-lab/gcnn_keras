@@ -70,10 +70,10 @@ def scaled_adjacency_to_list(Ascaled):
         index12 = np.concatenate([np.expand_dims(index1,axis=-1), np.expand_dims(index2,axis=-1)],axis=-1)
         edge_index = index12[A]
         return edge_index,edge_weight
-    elif(isinstance(A,sp.bsr.bsr_matrix) or
-         isinstance(A,sp.csc.csc_matrix) or
-         isinstance(A,sp.coo.coo_matrix) or
-         isinstance(A,sp.csr.csr_matrix)):
+    elif(isinstance(Ascaled, sp.bsr.bsr_matrix) or
+         isinstance(Ascaled, sp.csc.csc_matrix) or
+         isinstance(Ascaled, sp.coo.coo_matrix) or
+         isinstance(Ascaled, sp.csr.csr_matrix)):
         Ascaled = Ascaled.tocoo()
         ei1 =  np.array(Ascaled.row.tolist(),dtype=np.int)
         ei2 =  np.array(Ascaled.col.tolist(),dtype=np.int)
