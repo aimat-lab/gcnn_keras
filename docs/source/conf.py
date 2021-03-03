@@ -30,8 +30,18 @@ release = '1.0.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.napoleon'
+import sphinx_rtd_theme
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon'
 ]
+
 napoleon_google_docstring = True
 
 # Add any paths that contain templates here, relative to this directory.
