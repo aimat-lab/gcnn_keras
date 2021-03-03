@@ -10,6 +10,7 @@ Subpackages
    kgcnn.layers.disjoint
    kgcnn.layers.padded
    kgcnn.layers.ragged
+   kgcnn.layers.sparse
 
 Module contents
 ---------------
