@@ -34,6 +34,8 @@ release = '0.1.0'
 import sphinx_rtd_theme
 
 extensions = [
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
