@@ -6,6 +6,8 @@
 General Information
 ===================================
 
+A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
+
 .. toctree::
    :maxdepth: 3
    :caption: General:
