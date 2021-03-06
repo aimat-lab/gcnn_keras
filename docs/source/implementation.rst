@@ -15,7 +15,7 @@ Graphs can be represented by a connection index list plus feature information. T
 * ``m``: Connectionlist of shape ``([batch],M,2)`` where ``M`` is the number of edges. The indices denote a connection of incoming i and outgoing j node as ``(i,j)``.
 * ``u``: Graph state information of shape ``([batch],F)`` where ``F`` denotes the feature dimension.
  
-A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in `disjoint <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/layers/ragged>`_.
+A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in `ragged <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/layers/ragged>`_.
 
 Many graph implementations use also a `disjoint <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/layers/disjoint>`_ representation and 
 `sparse <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/layers/sparse>`_ or 
