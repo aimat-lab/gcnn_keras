@@ -1,7 +1,8 @@
 [![GitHub version](https://badge.fury.io/gh/aimat-lab%2Fgcnn_keras.svg)](https://badge.fury.io/gh/aimat-lab%2Fgcnn_keras)
 [![Documentation Status](https://readthedocs.org/projects/kgcnn/badge/?version=latest)](https://kgcnn.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/kgcnn.svg)](https://badge.fury.io/py/kgcnn)
-![GitHub all releases](https://img.shields.io/github/downloads/aimat-lab/gcnn_keras/total)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/kgcnn)
+
 # Keras Graph Convolutions
 
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
