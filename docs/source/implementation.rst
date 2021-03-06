@@ -24,7 +24,7 @@ Many graph implementations use also a `disjoint <https://github.com/aimat-lab/gc
 Input
 -----
 
-In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used to input disjoint graph representations. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/utils).
+In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used to input disjoint graph representations. Tools for converting numpy or scipy arrays are found in `utils <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/utils>`_.
 
 Here, for ragged tensors, the nodelist of shape ``(batch,None,F)`` and edgelist of shape ``(batch,None,Fe)`` have one ragged dimension ``(None,)``.
 The graph structure is represented by an indexlist of shape ``(batch,None,2)`` with index of incoming ``i`` and outgoing ``j`` node as ``(i,j)``. 
