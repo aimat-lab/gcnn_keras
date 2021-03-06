@@ -1,7 +1,7 @@
-mjdir
+kgcnn
 =====
 
 .. toctree::
    :maxdepth: 4
 
-   mjdir
+   kgcnn

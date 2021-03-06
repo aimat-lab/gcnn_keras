@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'mjdir'
+project = 'kgcnn'
 copyright = '2020, aimat'
 author = 'Patrick Reiser'
 
