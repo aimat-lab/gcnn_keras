@@ -34,7 +34,7 @@ Clone repository https://github.com/aimat-lab/gcnn_keras and install with editab
 ```bash
 pip install -e ./gcnn_keras
 ```
-or latest
+or latest release via Python Package Index.
 ```bash
 pip install kgcnn
 ```
