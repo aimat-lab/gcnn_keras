@@ -23,7 +23,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 
 The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
 Some models are given as an example.
-A [documentation](https://kgcnn.readthedocs.io/en/latest/?) is generated in [docs](docs).
+A [documentation](https://kgcnn.readthedocs.io/en/latest/index.html) is generated in [docs](docs).
 This repo is still under construction.
 Any comments, suggestions or help are very welcome!
 
