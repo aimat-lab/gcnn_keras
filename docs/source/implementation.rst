@@ -33,7 +33,7 @@ The first index of incoming node ``i`` is usually expected to be sorted for fast
 Model
 -----
 
-Models can be set up in a functional. Example message passing from fundamental operations:
+Models can be set up in a functional. Example message passing from fundamental operations::
 
    import tensorflow as tf
    import tensorflow.keras as ks
