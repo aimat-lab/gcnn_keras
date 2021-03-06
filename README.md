@@ -10,6 +10,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 # Table of Contents
 * [General](#general)
 * [Installation](#installation)
+* [Documentation](#documentation)
 * [Implementation details](#implementation-details)
 * [Literature](#literature)
 * [Datasets](#datasets)
@@ -38,7 +39,10 @@ or latest release via Python Package Index.
 ```bash
 pip install kgcnn
 ```
+<a name="documentation"></a>
+# Documentation
 
+Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.html .
 
 <a name="implementation-details"></a>
 # Implementation details
