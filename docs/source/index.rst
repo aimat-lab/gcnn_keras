@@ -19,7 +19,7 @@ Package Content
 
 .. toctree::
    :maxdepth: 3
-   :caption: References:
+   :caption: Reference:
 
    modules
 
