@@ -11,8 +11,9 @@ General Information
    :caption: General:
 
    intro
-   usage
    installation
+   implementation
+   usage
 
 Package Content
 ===================================
