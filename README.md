@@ -16,6 +16,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 * [Datasets](#datasets)
 * [Examples](#examples)
 * [Citing](#citing)
+* [References](#references)
  
 
 <a name="general"></a>
@@ -133,3 +134,6 @@ If you want to cite this repo, refer to our preprint:
 }
 
 ```
+
+<a name="references"></a>
+# References
