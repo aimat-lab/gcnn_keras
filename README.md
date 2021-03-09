@@ -116,3 +116,20 @@ In [data](kgcnn/data) there are simple data handling tools that are used for exa
 # Examples
 
 A set of example traing can be found in [example](examples)
+
+<a name="cite"></a>
+# Cite
+
+If you want to cite this repo, refer to our preprint:
+
+```
+@misc{reiser2021implementing,
+      title={Implementing graph neural networks with TensorFlow-Keras}, 
+      author={Patrick Reiser and Andre Eberhard and Pascal Friederich},
+      year={2021},
+      eprint={2103.04318},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+
+```
