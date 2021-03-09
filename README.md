@@ -15,7 +15,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 * [Literature](#literature)
 * [Datasets](#datasets)
 * [Examples](#examples)
-* [Tests](#tests)
+* [Citing](#citing)
  
 
 <a name="general"></a>
@@ -117,8 +117,8 @@ In [data](kgcnn/data) there are simple data handling tools that are used for exa
 
 A set of example traing can be found in [example](examples)
 
-<a name="cite"></a>
-# Cite
+<a name="citing"></a>
+# Citing
 
 If you want to cite this repo, refer to our preprint:
 
