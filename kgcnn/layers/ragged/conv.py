@@ -239,7 +239,7 @@ class GCN(ks.layers.Layer):
         return out     
     def get_config(self):
         """Update config."""
-        config = super(GatherNodesOutgoing, self).get_config()
+        config = super(GCN, self).get_config()
         config.update({"units": self.units})
         config.update({"node_indexing": self.node_indexing})
         config.update({"normalize_by_weights": self.normalize_by_weights})
