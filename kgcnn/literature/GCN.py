@@ -6,8 +6,8 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense,ChangeIndexing
 from kgcnn.layers.ragged.conv import GCN,DenseRagged
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.mlp import MLPRagged
+from kgcnn.layers.ragged.pooling import PoolingNodes
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingNodes
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
@@ -126,7 +126,6 @@ def getmodelGCN(
                     mlp_activity_regularizer=output_kernel_regularizer,
                     mlp_kernel_regularizer=output_kernel_regularizer,
                     mlp_bias_regularizer=output_bias_regularizer)(out)  
-    
     else: #Node labeling
         out = n    
         out = MLPRagged(output_dim,
