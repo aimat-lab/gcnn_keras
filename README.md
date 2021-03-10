@@ -132,8 +132,10 @@ If you want to cite this repo, refer to our preprint:
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
-
 ```
+Thanks to Robin Ruff for contributing.
 
 <a name="references"></a>
 # References
+
+-https://www.tensorflow.org/api_docs/python/tf/RaggedTensor
