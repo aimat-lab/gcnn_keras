@@ -133,7 +133,6 @@ If you want to cite this repo, refer to our preprint:
       primaryClass={cs.LG}
 }
 ```
-Thanks to Robin Ruff for contributing.
 
 <a name="references"></a>
 # References
