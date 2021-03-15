@@ -210,7 +210,7 @@ class Set2Set(ks.layers.Layer):
     def init_qstar_mean(self,m,batch_index,batch_num):
         """Initialize the q0 with mean."""
         # use q0=avg(m) (or q0=0)
-        #batch_shape = K.shape(batch_num)
+        #batch_shape = ksb.shape(batch_num)
         q = tf.math.segment_mean(m,batch_index) # (batch,feat)
         #r0
         qt = tf.repeat(q,batch_num,axis=0) #(batch*num,feat)
