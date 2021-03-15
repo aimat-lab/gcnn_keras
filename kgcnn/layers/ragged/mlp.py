@@ -38,12 +38,11 @@ class MLPRagged(ks.layers.Layer):
             mlp_use_bias = [mlp_use_bias for _ in mlp_units]
         if not isinstance(mlp_activation, list) and not isinstance(mlp_activation, tuple):
             mlp_activation = [mlp_activation for _ in mlp_units]
-        if (isinstance(mlp_activity_regularizer, list) == False and isinstance(mlp_activity_regularizer,
-                                                                               tuple) == False):
+        if not isinstance(mlp_activity_regularizer, list) and not isinstance(mlp_activity_regularizer, tuple):
             mlp_activity_regularizer = [mlp_activity_regularizer for _ in mlp_units]
-        if (isinstance(mlp_kernel_regularizer, list) == False and isinstance(mlp_kernel_regularizer, tuple) == False):
+        if not isinstance(mlp_kernel_regularizer, list) and not isinstance(mlp_kernel_regularizer, tuple):
             mlp_kernel_regularizer = [mlp_kernel_regularizer for _ in mlp_units]
-        if (isinstance(mlp_bias_regularizer, list) == False and isinstance(mlp_bias_regularizer, tuple) == False):
+        if not isinstance(mlp_bias_regularizer, list) and not isinstance(mlp_bias_regularizer, tuple):
             mlp_bias_regularizer = [mlp_bias_regularizer for _ in mlp_units]
 
         # Serialized props
@@ -85,7 +84,8 @@ class MLPRagged(ks.layers.Layer):
         
         Args:
             inputs (tf.ragged): Input ragged tensor of shape (...,N).
-    
+            training (bool): Default False.
+
         Returns:
             tf.ragged: MLP pass.
         """

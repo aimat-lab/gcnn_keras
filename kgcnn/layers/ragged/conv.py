@@ -164,9 +164,10 @@ class ActivationRagged(tf.keras.layers.Layer):
 
     def get_config(self):
         """Update config."""
-        config = {'activation': ks.activations.serialize(self.activation)}
         base_config = super(ActivationRagged, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = {'activation': ks.activations.serialize(self.activation)}
+        config.update(base_config)
+        return config
 
 
 class GCN(ks.layers.Layer):
