@@ -83,13 +83,12 @@ class CastMaskedToValues(ks.layers.Layer):
 
         Args:
             inputs (list): [padded_values,mask]
-        
-        Inputs:
-            padded_values (tf.tensor): Zero padded feature tensor of shape (batch,N,F).
-                                        where F denotes the feature dimension and N the maximum
-                                        number of edges/nodes in graph.
-            mask (tf.tensor): Boolean mask of shape (batch,N),
-                              where N is the maximum number of nodes or edges.
+
+            - padded_values (tf.tensor): Zero padded feature tensor of shape (batch,N,F).
+              where F denotes the feature dimension and N the maximum
+              number of edges/nodes in graph.
+            - mask (tf.tensor): Boolean mask of shape (batch,N),
+              where N is the maximum number of nodes or edges.
         
         Returns:
             list: [values, value_partition] 
