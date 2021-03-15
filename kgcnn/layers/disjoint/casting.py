@@ -212,11 +212,10 @@ class CastValuesToBatch(ks.layers.Layer):
 
         Args:
             inputs (list): [values, value_partition]
-                
-        Inputs:
-            values (tf.tensor): Flatten feature tensor of shape (batch*N,F).
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits..
-                                         Yields the assignment of nodes/edges per graph in batch. Default is row_length.
+
+            - values (tf.tensor): Flatten feature tensor of shape (batch*N,F).
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes/edges per graph in batch. Default is row_length.
                                       
         Returns:
             features (tf.tensor): Feature tensor of shape (batch,N,F).
@@ -275,11 +274,10 @@ class CastValuesToPadded(ks.layers.Layer):
 
         Args:
             inputs (list): of [values, value_partition]
-        
-        Inputs:
-            values (tf.tensor): Feature tensor with flatten batch dimension of shape (batch*None,F).
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits..
-                                         Yields the assignment of nodes/edges per graph in batch. Default is row_length.
+
+            - values (tf.tensor): Feature tensor with flatten batch dimension of shape (batch*None,F).
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes/edges per graph in batch. Default is row_length.
             
         Returns:
             list: [values,mask]
@@ -344,13 +342,12 @@ class CastValuesToRagged(ks.layers.Layer):
 
         Args:
             inputs (list): of [values, value_partition]
-           
-        Inputs:
-            values (tf.tensor): Feature tensor of nodes/edges of shape (batch*None,F)
-                                where F stands for the feature dimension and None represents
-                                the flexible size of the graphs.
-            value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits..
-                                         Yields the assignment of nodes/edges per graph in batch. Default is row_length.
+
+            - values (tf.tensor): Feature tensor of nodes/edges of shape (batch*None,F)
+              where F stands for the feature dimension and None represents
+              the flexible size of the graphs.
+            - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes/edges per graph in batch. Default is row_length.
             
         Returns:
             features (tf.ragged): A ragged feature tensor of shape (batch,None,F).
@@ -412,13 +409,12 @@ class ChangeIndexing(ks.layers.Layer):
 
         Args:
             inputs (list): of [node_partition, edge_index, edge_partition]
-                    
-        Inputs:
-            node_partition (tf.tensor): Node assignment to each graph, for example number of nodes in each
-                                        graph of shape (batch,).
-            edge_index (tf.tensor): Flatten edge-index list of shape (batch*None,2)
-            edge_partition (tf.tensor): Edge assignment to each graph, for example number of edges
-                                        in each graph of shape (batch,).
+
+            - node_partition (tf.tensor): Node assignment to each graph, for example number of nodes in each
+              graph of shape (batch,).
+            - edge_index (tf.tensor): Flatten edge-index list of shape (batch*None,2)
+            - edge_partition (tf.tensor): Edge assignment to each graph, for example number of edges
+              in each graph of shape (batch,).
             
         Returns:
             edge_index (tf.tensor): Corrected edge-index list to match the nodes 
@@ -499,17 +495,16 @@ class CastRaggedToDisjoint(ks.layers.Layer):
 
         Args:
             inputs (list): of [node, edge, edgeindex]
-                
-        Inputs:
-            node (tf.ragged): Node feature ragged tensor of shape (batch,None,F)
-                              where None stands for a flexible graph size and
-                              F the node feature dimension.
-            edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
-                              where None stands for a flexible graph size and
-                              F the edge feature dimension.
-            edge_index (tf.ragged): Edge indices as a list of shape (batch,None,2)
-                                    which has index pairs [i,j] matching nodes
-                                    within each sample. Assumes 'sample' indexing.
+
+            - node (tf.ragged): Node feature ragged tensor of shape (batch,None,F)
+              where None stands for a flexible graph size and
+              F the node feature dimension.
+            - edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+              where None stands for a flexible graph size and
+              F the edge feature dimension.
+            - edge_index (tf.ragged): Edge indices as a list of shape (batch,None,2)
+              which has index pairs [i,j] matching nodes
+              within each sample. Assumes 'sample' indexing.
         
         Returns:
             list: [nodes,node_partition,edges,edge_partition,edge_index]
