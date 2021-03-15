@@ -24,9 +24,7 @@ class CastRaggedToValues(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs tf.ragged feature tensor.
-        
+
         Args:
             features (tf.ragged):   Ragged tensor of shape (batch,None,F) ,
                                   where None is the number of nodes or edges in each graph and
@@ -82,10 +80,11 @@ class CastMaskedToValues(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
+
+        Args:
+            inputs (list): [padded_values,mask]
         
-        Inputs list: [padded_values,mask]
-        
-        Args: 
+        Inputs:
             padded_values (tf.tensor): Zero padded feature tensor of shape (batch,N,F).
                                         where F denotes the feature dimension and N the maximum
                                         number of edges/nodes in graph.
@@ -211,10 +210,11 @@ class CastValuesToBatch(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs list [values, value_partition]
+
+        Args:
+            inputs (list): [values, value_partition]
                 
-        Args: 
+        Inputs:
             values (tf.tensor): Flatten feature tensor of shape (batch*N,F).
             value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits..
                                          Yields the assignment of nodes/edges per graph in batch. Default is row_length.
@@ -273,10 +273,11 @@ class CastValuesToPadded(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs List of [values, value_partition]
-        
+
         Args:
+            inputs (list): of [values, value_partition]
+        
+        Inputs:
             values (tf.tensor): Feature tensor with flatten batch dimension of shape (batch*None,F).
             value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids, row_splits..
                                          Yields the assignment of nodes/edges per graph in batch. Default is row_length.
@@ -341,10 +342,11 @@ class CastValuesToRagged(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs list of [values, value_partition] 
+
+        Args:
+            inputs (list): of [values, value_partition]
            
-        Args: 
+        Inputs:
             values (tf.tensor): Feature tensor of nodes/edges of shape (batch*None,F)
                                 where F stands for the feature dimension and None represents
                                 the flexible size of the graphs.
@@ -408,10 +410,11 @@ class ChangeIndexing(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs list of [node_partition, edge_index, edge_partition]
+
+        Args:
+            inputs (list): of [node_partition, edge_index, edge_partition]
                     
-        Args: 
+        Inputs:
             node_partition (tf.tensor): Node assignment to each graph, for example number of nodes in each
                                         graph of shape (batch,).
             edge_index (tf.tensor): Flatten edge-index list of shape (batch*None,2)
@@ -494,10 +497,11 @@ class CastRaggedToDisjoint(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-        
-        Inputs list of [node, edge, edgeindex]        
+
+        Args:
+            inputs (list): of [node, edge, edgeindex]
                 
-        Args: 
+        Inputs:
             node (tf.ragged): Node feature ragged tensor of shape (batch,None,F)
                               where None stands for a flexible graph size and
                               F the node feature dimension.
