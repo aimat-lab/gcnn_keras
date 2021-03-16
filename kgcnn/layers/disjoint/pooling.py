@@ -51,18 +51,17 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
         Args:
             inputs (list): of [node, node_partition, edges, edge_partition, edge_indices]
-        
-        inputs:
-            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-                                      The index for segment reduction is taken from edge_indices[:,0].
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+              The index for segment reduction is taken from edge_indices[:,0].
     
         Returns:
             features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
@@ -176,20 +175,19 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
 
         Args:
             inputs (list): of [node, node_partition, edges, edge_partition, edge_indices]
-        
-        Inputs:
-            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-                                      The index for segment reduction is taken from edge_indices[:,0] (ingoing node).
-            weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list 
-                                 and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+              The index for segment reduction is taken from edge_indices[:,0] (ingoing node).
+            - weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list
+              and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
     
         Returns:
             features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
@@ -293,12 +291,11 @@ class PoolingNodes(ks.layers.Layer):
 
         Args:
             inputs (list): of [nodes, node_partition]
-        
-        Inputs:
-            nodes (tf.tensor): Flatten node features of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
+
+            - nodes (tf.tensor): Flatten node features of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
     
         Returns:
             features (tf.tensor): Pooled node feature list of shape (batch,F)
@@ -365,12 +362,11 @@ class PoolingAllEdges(ks.layers.Layer):
 
         Args:
             inputs (list): of [egdes, edge_partition]
-        
-        Inputs:
-            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            edge_partition (tf.tensor): Row partition for edges. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
+
+            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edges. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
     
         Returns:
             features (tf.tensor): A pooled edges feature list of shape (batch,F).

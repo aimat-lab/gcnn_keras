@@ -26,10 +26,9 @@ class ApplyMessage(ks.layers.Layer):
 
         Args:
             inputs (list): of [message, nodes]
-       
-        Inputs:
-            message (tf.tensor): Message tensor flattened that can be reshaped to (batch*None,target_shape,node_shape)
-            nodes (tf.tensor): Node feature list of shape (batch*None,F)
+
+            - message (tf.tensor): Message tensor flattened that can be reshaped to (batch*None,target_shape,node_shape)
+            - nodes (tf.tensor): Node feature list of shape (batch*None,F)
             
         Returns:
             node_updates (tf.tensor): Element-wise matmul of message and node features
@@ -71,10 +70,9 @@ class GRUupdate(ks.layers.Layer):
 
         Args:
             inputs (list): of [nodes, updates]
-        
-        Inputs:
-            nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            updates (tf.tensor): Matching node updates of same shape (batch*None,F)
+
+            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            - updates (tf.tensor): Matching node updates of same shape (batch*None,F)
             
         Returns:
             updated_nodes (tf.tensor): Updated nodes of shape (batch*None,F)

@@ -32,16 +32,13 @@ class AdjacencyPower(ks.layers.Layer):
 
         Args:
             inputs (list): [edge_indices, edges, edge_length, node_length]
-        
-        inputs:
-            edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
-            edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
+
+            - edge_indices (tf.tensor): Flatten index list of shape (batch*None,2)
+            - edges (tf.tensor): Flatten adjacency entries of shape (batch*None,1)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch. Default is row_length of shape (batch,)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch. Default is row_length of shape (batch,)
             
         Returns:
             list: [edge_indices, edges, edge_len]

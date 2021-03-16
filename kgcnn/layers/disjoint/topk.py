@@ -59,15 +59,14 @@ class PoolingTopK(ks.layers.Layer):
 
         Args:
             inputs (list): of [nodes, node_partition, edges, edge_partition, edge_indices]
-            
-        Inputs:
-            nodes (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Node length tensor of the numer of nodes
-                                        in each graph of shape (batch,)
-            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            edge_partition (tf.tensor): Edge length tensor of the numer of edges
-                                        in each graph of shape (batch,)
-            edge_indices (tf.tensor): Flatten edge index list tensor of shape (batch*None,2)   
+
+            - nodes (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Node length tensor of the numer of nodes
+              in each graph of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            - edge_partition (tf.tensor): Edge length tensor of the numer of edges
+              in each graph of shape (batch,)
+            - edge_indices (tf.tensor): Flatten edge index list tensor of shape (batch*None,2)
         
         Returns:
             Tuple: [nodes, node_partition, edges, edge_partition, edge_indices],[map_nodes,map_edges]
@@ -282,20 +281,19 @@ class UnPoolingTopK(ks.layers.Layer):
         Args:
             inputs (list): [node, node_partition, edge, edge_partition, edge_indices, map_node, map_edge, node_pool,
                             node_partition_pool, edge_pool, edge_partition_pool, edge_indices_pool]
-        
-        Inputs:
-            node (tf.tensor): Original node tensor of shape (batch*None,F_n)
-            node_partition (tf.tensor): Original node partition tensor, e.g. length tensor of shape (batch,)
-            edge (tf.tensor): Original edge feature tensor of shape (batch*None,F_e)
-            edge_partition (tf.tensor): Original edge partition tensor, e.g. length tensor of shape (batch,)
-            edge_indices (tf.tensor): Original index tensor of shape (batch*None,2) 
-            map_node (tf.tensor): Index map between original and pooled nodes (batch*None,)
-            map_edge (tf.tensor): Index map between original and pooled edges (batch*None,)
-            node_pool (tf.tensor): Pooled node tensor of shape (batch*None,F_n)
-            node_partition_pool (tf.tensor): Pooled node partition tensor, e.g. length tensor of shape (batch,)
-            edge_pool (tf.tensor): Pooled edge feature tensor of shape (batch*None,F_e)
-            edge_partition_pool (tf.tensor): Pooled edge partition tensor, e.g. length tensor of shape (batch,)
-            edge_indices (tf.tensor): Pooled index tensor of shape (batch*None,2) 
+
+            - node (tf.tensor): Original node tensor of shape (batch*None,F_n)
+            - node_partition (tf.tensor): Original node partition tensor, e.g. length tensor of shape (batch,)
+            - edge (tf.tensor): Original edge feature tensor of shape (batch*None,F_e)
+            - edge_partition (tf.tensor): Original edge partition tensor, e.g. length tensor of shape (batch,)
+            - edge_indices (tf.tensor): Original index tensor of shape (batch*None,2)
+            - map_node (tf.tensor): Index map between original and pooled nodes (batch*None,)
+            - map_edge (tf.tensor): Index map between original and pooled edges (batch*None,)
+            - node_pool (tf.tensor): Pooled node tensor of shape (batch*None,F_n)
+            - node_partition_pool (tf.tensor): Pooled node partition tensor, e.g. length tensor of shape (batch,)
+            - edge_pool (tf.tensor): Pooled edge feature tensor of shape (batch*None,F_e)
+            - edge_partition_pool (tf.tensor): Pooled edge partition tensor, e.g. length tensor of shape (batch,)
+            - edge_indices (tf.tensor): Pooled index tensor of shape (batch*None,2)
         
         Returns:
             List: [nodes, node_partition, edges, edge_partition, edge_indices]

@@ -75,14 +75,14 @@ class GCN(ks.layers.Layer):
 
             - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
             - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-                row_splits. Yields the assignment of nodes to each graph in batch.
-                Default is row_length of shape (batch,)
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
             - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
-                row_splits. Yields the assignment of edges to each graph in batch.
-                Default is row_length of shape (batch,)
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
             - edge_index (tf.tensor): Edge indices for disjoint representation of shape
-                (batch*None,2) that corresponds to indexing 'batch'.
+              (batch*None,2) that corresponds to indexing 'batch'.
         
         Returns:
             features (tf.tensor): A list of updated node features.        
@@ -169,18 +169,17 @@ class cfconv(ks.layers.Layer):
 
         Args:
             inputs (list): [node, node_partition, edge, edge_partition, edge_index]
-        
-        Inputs:
-            nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_index (tf.tensor): Edge indices for disjoint representation of shape
-                                    (batch*None,2) that corresponds to indexing 'batch'.
+
+            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+              (batch*None,2) that corresponds to indexing 'batch'.
         
         Returns:
             node_update (tf.tensor): Updated node features of shape (batch*None,F)

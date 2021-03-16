@@ -30,17 +30,16 @@ class GatherNodes(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, node_length, edge_index]
-        
-        Inputs:
-            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
+            inputs (list): of [node, node_partition, edge_index, edge_partition]
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
             
         Returns:
             features (tf.tensor): Gathered node features of (ingoing,outgoing) nodes.        
@@ -110,18 +109,17 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, node_length, edge_index]
-        
-        Inputs:
-            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-                                    For ingoing gather nodes according to index[1]
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
+            inputs (list): of [node, node_partition, edge_index, edge_partition]
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+              For ingoing gather nodes according to index[1]
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
         
         Returns:
             features (tf.tensor): A list of gathered outgoing node features from indexlist.        
@@ -191,18 +189,17 @@ class GatherNodesIngoing(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, node_len, edge_index]
-        
-        Inputs:
-            node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
-            edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
-                                    For ingoing gather nodes according to index[0]
-            edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of edges to each graph in batch.
-                                        Default is row_length of shape (batch,)
+            inputs (list): of [node, node_partition, edge_index, edge_partition]
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+              For ingoing gather nodes according to index[0]
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
     
         Returns:
             features (tf.tensor): A list of gathered ingoing node features from indexlist.        
@@ -268,11 +265,10 @@ class GatherState(ks.layers.Layer):
 
         Args:
             inputs (list): of [environment, target_length]
-        
-        Inputs:
-            environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
-            target_partition (tf.tensor): Assignment of nodes or edges to each graph in batch. 
-                                          Default is row_length of shape (batch,).
+
+            - environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
+            - target_partition (tf.tensor): Assignment of nodes or edges to each graph in batch.
+              Default is row_length of shape (batch,).
 
         Returns:
             features (tf.tensor): A tensor with repeated single state for each graph.

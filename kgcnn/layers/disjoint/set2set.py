@@ -134,12 +134,11 @@ class Set2Set(ks.layers.Layer):
 
         Args:
             inputs (list): of [nodes, node_partition]
-        
-        Inputs:
-            nodes (tf.tensor): List of nodefeatures of shape (batch*None,F)
-            node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids, row_splits
-                                        Yields the assignment of nodes to each graph in batch.
-                                        Default is row_length of shape (batch,)
+
+            - nodes (tf.tensor): List of nodefeatures of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
         
         Returns:
             feature (tf.tensor): Pooled node tensor of shape (batch,1,2*channels)
