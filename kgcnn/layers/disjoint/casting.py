@@ -23,10 +23,11 @@ class CastRaggedToValues(ks.layers.Layer):
         super(CastRaggedToValues, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        """
+        Forward pass.
 
         Args:
-            features (tf.ragged):   Ragged tensor of shape (batch,None,F) ,
+            features (tf.ragged): Ragged tensor of shape (batch,None,F),
                                   where None is the number of nodes or edges in each graph and
                                   F denotes the feature dimension.
             **kwargs
@@ -36,8 +37,7 @@ class CastRaggedToValues(ks.layers.Layer):
             
             - values (tf.tensor): Feature tensor of flatten batch dimension with shape (batch*None,F).
             - value_partition (tf.tensor): Row partition tensor. This can be either row_length, value_rowids,
-                                           row_splits etc.
-              Yields the assignment of nodes/edges per graph. Default is row_length.
+              row_splits etc. Yields the assignment of nodes/edges per graph. Default is row_length.
         """
         tens = inputs
         flat_tens = tens.values
