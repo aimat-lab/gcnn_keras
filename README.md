@@ -1,4 +1,4 @@
-[![GitHub version](https://badge.fury.io/gh/aimat-lab%2Fgcnn_keras.svg)](https://badge.fury.io/gh/aimat-lab%2Fgcnn_keras)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/aimat-lab/gcnn_keras)
 [![Documentation Status](https://readthedocs.org/projects/kgcnn/badge/?version=latest)](https://kgcnn.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/kgcnn.svg)](https://badge.fury.io/py/kgcnn)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/kgcnn)
