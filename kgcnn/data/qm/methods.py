@@ -1,6 +1,27 @@
 import numpy as np
 
 
+def get_indexmatrix(shape, flatten=False):
+    """
+    Matrix of indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
+
+    Note: numpy indexing does not work this way but as indexlist per dimension
+
+    Args:
+        shape (list, int): list of target shape, e.g. (2,2)
+        flatten (bool): whether to flatten the output or keep inputshape, default=False
+
+    Returns:
+        np.array: Index array of shape (N,M,...,len(shape)) e.g. [[[0,0],[0,1]],[[1,0],[1,1]]]
+    """
+    indarr = np.indices(shape)
+    re_order = np.append(np.arange(1, len(shape) + 1), 0)
+    indarr = indarr.transpose(re_order)
+    if flatten:
+        indarr = np.reshape(indarr, (np.prod(shape), len(shape)))
+    return indarr
+
+
 def coordinates_to_distancematrix(coord3d):
     """
     Transform coordinates to distance matrix. Will apply transformation on last dimension.
@@ -63,7 +84,7 @@ def distance_to_gaussdistance(distance, gbins=20, grange=4, gsigma=0.4):
     edge_dist_grid = np.expand_dims(distance, axis=-1)
     edge_gaus_bin = np.arange(0, gbins, 1) / gbins * grange
     edge_gaus_bin = np.broadcast_to(edge_gaus_bin, np.append(np.ones(len(d_shape), dtype=np.int32),
-                                    edge_gaus_bin.shape))  # shape (1,1,...,GBins)
+                                                             edge_gaus_bin.shape))  # shape (1,1,...,GBins)
     edge_gaus_bin = np.square(edge_dist_grid - edge_gaus_bin) * gamma  # (N,M,...,1) - (1,1,...,GBins)
     edge_gaus_bin = np.exp(edge_gaus_bin)
     return edge_gaus_bin
