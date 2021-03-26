@@ -107,7 +107,7 @@ def getmodelINORP(  # Input
 
     if len(input_edge_shape) == 1:
         edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-        ed = ks.layers.Embedding(input_edge_vocab, input_state_embedd, name='edge_embedding')(edge_input)
+        ed = ks.layers.Embedding(input_edge_vocab, input_edge_embedd, name='edge_embedding')(edge_input)
     else:
         edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
         ed = edge_input
