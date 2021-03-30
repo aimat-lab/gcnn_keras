@@ -110,7 +110,7 @@ class GCN(ks.layers.Layer):
         return config
 
 
-class cfconv(ks.layers.Layer):
+class SchNetCFconv(ks.layers.Layer):
     """
     Convolution layer of Schnet. Disjoint representation.
     
@@ -138,7 +138,7 @@ class cfconv(ks.layers.Layer):
                  node_indexing='batch',
                  **kwargs):
         """Initialize Layer."""
-        super(cfconv, self).__init__(**kwargs)
+        super(SchNetCFconv, self).__init__(**kwargs)
         self.activation = activation
         self.use_bias = use_bias
         self.cfconv_pool = cfconv_pool
@@ -162,7 +162,7 @@ class cfconv(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(cfconv, self).build(input_shape)
+        super(SchNetCFconv, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass: Calculate edge update.
@@ -184,17 +184,17 @@ class cfconv(ks.layers.Layer):
         Returns:
             node_update (tf.tensor): Updated node features of shape (batch*None,F)
         """
-        node, bn, edge, edge_len, indexlis = inputs
+        node, bn, edge, edge_len, indexlist = inputs
         x = self.lay_dense1(edge)
         x = self.lay_dense2(x)
-        node2exp = self.gather_n([node, bn, indexlis, edge_len])
+        node2exp = self.gather_n([node, bn, indexlist, edge_len])
         x = node2exp * x
-        x = self.lay_sum([node, bn, x, edge_len, indexlis])
+        x = self.lay_sum([node, bn, x, edge_len, indexlist])
         return x
 
     def get_config(self):
         """Update layer config."""
-        config = super(cfconv, self).get_config()
+        config = super(SchNetCFconv, self).get_config()
         config.update({"activation": self.activation})
         config.update({"use_bias": self.use_bias})
         config.update({"cfconv_pool": self.cfconv_pool})
@@ -203,3 +203,68 @@ class cfconv(ks.layers.Layer):
         config.update({"has_unconnected": self.has_unconnected})
         config.update({"partition_type": self.partition_type})
         return config
+
+
+class SchNetInteraction(ks.layers.Layer):
+    """
+    Interaction block.
+
+    Args:
+        all_dim (int): 64
+        activation (str): 'selu'
+        use_bias (bool): True
+        cfconv_pool (str): 'segment_sum'
+        is_sorted (bool): True
+        has_unconnected (bool): False
+    """
+
+    def __init__(self, all_dim=64,
+                 activation='selu',
+                 use_bias_cfconv=True,
+                 use_bias=True,
+                 cfconv_pool='segment_sum',
+                 is_sorted=False,
+                 has_unconnected=True,
+                 partition_type="row_length",
+                 node_indexing='batch',
+                 **kwargs):
+        """Initialize Layer."""
+        super(SchNetInteraction, self).__init__(**kwargs)
+        self.activation = activation
+        self.use_bias = use_bias
+        self.use_bias_cfconv = use_bias_cfconv
+        self.cfconv_pool = cfconv_pool
+        self.Alldim = all_dim
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        # Layers
+        self.lay_cfconv = SchNetCFconv(self.Alldim, activation=self.activation, use_bias=self.use_bias_cfconv,
+                                 cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
+                                 is_sorted=self.is_sorted)
+        self.lay_dense1 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=False)
+        self.lay_dense2 = ks.layers.Dense(units=self.Alldim, activation=self.activation, use_bias=self.use_bias)
+        self.lay_dense3 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=self.use_bias)
+        self.lay_add = ks.layers.Add()
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(SchNetInteraction, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass: Calculate node update.
+
+        Args:
+            [node,node_len,edge,edge_len,edge_index]
+
+        Returns:
+            node_update
+        """
+        node, bn, edge, edge_len, indexlis = inputs
+        x = self.lay_dense1(node)
+        x = self.lay_cfconv([x, bn, edge, edge_len, indexlis])
+        x = self.lay_dense2(x)
+        x = self.lay_dense3(x)
+        out = self.lay_add([node, x])
+        return out

@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagged
-from kgcnn.layers.disjoint.conv import cfconv
+from kgcnn.layers.disjoint.conv import SchNetInteraction, SchNetCFconv
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
@@ -14,66 +14,6 @@ from kgcnn.utils.activ import shifted_softplus
 # https://arxiv.org/abs/1706.08566  
 # https://aip.scitation.org/doi/pdf/10.1063/1.5019779
 
-
-class Interaction(ks.layers.Layer):
-    """
-    Interaction block.
-    
-    Args:
-        all_dim (int): 64
-        activation (str): 'selu'
-        use_bias (bool): True
-        cfconv_pool (str): 'segment_sum'
-        is_sorted (bool): True
-        has_unconnected (bool): False
-    """
-
-    def __init__(self, all_dim=64,
-                 activation='selu',
-                 use_bias_cfconv=True,
-                 use_bias=True,
-                 cfconv_pool='segment_sum',
-                 is_sorted=True,
-                 has_unconnected=False,
-                 **kwargs):
-        """Initialize Layer."""
-        super(Interaction, self).__init__(**kwargs)
-        self.activation = activation
-        self.use_bias = use_bias
-        self.use_bias_cfconv = use_bias_cfconv
-        self.cfconv_pool = cfconv_pool
-        self.Alldim = all_dim
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
-        # Layers
-        self.lay_cfconv = cfconv(self.Alldim, activation=self.activation, use_bias=self.use_bias_cfconv,
-                                 cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
-                                 is_sorted=self.is_sorted)
-        self.lay_dense1 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=False)
-        self.lay_dense2 = ks.layers.Dense(units=self.Alldim, activation=self.activation, use_bias=self.use_bias)
-        self.lay_dense3 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=self.use_bias)
-        self.lay_add = ks.layers.Add()
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(Interaction, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass: Calculate node update.
-            
-        Args:
-            [node,node_len,edge,edge_len,edge_index]
-        
-        Returns:
-            node_update
-        """
-        node, bn, edge, edge_len, indexlis = inputs
-        x = self.lay_dense1(node)
-        x = self.lay_cfconv([x, bn, edge, edge_len, indexlis])
-        x = self.lay_dense2(x)
-        x = self.lay_dense3(x)
-        out = self.lay_add([node, x])
-        return out
 
 
 def getmodelSchnet(
@@ -188,7 +128,7 @@ def getmodelSchnet(
         n = ks.layers.Dense(node_dim, activation='linear')(n)
 
     for i in range(0, depth):
-        n = Interaction(node_dim, use_bias=use_bias, activation=activation, cfconv_pool=cfconv_pool)(
+        n = SchNetInteraction(node_dim, use_bias=use_bias, activation=activation, cfconv_pool=cfconv_pool)(
             [n, node_len, ed, edge_len, edi])
 
     if len(output_dim) > 1:
