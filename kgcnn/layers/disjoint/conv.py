@@ -112,7 +112,7 @@ class GCN(ks.layers.Layer):
 
 class SchNetCFconv(ks.layers.Layer):
     """
-    Convolution layer of Schnet. Disjoint representation.
+    Continous Filter convolution of SchNet. Disjoint representation.
     
     Edges are proccessed by 2 Dense layers, multiplied on outgoing nodefeatures and pooled for ingoing node. 
     
@@ -210,15 +210,18 @@ class SchNetInteraction(ks.layers.Layer):
     Interaction block.
 
     Args:
-        all_dim (int): 64
-        activation (str): 'selu'
-        use_bias (bool): True
-        cfconv_pool (str): 'segment_sum'
-        is_sorted (bool): True
-        has_unconnected (bool): False
+        node_dim (int): Dimension of node embedding. Default is 64.
+        activation (str): Activation function. Default is 'selu'.
+        use_bias (bool): Use bias in last layers. Default is True.
+        use_bias_cfconv (bool): Use bias in CFconv layer. Default is True.
+        cfconv_pool (str): Pooling method information for CFconv layer. Default is'segment_sum'.
+        is_sorted (bool): Whether node indices are sorted. Default is False.
+        has_unconnected (bool): Whether graph has unconnected nodes. Default is False.
+        partition_type (str): Partition type of the partition information. Default is row_length".
+        node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
     """
 
-    def __init__(self, all_dim=64,
+    def __init__(self, node_dim=64,
                  activation='selu',
                  use_bias_cfconv=True,
                  use_bias=True,
@@ -234,18 +237,18 @@ class SchNetInteraction(ks.layers.Layer):
         self.use_bias = use_bias
         self.use_bias_cfconv = use_bias_cfconv
         self.cfconv_pool = cfconv_pool
-        self.Alldim = all_dim
+        self.node_dim = node_dim
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
+        self.partition_type = partition_type
+        self.node_indexing = node_indexing
         # Layers
-        self.lay_cfconv = SchNetCFconv(self.Alldim, activation=self.activation, use_bias=self.use_bias_cfconv,
-                                 cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
-                                 is_sorted=self.is_sorted)
-        self.lay_dense1 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=False)
-        self.lay_dense2 = ks.layers.Dense(units=self.Alldim, activation=self.activation, use_bias=self.use_bias)
-        self.lay_dense3 = ks.layers.Dense(units=self.Alldim, activation='linear', use_bias=self.use_bias)
+        self.lay_cfconv = SchNetCFconv(self.node_dim, activation=self.activation, use_bias=self.use_bias_cfconv,
+                                       cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
+                                       is_sorted=self.is_sorted, partition_type=self.partition_type, node_indexing=self.node_indexing)
+        self.lay_dense1 = ks.layers.Dense(units=self.node_dim, activation='linear', use_bias=False)
+        self.lay_dense2 = ks.layers.Dense(units=self.node_dim, activation=self.activation, use_bias=self.use_bias)
+        self.lay_dense3 = ks.layers.Dense(units=self.node_dim, activation='linear', use_bias=self.use_bias)
         self.lay_add = ks.layers.Add()
 
     def build(self, input_shape):
@@ -256,15 +259,39 @@ class SchNetInteraction(ks.layers.Layer):
         """Forward pass: Calculate node update.
 
         Args:
-            [node,node_len,edge,edge_len,edge_index]
+            inputs (list): [node, node_partition, edge, edge_partition, edge_index]
+
+            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+              (batch*None,2) that corresponds to indexing 'batch'.
 
         Returns:
-            node_update
+            node_update (tf.tensor): Updated node features.
         """
-        node, bn, edge, edge_len, indexlis = inputs
+        node, bn, edge, edge_len, indexlist = inputs
         x = self.lay_dense1(node)
-        x = self.lay_cfconv([x, bn, edge, edge_len, indexlis])
+        x = self.lay_cfconv([x, bn, edge, edge_len, indexlist])
         x = self.lay_dense2(x)
         x = self.lay_dense3(x)
         out = self.lay_add([node, x])
         return out
+
+    def get_config(self):
+        config = super(SchNetInteraction, self).get_config()
+        config.update({"node_dim": self.node_dim})
+        config.update({"activation": self.activation})
+        config.update({"use_bias": self.use_bias})
+        config.update({"cfconv_pool": self.cfconv_pool})
+        config.update({"is_sorted}": self.is_sorted})
+        config.update({"has_unconnected": self.has_unconnected})
+        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing" : self.node_indexing})
+        config.update({"use_bias_cfconv" : self.use_bias_cfconv})
+        return config

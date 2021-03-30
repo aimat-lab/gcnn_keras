@@ -1,19 +1,17 @@
 import time
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
 import matplotlib as mpl
-mpl.use('Agg')
+mpl.use('Agg') # use Agg backend
 import matplotlib.pyplot as plt
-#from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
+# Import example dataset loader and SchNet model
 from kgcnn.data.qm.qm9 import qm9_graph
 from kgcnn.literature.Schnet import getmodelSchnet
 from kgcnn.utils.learning import lr_lin_reduction
 
-
-# Download Dataset
+# Download and generate dataset.
 qm9_data = qm9_graph()
 y_data = qm9_data[0][:,7]*27.2114  #select LUMO in eV
 x_data = qm9_data[1:]
