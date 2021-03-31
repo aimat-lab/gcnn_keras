@@ -138,7 +138,8 @@ def qm9_write_pickle(path):
 
 def make_qm9_graph(qm9,
                    max_distance=4, max_neighbours=15,
-                   gauss_distance=None):
+                   gauss_distance=None,
+                   max_mols = 133885):
     """
     Make graph objects from qm9 dataset.
 
@@ -147,6 +148,7 @@ def make_qm9_graph(qm9,
         max_distance (int): 4
         max_neighbours (int): 15
         gauss_distance (dict): None
+        max_mols (int): Maximum number of molecules to take from qm9. Default is 133885.
 
     Returns:
         list: List of graph props [labels, nodes, edges, edge_idx, gstates]
@@ -186,7 +188,7 @@ def make_qm9_graph(qm9,
     coord = [np.array(x) for x in coord]
     edge_idx = []
     edges = []
-    for i in range(len(labels)):
+    for i in range(max_mols):
         xyz = coord[i]
         dist = coordinates_to_distancematrix(xyz)
         invdist = invert_distance(dist)
@@ -212,13 +214,14 @@ def make_qm9_graph(qm9,
     # edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
     edges = [edges[i] for i in range(len(edge_idx))]
 
-    return labels, nodes, edges, edge_idx, gstates
+    return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
 
 
 def qm9_graph(filepath = None,
               max_distance=4,
               max_neighbours=15,
-              gauss_distance=None
+              gauss_distance=None,
+              max_mols = 133885
               ):
     """
     Get list of graphs np.arrays for qm9 dataset.
@@ -227,6 +230,7 @@ def qm9_graph(filepath = None,
         max_distance (int): 4
         max_neighbours (int): 15
         gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
+        max_mols (int): Maximum number of molecules to take from qm9. Default is 133885.
 
     Returns:
         list: List of graph props [labels, nodes, edges, edge_idx, gstates]
@@ -258,7 +262,7 @@ def qm9_graph(filepath = None,
     # Make graph
     print("Making graph ...", end='', flush=True)
     out_graph = make_qm9_graph(qm9, max_distance=max_distance, max_neighbours=max_neighbours,
-                               gauss_distance=gauss_distance)
+                               gauss_distance=gauss_distance,max_mols=max_mols)
     print('done')
 
     return out_graph
