@@ -24,8 +24,8 @@ labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=10000)  # m
 # Select LUMO as target and convert into eV from H
 # Standardize output with scikit-learn std-scaler
 labels = labels[:, 7:8] * 27.2114
-scaler = StandardScaler()
-labels_std = scaler.fit_transform(labels,with_std=False,with_mean=True)
+scaler = StandardScaler(with_std=False,with_mean=True)
+labels = scaler.fit_transform(labels)
 data_unit = 'eV'
 
 # Train Test split

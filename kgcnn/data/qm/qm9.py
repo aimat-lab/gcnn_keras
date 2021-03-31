@@ -160,6 +160,7 @@ def make_qm9_graph(qm9,
         - gstates: Graph states, mean moleculare weight - 7 g/mol
     """
     # For graph
+    max_mols = min(max_mols,133885)
 
     # labels
     labels = np.array([x[1] for x in qm9])

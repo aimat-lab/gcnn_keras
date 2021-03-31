@@ -102,7 +102,7 @@ def cora_graph(filepath = None):
         - labels (np.array): Labels.
     """
     if filepath is None:
-        filepath = os.path.join(setup_user_database_directory(), "data", "qm")
+        filepath = os.path.join(setup_user_database_directory(), "data", "cora")
 
     print("Database path:", filepath)
     if not os.path.exists(os.path.join(filepath, "cora.npz")):
