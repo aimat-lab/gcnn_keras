@@ -27,20 +27,20 @@ def mutag_download_dataset(path, overwrite=False):
     return os.path.join(path, 'MUTAG.zip')
 
 
-def mutag_extract_dataset(path, load=False):
+def mutag_extract_dataset(path, overwrite=False):
     """
     Extract Mutagenicity.zip zip-file.
     
     Args:
         path: (str) filepath if empty use user-default path
-        load: (bool) overwrite existing database, default:False
+        overwrite: (bool) overwrite existing database, default:False
     
     Returns:
         os.path: Filepath
     """
     if os.path.exists(os.path.join(path, 'MUTAG')):
         print("Directory for extraction exists ... done")
-        if not load:
+        if not overwrite:
             print("Not extracting Zip File ... stopped")
             return os.path.join(path, 'MUTAG')
 

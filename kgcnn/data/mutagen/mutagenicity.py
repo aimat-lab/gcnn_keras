@@ -1,8 +1,10 @@
-import zipfile
 import os
+import zipfile
 
 import numpy as np
 import requests
+
+from kgcnn.utils.data import setup_user_database_directory
 
 
 def mutagenicity_download_dataset(path, overwrite=False):
@@ -27,20 +29,20 @@ def mutagenicity_download_dataset(path, overwrite=False):
     return os.path.join(path, 'Mutagenicity.zip')
 
 
-def mutagenicity_extract_dataset(path, load=False):
+def mutagenicity_extract_dataset(path, overwrite=False):
     """
     Extract Mutagenicity.zip zip-file.
     
     Args:
         path: (str) filepath if empty use user-default path
-        load: (bool) overwrite existing database, default:False
+        overwrite: (bool) overwrite existing database, default:False
     
     Returns:
         os.path: Filepath
     """
     if os.path.exists(os.path.join(path, 'Mutagenicity')):
         print("Directory for extraction exists ... done")
-        if not load:
+        if not overwrite:
             print("Not extracting Zip File ... stopped")
             return os.path.join(path, 'Mutagenicity')
 
@@ -198,9 +200,12 @@ def mutagenicity_load(path):
     return labels_clean, nodes_clean, edge_indices_clean, edges_clean, atoms_clean
 
 
-def mutagenicity_graph():
+def mutagenicity_graph(filepath=None):
     """
     Generate list of mutagenicity graphs.
+
+    Args:
+        filepath (str): Path to database. Default is None.
 
     Returns:
         ist: [labels, nodes, edge_indices, edges, atoms]
@@ -211,13 +216,15 @@ def mutagenicity_graph():
         - edges (list): Bond type.
         - atoms (list): Atom list as string.
     """
-    local_path = os.path.split(os.path.realpath(__file__))[0]
-    print("Database path:", local_path)
-    if not os.path.exists(os.path.join(local_path, "Mutagenicity")):
-        mutagenicity_download_dataset(local_path)
-        mutagenicity_extract_dataset(local_path)
+    if filepath is None:
+        filepath = os.path.join(setup_user_database_directory(), "data", "mutagen")
 
-    data = mutagenicity_load(local_path)
+    print("Database path:", filepath)
+    if not os.path.exists(os.path.join(filepath, "Mutagenicity")):
+        mutagenicity_download_dataset(filepath)
+        mutagenicity_extract_dataset(filepath)
+
+    data = mutagenicity_load(filepath)
     return data
 
 # labels,nodes,edge_indices,edges,atoms = mutagenicity_graph()

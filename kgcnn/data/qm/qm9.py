@@ -8,7 +8,7 @@ import requests
 
 from kgcnn.data.qm.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance
-
+from kgcnn.utils.data import setup_user_database_directory
 
 def qm9_download_dataset(path, overwrite=False):
     """
@@ -22,7 +22,7 @@ def qm9_download_dataset(path, overwrite=False):
         os.path: Filepath
     """
     if os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz.tar.bz2')) is False or overwrite:
-        print("Downloading dataset...", end='', flush=True)
+        print("Downloading dataset ... ", end='', flush=True)
         data_url = "https://ndownloader.figshare.com/files/3195389"
         r = requests.get(data_url)
         open(os.path.join(path, 'dsgdb9nsd.xyz.tar.bz2'), 'wb').write(r.content)
@@ -32,13 +32,13 @@ def qm9_download_dataset(path, overwrite=False):
     return os.path.join(path, 'dsgdb9nsd.xyz.tar.bz2')
 
 
-def qm9_extract_dataset(path, load=False):
+def qm9_extract_dataset(path, overwrite=False):
     """
     Extract dsgdb9nsd.xyz zip-file.
     
     Args:
         path: (str) filepath if empty use user-default path
-        load: (bool) overwrite existing database, default:False
+        overwrite: (bool) overwrite existing database, default:False
     
     Returns:
         os.path: Filepath
@@ -49,7 +49,7 @@ def qm9_extract_dataset(path, load=False):
         print("done")
     else:
         print("Directory for extraction exists ... done")
-        if not load:
+        if not overwrite:
             print("Not extracting Zip File ... stopped")
             return os.path.join(path, 'dsgdb9nsd.xyz')
 
@@ -58,7 +58,7 @@ def qm9_extract_dataset(path, load=False):
     # Filelistnames = archive.getnames()
     print("done")
 
-    print("Extracting Zip folder...", end='', flush=True)
+    print("Extracting Zip folder ... ", end='', flush=True)
     archive.extractall(os.path.join(path, 'dsgdb9nsd.xyz'))
     print("done")
     archive.close()
@@ -77,7 +77,7 @@ def qm9_remove_extracted_dataset(path):
         None.
     """
     if os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
-        print("Clean up unzipped folder...", end='', flush=True)
+        print("Clean up unzipped folder ... ", end='', flush=True)
         shutil.rmtree(os.path.join(path, 'dsgdb9nsd.xyz'))
         print("done")
     else:
@@ -149,7 +149,7 @@ def make_qm9_graph(qm9,
         gauss_distance (dict): None
 
     Returns:
-        list: List of graph props [labels, nodes, edges, edge_idx,gstates]
+        list: List of graph props [labels, nodes, edges, edge_idx, gstates]
         
         - labels: All labels of qm9
         - nodes: List of atomic numbers for emebdding layer
@@ -215,7 +215,8 @@ def make_qm9_graph(qm9,
     return labels, nodes, edges, edge_idx, gstates
 
 
-def qm9_graph(max_distance=4,
+def qm9_graph(filepath = None,
+              max_distance=4,
               max_neighbours=15,
               gauss_distance=None
               ):
@@ -239,16 +240,18 @@ def qm9_graph(max_distance=4,
     if gauss_distance is None:
         gauss_distance = {'gbins': 20, 'grange': 4, 'gsigma': 0.4}
 
-    local_path = os.path.split(os.path.realpath(__file__))[0]
-    print("Database path:", local_path)
-    if not os.path.exists(os.path.join(local_path, "qm9.pickle")):
-        qm9_download_dataset(local_path)
-        qm9_extract_dataset(local_path)
-        qm9 = qm9_write_pickle(local_path)
-        qm9_remove_extracted_dataset(local_path)
+    if filepath is None:
+        filepath = os.path.join(setup_user_database_directory(),"data","qm")
+
+    print("Database path:", filepath)
+    if not os.path.exists(os.path.join(filepath, "qm9.pickle")):
+        qm9_download_dataset(filepath)
+        qm9_extract_dataset(filepath)
+        qm9 = qm9_write_pickle(filepath)
+        qm9_remove_extracted_dataset(filepath)
     else:
         print("Loading qm9.pickle ...", end='', flush=True)
-        with open(os.path.join(local_path, "qm9.pickle"), 'rb') as f:
+        with open(os.path.join(filepath, "qm9.pickle"), 'rb') as f:
             qm9 = pickle.load(f)
         print('done')
 
