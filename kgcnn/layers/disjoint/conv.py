@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode
+from kgcnn.layers.disjoint.gather import GatherNodesOutgoing,GatherState, GatherNodes
+from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode,PoolingAllEdges, PoolingNodes
 from kgcnn.utils.activ import kgcnn_custom_act
 
 
@@ -294,4 +294,133 @@ class SchNetInteraction(ks.layers.Layer):
         config.update({"partition_type": self.partition_type})
         config.update({"node_indexing" : self.node_indexing})
         config.update({"use_bias_cfconv" : self.use_bias_cfconv})
+        return config
+
+
+class MEGnetBlock(ks.layers.Layer):
+    """
+    Megnet Block.
+
+    Args:
+        node_embed (list, optional): List of node embedding dimension. Defaults to [16,16,16].
+        edge_embed (list, optional): List of edge embedding dimension. Defaults to [16,16,16].
+        env_embed (list, optional): List of environment embedding dimension. Defaults to [16,16,16].
+        activation (func, optional): Activation function. Defaults to 'selu'.
+        use_bias (bool, optional): Use bias. Defaults to True.
+        is_sorted (bool, optional): Edge index list is sorted. Defaults to True.
+        has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
+        partition_type (str): Partition type of the partition information. Default is row_length".
+        node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
+        **kwargs
+    """
+
+    def __init__(self, node_embed= None,
+                 edge_embed=None,
+                 env_embed=None,
+                 activation='selu',
+                 use_bias=True,
+                 is_sorted=False,
+                 has_unconnected=True,
+                 partition_type="row_length",
+                 node_indexing='batch',
+                 **kwargs):
+        """Initialize layer."""
+        super(MEGnetBlock, self).__init__(**kwargs)
+        if node_embed is None:
+            node_embed = [16, 16, 16]
+        if env_embed is None:
+            env_embed = [16, 16, 16]
+        if edge_embed is None:
+            edge_embed = [16, 16, 16]
+        self.node_embed = node_embed
+        self.edge_embed = edge_embed
+        self.env_embed = env_embed
+        self.activation = activation
+        self.use_bias = use_bias
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self.partition_type = partition_type
+        self.node_indexing = node_indexing
+        # Node
+        self.lay_phi_n = ks.layers.Dense(self.node_embed[0], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_n_1 = ks.layers.Dense(self.node_embed[1], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_n_2 = ks.layers.Dense(self.node_embed[2], activation='linear', use_bias=self.use_bias)
+        self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,partition_type=self.partition_type, node_indexing=self.node_indexing)
+        self.lay_gather_un = GatherState(partition_type=self.partition_type)
+        self.lay_conc_nu = ks.layers.Concatenate(axis=-1)
+        # Edge
+        self.lay_phi_e = ks.layers.Dense(self.edge_embed[0], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_e_1 = ks.layers.Dense(self.edge_embed[1], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_e_2 = ks.layers.Dense(self.edge_embed[2], activation='linear', use_bias=self.use_bias)
+        self.lay_gather_n = GatherNodes(node_indexing=self.node_indexing,partition_type=self.partition_type)
+        self.lay_gather_ue = GatherState(partition_type=self.partition_type)
+        self.lay_conc_enu = ks.layers.Concatenate(axis=-1)
+        # Environment
+        self.lay_usum_e = PoolingAllEdges(partition_type=self.partition_type)
+        self.lay_usum_n = PoolingNodes(partition_type=self.partition_type)
+        self.lay_conc_u = ks.layers.Concatenate(axis=-1)
+        self.lay_phi_u = ks.layers.Dense(self.env_embed[0], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_u_1 = ks.layers.Dense(self.env_embed[1], activation=self.activation, use_bias=self.use_bias)
+        self.lay_phi_u_2 = ks.layers.Dense(self.env_embed[2], activation='linear', use_bias=self.use_bias)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(MEGnetBlock, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [nodes, edges, edge_index, env_input, node_partition, edge_partition]
+
+            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
+            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
+            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+              (batch*None,2) that corresponds to indexing 'batch'.
+            - graph_state (tf.tensor): Graph state input of shape (batch, F).
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+
+        Returns:
+            list: vp,ep,up
+        """
+        # Calculate edge Update
+        node_input, edge_input, edge_index_input, env_input, len_node, len_edge = inputs
+        e_n = self.lay_gather_n([node_input, len_node, edge_index_input, len_edge])
+        e_u = self.lay_gather_ue([env_input, len_edge])
+        ec = self.lay_conc_enu([e_n, edge_input, e_u])
+        ep = self.lay_phi_e(ec)  # Learning of Update Functions
+        ep = self.lay_phi_e_1(ep)  # Learning of Update Functions
+        ep = self.lay_phi_e_2(ep)  # Learning of Update Functions
+        # Calculate Node update
+        vb = self.lay_esum([node_input, len_node, ep, len_edge, edge_index_input])  # Summing for each node connections
+        v_u = self.lay_gather_un([env_input, len_node])
+        vc = self.lay_conc_nu([vb, node_input, v_u])  # Concatenate node features with new edge updates
+        vp = self.lay_phi_n(vc)  # Learning of Update Functions
+        vp = self.lay_phi_n_1(vp)  # Learning of Update Functions
+        vp = self.lay_phi_n_2(vp)  # Learning of Update Functions
+        # Calculate environment update
+        es = self.lay_usum_e([ep, len_edge])
+        vs = self.lay_usum_n([vp, len_node])
+        ub = self.lay_conc_u([es, vs, env_input])
+        up = self.lay_phi_u(ub)
+        up = self.lay_phi_u_1(up)
+        up = self.lay_phi_u_2(up)  # Learning of Update Functions
+        return vp, ep, up
+
+    def get_config(self):
+        config = super(MEGnetBlock, self).get_config()
+        config.update({"node_embed" : self.node_embed})
+        config.update({"edge_embed" : self.edge_embed})
+        config.update({"env_embed" : self.env_embed})
+        config.update({"activation": self.activation})
+        config.update({"use_bias": self.use_bias})
+        config.update({"is_sorted}": self.is_sorted})
+        config.update({"has_unconnected": self.has_unconnected})
+        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing})
         return config

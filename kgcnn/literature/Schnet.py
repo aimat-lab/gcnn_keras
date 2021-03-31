@@ -128,7 +128,7 @@ def getmodelSchnet(
         n = ks.layers.Dense(node_dim, activation='linear')(n)
 
     for i in range(0, depth):
-        n = SchNetInteraction(node_dim, use_bias=use_bias, activation=activation, cfconv_pool=cfconv_pool)(
+        n = SchNetInteraction(node_dim, use_bias=use_bias, activation=activation, cfconv_pool=cfconv_pool,is_sorted=is_sorted, has_unconnected=has_unconnected)(
             [n, node_len, ed, edge_len, edi])
 
     if len(output_dim) > 1:

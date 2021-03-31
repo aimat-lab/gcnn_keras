@@ -24,12 +24,12 @@ labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=10000)  # m
 # Standardize output with scikit-learn std-scaler
 labels = labels[:, 7:8] * 27.2114
 scaler = StandardScaler()
-labels_std = scaler.fit_transform(labels)
+labels_std = scaler.fit_transform(labels,with_std=False,with_mean=True)
 data_unit = 'eV'
 
 # Train Test split
 labels_train, labels_test, nodes_train, nodes_test, edges_train, edges_test, edge_indices_train, edge_indices_test, graph_state_train, graph_state_test = train_test_split(
-    labels, nodes, edges, edge_indices, graph_state, test_size=0.15, random_state=42)
+    labels, nodes, edges, edge_indices, graph_state, test_size=0.10, random_state=42)
 del labels, nodes, edges, edge_indices, graph_state  # Free memory after split, if possible
 
 # Convert to tf.RaggedTensor or tf.tensor
@@ -93,12 +93,10 @@ epostep = 10
 # Compile model with optimizer and learning rate
 # The scaled metric is meant to display the inverse-scaled mae values (optional)
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-mae_metric = ScaledMeanAbsoluteError((1, 1))
-mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
 cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
-              metrics=[mae_metric])
+              metrics=['mean_absolute_error'])
 print(model.summary())
 
 # Start training
