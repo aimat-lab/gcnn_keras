@@ -4,6 +4,7 @@ import zipfile
 import numpy as np
 import requests
 
+from kgcnn.utils.data import setup_user_database_directory
 
 def mutag_download_dataset(path, overwrite=False):
     """
@@ -162,9 +163,12 @@ def mutag_load(path):
     return labels, nodes, edge_indices, edges
 
 
-def mutag_graph():
+def mutag_graph(filepath = None):
     """
     Get MUTAG dataset.
+
+    Args:
+        filepath (str): Path to dataset. Default is None.
 
     Returns:
         list: [labels, nodes, edge_indices, edges]
@@ -174,14 +178,16 @@ def mutag_graph():
         - edge_indices (list): List of edge indices of connections per molecule.
         - edges (list): List of edge features
     """
-    local_path = os.path.split(os.path.realpath(__file__))[0]
-    print("Database path:", local_path)
-    if not os.path.exists(os.path.join(local_path, "MUTAG")):
-        mutag_download_dataset(local_path)
-        mutag_extract_dataset(local_path)
+    if filepath is None:
+        filepath = os.path.join(setup_user_database_directory(), "data", "mutagen")
+
+    print("Database path:", filepath)
+    if not os.path.exists(os.path.join(filepath, "MUTAG")):
+        mutag_download_dataset(filepath)
+        mutag_extract_dataset(filepath)
 
     print("Making graph ...", end='', flush=True)
-    data = mutag_load(local_path)
+    data = mutag_load(filepath)
     print('done')
     return data
 

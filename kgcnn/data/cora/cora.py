@@ -7,6 +7,7 @@ import numpy as np
 import requests
 import scipy.sparse as sp
 
+from kgcnn.utils.data import setup_user_database_directory
 
 def cora_download_dataset(path, overwrite=False):
     """
@@ -86,9 +87,12 @@ def cora_make_grph(loader):
     return a, x, labels
 
 
-def cora_graph():
+def cora_graph(filepath = None):
     """
     Load and convert cora citation dataset.
+
+    Args:
+        filepath (str): Path to dataset. Default is None.
 
     Returns:
         list: [A,X,labels]
@@ -97,12 +101,14 @@ def cora_graph():
         - X (sp.csr_matrix): Node features.
         - labels (np.array): Labels.
     """
-    local_path = os.path.split(os.path.realpath(__file__))[0]
-    print("Database path:", local_path)
-    if not os.path.exists(os.path.join(local_path, "cora.npz")):
-        cora_download_dataset(local_path)
+    if filepath is None:
+        filepath = os.path.join(setup_user_database_directory(), "data", "qm")
 
-    loader = np.load(os.path.join(local_path, "cora.npz"), allow_pickle=True)
+    print("Database path:", filepath)
+    if not os.path.exists(os.path.join(filepath, "cora.npz")):
+        cora_download_dataset(filepath)
+
+    loader = np.load(os.path.join(filepath, "cora.npz"), allow_pickle=True)
     loader = dict(loader)
     data = cora_make_grph(loader)
 

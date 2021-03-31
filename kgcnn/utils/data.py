@@ -63,5 +63,9 @@ def setup_user_database_directory():
     # Make individual data directories
     if not os.path.exists(os.path.join(os.path.expanduser("~"), ".kgcnn","data","qm")):
         os.mkdir(os.path.join(os.path.expanduser("~"), ".kgcnn","data","qm"))
+    if not os.path.exists(os.path.join(os.path.expanduser("~"), ".kgcnn","data","mutag")):
+        os.mkdir(os.path.join(os.path.expanduser("~"), ".kgcnn","data","mutag"))
+    if not os.path.exists(os.path.join(os.path.expanduser("~"), ".kgcnn","data","cora")):
+        os.mkdir(os.path.join(os.path.expanduser("~"), ".kgcnn","data","cora"))
 
     return os.path.join(os.path.expanduser("~"), ".kgcnn")
