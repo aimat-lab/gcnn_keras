@@ -139,24 +139,20 @@ def getmodelSchnet(
                 mlp_kernel_regularizer=output_kernel_regularizer[:-1],
                 mlp_bias_regularizer=output_bias_regularizer[:-1])(n)
 
-    if output_embedd == 'graph':
-        if out_scale_pos == 0:
-            n = ks.layers.Dense(output_dim[-1], activation=output_activation[-1], use_bias=output_use_bias[-1],
+    mlp_last = ks.layers.Dense(output_dim[-1], activation=output_activation[-1], use_bias=output_use_bias[-1],
                                 bias_regularizer=output_bias_regularizer[-1],
                                 activity_regularizer=output_activity_regularizer[-1],
-                                kernel_regularizer=output_kernel_regularizer[-1])(n)
+                                kernel_regularizer=output_kernel_regularizer[-1])
+
+    if output_embedd == 'graph':
+        if out_scale_pos == 0:
+            n = mlp_last(n)
         out = PoolingNodes(pooling_method=out_pooling_method)([n, node_len])
         if out_scale_pos == 1:
-            out = ks.layers.Dense(output_dim[-1], activation=output_activation[-1], use_bias=output_use_bias[-1],
-                                  bias_regularizer=output_bias_regularizer[-1],
-                                  activity_regularizer=output_activity_regularizer[-1],
-                                  kernel_regularizer=output_kernel_regularizer[-1])(out)
+            out = mlp_last(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
-        out = ks.layers.Dense(output_dim[-1], activation=output_activation[-1], use_bias=output_use_bias[-1],
-                              bias_regularizer=output_bias_regularizer[-1],
-                              activity_regularizer=output_activity_regularizer[-1],
-                              kernel_regularizer=output_kernel_regularizer[-1])(n)
+        out = mlp_last(n)
         main_output = CastValuesToRagged()([out, node_len])
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
 
