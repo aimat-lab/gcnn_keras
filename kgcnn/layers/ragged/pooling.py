@@ -4,7 +4,6 @@ import tensorflow.keras as ks
 
 # import tensorflow.keras.backend as ksb
 
-
 class PoolingNodes(ks.layers.Layer):
     r"""
     Layer for pooling of nodefeatures over all nodes in graph. Which gives $1/n \sum_i node(i)$.
@@ -53,6 +52,58 @@ class PoolingNodes(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingNodes, self).get_config()
+        config.update({"pooling_method": self.pooling_method})
+        return config
+
+
+class PoolingWeightedNodes(tf.keras.layers.Layer):
+    r"""
+    Layer for pooling of nodefeatures over all nodes in graph. Which gives $1/n \sum_i node(i)$.
+
+    Args:
+        pooling_method : tf.function to pool all nodes compatible with ragged tensors.
+        **kwargs
+    """
+
+    def __init__(self,
+                 pooling_method="reduce_mean",
+                 **kwargs):
+        """Initialize layer."""
+        super(PoolingWeightedNodes, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+
+        if self.pooling_method == "reduce_mean":
+            self._pool = tf.math.reduce_mean
+        elif self.pooling_method == "reduce_sum":
+            self._pool = tf.math.reduce_sum
+        else:
+            raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
+
+        self._supports_ragged_inputs = True
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingWeightedNodes, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [nodes, weights]
+
+            - nodes (tf.ragged): Node ragged tensor of shape (batch,None,F)
+            - weights (tf.ragged): Node weights.
+
+        Returns:
+            features (tf.tensor): Pooled node features of shape (batch,F)
+        """
+        nodes, weights = input
+        out = self._pool(tf.math.multiply(nodes, weights), axis=1)
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingWeightedNodes, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config
 
