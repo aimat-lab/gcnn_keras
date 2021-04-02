@@ -81,7 +81,7 @@ def scaled_adjacency_to_list(Ascaled):
         edge_weight = np.array(Ascaled.data)
         return edge_index,edge_weight
     else:
-        raise TypeError("Error: Matrix format not supported:",type(A))
+        raise TypeError("Error: Matrix format not supported:",type(Ascaled))
 
 
 
