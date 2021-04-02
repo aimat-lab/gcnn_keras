@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 class GNNInterface():
     """An interface class which should be implemented by a Graph Neural Network (GNN) model to make it explainable.
     This class is just an interface, which is used by the `GNNExplainer` and should be implemented in a subclass.
