@@ -5,7 +5,7 @@ from kgcnn.layers.disjoint.conv import SchNetInteraction
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.activ import shifted_softplus
+# from kgcnn.utils.activ import shifted_softplus
 from kgcnn.utils.models import generate_standard_gaph_input
 
 
@@ -25,18 +25,16 @@ def getmodelSchnet(
         output_mlp: dict = {"mlp_use_bias": [True, True],
                             "mlp_units": [128, 64],
                             "mlp_activation": ['shifted_softplus', 'shifted_softplus']},
-        output_dense={"units": 1, "activation": 'linear', "use_bias": True},
-        output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+        output_dense: dict = {"units": 1, "activation": 'linear', "use_bias": True},
+        output_embedd: dict = {"output_mode": 'graph', "output_type": 'padded'},
         # Model specific
         depth=4,
-        node_dim=128,
-        use_bias=True,
-        activation='shifted_softplus',
-        cfconv_pool="segment_sum",
-        out_pooling_method="segment_sum",
         out_scale_pos=0,
-        is_sorted=True,
-        has_unconnected=False,
+        interaction_args: dict = {"node_dim": 128,
+                                  "use_bias": True,
+                                  "activation": 'shifted_softplus',
+                                  "cfconv_pool": "segment_sum"},
+        out_pooling_method="segment_sum",
         **kwargs
 ):
     """
@@ -52,14 +50,10 @@ def getmodelSchnet(
         output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
 
         depth (int, optional): Number of Interaction units. Defaults to 4.
-        node_dim (int, optional): Hidden node dim. Defaults to 128.
-        use_bias (bool, optional): Use bias. Defaults to True.
-        activation (str, optional): Activation function. Defaults to shifted_softplus.
-        cfconv_pool (str, optional): Pooling method. Defaults to "segment_sum".
+        interaction_args (dict): Interaction Layer arguments, including "node_dim", "use_bias",
+                                 "activation", "cfconv_pool", "is_sorted", "has_unconnected"
         out_pooling_method (str, optional): Node pooling method. Defaults to "segment_sum".
         out_scale_pos (int, optional): Scaling output, position of layer. Defaults to 0.
-        is_sorted (bool, optional): Edge indices are sorted. Defaults to True.
-        has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
         **kwargs
 
     Returns:
@@ -72,17 +66,13 @@ def getmodelSchnet(
 
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
 
-    if isinstance(activation, str):
-        if activation == 'shifted_softplus':
-            activation = shifted_softplus
+    node_dim = interaction_args["node_dim"] if "node_dim" in interaction_args else 64  # Default of SchnetInteraction
 
     if len(input_node_shape) > 1 and input_node_shape[-1] != node_dim:
         n = ks.layers.Dense(node_dim, activation='linear')(n)
 
     for i in range(0, depth):
-        n = SchNetInteraction(node_dim, use_bias=use_bias, activation=activation, cfconv_pool=cfconv_pool,
-                              is_sorted=is_sorted, has_unconnected=has_unconnected)(
-            [n, node_len, ed, edge_len, edi])
+        n = SchNetInteraction(**interaction_args)([n, node_len, ed, edge_len, edi])
 
     n = MLP(**output_mlp)(n)
 

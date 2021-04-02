@@ -61,17 +61,18 @@ model = getmodelSchnet(
                 "mlp_units": [128, 64],
                 "mlp_activation": ['shifted_softplus', 'shifted_softplus']},
     output_dense={"units": 1, "activation": 'linear', "use_bias": True},
-    output_embedd={"output_mode": 'graph'},
+    output_embedd={'output_mode': 'graph'},
     # Model specific
     depth=4,
-    node_dim=128,
-    use_bias=True,
-    activation='shifted_softplus',
-    cfconv_pool="segment_sum",
-    out_pooling_method="segment_sum",
     out_scale_pos=0,
-    is_sorted=True,
-    has_unconnected=False,
+    interaction_args={"node_dim": 128,
+                      "use_bias": True,
+                      "activation": 'shifted_softplus',
+                      "cfconv_pool": "segment_sum",
+                      "is_sorted": True,
+                      "has_unconnected": False
+                      },
+    out_pooling_method="segment_sum"
 )
 
 # Define learning rate and epochs

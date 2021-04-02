@@ -1,8 +1,10 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.disjoint.gather import GatherNodesOutgoing,GatherState, GatherNodes
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode,PoolingAllEdges, PoolingNodes
+from kgcnn.layers.disjoint.gather import GatherNodesOutgoing, GatherState, GatherNodes
+from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode, PoolingAllEdges, \
+    PoolingNodes
 from kgcnn.utils.activ import kgcnn_custom_act
+from kgcnn.utils.activ import shifted_softplus
 
 
 class GCN(ks.layers.Layer):
@@ -233,6 +235,9 @@ class SchNetInteraction(ks.layers.Layer):
                  **kwargs):
         """Initialize Layer."""
         super(SchNetInteraction, self).__init__(**kwargs)
+        if isinstance(activation, str):
+            if activation == 'shifted_softplus':
+                activation = shifted_softplus
         self.activation = activation
         self.use_bias = use_bias
         self.use_bias_cfconv = use_bias_cfconv
@@ -245,7 +250,8 @@ class SchNetInteraction(ks.layers.Layer):
         # Layers
         self.lay_cfconv = SchNetCFconv(self.node_dim, activation=self.activation, use_bias=self.use_bias_cfconv,
                                        cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
-                                       is_sorted=self.is_sorted, partition_type=self.partition_type, node_indexing=self.node_indexing)
+                                       is_sorted=self.is_sorted, partition_type=self.partition_type,
+                                       node_indexing=self.node_indexing)
         self.lay_dense1 = ks.layers.Dense(units=self.node_dim, activation='linear', use_bias=False)
         self.lay_dense2 = ks.layers.Dense(units=self.node_dim, activation=self.activation, use_bias=self.use_bias)
         self.lay_dense3 = ks.layers.Dense(units=self.node_dim, activation='linear', use_bias=self.use_bias)
@@ -292,8 +298,8 @@ class SchNetInteraction(ks.layers.Layer):
         config.update({"is_sorted}": self.is_sorted})
         config.update({"has_unconnected": self.has_unconnected})
         config.update({"partition_type": self.partition_type})
-        config.update({"node_indexing" : self.node_indexing})
-        config.update({"use_bias_cfconv" : self.use_bias_cfconv})
+        config.update({"node_indexing": self.node_indexing})
+        config.update({"use_bias_cfconv": self.use_bias_cfconv})
         return config
 
 
@@ -314,7 +320,7 @@ class MEGnetBlock(ks.layers.Layer):
         **kwargs
     """
 
-    def __init__(self, node_embed= None,
+    def __init__(self, node_embed=None,
                  edge_embed=None,
                  env_embed=None,
                  activation='selu',
@@ -345,14 +351,15 @@ class MEGnetBlock(ks.layers.Layer):
         self.lay_phi_n = ks.layers.Dense(self.node_embed[0], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_n_1 = ks.layers.Dense(self.node_embed[1], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_n_2 = ks.layers.Dense(self.node_embed[2], activation='linear', use_bias=self.use_bias)
-        self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,partition_type=self.partition_type, node_indexing=self.node_indexing)
+        self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,
+                                            partition_type=self.partition_type, node_indexing=self.node_indexing)
         self.lay_gather_un = GatherState(partition_type=self.partition_type)
         self.lay_conc_nu = ks.layers.Concatenate(axis=-1)
         # Edge
         self.lay_phi_e = ks.layers.Dense(self.edge_embed[0], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_e_1 = ks.layers.Dense(self.edge_embed[1], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_e_2 = ks.layers.Dense(self.edge_embed[2], activation='linear', use_bias=self.use_bias)
-        self.lay_gather_n = GatherNodes(node_indexing=self.node_indexing,partition_type=self.partition_type)
+        self.lay_gather_n = GatherNodes(node_indexing=self.node_indexing, partition_type=self.partition_type)
         self.lay_gather_ue = GatherState(partition_type=self.partition_type)
         self.lay_conc_enu = ks.layers.Concatenate(axis=-1)
         # Environment
@@ -414,9 +421,9 @@ class MEGnetBlock(ks.layers.Layer):
 
     def get_config(self):
         config = super(MEGnetBlock, self).get_config()
-        config.update({"node_embed" : self.node_embed})
-        config.update({"edge_embed" : self.edge_embed})
-        config.update({"env_embed" : self.env_embed})
+        config.update({"node_embed": self.node_embed})
+        config.update({"edge_embed": self.edge_embed})
+        config.update({"env_embed": self.env_embed})
         config.update({"activation": self.activation})
         config.update({"use_bias": self.use_bias})
         config.update({"is_sorted}": self.is_sorted})
