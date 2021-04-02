@@ -57,11 +57,11 @@ model = getmodelSchnet(
                   'input_node_embedd': 128,
                   'input_type': 'ragged'},
     # Output
-    output_embedd='graph',
-    output_use_bias=[True, True, True],
-    output_dim=[128, 64, 1],
-    output_activation=['shifted_softplus', 'shifted_softplus', 'linear'],
-    output_type='padded',
+    output_mlp={"mlp_use_bias": [True, True],
+                "mlp_units": [128, 64],
+                "mlp_activation": ['shifted_softplus', 'shifted_softplus']},
+    output_dense={"units": 1, "activation": 'linear', "use_bias": True},
+    output_embedd={"output_mode": 'graph'},
     # Model specific
     depth=4,
     node_dim=128,

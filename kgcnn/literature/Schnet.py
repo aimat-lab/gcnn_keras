@@ -22,14 +22,11 @@ def getmodelSchnet(
         input_edge_shape,
         input_embedd: dict = {},
         # Output
-        output_embedd='graph',
-        output_use_bias=[True, True, True],
-        output_dim=[128, 64, 1],
-        output_activation=['shifted_softplus', 'shifted_softplus', 'linear'],
-        output_kernel_regularizer=[None, None, None],
-        output_activity_regularizer=[None, None, None],
-        output_bias_regularizer=[None, None, None],
-        output_type='padded',
+        output_mlp: dict = {"mlp_use_bias": [True, True],
+                            "mlp_units": [128, 64],
+                            "mlp_activation": ['shifted_softplus', 'shifted_softplus']},
+        output_dense={"units": 1, "activation": 'linear', "use_bias": True},
+        output_embedd={"output_mode": 'graph', "output_type": 'padded'},
         # Model specific
         depth=4,
         node_dim=128,
@@ -50,20 +47,9 @@ def getmodelSchnet(
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_embedd (list): Dictionary of input embedding info. See default values of kgcnn.utils.models.
 
-        output_embedd (str): Graph or node embedding of the graph network. Default is 'graph'.
-        output_use_bias (bool,list): Use bias for output. Optionally list for multiple layer.
-                                     Default is [True,True,True].
-        output_dim (list): Output dimension. Optionally list for multiple layer. Default is [32,16,1].
-        output_activation (list): Activation function. Optionally list for multiple layer.
-                                  Default is ['softplus2','softplus2','sigmoid'].
-        output_kernel_regularizer (list): Kernel regularizer for output. Optionally list for multiple layer.
-                                          Default is [None,None,None].
-        output_activity_regularizer (list): Activity regularizer for output. Optionally list for multiple layer.
-                                            Default is [None,None,None].
-        output_bias_regularizer (list): Bias regularizer for output. Optionally list for multiple layer.
-                                        Default is [None,None,None].
-        output_type (str): Tensor output type. Default is 'padded'.
-
+        output_mlp (dict): Parameter for MLP output classification/ regression.
+        output_dense (dict): Parameter for Dense scaling layer.
+        output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
 
         depth (int, optional): Number of Interaction units. Defaults to 4.
         node_dim (int, optional): Hidden node dim. Defaults to 128.
@@ -81,7 +67,8 @@ def getmodelSchnet(
 
     """
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_gaph_input(input_node_shape,
-                                                                                         input_edge_shape, **input_embedd)
+                                                                                         input_edge_shape, None,
+                                                                                         **input_embedd)
 
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
 
@@ -97,20 +84,11 @@ def getmodelSchnet(
                               is_sorted=is_sorted, has_unconnected=has_unconnected)(
             [n, node_len, ed, edge_len, edi])
 
-    if len(output_dim) > 1:
-        n = MLP(output_dim[:-1],
-                mlp_use_bias=output_use_bias[:-1],
-                mlp_activation=output_activation[:-1],
-                mlp_activity_regularizer=output_kernel_regularizer[:-1],
-                mlp_kernel_regularizer=output_kernel_regularizer[:-1],
-                mlp_bias_regularizer=output_bias_regularizer[:-1])(n)
+    n = MLP(**output_mlp)(n)
 
-    mlp_last = ks.layers.Dense(output_dim[-1], activation=output_activation[-1], use_bias=output_use_bias[-1],
-                               bias_regularizer=output_bias_regularizer[-1],
-                               activity_regularizer=output_activity_regularizer[-1],
-                               kernel_regularizer=output_kernel_regularizer[-1])
+    mlp_last = ks.layers.Dense(**output_dense)
 
-    if output_embedd == 'graph':
+    if output_embedd["output_mode"] == 'graph':
         if out_scale_pos == 0:
             n = mlp_last(n)
         out = PoolingNodes(pooling_method=out_pooling_method)([n, node_len])
