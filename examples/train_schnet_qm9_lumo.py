@@ -43,8 +43,8 @@ nodes_test, edges_test, edge_indices_test, graph_state_test = ragged_tensor_from
     edge_indices_test), tf.constant(graph_state_test)
 
 # Define input and output data
-xtrain = nodes_train, edges_train, edge_indices_train, graph_state_train
-xtest = nodes_test, edges_test, edge_indices_test, graph_state_test
+xtrain = nodes_train, edges_train, edge_indices_train
+xtest = nodes_test, edges_test, edge_indices_test
 ytrain = labels_train
 ytest = labels_test
 
@@ -53,12 +53,9 @@ model = getmodelSchnet(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],
-    input_state_shape=[],
-    input_node_vocab=10,
-    input_node_embedd=128,
-    input_edge_embedd=64,
-    input_state_embedd=64,
-    input_type='ragged',
+    input_embedd={'input_node_vocab': 10,
+                  'input_node_embedd': 128,
+                  'input_type': 'ragged'},
     # Output
     output_embedd='graph',
     output_use_bias=[True, True, True],

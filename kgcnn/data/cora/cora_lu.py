@@ -81,8 +81,14 @@ def cora_make_graph(filepath):
     nodes = np.array([[int(y) for y in x] for x in nodes],dtype=np.int)
     open_file.close()
     # Match indices not wiht ids but with indices in nodes
-    node_map = np.zeros(np.max(nodes[:,0]))
-
+    node_map = np.zeros(np.max(nodes[:,0])+1,dtype=np.int)
+    idx_new = np.arange(len(nodes))
+    node_map[nodes[:,0]] = idx_new
+    indexlist = node_map[ids]
+    order1 = np.argsort(indexlist[:,1],axis=0,kind='mergesort') # stable!
+    ind1 = indexlist[order1]
+    order2 = np.argsort(ind1[:,0],axis=0,kind='mergesort')
+    indices = ind1[order2]
     # Class mappings
     class_label_mapping = {'Genetic_Algorithms': 0,
                     'Reinforcement_Learning': 1,
@@ -91,8 +97,8 @@ def cora_make_graph(filepath):
                     'Case_Based': 4,
                     'Probabilistic_Methods': 5,
                     'Neural_Networks': 6}
-
-    return nodes,indices,labels
+    label_id = np.array([class_label_mapping[x] for x in labels],dtype=np.int)
+    return nodes,indices,label_id
 
 def cora_graph(filepath=None):
     """
@@ -121,5 +127,3 @@ def cora_graph(filepath=None):
     data = cora_make_graph(os.path.join(filepath,"cora_lu","cora"))
 
     return data
-
-nodes,indx,labels = cora_graph()
