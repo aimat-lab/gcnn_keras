@@ -42,8 +42,8 @@ nodes_test, edges_test, edge_indices_test, graph_state_test = ragged_tensor_from
     edge_indices_test), tf.constant(graph_state_test)
 
 # Define input and output data
-xtrain = nodes_train, edges_train, edge_indices_train, graph_state_train
-xtest = nodes_test, edges_test, edge_indices_test, graph_state_test
+xtrain = nodes_train, edges_train, edge_indices_train
+xtest = nodes_test, edges_test, edge_indices_test
 ytrain = labels_train
 ytest = labels_test
 
@@ -51,22 +51,19 @@ model = getmodelNMPN(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],
-    input_state_shape=[1],
-    input_node_vocab=10,
-    input_node_embedd=32,
-    input_type='ragged',
     # Output
-    output_embedd='graph',
-    output_use_bias=[True, True, False],
-    output_dim=[25, 10, 1],
-    output_activation=['selu', 'selu', 'linear'],
-    output_type='padded',
+    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_mlp= {"use_bias" :[True, True, False],
+                 "units" : [25, 10, 1],
+                 "activation" : ['selu', 'selu', 'linear'],
+
+                 },
     # Model specific
     depth=3,
     node_dim=64,
     use_set2set=True,
-    set2set_dim=32,
-    use_bias=True,
+    set2set_args= {'channels': 32, 'T': 3, "pooling_method": "sum",
+                    "init_qstar": "0"},
     activation='selu',
     is_sorted=True,
     has_unconnected=False
