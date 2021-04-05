@@ -57,9 +57,9 @@ model = make_schnet(
                   'input_node_embedd': 128,
                   'input_type': 'ragged'},
     # Output
-    output_mlp={"mlp_use_bias": [True, True],
-                "mlp_units": [128, 64],
-                "mlp_activation": ['shifted_softplus', 'shifted_softplus']},
+    output_mlp={"use_bias": [True, True],
+                "units": [128, 64],
+                "activation": ['shifted_softplus', 'shifted_softplus']},
     output_dense={"units": 1, "activation": 'linear', "use_bias": True},
     output_embedd={'output_mode': 'graph'},
     # Model specific

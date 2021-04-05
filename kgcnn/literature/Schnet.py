@@ -41,8 +41,8 @@ def make_schnet(
         input_embedd (list): Dictionary of input embedding info. See default values of kgcnn.utils.models.
 
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
-                                    {"mlp_use_bias": [True, True], "mlp_units": [128, 64],
-                                     "mlp_activation": ['shifted_softplus', 'shifted_softplus']}
+                                    {"use_bias": [True, True], "units": [128, 64],
+                                     "activation": ['shifted_softplus', 'shifted_softplus']}
         output_dense (dict): Parameter for Dense scaling layer. Defaults to {"units": 1, "activation": 'linear',
                              "use_bias": True}.
         output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
