@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.data.cora.cora import cora_graph
-from kgcnn.literature.GCN import getmodelGCN
+from kgcnn.literature.GCN import make_gcn
 from kgcnn.utils.adj import precompute_adjacency_scaled, scaled_adjacency_to_list, make_undirected
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
@@ -45,27 +45,15 @@ nodes, edges, edge_indices = ragged_tensor_from_nested_numpy([nodes]), ragged_te
 xtrain = nodes, edges, edge_indices
 ytrain = np.expand_dims(labels, axis=0) # One graph in batch
 
-model = getmodelGCN(
+model = make_gcn(
     input_node_shape=[None, 8710],
     input_edge_shape=[None, 1],
-    input_state_shape=[1],
-    input_type='ragged',
     # Output
-    output_embedd='graph',
-    output_use_bias=[True, True, False],
-    output_dim=[140, 70, 70],
-    output_activation=['relu',
-                       'relu',
-                       'softmax'],
-    output_type='padded',
+    output_embedd={"output_mode": 'node'},
+    output_mlp= {"use_bias":[True, True, False],"units": [140, 70, 70],  "activation" : ['relu','relu','softmax']},
     # model specs
     depth=3,
-    node_dim=140,
-    hidden_dim=140,
-    use_bias=True,
-    activation='relu',
-    graph_labeling=False,
-    has_unconnected=True,
+    gcn_args = {"units" : 140,"use_bias":True ,"activation" : "relu" , "has_unconnected": True}
 )
 
 # Set learning rate and epochs
@@ -114,5 +102,5 @@ plt.xlabel('Epochs')
 plt.ylabel('Accurarcy')
 plt.title('GCN')
 plt.legend(loc='lower right', fontsize='x-large')
-plt.savefig('GCN_loss.png')
+plt.savefig('gcn_loss.png')
 plt.show()
