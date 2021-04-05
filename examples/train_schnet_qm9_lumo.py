@@ -11,14 +11,14 @@ import matplotlib.pyplot as plt
 
 # Import example dataset loader and SchNet model
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.Schnet import getmodelSchnet
+from kgcnn.literature.Schnet import make_schnet
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
 # Download and generate dataset.
 # QM9 has about 200 MB of data
 # You need at least 10 GB of RAM to load and process full dataset into memory.
-labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=10000)  # max is 133885
+labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=1000)  # max is 133885
 
 # Select LUMO as target and convert into eV from H
 # Standardize output with scikit-learn std-scaler
@@ -49,7 +49,7 @@ ytrain = labels_train
 ytest = labels_test
 
 # Get Model with matching input and output properties
-model = getmodelSchnet(
+model = make_schnet(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],

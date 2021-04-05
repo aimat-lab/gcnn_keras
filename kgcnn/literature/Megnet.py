@@ -1,12 +1,11 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
-from kgcnn.layers.disjoint.gather import GatherState, GatherNodes
 from kgcnn.layers.disjoint.conv import MEGnetBlock
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes, PoolingAllEdges
+from kgcnn.layers.disjoint.pooling import PoolingNodes, PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
-from kgcnn.utils.activ import softplus2
+from kgcnn.utils.models import generate_standard_graph_input
 
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
@@ -14,46 +13,26 @@ from kgcnn.utils.activ import softplus2
 # https://github.com/materialsvirtuallab/megnet
 
 
-def getmodelMegnet(
+def make_megnet(
         # Input
         input_node_shape,
         input_edge_shape,
         input_state_shape,
-        input_node_vocab=95,
-        input_edge_vocab=5,
-        input_state_vocab=100,
-        input_node_embedd=64,
-        input_edge_embedd=64,
-        input_state_embedd=64,
-        input_type='ragged',
+        input_embedd: dict = None,
         # Output
-        output_embedd='graph',  # Only graph possible for megnet
-        output_use_bias=[True, True, True],
-        output_dim=[32, 16, 1],
-        output_activation=['softplus2', 'softplus2', 'sigmoid'],
-        output_kernel_regularizer=[None, None, None],
-        output_activity_regularizer=[None, None, None],
-        output_bias_regularizer=[None, None, None],
-        output_type='padded',
+        output_embedd: dict = None,  # Only graph possible for megnet
+        output_mlp: dict = None,
         # Model specs
-        is_sorted: bool = True,
-        has_unconnected: bool = False,
+        meg_block_args: dict = None,
+        node_ff_args: dict = None,
+        edge_ff_args: dict = None,
+        state_ff_args: dict = None,
+        set2set_args: dict = None,
         nblocks: int = 3,
-        n1: int = 64,
-        n2: int = 32,
-        n3: int = 16,
-        set2set_dim: int = 16,
-        use_bias=True,
-        act='softplus2',
-        l2_coef: float = None,
         has_ff: bool = True,
         dropout: float = None,
-        dropout_on_predict: bool = False,
         use_set2set: bool = True,
-        npass: int = 3,
-        set2set_init: str = '0',
-        set2set_pool: str = "sum",
-        **kwargs):
+        ):
     """
     Get Megnet model.
     
@@ -61,131 +40,92 @@ def getmodelMegnet(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
-        input_node_vocab (int): Node input embedding vocabulary. Default is 95.
-        input_edge_vocab (int): Edge input embedding vocabulary. Default is 5.
-        input_state_vocab (int): State input embedding vocabulary. Default is 100.
-        input_node_embedd (int): Node input embedding dimension. Default is 64.
-        input_edge_embedd (int): Edge input embedding dimension. Default is 64.
-        input_state_embedd (int): State embedding dimension. Default is 64.
-        input_type (str): Specify input type. Only 'ragged' is supported. 
+        input_embedd (dict): Dictionary of input embedding info. See default values of kgcnn.utils.models.
         
-        output_embedd (str): Graph or node embedding of the graph network. Default is 'graph'.
-        output_use_bias (bool,list): Use bias for output. Optionally list for multiple layer.
-                                     Default is [True,True,True].
-        output_dim (list): Output dimension. Optionally list for multiple layer. Default is [32,16,1].
-        output_activation (list): Activation function. Optionally list for multiple layer.
-                                  Default is ['softplus2','softplus2','sigmoid'].
-        output_kernel_regularizer (list): Kernel regularizer for output. Optionally list for multiple layer.
-                                          Default is [None,None,None].
-        output_activity_regularizer (list): Activity regularizer for output. Optionally list for multiple layer.
-                                            Default is [None,None,None].
-        output_bias_regularizer (list): Bias regularizer for output. Optionally list for multiple layer.
-                                        Default is [None,None,None].
-        output_type (str): Tensor output type. Default is 'padded'.
-        
-        is_sorted (bool): Are edge indices sorted. Default is True.
-        has_unconnected (bool): Has unconnected nodes. Default is False.
+        output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
+        output_mlp (dict): MLP for output arguments. Default is {"mlp_use_bias": [True, True, True],
+                            "mlp_units": [32, 16, 1], "mlp_activation": ['softplus2', 'softplus2', 'linear']}
+
+        meg_block_args (dict): MegBlock arguments. Default is
+                                {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
+                                'activation': 'softplus2', 'is_sorted': False, 'has_unconnected': True}
+        node_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
+                            "mlp_activation": ["softplus2", "softplus2"]}
+        edge_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
+                            "mlp_activation": ["softplus2", "softplus2"]}
+        state_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
+                            "mlp_activation": ["softplus2", "softplus2"]}
+        set2set_args (dict): Set2Set Layer Arguments. Default is  {'set2set_dim': 16, 'T': 3, "pooling_method": "sum",
+                            "init_qstar": "0"}
+
         nblocks (int): Number of block. Default is 3.
-        n1 (int): n1 parameter. Default is 64.
-        n2 (int): n2 parameter. Default is 32.
-        n3 (int): n3 parameter. Default is 16.
-        set2set_dim (int): Set2set dimension. Default is 16.
-        use_bias (bools): Use bias. Default is True.
-        act (func): Activation function. Default is softplus2.
-        l2_coef (float): Regularization coefficient. Default is None.
         has_ff (bool): Feed forward layer. Default is True.
         dropout (float): Use dropout. Default is None.
-        dropout_on_predict (bool): Use dropout on prediction. Default is False.
-        use_set2set (bool): Use set2set. Default isTrue.
-        npass (int): Set2Set iterations. Default is 3.
-        set2set_init (str): Initialize method. Default is '0'.
-        set2set_pool (str): Pooling method in set2set. Default is "sum".
-    
+        use_set2set (bool): Use set2set. Default is True.
+
     Returns:
         model (tf.keras.models.Model): MEGnet model.
     """
+    # Default arguments if None
+    input_embedd = {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100, 'input_node_embedd': 64,
+                    'input_edge_embedd': 64, 'input_state_embedd': 64,
+                    'input_type': 'ragged'} if input_embedd is None else input_embedd
+    output_embedd = {"output_mode": 'graph', "output_type": 'padded'} if output_embedd is None else output_embedd
+    output_mlp = {"mlp_use_bias": [True, True, True], "mlp_units": [32, 16, 1],
+                  "mlp_activation": ['softplus2', 'softplus2', 'linear']} if output_mlp is None else output_mlp
+    meg_block_args = {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
+                      'activation': 'softplus2', 'is_sorted': False,
+                      'has_unconnected': True} if meg_block_args is None else meg_block_args
+    set2set_args = {'channels': 16, 'T': 3, "pooling_method": "sum",
+                    "init_qstar": "0"} if set2set_args is None else set2set_args
+    node_ff_args = {"mlp_units": [64, 32],
+                    "mlp_activation": ["softplus2", "softplus2"]} if node_ff_args is None else node_ff_args
+    edge_ff_args = {"mlp_units": [64, 32],
+                    "mlp_activation": ["softplus2", "softplus2"]} if edge_ff_args is None else edge_ff_args
+    state_ff_args = {"mlp_units": [64, 32],
+                     "mlp_activation": ["softplus2", "softplus2"]} if state_ff_args is None else state_ff_args
 
-    if len(input_node_shape) == 1:
-        node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-        n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
-    else:
-        node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-        n = node_input
-
-    if len(input_edge_shape) == 1:
-        edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-        ed = ks.layers.Embedding(input_edge_vocab, input_edge_embedd, name='edge_embedding')(edge_input)
-    else:
-        edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-        ed = edge_input
-
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-
-    if len(input_state_shape) == 0:
-        env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
-        uenv = ks.layers.Embedding(input_state_vocab, input_state_embedd, name='state_embedding')(env_input)
-    else:
-        env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
-        uenv = env_input
-
+    # Make input embedding, if no feature dimension
+    node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
+                                                                                                     input_edge_shape,
+                                                                                                     input_state_shape,
+                                                                                                     **input_embedd)
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
-
-    dropout_training = True if dropout_on_predict else None
-    if l2_coef is not None:
-        reg = ks.regularizers.l2(l2_coef)
-    else:
-        reg = None
-
-    if isinstance(act, str):
-        if act == 'softplus2':
-            act = softplus2
 
     # starting
     vp = n
     up = uenv
     ep = ed
-    vp = ks.layers.Dense(n1, activation=act)(vp)
-    vp = ks.layers.Dense(n2, activation=act)(vp)
-    ep = ks.layers.Dense(n1, activation=act)(ep)
-    ep = ks.layers.Dense(n2, activation=act)(ep)
-    up = ks.layers.Dense(n1, activation=act)(up)
-    up = ks.layers.Dense(n2, activation=act)(up)
+    vp = MLP(**node_ff_args)(vp)
+    ep = MLP(**edge_ff_args)(ep)
+    up = MLP(**state_ff_args)(up)
     ep2 = ep
     vp2 = vp
     up2 = up
     for i in range(0, nblocks):
         if has_ff and i > 0:
-            vp2 = ks.layers.Dense(n1, activation=act)(vp)
-            vp2 = ks.layers.Dense(n2, activation=act)(vp2)
-            ep2 = ks.layers.Dense(n1, activation=act)(ep)
-            ep2 = ks.layers.Dense(n2, activation=act)(ep2)
-            up2 = ks.layers.Dense(n1, activation=act)(up)
-            up2 = ks.layers.Dense(n2, activation=act)(up2)
+            vp2 = MLP(**node_ff_args)(vp)
+            ep2 = MLP(**edge_ff_args)(ep)
+            up2 = MLP(**state_ff_args)(up)
 
         # MEGnetBlock
-        vp2, ep2, up2 = MEGnetBlock(node_embed=[n1, n1, n2],
-                                    edge_embed=[n1, n1, n2],
-                                    env_embed=[n1, n1, n2],
-                                    activation=act,
-                                    is_sorted=is_sorted,
-                                    has_unconnected=has_unconnected,
-                                    name='megnet_%d' % i)([vp2, ep2, edi, up2, node_len, edge_len])
+        vp2, ep2, up2 = MEGnetBlock(**meg_block_args)([vp2, ep2, edi, up2, node_len, edge_len])
         # skip connection
 
-        if dropout:
-            vp2 = ks.layers.Dropout(dropout, name='dropout_atom_%d' % i)(vp2, training=dropout_training)
-            ep2 = ks.layers.Dropout(dropout, name='dropout_bond_%d' % i)(ep2, training=dropout_training)
-            up2 = ks.layers.Dropout(dropout, name='dropout_state_%d' % i)(up2, training=dropout_training)
+        if dropout is not None:
+            vp2 = ks.layers.Dropout(dropout, name='dropout_atom_%d' % i)(vp2)
+            ep2 = ks.layers.Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
+            up2 = ks.layers.Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
         vp = ks.layers.Add()([vp2, vp])
         up = ks.layers.Add()([up2, up])
         ep = ks.layers.Add()([ep2, ep])
 
     if use_set2set:
-        vp = ks.layers.Dense(set2set_dim, activation='linear')(vp)
-        ep = ks.layers.Dense(set2set_dim, activation='linear')(ep)
-        vp = Set2Set(set2set_dim, T=npass, pooling_method=set2set_pool, init_qstar=set2set_init)([vp, node_len])
-        ep = Set2Set(set2set_dim, T=npass, pooling_method=set2set_pool, init_qstar=set2set_init)([ep, edge_len])
+        vp = ks.layers.Dense(set2set_args["channels"], activation='linear')(vp)
+        ep = ks.layers.Dense(set2set_args["channels"], activation='linear')(ep)
+        vp = Set2Set(**set2set_args)([vp, node_len])
+        ep = Set2Set(**set2set_args)([ep, edge_len])
     else:
         vp = PoolingNodes()([vp, node_len])
         ep = PoolingAllEdges()([ep, edge_len])
@@ -194,16 +134,11 @@ def getmodelMegnet(
     vp = ks.layers.Flatten()(vp)
     final_vec = ks.layers.Concatenate(axis=-1)([vp, ep, up])
 
-    if dropout:
-        final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec, training=dropout_training)
+    if dropout is not None:
+        final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec)
 
     # final dense layers 
-    main_output = MLP(output_dim,
-                      mlp_use_bias=output_use_bias,
-                      mlp_activation=output_activation,
-                      mlp_activity_regularizer=output_kernel_regularizer,
-                      mlp_kernel_regularizer=output_kernel_regularizer,
-                      mlp_bias_regularizer=output_bias_regularizer)(final_vec)
+    main_output = MLP(**output_mlp)(final_vec)
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
 

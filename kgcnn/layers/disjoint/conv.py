@@ -4,7 +4,6 @@ from kgcnn.layers.disjoint.gather import GatherNodesOutgoing, GatherState, Gathe
 from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode, PoolingAllEdges, \
     PoolingNodes
 from kgcnn.utils.activ import kgcnn_custom_act
-from kgcnn.utils.activ import shifted_softplus
 
 
 class GCN(ks.layers.Layer):
@@ -150,10 +149,8 @@ class SchNetCFconv(ks.layers.Layer):
         self.has_unconnected = has_unconnected
         self.node_indexing = node_indexing
 
-        self.deserial_activation = ks.activations.deserialize(activation, custom_objects=kgcnn_custom_act) \
-            if isinstance(activation, str) or isinstance(activation, dict) else activation
         # Layer
-        self.lay_dense1 = ks.layers.Dense(units=self.units, activation=self.deserial_activation, use_bias=self.use_bias)
+        self.lay_dense1 = ks.layers.Dense(units=self.units, activation=self.activation, use_bias=self.use_bias)
         self.lay_dense2 = ks.layers.Dense(units=self.units, activation='linear', use_bias=self.use_bias)
         self.lay_sum = PoolingEdgesPerNode(pooling_method=self.cfconv_pool,
                                            is_sorted=self.is_sorted,
@@ -223,8 +220,8 @@ class SchNetInteraction(ks.layers.Layer):
         node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
     """
 
-    def __init__(self, node_dim=64,
-                 activation='selu',
+    def __init__(self, node_dim=128,
+                 activation='shifted_softplus',
                  use_bias_cfconv=True,
                  use_bias=True,
                  cfconv_pool='segment_sum',
@@ -235,9 +232,6 @@ class SchNetInteraction(ks.layers.Layer):
                  **kwargs):
         """Initialize Layer."""
         super(SchNetInteraction, self).__init__(**kwargs)
-        if isinstance(activation, str):
-            if activation == 'shifted_softplus':
-                activation = shifted_softplus
         self.activation = activation
         self.use_bias = use_bias
         self.use_bias_cfconv = use_bias_cfconv

@@ -44,7 +44,11 @@ def leaky_softplus(alpha = 0.3):
 
 
 
-# Deserialize with costum activity
+# Register costum activites with costum activity
 kgcnn_custom_act = {'leaky_softplus':leaky_softplus,
                     'shifted_softplus':shifted_softplus,
                     'softplus2':softplus2}
+print("Keras utils: Register custom activation: ", kgcnn_custom_act)
+for k,v in kgcnn_custom_act.items():
+    if k not in tf.keras.utils.get_custom_objects():
+        tf.keras.utils.get_custom_objects()[k] = v

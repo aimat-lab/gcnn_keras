@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 
-def generate_standard_gaph_input(input_node_shape,
+def generate_standard_graph_input(input_node_shape,
                                  input_edge_shape,
                                  input_state_shape,
                                  input_node_vocab=95,

@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.Megnet import getmodelMegnet
+from kgcnn.literature.Megnet import make_megnet
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
@@ -47,39 +47,27 @@ xtest = nodes_test, edges_test, edge_indices_test, graph_state_test
 ytrain = labels_train
 ytest = labels_test
 
-model = getmodelMegnet(
+model = make_megnet(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],
     input_state_shape=[1],
-    input_node_vocab=10,
-    input_node_embedd=16,
-    input_edge_embedd=16,
-    input_type='ragged',
+    input_embedd= {'input_node_vocab' : 10,
+                'input_node_embedd': 16,
+                'input_edge_embedd': 16,
+                'input_type' : 'ragged'},
     # Output
-    output_embedd='graph',  # Only graph possible for megnet
-    output_use_bias=[True, True, True],
-    output_dim=[32, 16, 1],
-    output_activation=['softplus2', 'softplus2', 'linear'],
-    output_type='padded',
+    output_embedd = {"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
+    output_mlp={"mlp_use_bias": [True, True, True],
+                "mlp_units": [32, 16, 1],
+                "mlp_activation": ['softplus2', 'softplus2', 'linear']},
     # Model specs
-    is_sorted=True,
-    has_unconnected=False,
+    meg_block_args = {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
+                      'activation': 'softplus2', 'is_sorted': True,
+                      'has_unconnected': False},
+    set2set_args = {'channels': 16, 'T': 3, "pooling_method": "sum",
+                    "init_qstar": "0"},
     nblocks=3,
-    n1=64,
-    n2=32,
-    n3=16,
-    set2set_dim=16,
-    use_bias=True,
-    act='softplus2',
-    l2_coef=None,
-    has_ff=True,
-    dropout=None,
-    dropout_on_predict=False,
-    use_set2set=True,
-    npass=3,
-    set2set_init='0',
-    set2set_pool="sum"
 )
 
 # Define learning rate and epochs
