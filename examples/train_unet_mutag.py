@@ -4,14 +4,13 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 from kgcnn.data.mutagen.mutag import mutag_graph
-from kgcnn.literature.Unet import getmodelUnet
+from kgcnn.literature.Unet import make_unet
 from kgcnn.utils.adj import add_self_loops_to_indexlist
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
-
-from sklearn.model_selection import train_test_split
 
 # Download and prepare dataset
 labels, nodes, edge_indices, edges = mutag_graph()
@@ -42,19 +41,16 @@ xtest = nodes_test, edges_test, edge_indices_test, graph_state_test
 ytrain = labels_train
 ytest = labels_test
 
-model = getmodelUnet(
+model = make_unet(
     input_node_shape=[None],
     input_edge_shape=[None, 1],
-    input_state_shape=[1],
-    input_node_vocab=60,
-    input_node_embedd=128,
-    input_type='ragged',
+    input_embedd={"input_node_vocab": 60,
+                  "input_node_embedd": 128},
     # Output
-    output_embedd='graph',
-    output_use_bias=[True, False],
-    output_dim=[25, 1],
-    output_activation=['relu', 'sigmoid'],
-    output_type='padded',
+    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_mlp={"use_bias": [True, False], "units": [25, 1],
+                "activation": ['relu', 'sigmoid'],
+                },
     # Model specific
     hidden_dim=128,
     depth=4,
@@ -108,5 +104,5 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('Interaction Network Loss')
 plt.legend(loc='upper right', fontsize='x-large')
-plt.savefig('inorp_loss.png')
+plt.savefig('unet_loss.png')
 plt.show()

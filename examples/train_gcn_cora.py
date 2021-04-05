@@ -94,7 +94,7 @@ for iepoch in range(0, epo, epostep):
                      batch_size=1,
                      callbacks=[cbks],
                      verbose=1,
-                     sample_weight=train_mask
+                     sample_weight=train_mask # Important!!!
                      )
 
     trainlossall.append(hist.history)

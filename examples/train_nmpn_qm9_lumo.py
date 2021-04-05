@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.NMPN import getmodelNMPN
+from kgcnn.literature.NMPN import make_nmpn
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
@@ -47,7 +47,7 @@ xtest = nodes_test, edges_test, edge_indices_test
 ytrain = labels_train
 ytest = labels_test
 
-model = getmodelNMPN(
+model = make_nmpn(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],

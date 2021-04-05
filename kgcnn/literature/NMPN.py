@@ -7,7 +7,7 @@ from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.update import ApplyMessage, GRUupdate
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.models import generate_standard_graph_input
+from kgcnn.utils.models import generate_standard_graph_input,update_model_args
 
 
 # Neural Message Passing for Quantum Chemistry
@@ -15,7 +15,7 @@ from kgcnn.utils.models import generate_standard_graph_input
 # http://arxiv.org/abs/1704.01212    
 
 
-def getmodelNMPN(
+def make_nmpn(
         # Input
         input_node_shape,
         input_edge_shape,
@@ -62,14 +62,14 @@ def getmodelNMPN(
         model (ks.models.Model): Message Passing model.
     """
     # Make default parameter
-    input_embedd = {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100, 'input_node_embedd': 64,
-                    'input_edge_embedd': 64, 'input_state_embedd': 64,
-                    'input_type': 'ragged'} if input_embedd is None else input_embedd
-    output_embedd = {"output_mode": 'graph', "output_type": 'padded'} if output_embedd is None else output_embedd
-    output_mlp = {"use_bias": [True, True, False], "units": [25, 10, 1],
-                  "output_activation": ['selu', 'selu', 'sigmoid']} if output_mlp is None else output_mlp
-    set2set_args = {'channels': 32, 'T': 3, "pooling_method": "sum",
-                    "init_qstar": "0"} if set2set_args is None else set2set_args
+    input_embedd = update_model_args({'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                                      'input_type': 'ragged'} , input_embedd)
+    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'} , output_embedd )
+    output_mlp = update_model_args({"use_bias": [True, True, False], "units": [25, 10, 1],
+                                    "output_activation": ['selu', 'selu', 'sigmoid']} , output_mlp)
+    set2set_args = update_model_args({'channels': 32, 'T': 3, "pooling_method": "sum",
+                                      "init_qstar": "0"} , set2set_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,

@@ -8,6 +8,7 @@ from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes
 from kgcnn.layers.disjoint.topk import PoolingTopK, UnPoolingTopK
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
+from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
 
 # Graph U-Nets
@@ -15,27 +16,14 @@ from kgcnn.layers.ragged.conv import DenseRagged
 # https://arxiv.org/pdf/1905.05178.pdf
 
 
-def getmodelUnet(
+def make_unet(
         # Input
         input_node_shape,
         input_edge_shape,
-        input_state_shape,
-        input_node_vocab=95,
-        input_edge_vocab=10,
-        input_state_vocab=100,
-        input_node_embedd=64,
-        input_edge_embedd=64,
-        input_state_embedd=64,
-        input_type='ragged',
+        input_embedd: dict = None,
         # Output
-        output_embedd='graph',
-        output_use_bias=[True, False],
-        output_dim=[25, 1],
-        output_activation=['relu', 'sigmoid'],
-        output_kernel_regularizer=[None, None],
-        output_activity_regularizer=[None, None],
-        output_bias_regularizer=[None, None],
-        output_type='padded',
+        output_embedd: dict = None,
+        output_mlp: dict = None,
         # Model specific
         hidden_dim=32,
         depth=4,
@@ -53,28 +41,12 @@ def getmodelUnet(
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
-        input_node_vocab (int): Node input embedding vocabulary. Default is 95.
-        input_edge_vocab (int): Edge input embedding vocabulary. Default is 10.
-        input_state_vocab (int): State input embedding vocabulary. Default is 100.
-        input_node_embedd (int): Node input embedding dimension. Default is 64.
-        input_edge_embedd (int): Edge input embedding dimension. Default is 64.
-        input_state_embedd (int): State embedding dimension. Default is 64.
-        input_type (str): Specify input type. Only 'ragged' is supported. 
-        
-        output_embedd (str): Graph or node embedding of the graph network. Default is 'graph'.
-        output_use_bias (bool,list): Use bias for output. Optionally list for multiple layer.
-                                     Default is [True,True,True].
-        output_dim (list): Output dimension. Optionally list for multiple layer. Default is [32,16,1].
-        output_activation (list): Activation function. Optionally list for multiple layer.
-                                  Default is ['softplus2','softplus2','sigmoid'].
-        output_kernel_regularizer (list): Kernel regularizer for output. Optionally list for multiple layer.
-                                          Default is [None,None,None].
-        output_activity_regularizer (list): Activity regularizer for output. Optionally list for multiple layer.
-                                            Default is [None,None,None].
-        output_bias_regularizer (list): Bias regularizer for output. Optionally list for multiple layer.
-                                        Default is [None,None,None].
-        output_type (str): Tensor output type. Default is 'padded'.
+        input_embedd (list): Dictionary of input embedding info. See default values of kgcnn.utils.models.
+
+        output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
+                                    {"use_bias": [True, False], "output_dim": [25, 1],
+                                    "activation": ['relu', 'sigmoid']}
+        output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
         
         hidden_dim (int): Hidden node feature dimension 32,
         depth (int): Depth of pooling steps. Default is 4.
@@ -89,29 +61,18 @@ def getmodelUnet(
     Returns:
         model (ks.models.Model): Unet model.
     """
+    # Default values update
+    input_embedd = update_model_args({'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                                      'input_type': 'ragged'}, input_embedd)
+    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
+    output_mlp = update_model_args({"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
+                                   output_mlp)
 
-    if len(input_node_shape) == 1:
-        node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-        n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
-    else:
-        node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-        n = node_input
-
-    if len(input_edge_shape) == 1:
-        edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-        ed = ks.layers.Embedding(input_edge_vocab, input_edge_embedd, name='edge_embedding')(edge_input)
-    else:
-        edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-        ed = edge_input
-
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-
-    if len(input_state_shape) == 0:
-        env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
-        uenv = ks.layers.Embedding(input_state_vocab, input_state_embedd, name='state_embedding')(env_input)
-    else:
-        env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
-        uenv = env_input
+    # Make input embedding, if no feature dimension
+    node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
+                                                                                          input_edge_shape, None,
+                                                                                          **input_embedd)
 
     n = DenseRagged(hidden_dim, use_bias=use_bias, activation='linear')(n)
 
@@ -165,26 +126,16 @@ def getmodelUnet(
     # Otuput
     n = ui_graph[0]
     node_len = ui_graph[1]
-    if output_embedd == 'graph':
+    if output_embedd["output_mode"] == 'graph':
         out = PoolingNodes(pooling_method='segment_mean')([n, node_len])
 
-        out = MLP(output_dim,
-                  mlp_use_bias=output_use_bias,
-                  mlp_activation=output_activation,
-                  mlp_activity_regularizer=output_kernel_regularizer,
-                  mlp_kernel_regularizer=output_kernel_regularizer,
-                  mlp_bias_regularizer=output_bias_regularizer)(out)
+        out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
-        out = MLP(output_dim,
-                  mlp_use_bias=output_use_bias,
-                  mlp_activation=output_activation,
-                  mlp_activity_regularizer=output_kernel_regularizer,
-                  mlp_kernel_regularizer=output_kernel_regularizer,
-                  mlp_bias_regularizer=output_bias_regularizer)(n)
+        out = MLP(**output_mlp)(n)
         main_output = CastValuesToRagged()([out, node_len])
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 
     return model

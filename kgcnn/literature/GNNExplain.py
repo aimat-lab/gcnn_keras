@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-class GNNInterface():
+
+class GNNInterface:
     """An interface class which should be implemented by a Graph Neural Network (GNN) model to make it explainable.
     This class is just an interface, which is used by the `GNNExplainer` and should be implemented in a subclass.
     The implementation of this class could be a wrapper around an existing Tensorflow/Keras GNN.
@@ -69,7 +70,7 @@ class GNNInterface():
             "Implement this method in a specific subclass.")
 
     def get_explanation(self, gnn_input, edge_mask, feature_mask, node_mask, **kwargs):
-        """Takes the graph input and the masks learned by the GNNExplainer and combines them to some sort of explanation.
+        """Takes the graph input and the masks learned by the GNNExplainer and combines them to some sort of explanation
         The form of explanation could e.g. consist of a networkx graph,
         which has mask values as labels to nodes/edge and a dict for the feature explanation values.
         Args:
@@ -107,15 +108,15 @@ class GNNInterface():
             "Implement this method in a specific subclass.")
 
 
-class GNNExplainer():
+class GNNExplainer:
     """`GNNExplainer` explains the decisions of a GNN, which implements `GNNInterface`.
 
     See Ying et al. (https://arxiv.org/abs/1903.03894) for details on how such an explanation is found.
     Note that this implementation is inspired by the paper by Ying et al., but differs in some aspects.
     """
 
-    def __init__(self, gnn, gnnexplaineroptimizer_options={},
-                 compile_options={}, fit_options={}, **kwargs):
+    def __init__(self, gnn, gnnexplaineroptimizer_options=None,
+                 compile_options=None, fit_options=None, **kwargs):
         """Constructs a GNNExplainer instance for the given `gnn`.
         Args:
             gnn: An instance of a class which implements the `GNNInterface`.
@@ -123,12 +124,19 @@ class GNNExplainer():
                 of the `GNNExplainerOptimizer` (see docstring of `GNNExplainerOptimizer.__init__`).
                 Defaults to {}.
             compile_options (dict, optional): Parameters in ths dict are forwarded to the `keras.Model.compile` method
-                of the `GNNExplainerOpimizer`. Can be used to customize the optimization process of the `GNNExplainerOptimizer`.
+                of the `GNNExplainerOpimizer`. Can be used to customize the optimization process of the
+                `GNNExplainerOptimizer`.
                 Defaults to {}.
             fit_options (dict, optional): Parameters in ths dict are forwarded to the `keras.Model.fit` method
                 of the `GNNExplainerOpimizer`.
                 Defaults to {}.
         """
+        if gnnexplaineroptimizer_options is None:
+            gnnexplaineroptimizer_options = {}
+        if compile_options is None:
+            compile_options = {}
+        if fit_options is None:
+            fit_options = {}
         self.gnn = gnn
         self.gnnx_optimizer = None
         self.graph_instance = None
@@ -242,7 +250,7 @@ class GNNExplainer():
 
         def on_epoch_end(self, epoch, logs=None):
             index = 0
-            losses_list = [l.numpy() for l in self.model.losses]
+            losses_list = [loss_iter.numpy() for loss_iter in self.model.losses]
             if self.model.edge_mask_loss_weight > 0:
                 self.edge_mask_loss.append(losses_list[index])
                 index = index + 1
@@ -275,7 +283,8 @@ class GNNExplainerOptimizer(tf.keras.Model):
             edge_mask_norm_ord (float, optional): The norm p value for the p-norm, which is used on the edge mask.
                 Smaller values encourage sparser masks.
                 Defaults to 1.
-            feature_mask_loss_weight (float, optional): The weight of the feature mask loss term in the optimization problem.
+            feature_mask_loss_weight (float, optional): The weight of the feature mask loss term in the optimization
+                problem.
                 Defaults to 1e-4.
             feature_mask_norm_ord (float, optional): The norm p value for the p-norm, which is used on the feature mask.
                 Smaller values encourage sparser masks.
@@ -322,7 +331,7 @@ class GNNExplainerOptimizer(tf.keras.Model):
         self.node_mask_loss_weight = node_mask_loss_weight
         self.node_mask_norm_ord = node_mask_norm_ord
 
-    def call(self, graph_input, training=False):
+    def call(self, graph_input, training=False, **kwargs):
         edge_mask = self.get_mask("edge")
         feature_mask = self.get_mask("feature")
         node_mask = self.get_mask("node")

@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.data.mutagen.mutag import mutag_graph
-from kgcnn.literature.INorp import getmodelINORP
+from kgcnn.literature.INorp import make_inorp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
@@ -36,34 +36,23 @@ xtest = nodes_test, edges_test, edge_indices_test, graph_state_test
 ytrain = labels_train
 ytest = labels_test
 
-model = getmodelINORP(
+model = make_inorp(
     input_node_shape=[None],
     input_edge_shape=[None],
     input_state_shape=[],
-    input_node_vocab=60,
-    input_edge_vocab=4,
-    input_state_vocab=30,
-    input_node_embedd=16,
-    input_edge_embedd=8,
-    input_state_embedd=16,
-    input_type='ragged',
+    input_embedd= {"input_node_vocab" : 60, "input_edge_vocab" : 4, "input_state_vocab": 30, "input_node_embedd" : 16,
+                    "input_edge_embedd" : 8, "input_state_embedd": 16, "input_type" : 'ragged'},
     # Output
-    output_embedd='graph',
-    output_dim=[16, 8, 1],
-    output_use_bias=[True, True, False],
-    output_activation=['relu', 'relu', 'sigmoid'],
-    output_type='padded',
+    output_embedd= {"output_mode": 'graph', "output_type": 'padded'},
+    output_mlp= {"units": [16, 8, 1], "use_bias" : [True, True, False], "activation" : ['relu', 'relu', 'sigmoid'] },
     # Model
+    depth=1,
+    node_mlp_args = {"units" : [16,16], "use_bias" : True, "activation" : ['relu',"linear"]},
+    edge_mlp_args = {"units" : [16, 16], "use_bias" : True, "activation" : ['relu', "linear"]},
     is_sorted=False,
     has_unconnected=False,
-    depth=1,
-    node_dim=[16, 16],
-    edge_dim=[16, 16],
-    state_dim=[],
-    use_bias=True,
     activation='relu',
-    use_set2set=False,  # not in original paper
-    set2set_dim=32,  # not in original paper
+    use_set2set =False,  # not in original paper
     pooling_method="segment_mean"
 )
 

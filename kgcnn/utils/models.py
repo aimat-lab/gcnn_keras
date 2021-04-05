@@ -58,3 +58,25 @@ def generate_standard_graph_input(input_node_shape,
         return node_input, n, edge_input, ed, edge_index_input,  env_input,   uenv,
     else:
         return node_input,  n, edge_input, ed, edge_index_input, None, None
+
+
+
+def update_model_args(default_args = None, user_args = None):
+    """
+    Make arg dict with updated default values.
+
+    Args:
+        default_args:
+        user_args:
+
+    Returns:
+
+    """
+    out = {}
+    if default_args is None:
+        default_args = {}
+    if user_args is None:
+        user_args = {}
+    out.update(default_args)
+    out.update(user_args)
+    return out

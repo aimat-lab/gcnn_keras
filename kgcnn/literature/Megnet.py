@@ -5,7 +5,7 @@ from kgcnn.layers.disjoint.conv import MEGnetBlock
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes, PoolingAllEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
-from kgcnn.utils.models import generate_standard_graph_input
+from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
@@ -32,7 +32,7 @@ def make_megnet(
         has_ff: bool = True,
         dropout: float = None,
         use_set2set: bool = True,
-        ):
+):
     """
     Get Megnet model.
     
@@ -67,23 +67,20 @@ def make_megnet(
         model (tf.keras.models.Model): MEGnet model.
     """
     # Default arguments if None
-    input_embedd = {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100, 'input_node_embedd': 64,
-                    'input_edge_embedd': 64, 'input_state_embedd': 64,
-                    'input_type': 'ragged'} if input_embedd is None else input_embedd
-    output_embedd = {"output_mode": 'graph', "output_type": 'padded'} if output_embedd is None else output_embedd
-    output_mlp = {"use_bias": [True, True, True], "units": [32, 16, 1],
-                  "activation": ['softplus2', 'softplus2', 'linear']} if output_mlp is None else output_mlp
-    meg_block_args = {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
-                      'activation': 'softplus2', 'is_sorted': False,
-                      'has_unconnected': True} if meg_block_args is None else meg_block_args
-    set2set_args = {'channels': 16, 'T': 3, "pooling_method": "sum",
-                    "init_qstar": "0"} if set2set_args is None else set2set_args
-    node_ff_args = {"units": [64, 32],
-                    "activation": "softplus2"} if node_ff_args is None else node_ff_args
-    edge_ff_args = {"units": [64, 32],
-                    "activation":"softplus2"} if edge_ff_args is None else edge_ff_args
-    state_ff_args = {"units": [64, 32],
-                     "activation": "softplus2"} if state_ff_args is None else state_ff_args
+    input_embedd = update_model_args({'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                                      'input_type': 'ragged'}, input_embedd)
+    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
+    output_mlp = update_model_args({"use_bias": [True, True, True], "units": [32, 16, 1],
+                                    "activation": ['softplus2', 'softplus2', 'linear']}, output_mlp)
+    meg_block_args = update_model_args(
+        {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
+         'activation': 'softplus2', 'is_sorted': False,
+         'has_unconnected': True}, meg_block_args)
+    set2set_args = update_model_args({'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}, set2set_args)
+    node_ff_args = update_model_args({"units": [64, 32], "activation": "softplus2"}, node_ff_args)
+    edge_ff_args = update_model_args({"units": [64, 32], "activation": "softplus2"}, edge_ff_args)
+    state_ff_args = update_model_args({"units": [64, 32], "activation": "softplus2"}, state_ff_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -122,8 +119,8 @@ def make_megnet(
         ep = ks.layers.Add()([ep2, ep])
 
     if use_set2set:
-        vp = ks.layers.Dense(set2set_args["channels"], activation='linear')(vp)
-        ep = ks.layers.Dense(set2set_args["channels"], activation='linear')(ep)
+        vp = ks.layers.Dense(set2set_args["channels"], activation='linear')(vp) # Just to match units
+        ep = ks.layers.Dense(set2set_args["channels"], activation='linear')(ep) # Just to match units
         vp = Set2Set(**set2set_args)([vp, node_len])
         ep = Set2Set(**set2set_args)([ep, edge_len])
     else:

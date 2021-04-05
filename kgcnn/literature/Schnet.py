@@ -6,7 +6,7 @@ from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 # from kgcnn.utils.activ import shifted_softplus
-from kgcnn.utils.models import generate_standard_graph_input
+from kgcnn.utils.models import generate_standard_graph_input,update_model_args
 
 
 # Model Schnet as defined
@@ -60,14 +60,14 @@ def make_schnet(
 
     """
     # Make default values if None
-    input_embedd = {} if input_embedd is None else input_embedd
-    interaction_args = {"node_dim": 128} if interaction_args is None else interaction_args
-    output_mlp = {"mlp_use_bias": [True, True], "mlp_units": [128, 64],
-                  "mlp_activation": ['shifted_softplus', 'shifted_softplus']} if output_mlp is None else output_mlp
-    node_dim = interaction_args["node_dim"] if "node_dim" in interaction_args else 128  # Default
-    output_dense = {"units": 1, "activation": 'linear', "use_bias": True} if output_dense is None else output_dense
-    output_embedd = {"output_mode": 'graph', "output_type": 'padded'} if output_embedd is None else output_embedd
-    node_pooling_args = {"pooling_method": "segment_sum"} if node_pooling_args is None else node_pooling_args
+    input_embedd = update_model_args(None,input_embedd)
+    interaction_args = update_model_args({"node_dim": 128} , interaction_args )
+    output_mlp = update_model_args({"mlp_use_bias": [True, True], "mlp_units": [128, 64],
+                                    "mlp_activation": ['shifted_softplus', 'shifted_softplus']} , output_mlp )
+    output_dense = update_model_args({"units": 1, "activation": 'linear', "use_bias": True} , output_dense )
+    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
+    node_pooling_args = update_model_args({"pooling_method": "segment_sum"} , node_pooling_args)
+    node_dim = interaction_args["node_dim"]
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
