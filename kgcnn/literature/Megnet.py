@@ -71,19 +71,19 @@ def make_megnet(
                     'input_edge_embedd': 64, 'input_state_embedd': 64,
                     'input_type': 'ragged'} if input_embedd is None else input_embedd
     output_embedd = {"output_mode": 'graph', "output_type": 'padded'} if output_embedd is None else output_embedd
-    output_mlp = {"mlp_use_bias": [True, True, True], "mlp_units": [32, 16, 1],
-                  "mlp_activation": ['softplus2', 'softplus2', 'linear']} if output_mlp is None else output_mlp
+    output_mlp = {"use_bias": [True, True, True], "units": [32, 16, 1],
+                  "activation": ['softplus2', 'softplus2', 'linear']} if output_mlp is None else output_mlp
     meg_block_args = {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
                       'activation': 'softplus2', 'is_sorted': False,
                       'has_unconnected': True} if meg_block_args is None else meg_block_args
     set2set_args = {'channels': 16, 'T': 3, "pooling_method": "sum",
                     "init_qstar": "0"} if set2set_args is None else set2set_args
-    node_ff_args = {"mlp_units": [64, 32],
-                    "mlp_activation": ["softplus2", "softplus2"]} if node_ff_args is None else node_ff_args
-    edge_ff_args = {"mlp_units": [64, 32],
-                    "mlp_activation": ["softplus2", "softplus2"]} if edge_ff_args is None else edge_ff_args
-    state_ff_args = {"mlp_units": [64, 32],
-                     "mlp_activation": ["softplus2", "softplus2"]} if state_ff_args is None else state_ff_args
+    node_ff_args = {"units": [64, 32],
+                    "activation": "softplus2"} if node_ff_args is None else node_ff_args
+    edge_ff_args = {"units": [64, 32],
+                    "activation":"softplus2"} if edge_ff_args is None else edge_ff_args
+    state_ff_args = {"units": [64, 32],
+                     "activation": "softplus2"} if state_ff_args is None else state_ff_args
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,

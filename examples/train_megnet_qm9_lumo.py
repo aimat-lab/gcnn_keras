@@ -58,9 +58,9 @@ model = make_megnet(
                 'input_type' : 'ragged'},
     # Output
     output_embedd = {"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
-    output_mlp={"mlp_use_bias": [True, True, True],
-                "mlp_units": [32, 16, 1],
-                "mlp_activation": ['softplus2', 'softplus2', 'linear']},
+    output_mlp={"use_bias": [True, True, True],
+                "units": [32, 16, 1],
+                "activation": ['softplus2', 'softplus2', 'linear']},
     # Model specs
     meg_block_args = {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
                       'activation': 'softplus2', 'is_sorted': True,
