@@ -21,11 +21,11 @@ def make_gcn(
         input_edge_shape,
         input_embedd: dict = None,
         # Output
-        output_embedd:dict = None,
-        output_mlp:dict = None,
+        output_embedd: dict = None,
+        output_mlp: dict = None,
         # Model specific
         depth=3,
-        gcn_args:dict = None,
+        gcn_args: dict = None,
         **kwargs):
     """
     Make GCN model.
@@ -50,11 +50,12 @@ def make_gcn(
     input_embedd = update_model_args({"input_node_vocab": 100, "input_edge_vocab": 10, "input_state_vocab": 100,
                                       "input_node_embedd": 64, "input_edge_embedd": 64, "input_state_embedd": 64,
                                       "input_type": 'ragged'}, input_embedd)
-    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'},output_embedd)
-    output_mlp = update_model_args({"use_bias" : [True, True, False], "units" : [25, 10, 1],
-                                    "activation":['relu', 'relu', 'sigmoid']},output_mlp)
-    gcn_args = update_model_args({"units" : 100, "use_bias" : True, "activation" : 'relu', "pooling_method":'segment_sum', "is_sorted":False,
-                                "has_unconnected":"True"},gcn_args)
+    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
+    output_mlp = update_model_args({"use_bias": [True, True, False], "units": [25, 10, 1],
+                                    "activation": ['relu', 'relu', 'sigmoid']}, output_mlp)
+    gcn_args = update_model_args(
+        {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum', "is_sorted": False,
+         "has_unconnected": "True"}, gcn_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -62,13 +63,13 @@ def make_gcn(
                                                                                                      None,
                                                                                                      **input_embedd)
 
-    n = DenseRagged(gcn_args["units"], use_bias=True, activation='linear')(n) # To match units
+    n = DenseRagged(gcn_args["units"], use_bias=True, activation='linear')(n)  # To match units
     ed = ed
     edi = ChangeIndexing()([n, edge_index_input])
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(node_indexing='batch',**gcn_args)([n, ed, edi])
+        n = GCN(node_indexing='batch', **gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
         out = PoolingNodes()(n)  # will return tensor
