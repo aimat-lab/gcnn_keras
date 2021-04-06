@@ -49,11 +49,8 @@ model = make_inorp(
     depth=1,
     node_mlp_args = {"units" : [16,16], "use_bias" : True, "activation" : ['relu',"linear"]},
     edge_mlp_args = {"units" : [16, 16], "use_bias" : True, "activation" : ['relu', "linear"]},
-    is_sorted=False,
-    has_unconnected=False,
-    activation='relu',
+    pooling_args= {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"},
     use_set2set =False,  # not in original paper
-    pooling_method="segment_mean"
 )
 
 # Define learning rate and epochs

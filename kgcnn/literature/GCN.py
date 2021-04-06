@@ -38,7 +38,7 @@ def make_gcn(
                             "input_type": 'ragged'}.
         output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
                               {"output_mode": 'graph', "output_type": 'padded'}.
-        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation. Default is
+        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation layer. Default is
                             {"use_bias": [True, True, False], "units": [25, 10, 1],
                             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int, optional): Number of convolutions. Defaults to 3.

@@ -40,26 +40,29 @@ def make_megnet(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
-        input_embedd (dict): Dictionary of input embedding info. See default values of kgcnn.utils.models.
-        
-        output_embedd (str): Graph or node embedding of the graph network. Default is {"output_mode": 'graph'}.
-        output_mlp (dict): MLP for output arguments. Default is {"mlp_use_bias": [True, True, True],
-                            "mlp_units": [32, 16, 1], "mlp_activation": ['softplus2', 'softplus2', 'linear']}
-
-        meg_block_args (dict): MegBlock arguments. Default is
-                                {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
-                                'activation': 'softplus2', 'is_sorted': False, 'has_unconnected': True}
-        node_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
-                            "mlp_activation": ["softplus2", "softplus2"]}
-        edge_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
-                            "mlp_activation": ["softplus2", "softplus2"]}
-        state_ff_args (dict): Feed-Forward Layer arguments. Default is "mlp_units": [64, 32],
-                            "mlp_activation": ["softplus2", "softplus2"]}
-        set2set_args (dict): Set2Set Layer Arguments. Default is  {'set2set_dim': 16, 'T': 3, "pooling_method": "sum",
-                            "init_qstar": "0"}
-
+        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
+                             {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                              'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                              'input_type': 'ragged'}.
+        output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
+                             {"output_mode": 'graph', "output_type": 'padded'}
+        output_mlp (dict): Dictionary of MLP arguments for output regression or classifcation. Default is
+                            {"use_bias": [True, True, True], "units": [32, 16, 1],
+                            "activation": ['softplus2', 'softplus2', 'linear']}.
+        meg_block_args (dict): Dictionary of MegBlock arguments. Default is
+                                {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
+                                'env_embed': [64, 32, 32], 'activation': 'softplus2', 'is_sorted': False,
+                                'has_unconnected': True}.
+        node_ff_args (dict): Dictionary of Feed-Forward Layer arguments. Default is
+                            {"units": [64, 32], "activation": "softplus2"}.
+        edge_ff_args (dict): Dictionary of  Feed-Forward Layer arguments. Default is
+                            {"units": [64, 32], "activation": "softplus2"}.
+        state_ff_args (dict): Dictionary of Feed-Forward Layer arguments. Default is
+                            {"units": [64, 32], "activation": "softplus2"}.
+        set2set_args (dict): Dictionary of Set2Set Layer Arguments. Default is
+                             {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}
         nblocks (int): Number of block. Default is 3.
-        has_ff (bool): Feed forward layer. Default is True.
+        has_ff (bool): Use a Feed-Forward layer. Default is True.
         dropout (float): Use dropout. Default is None.
         use_set2set (bool): Use set2set. Default is True.
 

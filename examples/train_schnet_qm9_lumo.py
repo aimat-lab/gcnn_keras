@@ -72,7 +72,6 @@ model = make_schnet(
                       "is_sorted": True,
                       "has_unconnected": False
                       },
-    out_pooling_method="segment_sum"
 )
 
 # Define learning rate and epochs

@@ -53,20 +53,17 @@ model = make_nmpn(
     input_edge_shape=[None, 20],
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp= {"use_bias" :[True, True, False],
-                 "units" : [25, 10, 1],
-                 "activation" : ['selu', 'selu', 'linear'],
-
-                 },
+    output_mlp={"use_bias": [True, True, False],
+                "units": [25, 10, 1],
+                "activation": ['selu', 'selu', 'linear'],
+                },
     # Model specific
     depth=3,
     node_dim=64,
     use_set2set=True,
-    set2set_args= {'channels': 32, 'T': 3, "pooling_method": "sum",
-                    "init_qstar": "0"},
-    activation='selu',
-    is_sorted=True,
-    has_unconnected=False
+    set2set_args={'channels': 32, 'T': 3, "pooling_method": "sum",
+                  "init_qstar": "0"},
+    edge_dense={'activation': 'selu'}
 )
 
 # Define learning rate and epochs

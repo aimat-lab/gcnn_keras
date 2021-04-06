@@ -33,10 +33,8 @@ def make_inorp(  # Input
         use_set2set: bool = False,  # not in original paper
         node_mlp_args: dict = None,
         edge_mlp_args: dict = None,
-        is_sorted=True,
-        has_unconnected=False,
         set2set_args: dict = None,
-        pooling_method="segment_mean"
+        pooling_args: dict = None
         ):
     """
     Generate Interaction network.
@@ -45,20 +43,27 @@ def make_inorp(  # Input
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
-        input_embedd (dict): Input embedding type.
-        
-        output_embedd (dict): Graph or node embedding of the graph network. Default is 'graph'.
-        output_mlp (dict):
-        
-        is_sorted (bool, optional): Edge indices are sorted. Defaults to True.
-        has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
+        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
+                            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                            'input_type': 'ragged'}.
+        output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
+                              {"output_mode": 'graph', "output_type": 'padded'}.
+        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation layer. Default is
+                            {"use_bias": [True, True, False], "units": [25, 10, 1],
+                            "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int): Number of convolution layers. Default is 3.
-        node_mlp_args (dict): Hidden parameter dfor multiple kernels. Default is [100,50].
-        output_embedd (dict): Hidden parameter for multiple kernels. Default is [100,100,100,100,50].
+        node_mlp_args (dict): Dictionary of arguments for MLP for node update. Default is
+                              {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]}
+        edge_mlp_args (dict): Dictionary of arguments for MLP for interaction update. Default is
+                              {"units": [100, 100, 100, 100, 50],
+                              "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
         use_set2set (str): Use set2set pooling for graph embedding. Default is False.
-        set2set_args (dict): Set2set dimension. Default is 32.
-        pooling_method (str): Pooling method. Default is "segment_mean".
-    
+        set2set_args (dict): Dictionary of set2set layer arguments. Default is
+                             {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"}.
+        pooling_args (dict): Dictionary for message pooling arguments. Default is
+                             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+
     Returns:
         model (tf.keras.model): Interaction model.
     
@@ -74,7 +79,8 @@ def make_inorp(  # Input
                                       "init_qstar": "mean"},
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                      'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
-                                       "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
+                                       "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
+                     'pooling_args': {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
                      }
 
     # Update default values
@@ -84,6 +90,7 @@ def make_inorp(  # Input
     set2set_args = update_model_args(model_default['set2set_args'], set2set_args)
     node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
     edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
+    pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -106,8 +113,7 @@ def make_inorp(  # Input
 
         eu = MLPRagged(**node_mlp_args)(eu)
         # Pool message
-        nu = PoolingEdgesPerNode(pooling_method=pooling_method, is_sorted=is_sorted, has_unconnected=has_unconnected,
-                                 )([n, eu, edi])  # Summing for each node connection
+        nu = PoolingEdgesPerNode(**pooling_args)([n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = ks.layers.Concatenate()([n, nu, ev])  # Concatenate node features with new edge updates
 
