@@ -38,24 +38,23 @@ def make_nmpn(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
-                                {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                                'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                'input_type': 'ragged'}
+            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+            'input_type': 'ragged'}
         output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
-                             {"output_mode": 'graph', "output_type": 'padded'}
+            {"output_mode": 'graph', "output_type": 'padded'}
         output_mlp (dict): Dictionary of MLP arguments for output regression or classifcation. Default is
-                            {"use_bias": [True, True, False], "units": [25, 10, 1],
-                            "output_activation": ['selu', 'selu', 'sigmoid']}
-        
+            {"use_bias": [True, True, False], "units": [25, 10, 1],
+            "output_activation": ['selu', 'selu', 'sigmoid']}
         depth (int, optional): Depth. Defaults to 3.
         node_dim (int, optional): Dimension for hidden node representation. Defaults to 128.
         edge_dense (dict): Dictionary of arguments for NN to make edge matrix. Default is
-                            {'use_bias' : True, 'activation' : 'selu'}
+            {'use_bias' : True, 'activation' : 'selu'}
         use_set2set (bool, optional): Use set2set layer. Defaults to True.
         set2set_args (dict): Dictionary of Set2Set Layer Arguments. Default is
-                            {'channels': 32, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}
+            {'channels': 32, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}
         pooling_args (dict): Dictionary for message pooling arguments. Default is
-                             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+            {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
         model (ks.models.Model): Message Passing model.

@@ -44,25 +44,25 @@ def make_inorp(  # Input
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
-                            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                            'input_type': 'ragged'}.
+            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+            'input_type': 'ragged'}.
         output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
-                              {"output_mode": 'graph', "output_type": 'padded'}.
+            {"output_mode": 'graph', "output_type": 'padded'}.
         output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation layer. Default is
-                            {"use_bias": [True, True, False], "units": [25, 10, 1],
-                            "activation": ['relu', 'relu', 'sigmoid']}.
+            {"use_bias": [True, True, False], "units": [25, 10, 1],
+            "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int): Number of convolution layers. Default is 3.
         node_mlp_args (dict): Dictionary of arguments for MLP for node update. Default is
-                              {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]}
+            {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]}
         edge_mlp_args (dict): Dictionary of arguments for MLP for interaction update. Default is
-                              {"units": [100, 100, 100, 100, 50],
-                              "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
+            {"units": [100, 100, 100, 100, 50],
+            "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
         use_set2set (str): Use set2set pooling for graph embedding. Default is False.
         set2set_args (dict): Dictionary of set2set layer arguments. Default is
-                             {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"}.
+            {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"}.
         pooling_args (dict): Dictionary for message pooling arguments. Default is
-                             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+            {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
         model (tf.keras.model): Interaction model.

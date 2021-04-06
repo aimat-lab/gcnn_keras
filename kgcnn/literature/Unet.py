@@ -42,14 +42,14 @@ def make_unet(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_embedd (list): Dictionary of embedding parameters used if input shape is None. Default is
-                            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                             'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                             'input_type': 'ragged'}
+            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+            'input_type': 'ragged'}
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
-                                    {"use_bias": [True, False], "output_dim": [25, 1],
-                                    "activation": ['relu', 'sigmoid']}
+            {"use_bias": [True, False], "output_dim": [25, 1],
+            "activation": ['relu', 'sigmoid']}
         output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
-                             {"output_mode": 'graph', "output_type": 'padded'}
+            {"output_mode": 'graph', "output_type": 'padded'}
         hidden_dim (int): Hidden node feature dimension 32,
         depth (int): Depth of pooling steps. Default is 4.
         k (float): Pooling ratio. Default is 0.3.
