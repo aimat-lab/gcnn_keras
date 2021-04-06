@@ -38,21 +38,21 @@ def make_schnet(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
         input_embedd (list): Dictionary of embedding parameters used if input shape is None. Default is
-                            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                            'input_type': 'ragged'}
+            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+            'input_type': 'ragged'}
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
-                                    {"use_bias": [True, True], "units": [128, 64],
-                                     "activation": ['shifted_softplus', 'shifted_softplus']}
+            {"use_bias": [True, True], "units": [128, 64],
+            "activation": ['shifted_softplus', 'shifted_softplus']}
         output_dense (dict): Parameter for Dense scaling layer. Defaults to {"units": 1, "activation": 'linear',
-                             "use_bias": True}.
+             "use_bias": True}.
         output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
-                             {"output_mode": 'graph', "output_type": 'padded'}
+             {"output_mode": 'graph', "output_type": 'padded'}
         depth (int, optional): Number of Interaction units. Defaults to 4.
         out_scale_pos (int, optional): Scaling output, position of layer. Defaults to 0.
         interaction_args (dict): Interaction Layer arguments. Defaults include {"node_dim" : 128, "use_bias": True,
-                                 "activation" : 'shifted_softplus', "cfconv_pool" : 'segment_sum',
-                                 "is_sorted": False, "has_unconnected": True}
+             "activation" : 'shifted_softplus', "cfconv_pool" : 'segment_sum',
+             "is_sorted": False, "has_unconnected": True}
         node_pooling_args (dict, optional): Node pooling arguments. Defaults to {"pooling_method": "segment_sum"}.
 
     Returns:
