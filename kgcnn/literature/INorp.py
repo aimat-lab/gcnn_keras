@@ -36,8 +36,8 @@ def make_inorp(  # Input
         is_sorted=True,
         has_unconnected=False,
         set2set_args: dict = None,
-        pooling_method="segment_mean",
-        **kwargs):
+        pooling_method="segment_mean"
+        ):
     """
     Generate Interaction network.
     

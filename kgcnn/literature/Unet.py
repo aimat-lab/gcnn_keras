@@ -62,12 +62,17 @@ def make_unet(
         model (ks.models.Model): Unet model.
     """
     # Default values update
-    input_embedd = update_model_args({'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_type': 'ragged'}, input_embedd)
-    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
-    output_mlp = update_model_args({"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
-                                   output_mlp)
+                                      'input_type': 'ragged'},
+                     'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
+                     'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}
+                     }
+
+    # Update model args
+    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,

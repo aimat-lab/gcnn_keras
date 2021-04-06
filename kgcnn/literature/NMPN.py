@@ -7,7 +7,7 @@ from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.update import ApplyMessage, GRUupdate
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.models import generate_standard_graph_input,update_model_args
+from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
 
 # Neural Message Passing for Quantum Chemistry
@@ -25,9 +25,9 @@ def make_nmpn(
         output_mlp: dict = None,
         # Model specific
         depth=3,
-        node_dim = 128,
+        node_dim=128,
         use_set2set=True,
-        set2set_args :dict = None,
+        set2set_args: dict = None,
         activation='selu',
         is_sorted: bool = True,
         has_unconnected: bool = False,
@@ -47,7 +47,6 @@ def make_nmpn(
         depth (int, optional): Depth. Defaults to 3.
         node_dim (int, optional): Dimension for hidden node representation. Defaults to 128.
         use_set2set (bool, optional): Use set2set layer. Defaults to True.
-        set2set_dim (bool, optional): Dimension for set2set. Defaults to 32.
         use_bias (bool, optional): Use bias. Defaults to True.
         activation (str, optional): Activation function to use. Defaults to 'selu'.
         is_sorted (bool): Are edge indices sorted. Default is True.
@@ -55,21 +54,27 @@ def make_nmpn(
         set2set_init (str): Initialize method. Default is '0'.
         set2set_pool (str): Pooling method in set2set. Default is "sum".
         out_pool (str): Final node pooling in place of set2set.
-        
-        **kwargs
+
 
     Returns:
         model (ks.models.Model): Message Passing model.
     """
     # Make default parameter
-    input_embedd = update_model_args({'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_type': 'ragged'} , input_embedd)
-    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'} , output_embedd )
-    output_mlp = update_model_args({"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "output_activation": ['selu', 'selu', 'sigmoid']} , output_mlp)
-    set2set_args = update_model_args({'channels': 32, 'T': 3, "pooling_method": "sum",
-                                      "init_qstar": "0"} , set2set_args)
+                                      'input_type': 'ragged'},
+                     'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
+                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                    "output_activation": ['selu', 'selu', 'sigmoid']},
+                     'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
+                                      "init_qstar": "0"}
+                     }
+
+    # Update model args
+    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
+    set2set_args = update_model_args(model_default['set2set_args'], set2set_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,

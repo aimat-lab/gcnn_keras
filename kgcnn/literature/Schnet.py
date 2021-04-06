@@ -6,7 +6,7 @@ from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 # from kgcnn.utils.activ import shifted_softplus
-from kgcnn.utils.models import generate_standard_graph_input,update_model_args
+from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
 
 # Model Schnet as defined
@@ -60,14 +60,24 @@ def make_schnet(
 
     """
     # Make default values if None
-    input_embedd = update_model_args(None,input_embedd)
-    interaction_args = update_model_args({"node_dim": 128} , interaction_args )
-    output_mlp = update_model_args({"use_bias": [True, True], "units": [128, 64],
-                                    "activation": ['shifted_softplus', 'shifted_softplus']} , output_mlp )
-    output_dense = update_model_args({"units": 1, "activation": 'linear', "use_bias": True} , output_dense )
-    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
-    node_pooling_args = update_model_args({"pooling_method": "segment_sum"} , node_pooling_args)
-    node_dim = interaction_args["node_dim"]
+    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                                      'input_type': 'ragged'},
+                     'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
+                     'interaction_args': {"node_dim": 128},
+                     'output_mlp': {"use_bias": [True, True], "units": [128, 64],
+                                    "activation": ['shifted_softplus', 'shifted_softplus']},
+                     'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
+                     'node_pooling_args': {"pooling_method": "segment_sum"}
+                     }
+
+    # Update args
+    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    interaction_args = update_model_args(model_default['interaction_args'], interaction_args)
+    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
+    output_dense = update_model_args(model_default['output_dense'], output_dense)
+    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    node_pooling_args = update_model_args(model_default['node_pooling_args'], node_pooling_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
@@ -76,8 +86,7 @@ def make_schnet(
 
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
 
-    if len(input_node_shape) > 1 and input_node_shape[-1] != node_dim:
-        n = ks.layers.Dense(node_dim, activation='linear')(n)
+    n = ks.layers.Dense(interaction_args["node_dim"], activation='linear')(n)
 
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, node_len, ed, edge_len, edi])
