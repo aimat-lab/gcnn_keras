@@ -24,22 +24,27 @@ def make_gcn(
         output_mlp: dict = None,
         # Model specific
         depth=3,
-        gcn_args: dict = None,
-        **kwargs):
+        gcn_args: dict = None
+):
     """
     Make GCN model.
 
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedd (dict):
-        output_embedd (str): Graph or node embedding of the graph network. Default is 'graph'.
-
-        output_mlp (dict): Use MLP for final output.
-        
+        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
+                            {"input_node_vocab": 100, "input_edge_vocab": 10, "input_state_vocab": 100,
+                            "input_node_embedd": 64, "input_edge_embedd": 64, "input_state_embedd": 64,
+                            "input_type": 'ragged'}.
+        output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
+                              {"output_mode": 'graph', "output_type": 'padded'}.
+        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation. Default is
+                            {"use_bias": [True, True, False], "units": [25, 10, 1],
+                            "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int, optional): Number of convolutions. Defaults to 3.
-        gcn_args (dict):
-        **kwargs
+        gcn_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
+                         {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum',
+                          "is_sorted": False, "has_unconnected": "True"}.
 
     Returns:
         model (tf.keras.models.Model): uncompiled model.
@@ -48,7 +53,7 @@ def make_gcn(
 
     if input_edge_shape[-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
-                         must be shape (batch, None, 1), but got (without batch-dimension)", input_edge_shape)
+                         must be shape (batch, None, 1), but got (without batch-dimension): ", input_edge_shape)
     # Make default args
     model_default = {'input_embedd': {"input_node_vocab": 100, "input_edge_vocab": 10, "input_state_vocab": 100,
                                       "input_node_embedd": 64, "input_edge_embedd": 64, "input_state_embedd": 64,

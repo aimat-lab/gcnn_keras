@@ -117,8 +117,8 @@ def make_megnet(
 
         # MEGnetBlock
         vp2, ep2, up2 = MEGnetBlock(**meg_block_args)([vp2, ep2, edi, up2, node_len, edge_len])
-        # skip connection
 
+        # skip connection
         if dropout is not None:
             vp2 = ks.layers.Dropout(dropout, name='dropout_atom_%d' % i)(vp2)
             ep2 = ks.layers.Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
