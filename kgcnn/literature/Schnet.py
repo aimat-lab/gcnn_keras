@@ -62,8 +62,8 @@ def make_schnet(
     # Make default values if None
     input_embedd = update_model_args(None,input_embedd)
     interaction_args = update_model_args({"node_dim": 128} , interaction_args )
-    output_mlp = update_model_args({"mlp_use_bias": [True, True], "mlp_units": [128, 64],
-                                    "mlp_activation": ['shifted_softplus', 'shifted_softplus']} , output_mlp )
+    output_mlp = update_model_args({"use_bias": [True, True], "units": [128, 64],
+                                    "activation": ['shifted_softplus', 'shifted_softplus']} , output_mlp )
     output_dense = update_model_args({"units": 1, "activation": 'linear', "use_bias": True} , output_dense )
     output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
     node_pooling_args = update_model_args({"pooling_method": "segment_sum"} , node_pooling_args)
