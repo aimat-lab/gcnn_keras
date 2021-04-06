@@ -39,21 +39,21 @@ train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
 # Make ragged graph tensors with 1 graph in batch
 nodes, edges, edge_indices = ragged_tensor_from_nested_numpy([nodes]), ragged_tensor_from_nested_numpy(
-    [edge_weight]), ragged_tensor_from_nested_numpy([edge_index]) # One graph in batch
+    [edge_weight]), ragged_tensor_from_nested_numpy([edge_index])  # One graph in batch
 
 # Set training data. But requires mask and batch-dimension of 1
 xtrain = nodes, edges, edge_indices
-ytrain = np.expand_dims(labels, axis=0) # One graph in batch
+ytrain = np.expand_dims(labels, axis=0)  # One graph in batch
 
 model = make_gcn(
     input_node_shape=[None, 8710],
     input_edge_shape=[None, 1],
     # Output
     output_embedd={"output_mode": 'node'},
-    output_mlp= {"use_bias":[True, True, False],"units": [140, 70, 70],  "activation" : ['relu','relu','softmax']},
+    output_mlp={"use_bias": [True, True, False], "units": [140, 70, 70], "activation": ['relu', 'relu', 'softmax']},
     # model specs
     depth=3,
-    gcn_args = {"units" : 140,"use_bias":True ,"activation" : "relu" , "has_unconnected": True}
+    gcn_args={"units": 140, "use_bias": True, "activation": "relu", "has_unconnected": True}
 )
 
 # Set learning rate and epochs
@@ -82,7 +82,7 @@ for iepoch in range(0, epo, epostep):
                      batch_size=1,
                      callbacks=[cbks],
                      verbose=1,
-                     sample_weight=train_mask # Important!!!
+                     sample_weight=train_mask  # Important!!!
                      )
 
     trainlossall.append(hist.history)

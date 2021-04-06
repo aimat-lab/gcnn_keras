@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.ragged.casting import CastRaggedToDense, ChangeIndexing
+from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
 from kgcnn.layers.ragged.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.ragged.mlp import MLPRagged
@@ -63,17 +63,27 @@ def make_inorp(  # Input
         model (tf.keras.model): Interaction model.
     
     """
+    # default values
+    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
+                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+                                      'input_type': 'ragged'},
+                     'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
+                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                    "activation": ['relu', 'relu', 'sigmoid']},
+                     'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean",
+                                      "init_qstar": "mean"},
+                     'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+                     'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
+                                       "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
+                     }
+
     # Update default values
-    input_embedd = update_model_args(None, input_embedd)
-    output_embedd = update_model_args({"output_mode": 'graph', "output_type": 'padded'}, output_embedd)
-    output_mlp = update_model_args(
-        {"use_bias": [True, True, False], "units": [25, 10, 1], "activation": ['relu', 'relu', 'sigmoid']}, output_mlp)
-    set2set_args = update_model_args({'channels': 32, 'T': 3, "pooling_method": "mean",
-                                      "init_qstar": "mean"}, set2set_args)
-    node_mlp_args = update_model_args({"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                                      node_mlp_args)
-    edge_mlp_args = update_model_args(
-        {"units": [100, 100, 100, 100, 50], "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}, edge_mlp_args)
+    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
+    set2set_args = update_model_args(model_default['set2set_args'], set2set_args)
+    node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
+    edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -82,21 +92,22 @@ def make_inorp(  # Input
                                                                                                      **input_embedd)
 
     # Preprocessing
-    edi = ChangeIndexing()([n, edge_index_input])
+    edi = edge_index_input
+    # edi = ChangeIndexing()([n, edge_index_input])
 
     ev = GatherState()([uenv, n])
     # n-Layer Step
     for i in range(0, depth):
         # upd = GatherNodes()([n,edi])
-        eu1 = GatherNodesIngoing(node_indexing='batch')([n, edi])
-        eu2 = GatherNodesOutgoing(node_indexing='batch')([n, edi])
+        eu1 = GatherNodesIngoing()([n, edi])
+        eu2 = GatherNodesOutgoing()([n, edi])
         upd = ks.layers.Concatenate(axis=-1)([eu2, eu1])
         eu = ks.layers.Concatenate(axis=-1)([upd, ed])
 
         eu = MLPRagged(**node_mlp_args)(eu)
         # Pool message
         nu = PoolingEdgesPerNode(pooling_method=pooling_method, is_sorted=is_sorted, has_unconnected=has_unconnected,
-                                 node_indexing='batch')([n, eu, edi])  # Summing for each node connection
+                                 )([n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = ks.layers.Concatenate()([n, nu, ev])  # Concatenate node features with new edge updates
 

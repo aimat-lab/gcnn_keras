@@ -194,7 +194,7 @@ class GCN(ks.layers.Layer):
 
     def __init__(self,
                  units,
-                 node_indexing='batch',
+                 node_indexing="sample",
                  activation='relu',
                  pooling_method='segment_sum',
                  use_bias=False,
