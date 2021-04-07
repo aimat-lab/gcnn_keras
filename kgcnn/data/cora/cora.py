@@ -31,7 +31,7 @@ def cora_download_dataset(path, overwrite=False):
     return os.path.join(path, 'cora.npz')
 
 
-def cora_make_grph(loader):
+def cora_make_graph(loader):
     """
     Load the cora dataset.
 
@@ -110,6 +110,6 @@ def cora_graph(filepath = None):
 
     loader = np.load(os.path.join(filepath, "cora.npz"), allow_pickle=True)
     loader = dict(loader)
-    data = cora_make_grph(loader)
+    data = cora_make_graph(loader)
 
     return data
