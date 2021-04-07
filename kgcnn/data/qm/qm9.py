@@ -157,7 +157,7 @@ def make_qm9_graph(qm9,
         - labels: All labels of qm9
         - nodes: List of atomic numbers for emebdding layer
         - edges: Edgefeatures (inverse distance, gauss distance)
-        - edge_idx: Edge edge_indices (N,2)
+        - edge_idx: Edge indices (N,2)
         - gstates: Graph states, mean moleculare weight - 7 g/mol
     """
     # For graph

@@ -3,9 +3,9 @@ import numpy as np
 
 def get_indexmatrix(shape, flatten=False):
     """
-    Matrix of edge_indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
+    Matrix of indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
 
-    Note: numpy indexing does not work this way but as edge_indices per dimension
+    Note: numpy indexing does not work this way but as indices per dimension
 
     Args:
         shape (list, int): list of target shape, e.g. (2,2)
@@ -169,7 +169,7 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
         tuple: graph_adjacency,graph_indices
         
         - graph_adjacency (np.array): Adjacency Matrix of shape (...,N,N) of dtype=np.bool.
-        - graph_indices (np.array): Flatten indizes from former array that have Adjacency == True.
+        - graph_indices (np.array): Flatten indices from former array that have Adjacency == True.
     """
     distance_matrix = np.array(distance_matrix)
     num_atoms = distance_matrix.shape[-1]

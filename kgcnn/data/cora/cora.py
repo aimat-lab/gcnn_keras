@@ -41,10 +41,10 @@ def cora_make_graph(loader):
         loader (dict): Dictionary from .npz file.
 
     Returns:
-        list: [adj_matrix,X,labels]
+        list: [adj_matrix,nodes,labels]
         
         - adj_matrix (sp.csr_matrix): Adjacency matrix.
-        - X (sp.csr_matrix): Node features.
+        - nodes (sp.csr_matrix): Node features.
         - labels (np.array): Labels.
     """
     a = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
