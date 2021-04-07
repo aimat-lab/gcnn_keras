@@ -216,8 +216,9 @@ def mutagenicity_graph(filepath=None):
         - edges (list): Bond type.
         - atoms (list): Atom list as string.
     """
+    data_user_base = setup_user_database_directory()
     if filepath is None:
-        filepath = os.path.join(setup_user_database_directory(), "data", "mutagen")
+        filepath = os.path.join(data_user_base, "data", "mutagen")
 
     print("Database path:", filepath)
     if not os.path.exists(os.path.join(filepath, "Mutagenicity")):

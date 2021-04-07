@@ -10,6 +10,7 @@ from kgcnn.data.qm.methods import coordinates_to_distancematrix, invert_distance
     define_adjacency_from_distance
 from kgcnn.utils.data import setup_user_database_directory
 
+
 def qm9_download_dataset(path, overwrite=False):
     """
     Download qm9 dataset as zip-file.
@@ -139,7 +140,7 @@ def qm9_write_pickle(path):
 def make_qm9_graph(qm9,
                    max_distance=4, max_neighbours=15,
                    gauss_distance=None,
-                   max_mols = 133885):
+                   max_mols=133885):
     """
     Make graph objects from qm9 dataset.
 
@@ -160,7 +161,7 @@ def make_qm9_graph(qm9,
         - gstates: Graph states, mean moleculare weight - 7 g/mol
     """
     # For graph
-    max_mols = min(max_mols,133885)
+    max_mols = min(max_mols, 133885)
 
     # labels
     labels = np.array([x[1] for x in qm9])
@@ -218,16 +219,17 @@ def make_qm9_graph(qm9,
     return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
 
 
-def qm9_graph(filepath = None,
+def qm9_graph(filepath=None,
               max_distance=4,
               max_neighbours=15,
               gauss_distance=None,
-              max_mols = 133885
+              max_mols=133885
               ):
     """
     Get list of graphs np.arrays for qm9 dataset.
     
     Args:
+        filepath (str): Filepath to database.
         max_distance (int): 4
         max_neighbours (int): 15
         gauss_distance (dict): {'GBins' : 20, 'GRange'  : 4, 'GSigma' : 0.4}
@@ -245,8 +247,9 @@ def qm9_graph(filepath = None,
     if gauss_distance is None:
         gauss_distance = {'gbins': 20, 'grange': 4, 'gsigma': 0.4}
 
+    user_database = setup_user_database_directory()
     if filepath is None:
-        filepath = os.path.join(setup_user_database_directory(),"data","qm")
+        filepath = os.path.join(user_database, "data", "qm")
 
     print("Database path:", filepath)
     if not os.path.exists(os.path.join(filepath, "qm9.pickle")):
@@ -263,7 +266,7 @@ def qm9_graph(filepath = None,
     # Make graph
     print("Making graph ...", end='', flush=True)
     out_graph = make_qm9_graph(qm9, max_distance=max_distance, max_neighbours=max_neighbours,
-                               gauss_distance=gauss_distance,max_mols=max_mols)
+                               gauss_distance=gauss_distance, max_mols=max_mols)
     print('done')
 
     return out_graph
