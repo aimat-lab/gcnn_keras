@@ -155,7 +155,7 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         return clean_index
 
 
-def sort_edge_indices(edge_indices, edge_values):
+def sort_edge_indices(edge_indices, edge_values=None):
     """
     Sort index list.
 
@@ -164,22 +164,29 @@ def sort_edge_indices(edge_indices, edge_values):
         edge_values (np.array): Edge values of shape (N,M).
 
     Returns:
-        list: [ind,val]
+        list: [ind,val] or ind
         
         - edge_indices (np.array): Sorted indices.
         - edge_values (np.array): Edge values matching sorted indices.
     """
+    val1 = None
     order1 = np.argsort(edge_indices[:, 1], axis=0, kind='mergesort')  # stable!
     ind1 = edge_indices[order1]
-    val1 = edge_values[order1]
+    if edge_values is not None:
+        val1 = edge_values[order1]
     order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
     ind2 = ind1[order2]
-    val2 = val1[order2]
-    return ind2, val2
+    if edge_values is not None:
+        val1 = val1[order2]
+    if edge_values is not None:
+        return ind2, val1
+    else:
+        return ind2
 
 
 def make_edge_indices_symmetric(edge_indices, edge_values):
     pass
+
 
 def make_adjacency_from_edge_indices():
     pass

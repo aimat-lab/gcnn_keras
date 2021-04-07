@@ -14,3 +14,4 @@ from kgcnn.data.cora.cora_lu import cora_graph
 
 nodes, edge_index, labels, class_label_mapping = cora_graph()
 nodes = nodes [:,1:] # Remove IDs
+
