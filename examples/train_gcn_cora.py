@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from kgcnn.data.cora.cora import cora_graph
 from kgcnn.literature.GCN import make_gcn
-from kgcnn.utils.adj import precompute_adjacency_scaled, scaled_adjacency_to_list, make_undirected
+from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, make_adjacency_undirected_logical_or
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
@@ -17,9 +17,9 @@ A_data, X_data, y_data = cora_graph()
 # Make node features dense
 nodes = X_data.todense()
 # Precompute scaled and undirected (symmetric) adjacency matrix
-A_scaled = precompute_adjacency_scaled(make_undirected(A_data))
-# Use indices and weights instead of A
-edge_index, edge_weight = scaled_adjacency_to_list(A_scaled)
+A_scaled = precompute_adjacency_scaled(make_adjacency_undirected_logical_or(A_data))
+# Use edge_indices and weights instead of adj_matrix
+edge_index, edge_weight = convert_scaled_adjacency_to_list(A_scaled)
 edge_weight = np.expand_dims(edge_weight, axis=-1)
 # Change labels to one-hot-encoding
 labels = np.expand_dims(y_data, axis=-1)

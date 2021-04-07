@@ -3,9 +3,9 @@ import numpy as np
 
 def get_indexmatrix(shape, flatten=False):
     """
-    Matrix of indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
+    Matrix of edge_indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
 
-    Note: numpy indexing does not work this way but as indexlist per dimension
+    Note: numpy indexing does not work this way but as edge_indices per dimension
 
     Args:
         shape (list, int): list of target shape, e.g. (2,2)

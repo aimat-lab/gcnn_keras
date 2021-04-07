@@ -4,9 +4,9 @@ import tensorflow.keras as ks
 
 class PoolingEdgesPerNode(ks.layers.Layer):
     """
-    Pooling all edges or edgelike features per node, corresponding to node assigned by edge indexlist.
+    Pooling all edges or edgelike features per node, corresponding to node assigned by edge edge_indices.
     
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     Apply e.g. segment_mean for index[0] incoming nodes. 
     Important: edge_index[:,0] are sorted for segment-operation.
     
@@ -14,7 +14,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
@@ -125,15 +125,15 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
 class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     """
-    Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge indexlist.
+    Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge edge_indices.
     
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     Apply e.g. segment_mean for index[0] incoming nodes. 
     Important: edge_index[:,0] could be sorted for segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
@@ -369,7 +369,7 @@ class PoolingAllEdges(ks.layers.Layer):
               Default is row_length of shape (batch,)
     
         Returns:
-            features (tf.tensor): A pooled edges feature list of shape (batch,F).
+            features (tf.tensor): adj_matrix pooled edges feature list of shape (batch,F).
             where F is the feature dimension and holds a pooled 
             edge feature for each graph.
         """

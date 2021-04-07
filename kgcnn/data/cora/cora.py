@@ -39,9 +39,9 @@ def cora_make_grph(loader):
         loader (dict): Dictionary from .npz file.
 
     Returns:
-        list: [A,X,labels]
+        list: [adj_matrix,X,labels]
         
-        - A (sp.csr_matrix): Adjacency matrix.
+        - adj_matrix (sp.csr_matrix): Adjacency matrix.
         - X (sp.csr_matrix): Node features.
         - labels (np.array): Labels.
     """
@@ -95,9 +95,9 @@ def cora_graph(filepath = None):
         filepath (str): Path to dataset. Default is None.
 
     Returns:
-        list: [A,X,labels]
+        list: [adj_matrix,X,labels]
         
-        - A (sp.csr_matrix): Adjacency matrix.
+        - adj_matrix (sp.csr_matrix): Adjacency matrix.
         - X (sp.csr_matrix): Node features.
         - labels (np.array): Labels.
     """

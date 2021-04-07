@@ -56,9 +56,9 @@ def make_unet(
         score_initializer (str): How to initialize score kernel. Default is 'ones'.
         use_bias (bool): Use bias. Default is True.
         activation (str): Activation function used. Default is 'relu'.
-        is_sorted (bool, optional): Edge indices are sorted. Defaults to False.
+        is_sorted (bool, optional): Edge edge_indices are sorted. Defaults to False.
         has_unconnected (bool, optional): Has unconnected nodes. Defaults to True.
-        use_reconnect (bool): Reconnect nodes after pooling. I.e. A=A^2. Default is True.
+        use_reconnect (bool): Reconnect nodes after pooling. I.e. adj_matrix=adj_matrix^2. Default is True.
     
     Returns:
         model (ks.models.Model): Unet model.

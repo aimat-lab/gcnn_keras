@@ -164,8 +164,8 @@ class PoolingEdgesPerNode(ks.layers.Layer):
     
     Args:
         pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is 'segment_mean'.
-        node_indexing (str): If indices refer to sample- or batch-wise indexing. Default is 'sample'.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): If edge_indices refer to sample- or batch-wise indexing. Default is 'sample'.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs
@@ -263,8 +263,8 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
     Args:
         pooling_method (str): tf.function to pool edges compatible with ragged tensors. Default is "segment_sum".
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
-        node_indexing (str): If indices refer to sample- or batch-wise indexing. Default is 'sample'.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): If edge_indices refer to sample- or batch-wise indexing. Default is 'sample'.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
         **kwargs

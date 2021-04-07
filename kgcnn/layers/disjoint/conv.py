@@ -10,8 +10,8 @@ class GCN(ks.layers.Layer):
     """
     Graph convolution according to Kipf et al.
     
-    Computes graph conv as $sigma(A*(WX+b))$ where A is the precomputed adjacency matrix.
-    In place of A, edges and edge indices are used. A is considered pre-sacled.
+    Computes graph conv as $sigma(adj_matrix*(WX+b))$ where adj_matrix is the precomputed adjacency matrix.
+    In place of adj_matrix, edges and edge edge_indices are used. adj_matrix is considered pre-sacled.
     Otherwise use e.g. segment-mean, scale by weights etc.
     Edges must be broadcasted to node feautres X.
     
@@ -22,7 +22,7 @@ class GCN(ks.layers.Layer):
         activation (str): Activation function 'relu'.
         pooling_method (str): Pooling method for summing edges 'segment_sum'.
         use_bias (bool): Whether to use bias. Default is False,
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
@@ -82,11 +82,11 @@ class GCN(ks.layers.Layer):
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of edges to each graph in batch.
               Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
               (batch*None,2) that corresponds to indexing 'batch'.
         
         Returns:
-            features (tf.tensor): A list of updated node features.        
+            features (tf.tensor): adj_matrix list of updated node features.
             Output shape is (batch*None,F).
         """
         node, node_len, edges, edge_len, edge_index = inputs
@@ -122,7 +122,7 @@ class SchNetCFconv(ks.layers.Layer):
         activation (str): Activation function. Default is 'selu'.
         use_bias (bool): Use bias. Default is True.
         cfconv_pool (str): Pooling method. Default is 'segment_sum'.
-        is_sorted (bool): If edge indices are sorted. Default is True.
+        is_sorted (bool): If edge edge_indices are sorted. Default is True.
         has_unconnected (bool): If graph has unconnected nodes. Default is False.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
@@ -177,7 +177,7 @@ class SchNetCFconv(ks.layers.Layer):
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of edges to each graph in batch.
               Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
               (batch*None,2) that corresponds to indexing 'batch'.
         
         Returns:
@@ -214,10 +214,10 @@ class SchNetInteraction(ks.layers.Layer):
         use_bias (bool): Use bias in last layers. Default is True.
         use_bias_cfconv (bool): Use bias in CFconv layer. Default is True.
         cfconv_pool (str): Pooling method information for CFconv layer. Default is'segment_sum'.
-        is_sorted (bool): Whether node indices are sorted. Default is False.
+        is_sorted (bool): Whether node edge_indices are sorted. Default is False.
         has_unconnected (bool): Whether graph has unconnected nodes. Default is False.
         partition_type (str): Partition type of the partition information. Default is row_length".
-        node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
+        node_indexing (str): Indexing information. Whether edge_indices refer to per sample or per batch. Default is "batch".
     """
 
     def __init__(self, node_dim=128,
@@ -269,7 +269,7 @@ class SchNetInteraction(ks.layers.Layer):
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of edges to each graph in batch.
               Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
               (batch*None,2) that corresponds to indexing 'batch'.
 
         Returns:
@@ -310,7 +310,7 @@ class MEGnetBlock(ks.layers.Layer):
         is_sorted (bool, optional): Edge index list is sorted. Defaults to True.
         has_unconnected (bool, optional): Has unconnected nodes. Defaults to False.
         partition_type (str): Partition type of the partition information. Default is row_length".
-        node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
+        node_indexing (str): Indexing information. Whether edge_indices refer to per sample or per batch. Default is "batch".
         **kwargs
     """
 
@@ -376,7 +376,7 @@ class MEGnetBlock(ks.layers.Layer):
 
             - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
             - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
               (batch*None,2) that corresponds to indexing 'batch'.
             - graph_state (tf.tensor): Graph state input of shape (batch, F).
             - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,

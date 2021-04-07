@@ -71,14 +71,14 @@ def mutagenicity_load(path):
         
         - labels (list): Mutagenity label (0,1).
         - nodes (list): Atoms as Atomnumber array.
-        - edge_indices (list): Bond indices (i,j).
+        - edge_indices (list): Bond edge_indices (i,j).
         - edges (list): Bond type.
         - atoms (list): Atom list as string.
     """
     # path = os.path.split(os.path.realpath(__file__))[0]
     mutagenicity_download_dataset(path)
     mutagenicity_extract_dataset(path)
-    # A
+    # adj_matrix
     mutag_a = []
     open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_A.txt"), "r")
     for lines in open_file.readlines():
@@ -143,13 +143,13 @@ def mutagenicity_load(path):
     atoms = [[atoms_translate[y] for y in x] for x in nodes0123]
 
     # edge_indicator
-    graph_id_edge = mutag_gi[mutag_a[:, 0]]  # is the same for A[:,1]
+    graph_id_edge = mutag_gi[mutag_a[:, 0]]  # is the same for adj_matrix[:,1]
     graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
     edgelen = np.zeros(n_data, dtype=np.int)
     edgelen[graph_id2] = counts_edge
     edges = np.split(mutag_e + 1, np.cumsum(edgelen)[:-1])
 
-    # indices
+    # edge_indices
     node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
     edge_indices = node_index[mutag_a]
     edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
@@ -180,7 +180,7 @@ def mutagenicity_load(path):
             print("Removing unconnected", info_list, "from molecule", i)
             nodes_clean.append(nats[is_cons])
             atoms_clean.append([atoms[i][j] for j in range(len(is_cons)) if is_cons[j] == True])
-            # Need to correct indices
+            # Need to correct edge_indices
             indices_used = cons[is_cons]
             indices_new = np.arange(len(indices_used))
             indices_old = np.zeros(len(nodes[i]), dtype=np.int)
@@ -212,7 +212,7 @@ def mutagenicity_graph(filepath=None):
         
         - labels (list): Mutagenity label (0,1).
         - nodes (list): Atoms as Atomnumber array.
-        - edge_indices (list): Bond indices (i,j).
+        - edge_indices (list): Bond edge_indices (i,j).
         - edges (list): Bond type.
         - atoms (list): Atom list as string.
     """

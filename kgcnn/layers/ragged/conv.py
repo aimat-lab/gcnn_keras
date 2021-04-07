@@ -174,8 +174,8 @@ class GCN(ks.layers.Layer):
     """
     Graph convolution according to Kipf et al.
     
-    Computes graph conv as $sigma(A*(WX+b))$ where A is the precomputed adjacency matrix.
-    In place of A, edges and edge indices are used. A is considered pre-sacled.
+    Computes graph conv as $sigma(adj_matrix*(WX+b))$ where adj_matrix is the precomputed adjacency matrix.
+    In place of adj_matrix, edges and edge edge_indices are used. adj_matrix is considered pre-sacled.
     Otherwise use e.g. segment-mean, scale by weights etc.
     Edges must be broadcasted to node feautres X.
     
@@ -186,7 +186,7 @@ class GCN(ks.layers.Layer):
         activation (str): Activation function 'relu'.
         pooling_method (str): Pooling method for summing edges 'segment_sum'.
         use_bias (bool): Whether to use bias. Default is False,
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
         **kwargs
@@ -238,10 +238,10 @@ class GCN(ks.layers.Layer):
         Inputs:
             nodes (tf.ragged): Ragged node feature list of shape (batch,None,F)
             edges (tf.ragged): Ragged edge feature list of shape (batch,None,F)
-            edge_index (tf.ragged): Edge indices for (batch,None,2) 
+            edge_index (tf.ragged): Edge edge_indices for (batch,None,2)
         
         Returns:
-            features (tf.ragged): A list of updated node features.        
+            features (tf.ragged): adj_matrix list of updated node features.
             Output shape is (batch,None,F).
         """
         node, edges, edge_index = inputs

@@ -23,11 +23,11 @@ class GNNInterface:
         """Returns the prediction for the `gnn_input` when it is masked by the three given masks.
         Args:
             gnn_input: The input graph to which should be masked before a prediction should be made by the GNN.
-            edge_mask: A `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
+            edge_mask: adj_matrix `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
                 which should mask the edges of the input graph.
-            feature_mask: A `Tensor` of shape `[get_number_of_node_features(self, gnn_input), 1]`,
+            feature_mask: adj_matrix `Tensor` of shape `[get_number_of_node_features(self, gnn_input), 1]`,
                 which should mask the node features in the input graph.
-            node_mask: A `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
+            node_mask: adj_matrix `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
                 which should mask the node features in the input graph.
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
@@ -75,11 +75,11 @@ class GNNInterface:
         which has mask values as labels to nodes/edge and a dict for the feature explanation values.
         Args:
             gnn_input: The input graph to which should the masks were found by the GNNExplainer.
-            edge_mask: A `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
+            edge_mask: adj_matrix `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
                 which was found by the GNNExplainer.
-            feature_mask: A `Tensor` of shape `[get_number_of_node_features(self, gnn_input), 1]`,
+            feature_mask: adj_matrix `Tensor` of shape `[get_number_of_node_features(self, gnn_input), 1]`,
                 which was found by the GNNExplainer.
-            node_mask: A `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
+            node_mask: adj_matrix `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
                 which was found by the GNNExplainer.
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
@@ -93,8 +93,8 @@ class GNNInterface:
         The presentation of an explanation largely depends on the data domain and targeted user group.
         Examples for presentations:
 
-        * A visualization of the most relevant subgraph(s) to the decision
-        * A visualization of the whole graph with highlighted parts
+        * adj_matrix visualization of the most relevant subgraph(s) to the decision
+        * adj_matrix visualization of the whole graph with highlighted parts
         * Bar diagrams for feature explanations
         * ...
         Args:
@@ -226,7 +226,7 @@ class GNNExplainer:
         Args:
             explanation: The explanation (obtained by `get_explanation`) which should be presented.
         Returns:
-            A presentation of the given explanation.
+            adj_matrix presentation of the given explanation.
         """
         return self.gnn.present_explanation(explanation, **kwargs)
 

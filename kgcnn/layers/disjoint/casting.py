@@ -350,7 +350,7 @@ class CastValuesToRagged(ks.layers.Layer):
               row_splits. Yields the assignment of nodes/edges per graph in batch. Default is row_length.
             
         Returns:
-            features (tf.ragged): A ragged feature tensor of shape (batch,None,F).
+            features (tf.ragged): adj_matrix ragged feature tensor of shape (batch,None,F).
         """
         nod, n_part = inputs
 
@@ -502,7 +502,7 @@ class CastRaggedToDisjoint(ks.layers.Layer):
             - edge (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
               where None stands for a flexible graph size and
               F the edge feature dimension.
-            - edge_index (tf.ragged): Edge indices as a list of shape (batch,None,2)
+            - edge_index (tf.ragged): Edge edge_indices as a list of shape (batch,None,2)
               which has index pairs [i,j] matching nodes
               within each sample. Assumes 'sample' indexing.
         
@@ -515,7 +515,7 @@ class CastRaggedToDisjoint(ks.layers.Layer):
             - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
             - edge_partition (tf.tensor): Edge assignment to each graph, for example number of edges
               in each graph of shape (batch,).
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
+            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
               (batch*None,2) that corresponds to indexing 'batch'.
         """
         node_input, edge_input, edge_index_input = inputs

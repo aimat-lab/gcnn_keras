@@ -70,10 +70,10 @@ def mutag_load(path):
         
         - labels (np.array): Labels.
         - nodes (list): Node features.
-        - edge_indices (list): List of edge indices of connections per molecule.
+        - edge_indices (list): List of edge edge_indices of connections per molecule.
         - edges (list): List of edge features
     """
-    # A
+    # adj_matrix
     mutag_a = []
     open_file = open(os.path.join(path, "MUTAG", "MUTAG_A.txt"), "r")
     for lines in open_file.readlines():
@@ -137,13 +137,13 @@ def mutag_load(path):
     # atoms = [[atoms_translate[y] for y in x] for x in nodes0123]
 
     # edge_indicator
-    graph_id_edge = mutag_gi[mutag_a[:, 0]]  # is the same for A[:,1]
+    graph_id_edge = mutag_gi[mutag_a[:, 0]]  # is the same for adj_matrix[:,1]
     graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
     edgelen = np.zeros(n_data, dtype=np.int)
     edgelen[graph_id2] = counts_edge
     edges = np.split(mutag_e, np.cumsum(edgelen)[:-1])
 
-    # indices
+    # edge_indices
     node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
     edge_indices = node_index[mutag_a]
     edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
@@ -175,7 +175,7 @@ def mutag_graph(filepath = None):
         
         - labels (np.array): Labels.
         - nodes (list): Node features.
-        - edge_indices (list): List of edge indices of connections per molecule.
+        - edge_indices (list): List of edge edge_indices of connections per molecule.
         - edges (list): List of edge features
     """
     if filepath is None:

@@ -8,7 +8,6 @@ import shutil
 
 import numpy as np
 import requests
-import scipy.sparse as sp
 
 from kgcnn.utils.data import setup_user_database_directory
 
@@ -26,6 +25,7 @@ def cora_download_dataset(path, overwrite=False):
     """
     if os.path.exists(os.path.join(path, 'cora.tgz')) is False or overwrite:
         print("Downloading dataset...", end='', flush=True)
+        # From https://linqs.soe.ucsc.edu/data
         data_url = "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz"
         # data_url = "https://linqs-data.soe.ucsc.edu/public/arxiv-mrdm05/arxiv.tar.gz"
         r = requests.get(data_url, allow_redirects=True)
@@ -72,6 +72,21 @@ def cora_extract_dataset(path, overwrite=False):
 
 
 def cora_make_graph(filepath):
+    """
+    Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.
+    https://www.aaai.org/Papers/ICML/2003/ICML03-066.pdf
+
+    Args:
+        filepath (str): Path to directory.
+
+    Returns:
+        list: [nodes, edge_indices, labels, mapping]
+
+        - nodes(np.array): Node features of shape (2708,1434)
+        - edge_indices (np.array): Edge edge_indices of shape (5429,2)
+        - labels (np.array): Class labels of citations of shape (2708,)
+        - mapping (dict): Class label mapping.
+    """
     ids = np.loadtxt(os.path.join(filepath,"cora.cites"))
     ids = np.array(ids,np.int)
     open_file = open(os.path.join(filepath, "cora.content"), "r")
@@ -80,7 +95,7 @@ def cora_make_graph(filepath):
     nodes = [x.strip().split('\t')[0:-1] for x in lines]
     nodes = np.array([[int(y) for y in x] for x in nodes],dtype=np.int)
     open_file.close()
-    # Match indices not wiht ids but with indices in nodes
+    # Match edge_indices not wiht ids but with edge_indices in nodes
     node_map = np.zeros(np.max(nodes[:,0])+1,dtype=np.int)
     idx_new = np.arange(len(nodes))
     node_map[nodes[:,0]] = idx_new
@@ -98,7 +113,7 @@ def cora_make_graph(filepath):
                     'Probabilistic_Methods': 5,
                     'Neural_Networks': 6}
     label_id = np.array([class_label_mapping[x] for x in labels],dtype=np.int)
-    return nodes,indices,label_id
+    return nodes,indices,label_id,class_label_mapping
 
 def cora_graph(filepath=None):
     """
@@ -108,14 +123,16 @@ def cora_graph(filepath=None):
         filepath (str): Path to dataset. Default is None.
 
     Returns:
-        list: [A,X,labels]
+        list: [nodes, edge_indices, labels, mapping]
 
-        - A (sp.csr_matrix): Adjacency matrix.
-        - X (sp.csr_matrix): Node features.
-        - labels (np.array): Labels.
+        - nodes(np.array): Node features of shape (2708,1434)
+        - edge_indices (np.array): Edge edge_indices of shape (5429,2)
+        - labels (np.array): Class labels of citations of shape (2708,)
+        - mapping (dict): Class label mapping.
     """
     if filepath is None:
-        filepath = os.path.join(setup_user_database_directory(), "data", "cora")
+        user_database = setup_user_database_directory()
+        filepath = os.path.join(str(user_database), "data", "cora")
 
     print("Database path:", filepath)
     if not os.path.exists(os.path.join(filepath, "cora.tgz")):

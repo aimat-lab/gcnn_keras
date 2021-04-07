@@ -96,7 +96,7 @@ class CastSparseAdjacencyMatrixToRaggedList(ks.layers.Layer):
     Cast a sparse batched adjacency matrices to a ragged index list plus connection weights.
     
     Args:
-        sort_index (bool): If indices are sorted in sparse matrix.
+        sort_index (bool): If edge_indices are sorted in sparse matrix.
         ragged_validate (bool): Validate ragged tensor.
         **kwargs
     """
@@ -116,13 +116,13 @@ class CastSparseAdjacencyMatrixToRaggedList(ks.layers.Layer):
         """Forward pass.
         
         Args:
-            adjacency (tf.sparse): A sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
+            adjacency (tf.sparse): adj_matrix sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
                                    The sparse tensor that has the shape of maximum number of nodes in the batch.
         
         Returns:
             list: [edge_index,edges]
             
-            - edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
+            - edge_index (tf.ragged): Edge edge_indices list of shape (batch,None,2)
             - edges (tf.ragged): Edge feature list of shape (batch,None,1)
         """
         indexlist = inputs.indices
@@ -199,10 +199,10 @@ class ChangeIndexing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Ragged node feature list of shape (batch,None,F).
-            edge_indices (tf.ragged): Ragged edge indices of shape (batch,None,2).
+            edge_indices (tf.ragged): Ragged edge edge_indices of shape (batch,None,2).
             
         Returns:
-            edge_indices (tf.ragged): Ragged tensor of edge indices with modified index reference.  
+            edge_indices (tf.ragged): Ragged tensor of edge edge_indices with modified index reference.
         """
         nod, edgeind = inputs
         shift1 = edgeind.values

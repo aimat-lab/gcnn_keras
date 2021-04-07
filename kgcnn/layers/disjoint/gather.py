@@ -5,9 +5,9 @@ import tensorflow.keras.backend as ksb
 
 class GatherNodes(ks.layers.Layer):
     """
-    Gather nodes by edge indexlist. Indexlist must match flatten nodes.
+    Gather nodes by edge_indices. Indexlist must match flatten nodes.
     
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     
     Args:
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
@@ -83,9 +83,9 @@ class GatherNodes(ks.layers.Layer):
 
 class GatherNodesOutgoing(ks.layers.Layer):
     """
-    Gather nodes by edge indexlist. Indexlist must match flatten nodes.
+    Gather nodes by edge edge_indices. Indexlist must match flatten nodes.
     
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     For outgoing nodes, layer uses only index[1].
     
     Args:
@@ -122,7 +122,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
               Default is row_length of shape (batch,)
         
         Returns:
-            features (tf.tensor): A list of gathered outgoing node features from indexlist.        
+            features (tf.tensor): A list of gathered outgoing node features from edge_indices.
             Output shape is (batch*None,F).
         
         """
@@ -163,9 +163,9 @@ class GatherNodesOutgoing(ks.layers.Layer):
 
 class GatherNodesIngoing(ks.layers.Layer):
     """
-    Gather nodes by edge indexlist. Indexlist must match flatten nodes.
+    Gather nodes by edge edge_indices. Indexlist must match flatten nodes.
     
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     For ingoing nodes, layer uses only index[0].
     
     Args:
@@ -195,14 +195,14 @@ class GatherNodesIngoing(ks.layers.Layer):
             - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of nodes to each graph in batch.
               Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Flatten edge indices of shape (batch*None,2)
+            - edge_index (tf.tensor): Flatten edge edge_indices of shape (batch*None,2)
               For ingoing gather nodes according to index[0]
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of edges to each graph in batch.
               Default is row_length of shape (batch,)
     
         Returns:
-            features (tf.tensor): A list of gathered ingoing node features from indexlist.        
+            features (tf.tensor): adj_matrix list of gathered ingoing node features from edge_indices.
             Output shape is (batch*None,F).
         """
         node, node_part, edge_index, edge_part = inputs
@@ -271,7 +271,7 @@ class GatherState(ks.layers.Layer):
               Default is row_length of shape (batch,).
 
         Returns:
-            features (tf.tensor): A tensor with repeated single state for each graph.
+            features (tf.tensor): adj_matrix tensor with repeated single state for each graph.
             Output shape is (batch*N,F).
         """
         env, target_part = inputs

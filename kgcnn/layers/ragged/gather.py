@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 
 class GatherNodes(ks.layers.Layer):
     """
-    Gather nodes from ragged tensor by indices provided by a ragged index tensor in mini-batches.
+    Gather nodes from ragged tensor by edge_indices provided by a ragged index tensor in mini-batches.
     
     An edge at index is the connection for node(index([0])) to node(index([1]))
     The features of gathered ingoing and outgoing nodes are concatenated according to index tensor.
@@ -40,7 +40,7 @@ class GatherNodes(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
         
         Returns:
             features (tf.ragged): Gathered node features with entries at index (node(index([0])),node(index([1])))
@@ -110,7 +110,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
             
         Returns:
             features (tf.ragged): Gathered outgoing nodes with entries at index 
@@ -179,7 +179,7 @@ class GatherNodesIngoing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
             
         Returns:
             features (tf.ragged): Gathered ingoing nodes with entries at index 
@@ -245,7 +245,7 @@ class GatherState(ks.layers.Layer):
             target (tf.raged): Ragged node/edgelist (batch,None,F)
             
         Returns:
-            states (tf.ragged): A ragged tensor with shape (batch,None,F)
+            states (tf.ragged): adj_matrix ragged tensor with shape (batch,None,F)
             The corresponding state of each graph is repeated to 
             match the target tensor.
         """
