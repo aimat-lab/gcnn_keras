@@ -68,7 +68,7 @@ class PoolingTopK(ks.layers.Layer):
             tuple: [nodes,edge_indices,edges],[map_nodes,map_edges]
             
             - nodes (tf.ragged): Pooled node features of shape (batch,None,F)
-            - edge_indices (tf.ragged): Pooled edge edge_indices of shape (batch,None,2)
+            - edge_indices (tf.ragged): Pooled edge_indices of shape (batch,None,2)
             - edges (tf.ragged):Pooled edge features of shape (batch,None,F_e)
             - map_nodes (tf.ragged): Index map between original and pooled nodes (batch,None)
             - map_edges (tf.ragged): Index map between original and pooled edges (batch,None)
@@ -154,7 +154,7 @@ class PoolingTopK(ks.layers.Layer):
         batch_order = tf.argsort(new_edge_index[:, 0], axis=0, direction='ASCENDING', stable=True)
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
-        # Remove the batch offset from edge edge_indices again for ragged tensor output
+        # Remove the batch offset from edge_indices again for ragged tensor output
         if self.node_indexing == 'batch':
             out_indexlist = new_edge_index_sorted
         elif self.node_indexing == 'sample':

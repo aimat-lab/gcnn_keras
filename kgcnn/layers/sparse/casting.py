@@ -3,14 +3,14 @@ import tensorflow as tf
 
 class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
     """
-    Layer to cast RaggedTensor graph representation to a signle Sparse tensor in disjoint representation.
+    Layer to cast RaggedTensor graph representation to a single Sparse tensor in disjoint representation.
     
-    This includes edge edge_indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
+    This includes edge_indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
     
     Args:
         node_indexing (str): If edge_indices refer to sample- or batch-wise indexing. Default is 'sample'.
-        is_sorted (bool): If the edge edge_indices are sorted for first ingoing index. Default is False.
-        ragged_validate (bool): To validate the ragged output tensor. Defualt is False.
+        is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
+        ragged_validate (bool): To validate the ragged output tensor. Default is False.
         **kwargs
     """
 
@@ -37,7 +37,7 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
             Inputs list of [nodes,edge_index,edges]
 
             - nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            - edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
+            - edge_index (tf.ragged): Ragged edge_indices of shape (batch,None,2)
             - edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
         
         Returns:

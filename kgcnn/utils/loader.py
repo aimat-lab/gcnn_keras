@@ -24,7 +24,7 @@ class GraphLoaderList(ks.utils.Sequence):
         Args:
             label (list): List or array of labels.
             node (list): List of node features.
-            edge_indext (list): List of edge edge_indices (i,j).
+            edge_indext (list): List of edge_indices (i,j).
             edge (list): List of edge features. Defaults to None.
             state (list): List of graph specific state features. Defaults to None.
             batch_size (int): Size of the desired batch. Defaults to 32.

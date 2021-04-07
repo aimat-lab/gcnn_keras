@@ -271,7 +271,7 @@ class GatherState(ks.layers.Layer):
               Default is row_length of shape (batch,).
 
         Returns:
-            features (tf.tensor): adj_matrix tensor with repeated single state for each graph.
+            features (tf.tensor): A tensor with repeated single state for each graph.
             Output shape is (batch*N,F).
         """
         env, target_part = inputs

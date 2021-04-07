@@ -175,7 +175,7 @@ class PoolingTopK(ks.layers.Layer):
         batch_order = tf.argsort(new_edge_index[:, 0], axis=0, direction='ASCENDING', stable=True)
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
-        # Remove the batch offset from edge edge_indices again for indexing type
+        # Remove the batch offset from edge_indices again for indexing type
         if self.node_indexing == 'batch':
             out_indexlist = new_edge_index_sorted
         elif self.node_indexing == 'sample':

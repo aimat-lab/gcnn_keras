@@ -122,7 +122,7 @@ class CastSparseAdjacencyMatrixToRaggedList(ks.layers.Layer):
         Returns:
             list: [edge_index,edges]
             
-            - edge_index (tf.ragged): Edge edge_indices list of shape (batch,None,2)
+            - edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
             - edges (tf.ragged): Edge feature list of shape (batch,None,1)
         """
         indexlist = inputs.indices
@@ -199,10 +199,10 @@ class ChangeIndexing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Ragged node feature list of shape (batch,None,F).
-            edge_indices (tf.ragged): Ragged edge edge_indices of shape (batch,None,2).
+            edge_indices (tf.ragged): Ragged edge_indices of shape (batch,None,2).
             
         Returns:
-            edge_indices (tf.ragged): Ragged tensor of edge edge_indices with modified index reference.
+            edge_indices (tf.ragged): Ragged tensor of edge_indices with modified index reference.
         """
         nod, edgeind = inputs
         shift1 = edgeind.values

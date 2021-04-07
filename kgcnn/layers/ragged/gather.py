@@ -40,7 +40,7 @@ class GatherNodes(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge_indices of shape (batch,None,2)
         
         Returns:
             features (tf.ragged): Gathered node features with entries at index (node(index([0])),node(index([1])))
@@ -110,7 +110,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge_indices of shape (batch,None,2)
             
         Returns:
             features (tf.ragged): Gathered outgoing nodes with entries at index 
@@ -179,7 +179,7 @@ class GatherNodesIngoing(ks.layers.Layer):
         
         Inputs:
             nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
-            edge_index (tf.ragged): Ragged edge edge_indices of shape (batch,None,2)
+            edge_index (tf.ragged): Ragged edge_indices of shape (batch,None,2)
             
         Returns:
             features (tf.ragged): Gathered ingoing nodes with entries at index 
