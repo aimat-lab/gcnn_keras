@@ -195,7 +195,7 @@ class GatherNodesIngoing(ks.layers.Layer):
             - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of nodes to each graph in batch.
               Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Flatten edge edge_indices of shape (batch*None,2)
+            - edge_index (tf.tensor): Flatten edge_indices of shape (batch*None,2)
               For ingoing gather nodes according to index[0]
             - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of edges to each graph in batch.
