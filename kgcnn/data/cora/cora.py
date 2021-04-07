@@ -1,13 +1,15 @@
 import os
-# import pickle
-# import shutil
-# import zipfile
 
 import numpy as np
 import requests
 import scipy.sparse as sp
 
 from kgcnn.utils.data import setup_user_database_directory
+
+
+# import pickle
+# import shutil
+# import zipfile
 
 def cora_download_dataset(path, overwrite=False):
     """
@@ -87,7 +89,7 @@ def cora_make_graph(loader):
     return a, x, labels
 
 
-def cora_graph(filepath = None):
+def cora_graph(filepath=None):
     """
     Load and convert cora citation dataset.
 
@@ -101,8 +103,9 @@ def cora_graph(filepath = None):
         - X (sp.csr_matrix): Node features.
         - labels (np.array): Labels.
     """
+    user_default_base = setup_user_database_directory()
     if filepath is None:
-        filepath = os.path.join(setup_user_database_directory(), "data", "cora")
+        filepath = os.path.join(str(user_default_base), "data", "cora")
 
     print("Database path:", filepath)
     if not os.path.exists(os.path.join(filepath, "cora.npz")):
