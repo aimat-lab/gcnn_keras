@@ -113,7 +113,7 @@ def make_adjacency_undirected_logical_or(adj_mat):
 def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
     """
     Add self-loops to edge index list, i.e. [[0,0],[1,1]...]. Edge values are filled up with ones.
-    Default is to remove duplicates in the entire list. Edge indices are sorted by default.
+    Default is to remove duplicates in the added list. Edge indices are sorted by default.
 
     Args:
         edge_indices (np.array): Index list of shape (N,2).
@@ -136,10 +136,15 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         edge_loops = np.ones(edge_loops_shape)
         clean_edge = np.concatenate([edge_values, edge_loops], axis=0)
     if remove_duplicates:
-        un, unis = np.unique(added_loops, return_index=True, axis=0)
-        clean_index = added_loops[unis]
+        un, unis = np.unique(clean_index, return_index=True, axis=0)
+        mask_all = np.zeros(clean_index.shape[0],dtype=np.bool)
+        mask_all[unis] = True
+        mask_all[:edge_indices.shape[0]] = True
+        # clean_index = clean_index[unis]
+        clean_index = clean_index[mask_all]
         if edge_values is not None:
-            clean_edge = clean_edge[unis]
+            # clean_edge = clean_edge[unis]
+            clean_edge = clean_edge[mask_all]
     if sort_indices:
         order1 = np.argsort(clean_index[:, 1], axis=0, kind='mergesort')  # stable!
         ind1 = clean_index[order1]
