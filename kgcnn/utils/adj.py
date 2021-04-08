@@ -160,6 +160,34 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         return clean_index
 
 
+def make_edge_indices_symmetric(edge_indices, edge_values=None,remove_duplicates=True, sort_indices=True):
+
+    clean_edge = None
+    edge_index_flip = np.concatenate([edge_indices[:,1] ,edge_indices[:,0]],axis=-1)
+    edge_index_flip_ij = edge_index_flip[edge_index_flip[:,1] != edge_index_flip[:,0]] # Do not flip self loops
+    clean_index = np.concatenate([edge_indices,edge_index_flip_ij],axis=0)
+    if edge_values is not None:
+        edge_to_add = edge_values[edge_index_flip[:,1] != edge_index_flip[:,0]]
+        clean_edge = np.concatenate([edge_values,edge_to_add],axis=0)
+
+    if remove_duplicates:
+        pass
+
+    if sort_indices:
+        order1 = np.argsort(clean_index[:, 1], axis=0, kind='mergesort')  # stable!
+        ind1 = clean_index[order1]
+        if edge_values is not None:
+            clean_edge = clean_edge[order1]
+        order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
+        clean_index = ind1[order2]
+        if edge_values is not None:
+            clean_edge = clean_edge[order2]
+    if edge_values is not None:
+        return clean_index, clean_edge
+    else:
+        return clean_index
+
+
 def sort_edge_indices(edge_indices, edge_values=None):
     """
     Sort index list.
@@ -187,10 +215,6 @@ def sort_edge_indices(edge_indices, edge_values=None):
         return ind2, val1
     else:
         return ind2
-
-
-def make_edge_indices_symmetric(edge_indices, edge_values):
-    pass
 
 
 def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
