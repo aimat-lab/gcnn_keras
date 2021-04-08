@@ -32,7 +32,6 @@ def generate_standard_graph_input(input_node_shape,
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
 
     if len(input_node_shape) == 1:
         n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
@@ -45,6 +44,7 @@ def generate_standard_graph_input(input_node_shape,
         ed = edge_input
 
     if input_state_shape is not None:
+        env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
         if len(input_state_shape) == 0:
             uenv = ks.layers.Embedding(input_state_vocab, input_state_embedd, name='state_embedding')(env_input)
         else:

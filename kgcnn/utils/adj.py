@@ -188,5 +188,22 @@ def make_edge_indices_symmetric(edge_indices, edge_values):
     pass
 
 
-def make_adjacency_from_edge_indices():
-    pass
+def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
+    """Make adjacency sparse matrix from edge_indices and possible values.
+
+    Args:
+        edge_indices (np.array): List of edge indices of shape (N,2)
+        edge_values (np.array): List of possible edge values of shape (N,)
+
+    Returns:
+        sp.sparse.coo_matrix: Sparse adjacency matrix.
+    """
+    if edge_values is None:
+        edge_values = np.ones(edge_indices.shape[0])
+    # index_min = np.min(edge_indices)
+    index_max = np.max(edge_indices)
+    row = np.array(edge_indices[:,0])
+    col = np.array(edge_indices[:,1])
+    data = edge_values
+    out_adj = sp.coo_matrix((data, (row, col)), shape=(index_max +1 , index_max + 1))
+    return out_adj
