@@ -123,6 +123,9 @@ class PoolingLocalEdges(ks.layers.Layer):
         return config
 
 
+PoolingLocalMessages = PoolingLocalEdges # For now they are synonyms
+
+
 class PoolingWeightedLocalEdges(ks.layers.Layer):
     """
     Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge_indices.

@@ -256,6 +256,9 @@ class PoolingLocalEdges(ks.layers.Layer):
         return config
 
 
+PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
+
+
 class PoolingWeightedLocalEdges(ks.layers.Layer):
     r"""
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
