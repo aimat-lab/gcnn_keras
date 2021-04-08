@@ -139,7 +139,7 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         un, unis = np.unique(clean_index, return_index=True, axis=0)
         mask_all = np.zeros(clean_index.shape[0],dtype=np.bool)
         mask_all[unis] = True
-        mask_all[:edge_indices.shape[0]] = True
+        mask_all[:edge_indices.shape[0]] = True # keep old indices untouched
         # clean_index = clean_index[unis]
         clean_index = clean_index[mask_all]
         if edge_values is not None:
@@ -160,8 +160,19 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         return clean_index
 
 
-def make_edge_indices_symmetric(edge_indices, edge_values=None,remove_duplicates=True, sort_indices=True):
+def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
+    """Add the edges for (i,j) as (j,i) with the same edge values. If they do already exist, no edge is added.
+    By default, all indices are sorted.
 
+    Args:
+        edge_indices (np.array): Index list of shape (N,2).
+        edge_values (np.array): Edge values of shape (N,M) matching the edge_indices
+        remove_duplicates (bool): Remove duplicate edge indices. Default is True.
+        sort_indices (bool): Sort final edge indices. Default is True.
+
+    Returns:
+        np.array: edge_indices or [edge_indices, edge_values]
+    """
     clean_edge = None
     edge_index_flip = np.concatenate([edge_indices[:,1] ,edge_indices[:,0]],axis=-1)
     edge_index_flip_ij = edge_index_flip[edge_index_flip[:,1] != edge_index_flip[:,0]] # Do not flip self loops
@@ -170,9 +181,15 @@ def make_edge_indices_symmetric(edge_indices, edge_values=None,remove_duplicates
         edge_to_add = edge_values[edge_index_flip[:,1] != edge_index_flip[:,0]]
         clean_edge = np.concatenate([edge_values,edge_to_add],axis=0)
 
-
     if remove_duplicates:
-        pass
+        un, unis = np.unique(clean_index, return_index=True, axis=0)
+        mask_all = np.zeros(clean_index.shape[0], dtype=np.bool)
+        mask_all[unis] = True
+        mask_all[:edge_indices.shape[0]] = True # keep old indices untouched
+        clean_index = clean_index[mask_all]
+        if edge_values is not None:
+            # clean_edge = clean_edge[unis]
+            clean_edge = clean_edge[mask_all]
 
     if sort_indices:
         order1 = np.argsort(clean_index[:, 1], axis=0, kind='mergesort')  # stable!
