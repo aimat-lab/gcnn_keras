@@ -170,6 +170,7 @@ def make_edge_indices_symmetric(edge_indices, edge_values=None,remove_duplicates
         edge_to_add = edge_values[edge_index_flip[:,1] != edge_index_flip[:,0]]
         clean_edge = np.concatenate([edge_values,edge_to_add],axis=0)
 
+
     if remove_duplicates:
         pass
 
