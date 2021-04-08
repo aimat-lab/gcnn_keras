@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
 from kgcnn.layers.disjoint.conv import MEGnetBlock
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingNodes, PoolingAllEdges
+from kgcnn.layers.disjoint.pooling import PoolingNodes, PoolingGlobalEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
@@ -138,7 +138,7 @@ def make_megnet(
         ep = Set2Set(**set2set_args)([ep, edge_len])
     else:
         vp = PoolingNodes()([vp, node_len])
-        ep = PoolingAllEdges()([ep, edge_len])
+        ep = PoolingGlobalEdges()([ep, edge_len])
 
     ep = ks.layers.Flatten()(ep)
     vp = ks.layers.Flatten()(vp)

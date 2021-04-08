@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 
-class PoolingEdgesPerNode(ks.layers.Layer):
+class PoolingLocalEdges(ks.layers.Layer):
     """
     Pooling all edges or edgelike features per node, corresponding to node assigned by edge indices.
     
@@ -28,7 +28,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
                  partition_type="row_length",
                  **kwargs):
         """Initialize layer."""
-        super(PoolingEdgesPerNode, self).__init__(**kwargs)
+        super(PoolingLocalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
@@ -44,7 +44,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingEdgesPerNode, self).build(input_shape)
+        super(PoolingLocalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -114,7 +114,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingEdgesPerNode, self).get_config()
+        config = super(PoolingLocalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"is_sorted": self.is_sorted})
         config.update({"has_unconnected": self.has_unconnected})
@@ -123,7 +123,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         return config
 
 
-class PoolingWeightedEdgesPerNode(ks.layers.Layer):
+class PoolingWeightedLocalEdges(ks.layers.Layer):
     """
     Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge_indices.
     
@@ -151,7 +151,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
                  partition_type="row_length",
                  **kwargs):
         """Initialize layer."""
-        super(PoolingWeightedEdgesPerNode, self).__init__(**kwargs)
+        super(PoolingWeightedLocalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.node_indexing = node_indexing
         self.is_sorted = is_sorted
@@ -168,7 +168,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingWeightedEdgesPerNode, self).build(input_shape)
+        super(PoolingWeightedLocalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -246,7 +246,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingWeightedEdgesPerNode, self).get_config()
+        config = super(PoolingWeightedLocalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"is_sorted": self.is_sorted})
         config.update({"has_unconnected": self.has_unconnected})
@@ -327,7 +327,7 @@ class PoolingNodes(ks.layers.Layer):
         return config
 
 
-class PoolingAllEdges(ks.layers.Layer):
+class PoolingGlobalEdges(ks.layers.Layer):
     """
     Pooling all edges per graph. The batch assignment is given by a length-tensor.
 
@@ -342,7 +342,7 @@ class PoolingAllEdges(ks.layers.Layer):
                  partition_type="row_length",
                  **kwargs):
         """Initialize layer."""
-        super(PoolingAllEdges, self).__init__(**kwargs)
+        super(PoolingGlobalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.partition_type = partition_type
 
@@ -355,7 +355,7 @@ class PoolingAllEdges(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingAllEdges, self).build(input_shape)
+        super(PoolingGlobalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -392,7 +392,7 @@ class PoolingAllEdges(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingAllEdges, self).get_config()
+        config = super(PoolingGlobalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"partition_type": self.partition_type})
         return config

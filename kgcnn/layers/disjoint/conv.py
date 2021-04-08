@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing, GatherState, GatherNodes
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingWeightedEdgesPerNode, PoolingAllEdges, \
+from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 from kgcnn.utils.activ import kgcnn_custom_act
 
@@ -57,11 +57,11 @@ class GCN(ks.layers.Layer):
         # Layers
         self.lay_gather = GatherNodesOutgoing(node_indexing=self.node_indexing, partition_type=self.partition_type)
         self.lay_dense = ks.layers.Dense(self.units, use_bias=self.use_bias, activation='linear')
-        self.lay_pool = PoolingWeightedEdgesPerNode(pooling_method=self.pooling_method, is_sorted=self.is_sorted,
-                                                    has_unconnected=self.has_unconnected,
-                                                    node_indexing=self.node_indexing,
-                                                    normalize_by_weights=self.normalize_by_weights,
-                                                    partition_type=self.partition_type)
+        self.lay_pool = PoolingWeightedLocalEdges(pooling_method=self.pooling_method, is_sorted=self.is_sorted,
+                                                  has_unconnected=self.has_unconnected,
+                                                  node_indexing=self.node_indexing,
+                                                  normalize_by_weights=self.normalize_by_weights,
+                                                  partition_type=self.partition_type)
         self.lay_act = ks.layers.Activation(self.deserial_activation)
 
     def build(self, input_shape):
@@ -152,11 +152,11 @@ class SchNetCFconv(ks.layers.Layer):
         # Layer
         self.lay_dense1 = ks.layers.Dense(units=self.units, activation=self.activation, use_bias=self.use_bias)
         self.lay_dense2 = ks.layers.Dense(units=self.units, activation='linear', use_bias=self.use_bias)
-        self.lay_sum = PoolingEdgesPerNode(pooling_method=self.cfconv_pool,
-                                           is_sorted=self.is_sorted,
-                                           has_unconnected=self.has_unconnected,
-                                           partition_type=self.partition_type,
-                                           node_indexing=self.node_indexing)
+        self.lay_sum = PoolingLocalEdges(pooling_method=self.cfconv_pool,
+                                         is_sorted=self.is_sorted,
+                                         has_unconnected=self.has_unconnected,
+                                         partition_type=self.partition_type,
+                                         node_indexing=self.node_indexing)
         self.gather_n = GatherNodesOutgoing(node_indexing=self.node_indexing, partition_type=self.partition_type)
 
     def build(self, input_shape):
@@ -345,8 +345,8 @@ class MEGnetBlock(ks.layers.Layer):
         self.lay_phi_n = ks.layers.Dense(self.node_embed[0], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_n_1 = ks.layers.Dense(self.node_embed[1], activation=self.activation, use_bias=self.use_bias)
         self.lay_phi_n_2 = ks.layers.Dense(self.node_embed[2], activation='linear', use_bias=self.use_bias)
-        self.lay_esum = PoolingEdgesPerNode(is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,
-                                            partition_type=self.partition_type, node_indexing=self.node_indexing)
+        self.lay_esum = PoolingLocalEdges(is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,
+                                          partition_type=self.partition_type, node_indexing=self.node_indexing)
         self.lay_gather_un = GatherState(partition_type=self.partition_type)
         self.lay_conc_nu = ks.layers.Concatenate(axis=-1)
         # Edge
@@ -357,7 +357,7 @@ class MEGnetBlock(ks.layers.Layer):
         self.lay_gather_ue = GatherState(partition_type=self.partition_type)
         self.lay_conc_enu = ks.layers.Concatenate(axis=-1)
         # Environment
-        self.lay_usum_e = PoolingAllEdges(partition_type=self.partition_type)
+        self.lay_usum_e = PoolingGlobalEdges(partition_type=self.partition_type)
         self.lay_usum_n = PoolingNodes(partition_type=self.partition_type)
         self.lay_conc_u = ks.layers.Concatenate(axis=-1)
         self.lay_phi_u = ks.layers.Dense(self.env_embed[0], activation=self.activation, use_bias=self.use_bias)
@@ -415,13 +415,13 @@ class MEGnetBlock(ks.layers.Layer):
 
     def get_config(self):
         config = super(MEGnetBlock, self).get_config()
-        config.update({"node_embed": self.node_embed})
-        config.update({"edge_embed": self.edge_embed})
-        config.update({"env_embed": self.env_embed})
-        config.update({"activation": self.activation})
-        config.update({"use_bias": self.use_bias})
-        config.update({"is_sorted}": self.is_sorted})
-        config.update({"has_unconnected": self.has_unconnected})
-        config.update({"partition_type": self.partition_type})
-        config.update({"node_indexing": self.node_indexing})
+        config.update({"node_embed": self.node_embed,
+                       "edge_embed": self.edge_embed,
+                       "env_embed": self.env_embed,
+                       "activation": self.activation,
+                       "use_bias": self.use_bias,
+                       "is_sorted}": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "partition_type": self.partition_type,
+                       "node_indexing": self.node_indexing})
         return config

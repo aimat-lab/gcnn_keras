@@ -39,7 +39,7 @@ Models can be set up in a functional. Example message passing from fundamental o
    import tensorflow.keras as ks
    from kgcnn.layers.ragged.gather import GatherNodes
    from kgcnn.layers.ragged.conv import DenseRagged  # Will most likely be supported by keras.Dense in the future
-   from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode
+   from kgcnn.layers.ragged.pooling import PoolingLocalEdges
 
    feature_dim = 10
    n = ks.layers.Input(shape=(None,feature_dim),name='node_input',dtype ="float32",ragged=True)
@@ -47,7 +47,7 @@ Models can be set up in a functional. Example message passing from fundamental o
 
    n_in_out = GatherNodes()([n,ei])
    node_messages = DenseRagged(feature_dim)(n_in_out)
-   node_updates = PoolingEdgesPerNode()([n,node_messages,ei])
+   node_updates = PoolingLocalEdges()([n,node_messages,ei])
    n_node_updates = ks.layers.Concatenate(axis=-1)([n,node_updates])
    n_embedd = DenseRagged(feature_dim)(n_node_updates)
 

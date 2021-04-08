@@ -1,9 +1,9 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-# from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode,PoolingNodes
+# from kgcnn.layers.ragged.pooling import PoolingLocalEdges,PoolingNodes
 from kgcnn.layers.ragged.gather import GatherNodesOutgoing
-from kgcnn.layers.ragged.pooling import PoolingWeightedEdgesPerNode
+from kgcnn.layers.ragged.pooling import PoolingWeightedLocalEdges
 # from kgcnn.layers.ragged.gather import GatherState,GatherNodesIngoing
 from kgcnn.utils.activ import kgcnn_custom_act
 
@@ -218,10 +218,10 @@ class GCN(ks.layers.Layer):
         # Layers
         self.lay_gather = GatherNodesOutgoing(node_indexing=self.node_indexing)
         self.lay_dense = DenseRagged(self.units, use_bias=self.use_bias, activation='linear')
-        self.lay_pool = PoolingWeightedEdgesPerNode(pooling_method=self.pooling_method, is_sorted=self.is_sorted,
-                                                    has_unconnected=self.has_unconnected,
-                                                    node_indexing=self.node_indexing,
-                                                    normalize_by_weights=self.normalize_by_weights)
+        self.lay_pool = PoolingWeightedLocalEdges(pooling_method=self.pooling_method, is_sorted=self.is_sorted,
+                                                  has_unconnected=self.has_unconnected,
+                                                  node_indexing=self.node_indexing,
+                                                  normalize_by_weights=self.normalize_by_weights)
         self.lay_act = ActivationRagged(self.deserial_activation)
         self._supports_ragged_inputs = True
 

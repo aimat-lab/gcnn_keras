@@ -5,8 +5,8 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
 from kgcnn.layers.ragged.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.ragged.mlp import MLPRagged
-from kgcnn.layers.ragged.pooling import PoolingEdgesPerNode, PoolingNodes
-# from kgcnn.layers.ragged.pooling import PoolingWeightedEdgesPerNode
+from kgcnn.layers.ragged.pooling import PoolingLocalEdges, PoolingNodes
+# from kgcnn.layers.ragged.pooling import PoolingWeightedLocalEdges
 from kgcnn.layers.ragged.set2set import Set2Set
 from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
@@ -113,7 +113,7 @@ def make_inorp(  # Input
 
         eu = MLPRagged(**node_mlp_args)(eu)
         # Pool message
-        nu = PoolingEdgesPerNode(**pooling_args)([n, eu, edi])  # Summing for each node connection
+        nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = ks.layers.Concatenate()([n, nu, ev])  # Concatenate node features with new edge updates
 

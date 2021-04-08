@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagged
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes
+from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.update import ApplyMessage, GRUupdate
 from kgcnn.layers.ragged.casting import CastRaggedToDense
@@ -95,7 +95,7 @@ def make_nmpn(
     for i in range(0, depth):
         eu = GatherNodesOutgoing()([n, node_len, edi, edge_len])
         eu = ApplyMessage(node_dim)([edge_net, eu])
-        eu = PoolingEdgesPerNode(**pooling_args)(
+        eu = PoolingLocalEdges(**pooling_args)(
             [n, node_len, eu, edge_len, edi])  # Summing for each node connections
         n = gru([n, eu])
 

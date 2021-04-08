@@ -4,7 +4,7 @@ from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagg
 from kgcnn.layers.disjoint.connect import AdjacencyPower
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
 from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingEdgesPerNode, PoolingNodes
+from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.disjoint.topk import PoolingTopK, UnPoolingTopK
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
@@ -98,7 +98,7 @@ def make_unet(
         # GCN layer
         eu = GatherNodesOutgoing()([n, node_len, edi, edge_len])
         eu = ks.layers.Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
-        nu = PoolingEdgesPerNode(pooling_method='segment_mean', is_sorted=is_sorted, has_unconnected=has_unconnected)(
+        nu = PoolingLocalEdges(pooling_method='segment_mean', is_sorted=is_sorted, has_unconnected=has_unconnected)(
             [n, node_len, eu, edge_len, edi])  # Summing for each node connection
         n = ks.layers.Activation(activation=activation)(nu)
 
@@ -124,7 +124,7 @@ def make_unet(
         # GCN
         eu = GatherNodesOutgoing()([n, node_len, edi, edge_len])
         eu = ks.layers.Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
-        nu = PoolingEdgesPerNode(pooling_method='segment_mean', is_sorted=is_sorted, has_unconnected=has_unconnected)(
+        nu = PoolingLocalEdges(pooling_method='segment_mean', is_sorted=is_sorted, has_unconnected=has_unconnected)(
             [n, node_len, eu, edge_len, edi])  # Summing for each node connection
         n = ks.layers.Activation(activation=activation)(nu)
 

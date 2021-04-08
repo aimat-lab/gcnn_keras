@@ -108,7 +108,7 @@ class PoolingWeightedNodes(tf.keras.layers.Layer):
         return config
 
 
-class PoolingAllEdges(ks.layers.Layer):
+class PoolingGlobalEdges(ks.layers.Layer):
     r"""
     Layer for pooling of edgefeatures over all edges in graph. Which gives $1/n \sum_{ij} edge(i,j)$.
     
@@ -121,7 +121,7 @@ class PoolingAllEdges(ks.layers.Layer):
                  pooling_method=tf.math.reduce_mean,
                  **kwargs):
         """Initialize layer."""
-        super(PoolingAllEdges, self).__init__(**kwargs)
+        super(PoolingGlobalEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
 
@@ -134,7 +134,7 @@ class PoolingAllEdges(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingAllEdges, self).build(input_shape)
+        super(PoolingGlobalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -151,12 +151,12 @@ class PoolingAllEdges(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingAllEdges, self).get_config()
+        config = super(PoolingGlobalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config
 
 
-class PoolingEdgesPerNode(ks.layers.Layer):
+class PoolingLocalEdges(ks.layers.Layer):
     r"""
     Layer for pooling of edgefeatures or messages for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
@@ -179,7 +179,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
                  ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
-        super(PoolingEdgesPerNode, self).__init__(**kwargs)
+        super(PoolingLocalEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
         self.node_indexing = node_indexing
@@ -197,7 +197,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingEdgesPerNode, self).build(input_shape)
+        super(PoolingLocalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -247,7 +247,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingEdgesPerNode, self).get_config()
+        config = super(PoolingLocalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
         config.update({"node_indexing": self.node_indexing})
@@ -256,7 +256,7 @@ class PoolingEdgesPerNode(ks.layers.Layer):
         return config
 
 
-class PoolingWeightedEdgesPerNode(ks.layers.Layer):
+class PoolingWeightedLocalEdges(ks.layers.Layer):
     r"""
     Layer for pooling of edgefeatures for each ingoing node in graph. Which gives $1/n \sum_{j} edge(i,j)$.
     
@@ -279,7 +279,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
                  ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
-        super(PoolingWeightedEdgesPerNode, self).__init__(**kwargs)
+        super(PoolingWeightedLocalEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
 
@@ -298,7 +298,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingWeightedEdgesPerNode, self).build(input_shape)
+        super(PoolingWeightedLocalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -358,7 +358,7 @@ class PoolingWeightedEdgesPerNode(ks.layers.Layer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingWeightedEdgesPerNode, self).get_config()
+        config = super(PoolingWeightedLocalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         config.update({"ragged_validate": self.ragged_validate})
         config.update({"node_indexing": self.node_indexing})
