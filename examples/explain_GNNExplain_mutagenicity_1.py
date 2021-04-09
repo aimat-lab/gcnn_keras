@@ -204,3 +204,22 @@ inspection_result = explainer.explain([tensor[786:787] for tensor in xtest], ins
 plt.figure()
 explainer.present_explanation(explainer.get_explanation(), threshold=0.5)
 plt.show()
+
+# Predictions
+plt.figure()
+plt.plot(inspection_result['predictions'])
+plt.xlabel('Iterations')
+plt.ylabel('GNN output')
+
+# loss
+plt.figure()
+plt.plot(inspection_result['total_loss'])
+plt.xlabel('Iterations')
+plt.ylabel('Total Loss')
+
+# edge loss
+plt.figure()
+plt.plot(inspection_result['edge_mask_loss'])
+plt.xlabel('Iterations')
+plt.ylabel('Node Mask Loss')
+
