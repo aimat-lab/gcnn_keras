@@ -47,7 +47,7 @@ model = make_gcn(
     output_mlp={"use_bias": [True, True, False], "units": [140, 70,1], "activation": ['relu', 'relu','sigmoid']},
     # model specs
     depth=3,
-    gcn_args={"units": 140, "use_bias": True, "activation": "relu", "has_unconnected": True,"pooling_method": 'segment_mean'}
+    gcn_args={"units": 140, "use_bias": True, "activation": "relu", "has_unconnected": True, "is_sorted" : False,"pooling_method": 'segment_mean'}
 )
 
 # Set learning rate and epochs
