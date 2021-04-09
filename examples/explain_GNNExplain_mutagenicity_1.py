@@ -197,7 +197,7 @@ explainer = GNNExplainer(explainable_gcn,
 
 
 # Explain Single Instance and check setup:
-inspection_result = explainer.explain([tensor[786:787] for tensor in xtest], inspection=True)
+inspection_result = explainer.explain([tensor[776:777] for tensor in xtest], inspection=True)
 # inspection_result = explainer.explain([tensor[264:265] for tensor in xtest], output_to_explain=tf.Variable([0.]), inspection=True)
 
 # Present explanation
