@@ -84,13 +84,13 @@ print("Print Time for taining: ", stop - start)
 trainlossall = np.array(hist.history['accuracy'])
 testlossall = np.array(hist.history['val_accuracy'])
 
-mae_valid = testlossall[-1]
+acc_valid = testlossall[-1]
 
 # Plot loss vs epochs
 plt.figure()
 plt.plot(np.arange(trainlossall.shape[0]), trainlossall, label='Training ACC', c='blue')
 plt.plot(np.arange(epostep, epo + epostep, epostep), testlossall, label='Test ACC', c='red')
-plt.scatter([trainlossall.shape[0]], [mae_valid], label="{0:0.4f} ".format(mae_valid), c='red')
+plt.scatter([trainlossall.shape[0]], [acc_valid], label="{0:0.4f} ".format(acc_valid), c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('Interaction Network Loss')
