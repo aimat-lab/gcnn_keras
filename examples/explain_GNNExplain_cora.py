@@ -118,14 +118,14 @@ plt.xlabel('Epochs')
 plt.ylabel('Accurarcy')
 plt.title('GCN')
 plt.legend(loc='lower right', fontsize='x-large')
-plt.savefig('gcn_explain_loss.png')
+plt.savefig('gcn_explain_loss_cora.png')
 plt.show()
 
 # Evaluate model
 model.evaluate(xtrain, ytrain, sample_weight=val_mask)
 
 
-# We have to implement the GNNexplainer for the model
+# We have to implement the ExplainableGCN for the model
 class ExplainableGCN(GNNInterface):
 
     def __init__(self, gnn_model, node_index, **kwargs):
