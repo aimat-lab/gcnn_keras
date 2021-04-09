@@ -97,7 +97,7 @@ class PoolingWeightedNodes(tf.keras.layers.Layer):
         Returns:
             features (tf.tensor): Pooled node features of shape (batch,F)
         """
-        nodes, weights = input
+        nodes, weights = inputs
         out = self._pool(tf.math.multiply(nodes, weights), axis=1)
         return out
 
