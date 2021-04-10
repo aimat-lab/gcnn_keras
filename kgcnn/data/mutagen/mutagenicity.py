@@ -169,10 +169,10 @@ def mutagenicity_load(path):
         test_cons = np.sort(np.unique(edge_indices[i].flatten()))
         is_cons = np.zeros_like(cons, dtype=np.bool)
         is_cons[test_cons] = True
-        is_cons[nats == 20] = True
-        is_cons[nats == 3] = True
-        is_cons[nats == 19] = True
-        is_cons[nats == 11] = True
+        is_cons[nats == 20] = True # Allow to be unconnected
+        is_cons[nats == 3] = True # Allow to be unconnected
+        is_cons[nats == 19] = True # Allow to be unconnected
+        is_cons[nats == 11] = True # Allow to be unconnected
         if np.sum(is_cons) != len(cons):
             info_list = nodes[i][is_cons == False]
             info_list, info_cnt = np.unique(info_list, return_counts=True)

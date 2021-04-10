@@ -225,6 +225,7 @@ explainer.explain([tensor[instance_index:instance_index+1] for tensor in xtest])
 #explainer.explain([tensor[instance_index:instance_index+1] for tensor in xtest], output_to_explain=tf.Variable([0.]))
 
 # Let's look at the explanation the GNNExplainer found:
+plt.figure()
 explainer.present_explanation(explainer.get_explanation(), threshold=0.5)
 plt.show()
 
@@ -235,6 +236,7 @@ plt.show()
 # We can also specify output_to_explain to be tf.Variable([0.]).
 # This way we can tell the Explainer to explain why a molecule could be mutagenic
 # (even for molecules which are classified as most likely non-mutagenic by the GNN):
-
+plt.figure()
 explainer.explain([tensor[instance_index:instance_index+1] for tensor in xtest], output_to_explain=tf.Variable([0.]))
 explainer.present_explanation(explainer.get_explanation(), threshold=0.5)
+plt.show()

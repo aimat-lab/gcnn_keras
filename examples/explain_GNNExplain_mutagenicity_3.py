@@ -100,11 +100,11 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('Interaction Network Loss')
 plt.legend(loc='upper right', fontsize='x-large')
-plt.savefig('gcn_explain_mutag.png')
+plt.savefig('gcn_explain_mutag_3.png')
 plt.show()
 
+# We net to implement the ExplainableGNN from GNNInterface
 
-# Now we have to implement the ExplainableGCN
 class ExplainableGCN(GNNInterface):
 
     def __init__(self, gnn_model, **kwargs):
@@ -195,33 +195,83 @@ explainer = GNNExplainer(explainable_gcn,
                               fit_options=fit_options,
                               gnnexplaineroptimizer_options=gnnexplaineroptimizer_options)
 
-
-# Explain Single Instance and check setup:
 inspection_result = explainer.explain([tensor[776:777] for tensor in xtest], inspection=True)
-# inspection_result = explainer.explain([tensor[264:265] for tensor in xtest], output_to_explain=tf.Variable([0.]), inspection=True)
+#inspection_result = explainer.explain([tensor[776:777] for tensor in xtest], output_to_explain=tf.Variable([0.]), inspection=True)
 
-# Present explanation
-plt.figure()
 explainer.present_explanation(explainer.get_explanation(), threshold=0.5)
-plt.show()
 
-# Predictions
+# Plot predicion
 plt.figure()
 plt.plot(inspection_result['predictions'])
 plt.xlabel('Iterations')
 plt.ylabel('GNN output')
 plt.show()
 
-# loss
+# PLot loss
 plt.figure()
 plt.plot(inspection_result['total_loss'])
 plt.xlabel('Iterations')
 plt.ylabel('Total Loss')
 plt.show()
 
-# edge loss
+# Plot Edge Mask loss
 plt.figure()
 plt.plot(inspection_result['edge_mask_loss'])
 plt.xlabel('Iterations')
 plt.ylabel('Node Mask Loss')
 plt.show()
+
+# Sample 200 mutagenic molecules:
+pred = model.predict(xtest)[:,0]
+sampled_mutagenic_molecules = np.random.choice(np.argwhere(pred < 0.5)[:,0], 200)
+print(sampled_mutagenic_molecules)
+
+# Generate explanations for all those 50 molecules (this will take a while):
+explanations = []
+for i,mol_index in enumerate(sampled_mutagenic_molecules):
+    explainer.explain([tensor[mol_index:mol_index+1] for tensor in xtest])
+    print(i, end=',')
+    explanations.append(explainer.get_explanation())
+
+# We transform the explanation graphs to vectors, in order to apply a cluster algorithm on the explanation vectors:
+def explanation_to_vector(explanation):
+    graph = explanation[0]
+    bond_matrix = np.zeros((14,14))
+    for (u, v, relevance) in graph.edges.data('relevance'):
+        atom1 = np.argwhere(graph.nodes[u]['features']==1)[0]
+        atom2 = np.argwhere(graph.nodes[v]['features']==1)[0]
+        bond_matrix[atom1, atom2] += relevance
+        bond_matrix[atom2, atom1] += relevance
+    bond_vector = bond_matrix[np.triu_indices(bond_matrix.shape[0])]
+    bond_vector = bond_vector / np.sum(bond_vector)
+    return bond_vector
+explanation_vectors = [explanation_to_vector(expl) for expl in explanations]
+
+
+# A dendogram of the explanation vectors:
+plt.figure()
+linked = linkage(explanation_vectors, 'complete', metric='cityblock')
+dendrogram(linked,
+            orientation='top',
+            distance_sort='descending',
+            show_leaf_counts=True)
+plt.show()
+
+
+num_clusters = 7
+# Print one representative graph explanation for each cluster:
+db = AgglomerativeClustering(n_clusters=num_clusters, affinity='manhattan', linkage='complete').fit(explanation_vectors)
+vector_clusters = []
+explanation_clusters = []
+for cluster_ind in range(num_clusters):
+    plt.figure()
+    vector_cluster = np.array([explanation_vectors[i] for i in np.argwhere(db.labels_ == cluster_ind)[:,0]])
+    vector_clusters.append(vector_cluster)
+    explanation_cluster = [explanations[i] for i in np.argwhere(db.labels_ == cluster_ind)[:,0]]
+    explanation_clusters.append(explanation_cluster)
+    cluster_mean = np.mean(vector_cluster, axis=0)
+    dist = cdist(np.array([cluster_mean]), vector_cluster)[0]
+    print(vector_cluster.shape)
+    ax = plt.subplot()
+    explainer.present_explanation(explanation_cluster[np.argmin(dist)])
+    plt.show()
