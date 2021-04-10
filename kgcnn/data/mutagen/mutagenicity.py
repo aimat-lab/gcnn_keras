@@ -59,12 +59,13 @@ def mutagenicity_extract_dataset(path, overwrite=False):
     return os.path.join(path, 'Mutagenicity')
 
 
-def mutagenicity_load(path):
+def mutagenicity_load(path,verbose=1):
     """
     Load Mutagenicity dataset as list.
 
     Args:
         path (str): path location.
+        verbose (int): Level of print out. verbose=0 means no information.
 
     Returns:
         list: [labels, nodes, edge_indices, edges, atoms]
@@ -177,7 +178,8 @@ def mutagenicity_load(path):
             info_list = nodes[i][is_cons == False]
             info_list, info_cnt = np.unique(info_list, return_counts=True)
             info_list = {z_translate[info_list[j]]: info_cnt[j] for j in range(len(info_list))}
-            print("Removing unconnected", info_list, "from molecule", i)
+            if verbose>0:
+                print("Removing unconnected", info_list, "from molecule", i)
             nodes_clean.append(nats[is_cons])
             atoms_clean.append([atoms[i][j] for j in range(len(is_cons)) if is_cons[j] == True])
             # Need to correct edge_indices
@@ -200,12 +202,13 @@ def mutagenicity_load(path):
     return labels_clean, nodes_clean, edge_indices_clean, edges_clean, atoms_clean
 
 
-def mutagenicity_graph(filepath=None):
+def mutagenicity_graph(filepath=None, verbose=1):
     """
     Generate list of mutagenicity graphs.
 
     Args:
         filepath (str): Path to database. Default is None.
+        verbose (int): Level of print out. verbose=0 means no information.
 
     Returns:
         ist: [labels, nodes, edge_indices, edges, atoms]
@@ -225,7 +228,7 @@ def mutagenicity_graph(filepath=None):
         mutagenicity_download_dataset(filepath)
         mutagenicity_extract_dataset(filepath)
 
-    data = mutagenicity_load(filepath)
+    data = mutagenicity_load(filepath,verbose=verbose)
     return data
 
 # labels,nodes,edge_indices,edges,atoms = mutagenicity_graph()
