@@ -2,6 +2,8 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
+from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition, _change_partition_type
+
 
 class CastRaggedToValues(ks.layers.Layer):
     """
@@ -114,14 +116,7 @@ class CastMaskedToValues(ks.layers.Layer):
         flat_tens = tf.boolean_mask(batchred_tens, batchred_mask)
 
         # Output
-        if self.partition_type == "row_length":
-            outpart = row_lengths
-        elif self.partition_type == "row_splits":
-            outpart = tf.pad(tf.cumsum(row_lengths), [[1, 0]])
-        elif self.partition_type == "value_rowids":
-            outpart = tf.repeat(tf.range(shape_tens[0]), row_lengths)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        outpart = _change_partition_type(row_lengths, "row_length", self.partition_type)
 
         return [flat_tens, outpart]
 
@@ -134,7 +129,7 @@ class CastMaskedToValues(ks.layers.Layer):
 
 class CastBatchToValues(ks.layers.Layer):
     """
-    Layer to squeeze the batch dimension. For graphs of the same size in batch.
+    Layer to squeeze the batch dimension. For graphs of the same size in batch to match the disjoint representation.
     
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
@@ -171,15 +166,10 @@ class CastBatchToValues(ks.layers.Layer):
         sh_feat_int = ksb.int_shape(feat)
         out = ksb.reshape(feat, (sh_feat[0] * sh_feat[1], sh_feat_int[-1]))
         out_len = tf.repeat(sh_feat[1], sh_feat[0])
+
         # Output
-        if self.partition_type == "row_length":
-            outpart = out_len
-        elif self.partition_type == "row_splits":
-            outpart = tf.pad(tf.cumsum(out_len), [[1, 0]])
-        elif self.partition_type == "value_rowids":
-            outpart = tf.repeat(tf.range(tf.shape(out_len)[0]), out_len)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        outpart = _change_partition_type(out_len, "row_length", self.partition_type)
+
         return [out, outpart]
 
     def get_config(self):
@@ -191,7 +181,7 @@ class CastBatchToValues(ks.layers.Layer):
 
 class CastValuesToBatch(ks.layers.Layer):
     """
-    Add batchdim according to a reference. For graphs of the same size in batch!!
+    Add batchdim according to a reference. For graphs of the same size in batch!! To match the disjoint representation.
 
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
@@ -422,39 +412,19 @@ class ChangeIndexing(ks.layers.Layer):
         """
         part_node, edge_index, part_edge = inputs
 
-        # splits[1:] - splits[:-1]
-        if self.partition_type == "row_length":
-            shift_index = tf.expand_dims(tf.repeat(tf.cumsum(part_node, exclusive=True), part_edge), axis=1)
-        elif self.partition_type == "row_splits":
-            edge_len = part_edge[1:] - part_edge[:-1]
-            shift_index = tf.expand_dims(tf.repeat(part_node[:-1], edge_len), axis=1)
-        elif self.partition_type == "value_rowids":
-            node_len = tf.math.segment_sum(tf.ones_like(part_node), part_node)
-            edge_len = tf.math.segment_sum(tf.ones_like(part_edge), part_edge)
-            shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-
-            # Add or substract batch offset from index tensor
-        if self.to_indexing == 'batch' and self.from_indexing == 'sample':
-            indexlist = edge_index + tf.cast(shift_index, dtype=edge_index.dtype)
-        elif self.to_indexing == 'sample' and self.from_indexing == 'batch':
-            indexlist = edge_index - tf.cast(shift_index, dtype=edge_index.dtype)
-        elif self.to_indexing == 'sample' and self.from_indexing == 'sample':
-            indexlist = edge_index
-        elif self.to_indexing == 'batch' and self.from_indexing == 'batch':
-            indexlist = edge_index
-        else:
-            raise TypeError("Unknown index change, use: 'sample', 'batch', ...")
+        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
+                                                                  partition_type=self.partition_type,
+                                                                  to_indexing=self.to_indexing,
+                                                                  from_indexing=self.from_indexing)
 
         return indexlist
 
     def get_config(self):
         """Update layer config."""
         config = super(ChangeIndexing, self).get_config()
-        config.update({"to_indexing": self.to_indexing})
-        config.update({"from_indexing": self.from_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"to_indexing": self.to_indexing,
+                       "from_indexing": self.from_indexing,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -528,7 +498,7 @@ class CastRaggedToDisjoint(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(CastRaggedToDisjoint, self).get_config()
-        config.update({"to_indexing": self.to_indexing})
-        config.update({"from_indexing": self.from_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"to_indexing": self.to_indexing,
+                       "from_indexing": self.from_indexing,
+                       "partition_type": self.partition_type})
         return config

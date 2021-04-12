@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
+from kgcnn.utils.partition import _change_partition_type
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
@@ -145,20 +146,9 @@ class Set2Set(ks.layers.Layer):
         """
         x, batch_part = inputs
 
-        if self.partition_type == "row_length":
-            batch_num = batch_part
-            batch_shape = ksb.shape(batch_num)
-            batch_index = tf.repeat(ksb.arange(0, batch_shape[0], 1), batch_num)  # (batch*num,) ex: [0,0,0,1,2,2,2,...]
-        elif self.partition_type == "row_splits":
-            batch_num = batch_part[1:] - batch_part[:-1]
-            batch_shape = ksb.shape(batch_num)
-            batch_index = tf.repeat(ksb.arange(0, batch_shape[0], 1), batch_num)  # (batch*num,) ex: [0,0,0,1,2,2,2,...]
-        elif self.partition_type == "value_rowids":
-            batch_index = batch_part  # (batch*num,) ex: [0,0,0,1,2,2,2,...]
-            batch_num = tf.math.segment_sum(tf.ones_like(batch_part), batch_part)
-            # batch_shape = ksb.shape(batch_num)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        batch_num = _change_partition_type(batch_part,self.partition_type,"row_length")
+        # batch_shape = ksb.shape(batch_num)
+        batch_index = _change_partition_type(batch_part, self.partition_type, "value_rowids")
 
         # Reading to memory removed here, is to be done by seperately
         m = x  # (batch*None,feat)

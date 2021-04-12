@@ -99,15 +99,15 @@ class GCN(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(GCN, self).get_config()
-        config.update({"units": self.units})
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"normalize_by_weights": self.normalize_by_weights})
-        config.update({"use_bias": self.use_bias})
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"has_unconnected": self.has_unconnected})
-        config.update({"is_sorted": self.is_sorted})
-        config.update({"activation": self.activation})
-        config.update({"partition_type": self.partition_type})
+        config.update({"units": self.units,
+                       "node_indexing": self.node_indexing,
+                       "normalize_by_weights": self.normalize_by_weights,
+                       "use_bias": self.use_bias,
+                       "pooling_method": self.pooling_method,
+                       "has_unconnected": self.has_unconnected,
+                       "is_sorted": self.is_sorted,
+                       "activation": self.activation,
+                       "partition_type": self.partition_type})
         return config
 
 

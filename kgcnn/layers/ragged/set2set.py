@@ -2,7 +2,6 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391

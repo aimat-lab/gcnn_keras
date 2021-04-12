@@ -1,6 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.utils.partition import _change_partition_type
+
 
 # import tensorflow.keras.backend as ksb
 
@@ -52,17 +54,8 @@ class AdjacencyPower(ks.layers.Layer):
         edge_index, edge, edge_part, node_part = inputs
 
         # Cast to length tensor
-        if self.partition_type == "row_length":
-            edge_len = edge_part
-            node_len = node_part
-        elif self.partition_type == "row_splits":
-            edge_len = edge_part[1:] - edge_part[:-1]
-            node_len = node_part[1:] - node_part[:-1]
-        elif self.partition_type == "value_rowids":
-            edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-            node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        node_len = _change_partition_type(node_part, self.partition_type, "row_length")
+        edge_len = _change_partition_type(edge_part, self.partition_type, "row_length")
 
         # batchwise indexing
         shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
@@ -100,20 +93,14 @@ class AdjacencyPower(ks.layers.Layer):
         new_edge_index = ind[mask]
         new_edge = tf.expand_dims(out[mask], axis=-1)
 
-        if self.partition_type == "row_length":
-            new_edge_part = new_edge_len
-        elif self.partition_type == "row_splits":
-            new_edge_part = tf.pad(tf.cumsum(new_edge_len), [[1, 0]])
-        elif self.partition_type == "value_rowids":
-            new_edge_part = tf.repeat(tf.range(tf.shape(new_edge_len)[0]), new_edge_len)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        # Outpartition
+        new_edge_part = _change_partition_type(new_edge_len, "row_length", self.partition_type)
 
         return [new_edge_index, new_edge, new_edge_part]
 
     def get_config(self):
         """Update layer config."""
         config = super(AdjacencyPower, self).get_config()
-        config.update({"n": self.n})
-        config.update({"partition_type": self.partition_type})
+        config.update({"n": self.n,
+                       "partition_type": self.partition_type})
         return config

@@ -18,7 +18,7 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 # Download and generate dataset.
 # QM9 has about 200 MB of data
 # You need at least 10 GB of RAM to load and process full dataset into memory.
-labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=1000)  # max is 133885
+labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=10000)  # max is 133885
 
 # Select LUMO as target and convert into eV from H
 # Standardize output with scikit-learn std-scaler

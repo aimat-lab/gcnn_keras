@@ -80,3 +80,66 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
         config.update({"node_indexing": self.node_indexing})
         config.update({"is_sorted": self.is_sorted})
         return config
+
+
+class CastSparseBatchedAdjacencyMatrixToRaggedList(tf.keras.layers.Layer):
+    """
+    Cast a sparse batched adjacency matrices to a ragged index list plus connection weights.
+
+    Args:
+        sort_index (bool): If edge_indices are sorted in sparse matrix.
+        ragged_validate (bool): Validate ragged tensor.
+        **kwargs
+    """
+
+    def __init__(self, sort_index=True, ragged_validate=False, **kwargs):
+        """Initialize layer."""
+        super(CastSparseBatchedAdjacencyMatrixToRaggedList, self).__init__(**kwargs)
+        self._supports_ragged_inputs = True
+        self.sort_index = sort_index
+        self.ragged_validate = ragged_validate
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(CastSparseBatchedAdjacencyMatrixToRaggedList, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            adjacency (tf.sparse): adj_matrix sparse Tensor (tf.sparse) of shape (batch,N_max,N_max).
+                                   The sparse tensor that has the shape of maximum number of nodes in the batch.
+
+        Returns:
+            list: [edge_index,edges]
+
+            - edge_index (tf.ragged): Edge indices list of shape (batch,None,2)
+            - edges (tf.ragged): Edge feature list of shape (batch,None,1)
+        """
+        indexlist = inputs.indices
+        valuelist = inputs.values
+        if self.sort_index:
+            # Sort batch-dimension
+            batch_order = tf.argsort(indexlist[:, 0], axis=0, direction='ASCENDING', stable=True)
+            indexlist = tf.gather(indexlist, batch_order, axis=0)
+            valuelist = tf.gather(valuelist, batch_order, axis=0)
+            batch_length = tf.math.segment_sum(tf.ones_like(indexlist[:, 0]), indexlist[:, 0])
+            batch_splits = tf.cumsum(batch_length, exclusive=True)
+            # Sort per ingoing node
+            batch_shifted_index = tf.repeat(batch_splits, batch_length)
+            node_order = tf.argsort(indexlist[:, 1] + batch_shifted_index, axis=0, direction='ASCENDING', stable=True)
+            indexlist = tf.gather(indexlist, node_order, axis=0)
+            valuelist = tf.gather(valuelist, node_order, axis=0)
+
+        edge_index = tf.RaggedTensor.from_value_rowids(indexlist[:, 1:], indexlist[:, 0], validate=self.ragged_validate)
+        edge_weight = tf.RaggedTensor.from_value_rowids(tf.expand_dims(valuelist, axis=-1), indexlist[:, 0],
+                                                        validate=self.ragged_validate)
+
+        return [edge_index, edge_weight]
+
+    def get_config(self):
+        """Update config."""
+        config = super(CastSparseBatchedAdjacencyMatrixToRaggedList, self).get_config()
+        config.update({"ragged_validate": self.ragged_validate})
+        config.update({"sort_index": self.sort_index})
+        return config

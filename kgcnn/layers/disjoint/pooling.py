@@ -1,6 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition, _change_partition_type
+
 
 class PoolingLocalEdges(ks.layers.Layer):
     """
@@ -35,9 +37,9 @@ class PoolingLocalEdges(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.partition_type = partition_type
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method == "segment_mean" or self.pooling_method == "mean":
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method == "segment_sum" or self.pooling_method == "sum":
             self._pool = tf.math.segment_sum
         else:
             raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
@@ -70,26 +72,10 @@ class PoolingLocalEdges(ks.layers.Layer):
         """
         nod, node_part, edge, edge_part, edgeind = inputs
 
-        if self.node_indexing == 'batch':
-            shiftind = edgeind
-        elif self.node_indexing == 'sample':
-            shift1 = edgeind
-            if self.partition_type == "row_length":
-                edge_len = edge_part
-                node_len = node_part
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            elif self.partition_type == "row_splits":
-                edge_len = edge_part[1:] - edge_part[:-1]
-                shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-            elif self.partition_type == "value_rowids":
-                edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-                node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            else:
-                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-            shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                 partition_type=self.partition_type,
+                                                                 to_indexing='batch',
+                                                                 from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]
         dens = edge
@@ -115,15 +101,15 @@ class PoolingLocalEdges(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"is_sorted": self.is_sorted})
-        config.update({"has_unconnected": self.has_unconnected})
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"pooling_method": self.pooling_method,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type})
         return config
 
 
-PoolingLocalMessages = PoolingLocalEdges # For now they are synonyms
+PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 
 class PoolingWeightedLocalEdges(ks.layers.Layer):
@@ -199,26 +185,10 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         """
         nod, node_part, edge, edge_part, edgeind, weights = inputs
 
-        if self.node_indexing == 'batch':
-            shiftind = edgeind
-        elif self.node_indexing == 'sample':
-            shift1 = edgeind
-            if self.partition_type == "row_length":
-                edge_len = edge_part
-                node_len = node_part
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            elif self.partition_type == "row_splits":
-                edge_len = edge_part[1:] - edge_part[:-1]
-                shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-            elif self.partition_type == "value_rowids":
-                edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-                node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            else:
-                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-            shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                 partition_type=self.partition_type,
+                                                                 to_indexing='batch',
+                                                                 from_indexing=self.node_indexing)
 
         wval = weights
         dens = edge * wval
@@ -250,12 +220,12 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingWeightedLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"is_sorted": self.is_sorted})
-        config.update({"has_unconnected": self.has_unconnected})
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"normalize_by_weights": self.normalize_by_weights})
-        config.update({"partition_type": self.partition_type})
+        config.update({"pooling_method": self.pooling_method,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "normalize_by_weights": self.normalize_by_weights,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -307,16 +277,7 @@ class PoolingNodes(ks.layers.Layer):
         """
         node, node_part = inputs
 
-        if self.partition_type == "row_length":
-            node_len = node_part
-            batchi = tf.repeat(tf.range(tf.shape(node_len)[0]), node_len)
-        elif self.partition_type == "row_splits":
-            node_len = node_part[1:] - node_part[:-1]
-            batchi = tf.repeat(tf.range(tf.shape(node_len)[0]), node_len)
-        elif self.partition_type == "value_rowids":
-            batchi = node_part
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        batchi = _change_partition_type(node_part, self.partition_type, "value_rowids")
 
         out = self._pool(node, batchi)
         # Output should have correct shape
@@ -325,8 +286,8 @@ class PoolingNodes(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingNodes, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"partition_type": self.partition_type})
+        config.update({"pooling_method": self.pooling_method,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -378,16 +339,7 @@ class PoolingGlobalEdges(ks.layers.Layer):
         """
         edge, edge_part = inputs
 
-        if self.partition_type == "row_length":
-            edge_len = edge_part
-            batchi = tf.repeat(tf.range(tf.shape(edge_len)[0]), edge_len)
-        elif self.partition_type == "row_splits":
-            edge_len = edge_part[1:] - edge_part[:-1]
-            batchi = tf.repeat(tf.range(tf.shape(edge_len)[0]), edge_len)
-        elif self.partition_type == "value_rowids":
-            batchi = edge_part
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        batchi = _change_partition_type(edge_part, self.partition_type, "value_rowids")
 
         out = self._pool(edge, batchi)
         # Output already has correct shape
@@ -396,6 +348,6 @@ class PoolingGlobalEdges(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingGlobalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"partition_type": self.partition_type})
+        config.update({"pooling_method": self.pooling_method,
+                       "partition_type": self.partition_type})
         return config

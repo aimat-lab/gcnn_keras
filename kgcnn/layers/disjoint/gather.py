@@ -2,6 +2,8 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
+from kgcnn.utils.partition import _change_partition_type, _change_edge_tensor_indexing_by_row_partition
+
 
 class GatherNodes(ks.layers.Layer):
     """
@@ -47,26 +49,10 @@ class GatherNodes(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
 
-        if self.node_indexing == 'batch':
-            indexlist = edge_index
-        elif self.node_indexing == 'sample':
-            shift1 = edge_index
-            if self.partition_type == "row_length":
-                edge_len = edge_part
-                node_len = node_part
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            elif self.partition_type == "row_splits":
-                edge_len = edge_part[1:] - edge_part[:-1]
-                shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-            elif self.partition_type == "value_rowids":
-                edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-                node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            else:
-                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-            indexlist = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                  partition_type=self.partition_type,
+                                                                  to_indexing='batch',
+                                                                  from_indexing=self.node_indexing)
 
         node1exp = tf.gather(node, indexlist[:, 0], axis=0)
         node2exp = tf.gather(node, indexlist[:, 1], axis=0)
@@ -76,8 +62,8 @@ class GatherNodes(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(GatherNodes, self).get_config()
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -128,27 +114,10 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
-
-        if self.node_indexing == 'batch':
-            indexlist = edge_index
-        elif self.node_indexing == 'sample':
-            shift1 = edge_index
-            if self.partition_type == "row_length":
-                edge_len = edge_part
-                node_len = node_part
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            elif self.partition_type == "row_splits":
-                edge_len = edge_part[1:] - edge_part[:-1]
-                shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-            elif self.partition_type == "value_rowids":
-                edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-                node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            else:
-                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-            indexlist = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                  partition_type=self.partition_type,
+                                                                  to_indexing='batch',
+                                                                  from_indexing=self.node_indexing)
 
         out = tf.gather(node, indexlist[:, 1], axis=0)
         return out
@@ -156,8 +125,8 @@ class GatherNodesOutgoing(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(GatherNodesOutgoing, self).get_config()
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -207,27 +176,10 @@ class GatherNodesIngoing(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
-
-        if self.node_indexing == 'batch':
-            indexlist = edge_index
-        elif self.node_indexing == 'sample':
-            shift1 = edge_index
-            if self.partition_type == "row_length":
-                edge_len = edge_part
-                node_len = node_part
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            elif self.partition_type == "row_splits":
-                edge_len = edge_part[1:] - edge_part[:-1]
-                shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-            elif self.partition_type == "value_rowids":
-                edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-                node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-                shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-            else:
-                raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-            indexlist = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                  partition_type=self.partition_type,
+                                                                  to_indexing='batch',
+                                                                  from_indexing=self.node_indexing)
 
         out = tf.gather(node, indexlist[:, 0], axis=0)
         return out
@@ -235,8 +187,8 @@ class GatherNodesIngoing(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(GatherNodesIngoing, self).get_config()
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type})
         return config
 
 
@@ -276,14 +228,7 @@ class GatherState(ks.layers.Layer):
         """
         env, target_part = inputs
 
-        if self.partition_type == "row_length":
-            target_len = target_part
-        elif self.partition_type == "row_splits":
-            target_len = target_part[1:] - target_part[:-1]
-        elif self.partition_type == "value_rowids":
-            target_len = tf.math.segment_sum(tf.ones_like(target_part), target_part)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        target_len = _change_partition_type(target_part, self.partition_type, "row_length")
 
         out = tf.repeat(env, target_len, axis=0)
         return out
