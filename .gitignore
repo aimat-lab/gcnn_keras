@@ -4,3 +4,6 @@
 *.zip
 *.png
 /develop/
+build
+dist
+kgcnn.egg-info
