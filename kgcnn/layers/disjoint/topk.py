@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.utils.partition import _change_partition_type
 
 class PoolingTopK(ks.layers.Layer):
     """
@@ -87,19 +88,10 @@ class PoolingTopK(ks.layers.Layer):
         index_dtype = edgeindref.dtype
 
         # Make partition tensors
-        if self.partition_type == "row_length":
-            edgelen = edge_part
-            nodelen = node_part
-        elif self.partition_type == "row_splits":
-            edgelen = edge_part[1:] - edge_part[:-1]
-            nodelen = node_part[1:] - node_part[:-1]
-        elif self.partition_type == "value_rowids":
-            edgelen = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-            nodelen = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        edgelen = _change_partition_type(edge_part,self.partition_type,"row_length")
+        nodelen = _change_partition_type(node_part,self.partition_type,"row_length")
 
-            # Get node properties
+        # Get node properties
         nvalue = node
         nrowlength = tf.cast(nodelen, dtype=index_dtype)
         erowlength = tf.cast(edgelen, dtype=index_dtype)
@@ -201,6 +193,8 @@ class PoolingTopK(ks.layers.Layer):
         out_edge_index = out_indexlist
 
         # Shift length to partition required
+        # out_np = _change_partition_type(pooled_len, "row_length", self.partition_type)
+        # out_ep = _change_partition_type(clean_edge_len,"row_length", self.partition_type )
         if self.partition_type == "row_length":
             out_np = pooled_len
             out_ep = clean_edge_len
@@ -213,7 +207,7 @@ class PoolingTopK(ks.layers.Layer):
         else:
             raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
 
-            # Collect reverse pooling info
+        # Collect reverse pooling info
         # Remove batch offset for old indicies -> but with new length
         if self.node_indexing == 'batch':
             out_pool = pooled_index
