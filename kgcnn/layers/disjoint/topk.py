@@ -1,7 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.utils.partition import _change_partition_type
+from kgcnn.utils.partition import _change_partition_type, _change_edge_tensor_indexing_by_row_partition
+
 
 class PoolingTopK(ks.layers.Layer):
     """
@@ -88,8 +89,8 @@ class PoolingTopK(ks.layers.Layer):
         index_dtype = edgeindref.dtype
 
         # Make partition tensors
-        edgelen = _change_partition_type(edge_part,self.partition_type,"row_length")
-        nodelen = _change_partition_type(node_part,self.partition_type,"row_length")
+        edgelen = _change_partition_type(edge_part, self.partition_type, "row_length")
+        nodelen = _change_partition_type(node_part, self.partition_type, "row_length")
 
         # Get node properties
         nvalue = node
@@ -141,16 +142,14 @@ class PoolingTopK(ks.layers.Layer):
         # Shift index if necessary
         edge_ids = tf.repeat(tf.range(tf.shape(edgelen)[0], dtype=index_dtype), edgelen)
 
-        if self.node_indexing == 'batch':
-            edgeind = edgeindref
-        elif self.node_indexing == 'sample':
-            shift1 = edgeindref
-            shift2 = tf.expand_dims(tf.gather(tf.cumsum(nrowlength, exclusive=True), edge_ids), axis=1)
-            edgeind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeindref,
+                                                                 nrowlength, edge_ids,
+                                                                 partition_type_node="row_length",
+                                                                 partition_type_edge="value_rowids",
+                                                                 from_indexing=self.node_indexing,
+                                                                 to_indexing="batch")
 
-        shiftind = tf.cast(edgeind, dtype=index_dtype)  # already shifted by batch offset (subgraphs)
+        shiftind = tf.cast(shiftind, dtype=index_dtype)  # already shifted by batch offset (subgraphs)
 
         # Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind, axis=-1) == ks.backend.expand_dims(
@@ -168,14 +167,12 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
         # Remove the batch offset from edge_indices again for indexing type
-        if self.node_indexing == 'batch':
-            out_indexlist = new_edge_index_sorted
-        elif self.node_indexing == 'sample':
-            batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len, exclusive=True), clean_edge_ids),
-                                                axis=1)
-            out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset, dtype=index_dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        out_indexlist = _change_edge_tensor_indexing_by_row_partition(new_edge_index_sorted,
+                                                                      pooled_len, clean_edge_ids,
+                                                                      partition_type_node="row_length",
+                                                                      partition_type_edge="value_rowids",
+                                                                      from_indexing="batch",
+                                                                      to_indexing=self.node_indexing)
 
         # Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat
@@ -192,33 +189,34 @@ class PoolingTopK(ks.layers.Layer):
         out_edge = clean_edge_feat_sorted
         out_edge_index = out_indexlist
 
-        # Shift length to partition required
-        # out_np = _change_partition_type(pooled_len, "row_length", self.partition_type)
-        # out_ep = _change_partition_type(clean_edge_len,"row_length", self.partition_type )
-        if self.partition_type == "row_length":
-            out_np = pooled_len
-            out_ep = clean_edge_len
-        elif self.partition_type == "row_splits":
-            out_np = tf.pad(tf.cumsum(pooled_len), [[1, 0]])
-            out_ep = tf.pad(tf.cumsum(clean_edge_len), [[1, 0]])
-        elif self.partition_type == "value_rowids":
-            out_np = pooled_id
-            out_ep = clean_edge_ids
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        # Change length to partition required
+        out_np = _change_partition_type(pooled_len, "row_length", self.partition_type)
+        out_ep = _change_partition_type(clean_edge_len, "row_length", self.partition_type)
 
         # Collect reverse pooling info
         # Remove batch offset for old indicies -> but with new length
-        if self.node_indexing == 'batch':
-            out_pool = pooled_index
-            out_pool_edge = edge_position_new
-        elif self.node_indexing == 'sample':
-            out_pool = pooled_index - tf.cast(tf.repeat(tf.cumsum(nrowlength, exclusive=True), pooled_len),
-                                              dtype=index_dtype)
-            out_pool_edge = edge_position_new - tf.cast(
-                tf.gather(tf.cumsum(erowlength, exclusive=True), clean_edge_ids), dtype=index_dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        out_pool = _change_edge_tensor_indexing_by_row_partition(pooled_index,
+                                                                 nrowlength, pooled_len,
+                                                                 partition_type_node="row_length",
+                                                                 partition_type_edge="row_length",
+                                                                 from_indexing="batch",
+                                                                 to_indexing=self.node_indexing)
+        out_pool_edge = _change_edge_tensor_indexing_by_row_partition(edge_position_new,
+                                                                      erowlength, clean_edge_ids,
+                                                                      partition_type_node="row_length",
+                                                                      partition_type_edge="value_rowids",
+                                                                      from_indexing="batch",
+                                                                      to_indexing=self.node_indexing)
+        # if self.node_indexing == 'batch':
+        #     out_pool = pooled_index
+        #     out_pool_edge = edge_position_new
+        # elif self.node_indexing == 'sample':
+        #     out_pool = pooled_index - tf.cast(tf.repeat(tf.cumsum(nrowlength, exclusive=True), pooled_len),
+        #                                       dtype=index_dtype)
+        #     out_pool_edge = edge_position_new - tf.cast(
+        #         tf.gather(tf.cumsum(erowlength, exclusive=True), clean_edge_ids), dtype=index_dtype)
+        # else:
+        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
 
         # Output list
         out = [out_node, out_np, out_edge, out_ep, out_edge_index]
@@ -237,8 +235,8 @@ class PoolingTopK(ks.layers.Layer):
             'kernel_constraint':
                 ks.constraints.serialize(self.kernel_constraint),
         })
-        config.update({"partition_type": self.partition_type})
-        config.update({"node_indexing": self.node_indexing})
+        config.update({"partition_type": self.partition_type,
+                       "node_indexing": self.node_indexing})
         return config
 
 

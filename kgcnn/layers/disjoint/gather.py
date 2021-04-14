@@ -50,7 +50,8 @@ class GatherNodes(ks.layers.Layer):
         node, node_part, edge_index, edge_part = inputs
 
         indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type=self.partition_type,
+                                                                  partition_type_node=self.partition_type,
+                                                                  partition_type_edge=self.partition_type,
                                                                   to_indexing='batch',
                                                                   from_indexing=self.node_indexing)
 
@@ -115,7 +116,8 @@ class GatherNodesOutgoing(ks.layers.Layer):
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
         indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type=self.partition_type,
+                                                                  partition_type_node=self.partition_type,
+                                                                  partition_type_edge=self.partition_type,
                                                                   to_indexing='batch',
                                                                   from_indexing=self.node_indexing)
 
@@ -177,7 +179,8 @@ class GatherNodesIngoing(ks.layers.Layer):
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
         indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type=self.partition_type,
+                                                                  partition_type_node=self.partition_type,
+                                                                  partition_type_edge=self.partition_type,
                                                                   to_indexing='batch',
                                                                   from_indexing=self.node_indexing)
 

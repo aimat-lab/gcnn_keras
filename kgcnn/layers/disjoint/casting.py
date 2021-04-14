@@ -413,9 +413,11 @@ class ChangeIndexing(ks.layers.Layer):
         part_node, edge_index, part_edge = inputs
 
         indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
-                                                                  partition_type=self.partition_type,
-                                                                  to_indexing=self.to_indexing,
-                                                                  from_indexing=self.from_indexing)
+                                                                  partition_type_node=self.partition_type,
+                                                                  partition_type_edge=self.partition_type,
+                                                                  from_indexing=self.from_indexing,
+                                                                  to_indexing=self.to_indexing
+                                                                  )
 
         return indexlist
 

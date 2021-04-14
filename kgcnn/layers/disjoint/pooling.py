@@ -73,7 +73,8 @@ class PoolingLocalEdges(ks.layers.Layer):
         nod, node_part, edge, edge_part, edgeind = inputs
 
         shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type=self.partition_type,
+                                                                 partition_type_node=self.partition_type,
+                                                                 partition_type_edge=self.partition_type,
                                                                  to_indexing='batch',
                                                                  from_indexing=self.node_indexing)
 
@@ -186,7 +187,8 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         nod, node_part, edge, edge_part, edgeind, weights = inputs
 
         shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type=self.partition_type,
+                                                                 partition_type_node=self.partition_type,
+                                                                 partition_type_edge=self.partition_type,
                                                                  to_indexing='batch',
                                                                  from_indexing=self.node_indexing)
 
