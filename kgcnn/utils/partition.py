@@ -70,7 +70,7 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
         # Nothing to do here
         return edge_index
 
-    # we need node value_rowids
+    # we need node row_splits
     nod_splits = None
     if partition_type_node == "row_length":
         node_len = part_node
@@ -83,7 +83,7 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
     else:
         raise TypeError("Unknown node partition scheme, use: 'value_rowids', 'row_splits', row_length")
 
-    # we need edge_ids
+    # we need edge value_rowids
     edge_ids = None
     if partition_type_edge == "row_length":
         edge_len = part_edge

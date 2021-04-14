@@ -299,36 +299,24 @@ class UnPoolingTopK(ks.layers.Layer):
         node_old, nodepart_old, edge_old, edgepart_old, edgeind_old, map_node, map_edge, node_new, nodpart_new, edge_new, edgepart_new, edgeind_new = inputs
 
         # Make partition tensors
-        if self.partition_type == "row_length":
-            nrowlength = nodepart_old
-            erowlength = edgepart_old
-            pool_node_len = nodpart_new
-            pool_edge_id = tf.repeat(tf.range(tf.shape(edgepart_new)[0]), edgepart_new)
-        elif self.partition_type == "row_splits":
-            nrowlength = nodepart_old[1:] - nodepart_old[:-1]
-            erowlength = edgepart_old[1:] - edgepart_old[:-1]
-            pool_node_len = nodpart_new[1:] - nodpart_new[:-1]
-            pool_edge_len = edgepart_new[1:] - edgepart_new[:-1]
-            pool_edge_id = tf.repeat(tf.range(tf.shape(pool_edge_len)[0]), pool_edge_len)
-        elif self.partition_type == "value_rowids":
-            nrowlength = tf.math.segment_sum(tf.ones_like(nodepart_old), nodepart_old)
-            erowlength = tf.math.segment_sum(tf.ones_like(edgepart_old), edgepart_old)
-            pool_node_len = tf.math.segment_sum(tf.ones_like(nodpart_new), nodpart_new)
-            pool_edge_id = edgepart_new
-        else:
-            raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        nrowlength = _change_partition_type(nodepart_old,self.partition_type,"row_length")
+        erowlength =  _change_partition_type(edgepart_old,self.partition_type,"row_length")
+        pool_node_len = _change_partition_type(nodpart_new,self.partition_type,"row_length")
+        pool_edge_id = _change_partition_type(edgepart_new,self.partition_type,"value_rowids")
 
-            # Correct map index for flatten batch offset
-        if self.node_indexing == 'batch':
-            map_node = map_node
-            map_edge = map_edge
-        elif self.node_indexing == 'sample':
-            map_node = map_node + tf.cast(tf.repeat(tf.cumsum(nrowlength, exclusive=True), pool_node_len),
-                                          dtype=map_node.dtype)
-            map_edge = map_edge + tf.cast(tf.gather(tf.cumsum(erowlength, exclusive=True), pool_edge_id),
-                                          dtype=map_edge.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        # Correct map index for flatten batch offset
+        map_node = _change_edge_tensor_indexing_by_row_partition(map_node,
+                                                                  nrowlength, pool_node_len,
+                                                                  partition_type_node="row_length",
+                                                                  partition_type_edge="row_length",
+                                                                  from_indexing=self.node_indexing,
+                                                                  to_indexing="batch")
+        map_edge = _change_edge_tensor_indexing_by_row_partition(map_edge,
+                                                                  erowlength, pool_edge_id,
+                                                                  partition_type_node="row_length",
+                                                                  partition_type_edge="value_rowids",
+                                                                  from_indexing=self.node_indexing,
+                                                                  to_indexing="batch")
 
         index_dtype = map_node.dtype
         node_shape = tf.stack(
