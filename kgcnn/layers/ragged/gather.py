@@ -50,7 +50,7 @@ class GatherNodes(ks.layers.Layer):
             of shape (batch,None,F+F)
             The length matches the index Tensor.
         """
-        # nod, edgeind = inputs
+        nod, edgeind = inputs
         # if self.node_indexing == 'batch':
         #     shiftind = edgeind.values
         # elif self.node_indexing == 'sample':
@@ -65,8 +65,14 @@ class GatherNodes(ks.layers.Layer):
         # get = tf.concat([g1, g2], axis=1)
         # out = tf.RaggedTensor.from_row_splits(get, edgeind.row_splits, validate=self.ragged_validate)
         # out = edgeind.with_values(get)
+        if self.node_indexing == 'batch':
+            out = tf.RaggedTensor.from_row_splits(tf.gather(nod.values,edgeind.values),edgeind.row_splits, validate=self.ragged_validate)
+        elif self.node_indexing == 'sample':
+            out = tf.gather(nod,edgeind,batch_dims=1)
 
-
+        if self.concat_nodes:
+            out_shape = tf.shape(out.values)
+            out = tf.RaggedTensor.from_row_splits(tf.reshape(out.values, (out_shape[0],-1)), edgeind.row_splits, validate=self.ragged_validate)
 
         return out
 
