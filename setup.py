@@ -15,8 +15,8 @@ setup(
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=['numpy', "scikit-learn", "pandas", "scipy", "requests", "matplotlib", "networkx"],
     extras_require={
-        "tf": ["tensorflow>=2.2.0"],
-        "tf_gpu": ["tensorflow-gpu>=2.2.0"],
+        "tf": ["tensorflow>=2.4.0"],
+        "tf_gpu": ["tensorflow-gpu>=2.4.0"],
     },
     packages=find_packages(),
     include_package_data=True,

@@ -231,6 +231,9 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         return config
 
 
+PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms
+
+
 class PoolingNodes(ks.layers.Layer):
     """
     Polling all nodes per batch. The batch assignment is given by a length-tensor.

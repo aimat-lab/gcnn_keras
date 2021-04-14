@@ -372,3 +372,6 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         config.update({"ragged_validate": self.ragged_validate})
         config.update({"normalize_by_weights": self.weights_normalized})
         return config
+
+
+PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms

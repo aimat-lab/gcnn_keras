@@ -21,12 +21,15 @@ class GatherNodes(ks.layers.Layer):
     def __init__(self,
                  ragged_validate=False,
                  node_indexing='sample',
+                 concat_nodes = True,
                  **kwargs):
         """Initialize layer."""
         super(GatherNodes, self).__init__(**kwargs)
         self.ragged_validate = ragged_validate
         self.node_indexing = node_indexing
+        self.concat_nodes = concat_nodes
         self._supports_ragged_inputs = True
+
 
     def build(self, input_shape):
         """Build layer."""
@@ -47,28 +50,32 @@ class GatherNodes(ks.layers.Layer):
             of shape (batch,None,F+F)
             The length matches the index Tensor.
         """
-        nod, edgeind = inputs
-        if self.node_indexing == 'batch':
-            shiftind = edgeind.values
-        elif self.node_indexing == 'sample':
-            shift1 = edgeind.values
-            shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1], edgeind.row_lengths()), axis=1)
-            shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-        dens = nod.values
-        g1 = tf.gather(dens, shiftind[:, 0])
-        g2 = tf.gather(dens, shiftind[:, 1])
-        get = tf.concat([g1, g2], axis=1)
-        out = tf.RaggedTensor.from_row_splits(get, edgeind.row_splits, validate=self.ragged_validate)
+        # nod, edgeind = inputs
+        # if self.node_indexing == 'batch':
+        #     shiftind = edgeind.values
+        # elif self.node_indexing == 'sample':
+        #     shift1 = edgeind.values
+        #     shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1], edgeind.row_lengths()), axis=1)
+        #     shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
+        # else:
+        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        # dens = nod.values
+        # g1 = tf.gather(dens, shiftind[:, 0])
+        # g2 = tf.gather(dens, shiftind[:, 1])
+        # get = tf.concat([g1, g2], axis=1)
+        # out = tf.RaggedTensor.from_row_splits(get, edgeind.row_splits, validate=self.ragged_validate)
         # out = edgeind.with_values(get)
+
+
+
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodes, self).get_config()
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"node_indexing": self.node_indexing})
+        config.update({"ragged_validate": self.ragged_validate,
+                       "node_indexing": self.node_indexing,
+                       "concat_nodes" : self.concat_nodes})
         return config
 
 
