@@ -6,7 +6,8 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
                                                   partition_type_node,
                                                   partition_type_edge,
                                                   from_indexing='sample',
-                                                  to_indexing='batch'):
+                                                  to_indexing='batch',
+                                                  axis=1):
     """Change the edge index tensor indexing between per graph and per batch assignment. Batch assignment is equivalent
     to disjoint representation. To change indices, the row partition of edge and node tensor must be known.
 
@@ -22,50 +23,6 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
     Returns:
 
     """
-    # if self.node_indexing == 'batch':
-    #     indexlist = edge_index
-    # elif self.node_indexing == 'sample':
-    #     shift1 = edge_index
-    #     if self.partition_type == "row_length":
-    #         edge_len = edge_part
-    #         node_len = node_part
-    #         shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-    #     elif self.partition_type == "row_splits":
-    #         edge_len = edge_part[1:] - edge_part[:-1]
-    #         shift2 = tf.expand_dims(tf.repeat(node_part[:-1], edge_len), axis=1)
-    #     elif self.partition_type == "value_rowids":
-    #         edge_len = tf.math.segment_sum(tf.ones_like(edge_part), edge_part)
-    #         node_len = tf.math.segment_sum(tf.ones_like(node_part), node_part)
-    #         shift2 = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-    #     else:
-    #         raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-    #     indexlist = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-    # else:
-    #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-
-    # if self.node_indexing == 'batch':
-    #     out_indexlist = new_edge_index_sorted
-    # elif self.node_indexing == 'sample':
-    #     batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len, exclusive=True), clean_edge_ids),
-    #                                         axis=1)
-    #     out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset, dtype=index_dtype)
-    # else:
-    #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-
-    # if to_indexing != from_indexing:
-    #     # splits[1:] - splits[:-1]
-    #     if partition_type == "row_length":
-    #         shift_index = tf.expand_dims(tf.repeat(tf.cumsum(part_node, exclusive=True), part_edge), axis=1)
-    #     elif partition_type == "row_splits":
-    #         edge_len = part_edge[1:] - part_edge[:-1]
-    #         shift_index = tf.expand_dims(tf.repeat(part_node[:-1], edge_len), axis=1)
-    #     elif partition_type == "value_rowids":
-    #         node_len = tf.math.segment_sum(tf.ones_like(part_node), part_node)
-    #         edge_len = tf.math.segment_sum(tf.ones_like(part_edge), part_edge)
-    #         shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
-    #     else:
-    #         raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-
     if to_indexing == from_indexing:
         # Nothing to do here
         return edge_index
@@ -97,7 +54,9 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
         raise TypeError("Unknown edge partition scheme, use: 'value_rowids', 'row_splits', row_length")
 
     # Just gather the splits i.e. index offset for each graph id
-    shift_index = tf.expand_dims(tf.gather(nod_splits, edge_ids),axis=-1)
+    shift_index = tf.gather(nod_splits, edge_ids)
+    if axis==1:
+        shift_index = tf.expand_dims(shift_index,axis=1)
 
     # Add or substract batch offset from index tensor
     if to_indexing == 'batch' and from_indexing == 'sample':

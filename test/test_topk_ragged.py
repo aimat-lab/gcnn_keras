@@ -41,7 +41,7 @@ class TestTopKLayerRagged(unittest.TestCase):
 
         # Pooled to 1 node
         self.assertTrue(np.sum(np.abs(out8[0].numpy() - np.array([[[5.8759007]], [[7.9783587]]]))) < 1e-5)
-
+        # print(map8[1])
         # REverse pooling
         uout7 = UnPoolingTopK(ragged_validate=True)(out7 + map8 + out8)
         uout6 = UnPoolingTopK(ragged_validate=True)(out6 + map7 + uout7)

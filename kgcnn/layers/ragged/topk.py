@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition
 
 class PoolingTopK(ks.layers.Layer):
     """
@@ -126,18 +127,14 @@ class PoolingTopK(ks.layers.Layer):
         old_shape = tf.cast(ks.backend.expand_dims(tf.shape(nvalue)[0]), dtype=index_dtype)
         map_index = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), index_new_nodes, old_shape)
 
+        # Adjust the Graph edges after nodes are pooled
         # Shift also edgeindex by batch offset
-        if self.node_indexing == 'batch':
-            shiftind = tf.cast(edgeind, dtype=index_dtype)  # already shifted by batch offset (subgraphs)
-            edge_ids = edgefeat.value_rowids()
-        elif self.node_indexing == 'sample':
-            edge_ids = edgeind.value_rowids()
-            shift1 = edgeind.values
-            shift2 = tf.expand_dims(tf.gather(nrowsplit[:-1], edge_ids), axis=1)
-            shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-            shiftind = tf.cast(shiftind, dtype=index_dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        edge_ids = edgeind.value_rowids()
+        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind.values, nrowsplit, edge_ids,
+                                                                  "row_splits","value_rowids",
+                                                                  from_indexing=self.node_indexing,
+                                                                  to_indexing='batch')
+        shiftind = tf.cast(shiftind, dtype=index_dtype)
 
         # Remove edges that were from filtered nodes via mask
         mask_edge = ks.backend.expand_dims(shiftind, axis=-1) == ks.backend.expand_dims(
@@ -146,6 +143,7 @@ class PoolingTopK(ks.layers.Layer):
         clean_shiftind = shiftind[mask_edge]
         clean_edge_ids = edge_ids[mask_edge]
         # clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids), clean_edge_ids)
+        clean_edge_len = tf.scatter_nd(tf.expand_dims(clean_edge_ids,axis=-1), tf.ones_like(clean_edge_ids), tf.cast(tf.shape(erowlength),dtype=tf.int64))
 
         # Map edgeindex to new index
         new_edge_index = tf.concat([ks.backend.expand_dims(tf.gather(map_index, clean_shiftind[:, 0]), axis=-1),
@@ -155,14 +153,10 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
         # Remove the batch offset from edge_indices again for ragged tensor output
-        if self.node_indexing == 'batch':
-            out_indexlist = new_edge_index_sorted
-        elif self.node_indexing == 'sample':
-            batch_index_offset = tf.expand_dims(tf.gather(tf.cumsum(pooled_len, exclusive=True), clean_edge_ids),
-                                                axis=1)
-            out_indexlist = new_edge_index_sorted - tf.cast(batch_index_offset, dtype=index_dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        out_indexlist = _change_edge_tensor_indexing_by_row_partition(new_edge_index_sorted, pooled_len, clean_edge_ids,
+                                                                      "row_length","value_rowids",
+                                                                      from_indexing='batch',
+                                                                      to_indexing=self.node_indexing)
 
         # Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat.values
@@ -176,25 +170,23 @@ class PoolingTopK(ks.layers.Layer):
 
         # Build ragged tensors again for node, edgeindex and edge
         out_node = tf.RaggedTensor.from_value_rowids(gated_n, pooled_id, validate=self.ragged_validate)
-        out_edge_index = tf.RaggedTensor.from_value_rowids(out_indexlist, clean_edge_ids, validate=self.ragged_validate)
-        out_edge = tf.RaggedTensor.from_value_rowids(clean_edge_feat_sorted, clean_edge_ids,
+        out_edge_index = tf.RaggedTensor.from_row_lengths(out_indexlist, clean_edge_len, validate=self.ragged_validate)
+        out_edge = tf.RaggedTensor.from_row_lengths(clean_edge_feat_sorted, clean_edge_len,
                                                      validate=self.ragged_validate)
 
         # Collect reverse pooling info   
         # Remove batch offset for old indicies -> but with new length
-        if self.node_indexing == 'batch':
-            out_pool = pooled_index
-            out_pool_edge = edge_position_new
-        elif self.node_indexing == 'sample':
-            out_pool = pooled_index - tf.cast(tf.repeat(tf.cumsum(nrowlength, exclusive=True), pooled_len),
-                                              dtype=index_dtype)
-            out_pool_edge = edge_position_new - tf.cast(
-                tf.gather(tf.cumsum(erowlength, exclusive=True), clean_edge_ids), dtype=index_dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
+        out_pool = _change_edge_tensor_indexing_by_row_partition(pooled_index,nrowlength,pooled_len,
+                                                                 "row_length","row_length",
+                                                                 from_indexing='batch',
+                                                                 to_indexing=self.node_indexing,axis=0)
+        out_pool_edge = _change_edge_tensor_indexing_by_row_partition(edge_position_new,erowlength,clean_edge_ids,
+                                                                      "row_length", "value_rowids",
+                                                                      from_indexing='batch',
+                                                                      to_indexing=self.node_indexing,axis=0)
 
         map_node = tf.RaggedTensor.from_row_lengths(out_pool, pooled_len, validate=self.ragged_validate)
-        map_edge = tf.RaggedTensor.from_value_rowids(out_pool_edge, clean_edge_ids, validate=self.ragged_validate)
+        map_edge = tf.RaggedTensor.from_row_lengths(out_pool_edge, clean_edge_len, validate=self.ragged_validate)
 
         out_map = [map_node, map_edge]
         out = [out_node, out_edge_index, out_edge]
@@ -271,17 +263,20 @@ class UnPoolingTopK(ks.layers.Layer):
         map_node = map_node.values
         map_edge = map_edge.values
 
+        # Correct map index for flatten batch offset
+        map_node = _change_edge_tensor_indexing_by_row_partition(map_node,
+                                                                  node_old.row_splits, node_new.row_lengths(),
+                                                                  partition_type_node="row_splits",
+                                                                  partition_type_edge="row_length",
+                                                                  from_indexing=self.node_indexing,
+                                                                  to_indexing="batch",axis=0)
+        map_edge = _change_edge_tensor_indexing_by_row_partition(map_edge,
+                                                                  edge_old.row_splits, edge_new.value_rowids(),
+                                                                  partition_type_node="row_splits",
+                                                                  partition_type_edge="value_rowids",
+                                                                  from_indexing=self.node_indexing,
+                                                                  to_indexing="batch",axis=0)
         # Add batch offset for old indicies -> but with new length
-        if self.node_indexing == 'batch':
-            map_node = map_node
-            map_edge = map_edge
-        elif self.node_indexing == 'sample':
-            map_node = map_node + tf.cast(tf.repeat(node_old.row_splits[:-1], node_new.row_lengths()),
-                                          dtype=map_node.dtype)
-            map_edge = map_edge + tf.cast(tf.gather(edge_old.row_splits[:-1], edge_new.value_rowids()),
-                                          dtype=map_node.dtype)
-        else:
-            raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
 
         index_dtype = map_node.dtype
         node_old_value = node_old.values

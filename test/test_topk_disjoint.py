@@ -30,7 +30,7 @@ class TestTopKLayerDisjoint(unittest.TestCase):
         edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
         edgefeat = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
 
-        node_indexing = 'batch'
+        node_indexing = 'sample'
         partition_type = 'row_length'
         dislist = CastRaggedToDisjoint(to_indexing=node_indexing, partition_type=partition_type)(
             [node, edgefeat, edgeind])
@@ -55,6 +55,7 @@ class TestTopKLayerDisjoint(unittest.TestCase):
         # Pooled to 1 node
         self.assertTrue(np.sum(np.abs(pool_dislist8[0].numpy() - np.array([[5.8759007], [7.9783587]]))) < 1e-5)
         self.assertTrue(np.all(pool_dislist8[1].numpy() == np.array([1, 1])))
+        # print(pool_map[0])
 
         # Unpooling
         unpool_dislist7 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(

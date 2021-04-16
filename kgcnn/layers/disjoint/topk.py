@@ -200,13 +200,13 @@ class PoolingTopK(ks.layers.Layer):
                                                                  partition_type_node="row_length",
                                                                  partition_type_edge="row_length",
                                                                  from_indexing="batch",
-                                                                 to_indexing=self.node_indexing)
+                                                                 to_indexing=self.node_indexing,axis=0)
         out_pool_edge = _change_edge_tensor_indexing_by_row_partition(edge_position_new,
                                                                       erowlength, clean_edge_ids,
                                                                       partition_type_node="row_length",
                                                                       partition_type_edge="value_rowids",
                                                                       from_indexing="batch",
-                                                                      to_indexing=self.node_indexing)
+                                                                      to_indexing=self.node_indexing,axis=0)
         # if self.node_indexing == 'batch':
         #     out_pool = pooled_index
         #     out_pool_edge = edge_position_new
@@ -310,13 +310,13 @@ class UnPoolingTopK(ks.layers.Layer):
                                                                   partition_type_node="row_length",
                                                                   partition_type_edge="row_length",
                                                                   from_indexing=self.node_indexing,
-                                                                  to_indexing="batch")
+                                                                  to_indexing="batch",axis=0)
         map_edge = _change_edge_tensor_indexing_by_row_partition(map_edge,
                                                                   erowlength, pool_edge_id,
                                                                   partition_type_node="row_length",
                                                                   partition_type_edge="value_rowids",
                                                                   from_indexing=self.node_indexing,
-                                                                  to_indexing="batch")
+                                                                  to_indexing="batch",axis=0)
 
         index_dtype = map_node.dtype
         node_shape = tf.stack(
