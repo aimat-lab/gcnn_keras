@@ -40,18 +40,19 @@ model = make_graph_sage(
     input_embedd={'input_node_vocab': 55, "input_node_embedd": 64},
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp={"use_bias": [True, True, False], "units": [128, 64, 1], "activation": ['relu', 'relu', 'sigmoid']},
-    node_mlp_args= {"units": [128, 64], "use_bias": True, "activation": ['relu', "linear"]},
-    edge_mlp_args= {"units": [128, 64], "use_bias": True, "activation": ['relu', "linear"]},
+    output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'sigmoid']},
+    node_mlp_args= {"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
+    edge_mlp_args= {"units": 64, "use_bias": True, "activation": 'relu'},
+    pooling_args =  {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"},
     # model specs
-    depth=3,
+    depth=2,
     use_edge_features=True
 )
 
 # Set learning rate and epochs
 learning_rate_start = 1e-3
 learning_rate_stop = 1e-4
-epo = 252
+epo = 250
 epomin = 260
 epostep = 10
 
@@ -84,7 +85,7 @@ acc_valid = testlossall[-1]
 # Plot loss vs epochs
 plt.figure()
 plt.plot(np.arange(trainlossall.shape[0]), trainlossall, label='Training ACC', c='blue')
-plt.plot(np.arange(epostep, epo + epostep, epostep), testlossall, label='Test ACC', c='red')
+plt.plot((np.arange(len(testlossall))+1)*epostep, testlossall, label='Test ACC', c='red')
 plt.scatter([trainlossall.shape[0]], [acc_valid], label="{0:0.4f} ".format(acc_valid), c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')

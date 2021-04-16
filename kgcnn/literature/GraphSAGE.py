@@ -102,7 +102,7 @@ def make_graph_sage(  # Input
         nu = ks.layers.Concatenate()([n, nu])  # Concatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
-        n = tf.keras.layers.LayerNormalization(axis=-1)(n)  # Nomralize
+        n = tf.keras.layers.LayerNormalization(axis=-1)(n)  # Normalize
 
     # Regression layer on output
     if output_embedd["output_mode"] == 'graph':

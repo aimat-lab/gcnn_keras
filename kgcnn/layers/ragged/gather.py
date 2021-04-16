@@ -51,20 +51,7 @@ class GatherNodes(ks.layers.Layer):
             The length matches the index Tensor.
         """
         nod, edgeind = inputs
-        # if self.node_indexing == 'batch':
-        #     shiftind = edgeind.values
-        # elif self.node_indexing == 'sample':
-        #     shift1 = edgeind.values
-        #     shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1], edgeind.row_lengths()), axis=1)
-        #     shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        # else:
-        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-        # dens = nod.values
-        # g1 = tf.gather(dens, shiftind[:, 0])
-        # g2 = tf.gather(dens, shiftind[:, 1])
-        # get = tf.concat([g1, g2], axis=1)
-        # out = tf.RaggedTensor.from_row_splits(get, edgeind.row_splits, validate=self.ragged_validate)
-        # out = edgeind.with_values(get)
+
         if self.node_indexing == 'batch':
             out = tf.RaggedTensor.from_row_splits(tf.gather(nod.values,edgeind.values),edgeind.row_splits, validate=self.ragged_validate)
         elif self.node_indexing == 'sample':
@@ -133,19 +120,7 @@ class GatherNodesOutgoing(ks.layers.Layer):
             The length matches the index Tensor at axis=1.
         """
         nod, edgeind = inputs
-        # if self.node_indexing == 'batch':
-        #     shiftind = edgeind.values
-        # elif self.node_indexing == 'sample':
-        #     shift1 = edgeind.values
-        #     shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1], edgeind.row_lengths()), axis=1)
-        #     shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        # else:
-        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-        # nodind = shiftind
-        # dens = nod.values
-        # g2 = tf.gather(dens, nodind[:, 1])
-        # out = tf.RaggedTensor.from_row_splits(g2, edgeind.row_splits, validate=self.ragged_validate)
-        # out = edgeind.with_values(g2)
+
         if self.node_indexing == 'batch':
             out = tf.RaggedTensor.from_row_splits(tf.gather(nod.values,edgeind.values[:, 1]),edgeind.row_splits, validate=self.ragged_validate)
         elif self.node_indexing == 'sample':
@@ -209,19 +184,6 @@ class GatherNodesIngoing(ks.layers.Layer):
             The length matches the index Tensor at axis=1.
         """
         nod, edgeind = inputs
-        # if self.node_indexing == 'batch':
-        #     shiftind = edgeind.values
-        # elif self.node_indexing == 'sample':
-        #     shift1 = edgeind.values
-        #     shift2 = tf.expand_dims(tf.repeat(nod.row_splits[:-1], edgeind.row_lengths()), axis=1)
-        #     shiftind = shift1 + tf.cast(shift2, dtype=shift1.dtype)
-        # else:
-        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
-        # nodind = shiftind
-        # dens = nod.values
-        # g1 = tf.gather(dens, nodind[:, 0])
-        # out = tf.RaggedTensor.from_row_splits(g1, edgeind.row_splits, validate=self.ragged_validate)
-        # # out = edgeind.with_values(g1)
 
         if self.node_indexing == 'batch':
             out = tf.RaggedTensor.from_row_splits(tf.gather(nod.values,edgeind.values[:, 0]),edgeind.row_splits, validate=self.ragged_validate)

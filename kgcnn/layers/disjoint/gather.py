@@ -18,11 +18,12 @@ class GatherNodes(ks.layers.Layer):
         **kwargs
     """
 
-    def __init__(self, node_indexing='batch', partition_type="row_length", **kwargs):
+    def __init__(self, node_indexing='batch', partition_type="row_length", concat_nodes=True, **kwargs):
         """Initialize layer."""
         super(GatherNodes, self).__init__(**kwargs)
         self.node_indexing = node_indexing
         self.partition_type = partition_type
+        self.concat_nodes = concat_nodes
 
     def build(self, input_shape):
         """Build layer."""
@@ -55,16 +56,20 @@ class GatherNodes(ks.layers.Layer):
                                                                   to_indexing='batch',
                                                                   from_indexing=self.node_indexing)
 
-        node1exp = tf.gather(node, indexlist[:, 0], axis=0)
-        node2exp = tf.gather(node, indexlist[:, 1], axis=0)
-        out = ksb.concatenate([node1exp, node2exp], axis=1)
+        out = tf.gather(node, indexlist, axis=0)
+
+        if self.concat_nodes:
+            out_shape = tf.shape(out)
+            out = tf.reshape(out, (out_shape[0],-1))
+
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodes, self).get_config()
         config.update({"node_indexing": self.node_indexing,
-                       "partition_type": self.partition_type})
+                       "partition_type": self.partition_type,
+                       "concat_nodes": self.concat_nodes})
         return config
 
 
