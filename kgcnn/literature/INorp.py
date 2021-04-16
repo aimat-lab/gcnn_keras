@@ -111,13 +111,13 @@ def make_inorp(  # Input
         upd = ks.layers.Concatenate(axis=-1)([eu2, eu1])
         eu = ks.layers.Concatenate(axis=-1)([upd, ed])
 
-        eu = MLPRagged(**node_mlp_args)(eu)
+        eu = MLPRagged(**edge_mlp_args)(eu)
         # Pool message
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = ks.layers.Concatenate()([n, nu, ev])  # Concatenate node features with new edge updates
 
-        n = MLPRagged(**edge_mlp_args)(nu)
+        n = MLPRagged(**node_mlp_args)(nu)
 
     if output_embedd["output_mode"] == 'graph':
         if use_set2set:
