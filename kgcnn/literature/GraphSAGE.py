@@ -15,7 +15,6 @@ import tensorflow as tf
 def make_graph_sage(  # Input
         input_node_shape,
         input_edge_shape,
-        input_state_shape,
         input_embedd: dict = None,
         # Output
         output_embedd: dict = None,
@@ -33,7 +32,6 @@ def make_graph_sage(  # Input
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_state_shape (list): Shape of state features. If shape is (,) embedding layer is used.
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
             'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
@@ -80,7 +78,7 @@ def make_graph_sage(  # Input
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
                                                                                                      input_edge_shape,
-                                                                                                     input_state_shape,
+                                                                                                     None,
                                                                                                      **input_embedd)
 
     # Make input embedding, if no feature dimension
@@ -107,12 +105,12 @@ def make_graph_sage(  # Input
         n = tf.keras.layers.LayerNormalization(axis=-1)(n)  # Nomralize
 
     # Regression layer on output
-    n = MLP(**output_mlp)(n)
     if output_embedd["output_mode"] == 'graph':
-        out = PoolingNodes(**pooling_args)([n, node_len])
+        out = PoolingNodes()([n, node_len])
+        out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
-        out = n
+        out = MLP(**output_mlp)(n)
         main_output = CastValuesToRagged()([out, node_len])
         main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
 
