@@ -20,10 +20,14 @@ class PoolingNodes(ks.layers.Layer):
         super(PoolingNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
 
-        if self.pooling_method == "reduce_mean":
+        if self.pooling_method in ["reduce_mean", "segment_mean", "mean"]:
             self._pool = tf.math.reduce_mean
-        elif self.pooling_method == "reduce_sum":
+        elif self.pooling_method in ["reduce_sum", "segment_sum", "sum"]:
             self._pool = tf.math.reduce_sum
+        elif self.pooling_method in ["reduce_max", "segment_max", "max"]:
+            self._pool = tf.math.reduce_max
+        elif self.pooling_method in ["reduce_min", "segment_min", "min"]:
+            self._pool = tf.math.reduce_min
         else:
             raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
 
@@ -72,10 +76,14 @@ class PoolingWeightedNodes(tf.keras.layers.Layer):
         super(PoolingWeightedNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
 
-        if self.pooling_method == "reduce_mean":
+        if self.pooling_method in ["reduce_mean", "segment_mean", "mean"]:
             self._pool = tf.math.reduce_mean
-        elif self.pooling_method == "reduce_sum":
+        elif self.pooling_method in ["reduce_sum", "segment_sum", "sum"]:
             self._pool = tf.math.reduce_sum
+        elif self.pooling_method in ["reduce_max", "segment_max", "max"]:
+            self._pool = tf.math.reduce_max
+        elif self.pooling_method in ["reduce_min", "segment_min", "min"]:
+            self._pool = tf.math.reduce_min
         else:
             raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
 
@@ -125,10 +133,14 @@ class PoolingGlobalEdges(ks.layers.Layer):
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
 
-        if self.pooling_method == "reduce_mean":
+        if self.pooling_method in ["reduce_mean", "segment_mean", "mean"]:
             self._pool = tf.math.reduce_mean
-        elif self.pooling_method == "reduce_sum":
+        elif self.pooling_method in ["reduce_sum", "segment_sum", "sum"]:
             self._pool = tf.math.reduce_sum
+        elif self.pooling_method in ["reduce_max", "segment_max", "max"]:
+            self._pool = tf.math.reduce_max
+        elif self.pooling_method in ["reduce_min", "segment_min", "min"]:
+            self._pool = tf.math.reduce_min
         else:
             raise TypeError("Unknown pooling, choose: reduce_mean, reduce_sum, ...")
 
@@ -186,12 +198,16 @@ class PoolingLocalEdges(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
-            raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
+            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
         self.ragged_validate = ragged_validate
 
@@ -248,11 +264,11 @@ class PoolingLocalEdges(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"is_sorted": self.is_sorted})
-        config.update({"has_unconnected": self.has_unconnected})
+        config.update({"pooling_method": self.pooling_method,
+                       "ragged_validate": self.ragged_validate,
+                       "node_indexing": self.node_indexing,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected})
         return config
 
 
@@ -286,12 +302,16 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
-            raise TypeError("Unknown pooling, choose: segment_mean, segment_sum, ...")
+            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
         self.normalize_by_weights = normalize_by_weights
         self.node_indexing = node_indexing
@@ -357,20 +377,18 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
             outtarget_shape = (tf.shape(nod.values, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
             get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
 
-
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out
 
     def get_config(self):
         """Update layer config."""
         config = super(PoolingWeightedLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"node_indexing": self.node_indexing})
-        config.update({"is_sorted": self.is_sorted})
-        config.update({"has_unconnected": self.has_unconnected})
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"normalize_by_weights": self.weights_normalized})
+        config.update({"pooling_method": self.pooling_method,
+                       "ragged_validate": self.ragged_validate,
+                       "node_indexing": self.node_indexing,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "normalize_by_weights": self.weights_normalized})
         return config
 
 

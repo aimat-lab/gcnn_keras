@@ -25,8 +25,8 @@ class PoolingLocalEdges(ks.layers.Layer):
     def __init__(self,
                  pooling_method="segment_mean",
                  node_indexing="batch",
-                 is_sorted=True,
-                 has_unconnected=False,
+                 is_sorted=False,
+                 has_unconnected=True,
                  partition_type="row_length",
                  **kwargs):
         """Initialize layer."""
@@ -37,10 +37,14 @@ class PoolingLocalEdges(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.partition_type = partition_type
 
-        if self.pooling_method == "segment_mean" or self.pooling_method == "mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum" or self.pooling_method == "sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
             raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
@@ -55,6 +59,7 @@ class PoolingLocalEdges(ks.layers.Layer):
             inputs (list): of [node, node_partition, edges, edge_partition, edge_indices]
 
             - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+              only required for target shape and dtype.
             - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
               row_splits. Yields the assignment of nodes to each graph in batch.
               Default is row_length of shape (batch,)
@@ -78,7 +83,7 @@ class PoolingLocalEdges(ks.layers.Layer):
                                                                  to_indexing='batch',
                                                                  from_indexing=self.node_indexing)
 
-        nodind = shiftind[:, 0]
+        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge
         if not self.is_sorted:
             # Sort edgeindices
@@ -134,9 +139,9 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
 
     def __init__(self,
                  pooling_method="segment_mean",
-                 is_sorted=True,
+                 is_sorted=False,
                  node_indexing="batch",
-                 has_unconnected=False,
+                 has_unconnected=True,
                  normalize_by_weights=False,
                  partition_type="row_length",
                  **kwargs):
@@ -149,10 +154,14 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         self.normalize_by_weights = normalize_by_weights
         self.partition_type = partition_type
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
             raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
@@ -253,10 +262,14 @@ class PoolingNodes(ks.layers.Layer):
         self.pooling_method = pooling_method
         self.partition_type = partition_type
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
             raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
@@ -315,10 +328,14 @@ class PoolingGlobalEdges(ks.layers.Layer):
         self.pooling_method = pooling_method
         self.partition_type = partition_type
 
-        if self.pooling_method == "segment_mean":
+        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
             self._pool = tf.math.segment_mean
-        elif self.pooling_method == "segment_sum":
+        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
             self._pool = tf.math.segment_sum
+        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
+            self._pool = tf.math.segment_max
+        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
+            self._pool = tf.math.segment_min
         else:
             raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
 
@@ -356,3 +373,143 @@ class PoolingGlobalEdges(ks.layers.Layer):
         config.update({"pooling_method": self.pooling_method,
                        "partition_type": self.partition_type})
         return config
+
+
+class PoolingLocalEdgesLSTM(ks.layers.Layer):
+    """
+    Pooling all edges or edgelike features per node, corresponding to node assigned by edge indices.
+    Uses LSTM to aggregate Node-features.
+
+    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
+    Apply e.g. segment_mean for index[0] incoming nodes.
+    Important: edge_index[:,0] are sorted for segment-operation.
+
+    Args:
+        units (int): Units for LSTM cell.
+        pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
+        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+                             For disjoint representation 'batch' is default.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        **kwargs
+    """
+
+    def __init__(self,
+                 units,
+                 pooling_method="LSTM",
+                 node_indexing="batch",
+                 is_sorted=False,
+                 has_unconnected=True,
+                 partition_type="row_length",
+                 activation='tanh', recurrent_activation='sigmoid',
+                 use_bias=True, kernel_initializer='glorot_uniform',
+                 recurrent_initializer='orthogonal',
+                 bias_initializer='zeros', unit_forget_bias=True,
+                 kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None,
+                 activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None,
+                 bias_constraint=None, dropout=0.0, recurrent_dropout=0.0,
+                 return_sequences=False, return_state=False, go_backwards=False, stateful=False,
+                 time_major=False, unroll=False,
+                 **kwargs):
+        """Initialize layer."""
+        super(PoolingLocalEdgesLSTM, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self.node_indexing = node_indexing
+        self.partition_type = partition_type
+
+        self.lstm_unit = ks.layers.LSTM(units=units, activation=activation, recurrent_activation=recurrent_activation,
+                                        use_bias=use_bias, kernel_initializer=kernel_initializer,
+                                        recurrent_initializer=recurrent_initializer,
+                                        bias_initializer=bias_initializer, unit_forget_bias=unit_forget_bias,
+                                        kernel_regularizer=kernel_regularizer,
+                                        recurrent_regularizer=recurrent_regularizer, bias_regularizer=bias_regularizer,
+                                        activity_regularizer=activity_regularizer, kernel_constraint=kernel_constraint,
+                                        recurrent_constraint=recurrent_constraint,
+                                        bias_constraint=bias_constraint, dropout=dropout,
+                                        recurrent_dropout=recurrent_dropout,
+                                        return_sequences=return_sequences, return_state=return_state,
+                                        go_backwards=go_backwards, stateful=stateful,
+                                        time_major=time_major, unroll=unroll)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingLocalEdgesLSTM, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): of [node, node_partition, edges, edge_partition, edge_indices]
+
+            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
+            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of nodes to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
+            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
+              row_splits. Yields the assignment of edges to each graph in batch.
+              Default is row_length of shape (batch,)
+            - edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
+              The index for segment reduction is taken from edge_indices[:,0].
+
+        Returns:
+            features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
+            The size will match the flatten node tensor.
+            Output shape is (batch*None, F).
+        """
+        nod, node_part, edge, edge_part, edgeind = inputs
+
+        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                 partition_type_node=self.partition_type,
+                                                                 partition_type_edge=self.partition_type,
+                                                                 to_indexing='batch',
+                                                                 from_indexing=self.node_indexing)
+
+        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
+        dens = edge
+        if not self.is_sorted:
+            # Sort edgeindices
+            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
+            nodind = tf.gather(nodind, node_order, axis=0)
+            dens = tf.gather(dens, node_order, axis=0)
+
+        # Pooling via LSTM
+        # we make a ragged input
+        ragged_lstm_input = tf.RaggedTensor.from_value_rowids(dens, nodind)
+        get = self.lstm_unit(ragged_lstm_input)
+
+        if self.has_unconnected:
+            # Need to fill tensor since the maximum node may not be also in pooled
+            # Does not happen if all nodes are also connected
+            pooled_index = tf.range(tf.shape(get)[0])  # tf.unique(nodind)
+            outtarget_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
+            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
+
+        out = get
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingLocalEdgesLSTM, self).get_config()
+        config.update({"pooling_method": self.pooling_method,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type})
+        conf_lstm = self.lstm_unit.get_config()
+        lstm_param = ["activation","recurrent_activation","use_bias","kernel_initializer","recurrent_initializer",
+                      "bias_initializer","unit_forget_bias","kernel_regularizer","recurrent_regularizer",
+                      "bias_regularizer", "activity_regularizer","kernel_constraint","recurrent_constraint",
+                      "bias_constraint","dropout", "recurrent_dropout", "implementation","return_sequences",
+                      "return_state", "go_backwards","stateful", "time_major","unroll"]
+        for x in lstm_param:
+            config.update({x: conf_lstm[x]})
+        return config
+
+
+PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
+
+

@@ -1,7 +1,7 @@
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagged
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
-from kgcnn.layers.disjoint.pooling import PoolingNodes,PoolingLocalMessages
+from kgcnn.layers.disjoint.pooling import PoolingNodes,PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.utils.models import generate_standard_graph_input, update_model_args
 
@@ -97,7 +97,10 @@ def make_graph_sage(  # Input
 
         eu = MLP(**edge_mlp_args)(eu)
         # Pool message
-        nu = PoolingLocalMessages(**pooling_args)([n, node_len, eu, edge_len, edi])  # Summing for each node connection
+        if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
+            nu = PoolingLocalEdgesLSTM(**pooling_args)([n, node_len, eu, edge_len, edi])
+        else:
+            nu = PoolingLocalMessages(**pooling_args)([n, node_len, eu, edge_len, edi])  # Summing for each node connection
 
         nu = ks.layers.Concatenate()([n, nu])  # Concatenate node features with new edge updates
 

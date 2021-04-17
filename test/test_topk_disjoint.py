@@ -84,7 +84,7 @@ class TestTopKLayerDisjoint(unittest.TestCase):
         self.assertTrue(np.all(dislist_new[4].numpy() == dislist[4].numpy()))
         # print(tf.RaggedTensor.from_row_lengths(pool_dislist[0],pool_dislist[1]))
 
-        return dislist_new
+
 
 
 if __name__ == '__main__':
