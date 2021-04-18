@@ -43,11 +43,24 @@ def leaky_softplus(alpha = 0.3):
     return lambda x : ks.activations.softplus(x)*(1-alpha)+alpha*x
 
 
+def leaky_relu(alpha = 0.2):
+    """
+    Leaky relu function.
+
+    Args:
+        alpha: leak alpha = 0.2
+
+    Returns:
+        func: lambda of tf.nn.leaky_relu(x,alpha)
+    """
+    return lambda x: tf.nn.leaky_relu(x,alpha=alpha)
+
 
 # Register costum activation functions in get_custom_objects
 kgcnn_custom_act = {'leaky_softplus':leaky_softplus,
                     'shifted_softplus':shifted_softplus,
-                    'softplus2':softplus2}
+                    'softplus2':softplus2,
+                    "leaky_relu": leaky_relu}
 
 print("Keras utils: Register custom activation: ", kgcnn_custom_act)
 for k,v in kgcnn_custom_act.items():

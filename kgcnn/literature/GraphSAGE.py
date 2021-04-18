@@ -75,11 +75,6 @@ def make_graph_sage(  # Input
     edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
     pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
 
-    # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
-                                                                                                     input_edge_shape,
-                                                                                                     None,
-                                                                                                     **input_embedd)
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,

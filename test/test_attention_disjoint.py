@@ -5,7 +5,7 @@ import tensorflow as tf
 
 
 from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
-from kgcnn.layers.disjoint.attention import PoolingLocalEdgesAttention
+from kgcnn.layers.disjoint.attention import PoolingLocalEdgesAttention, AttentionHeadGAT
 
 
 class TestAttentionDisjoint(unittest.TestCase):
@@ -29,12 +29,27 @@ class TestAttentionDisjoint(unittest.TestCase):
 
     def test_attention_pooling(self):
 
-
         result = PoolingLocalEdgesAttention()([np.array([1.0,1.0]), np.array([1,1]),
                                                np.array([[100.0],[0.0],[100.0],[0.0]]),
                                                np.array([[0.0],[1.0],[0.0],[1.0]]), np.array([2,2]), np.array([[0,1],[0,0],[1,0],[1,0]])])
         result = result.numpy()
         self.assertTrue(np.abs(result[0] - 100.0 * 1/(np.exp(1)+1) ) < 1e-4)
+
+    def test_attention_head(self):
+
+        node = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
+        edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
+        edgefeat = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
+
+        node_indexing = 'sample'
+        partition_type = 'row_length'
+        n, node_len, ed, edge_len, edi = CastRaggedToDisjoint(to_indexing=node_indexing, partition_type=partition_type)(
+            [node, edgefeat, edgeind])
+
+        layer = AttentionHeadGAT(5,node_indexing=node_indexing)
+        result = layer([n, node_len, ed, edge_len, edi])
+        self.assertTrue(np.all(np.array(result.shape) == np.array([23,5])))
+        # layer.get_config()
 
 
 if __name__ == '__main__':

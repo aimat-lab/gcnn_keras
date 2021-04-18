@@ -1,23 +1,26 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-import tensorflow.keras.backend as ksb
 
+from kgcnn.layers.disjoint.gather import GatherNodesIngoing, GatherNodesOutgoing
+from kgcnn.utils.activ import kgcnn_custom_act
 from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition
 from kgcnn.utils.soft import segment_softmax
 
+
 class PoolingLocalEdgesAttention(ks.layers.Layer):
     r"""
-    Pooling all edges or edgelike features per node, corresponding to node assigned by edge indices.
+    Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     Uses attention for pooling. i.e.  $n_i =  \sum_j \alpha_{ij} e_ij $
-    The attention is computed via: $\alpha_ij = softmax(a_ij)$ and from the attention coefficients $a_ij$.
-    The attention coefficients must be computed beforehand by edge features or by $\sigma( W n_i || W n_j)$
+    The attention is computed via: $\alpha_ij = softmax_j (a_ij)$ from the attention coefficients $a_ij$.
+    The attention coefficients must be computed beforehand by edge features or by $\sigma( W n_i || W n_j)$ and
+    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
+    In summary, $n_i =  \sum_j softmax_j(a_ij) e_ij $ is computed by the layer.
 
-    If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
-    Apply e.g. segment_mean for index[0] incoming nodes.
+    If graphs indices were in 'sample' mode, the indices are corrected for disjoint graphs.
     Important: edge_index[:,0] are sorted for segment-operation.
 
     Args:
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
@@ -86,9 +89,9 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
             ats = tf.gather(ats, node_order, axis=0)
 
         # Apply segmented softmax
-        ats = segment_softmax(ats,nodind)
-        get = dens*ats
-        get = tf.math.segment_sum(get,nodind)
+        ats = segment_softmax(ats, nodind)
+        get = dens * ats
+        get = tf.math.segment_sum(get, nodind)
 
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
@@ -102,22 +105,35 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdgesAttention, self).get_config()
-        config.update({"pooling_method": self.pooling_method,
-                       "is_sorted": self.is_sorted,
+        config.update({"is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
                        "node_indexing": self.node_indexing,
                        "partition_type": self.partition_type})
         return config
 
 
-
-
-class AttentionHead(ks.layers.Layer):
-    r"""Computes the attention head.
+class AttentionHeadGAT(ks.layers.Layer):
+    r"""Computes the attention head according to GAT.
+    The attention coefficients are computed by $a_{ij} = \sigma( W n_i || W n_j)$,
+    optionally by $a_{ij} = \sigma( W n_i || W n_j || e_{ij})$.
+    The attention is obtained by $\alpha_ij = softmax_j (a_{ij})$.
+    And the messages are pooled by $n_i =  \sum_j \alpha_{ij} e_ij $.
+    And finally passed through an activation $h_i = \sigma(\sum_j \alpha_{ij} e_ij)$.
 
     If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
 
     Args:
+        units (int): Units for the linear trafo of node features before attention.
+        activation (str): None
+        use_bias (bool): True
+        kernel_regularizer: None
+        bias_regularizer: None
+        activity_regularizer: None
+        kernel_constraint: None
+        bias_constraint: None
+        kernel_initializer: 'glorot_uniform'
+        bias_initializer: 'zeros'
+        use_edge_features (False): Append edge features to attention computation.
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
                              For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
@@ -127,23 +143,71 @@ class AttentionHead(ks.layers.Layer):
     """
 
     def __init__(self,
+                 units,
+                 activation=None,
+                 use_bias=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 use_edge_features=False,
                  node_indexing="batch",
                  is_sorted=False,
                  has_unconnected=True,
                  partition_type="row_length",
                  **kwargs):
         """Initialize layer."""
-        super(AttentionHead, self).__init__(**kwargs)
+        super(AttentionHeadGAT, self).__init__(**kwargs)
+        # graph args
         self.is_sorted = is_sorted
+        self.use_edge_features = use_edge_features
         self.has_unconnected = has_unconnected
         self.node_indexing = node_indexing
         self.partition_type = partition_type
 
+        # dense args
+        self.units = int(units)
+        if activation is None and kgcnn_custom_act is not None:
+            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
+        self.use_bias = use_bias
+        self.ath_activation = tf.keras.activations.get(activation)
+        self.ath_kernel_initializer = tf.keras.initializers.get(kernel_initializer)
+        self.ath_bias_initializer = tf.keras.initializers.get(bias_initializer)
+        self.ath_kernel_regularizer = tf.keras.regularizers.get(kernel_regularizer)
+        self.ath_bias_regularizer = tf.keras.regularizers.get(bias_regularizer)
+        self.ath_activity_regularizer = tf.keras.regularizers.get(activity_regularizer)
+        self.ath_kernel_constraint = tf.keras.constraints.get(kernel_constraint)
+        self.ath_bias_constraint = tf.keras.constraints.get(bias_constraint)
 
+        self.lay_linear_trafo = ks.layers.Dense(units, activation="linear", use_bias=use_bias,
+                                                kernel_regularizer=kernel_regularizer,
+                                                activity_regularizer=activity_regularizer,
+                                                bias_regularizer=bias_regularizer,
+                                                kernel_constraint=kernel_constraint,
+                                                bias_constraint=bias_constraint,
+                                                kernel_initializer=kernel_initializer,
+                                                bias_initializer=bias_initializer)
+        self.lay_alpha = ks.layers.Dense(1, activation=activation, use_bias=use_bias,
+                                         kernel_regularizer=kernel_regularizer,
+                                         activity_regularizer=activity_regularizer,
+                                         bias_regularizer=bias_regularizer,
+                                         kernel_constraint=kernel_constraint,
+                                         bias_constraint=bias_constraint,
+                                         kernel_initializer=kernel_initializer,
+                                         bias_initializer=bias_initializer)
+        self.lay_gather_in = GatherNodesIngoing(node_indexing=node_indexing, partition_type=partition_type)
+        self.lay_gather_out = GatherNodesOutgoing(node_indexing=node_indexing, partition_type=partition_type)
+        self.lay_concat = ks.layers.Concatenate(axis=-1)
+        self.lay_pool_attention = PoolingLocalEdgesAttention(node_indexing=node_indexing, partition_type=partition_type,
+                                                             has_unconnected=has_unconnected, is_sorted=is_sorted)
+        self.lay_final_activ = ks.layers.Activation(activation=activation)
 
     def build(self, input_shape):
         """Build layer."""
-        super(AttentionHead, self).build(input_shape)
+        super(AttentionHeadGAT, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -167,14 +231,39 @@ class AttentionHead(ks.layers.Layer):
             The size will match the flatten node tensor.
             Output shape is (batch*None, F).
         """
-        pass
+        node, node_part, edge, edge_part, edge_index = inputs
 
+        n_in = self.lay_gather_in([node, node_part, edge_index, edge_part])
+        n_out = self.lay_gather_out([node, node_part, edge_index, edge_part])
+        wn_in = self.lay_linear_trafo(n_in)
+        wn_out = self.lay_linear_trafo(n_out)
+        if self.use_edge_features:
+            e_ij = self.lay_concat([wn_in, wn_out, edge])
+        else:
+            e_ij = self.lay_concat([wn_in, wn_out])
+        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch*None,1)
+        n_i = self.lay_pool_attention([node, node_part, wn_out, a_ij, edge_part, edge_index])
+        out = self.lay_final_activ(n_i)
+
+        return out
 
     def get_config(self):
         """Update layer config."""
-        config = super(AttentionHead, self).get_config()
+        config = super(AttentionHeadGAT, self).get_config()
         config.update({"is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
                        "node_indexing": self.node_indexing,
-                       "partition_type": self.partition_type})
+                       "partition_type": self.partition_type,
+                       "use_edge_features": self.use_edge_features,
+                       "units": self.units,
+                       "use_bias": self.use_bias,
+                       "activation": tf.keras.activations.serialize(self.ath_activation),
+                       "kernel_regularizer": tf.keras.regularizers.serialize(self.ath_kernel_regularizer),
+                       "bias_regularizer": tf.keras.regularizers.serialize(self.ath_bias_regularizer),
+                       "activity_regularizer": tf.keras.regularizers.serialize(self.ath_activity_regularizer),
+                       "kernel_constraint": tf.keras.constraints.serialize(self.ath_kernel_constraint),
+                       "bias_constraint": tf.keras.constraints.serialize(self.ath_bias_constraint),
+                       "kernel_initializer": tf.keras.initializers.serialize(self.ath_kernel_initializer),
+                       "bias_initializer": tf.keras.initializers.serialize(self.ath_bias_initializer)
+                       })
         return config
