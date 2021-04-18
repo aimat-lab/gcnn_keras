@@ -207,16 +207,6 @@ class PoolingTopK(ks.layers.Layer):
                                                                       partition_type_edge="value_rowids",
                                                                       from_indexing="batch",
                                                                       to_indexing=self.node_indexing,axis=0)
-        # if self.node_indexing == 'batch':
-        #     out_pool = pooled_index
-        #     out_pool_edge = edge_position_new
-        # elif self.node_indexing == 'sample':
-        #     out_pool = pooled_index - tf.cast(tf.repeat(tf.cumsum(nrowlength, exclusive=True), pooled_len),
-        #                                       dtype=index_dtype)
-        #     out_pool_edge = edge_position_new - tf.cast(
-        #         tf.gather(tf.cumsum(erowlength, exclusive=True), clean_edge_ids), dtype=index_dtype)
-        # else:
-        #     raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
 
         # Output list
         out = [out_node, out_np, out_edge, out_ep, out_edge_index]

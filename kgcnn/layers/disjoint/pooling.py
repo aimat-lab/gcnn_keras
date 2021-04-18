@@ -97,9 +97,11 @@ class PoolingLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
+            # or we could scatter in node equal tensor
             pooled_index = tf.range(tf.shape(get)[0])  # tf.unique(nodind)
             outtarget_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
             get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
+
 
         out = get
         return out
@@ -221,6 +223,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
+            # or scatter in node equal tensor
             pooled_index = tf.range(tf.shape(get)[0])  # tf.unique(nodind)
             outtarget_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
             get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
@@ -511,5 +514,3 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
 
 
 PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
-
-

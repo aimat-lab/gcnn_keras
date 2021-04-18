@@ -59,7 +59,7 @@ class GatherNodes(ks.layers.Layer):
         out = tf.gather(node, indexlist, axis=0)
 
         if self.concat_nodes:
-            out = tf.keras.backend.concatenate([out[:,0],out[:,1]],axis=-1)
+            out = tf.keras.backend.concatenate([out[:,i] for i in range(edge_index.shape[-1])],axis=-1)
 
         return out
 

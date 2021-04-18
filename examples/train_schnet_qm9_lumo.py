@@ -70,7 +70,7 @@ model = make_schnet(
                       "activation": 'shifted_softplus',
                       "cfconv_pool": "segment_sum",
                       "is_sorted": True,
-                      "has_unconnected": False
+                      "has_unconnected": True
                       },
 )
 
