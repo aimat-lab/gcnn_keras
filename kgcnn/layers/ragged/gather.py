@@ -60,8 +60,7 @@ class GatherNodes(ks.layers.Layer):
             raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
 
         if self.concat_nodes:
-            out_shape = tf.shape(out.values)
-            out = tf.RaggedTensor.from_row_splits(tf.reshape(out.values, (out_shape[0],-1)), edgeind.row_splits, validate=self.ragged_validate)
+            out = tf.keras.backend.concatenate([out[:,:,i] for i in range(edgeind.shape[-1])],axis=-1)
 
         return out
 

@@ -43,12 +43,12 @@ class TestTopKLayerDisjoint(unittest.TestCase):
         test = np.sum(np.abs(np.array(gathered_nodes[1]) - np_gather)) < 1e-6
         self.assertTrue(test)
 
-    def test_gather_empty(self):
-        node = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
-
-        ei2 = tf.RaggedTensor.from_row_lengths(tf.constant([],dtype=tf.int64),tf.constant([0,0],dtype=tf.int64))
-        gather_empty = GatherNodes(concat_nodes=False)([node,ei2])
-        gather_empty_concat = GatherNodes(concat_nodes=True)([node, ei2])
+    # def test_gather_empty(self):
+    #     node = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
+    #
+    #     ei2 = tf.RaggedTensor.from_row_lengths(tf.constant([],dtype=tf.int64),tf.constant([0,0],dtype=tf.int64))
+    #     gather_empty = GatherNodes(concat_nodes=False)([node,ei2])
+    #     gather_empty_concat = GatherNodes(concat_nodes=True)([node, ei2])
 
 
 if __name__ == '__main__':
