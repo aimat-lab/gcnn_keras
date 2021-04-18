@@ -124,17 +124,18 @@ class AttentionHeadGAT(ks.layers.Layer):
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
-        activation (str): None
-        use_bias (bool): True
-        kernel_regularizer: None
-        bias_regularizer: None
-        activity_regularizer: None
-        kernel_constraint: None
-        bias_constraint: None
-        kernel_initializer: 'glorot_uniform'
-        bias_initializer: 'zeros'
+        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
+            with fall-back "relu".
+        use_bias (bool): Use bias. Default is True.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
         use_edge_features (False): Append edge features to attention computation.
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
@@ -170,8 +171,10 @@ class AttentionHeadGAT(ks.layers.Layer):
 
         # dense args
         self.units = int(units)
-        if activation is None and kgcnn_custom_act is not None:
+        if activation is None and "leaky_relu" in kgcnn_custom_act:
             activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
+        elif activation is None:
+            activation = "relu"
         self.use_bias = use_bias
         self.ath_activation = tf.keras.activations.get(activation)
         self.ath_kernel_initializer = tf.keras.initializers.get(kernel_initializer)

@@ -3,13 +3,12 @@ import tensorflow.keras as ks
 
 from kgcnn.utils.partition import _change_partition_type
 
-
 # import tensorflow.keras.backend as ksb
 
 
 class AdjacencyPower(ks.layers.Layer):
     """
-    Computes powers of the adjacency matrix. 
+    Computes powers of the adjacency matrix. This implementation is a temporary solution.
     
     Note: Layer casts to dense until sparse matmul is supported. This is very inefficient.
         

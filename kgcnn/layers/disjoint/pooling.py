@@ -6,15 +6,15 @@ from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition,
 
 class PoolingLocalEdges(ks.layers.Layer):
     """
-    Pooling all edges or edgelike features per node, corresponding to node assigned by edge indices.
+    Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     
     If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
     Apply e.g. segment_mean for index[0] incoming nodes. 
     Important: edge_index[:,0] are sorted for segment-operation.
     
     Args:
-        pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'segment_mean'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
@@ -120,16 +120,16 @@ PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 class PoolingWeightedLocalEdges(ks.layers.Layer):
     """
-    Pooling all edges or message/edgelike features per node, corresponding to node assigned by edge_indices.
+    Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
     
     If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     Apply e.g. segment_mean for index[0] incoming nodes. 
     Important: edge_index[:,0] could be sorted for segment-operation.
     
     Args:
-        pooling_method (str): Pooling method to use i.e. segement_function. Default is 'segment_mean'.
+        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'segment_mean'.
         is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
@@ -185,8 +185,8 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
               Default is row_length of shape (batch,)
             - edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
               The index for segment reduction is taken from edge_indices[:,0] (ingoing node).
-            - weights (tf.tensor): The weights could be the entry in the ajacency matrix for each edge in the list
-              and must be broadcasted or match in dimension. Shape is e.g. (batch*None,1).
+            - weights (tf.tensor): The weights could be the entry in the adjacency matrix for each edge in the list
+              and must be broad-casted or match in dimension. Shape is e.g. (batch*None,1).
     
         Returns:
             features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
@@ -248,7 +248,7 @@ class PoolingNodes(ks.layers.Layer):
     Polling all nodes per batch. The batch assignment is given by a length-tensor.
     
     Args:
-        pooling_method (str): Pooling method to use i.e. segement_function
+        pooling_method (str): Pooling method to use i.e. segment_function
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
     """
@@ -347,7 +347,7 @@ class PoolingGlobalEdges(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [egdes, edge_partition]
+            inputs (list): of [edges, edge_partition]
 
             - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
             - edge_partition (tf.tensor): Row partition for edges. This can be either row_length, value_rowids,
@@ -377,7 +377,7 @@ class PoolingGlobalEdges(ks.layers.Layer):
 
 class PoolingLocalEdgesLSTM(ks.layers.Layer):
     """
-    Pooling all edges or edgelike features per node, corresponding to node assigned by edge indices.
+    Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     Uses LSTM to aggregate Node-features.
 
     If graphs indices were in 'sample' mode, the indices must be corrected for disjoint graphs.
@@ -387,7 +387,7 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
     Args:
         units (int): Units for LSTM cell.
         pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.

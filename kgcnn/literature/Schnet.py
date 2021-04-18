@@ -64,7 +64,7 @@ def make_schnet(
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
                                       'input_type': 'ragged'},
                      'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
-                     'interaction_args': {"node_dim": 128, "use_bias": True,
+                     'interaction_args': {"units": 128, "use_bias": True,
                                           "activation": 'shifted_softplus', "cfconv_pool": 'segment_sum',
                                           "is_sorted": False, "has_unconnected": True},
                      'output_mlp': {"use_bias": [True, True], "units": [128, 64],
@@ -88,7 +88,7 @@ def make_schnet(
 
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
 
-    n = ks.layers.Dense(interaction_args["node_dim"], activation='linear')(n)
+    n = ks.layers.Dense(interaction_args["units"], activation='linear')(n)
 
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, node_len, ed, edge_len, edi])

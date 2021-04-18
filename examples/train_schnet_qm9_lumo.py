@@ -65,7 +65,7 @@ model = make_schnet(
     # Model specific
     depth=4,
     out_scale_pos=0,
-    interaction_args={"node_dim": 128,
+    interaction_args={"units": 128,
                       "use_bias": True,
                       "activation": 'shifted_softplus',
                       "cfconv_pool": "segment_sum",

@@ -7,12 +7,12 @@ from kgcnn.utils.partition import _change_partition_type, _change_edge_tensor_in
 
 class GatherNodes(ks.layers.Layer):
     """
-    Gather nodes by edge_indices. Indexlist must match flatten nodes.
+    Gather nodes by edge_indices. Index-list must match flatten nodes.
     
     If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     
     Args:
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
@@ -59,8 +59,7 @@ class GatherNodes(ks.layers.Layer):
         out = tf.gather(node, indexlist, axis=0)
 
         if self.concat_nodes:
-            out_shape = tf.shape(out)
-            out = tf.reshape(out, (out_shape[0],-1))
+            out = tf.keras.backend.concatenate([out[:,0],out[:,1]],axis=-1)
 
         return out
 
@@ -75,13 +74,13 @@ class GatherNodes(ks.layers.Layer):
 
 class GatherNodesOutgoing(ks.layers.Layer):
     """
-    Gather nodes by edge edge_indices. Indexlist must match flatten nodes.
+    Gather nodes by edge edge_indices. Index-list must match flatten nodes.
     
     If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     For outgoing nodes, layer uses only index[1].
     
     Args:
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs
@@ -139,13 +138,13 @@ class GatherNodesOutgoing(ks.layers.Layer):
 
 class GatherNodesIngoing(ks.layers.Layer):
     """
-    Gather nodes by edge edge_indices. Indexlist must match flatten nodes.
+    Gather nodes by edge edge_indices. Index-list must match flatten nodes.
     
     If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     For ingoing nodes, layer uses only index[0].
     
     Args:
-        node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
                              For disjoint representation 'batch' is default.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         **kwargs

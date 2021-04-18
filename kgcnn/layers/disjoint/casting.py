@@ -8,6 +8,7 @@ from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition,
 class CastRaggedToValues(ks.layers.Layer):
     """
     Cast a ragged tensor with one ragged dimension, like node feature list to a single value plus partition tensor.
+    This matches the disjoint graph representation.
     
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
@@ -65,6 +66,7 @@ class CastRaggedToValues(ks.layers.Layer):
 class CastMaskedToValues(ks.layers.Layer):
     """
     Cast a zero-padded tensor plus mask input to a single list plus row_partition tensor.
+    This matches the disjoint graph representation.
     
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
@@ -129,8 +131,9 @@ class CastMaskedToValues(ks.layers.Layer):
 
 class CastBatchToValues(ks.layers.Layer):
     """
-    Layer to squeeze the batch dimension. For graphs of the same size in batch to match the disjoint representation.
-    
+    Layer to squeeze the batch dimension to match the disjoint representation. Simply flattens out the batch-dimension.
+    Important: For graphs of the same size in batch!!!
+
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
         **kwargs    
@@ -181,7 +184,8 @@ class CastBatchToValues(ks.layers.Layer):
 
 class CastValuesToBatch(ks.layers.Layer):
     """
-    Add batchdim according to a reference. For graphs of the same size in batch!! To match the disjoint representation.
+    Add batch-dimension according to row_partition. Reverse the disjoint representation.
+    Important: For graphs of the same size in batch!!!
 
     Args:
         partition_type (str): Partition tensor type for output. Default is "row_length".
@@ -369,8 +373,8 @@ class ChangeIndexing(ks.layers.Layer):
     Example: 
         Flatten operation changes index tensor as [[0,1,2],[0,1],[0,1]] -> [0,1,2,0,1,0,1] with
         requires a subsequent index-shift of [0,1,2,1,1,0,1] -> [0,1,2,3+0,3+1,5+0,5+1].
-        This is equivalent to a single graph with disconnected subgraphs.
-        Therfore tf.gather will find the correct nodes for a 1D tensor.
+        This is equivalent to a single graph with disconnected sub-graphs.
+        Therefore tf.gather will find the correct nodes for a 1D tensor.
     
     Args:
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
@@ -434,7 +438,7 @@ class CastRaggedToDisjoint(ks.layers.Layer):
     """ 
     Transform ragged tensor input to disjoint graph representation.
     
-    Disjoint graph representation has disjoint subgraphs within a single graph.
+    Disjoint graph representation has disjoint sub-graphs within a single graph.
     Batch dimension is flatten for this representation.
     
     Args:
