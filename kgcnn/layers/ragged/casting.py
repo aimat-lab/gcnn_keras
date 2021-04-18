@@ -163,7 +163,7 @@ class ChangeIndexing(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(ChangeIndexing, self).get_config()
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"from_indexing": self.from_indexing})
-        config.update({"to_indexing": self.to_indexing})
+        config.update({"ragged_validate": self.ragged_validate,
+                       "from_indexing": self.from_indexing,
+                       "to_indexing": self.to_indexing})
         return config

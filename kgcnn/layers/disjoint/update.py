@@ -9,7 +9,7 @@ class ApplyMessage(ks.layers.Layer):
     The message dimension must be suitable for matrix multiplication.
     
     Args:
-        target_shape (int): Target dimension. Message dimension must match target_shape*node_shape.
+        target_shape (int): Target dimension. Message dimension must match target_dim*node_dim.
     """
 
     def __init__(self, target_shape, **kwargs):
@@ -27,12 +27,13 @@ class ApplyMessage(ks.layers.Layer):
         Args:
             inputs (list): of [message, nodes]
 
-            - message (tf.tensor): Message tensor flattened that can be reshaped to (batch*None,target_shape,node_shape)
-            - nodes (tf.tensor): Node feature list of shape (batch*None,F)
+            - message (tf.tensor): Message tensor of shape (batch*None,target_dim*node_dim)
+              that can be reshaped to (batch*None,target_shape,node_dim)
+            - nodes (tf.tensor): Node feature list of shape (batch*None,node_dim)
             
         Returns:
             node_updates (tf.tensor): Element-wise matmul of message and node features
-            of output shape (batch,target_shape)
+            of output shape (batch,target_dim)
         """
         dens_e, dens_n = inputs
         dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
@@ -54,11 +55,32 @@ class GRUupdate(ks.layers.Layer):
         units (int): Units for GRU.
     """
 
-    def __init__(self, units, **kwargs):
+    def __init__(self, units,
+                 activation='tanh', recurrent_activation='sigmoid',
+                 use_bias=True, kernel_initializer='glorot_uniform',
+                 recurrent_initializer='orthogonal',
+                 bias_initializer='zeros', kernel_regularizer=None,
+                 recurrent_regularizer=None, bias_regularizer=None, kernel_constraint=None,
+                 recurrent_constraint=None, bias_constraint=None, dropout=0.0,
+                 recurrent_dropout=0.0, reset_after=True,
+                 **kwargs):
         """Initialize layer."""
         super(GRUupdate, self).__init__(**kwargs)
         self.units = units
-        self.gru = tf.keras.layers.GRUCell(units)
+
+        self.gru_cell = tf.keras.layers.GRUCell(units=units,
+                                                activation=activation, recurrent_activation=recurrent_activation,
+                                                use_bias=use_bias, kernel_initializer=kernel_initializer,
+                                                recurrent_initializer=recurrent_initializer,
+                                                bias_initializer=bias_initializer,
+                                                kernel_regularizer=kernel_regularizer,
+                                                recurrent_regularizer=recurrent_regularizer,
+                                                bias_regularizer=bias_regularizer,
+                                                kernel_constraint=kernel_constraint,
+                                                recurrent_constraint=recurrent_constraint,
+                                                bias_constraint=bias_constraint,
+                                                dropout=dropout,
+                                                recurrent_dropout=recurrent_dropout, reset_after=reset_after)
 
     def build(self, input_shape):
         """Build layer."""
@@ -79,11 +101,20 @@ class GRUupdate(ks.layers.Layer):
         """
         n, eu = inputs
         # Apply GRU for update node state
-        out, _ = self.gru(eu, [n])
+        out, _ = self.gru_cell(eu, [n])
         return out
 
     def get_config(self):
         """Update layer config."""
         config = super(GRUupdate, self).get_config()
-        config.update({"units": self.units})
+        conf_cell = self.gru_cell.get_config()
+        param_list = ["units", "activation", "recurrent_activation",
+                      "use_bias", "kernel_initializer",
+                      "recurrent_initializer",
+                      "bias_initializer", "kernel_regularizer",
+                      "recurrent_regularizer", "bias_regularizer", "kernel_constraint",
+                      "recurrent_constraint", "bias_constraint", "dropout",
+                      "recurrent_dropout", "reset_after"]
+        for x in param_list:
+            config.update({x: conf_cell[x]})
         return config

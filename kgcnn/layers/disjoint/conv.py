@@ -14,7 +14,7 @@ class GCN(ks.layers.Layer):
     Computes graph conv as $\sigma(A_s*(WX+b))$ where $A_s$ is the precomputed and scaled adjacency matrix.
     The scaled adjacency matrix is defined by $A_s = D^{-0.5} (A + I) D{^-0.5}$ with the degree matrix $D$.
     In place of $A_s$, this layers uses edge features (that are the entries of $A_s$) and edge indices.
-    $A_s$ is considered pre-scaled.
+    $A_s$ is considered pre-scaled, this is not done by this layer.
     If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
     obtain a similar behaviour that is expected by a pre-scaled adjacency matrix input.
     Edge features must be possible to broadcast to node features. Ideally they have shape (...,1).
@@ -32,7 +32,7 @@ class GCN(ks.layers.Layer):
         kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
         bias_initializer: Initializer for bias. Default is 'zeros'.
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-                             For disjoint representation 'batch' is default.
+            For disjoint representation 'batch' is default.
         pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         is_sorted (bool): If edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.

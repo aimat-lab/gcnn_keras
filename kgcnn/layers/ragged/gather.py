@@ -12,6 +12,7 @@ class GatherNodes(ks.layers.Layer):
     Args:
         ragged_validate (bool): False
         node_indexing (str): 'sample'
+        concat_nodes (bool): Whether to concatenate gathered node features. Default is True.
         **kwargs
         
     Example:
@@ -60,7 +61,7 @@ class GatherNodes(ks.layers.Layer):
             raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
 
         if self.concat_nodes:
-            out = tf.keras.backend.concatenate([out[:,:,i] for i in range(edgeind.shape[-1])],axis=-1)
+            out = tf.keras.backend.concatenate([out[:,:,i] for i in range(edgeind.shape[-1])],axis=2)
 
         return out
 
@@ -250,53 +251,4 @@ class GatherState(ks.layers.Layer):
         """Update config."""
         config = super(GatherState, self).get_config()
         config.update({"ragged_validate": self.ragged_validate})
-        return config
-
-
-class LazyConcatenateNodes(ks.layers.Layer):
-    """
-    Concatenate ragged nodetensors without checking shape.
-    
-    Ragged dimension only at first axis. Can be replaced with standard concat function.
-    
-    Args:
-        axis (int): Axis to concatenate. Default is -1.
-        ragged_validate (bool): False
-        **kwargs
-    """
-
-    def __init__(self,
-                 axis=-1,
-                 ragged_validate=False,
-                 **kwargs):
-        """Initialize layer."""
-        super(LazyConcatenateNodes, self).__init__(**kwargs)
-        self._supports_ragged_inputs = True
-        self.ragged_validate = ragged_validate
-        self.axis = axis
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(LazyConcatenateNodes, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-        
-        Args:
-            inputs (list): [nodes,nodes,...] of shape [(batch,None,F),(batch,None,F),...]
-            of ragged tensors of nodes with similar ragged dimension None. 
-        
-        Returns:
-            nodes (tf.ragged): Concatenated Nodes with shape (batch,None,Sum(F)) 
-            where the row_splits of first nodelist are kept.
-        """
-        out = tf.keras.backend.concatenate([x.values for x in inputs], axis=self.axis)
-        out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(LazyConcatenateNodes, self).get_config()
-        config.update({"ragged_validate": self.ragged_validate})
-        config.update({"axis": self.axis})
         return config
