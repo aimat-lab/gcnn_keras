@@ -1,7 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-
+from kgcnn.ops.scatter import _scatter_segment_tensor_nd
+from kgcnn.ops.segment import _segment_operation_by_name
 # import tensorflow.keras.backend as ksb
 
 class PoolingNodes(ks.layers.Layer):
@@ -198,17 +199,6 @@ class PoolingLocalEdges(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
 
-        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
-            self._pool = tf.math.segment_mean
-        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
-            self._pool = tf.math.segment_sum
-        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
-            self._pool = tf.math.segment_max
-        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
-            self._pool = tf.math.segment_min
-        else:
-            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
-
         self.ragged_validate = ragged_validate
 
     def build(self, input_shape):
@@ -249,14 +239,10 @@ class PoolingLocalEdges(ks.layers.Layer):
             dens = tf.gather(dens, node_order, axis=0)
 
         # Pooling via e.g. segment_sum
-        get = self._pool(dens, nodind)
+        get = _segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.has_unconnected:
-            # Need to fill tensor since the maximum node may not be also in pooled
-            # Does not happen if all nodes are also connected
-            pooled_index = tf.range(tf.shape(get)[0])  # tf.unique(nodind)
-            outtarget_shape = (tf.shape(nod.values, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
-            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
+            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out
@@ -301,18 +287,6 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         super(PoolingWeightedLocalEdges, self).__init__(**kwargs)
         self._supports_ragged_inputs = True
         self.pooling_method = pooling_method
-
-        if self.pooling_method in ["segment_mean", "mean", "reduce_mean"]:
-            self._pool = tf.math.segment_mean
-        elif self.pooling_method in ["segment_sum", "sum", "reduce_sum"]:
-            self._pool = tf.math.segment_sum
-        elif self.pooling_method in ["segment_max", "max", "reduce_max"]:
-            self._pool = tf.math.segment_max
-        elif self.pooling_method == ["segment_min", "sum", "reduce_min"]:
-            self._pool = tf.math.segment_min
-        else:
-            raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
-
         self.normalize_by_weights = normalize_by_weights
         self.node_indexing = node_indexing
         self.is_sorted = is_sorted
@@ -364,7 +338,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
             wval = tf.gather(wval, node_order, axis=0)
 
         # Do the pooling
-        get = self._pool(dens, nodind)
+        get = _segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.normalize_by_weights:
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
@@ -372,10 +346,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since not all nodes are also in pooled
             # Does not happen if all nodes are also connected
-            pooled_index = tf.range(tf.shape(get)[0])
-            # pooled_index, _ = tf.unique(nodind) # does not work
-            outtarget_shape = (tf.shape(nod.values, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
-            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
+            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out
