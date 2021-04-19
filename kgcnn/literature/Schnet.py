@@ -6,7 +6,7 @@ from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 # from kgcnn.utils.activ import shifted_softplus
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # Model Schnet as defined

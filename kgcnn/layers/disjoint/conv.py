@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
-from kgcnn.utils.activ import kgcnn_custom_act
+from kgcnn.ops.activ import kgcnn_custom_act
 
 
 class GCN(ks.layers.Layer):

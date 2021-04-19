@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-from kgcnn.utils.partition import _change_partition_type
+from kgcnn.ops.partition import _change_partition_type
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016

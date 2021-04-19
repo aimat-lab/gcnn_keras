@@ -5,7 +5,7 @@ from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import GCN, DenseRagged
 from kgcnn.layers.ragged.mlp import MLPRagged
 from kgcnn.layers.ragged.pooling import PoolingNodes
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'

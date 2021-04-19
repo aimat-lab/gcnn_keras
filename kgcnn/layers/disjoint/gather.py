@@ -1,8 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-import tensorflow.keras.backend as ksb
 
-from kgcnn.utils.partition import _change_partition_type, _change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import _change_partition_type, _change_edge_tensor_indexing_by_row_partition
 
 
 class GatherNodes(ks.layers.Layer):

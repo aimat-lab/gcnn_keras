@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.utils.partition import _change_partition_type
+from kgcnn.ops.partition import _change_partition_type
 
 # import tensorflow.keras.backend as ksb
 

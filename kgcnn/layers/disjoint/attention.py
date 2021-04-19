@@ -2,9 +2,9 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.gather import GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.utils.activ import kgcnn_custom_act
-from kgcnn.utils.partition import _change_edge_tensor_indexing_by_row_partition
-from kgcnn.utils.soft import segment_softmax
+from kgcnn.ops.activ import kgcnn_custom_act
+from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.segment import segment_softmax
 
 
 class PoolingLocalEdgesAttention(ks.layers.Layer):

@@ -5,7 +5,7 @@ from kgcnn.layers.disjoint.conv import MEGnetBlock
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes, PoolingGlobalEdges
 from kgcnn.layers.disjoint.set2set import Set2Set
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals

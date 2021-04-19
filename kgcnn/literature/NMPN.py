@@ -7,7 +7,7 @@ from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.disjoint.set2set import Set2Set
 from kgcnn.layers.disjoint.update import ApplyMessage, GRUupdate
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # Neural Message Passing for Quantum Chemistry

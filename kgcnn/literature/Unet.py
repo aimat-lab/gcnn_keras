@@ -8,7 +8,7 @@ from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.disjoint.topk import PoolingTopK, UnPoolingTopK
 from kgcnn.layers.ragged.casting import CastRaggedToDense
 from kgcnn.layers.ragged.conv import DenseRagged
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # Graph U-Nets

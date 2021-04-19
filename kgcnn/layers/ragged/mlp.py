@@ -2,7 +2,6 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.ragged.conv import DenseRagged
-from kgcnn.utils.activ import kgcnn_custom_act
 
 
 class MLPRagged(ks.layers.Layer):

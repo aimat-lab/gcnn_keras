@@ -4,7 +4,7 @@ from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagg
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.pooling import PoolingNodes
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 from kgcnn.layers.disjoint.attention import AttentionHeadGAT
 
 

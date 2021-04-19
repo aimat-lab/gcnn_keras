@@ -1,8 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.utils.activ import kgcnn_custom_act
-
 
 # import tensorflow.keras.backend as ksb
 

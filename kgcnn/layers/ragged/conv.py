@@ -5,7 +5,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.ragged.gather import GatherNodesOutgoing
 from kgcnn.layers.ragged.pooling import PoolingWeightedLocalEdges
 # from kgcnn.layers.ragged.gather import GatherState,GatherNodesIngoing
-from kgcnn.utils.activ import kgcnn_custom_act
+from kgcnn.ops.activ import kgcnn_custom_act
 
 
 # import tensorflow.keras.backend as ksb

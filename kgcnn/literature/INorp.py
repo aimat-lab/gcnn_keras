@@ -8,7 +8,7 @@ from kgcnn.layers.ragged.mlp import MLPRagged
 from kgcnn.layers.ragged.pooling import PoolingLocalEdges, PoolingNodes
 # from kgcnn.layers.ragged.pooling import PoolingWeightedLocalEdges
 from kgcnn.layers.ragged.set2set import Set2Set
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
 # import tensorflow as tf

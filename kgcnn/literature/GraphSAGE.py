@@ -3,7 +3,7 @@ from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
 from kgcnn.layers.disjoint.pooling import PoolingNodes,PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.utils.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 import tensorflow.keras as ks
 import tensorflow as tf
