@@ -55,8 +55,11 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
 
     # Just gather the splits i.e. index offset for each graph id
     shift_index = tf.gather(nod_splits, edge_ids)
-    if axis==1:
-        shift_index = tf.expand_dims(shift_index,axis=1)
+
+    # Expand dimension to broadcast to indices for suitable axis
+    # Could also do that based on edge_index shape...
+    for i in range(1,axis+1):
+        shift_index = tf.expand_dims(shift_index,axis=i)
 
     # Add or substract batch offset from index tensor
     if to_indexing == 'batch' and from_indexing == 'sample':

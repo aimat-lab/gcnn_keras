@@ -64,7 +64,7 @@ model = make_megnet(
     # Model specs
     meg_block_args={'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
                     'activation': 'softplus2', 'is_sorted': True,
-                    'has_unconnected': False},
+                    'has_unconnected': True},
     set2set_args={'channels': 16, 'T': 3, "pooling_method": "sum",
                   "init_qstar": "0"},
     nblocks=3,

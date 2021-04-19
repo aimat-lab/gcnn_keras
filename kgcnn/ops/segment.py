@@ -12,7 +12,22 @@ def segment_softmax(data, segment_ids, normalize=True):
     data_exp = tf.math.exp(data)
     data_exp_segment_sum = tf.math.segment_sum(data_exp,segment_ids)
     data_exp_sum = tf.gather(data_exp_segment_sum,segment_ids)
-
     return data_exp/data_exp_sum
 
+
+@tf.function
+def _segment_operation_by_name(segment_name, data, segment_ids):
+    if segment_name in ["segment_mean", "mean", "reduce_mean"]:
+        pool = tf.math.segment_mean(data,segment_ids)
+    elif segment_name in ["segment_sum", "sum", "reduce_sum"]:
+        pool = tf.math.segment_sum(data,segment_ids)
+    elif segment_name in ["segment_max", "max", "reduce_max"]:
+        pool = tf.math.segment_max(data,segment_ids)
+    elif segment_name in ["segment_min", "sum", "reduce_min"]:
+        pool = tf.math.segment_min(data,segment_ids)
+    elif segment_name in ["segment_softmax","segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
+        pool = segment_softmax(data,segment_ids)
+    else:
+        raise TypeError("Unknown pooling, choose: 'segment_mean', 'segment_sum', ...")
+    return pool
 
