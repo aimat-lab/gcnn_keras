@@ -4,6 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.disjoint.gather import GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.ops.activ import kgcnn_custom_act
 from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.scatter import _scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax
 
 
@@ -96,9 +97,7 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            pooled_index = tf.range(tf.shape(get)[0])  # tf.unique(nodind)
-            outtarget_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
-            get = tf.scatter_nd(ks.backend.expand_dims(pooled_index, axis=-1), get, outtarget_shape)
+            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         return get
 

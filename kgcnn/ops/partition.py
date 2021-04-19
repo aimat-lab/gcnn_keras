@@ -57,7 +57,7 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
     shift_index = tf.gather(nod_splits, edge_ids)
 
     # Expand dimension to broadcast to indices for suitable axis
-    # Could also do that based on edge_index shape...
+    # The shift_index is always 1D tensor.
     for i in range(1,axis+1):
         shift_index = tf.expand_dims(shift_index,axis=i)
 
@@ -98,7 +98,6 @@ def _change_partition_type(in_partition, in_partition_type, out_partition_type):
         # May cast to dtype = tf.int32 here
         out_partition = tf.repeat(tf.range(tf.shape(in_partition)[0]), in_partition)
     elif in_partition_type == "value_rowids" and out_partition_type == "row_length":
-        # @TODO: Can just use tf.scatter
         out_partition = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
     elif in_partition_type == "value_rowids" and out_partition_type == "row_splits":
         # Get row_length

@@ -158,7 +158,7 @@ class PoolingGlobalEdges(ks.layers.Layer):
         Returns:
             features (tf.tensor): Pooled edge features of shape (batch,F)
         """
-        edge = inputs  # Apply segmented mean
+        edge = inputs
         out = self._pool(edge, axis=1)
         return out
 
@@ -232,6 +232,7 @@ class PoolingLocalEdges(ks.layers.Layer):
             raise TypeError("Unknown index convention, use: 'sample', 'batch', ...")
         nodind = shiftind[:, 0]
         dens = edge.values
+
         if not self.is_sorted:
             # Sort edgeindices
             node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
