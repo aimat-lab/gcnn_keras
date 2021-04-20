@@ -2,15 +2,15 @@ import tensorflow.keras as ks
 
 
 def generate_standard_graph_input(input_node_shape,
-                                 input_edge_shape,
-                                 input_state_shape,
-                                 input_node_vocab=95,
-                                 input_edge_vocab=5,
-                                 input_state_vocab=100,
-                                 input_node_embedd=64,
-                                 input_edge_embedd=64,
-                                 input_state_embedd=64,
-                                 input_type='ragged'):
+                                  input_edge_shape,
+                                  input_state_shape,
+                                  input_node_vocab=95,
+                                  input_edge_vocab=5,
+                                  input_state_vocab=100,
+                                  input_node_embedd=64,
+                                  input_edge_embedd=64,
+                                  input_state_embedd=64,
+                                  input_type='ragged'):
     """Generate input for a standard graph format.
     This includes nodes, edge, edge_indices and optional a graph state.
 
@@ -51,13 +51,12 @@ def generate_standard_graph_input(input_node_shape,
             uenv = env_input
 
     if input_state_shape is not None:
-        return node_input, n, edge_input, ed, edge_index_input,  env_input,   uenv,
+        return node_input, n, edge_input, ed, edge_index_input, env_input, uenv,
     else:
-        return node_input,  n, edge_input, ed, edge_index_input, None, None
+        return node_input, n, edge_input, ed, edge_index_input, None, None
 
 
-
-def update_model_args(default_args = None, user_args = None):
+def update_model_args(default_args=None, user_args=None):
     """
     Make arg dict with updated default values.
 

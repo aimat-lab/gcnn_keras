@@ -22,3 +22,5 @@ def _scatter_segment_tensor_nd(data, segment_ids, target_shape):
     out_tensor = tf.scatter_nd(ks.backend.expand_dims(segment_index, axis=-1), data, out_target_shape)
 
     return out_tensor
+
+
