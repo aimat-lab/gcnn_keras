@@ -280,8 +280,8 @@ class GCN(ks.layers.Layer):
             Output shape is (batch,None,F).
         """
         node, edges, edge_index = inputs
-        no = self.lay_gather([node, edge_index])
-        no = self.lay_dense(no)
+        no = self.lay_dense(node)
+        no = self.lay_gather([no, edge_index])
         nu = self.lay_pool([node, no, edge_index, edges])  # Summing for each node connection
         out = self.lay_act(nu)
         return out

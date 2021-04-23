@@ -38,7 +38,7 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
 
             - nodes (tf.ragged): Node feature tensor of shape (batch,None,F)
             - edge_index (tf.ragged): Ragged edge_indices of shape (batch,None,2)
-            - edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,F)
+            - edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,1)
         
         Returns:
             tf.sparse: Sparse disjoint matrix
@@ -67,8 +67,9 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
             indexlist = tf.gather(indexlist, node_order, axis=0)
             valuelist = tf.gather(valuelist, node_order, axis=0)
 
-        indexlist = tf.cast(indexlist, tf.int64)
-        dense_shape = (tf.shape(nod.values)[0], tf.shape(nod.values)[0])
+        indexlist = tf.cast(indexlist, dtype=tf.int64)
+        dense_shape = tf.concat([tf.shape(nod.values)[0:1], tf.shape(nod.values)[0:1]],axis=0)
+        dense_shape = tf.cast(dense_shape, dtype=tf.int64)
         out = tf.sparse.SparseTensor(indexlist, valuelist[:, 0], dense_shape)
 
         return out
