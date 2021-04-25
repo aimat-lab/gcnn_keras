@@ -174,7 +174,7 @@ def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=
         np.array: edge_indices or [edge_indices, edge_values]
     """
     clean_edge = None
-    edge_index_flip = np.concatenate([edge_indices[:,1] ,edge_indices[:,0]],axis=-1)
+    edge_index_flip = np.concatenate([edge_indices[:,1:2] ,edge_indices[:,0:1]],axis=-1)
     edge_index_flip_ij = edge_index_flip[edge_index_flip[:,1] != edge_index_flip[:,0]] # Do not flip self loops
     clean_index = np.concatenate([edge_indices,edge_index_flip_ij],axis=0)
     if edge_values is not None:
