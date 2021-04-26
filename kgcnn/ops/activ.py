@@ -56,6 +56,19 @@ def leaky_relu(alpha = 0.2):
     return lambda x: tf.nn.leaky_relu(x,alpha=alpha)
 
 
+def swish(x):
+    """Swish activation function,
+    from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"
+
+    Args:
+        x (tf.tensor): values to apply activation to using tf.keras functions
+
+    Returns:
+        tf.tensor: x*tf.sigmoid(x)
+    """
+    return x*tf.sigmoid(x)
+
+
 # Register costum activation functions in get_custom_objects
 kgcnn_custom_act = {'leaky_softplus':leaky_softplus,
                     'shifted_softplus':shifted_softplus,

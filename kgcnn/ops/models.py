@@ -18,7 +18,7 @@ def generate_standard_graph_input(input_node_shape,
     Args:
         input_node_shape (list): Shape of node input without batch dimension. Either (None,F) or (None,)
         input_edge_shape (list): Shape of edge input without batch dimension. Either (None,F) or (None,)
-        input_state_shape (list): Shape of state input without batch dimension. Either (F,) or (,)
+        input_state_shape: Shape of state input without batch dimension. Either (F,) or (,)
         input_node_vocab (int): Vocabulary size of optional embedding layer.
         input_edge_vocab (int): Vocabulary size of optional embedding layer.
         input_state_vocab (int) Vocabulary size of optional embedding layer.

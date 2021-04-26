@@ -1,5 +1,4 @@
 import time
-
 import matplotlib as mpl
 import numpy as np
 import tensorflow as tf
@@ -11,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # Import example dataset loader and SchNet model
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.Schnet import make_schnet
+from kgcnn.literature.Schnet import make_schnet_disjoint as make_schnet
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
@@ -69,8 +68,8 @@ model = make_schnet(
                       "use_bias": True,
                       "activation": 'shifted_softplus',
                       "cfconv_pool": "segment_sum",
-                      "is_sorted": True,
-                      "has_unconnected": False
+                      "is_sorted": False,
+                      "has_unconnected": True
                       },
 )
 

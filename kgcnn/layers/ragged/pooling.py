@@ -243,7 +243,7 @@ class PoolingLocalEdges(ks.layers.Layer):
         get = _segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.has_unconnected:
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(tf.shape(nod.values)))
+            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod.values))
 
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out

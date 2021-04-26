@@ -9,7 +9,7 @@ import tensorflow.keras.backend as ksb
 
 class Set2Set(ks.layers.Layer):
     """
-    Set2Set layer. The Reading to Memory has to be handled seperately.
+    Set2Set layer. The Reading to Memory has to be handled separately.
     
     Uses a keras LSTM layer for the updates.
     The idea is to create a Seq2Seq using a “content” based attention via LSTMs.
