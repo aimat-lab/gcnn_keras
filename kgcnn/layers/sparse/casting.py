@@ -41,7 +41,7 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
             - edges (tf.ragged): Edge feature ragged tensor of shape (batch,None,1)
         
         Returns:
-            tf.sparse: Sparse disjoint matrix
+            tf.sparse: Sparse disjoint matrix of shape (batch*None,batch*None)
         """
         nod, edgeind, ed = inputs
 

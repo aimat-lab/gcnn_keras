@@ -8,7 +8,7 @@ class PoolingAdjacencyMatmul(ks.layers.Layer):
     The node features needs to be flatten for a disjoint representation.
 
     Args:
-        pooling_method : tf.function to pool all nodes compatible with ragged tensors.
+        pooling_method : tf.function to pool all nodes compatible with dense tensors.
         **kwargs
     """
 
@@ -27,7 +27,7 @@ class PoolingAdjacencyMatmul(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            list: [adjacency, nodes]
+            list: [nodes, adjacency]
 
             - nodes (tf.tensor): Flatten node features of shape (batch*None,F)
             - adjacency (tf.sparse): SparseTensor of the adjacency matrix of shape (batch*None,batch*None)
