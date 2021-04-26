@@ -11,20 +11,21 @@ def generate_standard_graph_input(input_node_shape,
                                   input_edge_embedd=64,
                                   input_state_embedd=64,
                                   input_type='ragged'):
-    """Generate input for a standard graph format.
+    """Generate input for a standard graph tensor format.
     This includes nodes, edge, edge_indices and optional a graph state.
+    If input shape is (None,) a embedding layer is used to make the feature dimension.
 
     Args:
-        input_node_shape:
-        input_edge_shape:
-        input_state_shape:
-        input_node_vocab:
-        input_edge_vocab:
-        input_state_vocab:
-        input_node_embedd:
-        input_edge_embedd:
-        input_state_embedd:
-        input_type:
+        input_node_shape (list): Shape of node input without batch dimension. Either (None,F) or (None,)
+        input_edge_shape (list): Shape of edge input without batch dimension. Either (None,F) or (None,)
+        input_state_shape (list): Shape of state input without batch dimension. Either (F,) or (,)
+        input_node_vocab (int): Vocabulary size of optional embedding layer.
+        input_edge_vocab (int): Vocabulary size of optional embedding layer.
+        input_state_vocab (int) Vocabulary size of optional embedding layer.
+        input_node_embedd (int): Embedding dimension for optional embedding layer.
+        input_edge_embedd (int): Embedding dimension for optional embedding layer.
+        input_state_embedd (int): Embedding dimension for optional embedding layer.
+        input_type (str): Type of input tensor. Only "ragged" is supported at the moment.
 
     Returns:
         list: [node_input, node_embedding, edge_input, edge_embedding, edge_index_input, state_input, state_embedding]
@@ -61,11 +62,11 @@ def update_model_args(default_args=None, user_args=None):
     Make arg dict with updated default values.
 
     Args:
-        default_args:
-        user_args:
+        default_args (dict): Dictionary of default values.
+        user_args (dict): Dictionary of args from.
 
     Returns:
-
+        dict: Make new dict and update with first default and then user args.
     """
     out = {}
     if default_args is None:

@@ -4,6 +4,16 @@ import tensorflow as tf
 
 @tf.function
 def segment_softmax(data, segment_ids, normalize=True):
+    """Segment softmax similar to tf.math.segment_max but with a softmax.
+
+    Args:
+        data (tf.tensor): Data tensor that has sorted segments.
+        segment_ids (tf.tensor): IDs of the segments.
+        normalize (bool): Normalize data for softmax. Default is True.
+
+    Returns:
+        tf.tensor: reduced segment data with a softmax function.
+    """
     if normalize:
         data_segment_max = tf.math.segment_max(data,segment_ids)
         data_max = tf.gather(data_segment_max,segment_ids)
@@ -17,6 +27,16 @@ def segment_softmax(data, segment_ids, normalize=True):
 
 @tf.function
 def _segment_operation_by_name(segment_name, data, segment_ids):
+    """Segment operation of tf.math.segment_ chosen by string identifier.
+
+    Args:
+        segment_name (str): Name of the segment operation.
+        data (tf.tensor): Data tensor that has sorted segments.
+        segment_ids (tf.tensor): IDs of the segments.
+
+    Returns:
+        tf.tensor: reduced segment data with method by segment_name.
+    """
     if segment_name in ["segment_mean", "mean", "reduce_mean"]:
         pool = tf.math.segment_mean(data,segment_ids)
     elif segment_name in ["segment_sum", "sum", "reduce_sum"]:

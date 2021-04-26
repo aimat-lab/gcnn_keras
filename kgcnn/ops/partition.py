@@ -19,9 +19,10 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
         partition_type_edge (str): Edge type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
         from_indexing (str): Source index scheme
         to_indexing (str): Target index scheme
+        axis (int): Axis along which to shift indices. Default is 1.
 
     Returns:
-
+        tf.tensor: Index tensor of shifted indices.
     """
     if to_indexing == from_indexing:
         # Nothing to do here
