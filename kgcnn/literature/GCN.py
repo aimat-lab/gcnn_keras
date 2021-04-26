@@ -1,17 +1,17 @@
 import tensorflow.keras as ks
 
+import kgcnn.layers.disjoint.conv
+import kgcnn.layers.disjoint.pooling
+import kgcnn.layers.ragged.conv
+import kgcnn.layers.sparse.conv
+from kgcnn.layers.disjoint.casting import CastRaggedToValues, CastValuesToRagged, CastRaggedToDisjoint
 from kgcnn.layers.disjoint.mlp import MLP
 from kgcnn.layers.ragged.casting import CastRaggedToDense
-from kgcnn.layers.ragged.conv import GCN, DenseRagged
 from kgcnn.layers.ragged.mlp import MLPRagged
 from kgcnn.layers.ragged.pooling import PoolingNodes
+from kgcnn.layers.sparse.casting import CastRaggedToDisjointSparseAdjacency
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
-from kgcnn.layers.sparse.conv import GCN as GCNsparse
-from kgcnn.layers.sparse.casting import CastRaggedToDisjointSparseAdjacency
-from kgcnn.layers.disjoint.casting import CastRaggedToValues, CastValuesToRagged,CastRaggedToDisjoint
-from kgcnn.layers.disjoint.pooling import PoolingNodes as PoolingNodesDisjoint
-from kgcnn.layers.disjoint.conv import GCN as GCNdisjoint
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
@@ -82,14 +82,14 @@ def make_gcn(
                                                                                                      None,
                                                                                                      **input_embedd)
     # Map to units
-    n = DenseRagged(gcn_args["units"], use_bias=True, activation='linear')(n)  # To match units
+    n = kgcnn.layers.ragged.conv.DenseRagged(gcn_args["units"], use_bias=True, activation='linear')(n)
     ed = ed
     edi = edge_index_input
     # edi = ChangeIndexing()([n, edge_index_input])
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(**gcn_args)([n, ed, edi])
+        n = kgcnn.layers.ragged.conv.GCN(**gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
         out = PoolingNodes()(n)  # will return tensor
@@ -103,7 +103,6 @@ def make_gcn(
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
 
     return model
-
 
 
 def make_gcn_disjoint(
@@ -172,13 +171,12 @@ def make_gcn_disjoint(
     n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
     n = ks.layers.Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # To match units
 
-
     # n-Layer Step
     for i in range(0, depth):
-        n = GCNdisjoint(**gcn_args)([n, node_len, ed, edge_len, edi])
+        n = kgcnn.layers.disjoint.conv.GCN(**gcn_args)([n, node_len, ed, edge_len, edi])
 
     if output_embedd["output_mode"] == "graph":
-        out = PoolingNodesDisjoint()([n, node_len])  # will return tensor
+        out = kgcnn.layers.disjoint.pooling.PoolingNodes()([n, node_len])  # will return tensor
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
@@ -189,7 +187,6 @@ def make_gcn_disjoint(
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
 
     return model
-
 
 
 def make_gcn_sparse(
@@ -250,21 +247,22 @@ def make_gcn_sparse(
     gcn_args = update_model_args(model_default['gcn_args'], gcn_args)
 
     # Make input embedding, if no feature dimension
-    node_input, nragged, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
-                                                                                                     input_edge_shape,
-                                                                                                     None,
-                                                                                                     **input_embedd)
+    node_input, nragged, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(
+        input_node_shape,
+        input_edge_shape,
+        None,
+        **input_embedd)
     # Map to units
     n, node_len = CastRaggedToValues()(nragged)
     n = ks.layers.Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # To match units
-    adj = CastRaggedToDisjointSparseAdjacency()([nragged,edge_index_input,ed])
+    adj = CastRaggedToDisjointSparseAdjacency()([nragged, edge_index_input, ed])
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCNsparse(**gcn_args)([n, adj])
+        n = kgcnn.layers.sparse.conv.GCN(**gcn_args)([n, adj])
 
     if output_embedd["output_mode"] == "graph":
-        out = PoolingNodesDisjoint()([n, node_len])  # will return tensor
+        out = kgcnn.layers.disjoint.pooling.PoolingNodes()([n, node_len])  # will return tensor
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
