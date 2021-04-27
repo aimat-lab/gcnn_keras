@@ -386,9 +386,9 @@ class GatherState(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs: [environment, target]
+            inputs: [state, target]
 
-            - environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
+            - state (tf.tensor): List of graph specific feature tensor of shape (batch,F)
             - target: Target to collect state for. This can be node or edge embeddings.
               This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
               and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses

@@ -671,14 +671,14 @@ class MEGnetBlock(ks.layers.Layer):
         # Calculate edge Update
         node_input, edge_input, edge_index_input, env_input = inputs
         e_n = self.lay_gather_n([node_input, edge_index_input])
-        e_u = self.lay_gather_ue([env_input, len_edge])
+        e_u = self.lay_gather_ue([env_input, edge_input])
         ec = self.lay_conc_enu([e_n, edge_input, e_u])
         ep = self.lay_phi_e(ec)  # Learning of Update Functions
         ep = self.lay_phi_e_1(ep)  # Learning of Update Functions
         ep = self.lay_phi_e_2(ep)  # Learning of Update Functions
         # Calculate Node update
         vb = self.lay_esum([node_input, ep, edge_index_input])  # Summing for each node connections
-        v_u = self.lay_gather_un([env_input, len_node])
+        v_u = self.lay_gather_un([env_input, node_input])
         vc = self.lay_conc_nu([vb, node_input, v_u])  # Concatenate node features with new edge updates
         vp = self.lay_phi_n(vc)  # Learning of Update Functions
         vp = self.lay_phi_n_1(vp)  # Learning of Update Functions
