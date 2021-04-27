@@ -114,3 +114,27 @@ class Multiply(tf.keras.layers.Layer):
             out_part = inputs[0][1]
             out = self._lay_mult([x[0] for x in inputs])
             return [out, out_part]
+
+class Concatenate(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 axis,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(Concatenate, self).__init__(**kwargs)
+        self.axis = axis
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_concat = ks.layers.Concatenate(axis=self.axis)
+
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type == "ragged":
+            out = self._lay_concat(inputs)
+            return out
+        elif self.input_tensor_type == "values_partition":
+            out_part = inputs[0][1]
+            out =  self._lay_concat([x[0] for x in inputs])
+            return [out, out_part]

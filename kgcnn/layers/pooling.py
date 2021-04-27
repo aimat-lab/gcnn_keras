@@ -622,6 +622,8 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
                                         return_sequences=return_sequences, return_state=return_state,
                                         go_backwards=go_backwards, stateful=stateful,
                                         time_major=time_major, unroll=unroll)
+        if not self.pooling_method in ["LSTM","lstm"]:
+            print("Warning: Pooling method does not match with layer, expected 'LSTM' but got",self.pooling_method)
 
     def build(self, input_shape):
         """Build layer."""

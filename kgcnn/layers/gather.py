@@ -386,22 +386,34 @@ class GatherState(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [environment, target_length]
+            inputs: [environment, target]
 
             - environment (tf.tensor): List of graph specific feature tensor of shape (batch*None,F)
-            - target_partition (tf.tensor): Assignment of nodes or edges to each graph in batch.
-              Default is row_length of shape (batch,).
+            - target: Target to collect state for. This can be node or edge embeddings.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
 
         Returns:
             features (tf.tensor): A tensor with repeated single state for each graph.
             Output shape is (batch*N,F).
         """
-        env, target_part = inputs
-
-        target_len = kgcnn_ops_change_partition_type(target_part, self.partition_type, "row_length")
+        env, target_part, target_len = None, None, None
+        if self.input_tensor_type == "values_partition":
+            env, [_, target_part] = inputs
+            target_len = kgcnn_ops_change_partition_type(target_part, self.partition_type, "row_length")
+        elif self.input_tensor_type == "ragged":
+            env, target = inputs
+            target_len = target.row_lengths()
 
         out = tf.repeat(env, target_len, axis=0)
-        return out
+
+        if self.input_tensor_type == "values_partition":
+            return [out, target_part]
+        if self.input_tensor_type == "ragged":
+            return tf.RaggedTensor.from_row_lengths(out, target_part)
 
     def get_config(self):
         """Update config."""
