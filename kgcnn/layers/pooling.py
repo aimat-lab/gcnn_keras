@@ -631,23 +631,29 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, node_partition, edges, edge_partition, edge_indices]
+            inputs (list): [nodes, edges, edge_index]
 
-            - node (tf.tensor): Flatten node feature tensor of shape (batch*None,F)
-            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of nodes to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edges (tf.tensor): Flatten edge feature tensor of shape (batch*None,F)
-            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of edges to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edge_indices (tf.tensor): Flatten index list tensor of shape (batch*None,2)
-              The index for segment reduction is taken from edge_indices[:,0].
+            - nodes: Node features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edges: Edge or message features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edge_index: Edge indices.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
+              or a singe tensor for equally sized graphs (batch,N,2).
 
         Returns:
-            features (tf.tensor): Flatten feature tensor of pooled edge features for each node.
-            The size will match the flatten node tensor.
-            Output shape is (batch*None, F).
+            features: Feature tensor of pooled edge features for each node.
         """
         nod, node_part, edge, _, edgeind, edge_part = None, None, None, None, None, None
         if self.input_tensor_type == "values_partition":

@@ -68,3 +68,49 @@ class Activation(tf.keras.layers.Layer):
         config = {'activation': ks.activations.serialize(self.activation)}
         config.update(base_config)
         return config
+
+
+class Add(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(Add, self).__init__(**kwargs)
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_add = ks.layers.Add()
+
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type == "ragged":
+            out = self._lay_add(inputs)
+            return out
+        elif self.input_tensor_type == "values_partition":
+            out_part = inputs[0][1]
+            out = self._lay_add([x[0] for x in inputs])
+            return [out, out_part]
+
+
+class Multiply(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(Multiply, self).__init__(**kwargs)
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_mult = ks.layers.Multiply()
+
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type == "ragged":
+            out = self._lay_mult(inputs)
+            return out
+        elif self.input_tensor_type == "values_partition":
+            out_part = inputs[0][1]
+            out = self._lay_mult([x[0] for x in inputs])
+            return [out, out_part]

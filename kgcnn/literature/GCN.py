@@ -17,7 +17,7 @@ from kgcnn.layers.conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.casting import CastRaggedToValuesPartition, ChangeIndexing, CastValuesPartitionToRagged, CastRaggedToTensor
+from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
@@ -89,29 +89,28 @@ def make_gcn(
                                                                                                      **input_embedd)
     # Use representation
     tens_type = "values_partition"
-    nod_indexing = "batch"
-    n = CastRaggedToValuesPartition()(n)
-    ed = CastRaggedToValuesPartition()(ed)
-    edi = CastRaggedToValuesPartition()(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type,to_indexing=nod_indexing)([n, edi])
+    node_indexing = "batch"
+    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
+    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
+    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
+    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
 
     # Map to units
     n = Dense(gcn_args["units"], use_bias=True, activation='linear', input_tensor_type=tens_type)(n)
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(input_tensor_type=tens_type, node_indexing=nod_indexing,
+        n = GCN(input_tensor_type=tens_type, node_indexing=node_indexing,
                 **gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
-        out = PoolingNodes()(n)  # will return tensor
+        out = PoolingNodes(input_tensor_type=tens_type, node_indexing=node_indexing)(n)  # will return tensor
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
         out = n
         out = MLP(input_tensor_type=tens_type,**output_mlp)(out)
-        out = CastValuesPartitionToRagged()(out)
-        out = CastRaggedToTensor()(out)  # no ragged for distribution supported atm
+        out = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(out)  # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
 

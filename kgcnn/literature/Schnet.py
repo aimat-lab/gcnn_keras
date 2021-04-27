@@ -12,6 +12,11 @@ import kgcnn.layers.ragged.pooling
 
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
+from kgcnn.layers.conv import SchNetInteraction
+from kgcnn.layers.keras import Dense
+from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.mlp import MLP
+from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 
 # Model Schnet as defined
 # by Schuett et al. 2018
@@ -69,12 +74,12 @@ def make_schnet(
                                       'input_type': 'ragged'},
                      'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
                      'interaction_args': {"units": 128, "use_bias": True,
-                                          "activation": 'shifted_softplus', "cfconv_pool": 'segment_sum',
+                                          "activation": 'shifted_softplus', "cfconv_pool": 'sum',
                                           "is_sorted": False, "has_unconnected": True},
                      'output_mlp': {"use_bias": [True, True], "units": [128, 64],
                                     "activation": ['shifted_softplus', 'shifted_softplus']},
                      'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
-                     'node_pooling_args': {"pooling_method": "segment_sum"}
+                     'node_pooling_args': {"pooling_method": "sum"}
                      }
 
     # Update args
@@ -90,26 +95,34 @@ def make_schnet(
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
 
+    # Use representation
+    tens_type = "values_partition"
+    node_indexing = "batch"
+    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(n)
+    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(ed)
+    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(edge_index_input)
+    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
 
-    n = kgcnn.layers.ragged.conv.DenseRagged(interaction_args["units"], activation='linear')(n)
+    n = Dense(interaction_args["units"], activation='linear', input_tensor_type=tens_type)(n)
 
     for i in range(0, depth):
-        n = kgcnn.layers.ragged.conv.SchNetInteraction(**interaction_args)([n, ed, edge_index_input])
+        n = SchNetInteraction(input_tensor_type=tens_type, node_indexing = node_indexing,
+                              **interaction_args)([n, ed, edi])
 
-    n = kgcnn.layers.ragged.mlp.MLPRagged(**output_mlp)(n)
+    n = MLP(input_tensor_type=tens_type, **output_mlp)(n)
 
-    mlp_last = kgcnn.layers.ragged.conv.DenseRagged(**output_dense)
+    mlp_last = Dense(input_tensor_type=tens_type, **output_dense)
 
     if output_embedd["output_mode"] == 'graph':
         if out_scale_pos == 0:
             n = mlp_last(n)
-        out = kgcnn.layers.ragged.pooling.PoolingNodes(**node_pooling_args)(n)
+        out = PoolingNodes(input_tensor_type=tens_type, node_indexing=node_indexing, **node_pooling_args)(n)
         if out_scale_pos == 1:
             out = mlp_last(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
         out = mlp_last(n)
-        main_output = kgcnn.layers.ragged.casting.CastRaggedToDense()(out)  # no ragged for distribution atm
+        main_output = ChangeTensorType(input_tensor_type="values_partition", output_tensor_type="tensor")(out)  # no ragged for distribution atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 

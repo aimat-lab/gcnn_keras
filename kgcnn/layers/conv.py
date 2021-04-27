@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
-from kgcnn.layers.keras import Dense, Activation
+from kgcnn.layers.keras import Dense, Activation, Add, Multiply
 from kgcnn.ops.activ import kgcnn_custom_act
 
 
@@ -40,6 +40,8 @@ class GCN(ks.layers.Layer):
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
             In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         **kwargs
     """
 
@@ -54,7 +56,7 @@ class GCN(ks.layers.Layer):
                  bias_constraint=None,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
-                 node_indexing='batch',
+                 node_indexing='sample',
                  pooling_method='sum',
                  is_sorted=False,
                  has_unconnected=True,
@@ -111,7 +113,8 @@ class GCN(ks.layers.Layer):
                                               ragged_validate=self.ragged_validate,
                                               input_tensor_type=self.input_tensor_type)
         self.lay_dense = Dense(units=self.units, use_bias=self.use_bias, activation='linear',
-                               input_tensor_type=self.input_tensor_type, **kernel_args)
+                               input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                               **kernel_args)
         self.lay_pool = PoolingWeightedLocalEdges(pooling_method=self.pooling_method, is_sorted=self.is_sorted,
                                                   has_unconnected=self.has_unconnected,
                                                   node_indexing=self.node_indexing,
@@ -119,7 +122,7 @@ class GCN(ks.layers.Layer):
                                                   partition_type=self.partition_type,
                                                   ragged_validate=self.ragged_validate,
                                                   input_tensor_type=self.input_tensor_type)
-        self.lay_act = Activation(activation,ragged_validate=self.ragged_validate,
+        self.lay_act = Activation(activation, ragged_validate=self.ragged_validate,
                                   input_tensor_type=self.input_tensor_type)
 
     def build(self, input_shape):
@@ -130,6 +133,8 @@ class GCN(ks.layers.Layer):
         """Forward pass.
 
         Args:
+            list: [nodes, edges, edge_index]
+
             - nodes: Node features.
               This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
               and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
@@ -203,7 +208,9 @@ class SchNetCFconv(ks.layers.Layer):
         has_unconnected (bool): If graph has unconnected nodes. Default is False.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         node_indexing (str): Indices refering to 'sample' or to the continous 'batch'.
-                             For disjoint representation 'batch' is default.
+            For disjoint representation 'batch' is default.
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
     """
 
     def __init__(self, units,
@@ -220,7 +227,9 @@ class SchNetCFconv(ks.layers.Layer):
                  is_sorted=False,
                  has_unconnected=True,
                  partition_type="row_length",
-                 node_indexing='batch',
+                 node_indexing='sample',
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
                  **kwargs):
         """Initialize Layer."""
         super(SchNetCFconv, self).__init__(**kwargs)
@@ -229,6 +238,19 @@ class SchNetCFconv(ks.layers.Layer):
         self.partition_type = partition_type
         self.has_unconnected = has_unconnected
         self.node_indexing = node_indexing
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._supports_ragged_inputs = True
+
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
+            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
+        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
+            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
 
         self.units = units
         self.use_bias = use_bias
@@ -250,16 +272,21 @@ class SchNetCFconv(ks.layers.Layer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = ks.layers.Dense(units=self.units, activation=activation, use_bias=self.use_bias,
-                                          **kernel_args)
-        self.lay_dense2 = ks.layers.Dense(units=self.units, activation='linear', use_bias=self.use_bias,
-                                          **kernel_args)
+        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,
+                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                                **kernel_args)
+        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias,
+                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                                **kernel_args)
         self.lay_sum = PoolingLocalEdges(pooling_method=self.cfconv_pool,
-                                         is_sorted=self.is_sorted,
-                                         has_unconnected=self.has_unconnected,
-                                         partition_type=self.partition_type,
-                                         node_indexing=self.node_indexing)
-        self.gather_n = GatherNodesOutgoing(node_indexing=self.node_indexing, partition_type=self.partition_type)
+                                         is_sorted=self.is_sorted, has_unconnected=self.has_unconnected,
+                                         partition_type=self.partition_type, node_indexing=self.node_indexing,
+                                         input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate)
+        self.gather_n = GatherNodesOutgoing(node_indexing=self.node_indexing, partition_type=self.partition_type,
+                                            input_tensor_type=self.input_tensor_type, is_sorted=self.is_sorted,
+                                            ragged_validate=self.ragged_validate, has_unconnected=self.has_unconnected
+                                            )
+        self.lay_mult = Multiply(input_tensor_type=self.input_tensor_type,ragged_validate=self.ragged_validate)
 
     def build(self, input_shape):
         """Build layer."""
@@ -269,28 +296,36 @@ class SchNetCFconv(ks.layers.Layer):
         """Forward pass: Calculate edge update.
 
         Args:
-            inputs (list): [node, node_partition, edge, edge_partition, edge_index]
+            list: [nodes, edges, edge_index]
 
-            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of nodes to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of edges to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
-              (batch*None,2) that corresponds to indexing 'batch'.
+            - nodes: Node features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edges: Edge features or message embedding.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edge_index: Edge indices.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
+              or a singe tensor for equally sized graphs (batch,N,2).
         
         Returns:
-            node_update (tf.tensor): Updated node features of shape (batch*None,F)
+            node_update: Updated node features.
         """
-        node, bn, edge, edge_len, indexlist = inputs
+        node, edge, indexlist = inputs
         x = self.lay_dense1(edge)
         x = self.lay_dense2(x)
-        node2exp = self.gather_n([node, bn, indexlist, edge_len])
-        x = node2exp * x
-        x = self.lay_sum([node, bn, x, edge_len, indexlist])
+        node2exp = self.gather_n([node, indexlist])
+        x = self.lay_mult([node2exp, x])
+        x = self.lay_sum([node, x, indexlist])
         return x
 
     def get_config(self):
@@ -302,6 +337,8 @@ class SchNetCFconv(ks.layers.Layer):
                        "partition_type": self.partition_type,
                        "use_bias": self.use_bias,
                        "units": self.units,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate,
                        "activation": tf.keras.activations.serialize(self.cfc_activation),
                        "kernel_regularizer": tf.keras.regularizers.serialize(self.cfc_kernel_regularizer),
                        "bias_regularizer": tf.keras.regularizers.serialize(self.cfc_bias_regularizer),
@@ -334,6 +371,8 @@ class SchNetInteraction(ks.layers.Layer):
         has_unconnected (bool): Whether graph has unconnected nodes. Default is False.
         partition_type (str): Partition type of the partition information. Default is row_length".
         node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
     """
 
     def __init__(self,
@@ -347,11 +386,13 @@ class SchNetInteraction(ks.layers.Layer):
                  bias_constraint=None,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
-                 cfconv_pool='segment_sum',
+                 cfconv_pool='sum',
                  is_sorted=False,
                  has_unconnected=True,
                  partition_type="row_length",
-                 node_indexing='batch',
+                 node_indexing='sample',
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
                  **kwargs):
         """Initialize Layer."""
         super(SchNetInteraction, self).__init__(**kwargs)
@@ -359,6 +400,19 @@ class SchNetInteraction(ks.layers.Layer):
         self.has_unconnected = has_unconnected
         self.partition_type = partition_type
         self.node_indexing = node_indexing
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._supports_ragged_inputs = True
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
+            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
+        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
+            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
         self.units = units
@@ -383,13 +437,18 @@ class SchNetInteraction(ks.layers.Layer):
         self.lay_cfconv = SchNetCFconv(units=self.units, activation=activation, use_bias=self.use_bias,
                                        cfconv_pool=self.cfconv_pool, has_unconnected=self.has_unconnected,
                                        is_sorted=self.is_sorted, partition_type=self.partition_type,
+                                       input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
                                        node_indexing=self.node_indexing, **kernel_args)
-        self.lay_dense1 = ks.layers.Dense(units=self.units, activation='linear', use_bias=False, **kernel_args)
-        self.lay_dense2 = ks.layers.Dense(units=self.units, activation=activation, use_bias=self.use_bias,
-                                          **kernel_args)
-        self.lay_dense3 = ks.layers.Dense(units=self.units, activation='linear', use_bias=self.use_bias,
-                                          **kernel_args)
-        self.lay_add = ks.layers.Add()
+        self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False,
+                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                                **kernel_args)
+        self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,
+                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                                **kernel_args)
+        self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias,
+                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
+                                **kernel_args)
+        self.lay_add = Add(input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate)
 
     def build(self, input_shape):
         """Build layer."""
@@ -399,25 +458,33 @@ class SchNetInteraction(ks.layers.Layer):
         """Forward pass: Calculate node update.
 
         Args:
-            inputs (list): [node, node_partition, edge, edge_partition, edge_index]
+            list: [nodes, edges, edge_index]
 
-            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of nodes to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of edges to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge indices for disjoint representation of shape
-              (batch*None,2) that corresponds to indexing 'batch'.
+            - nodes: Node features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edges: Edge features or message embedding.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edge_index: Edge indices.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
+              or a singe tensor for equally sized graphs (batch,N,2).
 
         Returns:
-            node_update (tf.tensor): Updated node features.
+            node_update: Updated node features.
         """
-        node, bn, edge, edge_len, indexlist = inputs
+        node, edge, indexlist = inputs
         x = self.lay_dense1(node)
-        x = self.lay_cfconv([x, bn, edge, edge_len, indexlist])
+        x = self.lay_cfconv([x, edge, indexlist])
         x = self.lay_dense2(x)
         x = self.lay_dense3(x)
         out = self.lay_add([node, x])
@@ -432,6 +499,8 @@ class SchNetInteraction(ks.layers.Layer):
                        "node_indexing": self.node_indexing,
                        "units": self.units,
                        "use_bias": self.use_bias,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate,
                        "activation": tf.keras.activations.serialize(self.schnet_activation),
                        "kernel_regularizer": tf.keras.regularizers.serialize(self.schnet_kernel_regularizer),
                        "bias_regularizer": tf.keras.regularizers.serialize(self.schnet_bias_regularizer),
