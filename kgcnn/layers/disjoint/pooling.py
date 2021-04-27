@@ -1,9 +1,9 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition, _change_partition_type
-from kgcnn.ops.scatter import _scatter_segment_tensor_nd
-from kgcnn.ops.segment import _segment_operation_by_name
+from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition, kgcnn_ops_change_partition_type
+from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
+from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
 
 
 class PoolingLocalEdges(ks.layers.Layer):
@@ -68,11 +68,11 @@ class PoolingLocalEdges(ks.layers.Layer):
         """
         nod, node_part, edge, edge_part, edgeind = inputs
 
-        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type_node=self.partition_type,
-                                                                 partition_type_edge=self.partition_type,
-                                                                 to_indexing='batch',
-                                                                 from_indexing=self.node_indexing)
+        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                          partition_type_node=self.partition_type,
+                                                                          partition_type_edge=self.partition_type,
+                                                                          to_indexing='batch',
+                                                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge
@@ -83,10 +83,10 @@ class PoolingLocalEdges(ks.layers.Layer):
             dens = tf.gather(dens, node_order, axis=0)
 
         # Pooling via e.g. segment_sum
-        out = _segment_operation_by_name(self.pooling_method, dens, nodind)
+        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.has_unconnected:
-            out = _scatter_segment_tensor_nd(out, nodind, tf.shape(nod))
+            out = kgcnn_ops_scatter_segment_tensor_nd(out, nodind, tf.shape(nod))
 
         return out
 
@@ -170,11 +170,11 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         """
         nod, node_part, edge, edge_part, edgeind, weights = inputs
 
-        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type_node=self.partition_type,
-                                                                 partition_type_edge=self.partition_type,
-                                                                 to_indexing='batch',
-                                                                 from_indexing=self.node_indexing)
+        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                          partition_type_node=self.partition_type,
+                                                                          partition_type_edge=self.partition_type,
+                                                                          to_indexing='batch',
+                                                                          from_indexing=self.node_indexing)
 
         wval = weights
         dens = edge * wval
@@ -188,13 +188,13 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
             wval = tf.gather(wval, node_order, axis=0)
 
         # Pooling via e.g. segment_sum
-        get = _segment_operation_by_name(self.pooling_method, dens, nodind)
+        get = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.normalize_by_weights:
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
 
         if self.has_unconnected:
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
+            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         out = get
         return out
@@ -255,9 +255,9 @@ class PoolingNodes(ks.layers.Layer):
         """
         node, node_part = inputs
 
-        batchi = _change_partition_type(node_part, self.partition_type, "value_rowids")
+        batchi = kgcnn_ops_change_partition_type(node_part, self.partition_type, "value_rowids")
 
-        out = _segment_operation_by_name(self.pooling_method, node, batchi)
+        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, node, batchi)
         # Output should have correct shape
         return out
 
@@ -310,9 +310,9 @@ class PoolingGlobalEdges(ks.layers.Layer):
         """
         edge, edge_part = inputs
 
-        batchi = _change_partition_type(edge_part, self.partition_type, "value_rowids")
+        batchi = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "value_rowids")
 
-        out = _segment_operation_by_name(self.pooling_method, edge, batchi)
+        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, edge, batchi)
         # Output already has correct shape
         return out
 
@@ -411,11 +411,11 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         """
         nod, node_part, edge, edge_part, edgeind = inputs
 
-        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type_node=self.partition_type,
-                                                                 partition_type_edge=self.partition_type,
-                                                                 to_indexing='batch',
-                                                                 from_indexing=self.node_indexing)
+        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                          partition_type_node=self.partition_type,
+                                                                          partition_type_edge=self.partition_type,
+                                                                          to_indexing='batch',
+                                                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge
@@ -433,7 +433,7 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
+            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         out = get
         return out

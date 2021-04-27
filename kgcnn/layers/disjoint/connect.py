@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import _change_partition_type
+from kgcnn.ops.partition import kgcnn_ops_change_partition_type
 
 # import tensorflow.keras.backend as ksb
 
@@ -53,8 +53,8 @@ class AdjacencyPower(ks.layers.Layer):
         edge_index, edge, edge_part, node_part = inputs
 
         # Cast to length tensor
-        node_len = _change_partition_type(node_part, self.partition_type, "row_length")
-        edge_len = _change_partition_type(edge_part, self.partition_type, "row_length")
+        node_len = kgcnn_ops_change_partition_type(node_part, self.partition_type, "row_length")
+        edge_len = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "row_length")
 
         # batchwise indexing
         shift_index = tf.expand_dims(tf.repeat(tf.cumsum(node_len, exclusive=True), edge_len), axis=1)
@@ -93,7 +93,7 @@ class AdjacencyPower(ks.layers.Layer):
         new_edge = tf.expand_dims(out[mask], axis=-1)
 
         # Outpartition
-        new_edge_part = _change_partition_type(new_edge_len, "row_length", self.partition_type)
+        new_edge_part = kgcnn_ops_change_partition_type(new_edge_len, "row_length", self.partition_type)
 
         return [new_edge_index, new_edge, new_edge_part]
 

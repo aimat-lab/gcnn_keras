@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition, _change_partition_type
+from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition, kgcnn_ops_change_partition_type
 
 
 class CastRaggedToValues(ks.layers.Layer):
@@ -118,7 +118,7 @@ class CastMaskedToValues(ks.layers.Layer):
         flat_tens = tf.boolean_mask(batchred_tens, batchred_mask)
 
         # Output
-        outpart = _change_partition_type(row_lengths, "row_length", self.partition_type)
+        outpart = kgcnn_ops_change_partition_type(row_lengths, "row_length", self.partition_type)
 
         return [flat_tens, outpart]
 
@@ -171,7 +171,7 @@ class CastBatchToValues(ks.layers.Layer):
         out_len = tf.repeat(sh_feat[1], sh_feat[0])
 
         # Output
-        outpart = _change_partition_type(out_len, "row_length", self.partition_type)
+        outpart = kgcnn_ops_change_partition_type(out_len, "row_length", self.partition_type)
 
         return [out, outpart]
 
@@ -416,12 +416,12 @@ class ChangeIndexing(ks.layers.Layer):
         """
         part_node, edge_index, part_edge = inputs
 
-        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
-                                                                  partition_type_node=self.partition_type,
-                                                                  partition_type_edge=self.partition_type,
-                                                                  from_indexing=self.from_indexing,
-                                                                  to_indexing=self.to_indexing
-                                                                  )
+        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
+                                                                           partition_type_node=self.partition_type,
+                                                                           partition_type_edge=self.partition_type,
+                                                                           from_indexing=self.from_indexing,
+                                                                           to_indexing=self.to_indexing
+                                                                           )
 
         return indexlist
 

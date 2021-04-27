@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-from kgcnn.ops.partition import _change_partition_type
+from kgcnn.ops.partition import kgcnn_ops_change_partition_type
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
@@ -146,9 +146,9 @@ class Set2Set(ks.layers.Layer):
         """
         x, batch_part = inputs
 
-        batch_num = _change_partition_type(batch_part,self.partition_type,"row_length")
+        batch_num = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "row_length")
         # batch_shape = ksb.shape(batch_num)
-        batch_index = _change_partition_type(batch_part, self.partition_type, "value_rowids")
+        batch_index = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "value_rowids")
 
         # Reading to memory removed here, is to be done by seperately
         m = x  # (batch*None,feat)

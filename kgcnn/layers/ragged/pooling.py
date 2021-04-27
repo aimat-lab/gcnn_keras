@@ -1,8 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.scatter import _scatter_segment_tensor_nd
-from kgcnn.ops.segment import _segment_operation_by_name
+from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
+from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
 # import tensorflow.keras.backend as ksb
 
 class PoolingNodes(ks.layers.Layer):
@@ -240,10 +240,10 @@ class PoolingLocalEdges(ks.layers.Layer):
             dens = tf.gather(dens, node_order, axis=0)
 
         # Pooling via e.g. segment_sum
-        get = _segment_operation_by_name(self.pooling_method, dens, nodind)
+        get = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.has_unconnected:
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod.values))
+            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod.values))
 
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out
@@ -339,7 +339,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
             wval = tf.gather(wval, node_order, axis=0)
 
         # Do the pooling
-        get = _segment_operation_by_name(self.pooling_method, dens, nodind)
+        get = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
 
         if self.normalize_by_weights:
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
@@ -347,7 +347,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since not all nodes are also in pooled
             # Does not happen if all nodes are also connected
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod.values))
+            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod.values))
 
         out = tf.RaggedTensor.from_row_splits(get, nod.row_splits, validate=self.ragged_validate)
         return out

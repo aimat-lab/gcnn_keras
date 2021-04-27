@@ -2,12 +2,12 @@ import tensorflow as tf
 
 
 @tf.function
-def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
-                                                  partition_type_node,
-                                                  partition_type_edge,
-                                                  from_indexing='sample',
-                                                  to_indexing='batch',
-                                                  axis=1):
+def kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
+                                                           partition_type_node,
+                                                           partition_type_edge,
+                                                           from_indexing='sample',
+                                                           to_indexing='batch',
+                                                           axis=1):
     """Change the edge index tensor indexing between per graph and per batch assignment. Batch assignment is equivalent
     to disjoint representation. To change indices, the row partition of edge and node tensor must be known.
 
@@ -75,7 +75,7 @@ def _change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_ed
 
 
 @tf.function
-def _change_partition_type(in_partition, in_partition_type, out_partition_type):
+def kgcnn_ops_change_partition_type(in_partition, in_partition_type, out_partition_type):
     """Switch between partition types.
 
     Args:

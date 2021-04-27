@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import _change_partition_type, _change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
 class GatherNodes(ks.layers.Layer):
@@ -49,11 +49,11 @@ class GatherNodes(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
 
-        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type_node=self.partition_type,
-                                                                  partition_type_edge=self.partition_type,
-                                                                  to_indexing='batch',
-                                                                  from_indexing=self.node_indexing)
+        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                           partition_type_node=self.partition_type,
+                                                                           partition_type_edge=self.partition_type,
+                                                                           to_indexing='batch',
+                                                                           from_indexing=self.node_indexing)
 
         out = tf.gather(node, indexlist, axis=0)
 
@@ -118,11 +118,11 @@ class GatherNodesOutgoing(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
-        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type_node=self.partition_type,
-                                                                  partition_type_edge=self.partition_type,
-                                                                  to_indexing='batch',
-                                                                  from_indexing=self.node_indexing)
+        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                           partition_type_node=self.partition_type,
+                                                                           partition_type_edge=self.partition_type,
+                                                                           to_indexing='batch',
+                                                                           from_indexing=self.node_indexing)
 
         out = tf.gather(node, indexlist[:, 1], axis=0)
         return out
@@ -181,11 +181,11 @@ class GatherNodesIngoing(ks.layers.Layer):
         """
         node, node_part, edge_index, edge_part = inputs
         # node,edge_index= inputs
-        indexlist = _change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                  partition_type_node=self.partition_type,
-                                                                  partition_type_edge=self.partition_type,
-                                                                  to_indexing='batch',
-                                                                  from_indexing=self.node_indexing)
+        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
+                                                                           partition_type_node=self.partition_type,
+                                                                           partition_type_edge=self.partition_type,
+                                                                           to_indexing='batch',
+                                                                           from_indexing=self.node_indexing)
 
         out = tf.gather(node, indexlist[:, 0], axis=0)
         return out
@@ -234,7 +234,7 @@ class GatherState(ks.layers.Layer):
         """
         env, target_part = inputs
 
-        target_len = _change_partition_type(target_part, self.partition_type, "row_length")
+        target_len = kgcnn_ops_change_partition_type(target_part, self.partition_type, "row_length")
 
         out = tf.repeat(env, target_len, axis=0)
         return out

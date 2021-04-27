@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 
 @tf.function
-def _scatter_segment_tensor_nd(data, segment_ids, target_shape):
+def kgcnn_ops_scatter_segment_tensor_nd(data, segment_ids, target_shape):
     """Scatter output of segment operation into target shape.
     This additional step is required since segment_ids may not contain largest id but target_shape must
     match with largest id.
@@ -26,7 +26,7 @@ def _scatter_segment_tensor_nd(data, segment_ids, target_shape):
 
 
 @tf.function
-def _tensor_scatter_nd_mean(tensor, indices, updates, name=None):
+def tensor_scatter_nd_mean(tensor, indices, updates, name=None):
     """Temporary replacement of tensor_scatter_nd_mean until its supported by tensorflow.
 
     Args:
@@ -42,7 +42,7 @@ def _tensor_scatter_nd_mean(tensor, indices, updates, name=None):
 
 
 @tf.function
-def _tensor_scatter_nd_by_name(segment_name, tensor, indices, updates, name=None):
+def kgcnn_ops_tensor_scatter_nd_by_name(segment_name, tensor, indices, updates, name=None):
     """Scatter operation chosen by name that can replace segment-operations.
 
     Args:
@@ -57,7 +57,7 @@ def _tensor_scatter_nd_by_name(segment_name, tensor, indices, updates, name=None
     """
     pool = None
     if segment_name in ["segment_mean", "mean", "reduce_mean"]:
-        pool = _tensor_scatter_nd_mean(tensor, indices, updates, name=name)
+        pool = tensor_scatter_nd_mean(tensor, indices, updates, name=name)
     elif segment_name in ["segment_sum", "sum", "reduce_sum"]:
         pool = tf.tensor_scatter_nd_add(tensor, indices, updates, name=name)
     elif segment_name in ["segment_max", "max", "reduce_max"]:

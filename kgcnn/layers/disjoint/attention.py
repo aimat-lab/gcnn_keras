@@ -3,8 +3,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.disjoint.gather import GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.ops.activ import kgcnn_custom_act
-from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.scatter import _scatter_segment_tensor_nd
+from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax
 
 
@@ -73,11 +73,11 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
         """
         nod, node_part, edge, attention, edge_part, edgeind = inputs
 
-        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
-                                                                 partition_type_node=self.partition_type,
-                                                                 partition_type_edge=self.partition_type,
-                                                                 to_indexing='batch',
-                                                                 from_indexing=self.node_indexing)
+        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
+                                                                          partition_type_node=self.partition_type,
+                                                                          partition_type_edge=self.partition_type,
+                                                                          to_indexing='batch',
+                                                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge
@@ -97,7 +97,7 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = _scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
+            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
         return get
 

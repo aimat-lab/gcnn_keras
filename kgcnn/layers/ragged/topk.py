@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import _change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 class PoolingTopK(ks.layers.Layer):
     """
@@ -130,10 +130,10 @@ class PoolingTopK(ks.layers.Layer):
         # Adjust the Graph edges after nodes are pooled
         # Shift also edgeindex by batch offset
         edge_ids = edgeind.value_rowids()
-        shiftind = _change_edge_tensor_indexing_by_row_partition(edgeind.values, nrowsplit, edge_ids,
+        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind.values, nrowsplit, edge_ids,
                                                                   "row_splits","value_rowids",
-                                                                  from_indexing=self.node_indexing,
-                                                                  to_indexing='batch')
+                                                                          from_indexing=self.node_indexing,
+                                                                          to_indexing='batch')
         shiftind = tf.cast(shiftind, dtype=index_dtype)
 
         # Remove edges that were from filtered nodes via mask
@@ -153,10 +153,10 @@ class PoolingTopK(ks.layers.Layer):
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
         # Remove the batch offset from edge_indices again for ragged tensor output
-        out_indexlist = _change_edge_tensor_indexing_by_row_partition(new_edge_index_sorted, pooled_len, clean_edge_ids,
+        out_indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(new_edge_index_sorted, pooled_len, clean_edge_ids,
                                                                       "row_length","value_rowids",
-                                                                      from_indexing='batch',
-                                                                      to_indexing=self.node_indexing)
+                                                                               from_indexing='batch',
+                                                                               to_indexing=self.node_indexing)
 
         # Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat.values
@@ -176,14 +176,14 @@ class PoolingTopK(ks.layers.Layer):
 
         # Collect reverse pooling info   
         # Remove batch offset for old indicies -> but with new length
-        out_pool = _change_edge_tensor_indexing_by_row_partition(pooled_index,nrowlength,pooled_len,
+        out_pool = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(pooled_index, nrowlength, pooled_len,
                                                                  "row_length","row_length",
-                                                                 from_indexing='batch',
-                                                                 to_indexing=self.node_indexing,axis=0)
-        out_pool_edge = _change_edge_tensor_indexing_by_row_partition(edge_position_new,erowlength,clean_edge_ids,
+                                                                          from_indexing='batch',
+                                                                          to_indexing=self.node_indexing, axis=0)
+        out_pool_edge = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_position_new, erowlength, clean_edge_ids,
                                                                       "row_length", "value_rowids",
-                                                                      from_indexing='batch',
-                                                                      to_indexing=self.node_indexing,axis=0)
+                                                                               from_indexing='batch',
+                                                                               to_indexing=self.node_indexing, axis=0)
 
         map_node = tf.RaggedTensor.from_row_lengths(out_pool, pooled_len, validate=self.ragged_validate)
         map_edge = tf.RaggedTensor.from_row_lengths(out_pool_edge, clean_edge_len, validate=self.ragged_validate)
@@ -264,18 +264,18 @@ class UnPoolingTopK(ks.layers.Layer):
         map_edge = map_edge.values
 
         # Correct map index for flatten batch offset
-        map_node = _change_edge_tensor_indexing_by_row_partition(map_node,
-                                                                  node_old.row_splits, node_new.row_lengths(),
-                                                                  partition_type_node="row_splits",
-                                                                  partition_type_edge="row_length",
-                                                                  from_indexing=self.node_indexing,
-                                                                  to_indexing="batch",axis=0)
-        map_edge = _change_edge_tensor_indexing_by_row_partition(map_edge,
-                                                                  edge_old.row_splits, edge_new.value_rowids(),
-                                                                  partition_type_node="row_splits",
-                                                                  partition_type_edge="value_rowids",
-                                                                  from_indexing=self.node_indexing,
-                                                                  to_indexing="batch",axis=0)
+        map_node = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(map_node,
+                                                                          node_old.row_splits, node_new.row_lengths(),
+                                                                          partition_type_node="row_splits",
+                                                                          partition_type_edge="row_length",
+                                                                          from_indexing=self.node_indexing,
+                                                                          to_indexing="batch", axis=0)
+        map_edge = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(map_edge,
+                                                                          edge_old.row_splits, edge_new.value_rowids(),
+                                                                          partition_type_node="row_splits",
+                                                                          partition_type_edge="value_rowids",
+                                                                          from_indexing=self.node_indexing,
+                                                                          to_indexing="batch", axis=0)
         # Add batch offset for old indicies -> but with new length
 
         index_dtype = map_node.dtype

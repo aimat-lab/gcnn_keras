@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.data.cora.cora import cora_graph
-from kgcnn.literature.GCN import make_gcn_sparse as make_gcn
+from kgcnn.literature.GCN import make_gcn as make_gcn
 from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, make_adjacency_undirected_logical_or
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
