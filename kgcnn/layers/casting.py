@@ -7,6 +7,36 @@ from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition, kgcnn_op
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
+class CastRaggedToTensor(tf.keras.layers.Layer):
+    """
+    Layer to cast a ragged tensor to a dense tensor.
+
+    Args:
+        **kwargs
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(CastRaggedToTensor, self).__init__(**kwargs)
+        self._supports_ragged_inputs = True
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(CastRaggedToTensor, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            tf.ragged: Feature ragged tensor of shape e.g. (batch,None,F)
+
+        Returns:
+            tf.tensor: Input.to_tensor() with zero padding.
+        """
+        out = inputs.to_tensor()
+        return out
+
+
 class CastRaggedToValuesPartition(ks.layers.Layer):
     """
     Cast a ragged tensor with one ragged dimension, like node feature list to a single value plus partition tensor.

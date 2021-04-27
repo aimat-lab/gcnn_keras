@@ -119,7 +119,8 @@ class GCN(ks.layers.Layer):
                                                   partition_type=self.partition_type,
                                                   ragged_validate=self.ragged_validate,
                                                   input_tensor_type=self.input_tensor_type)
-        self.lay_act = Activation(activation)
+        self.lay_act = Activation(activation,ragged_validate=self.ragged_validate,
+                                  input_tensor_type=self.input_tensor_type)
 
     def build(self, input_shape):
         """Build layer."""
@@ -129,22 +130,24 @@ class GCN(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): [node, node_partition, edge, edge_partition, edge_index]
-
-            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of nodes to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            - edge_partition (tf.tensor): Row partition for edge. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of edges to each graph in batch.
-              Default is row_length of shape (batch,)
-            - edge_index (tf.tensor): Edge edge_indices for disjoint representation of shape
-              (batch*None,2) that corresponds to indexing 'batch'.
-        
-        Returns:
-            features (tf.tensor): A list of updated node features.
-            Output shape is (batch*None,F).
+            - nodes: Node features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edges: Edge features or message embedding.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - edge_index: Edge indices.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
+              or a singe tensor for equally sized graphs (batch,N,2).
         """
         node, edges, edge_index = inputs
         no = self.lay_dense(node)

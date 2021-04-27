@@ -199,7 +199,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, edges, edge_index]
+            inputs (list): of [node, edges, edge_index, weights]
 
             - nodes: Node features.
               This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
@@ -219,7 +219,7 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
               disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
               and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
               or a singe tensor for equally sized graphs (batch,N,2).
-            - wights: Edge or message weights. Most broadcast to edges or messages.
+            - weights: Edge or message weights. Most broadcast to edges or messages.
               This can be either a tuple of (values, partition) tensors of shape (batch*None,1)
               and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
               disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 1)
@@ -292,19 +292,42 @@ class PoolingNodes(ks.layers.Layer):
     Polling all nodes per batch. The batch assignment is given by a length-tensor.
     
     Args:
-        pooling_method (str): Pooling method to use i.e. segment_function
+        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+        is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         **kwargs
     """
 
     def __init__(self,
-                 pooling_method="segment_mean",
+                 pooling_method="mean",
+                 is_sorted=False,
+                 node_indexing="sample",
+                 has_unconnected=True,
                  partition_type="row_length",
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
         super(PoolingNodes, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self.node_indexing = node_indexing
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+
+        self._supports_ragged_inputs = True
 
     def build(self, input_shape):
         """Build layer."""
@@ -314,23 +337,25 @@ class PoolingNodes(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [nodes, node_partition]
-
-            - nodes (tf.tensor): Flatten node features of shape (batch*None,F)
-            - node_partition (tf.tensor): Row partition for nodes. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of nodes to each graph in batch.
-              Default is row_length of shape (batch,)
+            inputs: Node features.
+                This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+                and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+                disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape
+                (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+                or a singe tensor for equally sized graphs (batch,N,F).
     
         Returns:
-            features (tf.tensor): Pooled node feature list of shape (batch,F)
-            where F is the feature dimension and holds a pooled 
-            node feature for each graph.
+            nodes (tf.tensor): Pooled node features of shape (batch,F)
         """
-        node, node_part = inputs
+        nod, node_part = None, None
+        if self.input_tensor_type == "values_partition":
+            nod, node_part = inputs
+        elif self.input_tensor_type == "ragged":
+            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
 
         batchi = kgcnn_ops_change_partition_type(node_part, self.partition_type, "value_rowids")
 
-        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, node, batchi)
+        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, nod, batchi)
         # Output should have correct shape
         return out
 
@@ -338,7 +363,107 @@ class PoolingNodes(ks.layers.Layer):
         """Update layer config."""
         config = super(PoolingNodes, self).get_config()
         config.update({"pooling_method": self.pooling_method,
-                       "partition_type": self.partition_type})
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
+        return config
+
+
+class PoolingWeightedNodes(ks.layers.Layer):
+    """
+    Polling all nodes per batch. The batch assignment is given by a length-tensor.
+
+    Args:
+        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+        is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+        **kwargs
+    """
+
+    def __init__(self,
+                 pooling_method="mean",
+                 is_sorted=False,
+                 node_indexing="sample",
+                 has_unconnected=True,
+                 partition_type="row_length",
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
+                 **kwargs):
+        """Initialize layer."""
+        super(PoolingWeightedNodes, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self.node_indexing = node_indexing
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+
+        self._supports_ragged_inputs = True
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingWeightedNodes, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): of [node, weights]
+
+            - nodes: Node features.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+              or a singe tensor for equally sized graphs (batch,N,F).
+            - weights: Edge or message weights. Most broadcast to nodes.
+              This can be either a tuple of (values, partition) tensors of shape (batch*None,1)
+              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 1)
+              and mask (batch, N) or a single RaggedTensor of shape (batch,None,1)
+              or a singe tensor for equally sized graphs (batch,N,1).
+
+        Returns:
+            nodes (tf.tensor): Pooled node features of shape (batch,F)
+        """
+        nod, node_part, weights = None, None, None
+        if self.input_tensor_type == "values_partition":
+            [nod, node_part], [weights, _] = inputs
+        elif self.input_tensor_type == "ragged":
+            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
+            weights, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
+
+        batchi = kgcnn_ops_change_partition_type(node_part, self.partition_type, "value_rowids")
+
+        nod = tf.math.multiply(nod, weights)
+        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, nod, batchi)
+        # Output should have correct shape
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingWeightedNodes, self).get_config()
+        config.update({"pooling_method": self.pooling_method,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
         return config
 
 
@@ -347,19 +472,42 @@ class PoolingGlobalEdges(ks.layers.Layer):
     Pooling all edges per graph. The batch assignment is given by a length-tensor.
 
     Args:
-        pooling_method (str): Pooling method to use i.e. segement_function
+        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+        is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         **kwargs
     """
 
     def __init__(self,
-                 pooling_method="segment_mean",
+                 pooling_method="mean",
+                 is_sorted=False,
+                 node_indexing="sample",
+                 has_unconnected=True,
                  partition_type="row_length",
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
         super(PoolingGlobalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self.node_indexing = node_indexing
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+
+        self._supports_ragged_inputs = True
 
     def build(self, input_shape):
         """Build layer."""
@@ -369,31 +517,38 @@ class PoolingGlobalEdges(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): of [edges, edge_partition]
-
-            - edges (tf.tensor): Flatten edge feature list of shape (batch*None,F)
-            - edge_partition (tf.tensor): Row partition for edges. This can be either row_length, value_rowids,
-              row_splits. Yields the assignment of edges to each graph in batch.
-              Default is row_length of shape (batch,)
+            inputs: Edge features or message embeddings.
+                This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+                and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+                disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of
+                shape (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+                or a singe tensor for equally sized graphs (batch,N,F).
     
         Returns:
-            features (tf.tensor): adj_matrix pooled edges feature list of shape (batch,F).
-            where F is the feature dimension and holds a pooled 
-            edge feature for each graph.
+            tf.tensor: Pooled edges feature list of shape (batch,F).
         """
-        edge, edge_part = inputs
+        edge, edge_part = None, None
+        if self.input_tensor_type == "values_partition":
+            edge, edge_part = inputs
+        elif self.input_tensor_type == "ragged":
+            edge, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
 
         batchi = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "value_rowids")
 
         out = kgcnn_ops_segment_operation_by_name(self.pooling_method, edge, batchi)
-        # Output already has correct shape
+        # Output already has correct shape and type
         return out
 
     def get_config(self):
         """Update layer config."""
         config = super(PoolingGlobalEdges, self).get_config()
         config.update({"pooling_method": self.pooling_method,
-                       "partition_type": self.partition_type})
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
         return config
 
 
@@ -414,16 +569,20 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         **kwargs
     """
 
     def __init__(self,
                  units,
                  pooling_method="LSTM",
-                 node_indexing="batch",
+                 node_indexing="sample",
                  is_sorted=False,
                  has_unconnected=True,
                  partition_type="row_length",
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
                  activation='tanh', recurrent_activation='sigmoid',
                  use_bias=True, kernel_initializer='glorot_uniform',
                  recurrent_initializer='orthogonal',
@@ -441,6 +600,14 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         self.has_unconnected = has_unconnected
         self.node_indexing = node_indexing
         self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
 
         self.lstm_unit = ks.layers.LSTM(units=units, activation=activation, recurrent_activation=recurrent_activation,
                                         use_bias=use_bias, kernel_initializer=kernel_initializer,
@@ -482,7 +649,13 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
             The size will match the flatten node tensor.
             Output shape is (batch*None, F).
         """
-        nod, node_part, edge, edge_part, edgeind = inputs
+        nod, node_part, edge, _, edgeind, edge_part = None, None, None, None, None, None
+        if self.input_tensor_type == "values_partition":
+            [nod, node_part], [edge, _], [edgeind, edge_part] = inputs
+        elif self.input_tensor_type == "ragged":
+            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], self.partition_type)
+            edge, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
+            edgeind, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[2],  self.partition_type)
 
         shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
                                                                           partition_type_node=self.partition_type,
@@ -508,8 +681,12 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
             # Does not happen if all nodes are also connected
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        out = get
-        return out
+
+        if self.input_tensor_type == "values_partition":
+            return [get, node_part]
+        elif self.input_tensor_type == "ragged":
+            return kgcnn_ops_cast_value_partition_to_ragged([get, node_part], self.partition_type)
+
 
     def get_config(self):
         """Update layer config."""
@@ -518,7 +695,9 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
                        "is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
                        "node_indexing": self.node_indexing,
-                       "partition_type": self.partition_type})
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
         conf_lstm = self.lstm_unit.get_config()
         lstm_param = ["activation", "recurrent_activation", "use_bias", "kernel_initializer", "recurrent_initializer",
                       "bias_initializer", "unit_forget_bias", "kernel_regularizer", "recurrent_regularizer",

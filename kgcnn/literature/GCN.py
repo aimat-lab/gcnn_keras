@@ -17,6 +17,7 @@ from kgcnn.layers.conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
+from kgcnn.layers.casting import CastRaggedToValuesPartition, ChangeIndexing, CastValuesPartitionToRagged, CastRaggedToTensor
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
@@ -71,7 +72,7 @@ def make_gcn(
                      'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'masked'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum',
+                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
                                   "is_sorted": False, "has_unconnected": True}
                      }
 
@@ -86,15 +87,21 @@ def make_gcn(
                                                                                                      input_edge_shape,
                                                                                                      None,
                                                                                                      **input_embedd)
+    # Use representation
+    tens_type = "values_partition"
+    nod_indexing = "batch"
+    n = CastRaggedToValuesPartition()(n)
+    ed = CastRaggedToValuesPartition()(ed)
+    edi = CastRaggedToValuesPartition()(edge_index_input)
+    edi = ChangeIndexing(input_tensor_type=tens_type,to_indexing=nod_indexing)([n, edi])
+
     # Map to units
-    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)
-    ed = ed
-    edi = edge_index_input
-    # edi = ChangeIndexing()([n, edge_index_input])
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear', input_tensor_type=tens_type)(n)
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(**gcn_args)([n, ed, edi])
+        n = GCN(input_tensor_type=tens_type, node_indexing=nod_indexing,
+                **gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
         out = PoolingNodes()(n)  # will return tensor
@@ -102,8 +109,9 @@ def make_gcn(
 
     else:  # Node labeling
         out = n
-        out = MLP(**output_mlp)(out)
-        out = kgcnn.layers.ragged.casting.CastRaggedToDense()(out)  # no ragged for distribution supported atm
+        out = MLP(input_tensor_type=tens_type,**output_mlp)(out)
+        out = CastValuesPartitionToRagged()(out)
+        out = CastRaggedToTensor()(out)  # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
 

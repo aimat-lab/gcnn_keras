@@ -334,19 +334,49 @@ class GatherNodesIngoing(ks.layers.Layer):
 
 class GatherState(ks.layers.Layer):
     """
-    Layer to repeat environment or global state for node or edge lists. The node or edge lists are flattened.
+    Layer to repeat environment or global state for node or edge lists.
     
     To repeat the correct environment for each sample, a tensor with the target length/partition is required.
 
     Args:
-        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
+            This is used for input_tensor_type="values_partition".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         **kwargs
     """
 
-    def __init__(self, partition_type="row_length", **kwargs):
+    def __init__(self,
+                 node_indexing='sample',
+                 partition_type="row_length",
+                 input_tensor_type="ragged",
+                 ragged_validate=False,
+                 is_sorted=False,
+                 has_unconnected=True,
+                 **kwargs):
         """Initialize layer."""
         super(GatherState, self).__init__(**kwargs)
+        self.node_indexing = node_indexing
         self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
+        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._supports_ragged_inputs = True
+
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for this layer ", self.name, "choose one of the following:",
+                                      self._tensor_input_type_implemented)
+        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
+            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
+        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
+            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
 
     def build(self, input_shape):
         """Build layer."""
@@ -376,5 +406,10 @@ class GatherState(ks.layers.Layer):
     def get_config(self):
         """Update config."""
         config = super(GatherState, self).get_config()
-        config.update({"partition_type": self.partition_type})
+        config.update({"node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "ragged_validate": self.ragged_validate})
         return config
