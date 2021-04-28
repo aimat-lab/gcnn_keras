@@ -1,12 +1,12 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint, CastValuesToRagged
-from kgcnn.layers.disjoint.gather import GatherNodesOutgoing
-from kgcnn.layers.disjoint.mlp import MLP
-from kgcnn.layers.disjoint.pooling import PoolingLocalEdges, PoolingNodes
-from kgcnn.layers.disjoint.set2set import Set2Set
-from kgcnn.layers.disjoint.update import ApplyMessage, GRUupdate
-from kgcnn.layers.ragged.casting import CastRaggedToDense
+import kgcnn.layers.disjoint.casting
+import kgcnn.layers.disjoint.gather
+import kgcnn.layers.disjoint.mlp
+import kgcnn.layers.disjoint.pooling
+import kgcnn.layers.disjoint.set2set
+import kgcnn.layers.disjoint.update
+import kgcnn.layers.ragged.casting
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
@@ -15,7 +15,11 @@ from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 # http://arxiv.org/abs/1704.01212    
 
 
-def make_nmpn(
+
+
+
+
+def make_nmpn_disjoint(
         # Input
         input_node_shape,
         input_edge_shape,
@@ -86,16 +90,16 @@ def make_nmpn(
                                                                                           None,
                                                                                           **input_embedd)
 
-    n, node_len, ed, edge_len, edi = CastRaggedToDisjoint()([n, ed, edge_index_input])
+    n, node_len, ed, edge_len, edi = kgcnn.layers.disjoint.casting.CastRaggedToDisjoint()([n, ed, edge_index_input])
 
     n = ks.layers.Dense(node_dim)(n)
     edge_net = ks.layers.Dense(node_dim * node_dim, **edge_dense)(ed)
-    gru = GRUupdate(node_dim)
+    gru = kgcnn.layers.disjoint.update.GRUupdate(node_dim)
 
     for i in range(0, depth):
-        eu = GatherNodesOutgoing()([n, node_len, edi, edge_len])
-        eu = ApplyMessage(node_dim)([edge_net, eu])
-        eu = PoolingLocalEdges(**pooling_args)(
+        eu = kgcnn.layers.disjoint.gather.GatherNodesOutgoing()([n, node_len, edi, edge_len])
+        eu = kgcnn.layers.disjoint.update.ApplyMessage(node_dim)([edge_net, eu])
+        eu = kgcnn.layers.disjoint.pooling.PoolingLocalEdges(**pooling_args)(
             [n, node_len, eu, edge_len, edi])  # Summing for each node connections
         n = gru([n, eu])
 
@@ -103,19 +107,19 @@ def make_nmpn(
         if use_set2set:
             # output
             outss = ks.layers.Dense(set2set_args['channels'])(n)
-            out = Set2Set(**set2set_args)([outss, node_len])
+            out = kgcnn.layers.disjoint.set2set.Set2Set(**set2set_args)([outss, node_len])
         else:
-            out = PoolingNodes(**pooling_args)([n, node_len])
+            out = kgcnn.layers.disjoint.pooling.PoolingNodes(**pooling_args)([n, node_len])
 
         # final dense layers 
-        main_output = MLP(**output_mlp)(out)
+        main_output = kgcnn.layers.disjoint.mlp.MLP(**output_mlp)(out)
 
     else:  # Node labeling
         out = n
-        main_output = MLP(**output_mlp)(out)
+        main_output = kgcnn.layers.disjoint.mlp.MLP(**output_mlp)(out)
 
-        main_output = CastValuesToRagged()([main_output, node_len])
-        main_output = CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
+        main_output = kgcnn.layers.disjoint.casting.CastValuesToRagged()([main_output, node_len])
+        main_output = kgcnn.layers.ragged.casting.CastRaggedToDense()(main_output)  # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 

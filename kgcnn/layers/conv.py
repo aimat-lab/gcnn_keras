@@ -605,8 +605,10 @@ class MEGnetBlock(ks.layers.Layer):
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
-                       "bias_initializer": bias_initializer, "input_tensor_type": self.input_tensor_type,
-                       "ragged_validate": self.ragged_validate}
+                       "bias_initializer": bias_initializer}
+        mlp_args = {}
+        mlp_args.update(kernel_args)
+        mlp_args.update({"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate})
         pool_args = {"pooling_method": self.pooling_method, "is_sorted": self.is_sorted,
                      "has_unconnected": self.has_unconnected, "input_tensor_type": self.input_tensor_type,
                      "ragged_validate": self.ragged_validate, "partition_type": self.partition_type,
@@ -615,26 +617,29 @@ class MEGnetBlock(ks.layers.Layer):
                        "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
                        "partition_type": self.partition_type, "node_indexing": self.node_indexing}
         # Node
-        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, use_bias=self.use_bias, **mlp_args)
+        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, use_bias=self.use_bias, **mlp_args)
+        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', use_bias=self.use_bias, **mlp_args)
         self.lay_esum = PoolingLocalEdges(**pool_args)
         self.lay_gather_un = GatherState(**gather_args)
-        self.lay_conc_nu = Concatenate(axis=-1)
+        self.lay_conc_nu = Concatenate(axis=-1,input_tensor_type=self.input_tensor_type)
         # Edge
-        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, use_bias=self.use_bias, **mlp_args)
+        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, use_bias=self.use_bias, **mlp_args)
+        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', use_bias=self.use_bias, **mlp_args)
         self.lay_gather_n = GatherNodes(**gather_args)
         self.lay_gather_ue = GatherState(**gather_args)
-        self.lay_conc_enu = Concatenate(axis=-1)
+        self.lay_conc_enu = Concatenate(axis=-1,input_tensor_type=self.input_tensor_type)
         # Environment
         self.lay_usum_e = PoolingGlobalEdges(**pool_args)
         self.lay_usum_n = PoolingNodes(**pool_args)
-        self.lay_conc_u = Concatenate(axis=-1)
-        self.lay_phi_u = Dense(units=self.env_embed[0], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_u_1 = Dense(units=self.env_embed[1], activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi_u_2 = Dense(units=self.env_embed[2], activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_conc_u = Concatenate(axis=-1,input_tensor_type="tensor")
+        self.lay_phi_u = ks.layers.Dense(units=self.env_embed[0], activation=activation, use_bias=self.use_bias,
+                                         **kernel_args)
+        self.lay_phi_u_1 = ks.layers.Dense(units=self.env_embed[1], activation=activation, use_bias=self.use_bias,
+                                           **kernel_args)
+        self.lay_phi_u_2 = ks.layers.Dense(units=self.env_embed[2], activation='linear', use_bias=self.use_bias,
+                                           **kernel_args)
 
     def build(self, input_shape):
         """Build layer."""
@@ -644,7 +649,7 @@ class MEGnetBlock(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs: [nodes, edges, edge_index]
+            inputs: [nodes, edges, edge_index, state]
 
             - nodes: Node features.
               This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
@@ -664,6 +669,7 @@ class MEGnetBlock(ks.layers.Layer):
               disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
               and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
               or a singe tensor for equally sized graphs (batch,N,2).
+            - state (tf.tensor): State information for the graph of shape (batch, F)
 
         Returns:
             node_update: Updated node embeddings.

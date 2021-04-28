@@ -413,7 +413,7 @@ class GatherState(ks.layers.Layer):
         if self.input_tensor_type == "values_partition":
             return [out, target_part]
         if self.input_tensor_type == "ragged":
-            return tf.RaggedTensor.from_row_lengths(out, target_part)
+            return tf.RaggedTensor.from_row_lengths(out, target_len)
 
     def get_config(self):
         """Update config."""

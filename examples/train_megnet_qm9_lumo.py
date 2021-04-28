@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.Megnet import make_megnet
+from kgcnn.literature.Megnet import make_megnet as make_megnet
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 

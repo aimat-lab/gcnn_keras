@@ -98,9 +98,9 @@ def make_schnet(
     # Use representation
     tens_type = "values_partition"
     node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="values_partition")(edge_index_input)
+    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
+    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
+    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
     edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
 
     n = Dense(interaction_args["units"], activation='linear', input_tensor_type=tens_type)(n)

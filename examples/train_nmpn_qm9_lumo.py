@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.NMPN import make_nmpn
+from kgcnn.literature.NMPN import make_nmpn_disjoint as make_nmpn
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 

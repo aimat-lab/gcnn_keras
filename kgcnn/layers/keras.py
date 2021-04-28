@@ -35,6 +35,8 @@ class Dense(tf.keras.layers.Layer):
         elif self.input_tensor_type== "values_partition":
             out = self._dense(inputs[0])
             return [out,inputs[1]]
+        elif self.input_tensor_type== "tensor":
+            return self._dense(inputs)
 
 
 class Activation(tf.keras.layers.Layer):
@@ -91,6 +93,8 @@ class Add(tf.keras.layers.Layer):
             out_part = inputs[0][1]
             out = self._lay_add([x[0] for x in inputs])
             return [out, out_part]
+        elif self.input_tensor_type == "tensor":
+            return self._lay_add(inputs)
 
 
 class Multiply(tf.keras.layers.Layer):
@@ -115,6 +119,7 @@ class Multiply(tf.keras.layers.Layer):
             out = self._lay_mult([x[0] for x in inputs])
             return [out, out_part]
 
+
 class Concatenate(tf.keras.layers.Layer):
 
     def __init__(self,
@@ -138,3 +143,31 @@ class Concatenate(tf.keras.layers.Layer):
             out_part = inputs[0][1]
             out =  self._lay_concat([x[0] for x in inputs])
             return [out, out_part]
+        elif self.input_tensor_type == "tensor":
+            return self._lay_concat(inputs)
+
+class Dropout(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 rate,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(Dropout, self).__init__(**kwargs)
+        self.rate = rate
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_drop = ks.layers.Dropout(rate=self.rate)
+
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type== "ragged":
+            value_tensor = inputs.values
+            out_tensor = self._lay_drop(value_tensor,**kwargs)
+            return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+        elif self.input_tensor_type== "values_partition":
+            out = self._lay_drop(inputs[0],**kwargs)
+            return [out,inputs[1]]
+        elif self.input_tensor_type== "tensor":
+            return self._lay_drop(inputs,**kwargs)
