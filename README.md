@@ -66,9 +66,9 @@ Graphs can be represented by a connection index list plus feature information. T
 * `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i,j)`.
 * `u`: Graph state information of shape `([batch],F)` where `F` denotes the feature dimension.
  
-A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors. A complete set of layers that work solemnly with ragged tensors is given in [ragged](kgcnn/layers/ragged).
+A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors.
 
-Many graph implementations use also a [disjoint](kgcnn/layers/disjoint) representation and [sparse](kgcnn/layers/sparse) or [padded](kgcnn/layers/padded) tensors.
+Additionally, the layers support a disjoint representation of flatten values plus graph-id tensor `[value, partition]` in place of the `RaggedTensor`. 
 
 
 ### Input
@@ -87,19 +87,19 @@ Models can be set up in a functional. Example message passing from fundamental o
 ```python
 import tensorflow as tf
 import tensorflow.keras as ks
-from kgcnn.layers.ragged.gather import GatherNodes
-from kgcnn.layers.ragged.conv import DenseRagged  # Will most likely be supported by keras.Dense in the future
-from kgcnn.layers.ragged.pooling import PoolingLocalMessages
+from kgcnn.layers.gather import GatherNodes
+from kgcnn.layers.keras import Dense  # ragged support
+from kgcnn.layers.pooling import PoolingLocalMessages
 
 feature_dim = 10
 n = ks.layers.Input(shape=(None,feature_dim),name='node_input',dtype ="float32",ragged=True)
 ei = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
 
 n_in_out = GatherNodes()([n,ei])
-node_messages = DenseRagged(feature_dim)(n_in_out)
+node_messages = Dense(feature_dim)(n_in_out)
 node_updates = PoolingLocalMessages()([n,node_messages,ei])
 n_node_updates = ks.layers.Concatenate(axis=-1)([n,node_updates])
-n_embedd = DenseRagged(feature_dim)(n_node_updates)
+n_embedd = Dense(feature_dim)(n_node_updates)
 
 message_passing = ks.models.Model(inputs=[n,ei], outputs=n_embedd)
 ```
