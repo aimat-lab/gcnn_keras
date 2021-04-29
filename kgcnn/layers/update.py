@@ -54,10 +54,18 @@ class ApplyMessage(ks.layers.Layer):
             node_updates (tf.tensor): Element-wise matmul of message and node features
             of output shape (batch,target_dim)
         """
-        dens_e, dens_n = inputs
-        dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
-        out = tf.keras.backend.batch_dot(dens_m, dens_n)
-        return out
+        if self.input_tensor_type == "values_partition":
+            [dens_e, epart], [dens_n, npart] = inputs
+            dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
+            out = tf.keras.backend.batch_dot(dens_m, dens_n)
+            return [out, npart]
+        elif self.input_tensor_type == "ragged":
+            rag_e, rag_n = inputs
+            dens_e = rag_e.values
+            dens_n = rag_n.values
+            dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
+            out = tf.keras.backend.batch_dot(dens_m, dens_n)
+            return tf.RaggedTensor.from_row_lengths(out, rag_n.row_lengths())
 
     def get_config(self):
         """Update layer config."""

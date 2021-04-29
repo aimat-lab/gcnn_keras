@@ -97,6 +97,31 @@ class Add(tf.keras.layers.Layer):
             return self._lay_add(inputs)
 
 
+class Average(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(Average, self).__init__(**kwargs)
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_add = ks.layers.Average()
+
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type == "ragged":
+            out = self._lay_add(inputs)
+            return out
+        elif self.input_tensor_type == "values_partition":
+            out_part = inputs[0][1]
+            out = self._lay_add([x[0] for x in inputs])
+            return [out, out_part]
+        elif self.input_tensor_type == "tensor":
+            return self._lay_add(inputs)
+
+
 class Multiply(tf.keras.layers.Layer):
 
     def __init__(self,
@@ -171,3 +196,29 @@ class Dropout(tf.keras.layers.Layer):
             return [out,inputs[1]]
         elif self.input_tensor_type== "tensor":
             return self._lay_drop(inputs,**kwargs)
+
+
+class LayerNormalization(tf.keras.layers.Layer):
+
+    def __init__(self,
+                 axis=-1,
+                 ragged_validate=False,
+                 input_tensor_type="ragged",
+                 **kwargs):
+        """Initialize layer same as Activation."""
+        super(LayerNormalization, self).__init__(**kwargs)
+        self.axis = axis
+        self.input_tensor_type = input_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+        self._lay_norm = ks.layers.LayerNormalization(axis=self.axis)
+    def call(self, inputs, **kwargs):
+        if self.input_tensor_type== "ragged":
+            value_tensor = inputs.values
+            out_tensor = self._lay_norm(value_tensor,**kwargs)
+            return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+        elif self.input_tensor_type== "values_partition":
+            out = self._lay_norm(inputs[0],**kwargs)
+            return [out,inputs[1]]
+        elif self.input_tensor_type== "tensor":
+            return self._lay_norm(inputs,**kwargs)

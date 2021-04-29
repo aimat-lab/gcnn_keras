@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-from kgcnn.literature.GraphSAGE import make_graph_sage
+from kgcnn.literature.GraphSAGE import make_graph_sage as make_graph_sage
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 

@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
-from kgcnn.literature.GAT import make_gat
+from kgcnn.literature.GAT import make_gat as make_gat
 from kgcnn.data.cora.cora_lu import cora_graph
 from kgcnn.utils.adj import precompute_adjacency_scaled, sort_edge_indices, make_adjacency_from_edge_indices, \
     make_adjacency_undirected_logical_or, convert_scaled_adjacency_to_list

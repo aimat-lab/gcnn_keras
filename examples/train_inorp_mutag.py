@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.data.mutagen.mutag import mutag_graph
-from kgcnn.literature.INorp import make_inorp
+from kgcnn.literature.INorp import make_inorp as make_inorp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
