@@ -64,7 +64,13 @@ class PoolingTopK(ks.layers.Layer):
         """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
 
-        self.units_p = input_shape[0][-1]
+        if self.input_tensor_type == "values_partition":
+            self.units_p = input_shape[0][0][-1]
+        elif self.input_tensor_type == "ragged":
+            self.units_p = input_shape[0][-1]
+        else:
+            raise NotImplementedError("Error: Not supported input tensor type.")
+
         self.kernel_p = self.add_weight('score',
                                         shape=[1, self.units_p],
                                         initializer=self.kernel_initializer,
@@ -92,7 +98,7 @@ class PoolingTopK(ks.layers.Layer):
             - map_nodes (tf.tensor): Index map between original and pooled nodes
             - map_edges (tf.tensor): Index map between original and pooled edges
         """
-        node, nodelen, edgefeat, edgelen, edgeindref = None,None,None,None,None
+        # node, nodelen, edgefeat, edgelen, edgeindref = None,None,None,None,None
         if self.input_tensor_type == "values_partition":
             [node, node_part], [edgefeat, edge_part], [edgeindref, _] = inputs
             # Make partition tensors
@@ -102,6 +108,8 @@ class PoolingTopK(ks.layers.Layer):
             node, nodelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], "row_length")
             edge, edgelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], "row_length")
             edgeindref, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[2], "row_length")
+        else:
+            raise NotImplementedError("Error: Not supported input tensor type.")
 
         index_dtype = edgeindref.dtype
         # Get node properties
@@ -171,7 +179,7 @@ class PoolingTopK(ks.layers.Layer):
         clean_edge_ids = edge_ids[mask_edge]
         # clean_edge_len = tf.math.segment_sum(tf.ones_like(clean_edge_ids), clean_edge_ids)
         clean_edge_len = tf.scatter_nd(tf.expand_dims(clean_edge_ids, axis=-1), tf.ones_like(clean_edge_ids),
-                                       tf.cast(tf.shape(erowlength), dtype=tf.int64))
+                                       tf.cast(tf.shape(erowlength), dtype=index_dtype))
 
         # Map edgeindex to new index
         new_edge_index = tf.concat([ks.backend.expand_dims(tf.gather(map_index, clean_shiftind[:, 0]), axis=-1),

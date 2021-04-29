@@ -10,7 +10,13 @@ import kgcnn.layers.ragged.casting
 import kgcnn.layers.ragged.conv
 
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
-
+from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.keras import Dense, Activation, Add
+from kgcnn.layers.mlp import MLP
+from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
+from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers.topk import PoolingTopK, UnPoolingTopK
+from kgcnn.layers.connect import AdjacencyPower
 
 # Graph U-Nets
 # by Hongyang Gao, Shuiwang Ji
@@ -74,18 +80,26 @@ def make_unet(
     input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
     output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
+    pooling_args = {"pooling_method":'segment_mean', "is_sorted": is_sorted, "has_unconnected":has_unconnected}
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
+    tens_type = "values_partition"
+    node_indexing = "batch"
+    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
+    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
+    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
+    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])  # disjoint
 
-    n = kgcnn.layers.ragged.conv.DenseRagged(hidden_dim, use_bias=use_bias, activation='linear')(n)
+    output_mlp.update({"input_tensor_type": tens_type})
+    gather_args = {"input_tensor_type": tens_type, "node_indexing":node_indexing}
+    pooling_args.update({"input_tensor_type": tens_type, "node_indexing":node_indexing})
 
-    n, node_len, ed, edge_len, edi = kgcnn.layers.disjoint.casting.CastRaggedToDisjoint()([n, ed, edge_index_input])
-
-    in_graph = [n, node_len, ed, edge_len, edi]
-
+    # Graph lists
+    n = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(n)
+    in_graph = [n, ed, edi]
     graph_list = [in_graph]
     map_list = []
 
@@ -93,21 +107,19 @@ def make_unet(
     i_graph = in_graph
     for i in range(0, depth):
 
-        n, node_len, ed, edge_len, edi = i_graph
+        n, ed, edi = i_graph
         # GCN layer
-        eu = kgcnn.layers.disjoint.gather.GatherNodesOutgoing()([n, node_len, edi, edge_len])
-        eu = ks.layers.Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
-        nu = kgcnn.layers.disjoint.pooling.PoolingLocalEdges(pooling_method='segment_mean', is_sorted=is_sorted,
-                                                             has_unconnected=has_unconnected)(
-            [n, node_len, eu, edge_len, edi])  # Summing for each node connection
-        n = ks.layers.Activation(activation=activation)(nu)
+        eu = GatherNodesOutgoing(**gather_args)([n, edi])
+        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(eu)
+        nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
+        n = Activation(activation=activation, input_tensor_type=tens_type)(nu)
 
         if use_reconnect:
-            edi, ed, edge_len = kgcnn.layers.disjoint.connect.AdjacencyPower(n=2)([edi, ed, edge_len, node_len])
+            ed, edi = AdjacencyPower(n=2,node_indexing=node_indexing,input_tensor_type=tens_type)([n, ed, edi])
 
         # Pooling
-        i_graph, i_map = kgcnn.layers.disjoint.topk.PoolingTopK(k=k, kernel_initializer=score_initializer)(
-            [n, node_len, ed, edge_len, edi])
+        i_graph, i_map = PoolingTopK(k=k, kernel_initializer=score_initializer,
+                                     node_indexing=node_indexing,input_tensor_type=tens_type)([n, ed, edi])
 
         graph_list.append(i_graph)
         map_list.append(i_map)
@@ -117,38 +129,35 @@ def make_unet(
     for i in range(depth, 0, -1):
         o_graph = graph_list[i - 1]
         i_map = map_list[i - 1]
-        ui_graph = kgcnn.layers.disjoint.topk.UnPoolingTopK()(o_graph + i_map + ui_graph)
+        ui_graph = UnPoolingTopK(node_indexing=node_indexing,input_tensor_type=tens_type)(o_graph + i_map + ui_graph)
 
-        n, node_len, ed, edge_len, edi = ui_graph
+        n, ed, edi = ui_graph
         # skip connection
-        n = ks.layers.Add()([n, o_graph[0]])
+        n = Add(input_tensor_type=tens_type)([n, o_graph[0]])
         # GCN
-        eu = kgcnn.layers.disjoint.gather.GatherNodesOutgoing()([n, node_len, edi, edge_len])
-        eu = ks.layers.Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
-        nu = kgcnn.layers.disjoint.pooling.PoolingLocalEdges(pooling_method='segment_mean', is_sorted=is_sorted,
-                                                             has_unconnected=has_unconnected)(
-            [n, node_len, eu, edge_len, edi])  # Summing for each node connection
-        n = ks.layers.Activation(activation=activation)(nu)
+        eu = GatherNodesOutgoing(**gather_args)([n, edi])
+        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(eu)
+        nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
+        n = Activation(activation=activation, input_tensor_type=tens_type)(nu)
 
-        ui_graph = [n, node_len, ed, edge_len, edi]
+        ui_graph = [n, ed, edi]
 
     # Otuput
     n = ui_graph[0]
-    node_len = ui_graph[1]
     if output_embedd["output_mode"] == 'graph':
-        out = kgcnn.layers.disjoint.pooling.PoolingNodes(pooling_method='segment_mean')([n, node_len])
+        out = PoolingNodes(**pooling_args)(n)
 
-        out = kgcnn.layers.disjoint.mlp.MLP(**output_mlp)(out)
+        output_mlp.update({"input_tensor_type": "tensor"})
+        out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
-        out = kgcnn.layers.disjoint.mlp.MLP(**output_mlp)(n)
-        main_output = kgcnn.layers.disjoint.casting.CastValuesToRagged()([out, node_len])
-        main_output = kgcnn.layers.ragged.casting.CastRaggedToDense()(
-            main_output)  # no ragged for distribution supported atm
+        out = MLP(**output_mlp)(n)
+        main_output = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(out)
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 
     return model
+
 
 
 def make_unet_disjoint(

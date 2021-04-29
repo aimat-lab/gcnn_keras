@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.data.mutagen.mutag import mutag_graph
-from kgcnn.literature.Unet import make_unet
+from kgcnn.literature.Unet import make_unet as make_unet
 from kgcnn.utils.adj import add_self_loops_to_edge_indices
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
