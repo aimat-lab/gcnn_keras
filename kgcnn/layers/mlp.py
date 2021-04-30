@@ -2,6 +2,8 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.keras import Dense
+
+
 # import tensorflow.keras.backend as ksb
 
 
@@ -26,6 +28,10 @@ class MLP(ks.layers.Layer):
                  activity_regularizer=None,
                  kernel_regularizer=None,
                  bias_regularizer=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_constraint=None,
+                 bias_constraint=None,
                  ragged_validate=False,
                  input_tensor_type="ragged",
                  **kwargs):
@@ -40,34 +46,27 @@ class MLP(ks.layers.Layer):
 
         if not isinstance(use_bias, list) and not isinstance(use_bias, tuple):
             use_bias = [use_bias for _ in units]
-        else:
-            if len(use_bias) != len(units):
-                raise ValueError("Units and bias list must be same length, got",use_bias,units)
-
         if not isinstance(activation, list) and not isinstance(activation, tuple):
             activation = [activation for _ in units]
-        else:
-            if len(activation) != len(units):
-                raise ValueError("Units and activation list must be same length, got", activation, units)
-
         if not isinstance(kernel_regularizer, list) and not isinstance(kernel_regularizer, tuple):
             kernel_regularizer = [kernel_regularizer for _ in units]
-        else:
-            if len(kernel_regularizer) != len(units):
-                raise ValueError("Units and kernel_regularizer list must be same length, got", kernel_regularizer, units)
-
         if not isinstance(bias_regularizer, list) and not isinstance(bias_regularizer, tuple):
             bias_regularizer = [bias_regularizer for _ in units]
-        else:
-            if len(bias_regularizer) != len(units):
-                raise ValueError("Units and bias_regularizer list must be same length, got", bias_regularizer, units)
-
         if not isinstance(activity_regularizer, list) and not isinstance(activity_regularizer, tuple):
             activity_regularizer = [activity_regularizer for _ in units]
-        else:
-            if len(activity_regularizer) != len(units):
-                raise ValueError("Units and activity_regularizer list must be same length, got", activity_regularizer, units)
+        if not isinstance(kernel_initializer, list) and not isinstance(kernel_initializer, tuple):
+            kernel_initializer = [kernel_initializer for _ in units]
+        if not isinstance(bias_initializer, list) and not isinstance(bias_initializer, tuple):
+            bias_initializer = [bias_initializer for _ in units]
+        if not isinstance(kernel_constraint, list) and not isinstance(kernel_constraint, tuple):
+            kernel_constraint = [kernel_constraint for _ in units]
+        if not isinstance(bias_constraint, list) and not isinstance(bias_constraint, tuple):
+            bias_constraint = [bias_constraint for _ in units]
 
+        for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
+                  bias_initializer, kernel_constraint, bias_constraint, use_bias]:
+            if len(x) != len(units):
+                raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
 
         # Serialized props
         self.mlp_units = list(units)
@@ -76,15 +75,23 @@ class MLP(ks.layers.Layer):
         self.mlp_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
         self.mlp_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
         self.mlp_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
+        self.mlp_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
+        self.mlp_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
+        self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
+        self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
 
         self.mlp_dense_list = [Dense(
-            self.mlp_units[i],
+            units=self.mlp_units[i],
             use_bias=self.mlp_use_bias[i],
             name=self.name + '_dense_' + str(i),
             activation=self.mlp_activation[i],
             activity_regularizer=self.mlp_activity_regularizer[i],
             kernel_regularizer=self.mlp_kernel_regularizer[i],
             bias_regularizer=self.mlp_bias_regularizer[i],
+            kernel_initializer=self.mlp_kernel_initializer[i],
+            bias_initializer=self.mlp_bias_initializer[i],
+            kernel_constraint=self.mlp_kernel_constraint[i],
+            bias_constraint=self.mlp_bias_constraint[i],
             ragged_validate=self.ragged_validate,
             input_tensor_type=self.input_tensor_type
         ) for i in range(len(self.mlp_units))]
@@ -116,8 +123,15 @@ class MLP(ks.layers.Layer):
         config.update({"units": self.mlp_units,
                        'use_bias': self.mlp_use_bias,
                        'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
-                       'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_activity_regularizer],
+                       'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in
+                                                self.mlp_activity_regularizer],
                        'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_kernel_regularizer],
                        'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_bias_regularizer],
+                       "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_kernel_initializer],
+                       "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
+                       "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
+                       "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
                        })
+        config.update({"ragged_validate": self.ragged_validate,
+                       "input_tensor_type": self.input_tensor_type})
         return config

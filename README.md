@@ -61,14 +61,14 @@ Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.
 The most frequent usage for graph convolutions is either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
 Graphs can be represented by a connection index list plus feature information. Typical quantities in tensor format to describe a graph are listed below.
 
-* `n`: Nodelist of shape `([batch],N,F)` where `N` is the number of nodes and `F` is the node feature dimension.
-* `e`: Edgelist of shape `([batch],M,Fe)` where `M` is the number of edges and `Fe` is the edge feature dimension.
-* `m`: Connectionlist of shape `([batch],M,2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i,j)`.
-* `u`: Graph state information of shape `([batch],F)` where `F` denotes the feature dimension.
+* `nodes`: Nodelist of shape `(batch, N, F)` where `N` is the number of nodes and `F` is the node feature dimension.
+* `edges`: Edgelist of shape `(batch, M, F)` where `M` is the number of edges and `F` is the edge feature dimension.
+* `indices`: Connectionlist of shape `(batch, M, 2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i,j)`.
+* `state`: Graph state information of shape `(batch, F)` where `F` denotes the feature dimension.
  
-A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layes. This is realized by using ragged tensors.
+A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using ragged tensors.
 
-Additionally, the layers support a disjoint representation of flatten values plus graph-id tensor `[value, partition]` in place of the `RaggedTensor`. 
+Additionally, the layers support a disjoint representation of flatten values plus graph-id or partition tensor `[values, partition]` in place of the `RaggedTensor`. 
 
 
 ### Input
