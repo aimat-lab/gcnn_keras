@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.ragged.gather import GatherNodes
+from kgcnn.layers.gather import GatherNodes
 
 
 class TestTopKLayerDisjoint(unittest.TestCase):

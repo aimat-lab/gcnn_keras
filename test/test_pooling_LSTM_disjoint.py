@@ -3,9 +3,10 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.disjoint.pooling import PoolingLocalEdgesLSTM
-from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
-from kgcnn.layers.disjoint.gather import GatherNodes
+from kgcnn.layers.pooling import PoolingLocalEdgesLSTM
+from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.gather import GatherNodes
+from kgcnn.layers.keras import Concatenate
 
 class TestPoolingLocalEdgesLSTM(unittest.TestCase):
 
@@ -31,15 +32,23 @@ class TestPoolingLocalEdgesLSTM(unittest.TestCase):
         edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
         edgefeat = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
 
+
         node_indexing = 'sample'
         partition_type = 'row_length'
-        n, node_len, ed, edge_len, edi = CastRaggedToDisjoint(to_indexing=node_indexing, partition_type=partition_type)(
-            [node, edgefeat, edgeind])
+        tens_type = "values_partition"
+        n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(node)
+        ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edgefeat)
+        edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edgeind)
+        edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
 
-        ns = GatherNodes()([n, node_len, edi, edge_len])
-        messages = tf.keras.layers.Concatenate(axis=-1)([ed,ns])
-        out = PoolingLocalEdgesLSTM(units=3)([n, node_len, messages, edge_len, edi])
-        self.assertTrue(np.all(np.array(out.shape) == np.array([23,3])))
+
+
+        ns = GatherNodes(input_tensor_type=tens_type, node_indexing=node_indexing,
+                         partition_type=partition_type)([n, edi])
+        messages = Concatenate(axis=-1, input_tensor_type=tens_type)([ed,ns])
+        out = PoolingLocalEdgesLSTM(units=3, input_tensor_type=tens_type,
+                                    node_indexing=node_indexing)([n, messages, edi])
+        self.assertTrue(np.all(np.array(out[0].shape) == np.array([23,3])))
 
 
 if __name__ == '__main__':

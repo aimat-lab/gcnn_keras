@@ -106,7 +106,7 @@ class PoolingTopK(ks.layers.Layer):
             nodelen = kgcnn_ops_change_partition_type(node_part, self.partition_type, "row_length")
         elif self.input_tensor_type == "ragged":
             node, nodelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], "row_length")
-            edge, edgelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], "row_length")
+            edgefeat, edgelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], "row_length")
             edgeindref, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[2], "row_length")
         else:
             raise NotImplementedError("Error: Not supported input tensor type.")
@@ -279,7 +279,7 @@ class UnPoolingTopK(ks.layers.Layer):
     """
 
     def __init__(self,
-                 node_indexing="batch",
+                 node_indexing="sample",
                  partition_type="row_length",
                  input_tensor_type="ragged",
                  ragged_validate=False,
@@ -346,12 +346,12 @@ class UnPoolingTopK(ks.layers.Layer):
         elif self.input_tensor_type == "ragged":
             node_old, nrowlength = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], "row_length")
             edge_old, erowlength = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], "row_length")
-            edgeind_old, _ = inputs[2].values
-            map_node, _ = inputs[3].values
-            map_edge, _ = inputs[4].values
+            edgeind_old = inputs[2].values
+            map_node = inputs[3].values
+            map_edge = inputs[4].values
             node_new, pool_node_len = kgcnn_ops_cast_ragged_to_value_partition(inputs[5], "row_length")
             edge_new, pool_edge_id = kgcnn_ops_cast_ragged_to_value_partition(inputs[6], "value_rowids")
-            edgeind_new, _ = inputs[7].values
+            edgeind_new = inputs[7].values
         else:
             raise NotImplementedError("Input tensor type not understood.")
 

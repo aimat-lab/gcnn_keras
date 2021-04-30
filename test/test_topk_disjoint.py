@@ -3,8 +3,8 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.disjoint.casting import CastRaggedToDisjoint
-from kgcnn.layers.disjoint.topk import PoolingTopK, UnPoolingTopK
+from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.topk import PoolingTopK, UnPoolingTopK
 
 
 class TestTopKLayerDisjoint(unittest.TestCase):
@@ -32,47 +32,52 @@ class TestTopKLayerDisjoint(unittest.TestCase):
 
         node_indexing = 'sample'
         partition_type = 'row_length'
-        dislist = CastRaggedToDisjoint(to_indexing=node_indexing, partition_type=partition_type)(
-            [node, edgefeat, edgeind])
+        tens_type = "values_partition"
+        n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(node)
+        ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edgefeat)
+        edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edgeind)
+        edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
+        dislist =  [n, ed, edi]
 
         pool_dislist, pool_map = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                             partition_type=partition_type)(dislist)
+                                             partition_type=partition_type, input_tensor_type=tens_type)(dislist)
         pool_dislist2, pool_map2 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist)
         pool_dislist3, pool_map3 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist2)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist2)
         pool_dislist4, pool_map4 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist3)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist3)
         pool_dislist5, pool_map5 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist4)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist4)
         pool_dislist6, pool_map6 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist5)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist5)
         pool_dislist7, pool_map7 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist6)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist6)
         pool_dislist8, pool_map8 = PoolingTopK(k=0.3, kernel_initializer="ones", node_indexing=node_indexing,
-                                               partition_type=partition_type)(pool_dislist7)
+                                               partition_type=partition_type, input_tensor_type=tens_type)(pool_dislist7)
 
         # Pooled to 1 node
-        self.assertTrue(np.sum(np.abs(pool_dislist8[0].numpy() - np.array([[5.8759007], [7.9783587]]))) < 1e-5)
-        self.assertTrue(np.all(pool_dislist8[1].numpy() == np.array([1, 1])))
+        self.assertTrue(np.sum(np.abs(pool_dislist8[0][0].numpy() - np.array([[5.8759007], [7.9783587]]))) < 1e-5)
+        self.assertTrue(np.all(pool_dislist8[1][0].numpy() == np.array([1, 1])))
         # print(pool_map[0])
 
         # Unpooling
-        unpool_dislist7 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist7 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist7 + pool_map8 + pool_dislist8)
-        unpool_dislist6 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist6 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist6 + pool_map7 + unpool_dislist7)
-        unpool_dislist5 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist5 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist5 + pool_map6 + unpool_dislist6)
-        unpool_dislist4 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist4 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist4 + pool_map5 + unpool_dislist5)
-        unpool_dislist3 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist3 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist3 + pool_map4 + unpool_dislist4)
-        unpool_dislist2 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist2 = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist2 + pool_map3 + unpool_dislist3)
-        unpool_dislist = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type)(
+        unpool_dislist = UnPoolingTopK(node_indexing=node_indexing, partition_type=partition_type, input_tensor_type=tens_type)(
             pool_dislist + pool_map2 + unpool_dislist2)
-        dislist_new = UnPoolingTopK(node_indexing=node_indexing)(list(dislist) + pool_map + unpool_dislist)
+        dislist_new = UnPoolingTopK(node_indexing=node_indexing,partition_type=partition_type, input_tensor_type=tens_type)(
+            list(dislist) + pool_map + unpool_dislist)
 
         # Expected output
         unpool_nodes = np.array([[0.], [0.], [0.], [0.], [0.], [0.], [0.], [5.8759007],
@@ -80,9 +85,8 @@ class TestTopKLayerDisjoint(unittest.TestCase):
                                  [0.], [0.]])
 
         # Check unpooled
-        self.assertTrue(np.sum(np.abs(dislist_new[0]-unpool_nodes)) < 1e-5)
-        self.assertTrue(np.all(dislist_new[4].numpy() == dislist[4].numpy()))
-        # print(tf.RaggedTensor.from_row_lengths(pool_dislist[0],pool_dislist[1]))
+        self.assertTrue(np.sum(np.abs(dislist_new[0][0]-unpool_nodes)) < 1e-5)
+        self.assertTrue(np.all(dislist_new[2][0].numpy() == dislist[2][0].numpy()))
 
 
 
