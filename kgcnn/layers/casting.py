@@ -1,9 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition, kgcnn_ops_cast_masked_to_value_partition, \
-    kgcnn_ops_cast_tensor_to_value_partition, kgcnn_ops_cast_value_partition_to_tensor, \
-    kgcnn_ops_cast_value_partition_to_masked, kgcnn_ops_cast_value_partition_to_ragged
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
@@ -41,41 +39,9 @@ class ChangeTensorType(ks.layers.Layer):
         Returns:
             outputs: Changed tensor-information.
         """
-        if self.input_tensor_type == self.output_tensor_type:
-            return inputs
-
-        if self.input_tensor_type=="values_partition" and self.output_tensor_type=="ragged":
-            out = kgcnn_ops_cast_value_partition_to_ragged(inputs, self.partition_type)
-            return out
-        if self.input_tensor_type=="ragged" and self.output_tensor_type=="values_partition":
-            out = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
-            return out
-
-        if self.input_tensor_type == "masked" and self.output_tensor_type == "ragged":
-            raise NotImplementedError("Error: Conversion has not been implemented yet.")
-        if self.input_tensor_type == "ragged" and self.output_tensor_type == "masked":
-            raise NotImplementedError("Error: Conversion has not been implemented yet.")
-
-        if self.input_tensor_type == "values_partition" and self.output_tensor_type == "masked":
-            out = kgcnn_ops_cast_value_partition_to_masked(inputs, self.partition_type)
-            return out
-        if self.input_tensor_type == "masked" and self.output_tensor_type == "values_partition":
-            out = kgcnn_ops_cast_masked_to_value_partition(inputs, self.partition_type)
-            return out
-
-        if self.input_tensor_type == "values_partition" and self.output_tensor_type == "tensor":
-            out = kgcnn_ops_cast_value_partition_to_ragged(inputs, self.partition_type)
-            # out = kgcnn_ops_cast_value_partition_to_tensor(inputs, self.partition_type)
-            return out.to_tensor()
-        if self.input_tensor_type == "tensor" and self.output_tensor_type == "values_partition":
-            out = kgcnn_ops_cast_tensor_to_value_partition(inputs, self.partition_type)
-            return out
-
-        if self.input_tensor_type == "ragged" and self.output_tensor_type == "tensor":
-            out = inputs.to_tensor()
-            return out
-        if self.input_tensor_type == "tensor" and self.output_tensor_type == "ragged":
-            raise NotImplementedError("Error: Conversion has not been implemented yet.")
+        return kgcnn_ops_dyn_cast(inputs,input_tensor_type=self.input_tensor_type,
+                                  output_tensor_type=self.output_tensor_type,
+                                  partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""

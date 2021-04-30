@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.graphinput import kgcnn_ops_static_test_tensor_input_type
 
 
 class GatherNodes(ks.layers.Layer):
@@ -13,14 +14,13 @@ class GatherNodes(ks.layers.Layer):
     Args:
         concat_nodes (bool): Whether to concatenate gathered node features. Default is True.
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-            For disjoint representation 'batch' is default.
+            For disjoint representation 'batch' is expected.
         partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
             This is used for input_tensor_type="values_partition".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
-        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
-        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
-        **kwargs
+        ragged_validate (bool): Whether to validate ragged tensor output. Default is False.
+        is_sorted (bool): Whether edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): Whether unconnected nodes are allowed. Default is True.
     """
 
     def __init__(self,
@@ -41,17 +41,12 @@ class GatherNodes(ks.layers.Layer):
         self.ragged_validate = ragged_validate
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -88,7 +83,7 @@ class GatherNodes(ks.layers.Layer):
                                                                                from_indexing=self.node_indexing)
             out = tf.gather(node, indexlist, axis=0)
             if self.concat_nodes:
-                out = tf.keras.backend.concatenate([out[:,i] for i in range(edge_index.shape[-1])],axis=1)
+                out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
             return [out, edge_part]
 
         elif self.input_tensor_type == "ragged":
@@ -155,14 +150,9 @@ class GatherNodesOutgoing(ks.layers.Layer):
         self._tensor_input_type_implemented = ["ragged", "values_partition"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -263,14 +253,9 @@ class GatherNodesIngoing(ks.layers.Layer):
         self._tensor_input_type_implemented = ["ragged", "values_partition"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -308,7 +293,7 @@ class GatherNodesIngoing(ks.layers.Layer):
                                                                                from_indexing=self.node_indexing)
 
             out = tf.gather(node, indexlist[:, 0], axis=0)
-            return [out,edge_part]
+            return [out, edge_part]
         elif self.input_tensor_type == "ragged":
             nod, edge_index = inputs
             if self.node_indexing == 'batch':
@@ -369,14 +354,9 @@ class GatherState(ks.layers.Layer):
         self._tensor_input_type_implemented = ["ragged", "values_partition"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""

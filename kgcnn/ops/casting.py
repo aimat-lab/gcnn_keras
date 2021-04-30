@@ -21,6 +21,21 @@ def kgcnn_ops_cast_ragged_to_value_partition(inputs, partition_type="row_length"
 
     return [flat_tens, outpart]
 
+@tf.function
+def kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type="row_length"):
+    nod, n_part = inputs
+
+    if partition_type == "row_length":
+        out = tf.RaggedTensor.from_row_lengths(nod, n_part)
+    elif partition_type == "row_splits":
+        out = tf.RaggedTensor.from_row_splits(nod, n_part)
+    elif partition_type == "value_rowids":
+        out = tf.RaggedTensor.from_value_rowids(nod, n_part)
+    else:
+        raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+
+    return out
+
 
 @tf.function
 def kgcnn_ops_cast_masked_to_value_partition(inputs, partition_type="row_length"):
@@ -59,25 +74,10 @@ def kgcnn_ops_cast_tensor_to_value_partition(inputs, partition_type ="row_length
 
 @tf.function
 def kgcnn_ops_cast_value_partition_to_tensor(inputs, partition_type="row_length"):
-    infeat, inpartition = inputs
-    outsh = ksb.int_shape(infeat)
+    out = kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type=partition_type)
+    # out = kgcnn_ops_cast_value_partition_to_tensor(inputs, self.partition_type)
+    return out.to_tensor()
 
-    if partition_type == "row_length":
-        ref = inpartition
-        insh = ksb.shape(ref)
-        out = ksb.reshape(infeat, (insh[0], -1, outsh[-1]))
-    elif partition_type == "row_splits":
-        ref = inpartition[:-1]
-        insh = ksb.shape(ref)
-        out = ksb.reshape(infeat, (insh[0], -1, outsh[-1]))
-    elif partition_type == "value_rowids":
-        ref = tf.math.segment_sum(tf.ones_like(inpartition), inpartition)
-        insh = ksb.shape(ref)
-        out = ksb.reshape(infeat, (insh[0], -1, outsh[-1]))
-    else:
-        raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
-
-    return out
 
 @tf.function
 def kgcnn_ops_cast_value_partition_to_masked(inputs, partition_type="row_length"):
@@ -109,17 +109,80 @@ def kgcnn_ops_cast_value_partition_to_masked(inputs, partition_type="row_length"
     return [out, mask]
 
 
+
+
+
 @tf.function
-def kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type="row_length"):
-    nod, n_part = inputs
+def kgcnn_ops_dyn_cast(inputs, input_tensor_type=None, output_tensor_type=None, partition_type="row_length"):
 
-    if partition_type == "row_length":
-        out = tf.RaggedTensor.from_row_lengths(nod, n_part)
-    elif partition_type == "row_splits":
-        out = tf.RaggedTensor.from_row_splits(nod, n_part)
-    elif partition_type == "value_rowids":
-        out = tf.RaggedTensor.from_value_rowids(nod, n_part)
+    tensor_keys = ["Tensor", "tensor"]
+    ragged_keys = ["ragged", "RaggedTensor"]
+    value_partition_keys = ["disjoint", "values_partition"]
+
+    if input_tensor_type in ragged_keys:
+        if output_tensor_type in ragged_keys:
+            return inputs
+        elif output_tensor_type in value_partition_keys:
+            return kgcnn_ops_cast_ragged_to_value_partition(inputs, partition_type=partition_type)
+        elif output_tensor_type in tensor_keys:
+            return inputs.to_tensor()
+        else:
+            raise NotImplementedError("Error: Unsupported tensor output type of ", output_tensor_type)
+
+    elif input_tensor_type in value_partition_keys:
+        if output_tensor_type in value_partition_keys:
+            return inputs
+        elif output_tensor_type in ragged_keys:
+            return kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type=partition_type)
+        elif output_tensor_type in tensor_keys:
+            return kgcnn_ops_cast_value_partition_to_tensor(inputs, partition_type=partition_type)
+        else:
+            raise NotImplementedError("Error: Unsupported tensor output type of ", output_tensor_type)
+
+    elif input_tensor_type in tensor_keys:
+        if output_tensor_type in tensor_keys:
+            return inputs
+        elif output_tensor_type in value_partition_keys:
+            return kgcnn_ops_cast_tensor_to_value_partition(inputs, partition_type=partition_type)
+        else:
+            return NotImplementedError("Error: Unsupported tensor output type of ", output_tensor_type)
+
     else:
-        raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
+        raise NotImplementedError("Error: Unsupported tensor input type of ", input_tensor_type)
 
-    return out
+        #  old casting
+        # if self.input_tensor_type == self.output_tensor_type:
+        #     return inputs
+        #
+        # if self.input_tensor_type=="values_partition" and self.output_tensor_type=="ragged":
+        #     out = kgcnn_ops_cast_value_partition_to_ragged(inputs, self.partition_type)
+        #     return out
+        # if self.input_tensor_type=="ragged" and self.output_tensor_type=="values_partition":
+        #     out = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
+        #     return out
+        #
+        # if self.input_tensor_type == "masked" and self.output_tensor_type == "ragged":
+        #     raise NotImplementedError("Error: Conversion has not been implemented yet.")
+        # if self.input_tensor_type == "ragged" and self.output_tensor_type == "masked":
+        #     raise NotImplementedError("Error: Conversion has not been implemented yet.")
+        #
+        # if self.input_tensor_type == "values_partition" and self.output_tensor_type == "masked":
+        #     out = kgcnn_ops_cast_value_partition_to_masked(inputs, self.partition_type)
+        #     return out
+        # if self.input_tensor_type == "masked" and self.output_tensor_type == "values_partition":
+        #     out = kgcnn_ops_cast_masked_to_value_partition(inputs, self.partition_type)
+        #     return out
+        #
+        # if self.input_tensor_type == "values_partition" and self.output_tensor_type == "tensor":
+        #     out = kgcnn_ops_cast_value_partition_to_ragged(inputs, self.partition_type)
+        #     # out = kgcnn_ops_cast_value_partition_to_tensor(inputs, self.partition_type)
+        #     return out.to_tensor()
+        # if self.input_tensor_type == "tensor" and self.output_tensor_type == "values_partition":
+        #     out = kgcnn_ops_cast_tensor_to_value_partition(inputs, self.partition_type)
+        #     return out
+        #
+        # if self.input_tensor_type == "ragged" and self.output_tensor_type == "tensor":
+        #     out = inputs.to_tensor()
+        #     return out
+        # if self.input_tensor_type == "tensor" and self.output_tensor_type == "ragged":
+        #     raise NotImplementedError("Error: Conversion has not been implemented yet.")
