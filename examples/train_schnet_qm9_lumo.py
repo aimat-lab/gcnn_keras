@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # Import example dataset loader and SchNet model
 from kgcnn.data.qm.qm9 import qm9_graph
-from kgcnn.literature.Schnet import make_schnet_disjoint as make_schnet
+from kgcnn.literature.Schnet import make_schnet as make_schnet
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
