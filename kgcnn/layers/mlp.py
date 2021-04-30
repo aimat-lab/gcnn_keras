@@ -100,20 +100,19 @@ class MLP(ks.layers.Layer):
         """Build layer."""
         super(MLP, self).build(input_shape)
 
-    def call(self, inputs, training=False):
+    def call(self, inputs, **kwargs):
         """Forward pass.
         
         Args:
-            inputs: Input tensor of shape (...,N).
-            training (bool)
+            inputs: Input tensor.
 
         Returns:
-            out (tf.tensor): MLP pass.
+            out: MLP pass.
         
         """
         x = inputs
         for i in range(len(self.mlp_units)):
-            x = self.mlp_dense_list[i](x)
+            x = self.mlp_dense_list[i](x, **kwargs)
         out = x
         return out
 
