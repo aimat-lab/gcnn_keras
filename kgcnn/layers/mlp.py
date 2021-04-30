@@ -6,19 +6,29 @@ from kgcnn.layers.keras import Dense
 
 # import tensorflow.keras.backend as ksb
 
-
 class MLP(ks.layers.Layer):
     """
     Multilayer perceptron that consist of N dense keras layers.
         
     Args:
-        units (list): Size of hidden layers for each layer.
-        use_bias (list, optional): Use bias for hidden layers. Defaults to True.
-        activation (list, optional): Activity identifier. Defaults to None.
-        activity_regularizer (list, optional): Activity regularizer identifier. Defaults to None.
-        kernel_regularizer (list, optional): Kernel regularizer identifier. Defaults to None.
-        bias_regularizer (list, optional): Bias regularizer identifier. Defaults to None.
-        **kwargs 
+        units: Positive integer, dimensionality of the output space.
+        activation: Activation function to use.
+            If you don't specify anything, no activation is applied
+            (ie. "linear" activation: `a(x) = x`).
+        use_bias: Boolean, whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to
+            the `kernel` weights matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        activity_regularizer: Regularizer function applied to
+            the output of the layer (its "activation").
+        kernel_constraint: Constraint function applied to
+            the `kernel` weights matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+        input_tensor_type (str): Information of the expected tensor input. Default is "ragged".
+        **kwargs
     """
 
     def __init__(self,
@@ -35,7 +45,7 @@ class MLP(ks.layers.Layer):
                  ragged_validate=False,
                  input_tensor_type="ragged",
                  **kwargs):
-        """Init MLP as for dense."""
+        """Initialize MLP as for dense."""
         super(MLP, self).__init__(**kwargs)
         self._supports_ragged_inputs = True
         self.ragged_validate = ragged_validate
