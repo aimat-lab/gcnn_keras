@@ -4,14 +4,6 @@ kgcnn.utils package
 Submodules
 ----------
 
-kgcnn.utils.activ module
-------------------------
-
-.. automodule:: kgcnn.utils.activ
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.utils.adj module
 ----------------------
 

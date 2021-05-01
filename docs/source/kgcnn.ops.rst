@@ -1,0 +1,77 @@
+kgcnn.ops package
+=================
+
+Submodules
+----------
+
+kgcnn.ops.activ module
+----------------------
+
+.. automodule:: kgcnn.ops.activ
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.casting module
+------------------------
+
+.. automodule:: kgcnn.ops.casting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.models module
+-----------------------
+
+.. automodule:: kgcnn.ops.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.partition module
+--------------------------
+
+.. automodule:: kgcnn.ops.partition
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.scatter module
+------------------------
+
+.. automodule:: kgcnn.ops.scatter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.segment module
+------------------------
+
+.. automodule:: kgcnn.ops.segment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.sorting module
+------------------------
+
+.. automodule:: kgcnn.ops.sorting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.types module
+----------------------
+
+.. automodule:: kgcnn.ops.types
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: kgcnn.ops
+   :members:
+   :undoc-members:
+   :show-inheritance:

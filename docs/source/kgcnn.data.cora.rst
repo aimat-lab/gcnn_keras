@@ -12,6 +12,14 @@ kgcnn.data.cora.cora module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.cora.cora\_lu module
+-------------------------------
+
+.. automodule:: kgcnn.data.cora.cora_lu
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

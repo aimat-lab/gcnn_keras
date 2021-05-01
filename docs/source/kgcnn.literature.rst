@@ -4,10 +4,34 @@ kgcnn.literature package
 Submodules
 ----------
 
+kgcnn.literature.GAT module
+---------------------------
+
+.. automodule:: kgcnn.literature.GAT
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.GCN module
 ---------------------------
 
 .. automodule:: kgcnn.literature.GCN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.GNNExplain module
+----------------------------------
+
+.. automodule:: kgcnn.literature.GNNExplain
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.GraphSAGE module
+---------------------------------
+
+.. automodule:: kgcnn.literature.GraphSAGE
    :members:
    :undoc-members:
    :show-inheritance:
