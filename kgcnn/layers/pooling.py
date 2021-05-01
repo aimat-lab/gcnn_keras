@@ -1,10 +1,11 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition, kgcnn_ops_change_partition_type
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
-from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition, kgcnn_ops_cast_value_partition_to_ragged
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
 
 
 class PoolingLocalEdges(ks.layers.Layer):
@@ -24,7 +25,6 @@ class PoolingLocalEdges(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -45,17 +45,12 @@ class PoolingLocalEdges(ks.layers.Layer):
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -68,35 +63,46 @@ class PoolingLocalEdges(ks.layers.Layer):
             inputs (list): of [node, edges, edge_index]
 
             - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edges: Edge or message features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
     
         Returns:
             features: Pooled feature tensor of pooled edge features for each node.
         """
-        nod, node_part, edge, _, edgeind, edge_part = None, None, None, None, None, None
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
 
-        if self.input_tensor_type == "values_partition":
-            [nod, node_part], [edge, _], [edgeind, edge_part] = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], self.partition_type)
-            edge, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
-            edgeind, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[2],  self.partition_type)
+        nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
+        edge, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                     output_tensor_type="values_partition",
+                                     partition_type=self.partition_type)
+        edgeind, edge_part = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_index_type,
+                                                output_tensor_type="values_partition",
+                                                partition_type=self.partition_type)
 
         shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
                                                                           partition_type_node=self.partition_type,
@@ -116,10 +122,8 @@ class PoolingLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             out = kgcnn_ops_scatter_segment_tensor_nd(out, nodind, tf.shape(nod))
 
-        if self.input_tensor_type == "values_partition":
-            return [out, node_part]
-        elif self.input_tensor_type == "ragged":
-            return kgcnn_ops_cast_value_partition_to_ragged([out, node_part], self.partition_type)
+        return kgcnn_ops_dyn_cast([out, node_part], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""
@@ -179,17 +183,12 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -202,42 +201,58 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
             inputs (list): of [node, edges, edge_index, weights]
 
             - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edges: Edge or message features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - weights: Edge or message weights. Most broadcast to edges or messages.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,1)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 1)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,1)
-              or a singe tensor for equally sized graphs (batch,N,1).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 1) or in case of equal sized graphs (batch, N, 1).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 1) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
 
         Returns:
             features: Pooled feature tensor of pooled edge features for each node.
         """
-        nod, node_part, edge, _, edgeind, edge_part, weights, _ = None, None, None, None, None, None, None, None
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
+        found_weight_type = kgcnn_ops_get_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
 
-        if self.input_tensor_type == "values_partition":
-            [nod, node_part], [edge, _], [edgeind, edge_part], [weights, _] = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], self.partition_type)
-            edge, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
-            edgeind, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[2], self.partition_type)
-            weights, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[3], self.partition_type)
+        nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
+        edge, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                     output_tensor_type="values_partition",
+                                     partition_type=self.partition_type)
+        edgeind, edge_part = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_index_type,
+                                                output_tensor_type="values_partition",
+                                                partition_type=self.partition_type)
+        weights, _ = kgcnn_ops_dyn_cast(inputs[4], input_tensor_type=found_weight_type,
+                                        output_tensor_type="values_partition",
+                                        partition_type=self.partition_type)
 
         shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
                                                                           partition_type_node=self.partition_type,
@@ -265,10 +280,8 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         if self.has_unconnected:
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        if self.input_tensor_type == "values_partition":
-            return [get, node_part]
-        elif self.input_tensor_type == "ragged":
-            return kgcnn_ops_cast_value_partition_to_ragged([get, node_part], self.partition_type)
+        return kgcnn_ops_dyn_cast([get, node_part], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""
@@ -300,7 +313,6 @@ class PoolingNodes(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -321,11 +333,11 @@ class PoolingNodes(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self._supports_ragged_inputs = True
 
@@ -338,24 +350,26 @@ class PoolingNodes(ks.layers.Layer):
 
         Args:
             inputs: Node features.
-                This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-                and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-                disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape
-                (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-                or a singe tensor for equally sized graphs (batch,N,F).
+                The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+                The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+                For disjoint representation (values, partition), the node embeddings are given by
+                a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+                "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+                the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
     
         Returns:
             nodes (tf.tensor): Pooled node features of shape (batch,F)
         """
-        nod, node_part = None, None
-        if self.input_tensor_type == "values_partition":
-            nod, node_part = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
+        found_node_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        nod, node_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
 
         batchi = kgcnn_ops_change_partition_type(node_part, self.partition_type, "value_rowids")
 
         out = kgcnn_ops_segment_operation_by_name(self.pooling_method, nod, batchi)
+
         # Output should have correct shape
         return out
 
@@ -385,7 +399,6 @@ class PoolingWeightedNodes(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -406,11 +419,11 @@ class PoolingWeightedNodes(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self._supports_ragged_inputs = True
 
@@ -425,27 +438,33 @@ class PoolingWeightedNodes(ks.layers.Layer):
             inputs (list): of [node, weights]
 
             - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - weights: Edge or message weights. Most broadcast to nodes.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,1)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 1)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,1)
-              or a singe tensor for equally sized graphs (batch,N,1).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 1) or in case of equal sized graphs (batch, N, 1).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 1) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
 
         Returns:
             nodes (tf.tensor): Pooled node features of shape (batch,F)
         """
-        nod, node_part, weights = None, None, None
-        if self.input_tensor_type == "values_partition":
-            [nod, node_part], [weights, _] = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
-            weights, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_weight_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
+        weights, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_weight_type,
+                                        output_tensor_type="values_partition",
+                                        partition_type=self.partition_type)
 
         batchi = kgcnn_ops_change_partition_type(node_part, self.partition_type, "value_rowids")
 
@@ -480,7 +499,6 @@ class PoolingGlobalEdges(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -501,11 +519,11 @@ class PoolingGlobalEdges(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self._supports_ragged_inputs = True
 
@@ -518,20 +536,21 @@ class PoolingGlobalEdges(ks.layers.Layer):
 
         Args:
             inputs: Edge features or message embeddings.
-                This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-                and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-                disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of
-                shape (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-                or a singe tensor for equally sized graphs (batch,N,F).
+                The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+                The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+                For disjoint representation (values, partition), the node embeddings are given by
+                a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+                "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+                the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
     
         Returns:
             tf.tensor: Pooled edges feature list of shape (batch,F).
         """
-        edge, edge_part = None, None
-        if self.input_tensor_type == "values_partition":
-            edge, edge_part = inputs
-        elif self.input_tensor_type == "ragged":
-            edge, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs, self.partition_type)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        edge, edge_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_edge_type,
+                                             output_tensor_type="values_partition",
+                                             partition_type=self.partition_type)
 
         batchi = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "value_rowids")
 
@@ -565,13 +584,68 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         units (int): Units for LSTM cell.
         pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-                             For disjoint representation 'batch' is default.
+            For disjoint representation 'batch' is default.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
+        activation: Activation function to use.
+            Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
+            is applied (ie. "linear" activation: `a(x) = x`).
+        recurrent_activation: Activation function to use for the recurrent step.
+            Default: sigmoid (`sigmoid`). If you pass `None`, no activation is
+            applied (ie. "linear" activation: `a(x) = x`).
+        use_bias: Boolean (default `True`), whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix, used for
+            the linear transformation of the inputs. Default: `glorot_uniform`.
+            recurrent_initializer: Initializer for the `recurrent_kernel` weights
+            matrix, used for the linear transformation of the recurrent state.
+            Default: `orthogonal`.
+        bias_initializer: Initializer for the bias vector. Default: `zeros`.
+            unit_forget_bias: Boolean (default `True`). If True, add 1 to the bias of
+            the forget gate at initialization. Setting it to true will also force
+            `bias_initializer="zeros"`. This is recommended in [Jozefowicz et
+            al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix. Default: `None`.
+        recurrent_regularizer: Regularizer function applied to the
+            `recurrent_kernel` weights matrix. Default: `None`.
+            bias_regularizer: Regularizer function applied to the bias vector. Default:
+            `None`.
+        activity_regularizer: Regularizer function applied to the output of the
+            layer (its "activation"). Default: `None`.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix. Default: `None`.
+        recurrent_constraint: Constraint function applied to the `recurrent_kernel`
+            weights matrix. Default: `None`.
+        bias_constraint: Constraint function applied to the bias vector. Default:
+            `None`.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the linear
+            transformation of the inputs. Default: 0.
+            recurrent_dropout: Float between 0 and 1. Fraction of the units to drop for
+            the linear transformation of the recurrent state. Default: 0.
+        return_sequences: Boolean. Whether to return the last output. in the output
+            sequence, or the full sequence. Default: `False`.
+        return_state: Boolean. Whether to return the last state in addition to the
+            output. Default: `False`.
+        go_backwards: Boolean (default `False`). If True, process the input sequence
+            backwards and return the reversed sequence.
+        stateful: Boolean (default `False`). If True, the last state for each sample
+            at index i in a batch will be used as initial state for the sample of
+            index i in the following batch.
+        time_major: The shape format of the `inputs` and `outputs` tensors.
+            If True, the inputs and outputs will be in shape
+            `[timesteps, batch, feature]`, whereas in the False case, it will be
+            `[batch, timesteps, feature]`. Using `time_major = True` is a bit more
+            efficient because it avoids transposes at the beginning and end of the
+            RNN calculation. However, most TensorFlow data is batch-major, so by
+            default this function accepts input and emits output in batch-major
+            form.
+        unroll: Boolean (default `False`). If True, the network will be unrolled,
+            else a symbolic loop will be used. Unrolling can speed-up a RNN, although
+            it tends to be more memory-intensive. Unrolling is only suitable for short
+            sequences.
     """
 
     def __init__(self,
@@ -603,11 +677,11 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self.lstm_unit = ks.layers.LSTM(units=units, activation=activation, recurrent_activation=recurrent_activation,
                                         use_bias=use_bias, kernel_initializer=kernel_initializer,
@@ -622,8 +696,8 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
                                         return_sequences=return_sequences, return_state=return_state,
                                         go_backwards=go_backwards, stateful=stateful,
                                         time_major=time_major, unroll=unroll)
-        if not self.pooling_method in ["LSTM","lstm"]:
-            print("Warning: Pooling method does not match with layer, expected 'LSTM' but got",self.pooling_method)
+        if self.pooling_method not in ["LSTM", "lstm"]:
+            print("Warning: Pooling method does not match with layer, expected 'LSTM' but got", self.pooling_method)
 
     def build(self, input_shape):
         """Build layer."""
@@ -636,34 +710,46 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
             inputs (list): [nodes, edges, edge_index]
 
             - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edges: Edge or message features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
 
         Returns:
             features: Feature tensor of pooled edge features for each node.
         """
-        nod, node_part, edge, _, edgeind, edge_part = None, None, None, None, None, None
-        if self.input_tensor_type == "values_partition":
-            [nod, node_part], [edge, _], [edgeind, edge_part] = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], self.partition_type)
-            edge, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
-            edgeind, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[2],  self.partition_type)
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
+
+        nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
+        edge, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                     output_tensor_type="values_partition",
+                                     partition_type=self.partition_type)
+        edgeind, edge_part = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_index_type,
+                                                output_tensor_type="values_partition",
+                                                partition_type=self.partition_type)
 
         shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
                                                                           partition_type_node=self.partition_type,
@@ -689,12 +775,8 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
             # Does not happen if all nodes are also connected
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-
-        if self.input_tensor_type == "values_partition":
-            return [get, node_part]
-        elif self.input_tensor_type == "ragged":
-            return kgcnn_ops_cast_value_partition_to_ragged([get, node_part], self.partition_type)
-
+        return kgcnn_ops_dyn_cast([get, node_part], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""

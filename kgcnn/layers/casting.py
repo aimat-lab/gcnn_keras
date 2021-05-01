@@ -39,7 +39,7 @@ class ChangeTensorType(ks.layers.Layer):
         Returns:
             outputs: Changed tensor-information.
         """
-        return kgcnn_ops_dyn_cast(inputs,input_tensor_type=self.input_tensor_type,
+        return kgcnn_ops_dyn_cast(inputs, input_tensor_type=self.input_tensor_type,
                                   output_tensor_type=self.output_tensor_type,
                                   partition_type=self.partition_type)
 

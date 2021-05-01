@@ -2,7 +2,10 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type
+from kgcnn.ops.types import kgcnn_ops_get_tensor_type, kgcnn_ops_static_test_tensor_input_type
+
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
@@ -82,11 +85,10 @@ class Set2Set(ks.layers.Layer):
             else a symbolic loop will be used. Unrolling can speed-up a RNN, although
             it tends to be more memory-intensive. Unrolling is only suitable for short
             sequences.
-        **kwargs
     """
 
     def __init__(self,
-                 #Arg
+                 # Arg
                  channels,
                  T=3,
                  pooling_method='mean',
@@ -136,11 +138,11 @@ class Set2Set(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         if self.pooling_method == 'mean':
             self._pool = ksb.mean
@@ -200,17 +202,13 @@ class Set2Set(ks.layers.Layer):
         Returns:
             q_star (tf.tensor): Pooled tensor of shape (batch,1,2*channels)
         """
-        x, batch_num, batch_index = None,None, None
-        if self.input_tensor_type=="values_partition":
-            x, batch_part = inputs
-            batch_num = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "row_length")
-            batch_index = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "value_rowids")
-        if self.input_tensor_type=="ragged":
-            x_ragged = inputs
-            x = x_ragged.values
-            batch_num = x_ragged.row_lengths()
-            batch_shape = ksb.shape(batch_num)
-            batch_index = tf.repeat(ksb.arange(0, batch_shape[0], 1), batch_num)  # (batch*num,) ex: [0,0,0,1,2,2,2,...]
+        found_node_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        x, batch_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_node_type,
+                                           output_tensor_type="values_partition",
+                                           partition_type=self.partition_type)
+        batch_num = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "row_length")
+        batch_index = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "value_rowids")
 
         # Reading to memory removed here, is to be done by seperately
         m = x  # (batch*None,feat)
@@ -301,15 +299,15 @@ class Set2Set(ks.layers.Layer):
         """Make config for layer."""
         config = super(Set2Set, self).get_config()
         config.update({"channels": self.channels,
-                        "T": self.T,
-                        "pooling_method": self.pooling_method,
-                        "init_qstar": self.init_qstar,
-                        "is_sorted": self.is_sorted,
-                        "has_unconnected": self.has_unconnected,
-                        "node_indexing": self.node_indexing,
-                        "partition_type": self.partition_type,
-                        "input_tensor_type": self.input_tensor_type,
-                        "ragged_validate": self.ragged_validate})
+                       "T": self.T,
+                       "pooling_method": self.pooling_method,
+                       "init_qstar": self.init_qstar,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
         lstm_conf = self.lay_lstm.get_config()
         lstm_param = ["activation",
                       "recurrent_activation",

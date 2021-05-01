@@ -6,6 +6,7 @@ from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 from kgcnn.ops.activ import kgcnn_custom_act
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type
 
 
 class GCN(ks.layers.Layer):
@@ -42,7 +43,6 @@ class GCN(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -75,17 +75,12 @@ class GCN(ks.layers.Layer):
         self.is_sorted = is_sorted
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         if activation is None and 'leaky_relu' in kgcnn_custom_act:
             activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
@@ -135,24 +130,30 @@ class GCN(ks.layers.Layer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
-            - edges: Edge features or message embedding.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+            - nodes: Node embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - edges: Edge or message embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+
+        Returns:
+            embeddings: Node embeddings.
         """
         node, edges, edge_index = inputs
         no = self.lay_dense(node)
@@ -240,17 +241,12 @@ class SchNetCFconv(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self.units = units
         self.use_bias = use_bias
@@ -298,24 +294,27 @@ class SchNetCFconv(ks.layers.Layer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
-            - edges: Edge features or message embedding.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+            - nodes: Node embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - edges: Edge or message embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
         
         Returns:
             node_update: Updated node features.
@@ -402,16 +401,12 @@ class SchNetInteraction(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
@@ -460,24 +455,27 @@ class SchNetInteraction(ks.layers.Layer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
-            - edges: Edge features or message embedding.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+            - nodes: Node embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - edges: Edge or message embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
 
         Returns:
             node_update: Updated node embeddings.
@@ -536,7 +534,6 @@ class MEGnetBlock(ks.layers.Layer):
         node_indexing (str): Indexing information. Whether indices refer to per sample or per batch. Default is "batch".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self, node_embed=None,
@@ -568,16 +565,12 @@ class MEGnetBlock(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         if node_embed is None:
             node_embed = [16, 16, 16]
@@ -606,9 +599,8 @@ class MEGnetBlock(ks.layers.Layer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
-        mlp_args = {}
+        mlp_args = {"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate}
         mlp_args.update(kernel_args)
-        mlp_args.update({"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate})
         pool_args = {"pooling_method": self.pooling_method, "is_sorted": self.is_sorted,
                      "has_unconnected": self.has_unconnected, "input_tensor_type": self.input_tensor_type,
                      "ragged_validate": self.ragged_validate, "partition_type": self.partition_type,
@@ -622,18 +614,18 @@ class MEGnetBlock(ks.layers.Layer):
         self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', use_bias=self.use_bias, **mlp_args)
         self.lay_esum = PoolingLocalEdges(**pool_args)
         self.lay_gather_un = GatherState(**gather_args)
-        self.lay_conc_nu = Concatenate(axis=-1,input_tensor_type=self.input_tensor_type)
+        self.lay_conc_nu = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
         # Edge
         self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, use_bias=self.use_bias, **mlp_args)
         self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, use_bias=self.use_bias, **mlp_args)
         self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', use_bias=self.use_bias, **mlp_args)
         self.lay_gather_n = GatherNodes(**gather_args)
         self.lay_gather_ue = GatherState(**gather_args)
-        self.lay_conc_enu = Concatenate(axis=-1,input_tensor_type=self.input_tensor_type)
+        self.lay_conc_enu = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
         # Environment
         self.lay_usum_e = PoolingGlobalEdges(**pool_args)
         self.lay_usum_n = PoolingNodes(**pool_args)
-        self.lay_conc_u = Concatenate(axis=-1,input_tensor_type="tensor")
+        self.lay_conc_u = Concatenate(axis=-1, input_tensor_type="tensor")
         self.lay_phi_u = ks.layers.Dense(units=self.env_embed[0], activation=activation, use_bias=self.use_bias,
                                          **kernel_args)
         self.lay_phi_u_1 = ks.layers.Dense(units=self.env_embed[1], activation=activation, use_bias=self.use_bias,
@@ -651,25 +643,30 @@ class MEGnetBlock(ks.layers.Layer):
         Args:
             inputs: [nodes, edges, edge_index, state]
 
-            - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
-            - edges: Edge features or message embedding.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+            - nodes: Node embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - edges: Edge or message embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
-            - state (tf.tensor): State information for the graph of shape (batch, F)
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - state (tf.tensor): State information for the graph.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              However, for a graph specific embedding, a single tensor is usually sufficient.
 
         Returns:
             node_update: Updated node embeddings.

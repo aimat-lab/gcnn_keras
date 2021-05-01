@@ -2,13 +2,15 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
+from kgcnn.layers.keras import Dense, Activation, Concatenate
 from kgcnn.ops.activ import kgcnn_custom_act
+from kgcnn.ops.casting import kgcnn_ops_cast_value_partition_to_ragged
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax
-from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
 
-from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition, kgcnn_ops_cast_value_partition_to_ragged
 
 class PoolingLocalEdgesAttention(ks.layers.Layer):
     r"""
@@ -50,15 +52,11 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -71,41 +69,59 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
             inputs: [node, edges, attention, edge_indices]
 
             - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edges: Edge or message features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - attention: Attention coefficients.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             - edge_index: Edge indices.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
 
         Returns:
             embeddings: Feature tensor of pooled edge attentions for each node.
         """
-        nod, node_part, edge, attention, edge_part, edgeind = None,None, None,None,None, None
-        if self.input_tensor_type == "values_partition":
-            [nod, node_part], [edge, _], [attention, _], [edgeind, edge_part] = inputs
-        elif self.input_tensor_type == "ragged":
-            nod, node_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], self.partition_type)
-            edge, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], self.partition_type)
-            attention, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[2], self.partition_type)
-            edgeind, edge_part = kgcnn_ops_cast_ragged_to_value_partition(inputs[3],  self.partition_type)
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_att_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                   node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_get_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
+
+        # We cast to values here
+        nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                            output_tensor_type="values_partition",
+                                            partition_type=self.partition_type)
+        edge, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                     output_tensor_type="values_partition",
+                                     partition_type=self.partition_type)
+        attention, _ = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_att_type,
+                                          output_tensor_type="values_partition",
+                                          partition_type=self.partition_type)
+        edgeind, edge_part = kgcnn_ops_dyn_cast(inputs[3], input_tensor_type=found_index_type,
+                                                output_tensor_type="values_partition",
+                                                partition_type=self.partition_type)
 
         shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeind, node_part, edge_part,
                                                                           partition_type_node=self.partition_type,
@@ -133,10 +149,9 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
             # Does not happen if all nodes are also connected
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        if self.input_tensor_type == "values_partition":
-            return [get, node_part]
-        elif self.input_tensor_type == "ragged":
-            return kgcnn_ops_cast_value_partition_to_ragged([get, node_part], self.partition_type)
+
+        return kgcnn_ops_dyn_cast([get, node_part], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""
@@ -180,7 +195,6 @@ class AttentionHeadGAT(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -213,15 +227,11 @@ class AttentionHeadGAT(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         # dense args
         self.units = int(units)
@@ -239,18 +249,18 @@ class AttentionHeadGAT(ks.layers.Layer):
         self.ath_kernel_constraint = tf.keras.constraints.get(kernel_constraint)
         self.ath_bias_constraint = tf.keras.constraints.get(bias_constraint)
 
-        kernel_args = {"use_bias":use_bias,"kernel_regularizer":kernel_regularizer,
-                       "activity_regularizer":activity_regularizer,"bias_regularizer":bias_regularizer,
-                       "kernel_constraint":kernel_constraint, "bias_constraint":bias_constraint,
-                       "kernel_initializer":kernel_initializer, "bias_initializer":bias_initializer}
-        dens_args = {"ragged_validate" : self.ragged_validate, "input_tensor_type": self.input_tensor_type}
+        kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+        dens_args = {"ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
         dens_args.update(kernel_args)
-        gather_args = {"input_tensor_type": self.input_tensor_type, "node_indexing":self.node_indexing}
-        pooling_args = {"node_indexing":node_indexing, "partition_type": partition_type,
-                        "has_unconnected":has_unconnected, "is_sorted":is_sorted,
-                        "ragged_validate" : self.ragged_validate, "input_tensor_type": self.input_tensor_type}
+        gather_args = {"input_tensor_type": self.input_tensor_type, "node_indexing": self.node_indexing}
+        pooling_args = {"node_indexing": node_indexing, "partition_type": partition_type,
+                        "has_unconnected": has_unconnected, "is_sorted": is_sorted,
+                        "ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
 
-        self.lay_linear_trafo = Dense(units, activation="linear",**dens_args )
+        self.lay_linear_trafo = Dense(units, activation="linear", **dens_args)
         self.lay_alpha = Dense(1, activation=activation, **dens_args)
         self.lay_gather_in = GatherNodesIngoing(**gather_args)
         self.lay_gather_out = GatherNodesOutgoing(**gather_args)
@@ -292,7 +302,7 @@ class AttentionHeadGAT(ks.layers.Layer):
         """
         node, edge, edge_index = inputs
 
-        n_in = self.lay_gather_in([node,edge_index])
+        n_in = self.lay_gather_in([node, edge_index])
         n_out = self.lay_gather_out([node, edge_index])
         wn_in = self.lay_linear_trafo(n_in)
         wn_out = self.lay_linear_trafo(n_out)

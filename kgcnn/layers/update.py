@@ -1,8 +1,11 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
 
-class ApplyMessage(ks.layers.Layer):
+
+class TrafoMatMulMessages(ks.layers.Layer):
     """
     Apply message by edge matrix multiplication.
     
@@ -10,6 +13,13 @@ class ApplyMessage(ks.layers.Layer):
     
     Args:
         target_shape (int): Target dimension. Message dimension must match target_dim*node_dim.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
     """
 
     def __init__(self, target_shape,
@@ -21,7 +31,7 @@ class ApplyMessage(ks.layers.Layer):
                  ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
-        super(ApplyMessage, self).__init__(**kwargs)
+        super(TrafoMatMulMessages, self).__init__(**kwargs)
         self.target_shape = target_shape
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
@@ -30,46 +40,61 @@ class ApplyMessage(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
     def build(self, input_shape):
         """Build layer."""
-        super(ApplyMessage, self).build(input_shape)
+        super(TrafoMatMulMessages, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
 
         Args:
-            inputs (list): of [message, nodes]
+            inputs (list): of [trafo, edges]
 
-            - message (tf.tensor): Message tensor of shape (batch*None,target_dim*node_dim)
-              that can be reshaped to (batch*None,target_shape,node_dim)
-            - nodes (tf.tensor): Node feature list of shape (batch*None,node_dim)
+            - trafo: Transformation by matrix multiplication for each message. Must be reshaped to FxF.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F*F) or in case of equal sized graphs (batch, N, F*F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F*F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - edges: Edge embeddings or messages
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             
         Returns:
-            node_updates (tf.tensor): Element-wise matmul of message and node features
-            of output shape (batch,target_dim)
+            node_updates (tf.tensor): Transformation of messages by matrix multiplication.
         """
-        if self.input_tensor_type == "values_partition":
-            [dens_e, epart], [dens_n, npart] = inputs
-            dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
-            out = tf.keras.backend.batch_dot(dens_m, dens_n)
-            return [out, npart]
-        elif self.input_tensor_type == "ragged":
-            rag_e, rag_n = inputs
-            dens_e = rag_e.values
-            dens_n = rag_n.values
-            dens_m = tf.reshape(dens_e, (ks.backend.shape(dens_e)[0], self.target_shape, ks.backend.shape(dens_n)[-1]))
-            out = tf.keras.backend.batch_dot(dens_m, dens_n)
-            return tf.RaggedTensor.from_row_lengths(out, rag_n.row_lengths())
+        found_trafo_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        dens_trafo, trafo_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_trafo_type,
+                                                    output_tensor_type="values_partition",
+                                                    partition_type=self.partition_type)
+        dens_e, epart = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                           output_tensor_type="values_partition",
+                                           partition_type=self.partition_type)
+
+        dens_m = tf.reshape(dens_trafo,
+                            (ks.backend.shape(dens_trafo)[0], self.target_shape, ks.backend.shape(dens_e)[-1]))
+        out = tf.keras.backend.batch_dot(dens_m, dens_e)
+
+        return kgcnn_ops_dyn_cast([out, epart], input_tensor_type="values_partition",
+                                  output_tensor_type=found_edge_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""
-        config = super(ApplyMessage, self).get_config()
+        config = super(TrafoMatMulMessages, self).get_config()
         config.update({"target_shape": self.target_shape,
                        "is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
@@ -86,6 +111,46 @@ class GRUupdate(ks.layers.Layer):
     
     Args:
         units (int): Units for GRU.
+        activation: Activation function to use. Default: hyperbolic tangent
+            (`tanh`). If you pass None, no activation is applied
+            (ie. "linear" activation: `a(x) = x`).
+        recurrent_activation: Activation function to use for the recurrent step.
+            Default: sigmoid (`sigmoid`). If you pass `None`, no activation is
+            applied (ie. "linear" activation: `a(x) = x`).
+        use_bias: Boolean, (default `True`), whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix,
+            used for the linear transformation of the inputs. Default:
+            `glorot_uniform`.
+        recurrent_initializer: Initializer for the `recurrent_kernel`
+            weights matrix, used for the linear transformation of the recurrent state.
+            Default: `orthogonal`.
+        bias_initializer: Initializer for the bias vector. Default: `zeros`.
+        kernel_regularizer: Regularizer function applied to the `kernel` weights
+            matrix. Default: `None`.
+        recurrent_regularizer: Regularizer function applied to the
+            `recurrent_kernel` weights matrix. Default: `None`.
+        bias_regularizer: Regularizer function applied to the bias vector. Default:
+            `None`.
+        kernel_constraint: Constraint function applied to the `kernel` weights
+            matrix. Default: `None`.
+        recurrent_constraint: Constraint function applied to the `recurrent_kernel`
+            weights matrix. Default: `None`.
+        bias_constraint: Constraint function applied to the bias vector. Default:
+            `None`.
+        dropout: Float between 0 and 1. Fraction of the units to drop for the
+            linear transformation of the inputs. Default: 0.
+        recurrent_dropout: Float between 0 and 1. Fraction of the units to drop for
+            the linear transformation of the recurrent state. Default: 0.
+        reset_after: GRU convention (whether to apply reset gate after or
+            before matrix multiplication). False = "before",
+            True = "after" (default and CuDNN compatible).
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
     """
 
     def __init__(self, units,
@@ -113,11 +178,11 @@ class GRUupdate(ks.layers.Layer):
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
         self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
+
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self.gru_cell = tf.keras.layers.GRUCell(units=units,
                                                 activation=activation, recurrent_activation=recurrent_activation,
@@ -144,21 +209,39 @@ class GRUupdate(ks.layers.Layer):
         Args:
             inputs (list): of [nodes, updates]
 
-            - nodes (tf.tensor): Flatten node feature list of shape (batch*None,F)
-            - updates (tf.tensor): Matching node updates of same shape (batch*None,F)
+            - nodes (tf.tensor): Node embeddings.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - updates (tf.tensor): Matching node updates.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
             
         Returns:
             updated_nodes (tf.tensor): Updated nodes of shape (batch*None,F)
         """
-        if self.input_tensor_type=="values_partition":
-            [n, npart], [eu, _] = inputs
-            # Apply GRU for update node state
-            out, _ = self.gru_cell(eu, [n])
-            return [out, npart]
-        elif self.input_tensor_type=="values_partition":
-            n, eu = inputs
-            out, _ = self.gru_cell(eu.values, [n.values])
-            return tf.RaggedTensor.from_row_lengths(out, n.row_lengths())
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_updates_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
+        n, npart = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                      output_tensor_type="values_partition",
+                                      partition_type=self.partition_type)
+        eu, _ = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_updates_type,
+                                   output_tensor_type="values_partition",
+                                   partition_type=self.partition_type)
+
+        out, _ = self.gru_cell(eu, [n], **kwargs)
+
+        return kgcnn_ops_dyn_cast([out, npart], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type)
 
     def get_config(self):
         """Update layer config."""

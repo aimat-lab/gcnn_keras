@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
-from kgcnn.layers.update import GRUupdate, ApplyMessage
+from kgcnn.layers.update import GRUupdate, TrafoMatMulMessages
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
@@ -99,11 +99,11 @@ def make_nmpn(
 
     n = Dense(node_dim, activation="linear", input_tensor_type=tens_type)(n)
     edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
-    gru = GRUupdate(node_dim, input_tensor_type=tens_type)
+    gru = GRUupdate(node_dim, input_tensor_type=tens_type, node_indexing=node_indexing)
 
     for i in range(0, depth):
         eu = GatherNodesOutgoing(input_tensor_type=tens_type, node_indexing=node_indexing)([n, edi])
-        eu = ApplyMessage(node_dim, input_tensor_type=tens_type, node_indexing=node_indexing)([edge_net, eu])
+        eu = TrafoMatMulMessages(node_dim, input_tensor_type=tens_type, node_indexing=node_indexing)([edge_net, eu])
         eu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])

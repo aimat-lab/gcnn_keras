@@ -1,8 +1,11 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition
+from kgcnn.ops.casting import kgcnn_ops_dyn_cast
+from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+
 
 class PoolingTopK(ks.layers.Layer):
     """
@@ -20,7 +23,6 @@ class PoolingTopK(ks.layers.Layer):
         partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -45,17 +47,12 @@ class PoolingTopK(ks.layers.Layer):
         self.node_indexing = node_indexing
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
         self._supports_ragged_inputs = True
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
-        if self.input_tensor_type == "ragged" and self.node_indexing != "sample":
-            print("Warning: For ragged tensor input, default node_indexing is considered 'sample'. ")
-        if self.input_tensor_type == "values_partition" and self.node_indexing != "batch":
-            print("Warning: For values_partition tensor input, default node_indexing is considered 'batch'. ")
+        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
+                                                                          self._tensor_input_type_implemented,
+                                                                          self.node_indexing)
 
         self.units_p = None
         self.kernel_p = None
@@ -85,31 +82,44 @@ class PoolingTopK(ks.layers.Layer):
         Args:
             inputs (list): of [nodes, node_partition, edges, edge_partition, edge_indices]
 
-            - nodes (tf.tensor): node feature tensor
-            - edges (tf.tensor): edge feature list
-            - edge_indices (tf.tensor): edge index list tensor of shape (batch*None,2)
+            - nodes: Node embeddings.
+            - edges: Edge embeddings.
+            - edge_indices: Edge index list.
+              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
+              For disjoint representation (values, partition), the node embeddings are given by
+              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
+              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
         
         Returns:
-            Tuple: [nodes, node_partition, edges, edge_partition, edge_indices],[map_nodes,map_edges]
+            Tuple: [nodes, edges, edge_indices], [map_nodes, map_edges]
             
-            - nodes (tf.tensor): Pooled node feature tensor
-            - edges (tf.tensor): Pooled edge feature list
+            - nodes: Pooled node feature tensor
+            - edges: Pooled edge feature list
             - edge_indices (tf.tensor): Pooled edge index list
             - map_nodes (tf.tensor): Index map between original and pooled nodes
             - map_edges (tf.tensor): Index map between original and pooled edges
         """
-        # node, nodelen, edgefeat, edgelen, edgeindref = None,None,None,None,None
-        if self.input_tensor_type == "values_partition":
-            [node, node_part], [edgefeat, edge_part], [edgeindref, _] = inputs
-            # Make partition tensors
-            edgelen = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "row_length")
-            nodelen = kgcnn_ops_change_partition_type(node_part, self.partition_type, "row_length")
-        elif self.input_tensor_type == "ragged":
-            node, nodelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[0], "row_length")
-            edgefeat, edgelen = kgcnn_ops_cast_ragged_to_value_partition(inputs[1], "row_length")
-            edgeindref, _ = kgcnn_ops_cast_ragged_to_value_partition(inputs[2], "row_length")
-        else:
-            raise NotImplementedError("Error: Not supported input tensor type.")
+        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                    node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                     node_indexing=self.node_indexing)
+
+        node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
+                                             output_tensor_type="values_partition",
+                                             partition_type=self.partition_type)
+        edgefeat, edge_part = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_type,
+                                                 output_tensor_type="values_partition",
+                                                 partition_type=self.partition_type)
+        edgeindref, _ = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_index_type,
+                                           output_tensor_type="values_partition",
+                                           partition_type=self.partition_type)
+
+        edgelen = kgcnn_ops_change_partition_type(edge_part, self.partition_type, "row_length")
+        nodelen = kgcnn_ops_change_partition_type(node_part, self.partition_type, "row_length")
 
         index_dtype = edgeindref.dtype
         # Get node properties
@@ -230,17 +240,19 @@ class PoolingTopK(ks.layers.Layer):
                                                                                from_indexing="batch",
                                                                                to_indexing=self.node_indexing, axis=0)
 
-        out, out_map = None, None
-        # Output list
-        if self.input_tensor_type == "values_partition":
-            out = [[out_node, out_np], [out_edge, out_ep], [out_edge_index, out_ep]]
-            out_map = [[out_pool,out_np], [out_pool_edge,out_ep]]
-        elif self.input_tensor_type == "ragged":
-            out = [tf.RaggedTensor.from_row_lengths(out_node,pooled_len, validate=self.ragged_validate),
-                   tf.RaggedTensor.from_row_lengths(out_edge,clean_edge_len, validate=self.ragged_validate),
-                   tf.RaggedTensor.from_row_lengths(out_edge_index,clean_edge_len, validate=self.ragged_validate)]
-            out_map = [tf.RaggedTensor.from_row_lengths(out_pool, pooled_len, validate=self.ragged_validate),
-                       tf.RaggedTensor.from_row_lengths(out_pool_edge, clean_edge_len, validate=self.ragged_validate)]
+        out = [kgcnn_ops_dyn_cast([out_node, out_np], input_tensor_type="values_partition",
+                                  output_tensor_type=found_node_type, partition_type=self.partition_type),
+               kgcnn_ops_dyn_cast([out_edge, out_ep], input_tensor_type="values_partition",
+                                  output_tensor_type=found_edge_type, partition_type=self.partition_type),
+               kgcnn_ops_dyn_cast([out_edge_index, out_ep], input_tensor_type="values_partition",
+                                  output_tensor_type=found_index_type, partition_type=self.partition_type)]
+
+        out_map = [kgcnn_ops_dyn_cast([out_pool, out_np], input_tensor_type="values_partition",
+                                      output_tensor_type=found_node_type, partition_type=self.partition_type),
+                   kgcnn_ops_dyn_cast([out_pool_edge, out_ep], input_tensor_type="values_partition",
+                                      output_tensor_type=found_edge_type,
+                                      partition_type=self.partition_type)]
+
         return out, out_map
 
     def get_config(self):
@@ -257,8 +269,8 @@ class PoolingTopK(ks.layers.Layer):
         })
         config.update({"partition_type": self.partition_type,
                        "node_indexing": self.node_indexing,
-                       "input_tensor_type" : self.input_tensor_type,
-                       "ragged_validate" : self.ragged_validate})
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate})
         return config
 
 
@@ -328,7 +340,7 @@ class UnPoolingTopK(ks.layers.Layer):
             - edges: Unpooled edge feature list of shape (batch*None,F)
             - edge_indices: Unpooled edge index list tensor of shape (batch*None,2)
         """
-        nodepart_old, edgepart_old = None,None
+        nodepart_old, edgepart_old = None, None
         if self.input_tensor_type == "values_partition":
             node_old, nodepart_old = inputs[0]
             edge_old, edgepart_old = inputs[1]
@@ -354,8 +366,6 @@ class UnPoolingTopK(ks.layers.Layer):
             edgeind_new = inputs[7].values
         else:
             raise NotImplementedError("Input tensor type not understood.")
-
-
 
         # Correct map index for flatten batch offset
         map_node = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(map_node,
