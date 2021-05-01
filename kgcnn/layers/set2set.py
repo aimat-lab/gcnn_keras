@@ -191,13 +191,14 @@ class Set2Set(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
+        and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
+        disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape
+        (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
+        or a singe tensor for equally sized graphs (batch,N,F).
+
         Args:
-            inputs: Embeddings to be encoded.
-                This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-                and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-                disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape
-                (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-                or a singe tensor for equally sized graphs (batch,N,F).
+            inputs: Embeddings to be encoded of shape (batch, [N], F)
         
         Returns:
             q_star (tf.tensor): Pooled tensor of shape (batch,1,2*channels)

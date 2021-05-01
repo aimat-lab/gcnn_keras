@@ -127,30 +127,20 @@ class GCN(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edges: Edge or message embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edge_index: Edge indices.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edges: Edge or message embeddings of shape (batch, [N], F)
+            - edge_index: Edge indices of shape (batch, [N], 2)
 
         Returns:
             embeddings: Node embeddings.
@@ -291,30 +281,20 @@ class SchNetCFconv(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass: Calculate edge update.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edges: Edge or message embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edge_index: Edge indices.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edges: Edge or message embeddings of shape (batch, [N], F)
+            - edge_index: Edge indices of shape (batch, [N], 2)
         
         Returns:
             node_update: Updated node features.
@@ -452,30 +432,20 @@ class SchNetInteraction(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass: Calculate node update.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edges: Edge or message embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edge_index: Edge indices.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edges: Edge or message embeddings of shape (batch, [N], F)
+            - edge_index: Edge indices of shape (batch, [N], 2)
 
         Returns:
             node_update: Updated node embeddings.
@@ -640,33 +610,21 @@ class MEGnetBlock(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs: [nodes, edges, edge_index, state]
 
-            - nodes: Node embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edges: Edge or message embeddings.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - edge_index: Edge indices.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-            - state (tf.tensor): State information for the graph.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              However, for a graph specific embedding, a single tensor is usually sufficient.
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edges: Edge or message embeddings of shape (batch, [N], F)
+            - edge_index: Edge indices of shape (batch, [N], 2)
+            - state (tf.tensor): State information for the graph, a single tensor of shape (batch, F)
 
         Returns:
             node_update: Updated node embeddings.

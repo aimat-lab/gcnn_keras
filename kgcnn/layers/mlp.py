@@ -112,6 +112,14 @@ class MLP(ks.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
+
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
         
         Args:
             inputs: Input tensor.

@@ -11,7 +11,6 @@ class CastRaggedToDisjointSparseAdjacency(tf.keras.layers.Layer):
         node_indexing (str): If edge_indices refer to sample- or batch-wise indexing. Default is 'sample'.
         is_sorted (bool): If the edge_indices are sorted for first ingoing index. Default is False.
         ragged_validate (bool): To validate the ragged output tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,

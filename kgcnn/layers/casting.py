@@ -13,7 +13,6 @@ class ChangeTensorType(ks.layers.Layer):
         partition_type (str): Partition tensor type. Default is "row_length".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         output_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
-        **kwargs
     """
     def __init__(self,
                  partition_type="row_length",
@@ -74,7 +73,6 @@ class ChangeIndexing(ks.layers.Layer):
         partition_type (str): Partition tensor type. Default is "row_length". Only used for values_partition input.
         input_tensor_type (str): Input type of the tensors for call(). Default is "values_partition".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        **kwargs
     """
 
     def __init__(self,
@@ -107,21 +105,19 @@ class ChangeIndexing(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes: Node features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, F)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-              or a singe tensor for equally sized graphs (batch,N,F).
-            - edge_index: Edge indices features.
-              This can be either a tuple of (values, partition) tensors of shape (batch*None,2)
-              and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-              disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape (batch, N, 2)
-              and mask (batch, N) or a single RaggedTensor of shape (batch,None,2)
-              or a singe tensor for equally sized graphs (batch,N,2).
+            - nodes: Node features of shape (batch, [N], F)
+            - edge_index: Edge indices of shape (batch, [N], 2).
             
         Returns:
             edge_index: Corrected edge indices.
