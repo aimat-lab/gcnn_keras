@@ -10,8 +10,10 @@ class GNNInterface:
 
     def predict(self, gnn_input, **kwargs):
         """Returns the prediction for the `gnn_input`.
+
         Args:
             gnn_input: The input graph to which a prediction should be made by the GNN.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -21,6 +23,7 @@ class GNNInterface:
 
     def masked_predict(self, gnn_input, edge_mask, feature_mask, node_mask, **kwargs):
         """Returns the prediction for the `gnn_input` when it is masked by the three given masks.
+
         Args:
             gnn_input: The input graph to which should be masked before a prediction should be made by the GNN.
             edge_mask: A `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
@@ -29,6 +32,7 @@ class GNNInterface:
                 which should mask the node features in the input graph.
             node_mask: A `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
                 which should mask the node features in the input graph.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -38,8 +42,10 @@ class GNNInterface:
 
     def get_number_of_nodes(self, gnn_input):
         """Returns the number of nodes in the `gnn_input` graph.
+
         Args:
             gnn_input: The input graph to which this function returns the number of nodes in.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -49,8 +55,10 @@ class GNNInterface:
 
     def get_number_of_edges(self, gnn_input):
         """Returns the number of edges in the `gnn_input` graph.
+
         Args:
             gnn_input: The input graph to which this function returns the number of edges in.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -60,8 +68,10 @@ class GNNInterface:
 
     def get_number_of_node_features(self, gnn_input):
         """Returns the number of node features to the corresponding `gnn_input`.
+
         Args:
             gnn_input: The input graph to which this function returns the number of node features in.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -73,6 +83,7 @@ class GNNInterface:
         """Takes the graph input and the masks learned by the GNNExplainer and combines them to some sort of explanation
         The form of explanation could e.g. consist of a networkx graph,
         which has mask values as labels to nodes/edge and a dict for the feature explanation values.
+
         Args:
             gnn_input: The input graph to which should the masks were found by the GNNExplainer.
             edge_mask: A `Tensor` of shape `[get_number_of_edges(self, gnn_input), 1]`,
@@ -81,6 +92,7 @@ class GNNInterface:
                 which was found by the GNNExplainer.
             node_mask: A `Tensor` of shape `[get_number_of_nodes(self, gnn_input), 1]`,
                 which was found by the GNNExplainer.
+
         Raises:
             NotImplementedError: This is just an interface class, to indicate which methods should be implemented.
                 Implement this method in a subclass.
@@ -97,6 +109,7 @@ class GNNInterface:
         * A visualization of the whole graph with highlighted parts
         * Bar diagrams for feature explanations
         * ...
+
         Args:
             explanation: An explanation for the GNN decision,
                 which is of the form the `get_explanation` method returns an explanation.
@@ -118,6 +131,7 @@ class GNNExplainer:
     def __init__(self, gnn, gnnexplaineroptimizer_options=None,
                  compile_options=None, fit_options=None, **kwargs):
         """Constructs a GNNExplainer instance for the given `gnn`.
+
         Args:
             gnn: An instance of a class which implements the `GNNInterface`.
             gnnexplaineroptimizer_options (dict, optional): Parameters in this dict are forwarded to the constructor
@@ -150,6 +164,7 @@ class GNNExplainer:
         To get the explanation which was found, call `get_explanation` after calling this method.
         This method just instantiates a `GNNExplainerOptimizer`,
         which then finds the masks for the explanation via gradient descent.
+
         Args:
             graph_instance: The graph input to the GNN to which an explanation should be found.
             output_to_explain (optional): Set this parameter to the output which should be explained.
@@ -196,10 +211,11 @@ class GNNExplainer:
 
     def get_explanation(self, **kwargs):
         """Returns the explanation (derived from the learned masks) to a decision on the graph,
-            which was passed to the `explain` method before.
+        which was passed to the `explain` method before.
         Important: The `explain` method should always be called before calling this method.
         Internally this method just calls the `GNNInterface.get_explanation` method
         implemented by the `self.gnn` with the masks found by the `GNNExplainerOptimizer` as parameters.
+
         Raises:
             Exception: If the `explain` method is not called before, this method raises an Exception.
         Returns:
@@ -223,6 +239,7 @@ class GNNExplainer:
         """Takes an explanation, which was generated by `get_explanation` and presents it.
         Internally this method just calls the `GNNInterface.present_explanation` method
         implemented by the `self.gnn`.
+
         Args:
             explanation: The explanation (obtained by `get_explanation`) which should be presented.
         Returns:
@@ -264,7 +281,8 @@ class GNNExplainer:
 
 class GNNExplainerOptimizer(tf.keras.Model):
     """The `GNNExplainerOptimizer` solves the optimization problem which is used to find masks,
-    which then can be used to explain decisions by GNNs."""
+    which then can be used to explain decisions by GNNs.
+    """
 
     def __init__(self, gnn_model, graph_instance,
                  edge_mask_loss_weight=1e-4,
@@ -275,6 +293,7 @@ class GNNExplainerOptimizer(tf.keras.Model):
                  node_mask_norm_ord=1,
                  **kwargs):
         """Constructs a `GNNExplainerOptimizer` instance with the given parameters.
+
         Args:
             gnn_model (GNNInterface): An instance of a class which implements the methods of the `GNNInterface`.
             graph_instance: The graph to which the masks should be found.

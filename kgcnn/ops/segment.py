@@ -4,7 +4,7 @@ import tensorflow as tf
 
 @tf.function
 def segment_softmax(data, segment_ids, normalize=True):
-    """Segment softmax similar to tf.math.segment_max but with a softmax.
+    """Segment softmax similar to segment_max but with a softmax.
 
     Args:
         data (tf.tensor): Data tensor that has sorted segments.
