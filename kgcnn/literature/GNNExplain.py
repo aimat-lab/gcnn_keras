@@ -249,7 +249,7 @@ class GNNExplainer:
 
     class InspectionCallback(tf.keras.callbacks.Callback):
         """Callback class to get the inspection information,
-        if `inspection` is set to true for the `GNNExplainer.explain` method.
+        if 'inspection' is set to true for the 'GNNExplainer.explain' method.
         """
 
         def __init__(self, graph_instance):
@@ -266,6 +266,7 @@ class GNNExplainer:
             self.predictions.append(masked)
 
         def on_epoch_end(self, epoch, logs=None):
+            """After epoch."""
             index = 0
             losses_list = [loss_iter.numpy() for loss_iter in self.model.losses]
             if self.model.edge_mask_loss_weight > 0:
@@ -361,6 +362,8 @@ class GNNExplainerOptimizer(tf.keras.Model):
                                              training=training)
 
     def train_step(self, data):
+        """Train step."""
+
         graph_input = data[0]
 
         with tf.GradientTape() as tape:

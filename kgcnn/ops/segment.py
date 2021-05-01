@@ -27,7 +27,7 @@ def segment_softmax(data, segment_ids, normalize=True):
 
 @tf.function
 def kgcnn_ops_segment_operation_by_name(segment_name, data, segment_ids):
-    """Segment operation of tf.math.segment_ chosen by string identifier.
+    """Segment operation chosen by string identifier.
 
     Args:
         segment_name (str): Name of the segment operation.
