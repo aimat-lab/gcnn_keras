@@ -79,18 +79,20 @@ class PoolingTopK(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
         Args:
             inputs (list): of [nodes, node_partition, edges, edge_partition, edge_indices]
 
-            - nodes: Node embeddings.
-            - edges: Edge embeddings.
-            - edge_indices: Edge index list.
-              The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-              The RaggedTensor has shape (batch, None, 2) or in case of equal sized graphs (batch, N, 2).
-              For disjoint representation (values, partition), the node embeddings are given by
-              a flatten value tensor of shape (batch*None, 2) and a partition tensor of either "row_length",
-              "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-              the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edges: Edge embeddings of shape (batch, [N], F)
+            - edge_indices: Edge index list of shape of shape (batch, [N], 2)
         
         Returns:
             Tuple: [nodes, edges, edge_indices], [map_nodes, map_edges]
@@ -316,6 +318,15 @@ class UnPoolingTopK(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge,
+        i.e. (batch, None, 2)
+
         Args:
             inputs (list): [node, edge, edge_indices, map_node, map_edge, node_pool, edge_pool, edge_indices_pool]
 
@@ -331,9 +342,9 @@ class UnPoolingTopK(ks.layers.Layer):
         Returns:
             List: [nodes, edges, edge_indices]
             
-            - nodes: Unpooled node feature tensor of shape (batch*None,F)
-            - edges: Unpooled edge feature list of shape (batch*None,F)
-            - edge_indices: Unpooled edge index list tensor of shape (batch*None,2)
+            - nodes: Unpooled node feature tensor
+            - edges: Unpooled edge feature list
+            - edge_indices: Unpooled edge index
         """
         found_input_type = [kgcnn_ops_get_tensor_type(inputs[i], input_tensor_type=self.input_tensor_type,
                                                     node_indexing=self.node_indexing) for i in range(8)]
