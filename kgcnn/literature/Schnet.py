@@ -61,7 +61,7 @@ def make_schnet(
     # Make default values if None
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_type': 'ragged'},
+                                      'input_tensor_type': 'ragged'},
                      'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
                      'interaction_args': {"units": 128, "use_bias": True,
                                           "activation": 'shifted_softplus', "cfconv_pool": 'sum',

@@ -55,7 +55,7 @@ model = make_megnet(
     input_embedd={'input_node_vocab': 10,
                   'input_node_embedd': 16,
                   'input_edge_embedd': 16,
-                  'input_type': 'ragged'},
+                  'input_tensor_type': 'ragged'},
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
     output_mlp={"use_bias": [True, True, True],
