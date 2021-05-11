@@ -86,8 +86,8 @@ def make_schnet(
                                                                                           **input_embedd)
 
     # Use representation
-    tens_type = "values_partition"
-    node_indexing = "batch"
+    tens_type = "ragged"
+    node_indexing = "sample"
     partition_type = "row_length"
     n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type,partition_type=partition_type)(n)
     ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type,partition_type=partition_type)(ed)

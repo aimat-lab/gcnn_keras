@@ -59,7 +59,7 @@ Auto-documentation is generated at https://kgcnn.readthedocs.io/en/latest/index.
 
 ### Representation
 The most frequent usage for graph convolutions is either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
-Graphs can be represented by a connection index list plus feature information. Typical quantities in tensor format to describe a graph are listed below.
+Graphs can be represented by an index list of connections plus feature information. Typical quantities in tensor format to describe a graph are listed below.
 
 * `nodes`: Nodelist of shape `(batch, N, F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * `edges`: Edgelist of shape `(batch, M, F)` where `M` is the number of edges and `F` is the edge feature dimension.
@@ -68,16 +68,17 @@ Graphs can be represented by a connection index list plus feature information. T
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`.
 
-Additionally, the layers support a disjoint representation of flatten values plus graph-id or partition tensor `[values, partition]` in place of the `RaggedTensor`. 
+Note: At the moment, most layers support also a disjoint representation of flatten values plus graph-id tensor `[values, partition]` in place of the `RaggedTensor` for comparison purposes. 
+However, this will likely be removed in future versions, as `RaggedTensor` is intended be the only tensor representation passed to and within the model.
 
 
 ### Input
 
 In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used to input disjoint graph representations. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/utils).
 
-Here, for ragged tensors, the nodelist of shape `(batch,None,F)` and edgelist of shape `(batch,None,Fe)` have one ragged dimension `(None,)`.
-The graph structure is represented by an indexlist of shape `(batch,None,2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
-The first index of incoming node `i` is usually expected to be sorted for faster pooling opertions, but can also be unsorted (see layer arguments). Furthermore the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly obtained from a list of numpy arrays: `tf.ragged.constant(indices,ragged_rank=1,inner_shape=(2,))` which yields shape `(batch,None,2)`.
+Here, for ragged tensors, the nodelist of shape `(batch, None, F)` and edgelist of shape `(batch, None, Fe)` have one ragged dimension `(None, )`.
+The graph structure is represented by an index-list of shape `(batch, None, 2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
+The first index of incoming node `i` is usually expected to be sorted for faster pooling operations, but can also be unsorted (see layer arguments). Furthermore, the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly obtained from a list of numpy arrays: `tf.ragged.constant(indices,ragged_rank=1,inner_shape=(2,))` which yields shape `(batch, None, 2)`.
 
 ### Model
 
