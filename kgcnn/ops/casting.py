@@ -22,15 +22,15 @@ def kgcnn_ops_cast_ragged_to_value_partition(inputs, partition_type="row_length"
     return [flat_tens, outpart]
 
 @tf.function
-def kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type="row_length"):
+def kgcnn_ops_cast_value_partition_to_ragged(inputs, partition_type="row_length", ragged_validate=False):
     nod, n_part = inputs
 
     if partition_type == "row_length":
-        out = tf.RaggedTensor.from_row_lengths(nod, n_part)
+        out = tf.RaggedTensor.from_row_lengths(nod, n_part,validate=ragged_validate)
     elif partition_type == "row_splits":
-        out = tf.RaggedTensor.from_row_splits(nod, n_part)
+        out = tf.RaggedTensor.from_row_splits(nod, n_part,validate=ragged_validate)
     elif partition_type == "value_rowids":
-        out = tf.RaggedTensor.from_value_rowids(nod, n_part)
+        out = tf.RaggedTensor.from_value_rowids(nod, n_part,validate=ragged_validate)
     else:
         raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")
 
@@ -80,18 +80,18 @@ def kgcnn_ops_cast_value_partition_to_tensor(inputs, partition_type="row_length"
 
 
 @tf.function
-def kgcnn_ops_cast_value_partition_to_masked(inputs, partition_type="row_length"):
+def kgcnn_ops_cast_value_partition_to_masked(inputs, partition_type="row_length", ragged_validate=False):
     nod, npartin = inputs
 
     # Just make ragged tensor.
     if partition_type == "row_length":
         n_len = npartin
-        out = tf.RaggedTensor.from_row_lengths(nod, n_len)
+        out = tf.RaggedTensor.from_row_lengths(nod, n_len,validate=ragged_validate)
     elif partition_type == "row_splits":
-        out = tf.RaggedTensor.from_row_splits(nod, npartin)
+        out = tf.RaggedTensor.from_row_splits(nod, npartin,validate=ragged_validate)
         n_len = out.row_lengths()
     elif partition_type == "value_rowids":
-        out = tf.RaggedTensor.from_value_rowids(nod, npartin)
+        out = tf.RaggedTensor.from_value_rowids(nod, npartin,validate=ragged_validate)
         n_len = out.row_lengths()
     else:
         raise TypeError("Unknown partition scheme, use: 'row_length', 'row_splits', ...")

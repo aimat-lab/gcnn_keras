@@ -133,8 +133,10 @@ class Add(tf.keras.layers.Layer):
         if isinstance(inputs[0], tf.RaggedTensor):
             if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                 print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-            # Works already with RaggedTensor
-            out = self._layer_keras(inputs, **kwargs)
+            # Works already with RaggedTensor but slower
+            # out = self._layer_keras(inputs, **kwargs)
+            out = self._layer_keras([x.values for x in inputs], **kwargs)
+            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
             return out
         elif isinstance(inputs[0], list):
             if self.input_tensor_type not in ["disjoint", "values_partition"]:
@@ -176,8 +178,10 @@ class Average(tf.keras.layers.Layer):
         if isinstance(inputs[0], tf.RaggedTensor):
             if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                 print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-            # Works already with RaggedTensor
-            out = self._layer_keras(inputs, **kwargs)
+            # Works already with RaggedTensor but slower
+            # out = self._layer_keras(inputs, **kwargs)
+            out = self._layer_keras([x.values for x in inputs], **kwargs)
+            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
             return out
         elif isinstance(inputs[0], list):
             if self.input_tensor_type not in ["disjoint", "values_partition"]:
@@ -219,8 +223,10 @@ class Multiply(tf.keras.layers.Layer):
         if isinstance(inputs[0], tf.RaggedTensor):
             if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                 print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-            # Works already with RaggedTensor
-            out = self._layer_keras(inputs, **kwargs)
+            # Works already with RaggedTensor but slower
+            # out = self._layer_keras(inputs, **kwargs)
+            out = self._layer_keras([x.values for x in inputs], **kwargs)
+            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
             return out
         elif isinstance(inputs[0], list):
             if self.input_tensor_type not in ["disjoint", "values_partition"]:
@@ -263,8 +269,10 @@ class Concatenate(tf.keras.layers.Layer):
         if isinstance(inputs[0], tf.RaggedTensor):
             if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                 print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-            # Works already with RaggedTensor
-            out = self._layer_keras(inputs, **kwargs)
+            # Works already with RaggedTensor but slower
+            # out = self._layer_keras(inputs, **kwargs)
+            out = self._layer_keras([x.values for x in inputs], **kwargs)
+            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
             return out
         elif isinstance(inputs[0], list):
             if self.input_tensor_type not in ["disjoint", "values_partition"]:
