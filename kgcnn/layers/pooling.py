@@ -5,7 +5,7 @@ from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition, kgcnn_ops_change_partition_type
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 class PoolingLocalEdges(ks.layers.Layer):
@@ -77,12 +77,12 @@ class PoolingLocalEdges(ks.layers.Layer):
         Returns:
             features: Pooled feature tensor of pooled edge features for each node.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
 
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",
@@ -206,14 +206,14 @@ class PoolingWeightedLocalEdges(ks.layers.Layer):
         Returns:
             features: Pooled feature tensor of pooled edge features for each node.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
-        found_weight_type = kgcnn_ops_get_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
                                                       node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
+        found_weight_type = kgcnn_ops_check_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+                                                        node_indexing=self.node_indexing)
 
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",
@@ -336,8 +336,8 @@ class PoolingNodes(ks.layers.Layer):
         Returns:
             nodes (tf.tensor): Pooled node features of shape (batch,F)
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
         nod, node_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",
                                             partition_type=self.partition_type)
@@ -427,10 +427,10 @@ class PoolingWeightedNodes(ks.layers.Layer):
         Returns:
             nodes (tf.tensor): Pooled node features of shape (batch,F)
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_weight_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
                                                       node_indexing=self.node_indexing)
+        found_weight_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                        node_indexing=self.node_indexing)
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",
                                             partition_type=self.partition_type)
@@ -520,8 +520,8 @@ class PoolingGlobalEdges(ks.layers.Layer):
         Returns:
             tf.tensor: Pooled edges feature list of shape (batch,F).
         """
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
         edge, edge_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_edge_type,
                                              output_tensor_type="values_partition",
                                              partition_type=self.partition_type)
@@ -699,12 +699,12 @@ class PoolingLocalEdgesLSTM(ks.layers.Layer):
         Returns:
             features: Feature tensor of pooled edge features for each node.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
 
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",

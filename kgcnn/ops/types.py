@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def kgcnn_ops_get_tensor_type(inputs, input_tensor_type, node_indexing=None):
+def kgcnn_ops_check_tensor_type(inputs, input_tensor_type, node_indexing=None):
     tensor_keys = ["Tensor", "tensor"]
     ragged_keys = ["ragged", "RaggedTensor"]
     value_partition_keys = ["values_partition", "disjoint"]

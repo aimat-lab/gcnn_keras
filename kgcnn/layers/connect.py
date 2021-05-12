@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 # import tensorflow.keras.backend as ksb
@@ -79,12 +79,12 @@ class AdjacencyPower(ks.layers.Layer):
             - edges: Adjacency entries of shape  (batch, [N], 1)
             - edge_indices: Flatten index list of shape (batch, [N], 2)
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
 
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                             output_tensor_type="values_partition",

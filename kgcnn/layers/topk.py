@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.ops.casting import kgcnn_ops_cast_ragged_to_value_partition
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 class PoolingTopK(ks.layers.Layer):
@@ -103,12 +103,12 @@ class PoolingTopK(ks.layers.Layer):
             - map_nodes (tf.tensor): Index map between original and pooled nodes
             - map_edges (tf.tensor): Index map between original and pooled edges
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
 
         node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                              output_tensor_type="values_partition",
@@ -346,8 +346,8 @@ class UnPoolingTopK(ks.layers.Layer):
             - edges: Unpooled edge feature list
             - edge_indices: Unpooled edge index
         """
-        found_input_type = [kgcnn_ops_get_tensor_type(inputs[i], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing) for i in range(8)]
+        found_input_type = [kgcnn_ops_check_tensor_type(inputs[i], input_tensor_type=self.input_tensor_type,
+                                                        node_indexing=self.node_indexing) for i in range(8)]
 
 
         node_old, nodepart_old = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_input_type[0],

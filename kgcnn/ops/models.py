@@ -10,7 +10,6 @@ def generate_standard_graph_input(input_node_shape,
                                   input_node_embedd=64,
                                   input_edge_embedd=64,
                                   input_state_embedd=64,
-                                  input_type='ragged',
                                   input_tensor_type='ragged'):
     """Generate input for a standard graph tensor format.
     This includes nodes, edge, edge_indices and optional a graph state.
@@ -26,7 +25,7 @@ def generate_standard_graph_input(input_node_shape,
         input_node_embedd (int): Embedding dimension for optional embedding layer.
         input_edge_embedd (int): Embedding dimension for optional embedding layer.
         input_state_embedd (int): Embedding dimension for optional embedding layer.
-        input_type (str): Type of input tensor. Only "ragged" is supported at the moment.
+        input_tensor_type (str): Type of input tensor. Only "ragged" is supported at the moment.
 
     Returns:
         list: [node_input, node_embedding, edge_input, edge_embedding, edge_index_input, state_input, state_embedding]
@@ -77,3 +76,54 @@ def update_model_args(default_args=None, user_args=None):
     out.update(default_args)
     out.update(user_args)
     return out
+
+
+def generate_mol_graph_input(input_node_shape,
+                             input_xyz_shape,
+                             input_bond_index_shape=None,
+                             input_angle_index_shape=None,
+                             input_dihedral_index_shape=None,
+                             input_node_vocab=95,
+                             input_node_embedd=64,
+                             input_tensor_type='ragged'):
+    """Generate input for a standard graph tensor format.
+    This includes nodes, edge, edge_indices and optional a graph state.
+    If input shape is (None,) a embedding layer is used to make the feature dimension.
+
+    Args:
+        input_node_shape (list): Shape of node input without batch dimension. Either (None,F) or (None,)
+        input_xyz_shape (list): Shape of xyz input without batch dimension (None,3).
+        input_node_vocab (int): Vocabulary size of optional embedding layer.
+        input_node_embedd (int): Embedding dimension for optional embedding layer.
+        input_tensor_type (str): Type of input tensor. Only "ragged" is supported at the moment.
+
+    Returns:
+        list: [node_input, node_embedding, edge_input, edge_embedding, edge_index_input, state_input, state_embedding]
+    """
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    xyz_input = ks.layers.Input(shape=input_xyz_shape, name='xyz_input', dtype="float32", ragged=True)
+
+    if input_bond_index_shape is not None:
+        bond_index_input = ks.layers.Input(shape=input_bond_index_shape, name='bond_index_input', dtype="int64",
+                                           ragged=True)
+    else:
+        bond_index_input = None
+
+    if input_angle_index_shape is not None:
+        angle_index_input = ks.layers.Input(shape=input_angle_index_shape, name='bond_index_input', dtype="int64",
+                                            ragged=True)
+    else:
+        angle_index_input = None
+
+    if input_dihedral_index_shape is not None:
+        dihedral_index_input = ks.layers.Input(shape=input_dihedral_index_shape, name='bond_index_input', dtype="int64",
+                                               ragged=True)
+    else:
+        dihedral_index_input = None
+
+    if len(input_node_shape) == 1:
+        n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
+    else:
+        n = node_input
+
+    return node_input, n, xyz_input, bond_index_input, angle_index_input, dihedral_index_input

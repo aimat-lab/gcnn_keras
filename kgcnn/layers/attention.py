@@ -9,7 +9,7 @@ from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 class PoolingLocalEdgesAttention(ks.layers.Layer):
@@ -83,14 +83,14 @@ class PoolingLocalEdgesAttention(ks.layers.Layer):
         Returns:
             embeddings: Feature tensor of pooled edge attentions for each node.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_att_type = kgcnn_ops_get_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
-                                                   node_indexing=self.node_indexing)
-        found_index_type = kgcnn_ops_get_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_att_type = kgcnn_ops_check_tensor_type(inputs[2], input_tensor_type=self.input_tensor_type,
                                                      node_indexing=self.node_indexing)
+        found_index_type = kgcnn_ops_check_tensor_type(inputs[3], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
 
         # We cast to values here
         nod, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,

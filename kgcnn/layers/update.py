@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 class TrafoMatMulMessages(ks.layers.Layer):
@@ -71,10 +71,10 @@ class TrafoMatMulMessages(ks.layers.Layer):
         Returns:
             node_updates: Transformation of messages by matrix multiplication of shape (batch, [N], F)
         """
-        found_trafo_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                     node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_trafo_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                       node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
         dens_trafo, trafo_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_trafo_type,
                                                     output_tensor_type="values_partition",
                                                     partition_type=self.partition_type)
@@ -221,10 +221,10 @@ class GRUupdate(ks.layers.Layer):
         Returns:
             updated_nodes (tf.tensor): Updated nodes of shape (batch*None,F)
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_updates_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                       node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_updates_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                         node_indexing=self.node_indexing)
         n, npart = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                       output_tensor_type="values_partition",
                                       partition_type=self.partition_type)

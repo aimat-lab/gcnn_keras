@@ -4,7 +4,7 @@ import tensorflow.keras.backend as ksb
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type
-from kgcnn.ops.types import kgcnn_ops_get_tensor_type, kgcnn_ops_static_test_tensor_input_type
+from kgcnn.ops.types import kgcnn_ops_check_tensor_type, kgcnn_ops_static_test_tensor_input_type
 
 
 # Order Matters: Sequence to sequence for sets
@@ -203,8 +203,8 @@ class Set2Set(ks.layers.Layer):
         Returns:
             q_star (tf.tensor): Pooled tensor of shape (batch,1,2*channels)
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
         x, batch_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_node_type,
                                            output_tensor_type="values_partition",
                                            partition_type=self.partition_type)

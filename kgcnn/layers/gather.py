@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_get_tensor_type
+from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 
 
 class GatherNodes(ks.layers.Layer):
@@ -68,15 +68,15 @@ class GatherNodes(ks.layers.Layer):
             inputs (list): [nodes, edge_index]
 
             - nodes: Node embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2)
+            - edge_index: Edge indices of shape (batch, [M], 2)
             
         Returns:
             embeddings: Gathered node embeddings that match the number of edges.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
 
         # We cast to values here
         node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
@@ -176,15 +176,15 @@ class GatherNodesOutgoing(ks.layers.Layer):
             inputs (list): [nodes, edge_index]
 
             - nodes: Node embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2)
+            - edge_index: Edge indices of shape (batch, [M], 2)
 
         Returns:
             embeddings: Gathered node embeddings that match the number of edges.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
 
         # We cast to values here
         node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
@@ -279,15 +279,15 @@ class GatherNodesIngoing(ks.layers.Layer):
             inputs (list): [nodes, edge_index]
 
             - nodes: Node embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2)
+            - edge_index: Edge indices of shape (batch, [M], 2)
 
         Returns:
             embeddings: Gathered node embeddings that match the number of edges.
         """
-        found_node_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
-        found_edge_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                    node_indexing=self.node_indexing)
+        found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
+        found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
+                                                      node_indexing=self.node_indexing)
 
         # We cast to values here
         node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
@@ -386,10 +386,10 @@ class GatherState(ks.layers.Layer):
         Returns:
             state: Graph embedding with repeated single state for each graph.
         """
-        found_state_type = kgcnn_ops_get_tensor_type(inputs[0], input_tensor_type="tensor",
+        found_state_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type="tensor",
+                                                       node_indexing=self.node_indexing)
+        found_ref_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
                                                      node_indexing=self.node_indexing)
-        found_ref_type = kgcnn_ops_get_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
-                                                   node_indexing=self.node_indexing)
         # We cast to values here
         env = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_state_type,
                                  output_tensor_type="tensor",
