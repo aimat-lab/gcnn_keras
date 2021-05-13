@@ -110,13 +110,13 @@ def generate_mol_graph_input(input_node_shape,
         bond_index_input = None
 
     if input_angle_index_shape is not None:
-        angle_index_input = ks.layers.Input(shape=input_angle_index_shape, name='bond_index_input', dtype="int64",
+        angle_index_input = ks.layers.Input(shape=input_angle_index_shape, name='angle_index_input', dtype="int64",
                                             ragged=True)
     else:
         angle_index_input = None
 
     if input_dihedral_index_shape is not None:
-        dihedral_index_input = ks.layers.Input(shape=input_dihedral_index_shape, name='bond_index_input', dtype="int64",
+        dihedral_index_input = ks.layers.Input(shape=input_dihedral_index_shape, name='dihedral_index_input', dtype="int64",
                                                ragged=True)
     else:
         dihedral_index_input = None

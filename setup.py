@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
-    install_requires=['numpy', "scikit-learn", "pandas", "scipy", "requests", "matplotlib", "networkx"],
+    install_requires=['numpy', "scikit-learn", "pandas", "scipy", "requests", "matplotlib", "networkx", "sympy"],
     extras_require={
         "tf": ["tensorflow>=2.4.0"],
         "tf_gpu": ["tensorflow-gpu>=2.4.0"],
