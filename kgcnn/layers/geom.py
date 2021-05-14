@@ -289,7 +289,7 @@ class EdgeAngle(ks.layers.Layer):
             - angle_index: Edge indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
-            distances: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
+            distances: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
         found_node_type = kgcnn_ops_check_tensor_type(inputs[0], input_tensor_type=self.input_tensor_type,
                                                       node_indexing=self.node_indexing)
@@ -410,6 +410,24 @@ class BesselBasisLayer(ks.layers.Layer):
         return tf.where(inputs < 1, env_val, tf.zeros_like(inputs))
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+        For disjoint representation (values, partition), the node embeddings are given by
+        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+
+        Args:
+            inputs: distance
+
+            - distance: Edge distance of shape (batch, [K], 1)
+
+        Returns:
+            distances: Expanded distance. Shape is (batch, [K], #Radial)
+        """
         found_node_type = kgcnn_ops_check_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
                                                       node_indexing=self.node_indexing)
         # We cast to values here
@@ -441,6 +459,23 @@ class BesselBasisLayer(ks.layers.Layer):
 
 
 class SphericalBasisLayer(ks.layers.Layer):
+    """
+    Expand a distance into a Bessel Basis with l=m=0, according to Klicpera et al. 2020
+
+    Args:
+        num_spherical (int): Number of spherical basis functions
+        num_radial (int): Number of radial basis functions
+        cutoff (float): Cutoff distance c
+        envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
+        partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
+            This is used for input_tensor_type="values_partition".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+    """
 
     def __init__(self, num_spherical,
                  num_radial,

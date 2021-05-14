@@ -20,9 +20,10 @@ def make_dimnet_pp(
     node_input, n, xyz_input, bond_index_input, angle_index_input, _ = generate_mol_graph_input(input_node_shape,
                                                                                                 [None, 3],
                                                                                                 [None, 2],
-                                                                                                [None, 3])
+                                                                                                [None, 2])
 
 
+    raise NotImplementedError("Model not yet tested")
 
     main_output = n
     model = tf.keras.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
