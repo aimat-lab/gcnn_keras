@@ -70,7 +70,7 @@ def tf_spherical_harmonics_yl(theta, l=0):
     powers = [float(l - 2 * k) for k in range(0, int(np.floor(l / 2)) + 1)]
     for i in range(len(powers)):
         sum = sum + prefactors[i] * tf.pow(x, powers[i])
-    sum = sum*float(np.sqrt((2*l-1)/4/np.pi))
+    sum = sum*float(np.sqrt((2*l+1)/4/np.pi))
     return sum
 
 

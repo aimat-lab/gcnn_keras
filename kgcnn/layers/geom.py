@@ -327,7 +327,7 @@ class EdgeAngle(ks.layers.Layer):
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
         vs = xj - xi
-        print(indexlist2.shape)
+
         v1 = tf.gather(vs, indexlist2[:, 0], axis=0)
         v2 = tf.gather(vs, indexlist2[:, 1], axis=0)
 

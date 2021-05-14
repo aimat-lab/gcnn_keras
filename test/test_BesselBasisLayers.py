@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle
 
-spb = SphericalBasisLayer(3,3,1.0)
+spb = SphericalBasisLayer(3,3,2.0)
 dist = NodeDistance()
 angs = EdgeAngle()
 

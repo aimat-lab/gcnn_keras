@@ -864,7 +864,7 @@ class ResidualLayer(tf.keras.layers.Layer):
     def call(self, inputs, **kwargs):
         x = self.dense_1(inputs)
         x = self.dense_2(x)
-        x = self.add([inputs, x])
+        x = self.add_end([inputs, x])
         return x
 
 
@@ -941,7 +941,7 @@ class DimNetInteractionPPBlock(tf.keras.layers.Layer):
 
         # Down-project embeddings and generate interaction triplet embeddings
         x_kj = self.down_projection(x_kj)
-        x_kj = self.lay_gather(x_kj, id_expand)
+        x_kj = self.lay_gather([x_kj, id_expand])
 
         # Transform via 2D spherical basis
         sbf = self.dense_sbf1(sbf)
