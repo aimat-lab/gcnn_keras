@@ -95,7 +95,7 @@ class NodeDistance(ks.layers.Layer):
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
 
-        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1)))
+        out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))),axis=-1)
 
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
@@ -305,7 +305,7 @@ class EdgeAngle(ks.layers.Layer):
         edge_index, edge_part = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_edge_index_type,
                                                    output_tensor_type="values_partition",
                                                    partition_type=self.partition_type)
-        angle_index, angle_part = kgcnn_ops_dyn_cast(inputs[1], input_tensor_type=found_angle_index_type,
+        angle_index, angle_part = kgcnn_ops_dyn_cast(inputs[2], input_tensor_type=found_angle_index_type,
                                                      output_tensor_type="values_partition",
                                                      partition_type=self.partition_type)
 
@@ -327,6 +327,7 @@ class EdgeAngle(ks.layers.Layer):
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
         vs = xj - xi
+        print(indexlist2.shape)
         v1 = tf.gather(vs, indexlist2[:, 0], axis=0)
         v2 = tf.gather(vs, indexlist2[:, 1], axis=0)
 
@@ -555,7 +556,7 @@ class SphericalBasisLayer(ks.layers.Layer):
         rbf_env = d_cutoff[:, None] * rbf
         rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
 
-        cbf = [tf_spherical_harmonics_yl(angles, n) for n in range(self.num_spherical)]
+        cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
         cbf = tf.stack(cbf, axis=1)
         cbf = tf.repeat(cbf, self.num_radial, axis=1)
         out = rbf_env * cbf

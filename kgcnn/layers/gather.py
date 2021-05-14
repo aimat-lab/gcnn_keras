@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
@@ -185,7 +186,6 @@ class GatherNodesOutgoing(ks.layers.Layer):
                                                       node_indexing=self.node_indexing)
         found_edge_type = kgcnn_ops_check_tensor_type(inputs[1], input_tensor_type=self.input_tensor_type,
                                                       node_indexing=self.node_indexing)
-
         # We cast to values here
         node, node_part = kgcnn_ops_dyn_cast(inputs[0], input_tensor_type=found_node_type,
                                              output_tensor_type="values_partition",

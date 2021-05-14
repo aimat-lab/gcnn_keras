@@ -4,9 +4,8 @@ from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type
 
 class GraphBaseLayer(tf.keras.layers.Layer):
     """
-    Computes powers of the adjacency matrix. This implementation is a temporary solution.
-
-    Note: Layer casts to dense until sparse matmul is supported. This is very inefficient.
+    Base layer of graph layers used in kgcnn that holds some additional information about the graph, which can
+    improve performance if set differently. Also input type check to support different tensor in- and output.
 
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
@@ -28,10 +27,12 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                  ragged_validate=False,
                  is_sorted=False,
                  has_unconnected=True,
+                 is_directed=True,
                  **kwargs):
         """Initialize layer."""
         super(GraphBaseLayer, self).__init__(**kwargs)
 
+        self.is_directed = is_directed
         self.node_indexing = node_indexing
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
@@ -57,7 +58,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        "ragged_validate": self.ragged_validate,
                        "is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
-                       "output_tensor_type": self.output_tensor_type
+                       "output_tensor_type": self.output_tensor_type,
+                       "is_directed": self.is_directed
                        })
 
 
