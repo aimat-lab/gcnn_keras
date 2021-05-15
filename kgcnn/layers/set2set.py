@@ -22,13 +22,6 @@ class Set2Set(ks.layers.Layer):
         T (int): Numer of iterations. Default is T=3.
         pooling_method : Pooling method for Set2Set. Default is 'mean'.
         init_qstar: How to generate the first q_star vector. Default is 'mean'.
-        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-            For disjoint representation 'batch' is default.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
-        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
-        partition_type (str): Partition tensor type to assign nodes/edges to batch. Default is "row_length".
-        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
-        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         activation: Activation function to use.
             Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
             is applied (ie. "linear" activation: `a(x) = x`).

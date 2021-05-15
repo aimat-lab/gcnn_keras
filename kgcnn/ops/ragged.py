@@ -34,3 +34,13 @@ class DummyRankOneRaggedTensor:
 
     def value_rowids(self):
         return self._value_rowids
+
+    def from_values_partition(self,values, part, partition_type):
+        if partition_type in ["row_length", "row_lengths"]:
+            self.from_row_lengths(values, part)
+        elif partition_type == "row_splits":
+            self.from_row_splits(values, part)
+        elif partition_type == "value_rowids":
+            self.from_value_rowids(values, part)
+        else:
+            raise TypeError("Error: Unknown partition scheme, use: 'row_lengths', 'row_splits', 'value_rowids'.")
