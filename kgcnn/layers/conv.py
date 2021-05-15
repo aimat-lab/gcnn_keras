@@ -721,6 +721,19 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         self.lay_pool = PoolingLocalEdges(**pool_args)
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [edges, rbf, sbf, angle_index]
+
+            - edges (tf.ragged): Edge embeddings of shape (batch, [M], F)
+            - rbf (tf.ragged): Radial basis features of shape (batch, [M], F)
+            - sbf (tf.ragged): Spherical basis features of shape (batch, [K], F)
+            - edge_index (tf.ragged): Angle indices between two edges of shape (batch, [K], 2)
+
+        Returns:
+            tf.ragged: Updated edge embeddings.
+        """
         x, rbf, sbf, id_expand = inputs
 
         # Initial transformation
