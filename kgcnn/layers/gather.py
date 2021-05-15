@@ -9,7 +9,7 @@ from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_c
 
 class GatherNodes(ks.layers.Layer):
     """
-    Gather nodes by edge_indices. Index list must match node tensor.
+    Gather nodes by node indices. Index list must match node tensor. An edge is defined by index tuple (i,j).
     
     If graphs edge_indices were in 'sample' mode, the edge_indices must be corrected for disjoint graphs.
     

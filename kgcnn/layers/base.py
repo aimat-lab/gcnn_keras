@@ -4,8 +4,8 @@ from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type
 
 class GraphBaseLayer(tf.keras.layers.Layer):
     """
-    Base layer of graph layers used in kgcnn that holds some additional information about the graph, which can
-    improve performance if set differently. Also input type check to support different tensor in- and output.
+    Base layer for graph layers used in kgcnn that holds some additional information about the graph, which can
+    improve performance, if set differently. Also input type check to support different tensor in- and output.
 
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
@@ -17,13 +17,14 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        is_directed (bool): If the graph can be considered directed.
     """
 
     def __init__(self,
                  node_indexing="sample",
                  partition_type="row_length",
                  input_tensor_type="ragged",
-                 output_tensor_type="ragged",
+                 output_tensor_type=None,
                  ragged_validate=False,
                  is_sorted=False,
                  has_unconnected=True,
@@ -36,7 +37,10 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         self.node_indexing = node_indexing
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
-        self.output_tensor_type = output_tensor_type
+        if output_tensor_type is None:
+            self.output_tensor_type = input_tensor_type
+        else:
+            self.output_tensor_type = output_tensor_type
         self.ragged_validate = ragged_validate
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
@@ -45,7 +49,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint",
                                                "tensor", "RaggedTensor", "Tensor"]
 
-
+        self._tensor_input_type_found = []
         self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
                                                                           self._tensor_input_type_implemented,
                                                                           self.node_indexing)
@@ -63,3 +67,6 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        })
 
 
+    def _kgcnn_map_input(self, inputs, num_input):
+
+        return input
