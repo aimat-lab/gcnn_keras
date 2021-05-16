@@ -6,7 +6,8 @@ from kgcnn.ops.models import generate_mol_graph_input,update_model_args
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add
-from kgcnn.layers.conv import DimNetOutputBlock, DimNetInteractionPPBlock
+from kgcnn.layers.interaction import DimNetInteractionPPBlock
+from kgcnn.layers.blocks import DimNetOutputBlock
 from kgcnn.layers.pooling import PoolingNodes
 
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules

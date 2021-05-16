@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
-from kgcnn.layers.conv import MEGnetBlock
+from kgcnn.layers.blocks import MEGnetBlock
 from kgcnn.layers.keras import Dense, Add, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
