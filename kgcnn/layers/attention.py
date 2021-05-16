@@ -51,7 +51,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 
         # We cast to values here
         nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
-        edge = dyn_inputs[1].values,
+        edge = dyn_inputs[1].values
         attention = dyn_inputs[2].values
         edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
@@ -188,7 +188,6 @@ class AttentionHeadGAT(GraphBaseLayer):
         a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch*None,1)
         n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
         out = self.lay_final_activ(n_i)
-
         return out
 
     def get_config(self):
