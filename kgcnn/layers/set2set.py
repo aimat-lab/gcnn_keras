@@ -2,17 +2,14 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type
-from kgcnn.ops.types import kgcnn_ops_check_tensor_type, kgcnn_ops_static_test_tensor_input_type
-
+from kgcnn.layers.base import GraphBaseLayer
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391
 
 
-class Set2Set(ks.layers.Layer):
+class Set2Set(GraphBaseLayer):
     """
     Set2Set layer. The Reading to Memory has to be handled seperately.
     Uses a keras LSTM layer for the updates.
@@ -81,17 +78,11 @@ class Set2Set(ks.layers.Layer):
     """
 
     def __init__(self,
-                 # Arg
+                 # Args
                  channels,
                  T=3,
                  pooling_method='mean',
                  init_qstar='mean',
-                 node_indexing="sample",
-                 is_sorted=False,
-                 has_unconnected=True,
-                 partition_type="row_length",
-                 input_tensor_type="ragged",
-                 ragged_validate=False,
                  # Args for LSTM
                  activation="tanh",
                  recurrent_activation="sigmoid",
@@ -124,18 +115,6 @@ class Set2Set(ks.layers.Layer):
         self.T = T  # Number of Iterations to work on memory
         self.pooling_method = pooling_method
         self.init_qstar = init_qstar
-        self.partition_type = partition_type
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
-        self.node_indexing = node_indexing
-        self.input_tensor_type = input_tensor_type
-        self.ragged_validate = ragged_validate
-        self._supports_ragged_inputs = True
-        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor"]
-
-        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
-                                                                          self._tensor_input_type_implemented,
-                                                                          self.node_indexing)
 
         if self.pooling_method == 'mean':
             self._pool = ksb.mean
@@ -184,25 +163,14 @@ class Set2Set(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
-        This can be either a tuple of (values, partition) tensors of shape (batch*None,F)
-        and a partition tensor of the type "row_length", "row_splits" or "value_rowids". This usually uses
-        disjoint indexing defined by 'node_indexing'. Or a tuple of (values, mask) tensors of shape
-        (batch, N, F) and mask (batch, N) or a single RaggedTensor of shape (batch,None,F)
-        or a singe tensor for equally sized graphs (batch,N,F).
-
         Args:
-            inputs: Embeddings to be encoded of shape (batch, [N], F)
+            inputs (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
         
         Returns:
-            q_star (tf.tensor): Pooled tensor of shape (batch,1,2*channels)
+            q_star (tf.tensor): Pooled tensor of shape (batch, 1, 2*channels)
         """
-        found_node_type = kgcnn_ops_check_tensor_type(inputs, input_tensor_type=self.input_tensor_type,
-                                                      node_indexing=self.node_indexing)
-        x, batch_part = kgcnn_ops_dyn_cast(inputs, input_tensor_type=found_node_type,
-                                           output_tensor_type="values_partition",
-                                           partition_type=self.partition_type)
-        batch_num = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "row_length")
-        batch_index = kgcnn_ops_change_partition_type(batch_part, self.partition_type, "value_rowids")
+        dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
+        x, batch_num, batch_index = dyn_inputs[0].values, dyn_inputs[0].row_lengths(), dyn_inputs[0].value_rowids()
 
         # Reading to memory removed here, is to be done by seperately
         m = x  # (batch*None,feat)
@@ -230,8 +198,7 @@ class Set2Set(ks.layers.Layer):
         return qstar
 
     def f_et(self, fm, fq):
-        """
-        Function to compute scalar from m and q. Can apply sum or mean etc.
+        """Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
              fm (tf.tensor): of shape (batch*num,feat)
@@ -292,16 +259,8 @@ class Set2Set(ks.layers.Layer):
     def get_config(self):
         """Make config for layer."""
         config = super(Set2Set, self).get_config()
-        config.update({"channels": self.channels,
-                       "T": self.T,
-                       "pooling_method": self.pooling_method,
-                       "init_qstar": self.init_qstar,
-                       "is_sorted": self.is_sorted,
-                       "has_unconnected": self.has_unconnected,
-                       "node_indexing": self.node_indexing,
-                       "partition_type": self.partition_type,
-                       "input_tensor_type": self.input_tensor_type,
-                       "ragged_validate": self.ragged_validate})
+        config.update({"channels": self.channels, "T": self.T, "pooling_method": self.pooling_method,
+                       "init_qstar": self.init_qstar})
         lstm_conf = self.lay_lstm.get_config()
         lstm_param = ["activation",
                       "recurrent_activation",
