@@ -1,15 +1,11 @@
 import tensorflow as tf
-import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
+from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
 class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
-    """
-    Layer to cast e.g. RaggedTensor graph representation to a single Sparse tensor in disjoint representation.
+    """Layer to cast e.g. RaggedTensor graph representation to a single Sparse tensor in disjoint representation.
 
     This includes edge_indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
     """
@@ -75,8 +71,7 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
 
 
 class PoolingAdjacencyMatmul(GraphBaseLayer):
-    r"""
-    Layer for pooling of node features by multiplying with sparse adjacency matrix. Which gives $A n$.
+    r"""Layer for pooling of node features by multiplying with sparse adjacency matrix. Which gives $A n$.
 
     The node features needs to be flatten for a disjoint representation.
 
