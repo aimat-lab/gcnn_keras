@@ -87,23 +87,22 @@ Models can be set up in a functional. Example message passing from fundamental o
 
 
 ```python
-import tensorflow as tf
 import tensorflow.keras as ks
 from kgcnn.layers.gather import GatherNodes
-from kgcnn.layers.keras import Dense  # ragged support
-from kgcnn.layers.pooling import PoolingLocalMessages
+from kgcnn.layers.keras import Dense, Concatenate  # ragged support
+from kgcnn.layers.pooling import PoolingLocalMessages, PoolingNodes
 
-feature_dim = 10
-n = ks.layers.Input(shape=(None,feature_dim),name='node_input',dtype ="float32",ragged=True)
-ei = ks.layers.Input(shape=(None,2),name='edge_index_input',dtype ="int64",ragged=True)
+n = ks.layers.Input(shape=(None, 3), dtype="float32", ragged=True)
+ei = ks.layers.Input(shape=(None, 2), dtype="int64", ragged=True)
 
-n_in_out = GatherNodes()([n,ei])
-node_messages = Dense(feature_dim)(n_in_out)
-node_updates = PoolingLocalMessages()([n,node_messages,ei])
-n_node_updates = ks.layers.Concatenate(axis=-1)([n,node_updates])
-n_embedd = Dense(feature_dim)(n_node_updates)
+n_in_out = GatherNodes()([n, ei])
+node_messages = Dense(10)(n_in_out)
+node_updates = PoolingLocalMessages()([n, node_messages, ei])
+n_node_updates = Concatenate(axis=-1)([n, node_updates])
+n_embedd = Dense(1)(n_node_updates)
+g_embedd = PoolingNodes()(n_embedd)
 
-message_passing = ks.models.Model(inputs=[n,ei], outputs=n_embedd)
+message_passing = ks.models.Model(inputs=[n, ei], outputs=g_embedd)
 ```
 
 
