@@ -165,3 +165,103 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 raise TypeError("Error:", self.name, "output type for ragged-like input is not supported for", x)
         else:
             raise TypeError("Error:", self.name, "input type for ragged-like input is not supported for", x)
+
+
+
+
+
+
+
+class KerasLayerWrapperBase(tf.keras.layers.Layer):
+    """Base layer for keras wrapper in kgcnn that allows for ragged input type.
+
+    Args:
+        partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
+            This is used for input_tensor_type="values_partition".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        output_tensor_type (str): Output type of the tensors for call(). Default is "ragged".
+        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+    """
+
+    def __init__(self,
+                 partition_type="row_length",
+                 input_tensor_type="ragged",
+                 output_tensor_type=None,
+                 ragged_validate=False,
+                 **kwargs):
+        """Initialize layer."""
+        super(KerasLayerWrapperBase, self).__init__(**kwargs)
+
+        self.partition_type = partition_type
+        self.input_tensor_type = input_tensor_type
+        if output_tensor_type is None:
+            self.output_tensor_type = input_tensor_type
+        else:
+            self.output_tensor_type = output_tensor_type
+        self.ragged_validate = ragged_validate
+        self._supports_ragged_inputs = True
+
+        self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint",
+                                               "tensor", "RaggedTensor", "Tensor"]
+
+        self._kgcnn_wrapper_call_type = 0
+        self._kgcnn_wrapper_args = []
+        self._kgcnn_wrapper_layer = None
+
+    def call(self, inputs, **kwargs):
+        if self._kgcnn_wrapper_call_type == 0:
+            # get a single tensor
+            if isinstance(inputs, tf.RaggedTensor):
+                if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
+                    print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
+                # Can work already with RaggedTensor
+                # out = self._kgcnn_wrapper_layer(inputs, **kwargs)
+                # We need a check of ragged rank here and default to standard layer
+                value_tensor = inputs.values
+                out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
+                return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+            elif isinstance(inputs, list):
+                if self.input_tensor_type not in ["disjoint", "values_partition"]:
+                    print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
+                out = self._kgcnn_wrapper_layer(inputs[0], **kwargs)
+                return [out] + inputs[1:]
+            elif isinstance(inputs, tf.Tensor):
+                if self.input_tensor_type not in ["Tensor", "tensor"]:
+                    print("Warning: Received Tensor but tensor type specified as:", self.input_tensor_type)
+                return self._kgcnn_wrapper_layer(inputs, **kwargs)
+            else:
+                raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)
+        elif self._kgcnn_wrapper_call_type == 1:
+            # Get a list of tensors
+            if isinstance(inputs[0], tf.RaggedTensor):
+                if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
+                    print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
+                # Works already with RaggedTensor but much much slower
+                # out = self._layer_keras(inputs, **kwargs)
+                # We need a check of ragged rank here and default to standard layer
+                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+                return out
+            elif isinstance(inputs[0], list):
+                if self.input_tensor_type not in ["disjoint", "values_partition"]:
+                    print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
+                out_part = inputs[0][1:]
+                out = self._kgcnn_wrapper_layer([x[0] for x in inputs], **kwargs)
+                return [out] + out_part
+            elif isinstance(inputs[0], tf.Tensor):
+                if self.input_tensor_type not in ["Tensor", "tensor"]:
+                    print("Warning: Received Tensor but tensor type specified as:", self.input_tensor_type)
+                return self._kgcnn_wrapper_layer(inputs, **kwargs)
+            else:
+                raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)
+
+    def get_config(self):
+        config = super(KerasLayerWrapperBase, self).get_config()
+        config.update({"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
+                       "output_tensor_type": self.output_tensor_type})
+        if self._kgcnn_wrapper_layer is not None:
+            layer_conf = self._kgcnn_wrapper_layer.get_config()
+            for x in self._kgcnn_wrapper_args:
+                config.update({x: layer_conf[x]})
+        return config
+
