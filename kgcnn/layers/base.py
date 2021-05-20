@@ -214,12 +214,13 @@ class KerasLayerWrapperBase(tf.keras.layers.Layer):
             if isinstance(inputs, tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                     print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-                # Can work already with RaggedTensor
-                # out = self._kgcnn_wrapper_layer(inputs, **kwargs)
-                # We need a check of ragged rank here and default to standard layer
-                value_tensor = inputs.values
-                out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
-                return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+                if inputs.ragged_rank == 1:
+                    value_tensor = inputs.values
+                    out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
+                    return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+                else:
+                    print("Warning:",self.name, " got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
+                    return self._kgcnn_wrapper_layer(inputs, **kwargs)
             elif isinstance(inputs, list):
                 if self.input_tensor_type not in ["disjoint", "values_partition"]:
                     print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
@@ -236,12 +237,13 @@ class KerasLayerWrapperBase(tf.keras.layers.Layer):
             if isinstance(inputs[0], tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                     print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
-                # Works already with RaggedTensor but much much slower
-                # out = self._layer_keras(inputs, **kwargs)
-                # We need a check of ragged rank here and default to standard layer
-                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-                return out
+                if inputs[0].ragged_rank == 1:
+                    out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)
+                    out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+                    return out
+                else:
+                    print("Warning:", self.name, " got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
+                    return self._kgcnn_wrapper_layer(inputs, **kwargs)
             elif isinstance(inputs[0], list):
                 if self.input_tensor_type not in ["disjoint", "values_partition"]:
                     print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
