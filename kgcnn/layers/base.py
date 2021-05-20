@@ -172,8 +172,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 
 
 
-class KerasLayerWrapperBase(tf.keras.layers.Layer):
-    """Base layer for keras wrapper in kgcnn that allows for ragged input type.
+class KerasWrapperBaseLayer(tf.keras.layers.Layer):
+    """Base layer for keras wrapper in kgcnn that allows for ragged input type with ragged_rank=1.
 
     Args:
         partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
@@ -190,7 +190,7 @@ class KerasLayerWrapperBase(tf.keras.layers.Layer):
                  ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
-        super(KerasLayerWrapperBase, self).__init__(**kwargs)
+        super(KerasWrapperBaseLayer, self).__init__(**kwargs)
 
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
@@ -258,7 +258,7 @@ class KerasLayerWrapperBase(tf.keras.layers.Layer):
                 raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)
 
     def get_config(self):
-        config = super(KerasLayerWrapperBase, self).get_config()
+        config = super(KerasWrapperBaseLayer, self).get_config()
         config.update({"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
                        "output_tensor_type": self.output_tensor_type})
         if self._kgcnn_wrapper_layer is not None:

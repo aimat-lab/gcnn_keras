@@ -1,9 +1,9 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.base import KerasLayerWrapperBase
+from kgcnn.layers.base import KerasWrapperBaseLayer
 
-class Dense(KerasLayerWrapperBase):
+class Dense(KerasWrapperBaseLayer):
     """Dense Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
@@ -34,7 +34,7 @@ class Dense(KerasLayerWrapperBase):
                                                     bias_constraint=bias_constraint)
 
 
-class Activation(KerasLayerWrapperBase):
+class Activation(KerasWrapperBaseLayer):
     """Activation Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
@@ -49,7 +49,7 @@ class Activation(KerasLayerWrapperBase):
                                                                activity_regularizer=activity_regularizer)
 
 
-class Add(KerasLayerWrapperBase):
+class Add(KerasWrapperBaseLayer):
     """Add Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
@@ -60,7 +60,7 @@ class Add(KerasLayerWrapperBase):
         self._kgcnn_wrapper_layer = ks.layers.Add()
 
 
-class Average(KerasLayerWrapperBase):
+class Average(KerasWrapperBaseLayer):
     """Average Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
@@ -71,7 +71,7 @@ class Average(KerasLayerWrapperBase):
         self._kgcnn_wrapper_layer = ks.layers.Average()
 
 
-class Multiply(KerasLayerWrapperBase):
+class Multiply(KerasWrapperBaseLayer):
     """Multiply Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
@@ -82,7 +82,7 @@ class Multiply(KerasLayerWrapperBase):
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
 
 
-class Concatenate(KerasLayerWrapperBase):
+class Concatenate(KerasWrapperBaseLayer):
     """Concatenate Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
@@ -95,7 +95,7 @@ class Concatenate(KerasLayerWrapperBase):
         self._kgcnn_wrapper_layer = ks.layers.Concatenate(axis=axis)
 
 
-class Dropout(KerasLayerWrapperBase):
+class Dropout(KerasWrapperBaseLayer):
     """Dropout Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
@@ -110,7 +110,7 @@ class Dropout(KerasLayerWrapperBase):
         self._kgcnn_wrapper_layer = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
 
 
-class LayerNormalization(KerasLayerWrapperBase):
+class LayerNormalization(KerasWrapperBaseLayer):
     """LayerNormalization Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
