@@ -3,6 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import KerasWrapperBaseLayer
 
+
 class Dense(KerasWrapperBaseLayer):
     """Dense Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 

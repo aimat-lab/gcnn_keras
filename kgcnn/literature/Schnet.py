@@ -85,38 +85,26 @@ def make_schnet(
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
 
-    # Use representation
-    tens_type = "ragged"
-    node_indexing = "sample"
-    partition_type = "row_length"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type,partition_type=partition_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type,partition_type=partition_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type,partition_type=partition_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing,partition_type=partition_type)([n, edi])
-
-    n = Dense(interaction_args["units"], activation='linear',
-              input_tensor_type=tens_type)(n)
+    edi = edge_index_input
+    n = Dense(interaction_args["units"], activation='linear')(n)
 
     for i in range(0, depth):
-        n = SchNetInteraction(input_tensor_type=tens_type, node_indexing=node_indexing,partition_type=partition_type,
-                              **interaction_args)([n, ed, edi])
+        n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
-    n = MLP(input_tensor_type=tens_type,**output_mlp)(n)
+    n = MLP(**output_mlp)(n)
 
-    mlp_last = Dense(input_tensor_type=tens_type, **output_dense)
+    mlp_last = Dense(**output_dense)
 
     if output_embedd["output_mode"] == 'graph':
         if out_scale_pos == 0:
             n = mlp_last(n)
-        out = PoolingNodes(input_tensor_type=tens_type, node_indexing=node_indexing, partition_type=partition_type,
-                           **node_pooling_args)(n)
+        out = PoolingNodes(**node_pooling_args)(n)
         if out_scale_pos == 1:
             out = mlp_last(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
         out = mlp_last(n)
-        main_output = ChangeTensorType(input_tensor_type="values_partition", output_tensor_type="tensor",
-                                       partition_type=partition_type)(out)  # no ragged for distribution atm
+        main_output = ChangeTensorType(input_tensor_type="values_partition", output_tensor_type="tensor")(out)  # no ragged for distribution atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 
