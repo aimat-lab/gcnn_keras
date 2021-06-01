@@ -62,29 +62,24 @@ class MEGnetBlock(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
-        mlp_args = {"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate}
-        mlp_args.update(kernel_args)
-        pool_args = {"pooling_method": self.pooling_method}
-        pool_args.update(self._kgcnn_info)
-        gather_args = self._kgcnn_info
 
         # Node
-        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **mlp_args)
-        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **mlp_args)
-        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **mlp_args)
-        self.lay_esum = PoolingLocalEdges(**pool_args)
-        self.lay_gather_un = GatherState(**gather_args)
-        self.lay_conc_nu = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
+        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args, **self._kgcnn_info)
+        self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
+        self.lay_gather_un = GatherState(**self._kgcnn_info)
+        self.lay_conc_nu = Concatenate(axis=-1, **self._kgcnn_info)
         # Edge
-        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **mlp_args)
-        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **mlp_args)
-        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **mlp_args)
-        self.lay_gather_n = GatherNodes(**gather_args)
-        self.lay_gather_ue = GatherState(**gather_args)
-        self.lay_conc_enu = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
+        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **kernel_args, **self._kgcnn_info)
+        self.lay_gather_n = GatherNodes(**self._kgcnn_info)
+        self.lay_gather_ue = GatherState(**self._kgcnn_info)
+        self.lay_conc_enu = Concatenate(axis=-1, **self._kgcnn_info)
         # Environment
-        self.lay_usum_e = PoolingGlobalEdges(**pool_args)
-        self.lay_usum_n = PoolingNodes(**pool_args)
+        self.lay_usum_e = PoolingGlobalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
+        self.lay_usum_n = PoolingNodes(pooling_method=self.pooling_method, **self._kgcnn_info)
         self.lay_conc_u = Concatenate(axis=-1, input_tensor_type="tensor")
         self.lay_phi_u = ks.layers.Dense(units=self.env_embed[0], activation=activation, **kernel_args)
         self.lay_phi_u_1 = ks.layers.Dense(units=self.env_embed[1], activation=activation, **kernel_args)
