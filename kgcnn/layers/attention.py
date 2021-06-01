@@ -147,8 +147,8 @@ class AttentionHeadGAT(GraphBaseLayer):
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
         dens_args = {"ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
         dens_args.update(kernel_args)
-        gather_args = self._all_kgcnn_info
-        pooling_args = self._all_kgcnn_info
+        gather_args = self._kgcnn_info
+        pooling_args = self._kgcnn_info
 
         self.lay_linear_trafo = Dense(units, activation="linear", **dens_args)
         self.lay_alpha = Dense(1, activation=activation, **dens_args)
@@ -199,4 +199,127 @@ class AttentionHeadGAT(GraphBaseLayer):
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
             config.update({x: conf_sub[x]})
+        return config
+
+
+
+class AttentiveHeadFP(GraphBaseLayer):
+    r"""Computes the attention head for Attentive FP model.
+    The attention coefficients are computed by $a_{ij} = \sigma_1( W_1 [h_i || h_j] )$.
+    The initial representation $h_i$ and $h_j$ must be calculated beforehand.
+    The attention is obtained by $\alpha_ij = softmax_j (a_{ij})$.
+    And finally pooled through for context $C_i = \sigma_2(\sum_j \alpha_{ij} W_2 h_j)$.
+
+    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+
+    Args:
+        units (int): Units for the linear trafo of node features before attention.
+        use_edge_features (bool): Append edge features to attention computation. Default is False.
+        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
+            with fall-back "relu".
+        activation_context (str): Activation function for context. Default is "elu".
+        use_bias (bool): Use bias. Default is True.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
+    """
+
+    def __init__(self,
+                 units,
+                 use_edge_features=False,
+                 activation=None,
+                 activation_context = "elu",
+                 use_bias=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 **kwargs):
+        """Initialize layer."""
+        super(AttentiveHeadFP, self).__init__(**kwargs)
+        # graph args
+        self.use_edge_features = use_edge_features
+
+        # dense args
+        self.units = int(units)
+        if activation is None and "leaky_relu" in kgcnn_custom_act:
+            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
+        elif activation is None:
+            activation = "relu"
+
+        kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+        dens_args = {"ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
+        dens_args.update(kernel_args)
+        gather_args = self._kgcnn_info
+        pooling_args = self._kgcnn_info
+
+        self.lay_linear_trafo = Dense(units, activation="linear", **dens_args)
+        self.lay_alpha = Dense(1, activation=activation, **dens_args)
+        self.lay_gather_in = GatherNodesIngoing(**gather_args)
+        self.lay_gather_out = GatherNodesOutgoing(**gather_args)
+        self.lay_concat = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
+        self.lay_pool_attention = PoolingLocalEdgesAttention(**pooling_args)
+        self.lay_final_activ = Activation(activation=activation_context, input_tensor_type=self.input_tensor_type)
+        if use_edge_features:
+            self.lay_fc1 = Dense(units, activation=activation, **dens_args)
+            self.lay_fc2 = Dense(units, activation=activation, **dens_args)
+            self.lay_concat_edge = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(AttentiveHeadFP, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): of [node, edges, edge_indices]
+
+            - nodes: Node features of shape (batch, [N], F)
+            - edges: Edge or message features of shape (batch, [M], F)
+            - edge_index: Edge indices of shape (batch, [M], 2)
+
+        Returns:
+            features: Hidden tensor of pooled edge attentions for each node.
+        """
+        node, edge, edge_index = inputs
+
+        if self.use_edge_features:
+            n_in = self.lay_gather_in([node, edge_index])
+            n_out = self.lay_gather_out([node, edge_index])
+            n_in = self.lay_fc1(n_in)
+            n_out = self.lay_concat_edge([n_out,edge])
+            n_out = self.self.lay_fc2(n_out)
+        else:
+            n_in = self.lay_gather_in([node, edge_index])
+            n_out = self.lay_gather_out([node, edge_index])
+
+        wn_out = self.lay_linear_trafo(n_out)
+        e_ij = self.lay_concat([n_in, n_out])
+        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch,None,1)
+        n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
+        out = self.lay_final_activ(n_i)
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(AttentiveHeadFP, self).get_config()
+        config.update({"use_edge_features": self.use_edge_features,
+                       "units": self.units})
+        conf_sub = self.lay_alpha.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
+            config.update({x: conf_sub[x]})
+        conf_context = self.lay_final_activ.get_config()
+        config.update({"activation_context": conf_context["activation"]})
         return config

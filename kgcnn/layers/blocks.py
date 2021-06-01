@@ -65,8 +65,8 @@ class MEGnetBlock(GraphBaseLayer):
         mlp_args = {"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate}
         mlp_args.update(kernel_args)
         pool_args = {"pooling_method": self.pooling_method}
-        pool_args.update(self._all_kgcnn_info)
-        gather_args = self._all_kgcnn_info
+        pool_args.update(self._kgcnn_info)
+        gather_args = self._kgcnn_info
 
         # Node
         self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **mlp_args)
@@ -195,7 +195,7 @@ class DimNetOutputBlock(GraphBaseLayer):
         mlp_args = {"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate}
         mlp_args.update(kernel_args)
         pool_args = {"pooling_method": self.pooling_method}
-        pool_args.update(self._all_kgcnn_info)
+        pool_args.update(self._kgcnn_info)
 
         self.dense_rbf = Dense(emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.up_projection = Dense(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)

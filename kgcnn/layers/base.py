@@ -59,7 +59,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                                                                           self._tensor_input_type_implemented,
                                                                           self.node_indexing)
 
-        self._all_kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
+        self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
                                 "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
                                 "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
                                 "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
@@ -167,11 +167,6 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             raise TypeError("Error:", self.name, "input type for ragged-like input is not supported for", x)
 
 
-
-
-
-
-
 class KerasWrapperBaseLayer(tf.keras.layers.Layer):
     """Base layer for keras wrapper in kgcnn that allows for ragged input type with ragged_rank=1.
 
@@ -188,10 +183,16 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                  input_tensor_type="ragged",
                  output_tensor_type=None,
                  ragged_validate=False,
+                 node_indexing="sample",
+                 is_sorted=False,
+                 has_unconnected=True,
+                 is_directed=True,
                  **kwargs):
         """Initialize layer."""
         super(KerasWrapperBaseLayer, self).__init__(**kwargs)
 
+        self.is_directed = is_directed
+        self.node_indexing = node_indexing
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
         if output_tensor_type is None:
@@ -199,10 +200,17 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         else:
             self.output_tensor_type = output_tensor_type
         self.ragged_validate = ragged_validate
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
         self._supports_ragged_inputs = True
 
         self._tensor_input_type_implemented = ["ragged", "values_partition", "disjoint",
                                                "tensor", "RaggedTensor", "Tensor"]
+
+        self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
+                            "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
+                            "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
+                            "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
 
         self._kgcnn_wrapper_call_type = 0
         self._kgcnn_wrapper_args = []
@@ -219,7 +227,7 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                     out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
                     return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
                 else:
-                    print("Warning:",self.name, " got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
+                    print("Warning:", self.name, " got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
                     return self._kgcnn_wrapper_layer(inputs, **kwargs)
             elif isinstance(inputs, list):
                 if self.input_tensor_type not in ["disjoint", "values_partition"]:
@@ -266,4 +274,3 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
             for x in self._kgcnn_wrapper_args:
                 config.update({x: layer_conf[x]})
         return config
-

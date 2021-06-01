@@ -59,7 +59,7 @@ class SchNetInteraction(GraphBaseLayer):
                        "bias_initializer": bias_initializer}
         conv_args = {"units": self.units, "use_bias": use_bias, "activation": activation, "cfconv_pool": cfconv_pool}
         conv_args.update(kernel_args)
-        conv_args.update(self._all_kgcnn_info)
+        conv_args.update(self._kgcnn_info)
         # Layers
         self.lay_cfconv = SchNetCFconv(**conv_args)
         self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False,
@@ -235,8 +235,8 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         pool_args = {"pooling_method": pooling_method}
-        pool_args.update(self._all_kgcnn_info)
-        gather_args = self._all_kgcnn_info
+        pool_args.update(self._kgcnn_info)
+        gather_args = self._kgcnn_info
 
         # Transformations of Bessel and spherical basis representations
         self.dense_rbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args)
