@@ -189,15 +189,13 @@ class DimNetOutputBlock(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "bias_constraint": bias_constraint, }
         mlp_args = {"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate}
         mlp_args.update(kernel_args)
-        pool_args = {"pooling_method": self.pooling_method}
-        pool_args.update(self._kgcnn_info)
 
         self.dense_rbf = Dense(emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.up_projection = Dense(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.dense_mlp = MLP([out_emb_size] * num_dense, activation=activation, kernel_initializer=kernel_initializer,
                              use_bias=use_bias, **mlp_args)
         self.dimnet_mult = Multiply(input_tensor_type=self.input_tensor_type)
-        self.pool = PoolingLocalEdges(**pool_args)
+        self.pool = PoolingLocalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
         self.dense_final = Dense(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
                                  **kernel_args)
 

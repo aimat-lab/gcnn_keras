@@ -66,16 +66,14 @@ class GCN(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
-        gather_args = self._kgcnn_info
         pool_args = {"pooling_method": pooling_method, "normalize_by_weights": normalize_by_weights}
-        pool_args.update(self._kgcnn_info)
 
         # Layers
-        self.lay_gather = GatherNodesOutgoing(**gather_args)
+        self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_dense = Dense(units=self.units, activation='linear',
                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
                                **kernel_args)
-        self.lay_pool = PoolingWeightedLocalEdges(**pool_args)
+        self.lay_pool = PoolingWeightedLocalEdges(**pool_args, **self._kgcnn_info)
         self.lay_act = Activation(activation, ragged_validate=self.ragged_validate,
                                   input_tensor_type=self.input_tensor_type)
 
@@ -163,18 +161,15 @@ class SchNetCFconv(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
-        pooling_args = {"pooling_method": cfconv_pool}
-        pooling_args.update(self._kgcnn_info)
+
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,
-                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                                **kernel_args)
-        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias,
-                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                                **kernel_args)
-        self.lay_sum = PoolingLocalEdges(**pooling_args)
+        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,**kernel_args,
+                                **self._kgcnn_info)
+        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args,
+                                **self._kgcnn_info)
+        self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool,**self._kgcnn_info)
         self.gather_n = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_mult = Multiply(input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate)
+        self.lay_mult = Multiply(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
