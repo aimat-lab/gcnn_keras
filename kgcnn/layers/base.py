@@ -223,8 +223,8 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         self._kgcnn_wrapper_layer = None
 
     def call(self, inputs, **kwargs):
+        # Get a single tensor
         if self._kgcnn_wrapper_call_type == 0:
-            # get a single tensor
             if isinstance(inputs, tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                     print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
@@ -246,8 +246,9 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                 return self._kgcnn_wrapper_layer(inputs, **kwargs)
             else:
                 raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)
+
+        # Get a list of tensors
         elif self._kgcnn_wrapper_call_type == 1:
-            # Get a list of tensors
             if isinstance(inputs[0], tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
                     print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
@@ -273,8 +274,15 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(KerasWrapperBaseLayer, self).get_config()
-        config.update({"input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
-                       "output_tensor_type": self.output_tensor_type})
+        config.update({"node_indexing": self.node_indexing,
+                       "partition_type": self.partition_type,
+                       "input_tensor_type": self.input_tensor_type,
+                       "ragged_validate": self.ragged_validate,
+                       "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected,
+                       "output_tensor_type": self.output_tensor_type,
+                       "is_directed": self.is_directed
+                       })
         if self._kgcnn_wrapper_layer is not None:
             layer_conf = self._kgcnn_wrapper_layer.get_config()
             for x in self._kgcnn_wrapper_args:
