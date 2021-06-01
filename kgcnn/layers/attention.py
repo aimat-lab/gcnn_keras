@@ -145,18 +145,15 @@ class AttentionHeadGAT(GraphBaseLayer):
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        dens_args = {"ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
-        dens_args.update(kernel_args)
-        gather_args = self._kgcnn_info
-        pooling_args = self._kgcnn_info
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **dens_args)
-        self.lay_alpha = Dense(1, activation=activation, **dens_args)
-        self.lay_gather_in = GatherNodesIngoing(**gather_args)
-        self.lay_gather_out = GatherNodesOutgoing(**gather_args)
-        self.lay_concat = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
-        self.lay_pool_attention = PoolingLocalEdgesAttention(**pooling_args)
-        self.lay_final_activ = Activation(activation=activation, input_tensor_type=self.input_tensor_type)
+
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
+        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
+        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
+        self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
+        self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -258,22 +255,18 @@ class AttentiveHeadFP(GraphBaseLayer):
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        dens_args = {"ragged_validate": self.ragged_validate, "input_tensor_type": self.input_tensor_type}
-        dens_args.update(kernel_args)
-        gather_args = self._kgcnn_info
-        pooling_args = self._kgcnn_info
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **dens_args)
-        self.lay_alpha = Dense(1, activation=activation, **dens_args)
-        self.lay_gather_in = GatherNodesIngoing(**gather_args)
-        self.lay_gather_out = GatherNodesOutgoing(**gather_args)
-        self.lay_concat = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
-        self.lay_pool_attention = PoolingLocalEdgesAttention(**pooling_args)
-        self.lay_final_activ = Activation(activation=activation_context, input_tensor_type=self.input_tensor_type)
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
+        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
+        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
+        self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
+        self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
         if use_edge_features:
-            self.lay_fc1 = Dense(units, activation=activation, **dens_args)
-            self.lay_fc2 = Dense(units, activation=activation, **dens_args)
-            self.lay_concat_edge = Concatenate(axis=-1, input_tensor_type=self.input_tensor_type)
+            self.lay_fc1 = Dense(units, activation=activation, **kernel_args, **self._kgcnn_info)
+            self.lay_fc2 = Dense(units, activation=activation, **kernel_args, **self._kgcnn_info)
+            self.lay_concat_edge = Concatenate(axis=-1, **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
