@@ -171,11 +171,17 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
     """Base layer for keras wrapper in kgcnn that allows for ragged input type with ragged_rank=1.
 
     Args:
+        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            For disjoint representation 'batch' is default.
         partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
             This is used for input_tensor_type="values_partition".
         input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
         output_tensor_type (str): Output type of the tensors for call(). Default is "ragged".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        is_directed (bool): If the graph can be considered directed. Default is True.
+            This parameter is not used atm but can be useful for expensive edge computation.
     """
 
     def __init__(self,
