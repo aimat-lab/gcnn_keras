@@ -43,13 +43,14 @@ def tf_legendre_polynomial_pn(x, n=0):
     Returns:
         tf.tensor: Legendre Polynomial of order n.
     """
-    sum = tf.zeros_like(x)
-    prefactors = [float((-1) ** k * sp.special.factorial(2 * n - 2 * k) / sp.special.factorial(n - k) / sp.special.factorial(
-        n - 2 * k) / sp.special.factorial(k) / 2 ** n) for k in range(0, int(np.floor(n / 2)) + 1)]
+    out_sum = tf.zeros_like(x)
+    prefactors = [
+        float((-1) ** k * sp.special.factorial(2 * n - 2 * k) / sp.special.factorial(n - k) / sp.special.factorial(
+            n - 2 * k) / sp.special.factorial(k) / 2 ** n) for k in range(0, int(np.floor(n / 2)) + 1)]
     powers = [float(n - 2 * k) for k in range(0, int(np.floor(n / 2)) + 1)]
     for i in range(len(powers)):
-        sum = sum + prefactors[i] * tf.pow(x, powers[i])
-    return sum
+        out_sum = out_sum + prefactors[i] * tf.pow(x, powers[i])
+    return out_sum
 
 
 @tf.function
@@ -64,14 +65,15 @@ def tf_spherical_harmonics_yl(theta, l=0):
         tf.tensor: Spherical harmonics for m=0 and constant non-integer l.
     """
     x = tf.cos(theta)
-    sum = tf.zeros_like(x)
-    prefactors = [float((-1) ** k * sp.special.factorial(2 * l - 2 * k) / sp.special.factorial(l - k) / sp.special.factorial(
-        l - 2 * k) / sp.special.factorial(k) / 2 ** l) for k in range(0, int(np.floor(l / 2)) + 1)]
+    out_sum = tf.zeros_like(x)
+    prefactors = [
+        float((-1) ** k * sp.special.factorial(2 * l - 2 * k) / sp.special.factorial(l - k) / sp.special.factorial(
+            l - 2 * k) / sp.special.factorial(k) / 2 ** l) for k in range(0, int(np.floor(l / 2)) + 1)]
     powers = [float(l - 2 * k) for k in range(0, int(np.floor(l / 2)) + 1)]
     for i in range(len(powers)):
-        sum = sum + prefactors[i] * tf.pow(x, powers[i])
-    sum = sum*float(np.sqrt((2*l+1)/4/np.pi))
-    return sum
+        out_sum = out_sum + prefactors[i] * tf.pow(x, powers[i])
+    out_sum = out_sum * float(np.sqrt((2 * l + 1) / 4 / np.pi))
+    return out_sum
 
 
 # @tf.function

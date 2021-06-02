@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type
 
 class DummyRankOneRaggedTensor:
-    """Dummy python class. Can not be passed between layers."""
+    """Dummy python class. Can not be passed between layers. Does not inherit from Tensor or CompositeTensor."""
 
     def __init__(self):
         self.values = None
