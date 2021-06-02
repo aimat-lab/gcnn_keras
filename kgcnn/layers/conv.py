@@ -161,7 +161,6 @@ class SchNetCFconv(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
-
         # Layer
         self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,**kernel_args,
                                 **self._kgcnn_info)

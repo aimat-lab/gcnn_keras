@@ -58,20 +58,16 @@ class SchNetInteraction(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         conv_args = {"units": self.units, "use_bias": use_bias, "activation": activation, "cfconv_pool": cfconv_pool}
-        conv_args.update(kernel_args)
-        conv_args.update(self._kgcnn_info)
+
         # Layers
-        self.lay_cfconv = SchNetCFconv(**conv_args)
+        self.lay_cfconv = SchNetCFconv(**conv_args, **kernel_args, **self._kgcnn_info)
         self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False,
-                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                                **kernel_args)
+                                **self._kgcnn_info, **kernel_args)
         self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,
-                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                                **kernel_args)
+                                **self._kgcnn_info, **kernel_args)
         self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias,
-                                input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                                **kernel_args)
-        self.lay_add = Add(input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate)
+                                **self._kgcnn_info, **kernel_args)
+        self.lay_add = Add(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -142,15 +138,16 @@ class ResidualLayer(GraphBaseLayer):
             activation = 'swish'
         elif activation is None:
             activation = "selu"
+
         dense_args = {"units": units, "activation": activation, "use_bias": use_bias,
                       "kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                       "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                       "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                       "bias_initializer": bias_initializer}
 
-        self.dense_1 = Dense(**dense_args)
-        self.dense_2 = Dense(**dense_args)
-        self.add_end = Add()
+        self.dense_1 = Dense(**dense_args, **self._kgcnn_info)
+        self.dense_2 = Dense(**dense_args, **self._kgcnn_info)
+        self.add_end = Add(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -234,44 +231,43 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
-        pool_args = {"pooling_method": pooling_method}
-        pool_args.update(self._kgcnn_info)
-        gather_args = self._kgcnn_info
 
         # Transformations of Bessel and spherical basis representations
-        self.dense_rbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args)
-        self.dense_rbf2 = Dense(emb_size, use_bias=False, **kernel_args)
-        self.dense_sbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args)
-        self.dense_sbf2 = Dense(int_emb_size, use_bias=False, **kernel_args)
+        self.dense_rbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args, **self._kgcnn_info)
+        self.dense_rbf2 = Dense(emb_size, use_bias=False, **kernel_args, **self._kgcnn_info)
+        self.dense_sbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args, **self._kgcnn_info)
+        self.dense_sbf2 = Dense(int_emb_size, use_bias=False, **kernel_args,  **self._kgcnn_info)
 
         # Dense transformations of input messages
-        self.dense_ji = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
-        self.dense_kj = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
+        self.dense_ji = Dense(emb_size, activation=activation, use_bias=True, **kernel_args, **self._kgcnn_info)
+        self.dense_kj = Dense(emb_size, activation=activation, use_bias=True, **kernel_args, **self._kgcnn_info)
 
         # Embedding projections for interaction triplets
-        self.down_projection = Dense(int_emb_size, activation=activation, use_bias=False, **kernel_args)
-        self.up_projection = Dense(emb_size, activation=activation, use_bias=False, **kernel_args)
+        self.down_projection = Dense(int_emb_size, activation=activation, use_bias=False,
+                                     **kernel_args, **self._kgcnn_info)
+        self.up_projection = Dense(emb_size, activation=activation, use_bias=False, **kernel_args, **self._kgcnn_info)
 
         # Residual layers before skip connection
         self.layers_before_skip = []
         for i in range(num_before_skip):
             self.layers_before_skip.append(
-                ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args))
-        self.final_before_skip = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
+                ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args, **self._kgcnn_info))
+        self.final_before_skip = Dense(emb_size, activation=activation, use_bias=True,
+                                       **kernel_args, **self._kgcnn_info)
 
         # Residual layers after skip connection
         self.layers_after_skip = []
         for i in range(num_after_skip):
             self.layers_after_skip.append(
-                ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args))
+                ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args, **self._kgcnn_info))
 
-        self.lay_add1 = Add()
-        self.lay_add2 = Add()
-        self.lay_mult1 = Multiply()
-        self.lay_mult2 = Multiply()
+        self.lay_add1 = Add(**self._kgcnn_info)
+        self.lay_add2 = Add(**self._kgcnn_info)
+        self.lay_mult1 = Multiply(**self._kgcnn_info)
+        self.lay_mult2 = Multiply(**self._kgcnn_info)
 
-        self.lay_gather = GatherNodesOutgoing(**gather_args)  # Are edges here
-        self.lay_pool = PoolingLocalEdges(**pool_args)
+        self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)  # Are edges here
+        self.lay_pool = PoolingLocalEdges(pooling_method=pooling_method, **self._kgcnn_info)
 
     def call(self, inputs, **kwargs):
         """Forward pass.

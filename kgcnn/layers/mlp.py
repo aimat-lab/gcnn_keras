@@ -2,11 +2,11 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.keras import Dense
-
+from kgcnn.layers.base import GraphBaseLayer
 
 # import tensorflow.keras.backend as ksb
 
-class MLP(ks.layers.Layer):
+class MLP(GraphBaseLayer):
     """
     Multilayer perceptron that consist of N dense keras layers.
         
@@ -26,9 +26,6 @@ class MLP(ks.layers.Layer):
         kernel_constraint: Constraint function applied to
             the `kernel` weights matrix.
         bias_constraint: Constraint function applied to the bias vector.
-        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        input_tensor_type (str): Information of the expected tensor input. Default is "ragged".
-        **kwargs
     """
 
     def __init__(self,
@@ -42,14 +39,9 @@ class MLP(ks.layers.Layer):
                  bias_initializer='zeros',
                  kernel_constraint=None,
                  bias_constraint=None,
-                 ragged_validate=False,
-                 input_tensor_type="ragged",
                  **kwargs):
         """Initialize MLP as for dense."""
         super(MLP, self).__init__(**kwargs)
-        self._supports_ragged_inputs = True
-        self.ragged_validate = ragged_validate
-        self.input_tensor_type = input_tensor_type
         # Make to one element list
         if isinstance(units, int):
             units = [units]
@@ -141,6 +133,4 @@ class MLP(ks.layers.Layer):
                        "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
                        "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
                        })
-        config.update({"ragged_validate": self.ragged_validate,
-                       "input_tensor_type": self.input_tensor_type})
         return config
