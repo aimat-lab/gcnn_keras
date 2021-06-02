@@ -64,7 +64,6 @@ def make_attentiveFP(  # Input
     output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
     attention_args = update_model_args(model_default['attention_args'], attention_args)
-    pooling_nodes_args = {"pooling_method": "sum"}
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
