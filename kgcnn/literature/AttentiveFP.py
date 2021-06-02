@@ -1,17 +1,19 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.attention import AttentiveHeadFP
+from kgcnn.layers.attention import AttentiveHeadFP, AttentiveNodePooling
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.update import GRUupdate
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
-from kgcnn.layers.set2set import Set2Set
 
 
-
+# Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
+# Zhaoping Xiong, Dingyan Wang, Xiaohong Liu, Feisheng Zhong, Xiaozhe Wan, Xutong Li, Zhaojun Li, Xiaomin Luo, Kaixian Chen, Hualiang Jiang*, and Mingyue Zheng*
+# Cite this: J. Med. Chem. 2020, 63, 16, 8749–8760
+# Publication Date:August 13, 2019
+# https://doi.org/10.1021/acs.jmedchem.9b00959
 
 
 def make_attentiveFP(  # Input
@@ -46,6 +48,7 @@ def make_attentiveFP(  # Input
     Returns:
         model (tf.keras.model): Interaction model.
     """
+    print("Warning model has not been tested yet.")
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
@@ -81,7 +84,7 @@ def make_attentiveFP(  # Input
 
     n = nk
     if output_embedd["output_mode"] == 'graph':
-        out = Set2Set(channels = attention_args['units'])(n)
+        out = AttentiveNodePooling(units = attention_args['units'])(n)
         output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense

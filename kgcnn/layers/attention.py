@@ -1,12 +1,13 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
+from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
 from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.ops.activ import kgcnn_custom_act
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
-from kgcnn.ops.segment import segment_softmax
+from kgcnn.ops.segment import segment_softmax, kgcnn_ops_segment_operation_by_name
 
 
 # import tensorflow.keras as ks
@@ -146,7 +147,6 @@ class AttentionHeadGAT(GraphBaseLayer):
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-
         self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
         self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
         self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
@@ -199,7 +199,6 @@ class AttentionHeadGAT(GraphBaseLayer):
         return config
 
 
-
 class AttentiveHeadFP(GraphBaseLayer):
     r"""Computes the attention head for Attentive FP model.
     The attention coefficients are computed by $a_{ij} = \sigma_1( W_1 [h_i || h_j] )$.
@@ -229,7 +228,7 @@ class AttentiveHeadFP(GraphBaseLayer):
                  units,
                  use_edge_features=False,
                  activation=None,
-                 activation_context = "elu",
+                 activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -291,7 +290,7 @@ class AttentiveHeadFP(GraphBaseLayer):
             n_in = self.lay_gather_in([node, edge_index])
             n_out = self.lay_gather_out([node, edge_index])
             n_in = self.lay_fc1(n_in)
-            n_out = self.lay_concat_edge([n_out,edge])
+            n_out = self.lay_concat_edge([n_out, edge])
             n_out = self.self.lay_fc2(n_out)
         else:
             n_in = self.lay_gather_in([node, edge_index])
@@ -315,4 +314,172 @@ class AttentiveHeadFP(GraphBaseLayer):
             config.update({x: conf_sub[x]})
         conf_context = self.lay_final_activ.get_config()
         config.update({"activation_context": conf_context["activation"]})
+        return config
+
+
+class PoolingNodesAttention(GraphBaseLayer):
+    r"""Pooling all nodes
+    Uses attention for pooling. i.e.  $s =  \sum_j \alpha_{i} n_i $
+    The attention is computed via: $\alpha_i = softmax_i (a_i)$ from the attention coefficients $a_i$.
+    The attention coefficients must be computed beforehand by edge features or by $\sigma( W [s || n_i])$ and
+    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
+    In summary, $s =  \sum_i softmax_j(a_i) n_i $ is computed by the layer.
+
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(PoolingNodesAttention, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingNodesAttention, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, attention]
+
+            - nodes (tf.ragged): Node features of shape (batch, [N], F)
+            - attention (tf.ragged): Attention coefficients of shape (batch, [N], 1)
+
+        Returns:
+            embeddings: Feature tensor of pooled node of shape (batch, F)
+        """
+        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
+        # We cast to values here
+        nod, batchi, target_len = dyn_inputs[0].values, dyn_inputs[0].value_rowids(), dyn_inputs[0].row_lengths()
+        ats = dyn_inputs[1].values
+
+        ats = segment_softmax(ats, batchi)
+        get = nod * ats
+        out = tf.math.segment_sum(get, batchi)
+
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingNodesAttention, self).get_config()
+        return config
+
+
+class AttentiveNodePooling(GraphBaseLayer):
+    r"""Computes the attentive pooling for node embeddings.
+
+    Args:
+        units (int): Units for the linear trafo of node features before attention.
+        pooling_method(str): Initial pooling before iteration. Default is "sum".
+        depth (int): Number of iterations for graph embedding. Default is 3.
+        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
+            with fall-back "relu".
+        activation_context (str): Activation function for context. Default is "elu".
+        use_bias (bool): Use bias. Default is True.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
+    """
+
+    def __init__(self,
+                 units,
+                 depth=3,
+                 pooling_method="sum",
+                 activation=None,
+                 activation_context="elu",
+                 use_bias=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 recurrent_activation='sigmoid',
+                 recurrent_initializer='orthogonal',
+                 recurrent_regularizer=None,
+                 recurrent_constraint=None,
+                 dropout=0.0,
+                 recurrent_dropout=0.0,
+                 reset_after=True,
+                 **kwargs):
+        """Initialize layer."""
+        super(AttentiveNodePooling, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self.depth = depth
+        # dense args
+        self.units = int(units)
+        if activation is None and "leaky_relu" in kgcnn_custom_act:
+            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
+        elif activation is None:
+            activation = "relu"
+
+        kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+        gru_args = {"recurrent_activation": recurrent_activation,
+                    "use_bias": use_bias, "kernel_initializer": kernel_initializer,
+                    "recurrent_initializer": recurrent_initializer, "bias_initializer": bias_initializer,
+                    "kernel_regularizer": kernel_regularizer, "recurrent_regularizer": recurrent_regularizer,
+                    "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
+                    "recurrent_constraint": recurrent_constraint, "bias_constraint": bias_constraint,
+                    "dropout": dropout, "recurrent_dropout": recurrent_dropout, "reset_after": reset_after}
+
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_gather_s = GatherState(**self._kgcnn_info)
+        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
+        self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method, **self._kgcnn_info)
+        self.lay_pool_attention = PoolingNodesAttention(**self._kgcnn_info)
+        self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
+        self.lay_gru = tf.keras.layers.GRUCell(units=units, activation="tanh", **gru_args)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(AttentiveNodePooling, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: nodes
+
+            - nodes: Node features of shape (batch, [N], F)
+
+        Returns:
+            features: Hidden tensor of pooled edge attentions for each node.
+        """
+        node = inputs
+
+        h = self.lay_pool_start(node)
+        Wn = self.lay_linear_trafo(node)
+        for _ in range(self.depth):
+            hv = self.lay_gather_s(h, node)
+            ev = self.lay_concat([hv, node])
+            av = self.self.lay_alpha(ev)
+            cont = self.lay_pool_attention([Wn, av])
+            cont = self.lay_final_activ(cont)
+            h = self.lay_gru(cont, h, **kwargs)
+
+        out = h
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(AttentiveNodePooling, self).get_config()
+        config.update({"units": self.units, "depth": self.depth, "pooling_method": self.pooling_method})
+        conf_sub = self.lay_alpha.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
+            config.update({x: conf_sub[x]})
+        conf_context = self.lay_final_activ.get_config()
+        config.update({"activation_context": conf_context["activation"]})
+        conf_gru = self.lay_gru.get_config()
+        for x in ["recurrent_activation", "recurrent_initializer", "mrecurrent_regularizer", "recurrent_constraint",
+                 "dropout", "recurrent_dropout", "reset_after"]:
+            config.update({x: conf_gru[x]})
         return config
