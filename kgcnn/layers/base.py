@@ -3,7 +3,6 @@ import tensorflow as tf
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type
 from kgcnn.ops.ragged import DummyRankOneRaggedTensor
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type
 
 
 class GraphBaseLayer(tf.keras.layers.Layer):
@@ -55,14 +54,36 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                                                "tensor", "RaggedTensor", "Tensor"]
 
         self._tensor_input_type_found = []
-        self._test_tensor_input = kgcnn_ops_static_test_tensor_input_type(self.input_tensor_type,
-                                                                          self._tensor_input_type_implemented,
-                                                                          self.node_indexing)
+        self._test_tensor_input = self._kgcnn_static_tensor_input_check()
 
         self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
-                                "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
-                                "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
-                                "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
+                            "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
+                            "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
+                            "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
+
+    def _kgcnn_static_tensor_input_check(self):
+
+        tensor_keys = ["Tensor", "tensor"]
+        ragged_keys = ["ragged", "RaggedTensor"]
+        value_partition_keys = ["disjoint", "values_partition"]
+
+        if self.input_tensor_type not in self._tensor_input_type_implemented:
+            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+                                      "is not implemented for",self.name,", choose one of the following:",
+                                      self._tensor_input_type_implemented)
+        if self.node_indexing is not None:
+            if self.input_tensor_type in ragged_keys and self.node_indexing not in ["sample"]:
+                print("Warning: For ragged tensor input, default node_indexing is considered 'sample'.",
+                      self.name,"will use node_indexing", self.node_indexing)
+
+            if self.input_tensor_type in value_partition_keys and self.node_indexing not in ["batch", "disjoint"]:
+                print("Warning: For [values, partition] tensor input, default n"
+                      "ode_indexing is considered 'batch'.",self.name,
+                      "will use node_indexing", self.node_indexing)
+
+            if self.input_tensor_type in tensor_keys and self.node_indexing not in ["sample"]:
+                print("Warning: For tensor input, default node_indexing is considered 'sample'.",self.name,
+                      "will use node_indexing", self.node_indexing)
 
     def get_config(self):
         config = super(GraphBaseLayer, self).get_config()
@@ -76,6 +97,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        "is_directed": self.is_directed
                        })
         return config
+
 
     def _kgcnn_map_input_ragged(self, inputs, num_input):
         """Flexible input tensor check.
@@ -227,7 +249,8 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         if self._kgcnn_wrapper_call_type == 0:
             if isinstance(inputs, tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-                    print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received RaggedTensor but tensor type specified as:",
+                          self.input_tensor_type)
                 if inputs.ragged_rank == 1:
                     value_tensor = inputs.values
                     out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
@@ -237,12 +260,14 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                     return self._kgcnn_wrapper_layer(inputs, **kwargs)
             elif isinstance(inputs, list):
                 if self.input_tensor_type not in ["disjoint", "values_partition"]:
-                    print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received input list but tensor type specified as:",
+                          self.input_tensor_type)
                 out = self._kgcnn_wrapper_layer(inputs[0], **kwargs)
                 return [out] + inputs[1:]
             elif isinstance(inputs, tf.Tensor):
                 if self.input_tensor_type not in ["Tensor", "tensor"]:
-                    print("Warning: Received Tensor but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received Tensor but tensor type specified as:",
+                          self.input_tensor_type)
                 return self._kgcnn_wrapper_layer(inputs, **kwargs)
             else:
                 raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)
@@ -251,23 +276,26 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         elif self._kgcnn_wrapper_call_type == 1:
             if isinstance(inputs[0], tf.RaggedTensor):
                 if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-                    print("Warning: Received RaggedTensor but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received RaggedTensor but tensor type specified as:",
+                          self.input_tensor_type)
                 if inputs[0].ragged_rank == 1:
                     out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)
                     out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                     return out
                 else:
-                    print("Warning:", self.name, " got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
+                    print("Warning:", self.name, "got tf.RaggedTensor with ragged_rank != 1. Fallback ...")
                     return self._kgcnn_wrapper_layer(inputs, **kwargs)
             elif isinstance(inputs[0], list):
                 if self.input_tensor_type not in ["disjoint", "values_partition"]:
-                    print("Warning: Received input list but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received input list but tensor type specified as:",
+                          self.input_tensor_type)
                 out_part = inputs[0][1:]
                 out = self._kgcnn_wrapper_layer([x[0] for x in inputs], **kwargs)
                 return [out] + out_part
             elif isinstance(inputs[0], tf.Tensor):
                 if self.input_tensor_type not in ["Tensor", "tensor"]:
-                    print("Warning: Received Tensor but tensor type specified as:", self.input_tensor_type)
+                    print("Warning:", self.name, "received Tensor but tensor type specified as:",
+                          self.input_tensor_type)
                 return self._kgcnn_wrapper_layer(inputs, **kwargs)
             else:
                 raise NotImplementedError("Error: Unsupported tensor input type of ", inputs)

@@ -1,9 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
-from kgcnn.ops.types import kgcnn_ops_static_test_tensor_input_type, kgcnn_ops_check_tensor_type
 from kgcnn.layers.base import GraphBaseLayer
 
 class PoolingTopK(GraphBaseLayer):
