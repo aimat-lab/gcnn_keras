@@ -61,7 +61,7 @@ def make_graph_sage(  # Input
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
                                       'input_tensor_type': 'ragged'},
-                     'output_embedd': {"output_mode": 'graph', "output_type": 'padded'},
+                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
