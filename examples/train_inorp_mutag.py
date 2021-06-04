@@ -6,13 +6,14 @@ import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
-from kgcnn.data.mutagen.mutag import mutag_graph
+from kgcnn.data.datasets.mutag import MUTAGDataset
 from kgcnn.literature.INorp import make_inorp as make_inorp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
 # Download and compute dataset
-labels, nodes, edge_indices, edges = mutag_graph()
+dataset = MUTAGDataset()
+labels, nodes, edge_indices, edges = dataset.get_graph()
 labels[labels < 0] = 0
 labels = np.expand_dims(labels, axis=-1)
 graph_state = np.array([len(x) for x in nodes])

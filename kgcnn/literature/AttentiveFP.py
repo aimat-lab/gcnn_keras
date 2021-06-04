@@ -73,9 +73,9 @@ def make_attentiveFP(  # Input
 
 
     edi = edge_index_input
-    nk = Dense(units = attention_args['units'])(n)
+    nk = Dense(units=attention_args['units'])(n)
     Ck = AttentiveHeadFP(use_edge_features=True,**attention_args)([nk,ed,edi])
-    nk = GRUupdate(units = attention_args['units'])([nk,Ck])
+    nk = GRUupdate(units=attention_args['units'])([nk,Ck])
 
     for i in range(1, depth):
         Ck = AttentiveHeadFP(**attention_args)([nk,ed,edi])
@@ -83,7 +83,7 @@ def make_attentiveFP(  # Input
 
     n = nk
     if output_embedd["output_mode"] == 'graph':
-        out = AttentiveNodePooling(units = attention_args['units'])(n)
+        out = AttentiveNodePooling(units=attention_args['units'])(n)
         output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense

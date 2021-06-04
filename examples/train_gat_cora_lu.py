@@ -5,7 +5,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
 from kgcnn.literature.GAT import make_gat as make_gat
-from kgcnn.data.cora.cora_lu import cora_graph
+from kgcnn.data.datasets.cora_lu import CoraLUDataset
 from kgcnn.utils.adj import precompute_adjacency_scaled, sort_edge_indices, make_adjacency_from_edge_indices, \
     make_adjacency_undirected_logical_or, convert_scaled_adjacency_to_list
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
@@ -27,8 +27,8 @@ def get_label_name(label):
             "Rule_Learning",
             "Theory"][label]
 
-
-nodes, edge_index, labels, class_label_mapping = cora_graph()
+dataset = CoraLUDataset()
+nodes, edge_index, labels, class_label_mapping = dataset.get_graph()
 nodes = nodes[:, 1:]  # Remove IDs
 edge_index = sort_edge_indices(edge_index)
 adj_matrix = make_adjacency_from_edge_indices(edge_index)

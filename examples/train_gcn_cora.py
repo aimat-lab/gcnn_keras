@@ -6,14 +6,15 @@ import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
-from kgcnn.data.cora.cora import cora_graph
+from kgcnn.data.datasets.cora import CoraDataset
 from kgcnn.literature.GCN import make_gcn as make_gcn
 from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, make_adjacency_undirected_logical_or
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
 # Download and load Dataset
-A_data, X_data, y_data = cora_graph()
+dataset = CoraDataset()
+A_data, X_data, y_data = dataset.get_graph()
 # Make node features dense
 nodes = X_data.todense()
 # Precompute scaled and undirected (symmetric) adjacency matrix
