@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from kgcnn.data.qm.qm9 import qm9_graph
+from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.NMPN import make_nmpn as make_nmpn
 from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
@@ -17,7 +17,8 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 # Download and generate dataset.
 # QM9 has about 200 MB of data
 # You need at least 10 GB of RAM to load and process full dataset into memory.
-labels, nodes, edges, edge_indices, graph_state = qm9_graph(max_mols=10000)  # max is 133885
+datasets = QM9Dataset()
+labels, nodes, edges, edge_indices, graph_state = datasets.get_graph(max_mols=10000)  # max is 133885
 
 # Select LUMO as target and convert into eV from H
 # Standardize output with scikit-learn std-scaler

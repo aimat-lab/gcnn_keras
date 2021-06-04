@@ -9,6 +9,7 @@ import zipfile
 
 
 class GraphDatasetBase:
+
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = None
     download_url = None
@@ -17,6 +18,7 @@ class GraphDatasetBase:
     unpack_zip = False
     unpack_directory = None
     fits_in_memory = True
+    process_dataset = False
 
     def __init__(self):
 
@@ -30,11 +32,14 @@ class GraphDatasetBase:
 
         if self.unpack_tar:
             self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.data_directory)
+                                 self.unpack_directory)
 
         if self.unpack_zip:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.data_directory)
+                                 self.unpack_directory)
+
+        if self.process_dataset:
+            self.prepare_data()
 
         if self.fits_in_memory:
             self.read_in_memory()
@@ -134,4 +139,7 @@ class GraphDatasetBase:
         pass
 
     def get_graph(self):
+        pass
+
+    def prepare_data(self):
         pass

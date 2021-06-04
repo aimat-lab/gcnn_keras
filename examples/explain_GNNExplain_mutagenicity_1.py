@@ -16,9 +16,11 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import cdist
 from sklearn.cluster import AgglomerativeClustering
 
-from kgcnn.data.mutagen.mutagenicity import mutagenicity_graph
+from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
 
-labels, nodes, edge_indices, edges, atoms = mutagenicity_graph()
+dataset = MutagenicityDataset()
+labels, nodes, edge_indices, edges, atoms = dataset.get_graph()
+
 for i in range(len(labels)):
     # edge_indices[i], edges[i] = add_self_loops_to_edge_indices(edge_indices[i], np.expand_dims(edges[i],axis=-1))
     edges[i] = np.expand_dims(edges[i], axis=-1).astype(np.float32) # Make edge feature dimension

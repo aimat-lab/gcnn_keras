@@ -6,15 +6,17 @@ import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
-from kgcnn.data.mutagen.mutagenicity import mutagenicity_graph
-from kgcnn.layers.ragged.pooling import PoolingWeightedNodes
+from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
+
 # from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, add_self_loops_to_edge_indices
 from kgcnn.literature.GCN import make_gcn, make_gcn_node_weights
 from kgcnn.literature.GNNExplain import GNNExplainer, GNNInterface
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
-labels, nodes, edge_indices, edges, atoms = mutagenicity_graph()
+dataset = MutagenicityDataset()
+labels, nodes, edge_indices, edges, atoms = dataset.get_graph()
+
 for i in range(len(labels)):
     # edge_indices[i], edges[i] = add_self_loops_to_edge_indices(edge_indices[i], np.expand_dims(edges[i],axis=-1))
     edges[i] = np.expand_dims(edges[i], axis=-1).astype(np.float32)  # Make edge feature dimension
