@@ -20,7 +20,7 @@ class GraphDatasetBase:
     fits_in_memory = True
     process_dataset = False
 
-    def __init__(self):
+    def __init__(self, reload=False):
 
         if self.data_directory is not None:
             self.setup_dataset_main(self.data_main_dir)
@@ -28,15 +28,15 @@ class GraphDatasetBase:
 
         if self.download_url is not None:
             self.download_database(os.path.join(self.data_main_dir, self.data_directory), self.download_url,
-                                   self.file_name)
+                                   self.file_name, overwrite=reload)
 
         if self.unpack_tar:
             self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.unpack_directory)
+                                 self.unpack_directory,overwrite=reload)
 
         if self.unpack_zip:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.unpack_directory)
+                                 self.unpack_directory, overwrite=reload)
 
         if self.process_dataset:
             self.prepare_data()

@@ -62,13 +62,19 @@ class QM9Dataset(GraphDatasetBase):
             open_file.close()
             qm9.append(mol)
             # Remove file after reading
-            os.remove(file)
 
         # save
         print('done')
         print("INFO: Saving qm9.pickle ...", end='', flush=True)
         with open(os.path.join(path, "qm9.pickle"), 'wb') as f:
             pickle.dump(qm9, f)
+        print('done')
+
+        print("INFO: Cleaning up extracted files...", end='', flush=True)
+        for i in range(1, datasetsize + 1):
+            file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
+            file = os.path.join(path, "dsgdb9nsd.xyz", file)
+            os.remove(file)
         print('done')
 
         return qm9
@@ -113,8 +119,8 @@ class QM9Dataset(GraphDatasetBase):
 
 
     def get_graph(self,max_distance=4, max_neighbours=15,
-                   gauss_distance=None,
-                   max_mols=133885):
+                  do_invert_distance= False, do_gauss_basis_expansion= True,
+                  gauss_distance=None, max_mols=133885):
         """Make graph objects from qm9 dataset.
 
         Args:
@@ -147,7 +153,7 @@ class QM9Dataset(GraphDatasetBase):
         for i in range(max_mols):
             xyz = coord[i]
             dist = coordinates_to_distancematrix(xyz)
-            invdist = invert_distance(dist)
+            # invdist = invert_distance(dist)
             # ats = outzval[i]
             # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
             cons, _ = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
@@ -157,13 +163,17 @@ class QM9Dataset(GraphDatasetBase):
             mask = np.array(cons, dtype=np.bool)
             index12 = np.concatenate([np.expand_dims(index1, axis=-1), np.expand_dims(index2, axis=-1)], axis=-1)
             edge_idx.append(index12[mask])
-            if gauss_distance is not False:
-                dist_masked = distance_to_gaussdistance(dist[mask], gbins=gauss_distance['gbins'],
+            dist_masked = dist[mask]
+
+            if do_invert_distance:
+                dist_masked = invert_distance(dist_masked)
+            if do_gauss_basis_expansion:
+                dist_masked = distance_to_gaussdistance(dist_masked, gbins=gauss_distance['gbins'],
                                                         grange=gauss_distance['grange'],
                                                         gsigma=gauss_distance['gsigma'])
-            else:
-                # dist_masked = np.expand_dims(dist[mask],axis=-1)
-                dist_masked = np.expand_dims(invdist[mask], axis=-1)
+            # Need at least on feature dimension
+            if len(dist_masked.shape) <= 1:
+                dist_masked = np.expand_dims(dist_masked, axis=-1)
 
             edges.append(dist_masked)
 
