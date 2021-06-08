@@ -211,7 +211,7 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
     return graph_adjacency, graph_indices
 
 
-def get_angle_indices(idx, is_sorted =True):
+def get_angle_indices(idx, is_sorted =False):
     """Compute index list for edge-pairs forming an angle.
 
     Args:
