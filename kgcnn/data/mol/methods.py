@@ -211,9 +211,18 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
     return graph_adjacency, graph_indices
 
 
-def get_angle_indices(idx, is_sorted=True):
+def get_angle_indices(idx, is_sorted =True):
+    """Compute index list for edge-pairs forming an angle.
 
-    if is_sorted==False:
+    Args:
+        idx (np.array): List of edge indices of shape (N,2)
+        is_sorted (bool): If edge indices are sorted
+
+    Returns:
+        tuple: idx_ijk, idx_ijk_ij
+    """
+
+    if not is_sorted:
         order1 = np.argsort(idx[:, 1], axis=0, kind='mergesort')  # stable!
         ind1 = idx[order1]
         order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
