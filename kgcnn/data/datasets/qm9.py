@@ -153,8 +153,7 @@ class QM9Dataset(GraphDatasetBase):
         for i in range(max_mols):
             xyz = coord[i]
             dist = coordinates_to_distancematrix(xyz)
-            # invdist = invert_distance(dist)
-            # ats = outzval[i]
+
             # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
             cons, _ = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
                                                      exclusive=True, self_loops=False)
@@ -180,6 +179,11 @@ class QM9Dataset(GraphDatasetBase):
         # edge_len = np.array([len(x) for x in edge_idx], dtype=np.int)
         # edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
         edges = [edges[i] for i in range(len(edge_idx))]
+        self.edge_index = edge_idx[:max_mols]
 
         return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
 
+
+    def get_angle_index(self):
+
+        self.edge_index =1

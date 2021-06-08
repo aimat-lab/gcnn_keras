@@ -162,7 +162,7 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
         distance_matrix (np.array): distance Matrix of shape (...,N,N)
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to np.inf.
         max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to np.inf.
-        exclusive (bool, optional): Whether both max distance and Neighbours must be fullfileed. Defaults to True.
+        exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
         self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
 
     Returns:
@@ -209,3 +209,36 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
 
     graph_indices = graph_indices[graph_adjacency]
     return graph_adjacency, graph_indices
+
+
+def get_angle_indices(idx, is_sorted=True):
+
+    if is_sorted==False:
+        order1 = np.argsort(idx[:, 1], axis=0, kind='mergesort')  # stable!
+        ind1 = idx[order1]
+        order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
+        ind2 = ind1[order2]
+        idx = ind2
+
+    pair_label = np.arange(len(idx))
+    idx_i = idx[:, 0]
+    idx_j = idx[:, 1]
+    uni_i, cnts_i = np.unique(idx_i, return_counts=True)
+    reps = cnts_i[idx_j]
+    idx_ijk_i = np.repeat(idx_i, reps)
+    idx_ijk_j = np.repeat(idx_j, reps)
+    idx_ijk_label_i = np.repeat(pair_label, reps)
+    idx_j_tagged = np.concatenate([np.expand_dims(idx_j, axis=-1), np.expand_dims(pair_label, axis=-1)], axis=-1)
+    idx_ijk_k_tagged = np.concatenate([idx_j_tagged[idx_i == x] for x in idx_j])  # This is not fully vectorized
+    idx_ijk_k = idx_ijk_k_tagged[:, 0]
+    idx_ijk_label_j = idx_ijk_k_tagged[:, 1]
+    back_and_forth = idx_ijk_i != idx_ijk_k
+    idx_ijk = np.concatenate([np.expand_dims(idx_ijk_i, axis=-1),
+                              np.expand_dims(idx_ijk_j, axis=-1),
+                              np.expand_dims(idx_ijk_k, axis=-1)], axis=-1)
+    idx_ijk = idx_ijk[back_and_forth]
+    idx_ijk_ij = np.concatenate([np.expand_dims(idx_ijk_label_i, axis=-1),
+                                 np.expand_dims(idx_ijk_label_j, axis=-1)], axis=-1)
+    idx_ijk_ij = idx_ijk_ij[back_and_forth]
+
+    return idx_ijk, idx_ijk_ij
