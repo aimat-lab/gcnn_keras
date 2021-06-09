@@ -7,8 +7,8 @@ from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
-from kgcnn.ops.activ import kgcnn_custom_act
-from kgcnn.ops.initializer import kgcnn_custom_init
+import kgcnn.ops.activ
+import kgcnn.ops.initializer
 
 
 class MEGnetBlock(GraphBaseLayer):
@@ -20,7 +20,7 @@ class MEGnetBlock(GraphBaseLayer):
         env_embed (list, optional): List of environment embedding dimension. Defaults to [16,16,16].
         pooling_method (str): Pooling method information for layer. Default is 'mean'.
         use_bias (bool, optional): Use bias. Defaults to True.
-        activation (str): Activation function. Default is 'softplus2' with fall-back 'selu'.
+        activation (str): Activation function. Default is 'kgcnn>softplus2'.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
@@ -35,7 +35,7 @@ class MEGnetBlock(GraphBaseLayer):
                  env_embed=None,
                  pooling_method="mean",
                  use_bias=True,
-                 activation='softplus2',
+                 activation='kgcnn>softplus2',
                  kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  kernel_initializer='glorot_uniform', bias_initializer='zeros',
@@ -54,14 +54,6 @@ class MEGnetBlock(GraphBaseLayer):
         self.edge_embed = edge_embed
         self.env_embed = env_embed
         self.use_bias = use_bias
-
-        if isinstance(activation,str):
-            if activation == 'softplus2':
-                if 'softplus2' in kgcnn_custom_act:
-                    activation = 'softplus2'
-                else:
-                    print("Warning: Activation 'softplus2' not found fallback 'selu'.")
-                    activation = "selu"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -169,8 +161,9 @@ class DimNetOutputBlock(GraphBaseLayer):
                  num_dense,
                  num_targets=12,
                  use_bias=True,
-                 output_kernel_initializer="zeros", kernel_initializer='glorot_orthogonal', bias_initializer='zeros',
-                 activation='swish',
+                 output_kernel_initializer="zeros", kernel_initializer='kgcnn>glorot_orthogonal',
+                 bias_initializer='zeros',
+                 activation='kgcnn>swish',
                  kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  pooling_method="sum",
@@ -183,20 +176,6 @@ class DimNetOutputBlock(GraphBaseLayer):
         self.num_dense = num_dense
         self.num_targets = num_targets
         self.use_bias = use_bias
-
-        if isinstance(activation,str):
-            if activation == 'swish':
-                if 'swish' in kgcnn_custom_act:
-                    activation = 'swish'
-                else:
-                    activation = "selu"
-
-        if isinstance(kernel_initializer, str):
-            if kernel_initializer == 'glorot_orthogonal':
-                if 'glorot_orthogonal' in kgcnn_custom_init:
-                    kernel_initializer = "glorot_orthogonal"
-                else:
-                    kernel_initializer = "orthogonal"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_initializer": bias_initializer,

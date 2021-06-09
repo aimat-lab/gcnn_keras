@@ -64,10 +64,10 @@ def make_schnet(
                                       'input_tensor_type': 'ragged'},
                      'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'interaction_args': {"units": 128, "use_bias": True,
-                                          "activation": 'shifted_softplus', "cfconv_pool": 'sum',
+                                          "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum',
                                           "is_sorted": False, "has_unconnected": True},
                      'output_mlp': {"use_bias": [True, True], "units": [128, 64],
-                                    "activation": ['shifted_softplus', 'shifted_softplus']},
+                                    "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                      'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
                      'node_pooling_args': {"pooling_method": "sum"}
                      }

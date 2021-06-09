@@ -7,7 +7,7 @@ from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
-from kgcnn.ops.activ import kgcnn_custom_act
+import kgcnn.ops.activ
 
 
 class GCN(GraphBaseLayer):
@@ -26,8 +26,7 @@ class GCN(GraphBaseLayer):
         pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
             In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
-        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
-            with fall-back "relu".
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
@@ -42,7 +41,7 @@ class GCN(GraphBaseLayer):
                  units,
                  pooling_method='sum',
                  normalize_by_weights=False,
-                 activation='leaky_relu',
+                 activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -57,13 +56,6 @@ class GCN(GraphBaseLayer):
         self.normalize_by_weights = normalize_by_weights
         self.pooling_method = pooling_method
         self.units = units
-        if isinstance(activation,str):
-            if activation == 'leaky_relu':
-                if 'leaky_relu' in kgcnn_custom_act:
-                    activation = 'leaky_relu'
-                else:
-                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
-                    activation = "relu"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -127,7 +119,7 @@ class SchNetCFconv(GraphBaseLayer):
         units (int): Units for Dense layer.
         cfconv_pool (str): Pooling method. Default is 'segment_sum'.
         use_bias (bool): Use bias. Default is True.
-        activation (str): Activation function. Default is 'shifted_softplus' with fall-back 'selu'.
+        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
@@ -140,7 +132,7 @@ class SchNetCFconv(GraphBaseLayer):
     def __init__(self, units,
                  cfconv_pool='segment_sum',
                  use_bias=True,
-                 activation='shifted_softplus',
+                 activation='kgcnn>shifted_softplus',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -155,25 +147,16 @@ class SchNetCFconv(GraphBaseLayer):
         self.units = units
         self.use_bias = use_bias
 
-        if isinstance(activation,str):
-            if activation == 'shifted_softplus':
-                if 'shifted_softplus' in kgcnn_custom_act:
-                    activation = 'shifted_softplus'
-                else:
-                    print("Warning: Activation 'shifted_softplus' not found fallback 'selu'.")
-                    activation = "selu"
-
-
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,**kernel_args,
+        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args,
                                 **self._kgcnn_info)
         self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args,
                                 **self._kgcnn_info)
-        self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool,**self._kgcnn_info)
+        self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool, **self._kgcnn_info)
         self.gather_n = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_mult = Multiply(**self._kgcnn_info)
 
@@ -219,4 +202,3 @@ class SchNetCFconv(GraphBaseLayer):
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
             config.update({x: config_dense[x]})
         return config
-

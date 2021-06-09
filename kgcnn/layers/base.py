@@ -314,5 +314,6 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         if self._kgcnn_wrapper_layer is not None:
             layer_conf = self._kgcnn_wrapper_layer.get_config()
             for x in self._kgcnn_wrapper_args:
-                config.update({x: layer_conf[x]})
+                if x in layer_conf:
+                    config.update({x: layer_conf[x]})
         return config

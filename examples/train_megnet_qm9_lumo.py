@@ -61,10 +61,10 @@ model = make_megnet(
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
     output_mlp={"use_bias": [True, True, True],
                 "units": [32, 16, 1],
-                "activation": ['softplus2', 'softplus2', 'linear']},
+                "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
     # Model specs
     meg_block_args={'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32], 'env_embed': [64, 32, 32],
-                    'activation': 'softplus2', 'is_sorted': True,
+                    'activation': 'kgcnn>softplus2', 'is_sorted': True,
                     'has_unconnected': True},
     set2set_args={'channels': 16, 'T': 3, "pooling_method": "sum",
                   "init_qstar": "0"},

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='glorot_orthogonal')
 class GlorotOrthogonal(tf.initializers.Initializer):
     """
     Generate a weight matrix with variance according to Glorot initialization.
@@ -21,12 +22,3 @@ class GlorotOrthogonal(tf.initializers.Initializer):
         W = self.orth_init(shape, dtype)
         W *= tf.sqrt(self.scale / ((shape[0] + shape[1]) * tf.math.reduce_variance(W)))
         return W
-
-
-# Register costum activation functions in get_custom_objects
-kgcnn_custom_init = {'glorot_orthogonal': GlorotOrthogonal }
-
-print("Keras utils: Register custom initializer: ", kgcnn_custom_init)
-for k, v in kgcnn_custom_init.items():
-    if k not in tf.keras.utils.get_custom_objects():
-        tf.keras.utils.get_custom_objects()[k] = v

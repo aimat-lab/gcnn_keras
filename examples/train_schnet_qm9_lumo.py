@@ -59,7 +59,7 @@ model = make_schnet(
     # Output
     output_mlp={"use_bias": [True, True],
                 "units": [128, 64],
-                "activation": ['shifted_softplus', 'shifted_softplus']},
+                "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
     output_dense={"units": 1, "activation": 'linear', "use_bias": True},
     output_embedd={'output_mode': 'graph'},
     # Model specific
@@ -67,7 +67,7 @@ model = make_schnet(
     out_scale_pos=0,
     interaction_args={"units": 128,
                       "use_bias": True,
-                      "activation": 'shifted_softplus',
+                      "activation": 'kgcnn>shifted_softplus',
                       "cfconv_pool": "segment_sum",
                       "is_sorted": False,
                       "has_unconnected": True

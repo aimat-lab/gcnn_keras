@@ -4,7 +4,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
 from kgcnn.layers.keras import Dense, Activation, Concatenate
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.ops.activ import kgcnn_custom_act
+import kgcnn.ops.activ
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax, kgcnn_ops_segment_operation_by_name
@@ -105,8 +105,7 @@ class AttentionHeadGAT(GraphBaseLayer):
     Args:
         units (int): Units for the linear trafo of node features before attention.
         use_edge_features (bool): Append edge features to attention computation. Default is False.
-        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
-            with fall-back "relu".
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
@@ -120,7 +119,7 @@ class AttentionHeadGAT(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation='leaky_relu',
+                 activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -137,13 +136,6 @@ class AttentionHeadGAT(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
-        if isinstance(activation,str):
-            if activation == 'leaky_relu':
-                if 'leaky_relu' in kgcnn_custom_act:
-                    activation = 'leaky_relu'
-                else:
-                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
-                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
@@ -214,8 +206,7 @@ class AttentiveHeadFP(GraphBaseLayer):
     Args:
         units (int): Units for the linear trafo of node features before attention.
         use_edge_features (bool): Append edge features to attention computation. Default is False.
-        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
-            with fall-back "relu".
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
         activation_context (str): Activation function for context. Default is "elu".
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
@@ -230,7 +221,7 @@ class AttentiveHeadFP(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation='leaky_relu',
+                 activation='kgcnn>leaky_relu',
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -248,13 +239,6 @@ class AttentiveHeadFP(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
-        if isinstance(activation,str):
-            if activation == 'leaky_relu':
-                if 'leaky_relu' in kgcnn_custom_act:
-                    activation = 'leaky_relu'
-                else:
-                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
-                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
@@ -377,8 +361,7 @@ class AttentiveNodePooling(GraphBaseLayer):
         units (int): Units for the linear trafo of node features before attention.
         pooling_method(str): Initial pooling before iteration. Default is "sum".
         depth (int): Number of iterations for graph embedding. Default is 3.
-        activation (str): Activation. Default is {"class_name": "leaky_relu", "config": {"alpha": 0.2}},
-            with fall-back "relu".
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
         activation_context (str): Activation function for context. Default is "elu".
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
@@ -394,7 +377,7 @@ class AttentiveNodePooling(GraphBaseLayer):
                  units,
                  depth=3,
                  pooling_method="sum",
-                 activation='leaky_relu',
+                 activation='kgcnn>leaky_relu',
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -418,14 +401,6 @@ class AttentiveNodePooling(GraphBaseLayer):
         self.depth = depth
         # dense args
         self.units = int(units)
-
-        if isinstance(activation,str):
-            if activation == 'leaky_relu':
-                if 'leaky_relu' in kgcnn_custom_act:
-                    activation = 'leaky_relu'
-                else:
-                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
-                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,

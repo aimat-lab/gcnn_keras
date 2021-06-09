@@ -7,8 +7,8 @@ from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
-from kgcnn.ops.activ import kgcnn_custom_act
-from kgcnn.ops.initializer import kgcnn_custom_init
+import kgcnn.ops.activ
+import kgcnn.ops.initializer
 from kgcnn.layers.conv import SchNetCFconv
 
 
@@ -20,7 +20,7 @@ class SchNetInteraction(GraphBaseLayer):
         units (int): Dimension of node embedding. Default is 128.
         cfconv_pool (str): Pooling method information for SchNetCFconv layer. Default is'segment_sum'.
         use_bias (bool): Use bias in last layers. Default is True.
-        activation (str): Activation function. Default is 'shifted_softplus' with fall-back 'selu'.
+        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
@@ -34,7 +34,7 @@ class SchNetInteraction(GraphBaseLayer):
                  units=128,
                  cfconv_pool='sum',
                  use_bias=True,
-                 activation='shifted_softplus',
+                 activation='kgcnn>shifted_softplus',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -49,13 +49,6 @@ class SchNetInteraction(GraphBaseLayer):
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
         self.units = units
-        if isinstance(activation,str):
-            if activation == 'shifted_softplus':
-                if 'shifted_softplus' in kgcnn_custom_act:
-                    activation = 'shifted_softplus'
-                else:
-                    print("Warning: Activation 'shifted_softplus' not found fallback 'selu'.")
-                    activation = "selu"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -114,7 +107,7 @@ class ResidualLayer(GraphBaseLayer):
     Args:
         units: Dimension of the kernel.
         use_bias (bool, optional): Use bias. Defaults to True.
-        activation (str): Activation function. Default is "swish".
+        activation (str): Activation function. Default is "kgcnn>swish".
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
@@ -127,7 +120,7 @@ class ResidualLayer(GraphBaseLayer):
 
     def __init__(self, units,
                  use_bias=True,
-                 activation='swish',
+                 activation='kgcnn>swish',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -138,13 +131,6 @@ class ResidualLayer(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(ResidualLayer, self).__init__(**kwargs)
-        if isinstance(activation,str):
-            if activation == 'swish':
-                if 'swish' in kgcnn_custom_act:
-                    activation = 'swish'
-                else:
-                    print("Warning: Activation 'swish' not found fallback 'selu'.")
-                    activation = "selu"
 
         dense_args = {"units": units, "activation": activation, "use_bias": use_bias,
                       "kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
@@ -194,13 +180,13 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         num_after_skip: Number of residual layers in interaction block before skip connection
         use_bias (bool, optional): Use bias. Defaults to True.
         pooling_method (str): Pooling method information for layer. Default is 'sum'.
-        activation (str): Activation function. Default is "swish".
+        activation (str): Activation function. Default is "kgcnn>swish".
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.
         kernel_constraint: Kernel constrains. Default is None.
         bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_orthogonal' with 'orthogonal' fallback.
+        kernel_initializer: Initializer for kernels. Default is 'kgcnn>glorot_orthogonal'.
         bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
@@ -211,13 +197,13 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                  num_after_skip,
                  use_bias=True,
                  pooling_method="sum",
-                 activation='swish', # default is 'swish'
+                 activation='kgcnn>swish', # default is 'swish'
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 kernel_initializer="glorot_orthogonal", # default is 'glorot_orthogonal'
+                 kernel_initializer="kgcnn>glorot_orthogonal", # default is 'glorot_orthogonal'
                  bias_initializer='zeros',
                  **kwargs):
         super(DimNetInteractionPPBlock, self).__init__(**kwargs)
@@ -228,20 +214,6 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         self.basis_emb_size = basis_emb_size
         self.num_before_skip = num_before_skip
         self.num_after_skip = num_after_skip
-
-        if isinstance(activation,str):
-            if activation == 'swish':
-                if 'swish' in kgcnn_custom_act:
-                    activation = 'swish'
-                else:
-                    activation = "selu"
-
-        if isinstance(kernel_initializer, str):
-            if kernel_initializer == 'glorot_orthogonal':
-                if 'glorot_orthogonal' in kgcnn_custom_init:
-                    kernel_initializer = "glorot_orthogonal"
-                else:
-                    kernel_initializer = "orthogonal"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,

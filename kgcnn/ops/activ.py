@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='shifted_softplus')
 def shifted_softplus(x):
     """
     Shifted softplus activation function.
@@ -15,6 +15,7 @@ def shifted_softplus(x):
     return ks.activations.softplus(x) - ks.backend.log(2.0)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='softplus2')
 def softplus2(x):
     """
     out = log(exp(x)+1) - log(2)
@@ -29,6 +30,7 @@ def softplus2(x):
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='leaky_softplus')
 class leaky_softplus(tf.keras.layers.Layer):
     """
     Leaky softplus activation function similar to leakyRELU but smooth.
@@ -51,7 +53,7 @@ class leaky_softplus(tf.keras.layers.Layer):
         return config
 
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
     """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
 
@@ -74,6 +76,7 @@ class leaky_relu(tf.keras.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='swish')
 def swish(x):
     """Swish activation function,
     from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"
@@ -85,16 +88,3 @@ def swish(x):
         tf.tensor: x*tf.sigmoid(x)
     """
     return x * tf.sigmoid(x)
-
-
-# Register costum activation functions in get_custom_objects
-kgcnn_custom_act = {'leaky_softplus': leaky_softplus,
-                    'shifted_softplus': shifted_softplus,
-                    'softplus2': softplus2,
-                    "leaky_relu": leaky_relu,
-                    "swish": swish}
-
-print("Keras utils: Register custom activation: ", kgcnn_custom_act)
-for k, v in kgcnn_custom_act.items():
-    if k not in tf.keras.utils.get_custom_objects():
-        tf.keras.utils.get_custom_objects()[k] = v

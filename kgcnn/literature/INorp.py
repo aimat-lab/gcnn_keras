@@ -89,6 +89,7 @@ def make_inorp(  # Input
     node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
     edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
     pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
+    gather_args = {"node_indexing": "sample"}
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -97,34 +98,22 @@ def make_inorp(  # Input
                                                                                                      **input_embedd)
 
     # Preprocessing
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])  # disjoint
-
-    gather_args = {"input_tensor_type": tens_type, "node_indexing": node_indexing}
-    edge_mlp_args.update({"input_tensor_type": tens_type})
-    node_mlp_args.update({"input_tensor_type": tens_type})
-    pooling_args.update({"input_tensor_type": tens_type, "node_indexing": node_indexing})
-    set2set_args.update({"input_tensor_type": tens_type})
-
+    edi = edge_index_input
     ev = GatherState(**gather_args)([uenv, n])
     # n-Layer Step
     for i in range(0, depth):
         # upd = GatherNodes()([n,edi])
         eu1 = GatherNodesIngoing(**gather_args)([n, edi])
         eu2 = GatherNodesOutgoing(**gather_args)([n, edi])
-        upd = Concatenate(axis=-1, input_tensor_type=tens_type)([eu2, eu1])
-        eu = Concatenate(axis=-1, input_tensor_type=tens_type)([upd, ed])
+        upd = Concatenate(axis=-1)([eu2, eu1])
+        eu = Concatenate(axis=-1)([upd, ed])
 
         eu = MLP(**edge_mlp_args)(eu)
         # Pool message
         nu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connection
         # Add environment
-        nu = Concatenate(axis=-1, input_tensor_type=tens_type)(
+        nu = Concatenate(axis=-1)(
             [n, nu, ev])  # Concatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
@@ -132,7 +121,7 @@ def make_inorp(  # Input
     if output_embedd["output_mode"] == 'graph':
         if use_set2set:
             # output
-            outss = Dense(set2set_args["channels"], input_tensor_type=tens_type, activation="linear")(n)
+            outss = Dense(set2set_args["channels"], activation="linear")(n)
             out = Set2Set(**set2set_args)(outss)
         else:
             out = PoolingNodes(**pooling_args)(n)
@@ -144,7 +133,7 @@ def make_inorp(  # Input
         out = n
         main_output = MLP(**output_mlp)(out)
 
-        main_output = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(main_output)
+        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)

@@ -75,14 +75,14 @@ def make_megnet(
                                       'input_tensor_type': 'ragged'},
                      'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                                    "activation": ['softplus2', 'softplus2', 'linear']},
+                                    "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
                      'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                                        'env_embed': [64, 32, 32], 'activation': 'softplus2', 'is_sorted': False,
+                                        'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2', 'is_sorted': False,
                                         'has_unconnected': True},
                      'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-                     'node_ff_args': {"units": [64, 32], "activation": "softplus2"},
-                     'edge_ff_args': {"units": [64, 32], "activation": "softplus2"},
-                     'state_ff_args': {"units": [64, 32], "activation": "softplus2"}
+                     'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                     'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                     'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"}
                      }
 
     # Update default arguments
