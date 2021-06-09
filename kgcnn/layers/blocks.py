@@ -8,6 +8,7 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 from kgcnn.ops.activ import kgcnn_custom_act
+from kgcnn.ops.initializer import kgcnn_custom_init
 
 
 class MEGnetBlock(GraphBaseLayer):
@@ -34,7 +35,7 @@ class MEGnetBlock(GraphBaseLayer):
                  env_embed=None,
                  pooling_method="mean",
                  use_bias=True,
-                 activation=None,
+                 activation='softplus2',
                  kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  kernel_initializer='glorot_uniform', bias_initializer='zeros',
@@ -53,10 +54,14 @@ class MEGnetBlock(GraphBaseLayer):
         self.edge_embed = edge_embed
         self.env_embed = env_embed
         self.use_bias = use_bias
-        if activation is None and 'softplus2' in kgcnn_custom_act:
-            activation = 'softplus2'
-        elif activation is None:
-            activation = "selu"
+
+        if isinstance(activation,str):
+            if activation == 'softplus2':
+                if 'softplus2' in kgcnn_custom_act:
+                    activation = 'softplus2'
+                else:
+                    print("Warning: Activation 'softplus2' not found fallback 'selu'.")
+                    activation = "selu"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -147,7 +152,7 @@ class DimNetOutputBlock(GraphBaseLayer):
         num_dense (list): List of environment embedding dimension.
         num_targets (int): Number of output target dimension. Defaults to 12.
         use_bias (bool, optional): Use bias. Defaults to True.
-        kernel_initializer: Initializer for kernels. Default is 'orthogonal'.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_orthogonal' with fallback 'orthogonal'.
         output_kernel_initializer: Initializer for last kernel. Default is 'zeros'.
         bias_initializer: Initializer for bias. Default is 'zeros'.
         activation (str): Activation function. Default is 'softplus2' with fall-back 'selu'.
@@ -164,8 +169,8 @@ class DimNetOutputBlock(GraphBaseLayer):
                  num_dense,
                  num_targets=12,
                  use_bias=True,
-                 output_kernel_initializer="zeros", kernel_initializer='orthogonal', bias_initializer='zeros',
-                 activation=None,
+                 output_kernel_initializer="zeros", kernel_initializer='glorot_orthogonal', bias_initializer='zeros',
+                 activation='swish',
                  kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  pooling_method="sum",
@@ -179,15 +184,23 @@ class DimNetOutputBlock(GraphBaseLayer):
         self.num_targets = num_targets
         self.use_bias = use_bias
 
-        if activation is None and 'swish' in kgcnn_custom_act:
-            activation = 'swish'
-        elif activation is None:
-            activation = "selu"
+        if isinstance(activation,str):
+            if activation == 'swish':
+                if 'swish' in kgcnn_custom_act:
+                    activation = 'swish'
+                else:
+                    activation = "selu"
+
+        if isinstance(kernel_initializer, str):
+            if kernel_initializer == 'glorot_orthogonal':
+                if 'glorot_orthogonal' in kgcnn_custom_init:
+                    kernel_initializer = "glorot_orthogonal"
+                else:
+                    kernel_initializer = "orthogonal"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_initializer": bias_initializer,
                        "bias_regularizer": bias_regularizer, "bias_constraint": bias_constraint, }
-
 
         self.dense_rbf = Dense(emb_size, use_bias=False, kernel_initializer=kernel_initializer,
                                **kernel_args, **self._kgcnn_info)

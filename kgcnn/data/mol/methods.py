@@ -250,4 +250,4 @@ def get_angle_indices(idx, is_sorted =False):
                                  np.expand_dims(idx_ijk_label_j, axis=-1)], axis=-1)
     idx_ijk_ij = idx_ijk_ij[back_and_forth]
 
-    return idx_ijk, idx_ijk_ij
+    return idx, idx_ijk, idx_ijk_ij

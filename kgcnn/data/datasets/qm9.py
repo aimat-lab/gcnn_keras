@@ -4,7 +4,7 @@ import numpy as np
 import shutil
 
 from kgcnn.data.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
-    define_adjacency_from_distance
+    define_adjacency_from_distance, get_angle_indices
 
 from kgcnn.data.base import GraphDatasetBase
 
@@ -28,7 +28,7 @@ class QM9Dataset(GraphDatasetBase):
         qm9 = []
 
         if os.path.exists(os.path.join(path, "qm9.pickle")) and not overwrite:
-            print("INFO: Single molecules already pickled")
+            print("INFO: Single molecules already pickled... done")
             return qm9
 
         if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
@@ -82,6 +82,7 @@ class QM9Dataset(GraphDatasetBase):
     def read_in_memory(self):
         path = os.path.join(self.data_main_dir, self.data_directory)
 
+        print("INFO: Reading dataset ...", end='', flush=True)
         with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
             qm9 = pickle.load(f)
 
@@ -116,7 +117,7 @@ class QM9Dataset(GraphDatasetBase):
         self.nodes = nodes
         self.mmw = mmw
 
-
+        print('done')
 
     def get_graph(self,max_distance=4, max_neighbours=15,
                   do_invert_distance= False, do_gauss_basis_expansion= True,
@@ -150,6 +151,7 @@ class QM9Dataset(GraphDatasetBase):
 
         edge_idx = []
         edges = []
+
         for i in range(max_mols):
             xyz = coord[i]
             dist = coordinates_to_distancematrix(xyz)
@@ -183,7 +185,15 @@ class QM9Dataset(GraphDatasetBase):
 
         return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
 
+    @classmethod
+    def get_angle_index(cls, idx, is_sorted = False):
+        ei = []
+        nijk = []
+        ai = []
+        for x in idx:
+            temp = get_angle_indices(x,is_sorted=is_sorted)
+            ei.append(temp[0])
+            nijk.append(temp[1])
+            ai.append(temp[2])
 
-    def get_angle_index(self):
-
-        self.edge_index =1
+        return ei, nijk, ai

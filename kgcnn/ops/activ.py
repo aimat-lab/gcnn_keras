@@ -29,31 +29,49 @@ def softplus2(x):
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
 
-def leaky_softplus(alpha=0.3):
+class leaky_softplus(tf.keras.layers.Layer):
     """
     Leaky softplus activation function similar to leakyRELU but smooth.
-        
+
     Args:
         alpha (float, optional): Leaking slope. The default is 0.3.
-
-    Returns:
-        func: lambda function of x.
-
     """
-    return lambda x: ks.activations.softplus(x) * (1 - alpha) + alpha * x
+
+    def __init__(self,alpha = 0.3,**kwargs):
+        super(leaky_softplus, self).__init__(**kwargs)
+        self.alpha = alpha
+
+    def call(self, inputs, **kwargs):
+        x = inputs
+        return ks.activations.softplus(x) * (1 - self.alpha) + self.alpha * x
+
+    def get_config(self):
+        config = super(leaky_softplus, self).get_config()
+        config.update({"alpha": self.alpha})
+        return config
 
 
-def leaky_relu(alpha=0.2):
-    """
-    Leaky relu function.
+
+class leaky_relu(tf.keras.layers.Layer):
+    """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
 
     Args:
-        alpha: leak alpha = 0.2
-
-    Returns:
-        func: lambda of tf.nn.leaky_relu(x,alpha)
+        alpha (float, optional): leak alpha = 0.2
     """
-    return lambda x: tf.nn.leaky_relu(x, alpha=alpha)
+
+    def __init__(self,alpha = 0.2, **kwargs):
+        super(leaky_relu, self).__init__(**kwargs)
+        self.alpha = alpha
+
+    def call(self, inputs, **kwargs):
+
+        x = inputs
+        return tf.nn.leaky_relu(x, alpha=self.alpha)
+
+    def get_config(self):
+        config = super(leaky_relu, self).get_config()
+        config.update({"alpha": self.alpha})
+        return config
 
 
 def swish(x):

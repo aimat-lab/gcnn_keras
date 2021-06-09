@@ -21,13 +21,13 @@ def make_dimnet_pp(
         # Output
         output_embedd: dict = None,
         # Model specific parameter
-        emb_size = 10,
-        out_emb_size = 10,
-        int_emb_size = 10,
-        basis_emb_size =10,
-        num_blocks = 2,
-        num_spherical = 4,
-        num_radial= 3,
+        emb_size = 128,
+        out_emb_size = 256,
+        int_emb_size = 64,
+        basis_emb_size =8,
+        num_blocks = 4,
+        num_spherical = 7,
+        num_radial= 6,
         cutoff=5.0,
         envelope_exponent=5,
         num_before_skip=1,
@@ -50,7 +50,6 @@ def make_dimnet_pp(
     x = xyz_input
     edi = bond_index_input
     adi = angle_index_input
-    print("Warning: DimNet implementation is not sufficiently tested.")
 
     # Calculate distances
     d = NodeDistance()([x, edi])

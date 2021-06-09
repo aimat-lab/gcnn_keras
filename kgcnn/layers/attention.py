@@ -120,7 +120,7 @@ class AttentionHeadGAT(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation=None,
+                 activation='leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -137,10 +137,13 @@ class AttentionHeadGAT(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
-        if activation is None and "leaky_relu" in kgcnn_custom_act:
-            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
-        elif activation is None:
-            activation = "relu"
+        if isinstance(activation,str):
+            if activation == 'leaky_relu':
+                if 'leaky_relu' in kgcnn_custom_act:
+                    activation = 'leaky_relu'
+                else:
+                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
+                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
@@ -227,7 +230,7 @@ class AttentiveHeadFP(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
-                 activation=None,
+                 activation='leaky_relu',
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -245,10 +248,13 @@ class AttentiveHeadFP(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
-        if activation is None and "leaky_relu" in kgcnn_custom_act:
-            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
-        elif activation is None:
-            activation = "relu"
+        if isinstance(activation,str):
+            if activation == 'leaky_relu':
+                if 'leaky_relu' in kgcnn_custom_act:
+                    activation = 'leaky_relu'
+                else:
+                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
+                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
@@ -388,7 +394,7 @@ class AttentiveNodePooling(GraphBaseLayer):
                  units,
                  depth=3,
                  pooling_method="sum",
-                 activation=None,
+                 activation='leaky_relu',
                  activation_context="elu",
                  use_bias=True,
                  kernel_regularizer=None,
@@ -412,10 +418,14 @@ class AttentiveNodePooling(GraphBaseLayer):
         self.depth = depth
         # dense args
         self.units = int(units)
-        if activation is None and "leaky_relu" in kgcnn_custom_act:
-            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
-        elif activation is None:
-            activation = "relu"
+
+        if isinstance(activation,str):
+            if activation == 'leaky_relu':
+                if 'leaky_relu' in kgcnn_custom_act:
+                    activation = 'leaky_relu'
+                else:
+                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
+                    activation = "relu"
 
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,

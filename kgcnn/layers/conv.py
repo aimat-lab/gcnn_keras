@@ -42,7 +42,7 @@ class GCN(GraphBaseLayer):
                  units,
                  pooling_method='sum',
                  normalize_by_weights=False,
-                 activation=None,
+                 activation='leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -57,10 +57,13 @@ class GCN(GraphBaseLayer):
         self.normalize_by_weights = normalize_by_weights
         self.pooling_method = pooling_method
         self.units = units
-        if activation is None and 'leaky_relu' in kgcnn_custom_act:
-            activation = {"class_name": "leaky_relu", "config": {"alpha": 0.2}}
-        elif activation is None:
-            activation = "relu"
+        if isinstance(activation,str):
+            if activation == 'leaky_relu':
+                if 'leaky_relu' in kgcnn_custom_act:
+                    activation = 'leaky_relu'
+                else:
+                    print("Warning: Activation 'leaky_relu' not found fallback 'relu'.")
+                    activation = "relu"
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -137,7 +140,7 @@ class SchNetCFconv(GraphBaseLayer):
     def __init__(self, units,
                  cfconv_pool='segment_sum',
                  use_bias=True,
-                 activation=None,
+                 activation='shifted_softplus',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -152,10 +155,14 @@ class SchNetCFconv(GraphBaseLayer):
         self.units = units
         self.use_bias = use_bias
 
-        if activation is None and 'shifted_softplus' in kgcnn_custom_act:
-            activation = 'shifted_softplus'
-        elif activation is None:
-            activation = "selu"
+        if isinstance(activation,str):
+            if activation == 'shifted_softplus':
+                if 'shifted_softplus' in kgcnn_custom_act:
+                    activation = 'shifted_softplus'
+                else:
+                    print("Warning: Activation 'shifted_softplus' not found fallback 'selu'.")
+                    activation = "selu"
+
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
