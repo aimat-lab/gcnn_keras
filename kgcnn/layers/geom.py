@@ -7,6 +7,7 @@ from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_nor
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='NodeDistance')
 class NodeDistance(GraphBaseLayer):
     """Compute geometric node distances similar to edges.
 
@@ -59,6 +60,7 @@ class NodeDistance(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='NodeAngle')
 class NodeAngle(GraphBaseLayer):
     """Compute geometric node angles.
 
@@ -117,6 +119,7 @@ class NodeAngle(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='EdgeAngle')
 class EdgeAngle(GraphBaseLayer):
     """Compute geometric edge angles.
 
@@ -183,6 +186,7 @@ class EdgeAngle(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     """
     Expand a distance into a Bessel Basis with l=m=0, according to Klicpera et al. 2020
@@ -249,6 +253,7 @@ class BesselBasisLayer(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SphericalBasisLayer')
 class SphericalBasisLayer(GraphBaseLayer):
     """
     Expand a distance into a Bessel Basis with l=m=0, according to Klicpera et al. 2020

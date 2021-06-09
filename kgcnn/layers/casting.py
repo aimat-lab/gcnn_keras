@@ -52,6 +52,7 @@ class ChangeTensorType(ks.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeIndexing')
 class ChangeIndexing(ks.layers.Layer):
     """
     Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph

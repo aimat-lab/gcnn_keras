@@ -35,6 +35,7 @@ class Dense(KerasWrapperBaseLayer):
                                                     bias_constraint=bias_constraint)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Activation')
 class Activation(KerasWrapperBaseLayer):
     """Activation Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -50,6 +51,7 @@ class Activation(KerasWrapperBaseLayer):
                                                                activity_regularizer=activity_regularizer)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Add')
 class Add(KerasWrapperBaseLayer):
     """Add Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -61,6 +63,7 @@ class Add(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Add()
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Average')
 class Average(KerasWrapperBaseLayer):
     """Average Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -72,6 +75,7 @@ class Average(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Average()
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Multiply')
 class Multiply(KerasWrapperBaseLayer):
     """Multiply Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -81,6 +85,7 @@ class Multiply(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_call_type = 1
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
+
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Concatenate')
 class Concatenate(KerasWrapperBaseLayer):
@@ -96,6 +101,7 @@ class Concatenate(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Concatenate(axis=axis)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dropout')
 class Dropout(KerasWrapperBaseLayer):
     """Dropout Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -111,6 +117,7 @@ class Dropout(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='LayerNormalization')
 class LayerNormalization(KerasWrapperBaseLayer):
     """LayerNormalization Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 

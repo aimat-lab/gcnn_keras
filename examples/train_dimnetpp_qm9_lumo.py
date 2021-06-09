@@ -4,7 +4,7 @@ import matplotlib as mpl
 import numpy as np
 import tensorflow as tf
 
-# mpl.use('Agg')
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler

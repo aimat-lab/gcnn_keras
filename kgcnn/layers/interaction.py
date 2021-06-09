@@ -12,6 +12,7 @@ import kgcnn.ops.initializer
 from kgcnn.layers.conv import SchNetCFconv
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SchNetInteraction')
 class SchNetInteraction(GraphBaseLayer):
     """
     Schnet interaction block, which uses the continuous filter convolution from SchNetCFconv.
@@ -101,6 +102,7 @@ class SchNetInteraction(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ResidualLayer')
 class ResidualLayer(GraphBaseLayer):
     """Residual Layer as defined by DimNet.
 
@@ -169,6 +171,7 @@ class ResidualLayer(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='DimNetInteractionPPBlock')
 class DimNetInteractionPPBlock(GraphBaseLayer):
     """DimNetInteractionPPBlock as defined by DimNet.
 

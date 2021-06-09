@@ -3,6 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodes')
 class GatherNodes(GraphBaseLayer):
     """Gather nodes by node indices.
@@ -60,6 +61,7 @@ class GatherNodes(GraphBaseLayer):
         config.update({"concat_nodes": self.concat_nodes})
         return config
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodesOutgoing')
 class GatherNodesOutgoing(GraphBaseLayer):
     """Gather nodes by indices.
@@ -111,6 +113,7 @@ class GatherNodesOutgoing(GraphBaseLayer):
         config = super(GatherNodesOutgoing, self).get_config()
         return config
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodesIngoing')
 class GatherNodesIngoing(GraphBaseLayer):
     """Gather nodes by edge edge_indices.
@@ -161,6 +164,7 @@ class GatherNodesIngoing(GraphBaseLayer):
         """Update config."""
         config = super(GatherNodesIngoing, self).get_config()
         return config
+
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherState')
 class GatherState(GraphBaseLayer):

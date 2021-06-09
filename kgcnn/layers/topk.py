@@ -4,6 +4,8 @@ import tensorflow.keras as ks
 from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.layers.base import GraphBaseLayer
 
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingTopK')
 class PoolingTopK(GraphBaseLayer):
     """Layer for pooling of nodes. Disjoint representation including length tensor.
     
@@ -217,7 +219,7 @@ class PoolingTopK(GraphBaseLayer):
         })
         return config
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='UnPoolingTopK')
 class UnPoolingTopK(GraphBaseLayer):
     """Layer for un-pooling of nodes from PoolingTopK.
     

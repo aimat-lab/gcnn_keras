@@ -5,7 +5,7 @@ from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_par
 
 
 # import tensorflow.keras.backend as ksb
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='AdjacencyPower')
 class AdjacencyPower(GraphBaseLayer):
     """
     Computes powers of the adjacency matrix. This implementation is a temporary solution.

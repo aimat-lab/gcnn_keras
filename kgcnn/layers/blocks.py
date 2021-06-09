@@ -10,7 +10,7 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, P
 import kgcnn.ops.activ
 import kgcnn.ops.initializer
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='MEGnetBlock')
 class MEGnetBlock(GraphBaseLayer):
     """Megnet Block.
 
@@ -135,6 +135,7 @@ class MEGnetBlock(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='DimNetOutputBlock')
 class DimNetOutputBlock(GraphBaseLayer):
     """DimNetOutputBlock.
 

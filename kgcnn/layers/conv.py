@@ -9,7 +9,7 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, P
     PoolingNodes
 import kgcnn.ops.activ
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GCN')
 class GCN(GraphBaseLayer):
     r"""Graph convolution according to Kipf et al.
     
@@ -110,6 +110,7 @@ class GCN(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SchNetCFconv')
 class SchNetCFconv(GraphBaseLayer):
     """Continuous filter convolution of SchNet.
     
