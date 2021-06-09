@@ -4,9 +4,7 @@ import tensorflow.keras as ks
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='glorot_orthogonal')
 class GlorotOrthogonal(tf.initializers.Initializer):
     """
-    Generate a weight matrix with variance according to Glorot initialization.
-    Based on a random (semi-)orthogonal matrix neural networks
-    are expected to learn better when features are decorrelated
+    @TODO: Generalize and inherit from Orthogonal
     (stated by eg. "Reducing overfitting in deep networks by decorrelating representations",
     "Dropout: a simple way to prevent neural networks from overfitting",
     "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks")

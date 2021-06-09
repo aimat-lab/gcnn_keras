@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeTensorType')
 class ChangeTensorType(ks.layers.Layer):
     """
     Layer to change graph representation.

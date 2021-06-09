@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import KerasWrapperBaseLayer
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dense')
 class Dense(KerasWrapperBaseLayer):
     """Dense Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
@@ -82,7 +82,7 @@ class Multiply(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Concatenate')
 class Concatenate(KerasWrapperBaseLayer):
     """Concatenate Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 

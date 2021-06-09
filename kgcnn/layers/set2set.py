@@ -8,7 +8,7 @@ from kgcnn.layers.base import GraphBaseLayer
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391
 
-
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Set2Set')
 class Set2Set(GraphBaseLayer):
     """
     Set2Set layer. The Reading to Memory has to be handled seperately.

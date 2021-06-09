@@ -7,6 +7,7 @@ from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
     """Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     
@@ -77,6 +78,7 @@ class PoolingLocalEdges(GraphBaseLayer):
 PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingWeightedLocalEdges')
 class PoolingWeightedLocalEdges(GraphBaseLayer):
     """
     Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
@@ -162,6 +164,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingNodes')
 class PoolingNodes(GraphBaseLayer):
     """
     Polling all nodes per batch. The batch assignment is given by a length-tensor.
@@ -204,6 +207,7 @@ class PoolingNodes(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingWeightedNodes')
 class PoolingWeightedNodes(GraphBaseLayer):
     """
     Polling all nodes per batch. The batch assignment is given by a length-tensor.
@@ -250,6 +254,7 @@ class PoolingWeightedNodes(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingGlobalEdges')
 class PoolingGlobalEdges(GraphBaseLayer):
     """
     Pooling all edges per graph. The batch assignment is given by a length-tensor.
@@ -291,6 +296,7 @@ class PoolingGlobalEdges(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingLocalEdgesLSTM')
 class PoolingLocalEdgesLSTM(GraphBaseLayer):
     """
     Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
