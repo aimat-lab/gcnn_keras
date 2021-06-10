@@ -82,7 +82,7 @@ class NodeAngle(GraphBaseLayer):
             inputs (list): [position, edge_index]
 
             - position (tf.ragged): Node positions of shape (batch, [N], 3)
-            - node_index (tf.ragged): Node indices of shape (batch, [M], 3)
+            - node_index (tf.ragged): Node indices of shape (batch, [M], 3) referring to nodes
 
         Returns:
             angles: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
