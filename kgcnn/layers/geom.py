@@ -102,8 +102,8 @@ class NodeAngle(GraphBaseLayer):
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
         xk = tf.gather(node, indexlist[:, 2], axis=0)
-        v1 = xj - xi
-        v2 = xk - xj
+        v1 = xi - xj
+        v2 = xj - xk
         x = tf.reduce_sum(v1 * v2, axis=-1)
         y = tf.linalg.cross(v1, v2)
         y = tf.norm(y, axis=-1)
@@ -168,7 +168,7 @@ class EdgeAngle(GraphBaseLayer):
         # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
-        vs = xj - xi
+        vs = xi - xj
         v1 = tf.gather(vs, indexlist2[:, 0], axis=0)
         v2 = tf.gather(vs, indexlist2[:, 1], axis=0)
         x = tf.reduce_sum(v1 * v2, axis=-1)

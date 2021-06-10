@@ -148,7 +148,7 @@ class DimNetOutputBlock(GraphBaseLayer):
         kernel_initializer: Initializer for kernels. Default is 'glorot_orthogonal' with fallback 'orthogonal'.
         output_kernel_initializer: Initializer for last kernel. Default is 'zeros'.
         bias_initializer: Initializer for bias. Default is 'zeros'.
-        activation (str): Activation function. Default is 'softplus2' with fall-back 'selu'.
+        activation (str): Activation function. Default is 'kgcnn>swish'.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
         activity_regularizer: Activity regularization. Default is None.

@@ -75,24 +75,17 @@ def make_unet(
     output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
     pooling_args = {"pooling_method": 'segment_mean', "is_sorted": is_sorted, "has_unconnected": has_unconnected}
+    gather_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample'}
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])  # disjoint
 
-    output_mlp.update({"input_tensor_type": tens_type})
-    gather_args = {"input_tensor_type": tens_type, "node_indexing": node_indexing}
-    pooling_args.update({"input_tensor_type": tens_type, "node_indexing": node_indexing})
+    edi = edge_index_input
 
     # Graph lists
-    n = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(n)
+    n = Dense(hidden_dim, use_bias=use_bias, activation='linear')(n)
     in_graph = [n, ed, edi]
     graph_list = [in_graph]
     map_list = []
@@ -104,16 +97,15 @@ def make_unet(
         n, ed, edi = i_graph
         # GCN layer
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(eu)
+        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
-        n = Activation(activation=activation, input_tensor_type=tens_type)(nu)
+        n = Activation(activation=activation)(nu)
 
         if use_reconnect:
-            ed, edi = AdjacencyPower(n=2, node_indexing=node_indexing, input_tensor_type=tens_type)([n, ed, edi])
+            ed, edi = AdjacencyPower(n=2)([n, ed, edi])
 
         # Pooling
-        i_graph, i_map = PoolingTopK(k=k, kernel_initializer=score_initializer,
-                                     node_indexing=node_indexing, input_tensor_type=tens_type)([n, ed, edi])
+        i_graph, i_map = PoolingTopK(k=k, kernel_initializer=score_initializer)([n, ed, edi])
 
         graph_list.append(i_graph)
         map_list.append(i_map)
@@ -123,16 +115,16 @@ def make_unet(
     for i in range(depth, 0, -1):
         o_graph = graph_list[i - 1]
         i_map = map_list[i - 1]
-        ui_graph = UnPoolingTopK(node_indexing=node_indexing, input_tensor_type=tens_type)(o_graph + i_map + ui_graph)
+        ui_graph = UnPoolingTopK()(o_graph + i_map + ui_graph)
 
         n, ed, edi = ui_graph
         # skip connection
-        n = Add(input_tensor_type=tens_type)([n, o_graph[0]])
+        n = Add()([n, o_graph[0]])
         # GCN
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear', input_tensor_type=tens_type)(eu)
+        eu = Dense(hidden_dim, use_bias=use_bias, activation='linear')(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
-        n = Activation(activation=activation, input_tensor_type=tens_type)(nu)
+        n = Activation(activation=activation)(nu)
 
         ui_graph = [n, ed, edi]
 
@@ -146,7 +138,7 @@ def make_unet(
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
         out = MLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(out)
+        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 

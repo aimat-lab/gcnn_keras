@@ -86,24 +86,15 @@ def make_nmpn(
                                                                                           None,
                                                                                           **input_embedd)
 
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
-    set2set_args.update({"input_tensor_type": tens_type})
-    output_mlp.update({"input_tensor_type": tens_type})
-    edge_dense.update({"input_tensor_type": tens_type})
-    pooling_args.update({"input_tensor_type": tens_type, "node_indexing": node_indexing})
 
-    n = Dense(node_dim, activation="linear", input_tensor_type=tens_type)(n)
+    edi = edge_index_input
+    n = Dense(node_dim, activation="linear")(n)
     edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
-    gru = GRUupdate(node_dim, input_tensor_type=tens_type, node_indexing=node_indexing)
+    gru = GRUupdate(node_dim)
 
     for i in range(0, depth):
-        eu = GatherNodesOutgoing(input_tensor_type=tens_type, node_indexing=node_indexing)([n, edi])
-        eu = TrafoMatMulMessages(node_dim, input_tensor_type=tens_type, node_indexing=node_indexing)([edge_net, eu])
+        eu = GatherNodesOutgoing()([n, edi])
+        eu = TrafoMatMulMessages(node_dim, )([edge_net, eu])
         eu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
@@ -111,7 +102,7 @@ def make_nmpn(
     if output_embedd["output_mode"] == 'graph':
         if use_set2set:
             # output
-            outss = Dense(set2set_args['channels'], activation="linear", input_tensor_type=tens_type)(n)
+            outss = Dense(set2set_args['channels'], activation="linear")(n)
             out = Set2Set(**set2set_args)(outss)
         else:
             out = PoolingNodes(**pooling_args)(n)
@@ -123,7 +114,7 @@ def make_nmpn(
     else:  # Node labeling
         out = n
         main_output = MLP(**output_mlp)(out)
-        main_output = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(main_output)
+        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
         # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)

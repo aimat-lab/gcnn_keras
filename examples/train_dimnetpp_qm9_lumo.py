@@ -19,8 +19,8 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 # You need at least 10 GB of RAM to load and process full dataset into memory.
 datasets = QM9Dataset()
 labels, nodes, _, edge_indices, _ = datasets.get_graph(do_invert_distance=False,
-                                                       max_distance=5,
-                                                       max_neighbours=20,
+                                                       max_distance=4,
+                                                       max_neighbours=15,
                                                        do_gauss_basis_expansion=False,
                                                        max_mols=10000)  # max is 133885
 coord = datasets.coord[:10000]
@@ -59,14 +59,15 @@ model = make_dimnet_pp(input_node_shape=[None],
                                      'input_node_embedd': 128,
                                      'input_tensor_type': 'ragged'},
                        num_targets=1,
-                       extensive=False
+                       extensive=False,
+                       cutoff=4.0,
                        )
 
 # Define learning rate and epochs
 learning_rate_start = 0.5e-3
 learning_rate_stop = 1e-5
-epo = 500
-epomin = 400
+epo = 1000
+epomin = 500
 epostep = 10
 
 # Compile model with optimizer and learning rate
@@ -82,7 +83,7 @@ print(model.summary())
 start = time.process_time()
 hist = model.fit(xtrain, ytrain,
                  epochs=epo,
-                 batch_size=64,
+                 batch_size=32,
                  callbacks=[cbks],
                  validation_freq=epostep,
                  validation_data=(xtest, ytest),

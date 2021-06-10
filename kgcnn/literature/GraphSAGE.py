@@ -76,26 +76,17 @@ def make_graph_sage(  # Input
     node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
     edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
     pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
+    pooling_nodes_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample', 'pooling_method': "mean"}
+    gather_args = {"node_indexing": 'sample'}
+    concat_args = {"axis": -1, "input_tensor_type": 'ragged'}
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
+    edi = edge_index_input
 
-    # Preprocessing
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])  # disjoint
 
-    gather_args = {"input_tensor_type": tens_type, "node_indexing": node_indexing}
-    concat_args = {"axis": -1, "input_tensor_type": tens_type}
-    pooling_args.update({"input_tensor_type": tens_type, "node_indexing": node_indexing})
-    edge_mlp_args.update({"input_tensor_type": tens_type})
-    node_mlp_args.update({"input_tensor_type": tens_type})
-    pooling_nodes_args = {"input_tensor_type": tens_type, "node_indexing": node_indexing, 'pooling_method': "mean"}
 
     for i in range(0, depth):
         # upd = GatherNodes()([n,edi])
@@ -113,7 +104,7 @@ def make_graph_sage(  # Input
         nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
-        n = LayerNormalization(axis=-1, input_tensor_type=tens_type)(n)  # Normalize
+        n = LayerNormalization(axis=-1)(n)  # Normalize
 
     # Regression layer on output
     if output_embedd["output_mode"] == 'graph':
@@ -123,7 +114,7 @@ def make_graph_sage(  # Input
         main_output = ks.layers.Flatten()(out)  # will be tensor
     else:  # node embedding
         out = MLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(out)
+        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
 
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
 

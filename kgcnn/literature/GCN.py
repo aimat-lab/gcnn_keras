@@ -76,31 +76,25 @@ def make_gcn(
                                                                                                      input_edge_shape,
                                                                                                      None,
                                                                                                      **input_embedd)
-    # Use representation
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
+
+    edi = edge_index_input
 
     # Map to units
-    n = Dense(gcn_args["units"], use_bias=True, activation='linear', input_tensor_type=tens_type)(n)
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(input_tensor_type=tens_type, node_indexing=node_indexing,
-                **gcn_args)([n, ed, edi])
+        n = GCN(**gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
-        out = PoolingNodes(input_tensor_type=tens_type, node_indexing=node_indexing)(n)  # will return tensor
+        out = PoolingNodes()(n)  # will return tensor
         output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
         out = n
-        out = MLP(input_tensor_type=tens_type, **output_mlp)(out)
-        out = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(
+        out = MLP(**output_mlp)(out)
+        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
             out)  # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
@@ -172,33 +166,25 @@ def make_gcn_node_weights(
                                                                                                      **input_embedd)
     node_weights_input = ks.layers.Input(shape=(None, 1), name='node_weights', dtype="float32", ragged=True)
 
-    # Use representation
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    nw = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(node_weights_input)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
+    nw = node_weights_input
+    edi = edge_index_input
 
     # Map to units
-    n = Dense(gcn_args["units"], use_bias=True, activation='linear', input_tensor_type=tens_type)(n)
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)
 
     # n-Layer Step
     for i in range(0, depth):
-        n = GCN(input_tensor_type=tens_type, node_indexing=node_indexing,
-                **gcn_args)([n, ed, edi])
+        n = GCN(**gcn_args)([n, ed, edi])
 
     if output_embedd["output_mode"] == "graph":
-        out = PoolingWeightedNodes(input_tensor_type=tens_type, node_indexing=node_indexing)(
-            [n, nw])  # will return tensor
+        out = PoolingWeightedNodes()([n, nw])  # will return tensor
         output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
         out = n
-        out = MLP(input_tensor_type=tens_type, **output_mlp)(out)
-        out = ChangeTensorType(input_tensor_type=tens_type, output_tensor_type="tensor")(
+        out = MLP(**output_mlp)(out)
+        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
             out)  # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, node_weights_input], outputs=out)

@@ -74,7 +74,7 @@ def make_dimnet_pp(
         x = DimNetInteractionPPBlock(emb_size, int_emb_size, basis_emb_size, num_before_skip, num_after_skip)(
             [x, rbf, sbf, adi])
         p_update = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
-                                     output_kernel_initializer=output_init)([n, x, rbf, adi])
+                                     output_kernel_initializer=output_init)([n, x, rbf, edi])
         ps = add_xp([ps, p_update])
 
     if extensive:
