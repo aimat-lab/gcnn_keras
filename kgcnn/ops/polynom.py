@@ -6,6 +6,36 @@ from scipy.optimize import brentq
 
 
 @tf.function
+def tf_spherical_bessel_jn_explicit(x, n=0):
+    r"""Compute spherical bessel functions $j_n(x)$ for constant positive integer $n$ explicitly.
+    TensorFlow has to cache the function for each n. No gradient through n or very large number of n's is possible.
+    Source: https://dlmf.nist.gov/10.49
+
+    Args:
+        x (tf.tensor): Values to compute jn(x) for.
+        n (int): Positive integer for the bessel order n.
+
+    Returns:
+        tf.tensor: Spherical bessel function of order n
+    """
+    sin_x = tf.sin(x - n * np.pi / 2)
+    cos_x = tf.cos(x - n * np.pi / 2)
+    sum_sin = tf.zeros_like(x)
+    sum_cos = tf.zeros_like(x)
+    for k in range(int(np.floor(n / 2)) + 1):
+        if 2 * k < n + 1:
+            prefactor = float(sp.special.factorial(n + 2 * k) / np.power(2, 2 * k) / sp.special.factorial(
+                        2 * k) / sp.special.factorial(n - 2 * k) * np.power(-1, k))
+            sum_sin += prefactor*tf.pow(x, - (2*k+1))
+    for k in range(int(np.floor((n - 1) / 2)) + 1):
+        if 2 * k + 1 < n + 1:
+            prefactor = float(sp.special.factorial(n + 2 * k + 1) / np.power(2, 2 * k + 1) / sp.special.factorial(
+                        2 * k + 1) / sp.special.factorial(n - 2 * k - 1) * np.power(-1, k))
+            sum_cos += prefactor * tf.pow(x, - (2 * k + 2))
+    return sum_sin*sin_x + sum_cos*cos_x
+
+
+@tf.function
 def tf_spherical_bessel_jn(x, n=0):
     """Compute spherical bessel functions jn(x) for constant positive integer n via recursion.
 
@@ -136,6 +166,7 @@ def spherical_bessel_jn_zeros(n, k):
 def spherical_bessel_jn_normalization_prefactor(n, k):
     """Compute the normalization or rescaling pre-factor for the spherical bessel functions up to
     order n (excluded) and maximum frequency k (excluded).
+    Taken from https://github.com/klicperajo/dimenet.
 
     Args:
         n: Order.

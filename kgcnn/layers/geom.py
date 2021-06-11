@@ -141,8 +141,8 @@ class EdgeAngle(GraphBaseLayer):
             inputs (list): [position, edge_index]
 
             - position (tf.ragged): Node positions of shape (batch, [N], 3)
-            - edge_index (tf.ragged): Node indices of shape (batch, [M], 2) referring to nodes.
-            - angle_index (tf.ragged): Edge indices of shape (batch, [K], 2) referring to edges.
+            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2) referring to nodes.
+            - angle_index (tf.ragged): Angle indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
             angles: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
@@ -289,7 +289,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         a = -(p + 1) * (p + 2) / 2
         b = p * (p + 2)
         c = -p * (p + 1) / 2
-        env_val = 1.0 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
+        env_val = 1 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
         return tf.where(inputs < 1, env_val, tf.zeros_like(inputs))
 
     def call(self, inputs, **kwargs):
@@ -335,7 +335,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         cbf = tf.repeat(cbf, self.num_radial, axis=1)
         out = rbf_env * cbf
 
-        out = self._kgcnn_map_output_ragged([out, angle_part], "row_splits", 0)
+        out = self._kgcnn_map_output_ragged([out, angle_part], "row_splits", 0) # out
         return out
 
     def get_config(self):
