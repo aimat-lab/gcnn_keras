@@ -94,6 +94,7 @@ def make_megnet(
     node_ff_args = update_model_args(model_default['node_ff_args'], node_ff_args)
     edge_ff_args = update_model_args(model_default['edge_ff_args'], edge_ff_args)
     state_ff_args = update_model_args(model_default['state_ff_args'], state_ff_args)
+    state_ff_args.update({"input_tensor_type": "tensor"})
 
     # Make input embedding, if no feature dimension
     node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
@@ -101,17 +102,9 @@ def make_megnet(
                                                                                                      input_state_shape,
                                                                                                      **input_embedd)
 
-    tens_type = "values_partition"
-    node_indexing = "batch"
-    n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(n)
-    ed = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(ed)
-    edi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type=tens_type)(edge_index_input)
-    edi = ChangeIndexing(input_tensor_type=tens_type, to_indexing=node_indexing)([n, edi])
-    node_ff_args.update({"input_tensor_type": tens_type})
-    edge_ff_args.update({"input_tensor_type": tens_type})
-    state_ff_args.update({"input_tensor_type": "tensor"})
-    set2set_args.update({"input_tensor_type": tens_type})
-    meg_block_args.update({"input_tensor_type": tens_type, "node_indexing": node_indexing})
+
+
+    edi = edge_index_input
 
     # starting
     vp = n
@@ -139,18 +132,18 @@ def make_megnet(
             ep2 = Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
             up2 = Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
-        vp = Add(input_tensor_type=tens_type)([vp2, vp])
-        ep = Add(input_tensor_type=tens_type)([ep2, ep])
+        vp = Add()([vp2, vp])
+        ep = Add()([ep2, ep])
         up = Add(input_tensor_type="tensor")([up2, up])
 
     if use_set2set:
-        vp = Dense(set2set_args["channels"], activation='linear', input_tensor_type=tens_type)(vp)  # to match units
-        ep = Dense(set2set_args["channels"], activation='linear', input_tensor_type=tens_type)(ep)  # to match units
+        vp = Dense(set2set_args["channels"], activation='linear')(vp)  # to match units
+        ep = Dense(set2set_args["channels"], activation='linear')(ep)  # to match units
         vp = Set2Set(**set2set_args)(vp)
         ep = Set2Set(**set2set_args)(ep)
     else:
-        vp = PoolingNodes(input_tensor_type=tens_type)(vp)
-        ep = PoolingGlobalEdges(input_tensor_type=tens_type)(ep)
+        vp = PoolingNodes()(vp)
+        ep = PoolingGlobalEdges()(ep)
 
     ep = ks.layers.Flatten()(ep)
     vp = ks.layers.Flatten()(vp)
