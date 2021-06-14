@@ -61,15 +61,18 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
     else:
         edges_unknown = [x for x in edges if x not in sorted(bond_fun_dict.keys())]
         if len(edges_unknown) > 0:
-            print("Warning: Atom property is not defined, ignore following keys:", edges_unknown)
+            print("Warning: Bond property is not defined, ignore following keys:", edges_unknown)
         edges = [x for x in edges if x in sorted(bond_fun_dict.keys())]
     if state is None:
         state = sorted(mol_fun_dict.keys())
     else:
+        state_unknown = [x for x in state if x not in sorted(mol_fun_dict.keys())]
+        if len(state_unknown) > 0:
+            print("Warning: Molecule property is not defined, ignore following keys:", state_unknown)
         state = [x for x in state if x in sorted(mol_fun_dict.keys())]
 
 
-
+    # Make molecule from smile via rdkit
     m = rdkit.Chem.MolFromSmiles(smile)
     m = rdkit.Chem.AddHs(m)  # add H's to the molecule
     rdkit.Chem.AssignStereochemistry(m)
@@ -77,6 +80,7 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
     rdkit.Chem.AllChem.EmbedMolecule(m)
     rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
 
+    # List of information and properties
     atom_sym = [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in m.GetAtoms()]
     atom_pos = m.GetConformers()[0].GetPositions()
     atom_info = []
@@ -113,4 +117,4 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
     bond_idx = ind2
     bond_info = val2
 
-    return atom_sym, atom_info, atom_pos, bond_idx, bond_info, mol_info
+    return atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info

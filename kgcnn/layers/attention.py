@@ -283,7 +283,7 @@ class AttentiveHeadFP(GraphBaseLayer):
             n_out = self.lay_gather_out([node, edge_index])
             n_in = self.lay_fc1(n_in)
             n_out = self.lay_concat_edge([n_out, edge])
-            n_out = self.self.lay_fc2(n_out)
+            n_out = self.lay_fc2(n_out)
         else:
             n_in = self.lay_gather_in([node, edge_index])
             n_out = self.lay_gather_out([node, edge_index])
@@ -447,12 +447,12 @@ class AttentiveNodePooling(GraphBaseLayer):
         h = self.lay_pool_start(node)
         Wn = self.lay_linear_trafo(node)
         for _ in range(self.depth):
-            hv = self.lay_gather_s(h, node)
+            hv = self.lay_gather_s([h, node])
             ev = self.lay_concat([hv, node])
-            av = self.self.lay_alpha(ev)
+            av = self.lay_alpha(ev)
             cont = self.lay_pool_attention([Wn, av])
             cont = self.lay_final_activ(cont)
-            h = self.lay_gru(cont, h, **kwargs)
+            h,_ = self.lay_gru(cont, h, **kwargs)
 
         out = h
         return out

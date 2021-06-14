@@ -28,7 +28,7 @@ def coordinates_to_distancematrix(coord3d):
     
     Arg:
         coord3d (np.array): Coordinates of shape (...,N,3) for cartesian coordinates (x,y,z)
-                            and N the number of atoms or points. Coordinates are last dimension.
+            and N the number of atoms or points. Coordinates are last dimension.
 
     Returns:
         np.array: distance matrix as numpy array with shape (...,N,N) where N is the number of atoms
@@ -42,8 +42,7 @@ def coordinates_to_distancematrix(coord3d):
 
 
 def invert_distance(d, nan=0, posinf=0, neginf=0):
-    """
-    Invert distance array, e.g. distance matrix. Inversion is done for all entries.
+    """Invert distance array, e.g. distance matrix. Inversion is done for all entries.
     Keeping of shape (...,) -> (...,)
     
     Args:
@@ -64,8 +63,7 @@ def invert_distance(d, nan=0, posinf=0, neginf=0):
 
 
 def distance_to_gaussdistance(distance, gbins=20, grange=4, gsigma=0.4):
-    """ 
-    Convert distance array to smooth one-hot representation using Gaussian functions.
+    """Convert distance array to smooth one-hot representation using Gaussian functions.
     Changes shape for gaussian distance (...,) -> (...,GBins)
     The Default values match units in Angstroem.
     
@@ -91,8 +89,7 @@ def distance_to_gaussdistance(distance, gbins=20, grange=4, gsigma=0.4):
 
 def get_connectivity_from_inversedistancematrix(invdistmat, protons, radii_dict=None, k1=16.0, k2=4.0 / 3.0,
                                                 cutoff=0.85, force_bonds=True):
-    """
-    Get connectivity table from inverse distance matrix defined at last dimensions (...,N,N) and
+    """Get connectivity table from inverse distance matrix defined at last dimensions (...,N,N) and
     corresponding bond-radii. Keeps shape with (...,N,N).
     Covalent radii, from Pyykko and Atsumi, Chem. Eur. J. 15, 2009, 188-197. 
     Values for metals decreased by 10% according to Robert Paton's Sterimol implementation. 
@@ -151,8 +148,7 @@ def get_connectivity_from_inversedistancematrix(invdistmat, protons, radii_dict=
 
 def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_neighbours=np.inf, exclusive=True,
                                    self_loops=False):
-    """
-    Construct adjacency matrix from a distance matrix by distance and number of neighbours. Works for batches.
+    """Construct adjacency matrix from a distance matrix by distance and number of neighbours. Works for batches.
     
     This does take into account special bonds (e.g. chemical) just a general distance measure.
     Tries to connect nearest neighbours.
@@ -210,15 +206,17 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
     return graph_adjacency, graph_indices
 
 
-def get_angle_indices(idx, is_sorted =False):
+def get_angle_indices(idx, is_sorted=False):
     """Compute index list for edge-pairs forming an angle.
 
     Args:
-        idx (np.array): List of edge indices of shape (N,2)
+        idx (np.array): List of edge indices of shape (N, 2)
         is_sorted (bool): If edge indices are sorted
 
     Returns:
-        tuple: idx_ijk, idx_ijk_ij
+        tuple: (idx, idx_ijk, idx_ijk_ij)
+
+        - idx (np.array): Possibly sorted edge indices of shape (N, 2)
     """
 
     if not is_sorted:
@@ -250,3 +248,6 @@ def get_angle_indices(idx, is_sorted =False):
     idx_ijk_ij = idx_ijk_ij[back_and_forth]
 
     return idx, idx_ijk, idx_ijk_ij
+
+
+

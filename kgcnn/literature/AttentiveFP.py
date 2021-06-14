@@ -48,7 +48,7 @@ def make_attentiveFP(  # Input
     Returns:
         model (tf.keras.model): Interaction model.
     """
-    print("Warning model has not been tested yet.")
+
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
                                       'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
