@@ -142,7 +142,7 @@ Some known issues to be aware of, if using and making new models or layers with 
 <a name="citing"></a>
 # Citing
 
-If you want to cite this repo, refer to our preprint:
+If you want to cite this repo, refer to our paper:
 
 ```
 @article{REISER2021100095,
