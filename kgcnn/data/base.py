@@ -61,7 +61,7 @@ class GraphDatasetBase:
         """Download dataset file.
 
         Args:
-            path (str): filepath if empty use user-default path
+            path (str): Filepath to file.
             download_url (str): String of the download url to catch database from.
             filename (str): Name the dataset is downloaded to.
             overwrite (bool): overwrite existing database, default:False
@@ -80,18 +80,17 @@ class GraphDatasetBase:
 
     @classmethod
     def unpack_tar_file(cls, path, filename, unpack_directory, overwrite=False):
+        """Extract tar-file.
+
+        Args:
+            path (str): Filepath to file.
+            filename (str): Name the dataset is downloaded to.
+            unpack_directory (str): Directory to extract data to.
+            overwrite: (bool) overwrite existing database, default:False
+
+        Returns:
+            os.path: Filepath
         """
-            Extract tar-file.
-
-            Args:
-                path: (str) filepath if empty use user-default path
-                filename (str): Name the dataset is downloaded to.
-                unpack_directory (str): Directory to extract data to.
-                overwrite: (bool) overwrite existing database, default:False
-
-            Returns:
-                os.path: Filepath
-            """
         if not os.path.exists(os.path.join(path, unpack_directory)):
             print("INFO: Creating directory... ", end='', flush=True)
             os.mkdir(os.path.join(path, unpack_directory))

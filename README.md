@@ -83,7 +83,7 @@ The first index of incoming node `i` is usually expected to be sorted for faster
 
 ### Model
 
-Models can be set up in a functional. Example message passing from fundamental operations:
+Models can be set up in a functional way. Example message passing from fundamental operations:
 
 
 ```python
@@ -121,11 +121,12 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 * **[GraphSAGE](kgcnn/literature/GraphSAGE.py)**: [Inductive Representation Learning on Large Graphs](http://arxiv.org/abs/1706.02216) by Hamilton et al. (2017)
 * **[GAT](kgcnn/literature/GAT.py)**: [Graph Attention Networks](https://arxiv.org/abs/1710.10903) by Veličković et al. (2018)
 * **[DimeNetPP](kgcnn/literature/DimeNetPP.py)**: [Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://arxiv.org/abs/2011.14115) by Klicpera et al. (2020)
+* **[AttentiveFP](kgcnn/literature/AttentiveFP.py)**: [Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism](https://pubs.acs.org/doi/10.1021/acs.jmedchem.9b00959) by Xiong et al. (2019)
 
 <a name="datasets"></a>
 # Datasets
 
-In [data](kgcnn/data) there are simple data handling tools that are used for examples.
+In [data](kgcnn/data) there are simple data handling tools that are used for examples, which includes loading [datasets](kgcnn/data/datasets).
 
 <a name="examples"></a>
 # Examples
@@ -144,13 +145,15 @@ Some known issues to be aware of, if using and making new models or layers with 
 If you want to cite this repo, refer to our preprint:
 
 ```
-@misc{reiser2021implementing,
-      title={Implementing graph neural networks with TensorFlow-Keras}, 
-      author={Patrick Reiser and Andre Eberhard and Pascal Friederich},
-      year={2021},
-      eprint={2103.04318},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{REISER2021100095,
+title = {Graph neural networks in TensorFlow-Keras with RaggedTensor representation (kgcnn)},
+journal = {Software Impacts},
+pages = {100095},
+year = {2021},
+issn = {2665-9638},
+doi = {https://doi.org/10.1016/j.simpa.2021.100095},
+url = {https://www.sciencedirect.com/science/article/pii/S266596382100035X},
+author = {Patrick Reiser and Andre Eberhard and Pascal Friederich}
 }
 ```
 

@@ -2,14 +2,14 @@ import numpy as np
 
 
 def get_indexmatrix(shape, flatten=False):
-    """
-    Matrix of indices with a_ijk... = [i,j,k,..] for shape (N,M,...,len(shape)) with Indexlist being the last dimension.
+    r"""Matrix of indices with $a_{ijk\dots} = [i,j,k,\dots] $ for shape (N,M,...,len(shape))
+    with the indices being listed in the last dimension.
 
-    Note: numpy indexing does not work this way but as indices per dimension
+    Note: Numpy indexing does not work this way but as indices per dimension.
 
     Args:
-        shape (list, int): list of target shape, e.g. (2,2)
-        flatten (bool): whether to flatten the output or keep inputshape, default=False
+        shape (list, int): List of target shape, e.g. (2,2)
+        flatten (bool): Whether to flatten the output or keep input-shape. Default is False.
 
     Returns:
         np.array: Index array of shape (N,M,...,len(shape)) e.g. [[[0,0],[0,1]],[[1,0],[1,1]]]
@@ -23,16 +23,15 @@ def get_indexmatrix(shape, flatten=False):
 
 
 def coordinates_to_distancematrix(coord3d):
-    """
-    Transform coordinates to distance matrix. Will apply transformation on last dimension.
+    """Transform coordinates to distance matrix. Will apply transformation on last dimension.
     Changing of shape (...,N,3) -> (...,N,N)
     
     Arg:
-        coord3d (numpy array):  Coordinates of shape (...,N,3) for cartesian coordinates (x,y,z)
-                                and N the number of atoms or points. Coordinates are last dimension.
+        coord3d (np.array): Coordinates of shape (...,N,3) for cartesian coordinates (x,y,z)
+                            and N the number of atoms or points. Coordinates are last dimension.
 
     Returns:
-        distance matrix as numpy array with shape (...,N,N) where N is the number of atoms
+        np.array: distance matrix as numpy array with shape (...,N,N) where N is the number of atoms
     """
     shape_3d = len(coord3d.shape)
     a = np.expand_dims(coord3d, axis=shape_3d - 2)

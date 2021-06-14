@@ -131,7 +131,7 @@ class QM9Dataset(GraphDatasetBase):
             max_mols (int): Maximum number of molecules to take from qm9. Default is 133885.
 
         Returns:
-            list: List of graph props [labels, nodes, edges, edge_idx, gstates]
+            list: [labels, nodes, edges, edge_idx, gstates]
 
             - labels: All labels of qm9
             - nodes: List of atomic numbers for emebdding layer
