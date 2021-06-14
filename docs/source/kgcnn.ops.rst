@@ -60,14 +60,6 @@ kgcnn.ops.sorting module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.ops.types module
-----------------------
-
-.. automodule:: kgcnn.ops.types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
