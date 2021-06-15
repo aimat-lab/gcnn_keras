@@ -50,7 +50,7 @@ class GraphDatasetBase:
                                  self.unpack_directory, overwrite=reload, verbose=verbose)
 
         if self.process_dataset:
-            self.prepare_data()
+            self.prepare_data(overwrite=reload, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory()
@@ -190,11 +190,11 @@ class GraphDatasetBase:
 
         return os.path.join(path, unpack_directory)
 
-    def read_in_memory(self):
+    def read_in_memory(self, verbose=1):
         pass
 
     def get_graph(self):
         pass
 
-    def prepare_data(self):
+    def prepare_data(self, overwrite=False, verbose=1):
         pass

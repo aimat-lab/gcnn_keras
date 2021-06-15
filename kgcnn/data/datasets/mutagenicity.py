@@ -5,6 +5,8 @@ from kgcnn.data.base import GraphDatasetBase
 
 
 class MutagenicityDataset(GraphDatasetBase):
+    """Store and Process Mutagenicity dataset."""
+
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "Mutagenicity"
     download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/Mutagenicity.zip"
@@ -14,7 +16,27 @@ class MutagenicityDataset(GraphDatasetBase):
     unpack_directory = "Mutagenicity"
     fits_in_memory = True
 
+    def __init__(self, reload=False, verbose=1):
+        """Initialize Mutagenicity dataset.
+
+        Args:
+            reload (bool): Whether to reload the data and make new dataset. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
+        self.labels = None
+        self.nodes = None
+        self.edge_indices = None
+        self.edges = None
+        self.atoms = None
+        # Use default base class init()
+        super(MutagenicityDataset, self).__init__(reload=reload, verbose=verbose)
+
     def read_in_memory(self, verbose=1):
+        """Load Mutagenicity data into memory and already split into items.
+
+        Args:
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
 
         # path = os.path.split(os.path.realpath(__file__))[0]
         path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory)
@@ -102,7 +124,8 @@ class MutagenicityDataset(GraphDatasetBase):
         atoms_clean = []
 
         # Remove unconnected atoms. not Na Li etc.
-        print("INFO: Checking database...")
+        if verbose > 0:
+            print("INFO: Checking database...")
         for i in range(len(nodes)):
             nats = nodes[i]
             cons = np.arange(len(nodes[i]))
@@ -135,7 +158,8 @@ class MutagenicityDataset(GraphDatasetBase):
             edges_clean.append(edges[i])
             labels_clean.append(labels[i])
 
-        print("INFO: Database still has unconnected Na+,Li+,ksb+ etc.")
+        if verbose > 0:
+            print("INFO: Database still has unconnected Na+,Li+,ksb+ etc.")
 
         self.labels = labels_clean
         self.nodes = nodes_clean
@@ -147,7 +171,13 @@ class MutagenicityDataset(GraphDatasetBase):
         return self.labels, self.nodes, self.edge_indices, self.edges, self.atoms
 
     def get_graph(self):
+        """Make graph tensor objects for Mutagenicity.
+
+        Returns:
+            tuple: labels, nodes, edge_indices, edges, atoms
+        """
         return self.labels, self.nodes, self.edge_indices, self.edges, self.atoms
+
 
 # labels,nodes,edge_indices,edges,atoms = mutagenicity_graph()
 

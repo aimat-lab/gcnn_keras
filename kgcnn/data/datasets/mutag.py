@@ -13,7 +13,7 @@ class MUTAGDataset(GraphDatasetBase):
     unpack_zip = True
     unpack_directory = "MUTAG"
 
-    def read_in_memory(self):
+    def read_in_memory(self, verbose=1):
         path = os.path.join(self.data_main_dir,self.data_directory,self.unpack_directory)
         # adj_matrix
         mutag_a = []
@@ -99,8 +99,10 @@ class MUTAGDataset(GraphDatasetBase):
             is_cons[test_cons] = True
             all_cons.append(np.sum(is_cons == False))
         all_cons = np.array(all_cons)
-        print("Datainfo: Mol index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
-              all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
+
+        if verbose > 0:
+            print("Datainfo: Mol index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+                  all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         # Set Graph props
         self.labels = labels
@@ -109,7 +111,6 @@ class MUTAGDataset(GraphDatasetBase):
         self.edges = edges
 
         return self.labels, self.nodes, self.edge_indices, self.edges
-
 
     def get_graph(self):
         return self.labels, self.nodes, self.edge_indices, self.edges
