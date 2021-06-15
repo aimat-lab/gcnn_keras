@@ -7,7 +7,7 @@ from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingLocalEdges')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
     """Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     
@@ -36,10 +36,10 @@ class PoolingLocalEdges(GraphBaseLayer):
 
             - nodes (tf.ragged): Node features of shape (batch, [N], F)
             - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
     
         Returns:
-            features: Pooled feature tensor of pooled edge features for each node.
+            tf.ragged: Pooled feature tensor of pooled edge features for each node.
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here
@@ -78,10 +78,9 @@ class PoolingLocalEdges(GraphBaseLayer):
 PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingWeightedLocalEdges')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
 class PoolingWeightedLocalEdges(GraphBaseLayer):
-    """
-    Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
+    """Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
     
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     Apply e.g. segment_mean for index[0] incoming nodes. 
@@ -112,11 +111,11 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 
             - nodes (tf.ragged): Node features of shape (batch, [N], F)
             - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
             - weights (tf.ragged): Edge or message weights. Must broadcast to edges or messages, e.g. (batch, [M], 1)
 
         Returns:
-            features: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
+            tf.ragged: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 4)
         # We cast to values here
@@ -164,10 +163,9 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingNodes')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodes')
 class PoolingNodes(GraphBaseLayer):
-    """
-    Polling all nodes per batch. The batch assignment is given by a length-tensor.
+    """Polling all nodes per batch. The batch assignment is given by a length-tensor.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -189,7 +187,7 @@ class PoolingNodes(GraphBaseLayer):
             inputs (tf.ragged): Node features of shape (batch, [N], F)
     
         Returns:
-            nodes (tf.tensor): Pooled node features of shape (batch, F)
+            tf.tensor: Pooled node features of shape (batch, F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         # We cast to values here
@@ -207,10 +205,9 @@ class PoolingNodes(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingWeightedNodes')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedNodes')
 class PoolingWeightedNodes(GraphBaseLayer):
-    """
-    Polling all nodes per batch. The batch assignment is given by a length-tensor.
+    """Polling all nodes per batch. The batch assignment is given by a length-tensor.
 
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -235,7 +232,7 @@ class PoolingWeightedNodes(GraphBaseLayer):
             - weights (tf.ragged): Node or message weights. Most broadcast to nodes. Shape (batch, [N], 1).
 
         Returns:
-            nodes (tf.tensor): Pooled node features of shape (batch,F)
+            tf.tensor: Pooled node features of shape (batch, F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -254,10 +251,9 @@ class PoolingWeightedNodes(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingGlobalEdges')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingGlobalEdges')
 class PoolingGlobalEdges(GraphBaseLayer):
-    """
-    Pooling all edges per graph. The batch assignment is given by a length-tensor.
+    """Pooling all edges per graph. The batch assignment is given by a length-tensor.
 
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -296,7 +292,7 @@ class PoolingGlobalEdges(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingLocalEdgesLSTM')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesLSTM')
 class PoolingLocalEdgesLSTM(GraphBaseLayer):
     """
     Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
@@ -414,9 +410,8 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
             - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
             - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
 
-
         Returns:
-            features: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
+            tf.ragged: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here

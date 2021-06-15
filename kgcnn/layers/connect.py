@@ -1,16 +1,14 @@
 import tensorflow as tf
-
+# import tensorflow.keras.backend as ksb
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
-# import tensorflow.keras.backend as ksb
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='AdjacencyPower')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AdjacencyPower')
 class AdjacencyPower(GraphBaseLayer):
-    """
-    Computes powers of the adjacency matrix. This implementation is a temporary solution.
+    """Computes powers of the adjacency matrix. This implementation is a temporary solution.
     
-    Note: Layer casts to dense until sparse matmul is supported. This is very inefficient.
+    Note: Layer casts to dense until sparse matmul is supported. This can be very inefficient.
         
     Args:
         n (int): Power of the adjacency matrix. Default is 2.
@@ -26,14 +24,14 @@ class AdjacencyPower(GraphBaseLayer):
         super(AdjacencyPower, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward path.
+        """Forward pass.
 
         Args:
             inputs (list): [nodes, edges, edge_indices]
 
-            - nodes (tf.ragged): Node emebeddings of shape (batch, [N], F)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - edges (tf.ragged): Adjacency entries of shape (batch, [M], 1)
-            - edge_indices (tf.ragged): Index list of shape (batch, [M], 2)
+            - edge_indices (tf.ragged): Edge-index list referring to nodes of shape (batch, [M], 2)
             
         Returns:
             list: [edges, edge_indices]
@@ -76,7 +74,7 @@ class AdjacencyPower(GraphBaseLayer):
 
         # debug_result = out
 
-        # sparsify
+        # Make sparse
         mask = out > tf.keras.backend.epsilon()
         mask = tf.reshape(mask, (-1,))
         out = tf.reshape(out, (-1,))

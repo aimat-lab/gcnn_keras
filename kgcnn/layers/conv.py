@@ -9,17 +9,18 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, P
     PoolingNodes
 import kgcnn.ops.activ
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GCN')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
 class GCN(GraphBaseLayer):
     r"""Graph convolution according to Kipf et al.
     
-    Computes graph conv as $\sigma(A_s*(WX+b))$ where $A_s$ is the precomputed and scaled adjacency matrix.
+    Computes graph convolution as $\sigma(A_s*(WX+b))$ where $A_s$ is the precomputed and scaled adjacency matrix.
     The scaled adjacency matrix is defined by $A_s = D^{-0.5} (A + I) D{^-0.5}$ with the degree matrix $D$.
     In place of $A_s$, this layers uses edge features (that are the entries of $A_s$) and edge indices.
     $A_s$ is considered pre-scaled, this is not done by this layer.
     If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
     obtain a similar behaviour that is expected by a pre-scaled adjacency matrix input.
-    Edge features must be possible to broadcast to node features. Ideally they have shape (...,1).
+    Edge features must be possible to broadcast to node features. Ideally they have shape (..., 1).
     
     Args:
         units (int): Output dimension/ units of dense layer.
@@ -84,10 +85,10 @@ class GCN(GraphBaseLayer):
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            embeddings: Node embeddings of shape (batch, [N], F)
+            tf.ragged: Node embeddings of shape (batch, [N], F)
         """
         node, edges, edge_index = inputs
         no = self.lay_dense(node)
@@ -110,7 +111,7 @@ class GCN(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SchNetCFconv')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='SchNetCFconv')
 class SchNetCFconv(GraphBaseLayer):
     """Continuous filter convolution of SchNet.
     
@@ -179,12 +180,12 @@ class SchNetCFconv(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node embeddings of shape (batch, [N], F)
-            - edges: Edge or message embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+            - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
         
         Returns:
-            node_update: Updated node features.
+            tf.ragged: Updated node features.
         """
         node, edge, indexlist = inputs
         x = self.lay_dense1(edge)

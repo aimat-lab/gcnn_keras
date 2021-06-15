@@ -38,13 +38,13 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         Args:
             inputs: [node, edges, attention, edge_indices]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+            - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
             - attention (tf.ragged): Attention coefficients of shape (batch, [M], 1)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], F)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], F)
 
         Returns:
-            embeddings: Feature tensor of pooled edge attentions for each node of shape (batch, [N], F)
+            tf.ragged: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 4)
 
@@ -159,12 +159,12 @@ class AttentionHeadGAT(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-            - nodes: Node features of shape (batch, [N], F)
-            - edges: Edge or message features of shape (batch, [M], F)
-            - edge_index: Edge indices of shape (batch, [M], 2)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+            - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            features: Feature tensor of pooled edge attentions for each node.
+            tf.ragged: Embedding tensor of pooled edge attentions for each node.
         """
         node, edge, edge_index = inputs
 
@@ -199,7 +199,7 @@ class AttentiveHeadFP(GraphBaseLayer):
     The attention coefficients are computed by $a_{ij} = \sigma_1( W_1 [h_i || h_j] )$.
     The initial representation $h_i$ and $h_j$ must be calculated beforehand.
     The attention is obtained by $\alpha_ij = softmax_j (a_{ij})$.
-    And finally pooled through for context $C_i = \sigma_2(\sum_j \alpha_{ij} W_2 h_j)$.
+    And finally pooled for context $C_i = \sigma_2(\sum_j \alpha_{ij} W_2 h_j)$.
 
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
 
@@ -267,12 +267,12 @@ class AttentiveHeadFP(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-            - nodes: Node features of shape (batch, [N], F)
-            - edges: Edge or message features of shape (batch, [M], F)
-            - edge_index: Edge indices of shape (batch, [M], 2)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+            - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            features: Hidden tensor of pooled edge attentions for each node.
+            tf.ragged: Hidden tensor of pooled edge attentions for each node.
         """
         node, edge, edge_index = inputs
 
@@ -309,7 +309,7 @@ class AttentiveHeadFP(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttention')
 class PoolingNodesAttention(GraphBaseLayer):
-    r"""Pooling all nodes
+    r"""Pooling all nodes.
     Uses attention for pooling. i.e.  $s =  \sum_j \alpha_{i} n_i $
     The attention is computed via: $\alpha_i = softmax_i (a_i)$ from the attention coefficients $a_i$.
     The attention coefficients must be computed beforehand by edge features or by $\sigma( W [s || n_i])$ and
@@ -332,11 +332,11 @@ class PoolingNodesAttention(GraphBaseLayer):
         Args:
             inputs: [nodes, attention]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - attention (tf.ragged): Attention coefficients of shape (batch, [N], 1)
 
         Returns:
-            embeddings: Feature tensor of pooled node of shape (batch, F)
+            tf.tensor: Embedding tensor of pooled node of shape (batch, F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -435,10 +435,10 @@ class AttentiveNodePooling(GraphBaseLayer):
         Args:
             inputs: nodes
 
-            - nodes: Node features of shape (batch, [N], F)
+            - nodes (tf.ragged): Node features of shape (batch, [N], F)
 
         Returns:
-            features: Hidden tensor of pooled edge attentions for each node.
+            tf.tensor: Hidden tensor of pooled node attentions of shape (batch, F).
         """
         node = inputs
 

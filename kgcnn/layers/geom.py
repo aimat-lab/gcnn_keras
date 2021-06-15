@@ -7,7 +7,7 @@ from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_nor
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='NodeDistance')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeDistance')
 class NodeDistance(GraphBaseLayer):
     """Compute geometric node distances similar to edges.
 
@@ -30,10 +30,10 @@ class NodeDistance(GraphBaseLayer):
             inputs (list): [position, edge_index]
 
             - position (tf.ragged): Node positions of shape (batch, [N], 3)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            distances: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
+            tf.ragged: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -60,7 +60,7 @@ class NodeDistance(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='NodeAngle')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeAngle')
 class NodeAngle(GraphBaseLayer):
     """Compute geometric node angles.
 
@@ -85,7 +85,7 @@ class NodeAngle(GraphBaseLayer):
             - node_index (tf.ragged): Node indices of shape (batch, [M], 3) referring to nodes
 
         Returns:
-            angles: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
+            tf.ragged: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -119,7 +119,7 @@ class NodeAngle(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='EdgeAngle')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeAngle')
 class EdgeAngle(GraphBaseLayer):
     """Compute geometric edge angles.
 
@@ -145,7 +145,7 @@ class EdgeAngle(GraphBaseLayer):
             - angle_index (tf.ragged): Angle indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
-            angles: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
+            tf.ragged: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
@@ -186,7 +186,7 @@ class EdgeAngle(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='BesselBasisLayer')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     """
     Expand a distance into a Bessel Basis with l=m=0, according to Klicpera et al. 2020
@@ -233,7 +233,7 @@ class BesselBasisLayer(GraphBaseLayer):
             - distance (tf.ragged): Edge distance of shape (batch, [K], 1)
 
         Returns:
-            distances: Expanded distance. Shape is (batch, [K], #Radial)
+            tf.ragged: Expanded distance. Shape is (batch, [K], #Radial)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         # We cast to values here
@@ -253,7 +253,7 @@ class BesselBasisLayer(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SphericalBasisLayer')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='SphericalBasisLayer')
 class SphericalBasisLayer(GraphBaseLayer):
     """
     Expand a distance into a Bessel Basis with l=m=0, according to Klicpera et al. 2020
@@ -300,10 +300,10 @@ class SphericalBasisLayer(GraphBaseLayer):
 
             - distance (tf.ragged): Edge distance of shape (batch, [M], 1)
             - angles (tf.ragged): Angle list of shape (batch, [K], 1)
-            - angle_index (tf.ragged): Indices referring to edges of shape (batch, [K], 2)
+            - angle_index (tf.ragged): Angle indices referring to edges of shape (batch, [K], 2)
 
         Returns:
-            angles: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
+            tf.ragged: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         edge, edge_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
@@ -335,7 +335,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         cbf = tf.repeat(cbf, self.num_radial, axis=1)
         out = rbf_env * cbf
 
-        out = self._kgcnn_map_output_ragged([out, angle_part], "row_splits", 0) # out
+        out = self._kgcnn_map_output_ragged([out, angle_part], "row_splits", 0)  # out
         return out
 
     def get_config(self):

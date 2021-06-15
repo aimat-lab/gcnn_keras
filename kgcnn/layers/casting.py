@@ -6,8 +6,7 @@ from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_par
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeTensorType')
 class ChangeTensorType(ks.layers.Layer):
-    """
-    Layer to change graph representation.
+    """Layer to change graph representation tensor type.
 
     Args:
         partition_type (str): Partition tensor type. Default is "row_length".
@@ -33,10 +32,10 @@ class ChangeTensorType(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs: Graph tensor-information.
+            inputs: Graph tensor.
 
         Returns:
-            outputs: Changed tensor-information.
+            tensor: Changed tensor type.
         """
         return kgcnn_ops_dyn_cast(inputs, input_tensor_type=self.input_tensor_type,
                                   output_tensor_type=self.output_tensor_type,
@@ -54,8 +53,7 @@ class ChangeTensorType(ks.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeIndexing')
 class ChangeIndexing(ks.layers.Layer):
-    """
-    Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph
+    """Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph
     representation or vice-versa.
     
     Example: 
@@ -66,11 +64,9 @@ class ChangeIndexing(ks.layers.Layer):
     
     Args:
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
-                           The disjoint representation assigns nodes within the 'batch'.
-                           It changes "sample" to "batch" or "batch" to "sample."
-                           Default is 'batch'.
-        from_indexing (str): Index convention that has been set for the input.
-                             Default is 'sample'.
+            The disjoint representation assigns nodes within the 'batch'.
+            It changes "sample" to "batch" or "batch" to "sample." Default is 'batch'.
+        from_indexing (str): Index convention that has been set for the input. Default is 'sample'.
         partition_type (str): Partition tensor type. Default is "row_length". Only used for values_partition input.
         input_tensor_type (str): Input type of the tensors for call(). Default is "values_partition".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
@@ -117,11 +113,11 @@ class ChangeIndexing(ks.layers.Layer):
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes: Node features of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2).
+            - nodes: Node embeddings of shape (batch, [N], F)
+            - edge_index: Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
-            edge_index: Corrected edge indices.
+            tf.ragged: Corrected edge indices of shape (batch, [N], 2).
         """
         if self.input_tensor_type == "values_partition":
             [_, part_node], [edge_index, part_edge] = inputs

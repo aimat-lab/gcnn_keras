@@ -5,10 +5,9 @@ from kgcnn.layers.keras import Dense
 from kgcnn.layers.base import GraphBaseLayer
 
 # import tensorflow.keras.backend as ksb
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='MLP')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(GraphBaseLayer):
-    """
-    Multilayer perceptron that consist of N dense keras layers.
+    """Multilayer perceptron that consist of N dense keras layers.
         
     Args:
         units: Positive integer, dimensionality of the output space.
@@ -109,8 +108,7 @@ class MLP(GraphBaseLayer):
             inputs: Input tensor.
 
         Returns:
-            out: MLP pass.
-        
+            tensor: MLP pass.
         """
         x = inputs
         for i in range(len(self.mlp_units)):

@@ -4,9 +4,9 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodes')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodes')
 class GatherNodes(GraphBaseLayer):
-    """Gather nodes by node indices.
+    """Gather nodes by indices, e.g. that define an edge.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
@@ -30,10 +30,10 @@ class GatherNodes(GraphBaseLayer):
             inputs (list): [nodes, edge_index]
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Node indices for edges of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            embeddings: Gathered node embeddings that match the number of edges.
+            tf.ragged: Gathered node embeddings that match the number of edges.
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -62,7 +62,7 @@ class GatherNodes(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodesOutgoing')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesOutgoing')
 class GatherNodesOutgoing(GraphBaseLayer):
     """Gather nodes by indices.
 
@@ -85,10 +85,10 @@ class GatherNodesOutgoing(GraphBaseLayer):
             inputs (list): [nodes, edge_index]
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Node indices for edges of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            embeddings: Gathered node embeddings that match the number of edges.
+            tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
 
@@ -114,7 +114,7 @@ class GatherNodesOutgoing(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherNodesIngoing')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesIngoing')
 class GatherNodesIngoing(GraphBaseLayer):
     """Gather nodes by edge edge_indices.
     
@@ -137,10 +137,10 @@ class GatherNodesIngoing(GraphBaseLayer):
             inputs (list): [nodes, edge_index]
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Node indices for edges of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            embeddings: Gathered node embeddings that match the number of edges.
+            tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
 
@@ -166,7 +166,7 @@ class GatherNodesIngoing(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GatherState')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherState')
 class GatherState(GraphBaseLayer):
     """Layer to repeat environment or global state for node or edge lists.
     
@@ -191,7 +191,7 @@ class GatherState(GraphBaseLayer):
             - target (tf.ragged): Target to collect state for, of shape (batch, [N], F)
 
         Returns:
-            state: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
+            tf.ragged: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
         """
         dyn_inputs, = self._kgcnn_map_input_ragged([inputs[1]], 1)
 

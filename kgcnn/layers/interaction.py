@@ -12,7 +12,7 @@ import kgcnn.ops.initializer
 from kgcnn.layers.conv import SchNetCFconv
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='SchNetInteraction')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='SchNetInteraction')
 class SchNetInteraction(GraphBaseLayer):
     """
     Schnet interaction block, which uses the continuous filter convolution from SchNetCFconv.
@@ -77,12 +77,12 @@ class SchNetInteraction(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes: Node embeddings of shape (batch, [N], F)
-            - edges: Edge or message embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices of shape (batch, [N], 2)
+            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+            - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
 
         Returns:
-            node_update: Updated node embeddings.
+            tf.ragged: Updated node embeddings.
         """
         node, edge, indexlist = inputs
         x = self.lay_dense1(node)
@@ -102,7 +102,7 @@ class SchNetInteraction(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ResidualLayer')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ResidualLayer')
 class ResidualLayer(GraphBaseLayer):
     """Residual Layer as defined by DimNet.
 
@@ -155,7 +155,7 @@ class ResidualLayer(GraphBaseLayer):
             inputs (tf.ragged): Node or edge embedding of shape (batch, [N], F)
 
         Returns:
-            embeddings: Node or edge embedding of shape (batch, [N], F)
+            tf.ragged: Node or edge embedding of shape (batch, [N], F)
         """
         x = self.dense_1(inputs)
         x = self.dense_2(x)
@@ -171,7 +171,7 @@ class ResidualLayer(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='DimNetInteractionPPBlock')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DimNetInteractionPPBlock')
 class DimNetInteractionPPBlock(GraphBaseLayer):
     """DimNetInteractionPPBlock as defined by DimNet.
 
@@ -200,13 +200,13 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                  num_after_skip,
                  use_bias=True,
                  pooling_method="sum",
-                 activation='kgcnn>swish', # default is 'swish'
+                 activation='kgcnn>swish',  # default is 'swish'
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 kernel_initializer="kgcnn>glorot_orthogonal", # default is 'glorot_orthogonal'
+                 kernel_initializer="kgcnn>glorot_orthogonal",  # default is 'glorot_orthogonal'
                  bias_initializer='zeros',
                  **kwargs):
         super(DimNetInteractionPPBlock, self).__init__(**kwargs)
@@ -269,7 +269,7 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
             - edges (tf.ragged): Edge embeddings of shape (batch, [M], F)
             - rbf (tf.ragged): Radial basis features of shape (batch, [M], F)
             - sbf (tf.ragged): Spherical basis features of shape (batch, [K], F)
-            - angle_index (tf.ragged): Angle indices between two edges of shape (batch, [K], 2)
+            - angle_index (tf.ragged): Angle indices referring to two edges of shape (batch, [K], 2)
 
         Returns:
             tf.ragged: Updated edge embeddings.

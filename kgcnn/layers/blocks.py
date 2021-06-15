@@ -10,7 +10,8 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, P
 import kgcnn.ops.activ
 import kgcnn.ops.initializer
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='MEGnetBlock')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
 class MEGnetBlock(GraphBaseLayer):
     """Megnet Block.
 
@@ -94,11 +95,11 @@ class MEGnetBlock(GraphBaseLayer):
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
             - state (tf.tensor): State information for the graph, a single tensor of shape (batch, F)
 
         Returns:
-            node_update: Updated node embeddings of shape (batch, [N], F)
+            tf.ragged: Updated node embeddings of shape (batch, [N], F)
         """
         # Calculate edge Update
         node_input, edge_input, edge_index_input, env_input = inputs
@@ -135,7 +136,7 @@ class MEGnetBlock(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='DimNetOutputBlock')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DimNetOutputBlock')
 class DimNetOutputBlock(GraphBaseLayer):
     """DimNetOutputBlock.
 
@@ -206,10 +207,10 @@ class DimNetOutputBlock(GraphBaseLayer):
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
             - rbf (tf.ragged): Edge distance basis of shape (batch, [M], F)
-            - edge_index (tf.ragged): Node indices of shape (batch, [M], 2)
+            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            node_update (tf.ragged): Updated node embeddings.
+            tf.ragged: Updated node embeddings of shape (batch, [N], F_T).
         """
         # Calculate edge Update
         n_atoms, x, rbf, idnb_i = inputs
