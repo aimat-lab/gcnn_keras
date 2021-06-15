@@ -31,8 +31,7 @@ def make_nmpn(
         set2set_args: dict = None,
         pooling_args: dict = None
 ):
-    """
-    Get Message passing model.
+    """Get Message passing model.
 
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
@@ -40,10 +39,10 @@ def make_nmpn(
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
             'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-            'input_type': 'ragged'}
+            'input_tensor_type': 'ragged'}
         output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_type": 'padded'}
-        output_mlp (dict): Dictionary of MLP arguments for output regression or classifcation. Default is
+            {"output_mode": 'graph', "output_tensor_type": 'padded'}
+        output_mlp (dict): Dictionary of MLP arguments for output regression or classification. Default is
             {"use_bias": [True, True, False], "units": [25, 10, 1],
             "output_activation": ['selu', 'selu', 'sigmoid']}
         depth (int, optional): Depth. Defaults to 3.
@@ -57,7 +56,7 @@ def make_nmpn(
             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
-        model (ks.models.Model): Message Passing model.
+        ks.models.Model: Message Passing model.
     """
     # Make default parameter
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,

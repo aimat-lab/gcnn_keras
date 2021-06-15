@@ -44,6 +44,7 @@ def make_attentiveFP(  # Input
         depth (int): Number of convolution layers. Default is 3.
         attention_args (dict): Layer arguments for attention layer. Default is
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+
     Returns:
         tf.keras.model: AttentiveFP model.
     """

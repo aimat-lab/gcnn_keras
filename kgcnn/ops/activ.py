@@ -82,7 +82,7 @@ def swish(x):
     from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"
 
     Args:
-        x (tf.tensor): values to apply activation to using tf.keras functions
+        x (tf.tensor): Values to apply activation to. Using tf.keras functions.
 
     Returns:
         tf.tensor: x*tf.sigmoid(x)

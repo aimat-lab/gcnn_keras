@@ -33,10 +33,10 @@ def make_gat(  # Input
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
             'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-            'input_type': 'ragged'}.
+            'input_tensor_type': 'ragged'}.
         output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_type": 'padded'}.
-        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation layer. Default is
+            {"output_mode": 'graph', "output_tensor_type": 'padded'}.
+        output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
             {"use_bias": [True, True, False], "units": [25, 10, 1],
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int): Number of convolution layers. Default is 3.
@@ -44,6 +44,7 @@ def make_gat(  # Input
         attention_heads_concat (bool): Concat attention. Default is False.
         attention_args (dict): Layer arguments for attention layer. Default is
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+
     Returns:
         tf.keras.model: GAT model.
     """

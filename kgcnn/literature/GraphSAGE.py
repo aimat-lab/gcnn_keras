@@ -13,7 +13,6 @@ from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 # William L. Hamilton and Rex Ying and Jure Leskovec
 # http://arxiv.org/abs/1706.02216
 
-
 def make_graph_sage(  # Input
         input_node_shape,
         input_edge_shape,
@@ -28,8 +27,7 @@ def make_graph_sage(  # Input
         edge_mlp_args: dict = None,
         pooling_args: dict = None
 ):
-    """
-    Generate Interaction network.
+    """Generate GraphSAGE network.
 
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
@@ -37,10 +35,10 @@ def make_graph_sage(  # Input
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
             'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-            'input_type': 'ragged'}.
+            'input_tensor_type': 'ragged'}.
         output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_type": 'padded'}.
-        output_mlp (dict): Dictionary of arguments for final MLP regression or classifcation layer. Default is
+            {"output_mode": 'graph', "output_tensor_type": 'padded'}.
+        output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
             {"use_bias": [True, True, False], "units": [25, 10, 1],
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int): Number of convolution layers. Default is 3.
@@ -54,8 +52,7 @@ def make_graph_sage(  # Input
             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
-        model (tf.keras.model): Interaction model.
-
+        tf.keras.model: GraphSAGE model.
     """
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
@@ -85,8 +82,6 @@ def make_graph_sage(  # Input
                                                                                           input_edge_shape, None,
                                                                                           **input_embedd)
     edi = edge_index_input
-
-
 
     for i in range(0, depth):
         # upd = GatherNodes()([n,edi])

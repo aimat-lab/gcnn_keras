@@ -21,13 +21,13 @@ def make_dimnet_pp(
         # Output
         output_embedd: dict = None,
         # Model specific parameter
-        emb_size = 128,
-        out_emb_size = 256,
-        int_emb_size = 64,
-        basis_emb_size =8,
-        num_blocks = 4,
-        num_spherical = 7,
-        num_radial= 6,
+        emb_size=128,
+        out_emb_size=256,
+        int_emb_size=64,
+        basis_emb_size=8,
+        num_blocks=4,
+        num_spherical=7,
+        num_radial=6,
         cutoff=5.0,
         envelope_exponent=5,
         num_before_skip=1,
@@ -44,23 +44,23 @@ def make_dimnet_pp(
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}}
-        output_embedd (dict):
-        emb_size:
-        out_emb_size:
-        int_emb_size:
-        basis_emb_size:
-        num_blocks:
-        num_spherical:
-        num_radial:
-        cutoff:
-        envelope_exponent:
-        num_before_skip:
-        num_after_skip:
-        num_dense_output:
-        num_targets:
-        activation:
-        extensive:
-        output_init:
+        output_embedd (dict): Dictionary of embedding parameters of the graph network. Not used.
+        emb_size (int):
+        out_emb_size (int):
+        int_emb_size (int):
+        basis_emb_size (int):
+        num_blocks (int):
+        num_spherical (int):
+        num_radial (int):
+        cutoff (float):
+        envelope_exponent (int):
+        num_before_skip (int):
+        num_after_skip (int):
+        num_dense_output (int):
+        num_targets (int):
+        activation (int):
+        extensive (int):
+        output_init (int):
 
     Returns:
         tf.keras.model: DimeNet++ model.
