@@ -5,7 +5,7 @@ from kgcnn.data.base import GraphDatasetBase
 
 
 class MutagenicityDataset(GraphDatasetBase):
-    """Store and Process Mutagenicity dataset."""
+    """Store and process Mutagenicity dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "Mutagenicity"

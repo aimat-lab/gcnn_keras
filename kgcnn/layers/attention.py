@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+# import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
 from kgcnn.layers.keras import Dense, Activation, Concatenate
@@ -10,9 +10,7 @@ from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
 from kgcnn.ops.segment import segment_softmax, kgcnn_ops_segment_operation_by_name
 
 
-# import tensorflow.keras as ks
-
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingLocalEdgesAttention')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
 class PoolingLocalEdgesAttention(GraphBaseLayer):
     r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     Uses attention for pooling. i.e.  $n_i =  \sum_j \alpha_{ij} e_ij $
@@ -91,7 +89,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='AttentionHeadGAT')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
 class AttentionHeadGAT(GraphBaseLayer):
     r"""Computes the attention head according to GAT.
     The attention coefficients are computed by $a_{ij} = \sigma( W n_i || W n_j)$,
@@ -195,7 +193,7 @@ class AttentionHeadGAT(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='AttentiveHeadFP')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentiveHeadFP')
 class AttentiveHeadFP(GraphBaseLayer):
     r"""Computes the attention head for Attentive FP model.
     The attention coefficients are computed by $a_{ij} = \sigma_1( W_1 [h_i || h_j] )$.
@@ -309,7 +307,7 @@ class AttentiveHeadFP(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingNodesAttention')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttention')
 class PoolingNodesAttention(GraphBaseLayer):
     r"""Pooling all nodes
     Uses attention for pooling. i.e.  $s =  \sum_j \alpha_{i} n_i $
@@ -357,7 +355,7 @@ class PoolingNodesAttention(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='AttentiveNodePooling')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentiveNodePooling')
 class AttentiveNodePooling(GraphBaseLayer):
     r"""Computes the attentive pooling for node embeddings.
 
@@ -445,14 +443,14 @@ class AttentiveNodePooling(GraphBaseLayer):
         node = inputs
 
         h = self.lay_pool_start(node)
-        Wn = self.lay_linear_trafo(node)
+        wn = self.lay_linear_trafo(node)
         for _ in range(self.depth):
             hv = self.lay_gather_s([h, node])
             ev = self.lay_concat([hv, node])
             av = self.lay_alpha(ev)
-            cont = self.lay_pool_attention([Wn, av])
+            cont = self.lay_pool_attention([wn, av])
             cont = self.lay_final_activ(cont)
-            h,_ = self.lay_gru(cont, h, **kwargs)
+            h, _ = self.lay_gru(cont, h, **kwargs)
 
         out = h
         return out
@@ -469,6 +467,6 @@ class AttentiveNodePooling(GraphBaseLayer):
         config.update({"activation_context": conf_context["activation"]})
         conf_gru = self.lay_gru.get_config()
         for x in ["recurrent_activation", "recurrent_initializer", "mrecurrent_regularizer", "recurrent_constraint",
-                 "dropout", "recurrent_dropout", "reset_after"]:
+                  "dropout", "recurrent_dropout", "reset_after"]:
             config.update({x: conf_gru[x]})
         return config

@@ -10,7 +10,7 @@ from kgcnn.data.base import GraphDatasetBase
 
 
 class QM9Dataset(GraphDatasetBase):
-    """Store and Process QM9 dataset."""
+    """Store and process QM9 dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "qm9"

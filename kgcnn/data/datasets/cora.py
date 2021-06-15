@@ -5,7 +5,9 @@ import scipy.sparse as sp
 
 from kgcnn.data.base import GraphDatasetBase
 
+
 class CoraDataset(GraphDatasetBase):
+    """Store and process full Cora dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "cora"
@@ -16,9 +18,25 @@ class CoraDataset(GraphDatasetBase):
     unpack_directory = None
     fits_in_memory = True
 
+    def __init__(self, reload=False, verbose=1):
+        """Initialize full Cora dataset.
 
-    def read_in_memory(self):
+        Args:
+            reload (bool): Whether to reload the data and make new dataset. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
+        self.labels = None
+        self.a = None
+        self.x = None
+        # Use default base class init()
+        super(CoraDataset, self).__init__(reload=reload, verbose=verbose)
 
+    def read_in_memory(self, verbose=1):
+        """Load full Cora data into memory and already split into items.
+
+        Args:
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
         filepath = os.path.join(self.data_main_dir, self.data_directory, "cora.npz")
         loader = np.load(filepath, allow_pickle=True)
         loader = dict(loader)
@@ -67,4 +85,9 @@ class CoraDataset(GraphDatasetBase):
         return self.a, self.x, self.labels
 
     def get_graph(self):
+        """Make graph tensor objects for Cora dataset.
+
+        Returns:
+            tuple: A, X, labels
+        """
         return self.a, self.x, self.labels

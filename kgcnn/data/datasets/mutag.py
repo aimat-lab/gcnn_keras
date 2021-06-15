@@ -5,6 +5,7 @@ from kgcnn.data.base import GraphDatasetBase
 
 
 class MUTAGDataset(GraphDatasetBase):
+    """Store and process MUTAG dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "MUTAG"
@@ -13,8 +14,28 @@ class MUTAGDataset(GraphDatasetBase):
     unpack_zip = True
     unpack_directory = "MUTAG"
 
+    def __init__(self, reload=False, verbose=1):
+        """Initialize MUTAG dataset.
+
+        Args:
+            reload (bool): Whether to reload the data and make new dataset. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
+        self.labels = None
+        self.nodes = None
+        self.edge_indices = None
+        self.edges = None
+        # Use default base class init()
+        super(MUTAGDataset, self).__init__(reload=reload, verbose=verbose)
+
     def read_in_memory(self, verbose=1):
-        path = os.path.join(self.data_main_dir,self.data_directory,self.unpack_directory)
+        """Load MUTAG data into memory and already split into items.
+
+        Args:
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
+
+        path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory)
         # adj_matrix
         mutag_a = []
         open_file = open(os.path.join(path, "MUTAG", "MUTAG_A.txt"), "r")
@@ -68,7 +89,7 @@ class MUTAGDataset(GraphDatasetBase):
         mutag_a = mutag_a - 1
         mutag_gi = mutag_gi - 1
 
-        # split into seperate graphs
+        # split into separate graphs
         graph_id, counts = np.unique(mutag_gi, return_counts=True)
         graphlen = np.zeros(n_data, dtype=np.int)
         graphlen[graph_id] = counts
@@ -113,4 +134,9 @@ class MUTAGDataset(GraphDatasetBase):
         return self.labels, self.nodes, self.edge_indices, self.edges
 
     def get_graph(self):
+        """Make graph tensor objects for MUTAG.
+
+        Returns:
+            tuple: labels, nodes, edge_indices, edges
+        """
         return self.labels, self.nodes, self.edge_indices, self.edges
