@@ -38,6 +38,33 @@ def make_dimnet_pp(
         extensive=True,
         output_init='zeros',
         ):
+    """Make DimeNet++ network.
+
+    Args:
+        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
+        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
+            {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}}
+        output_embedd (dict):
+        emb_size:
+        out_emb_size:
+        int_emb_size:
+        basis_emb_size:
+        num_blocks:
+        num_spherical:
+        num_radial:
+        cutoff:
+        envelope_exponent:
+        num_before_skip:
+        num_after_skip:
+        num_dense_output:
+        num_targets:
+        activation:
+        extensive:
+        output_init:
+
+    Returns:
+        tf.keras.model: DimeNet++ model.
+    """
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}
                      }
 

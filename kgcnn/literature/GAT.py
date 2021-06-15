@@ -9,6 +9,9 @@ from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.ops.models import generate_standard_graph_input, update_model_args
 
 
+# Graph Attention Networks by Veličković et al. (2018)
+# https://arxiv.org/abs/1710.10903
+
 def make_gat(  # Input
         input_node_shape,
         input_edge_shape,
@@ -22,8 +25,7 @@ def make_gat(  # Input
         attention_heads_concat=False,
         attention_args: dict = None
 ):
-    """
-    Generate Interaction network.
+    """Generate Graph attention network.
 
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
@@ -43,7 +45,7 @@ def make_gat(  # Input
         attention_args (dict): Layer arguments for attention layer. Default is
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}
     Returns:
-        model (tf.keras.model): Interaction model.
+        tf.keras.model: GAT model.
     """
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
