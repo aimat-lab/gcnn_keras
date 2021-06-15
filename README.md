@@ -131,7 +131,7 @@ In [data](kgcnn/data) there are simple data handling tools that are used for exa
 <a name="examples"></a>
 # Examples
 
-A set of example traing can be found in [example](examples)
+A set of example training can be found in [example](examples)
 
 # Issues
 

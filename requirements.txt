@@ -4,3 +4,4 @@ scipy
 matplotlib
 pandas
 scikit-learn
+requests

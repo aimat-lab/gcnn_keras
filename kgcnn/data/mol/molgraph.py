@@ -5,7 +5,8 @@ try:
     import rdkit.Chem
     import rdkit.Chem.AllChem
 except ModuleNotFoundError:
-    print("Error: For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html")
+    print("Error: For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html",
+          "or check https://pypi.org/project/rdkit-pypi/")
 
 import rdkit
 import rdkit.Chem
@@ -15,7 +16,18 @@ import rdkit.Chem.AllChem
 
 # Will be replaced by a more general method in the future.
 def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
-    """This is a rudiment function for converting a smile string to a graph-like object."""
+    """This is a rudiment function for converting a smile string to a graph-like object.
+
+    Args:
+        smile (str): Smile string for the molecule.
+        nodes (list): Optional list of node properties to extract.
+        edges (list): Optional list of edge properties to extract.
+        state (list): Optional list of molecule properties to extract.
+        is_directed (bool): Whether to add a bond for a directed graph. Default is True.
+
+    Returns:
+        tuple: atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info
+    """
 
     atom_fun_dict = {
         "AtomicNum": rdkit.Chem.rdchem.Atom.GetAtomicNum,
@@ -53,7 +65,7 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
         nodes = sorted(atom_fun_dict.keys())
     else:
         nodes_unknown = [x for x in nodes if x not in sorted(atom_fun_dict.keys())]
-        if len(nodes_unknown)>0:
+        if len(nodes_unknown) > 0:
             print("Warning: Atom property is not defined, ignore following keys:", nodes_unknown)
         nodes = [x for x in nodes if x in sorted(atom_fun_dict.keys())]
     if edges is None:
@@ -70,7 +82,6 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
         if len(state_unknown) > 0:
             print("Warning: Molecule property is not defined, ignore following keys:", state_unknown)
         state = [x for x in state if x in sorted(mol_fun_dict.keys())]
-
 
     # Make molecule from smile via rdkit
     m = rdkit.Chem.MolFromSmiles(smile)

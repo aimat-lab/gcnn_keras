@@ -2,17 +2,17 @@ import numpy as np
 
 
 def get_indexmatrix(shape, flatten=False):
-    r"""Matrix of indices with $a_{ijk\dots} = [i,j,k,\dots] $ for shape (N,M,...,len(shape))
+    r"""Matrix of indices with $a_{ijk\dots} = [i,j,k,\dots] $ for shape (N, M, ..., len(shape))
     with the indices being listed in the last dimension.
 
     Note: Numpy indexing does not work this way but as indices per dimension.
 
     Args:
-        shape (list, int): List of target shape, e.g. (2,2)
+        shape (list, int): List of target shape, e.g. (2, 2).
         flatten (bool): Whether to flatten the output or keep input-shape. Default is False.
 
     Returns:
-        np.array: Index array of shape (N,M,...,len(shape)) e.g. [[[0,0],[0,1]],[[1,0],[1,1]]]
+        np.array: Index array of shape (N, M, ..., len(shape)) e.g. [[[0,0],[0,1]],[[1,0],[1,1]]]
     """
     indarr = np.indices(shape)
     re_order = np.append(np.arange(1, len(shape) + 1), 0)
@@ -24,14 +24,14 @@ def get_indexmatrix(shape, flatten=False):
 
 def coordinates_to_distancematrix(coord3d):
     """Transform coordinates to distance matrix. Will apply transformation on last dimension.
-    Changing of shape (...,N,3) -> (...,N,N)
+    Changing of shape (..., N, 3) -> (..., N, N).
     
     Arg:
-        coord3d (np.array): Coordinates of shape (...,N,3) for cartesian coordinates (x,y,z)
+        coord3d (np.array): Coordinates of shape (..., N, 3) for cartesian coordinates (x, y, z)
             and N the number of atoms or points. Coordinates are last dimension.
 
     Returns:
-        np.array: distance matrix as numpy array with shape (...,N,N) where N is the number of atoms
+        np.array: distance matrix as numpy array with shape (..., N, N) where N is the number of atoms.
     """
     shape_3d = len(coord3d.shape)
     a = np.expand_dims(coord3d, axis=shape_3d - 2)
@@ -43,17 +43,17 @@ def coordinates_to_distancematrix(coord3d):
 
 def invert_distance(d, nan=0, posinf=0, neginf=0):
     """Invert distance array, e.g. distance matrix. Inversion is done for all entries.
-    Keeping of shape (...,) -> (...,)
+    Keeps of shape of distance array (..., ) -> (..., ).
     
     Args:
-        d (numpy array): array of distance values of shape (...,)
-        nan (value): replacement for np.nan after division, default = 0
-        posinf (value): replacement for np.inf after division, default = 0
-        neginf (value): replacement for -np.inf after division, default = 0
+        d (numpy array): Array of distance values of shape (..., )
+        nan (value): Replacement for np.nan after division. Default is 0.
+        posinf (value): Replacement for np.inf after division. Default is 0.
+        neginf (value): Replacement for -np.inf after division. Default is 0.
         
     Returns:
-        Inverted distance array as numpy array of identical shape (...,) and
-        replaces np.nan and np.inf with e.g. 0
+        np.array: Inverted distance array as np.array of identical shape (..., ) and
+            replaces np.nan and np.inf with e.g. 0
     """
     with np.errstate(divide='ignore', invalid='ignore'):
         c = np.true_divide(1, d)
@@ -64,17 +64,17 @@ def invert_distance(d, nan=0, posinf=0, neginf=0):
 
 def distance_to_gaussdistance(distance, gbins=20, grange=4, gsigma=0.4):
     """Convert distance array to smooth one-hot representation using Gaussian functions.
-    Changes shape for gaussian distance (...,) -> (...,GBins)
-    The Default values match units in Angstroem.
+    Changes shape for gaussian distance (..., ) -> (..., gbins).
+    The Default values match realistic units in Angstroem.
     
     Args:
-        distance (numpy array): Array of distances of shape (...,)
-        gbins (int): number of Bins to sample distance from, default = 25
-        grange (value): maximum distance to be captured by bins, default = 5.0
-        gsigma (value): sigma of the gaussian function, determining the width/sharpness, default = 0.5
+        distance (numpy array): Array of distances of shape (..., )
+        gbins (int): Number of Bins to sample distance from. Default is 20
+        grange (value): Maximum distance to be captured by bins. Default is 4.0
+        gsigma (value): Sigma of the gaussian function, determining the width/sharpness. Default is 0.4
     
     Returns:
-        Numpy array of gaussian distance with expanded last axis (...,GBins)
+        np.array: Array of gaussian distance with expanded last axis (..., gbins)
     """
     gamma = 1 / gsigma / gsigma * (-1) / 2
     d_shape = distance.shape
@@ -89,28 +89,27 @@ def distance_to_gaussdistance(distance, gbins=20, grange=4, gsigma=0.4):
 
 def get_connectivity_from_inversedistancematrix(invdistmat, protons, radii_dict=None, k1=16.0, k2=4.0 / 3.0,
                                                 cutoff=0.85, force_bonds=True):
-    """Get connectivity table from inverse distance matrix defined at last dimensions (...,N,N) and
-    corresponding bond-radii. Keeps shape with (...,N,N).
+    """Get connectivity table from inverse distance matrix defined at last dimensions (..., N, N) and
+    corresponding bond-radii. Keeps shape with (..., N, N).
     Covalent radii, from Pyykko and Atsumi, Chem. Eur. J. 15, 2009, 188-197. 
     Values for metals decreased by 10% according to Robert Paton's Sterimol implementation. 
-    Partially based on code from Robert Paton's Sterimol script, which based this part on Grimme's D3 code
+    Partially based on code from Robert Paton's Sterimol script, which based this part on Grimme's D3 code.
     
     Args:
-        invdistmat (numpy array):   inverse distance matrix defined at last dimensions (...,N,N)
-                                    distances must be in Angstroem not in Bohr  
-        protons (numpy array):      An array of atomic numbers matching the invdistmat (...,N),
-                                    for which the radii are to be computed.
-        radii_dict (numpy array):   covalent radii for each element. If default=None, stored values are used.
-                                    Otherwise array with covalent bonding radii.
-                                    example: np.array([0, 0.34, 0.46, 1.2, ...]) from {'H': 0.34, 'He': 0.46,
-                                    'Li': 1.2, ...}
-        k1 (value):                 default = 16
-        k2 (value):                 default = 4.0/3.0
-        cutoff (value):             cutoff value to set values to Zero (no bond) default = 0.85
-        force_bonds (value):        whether to force at least one bond in the bond table per atom (default = True)
+        invdistmat (numpy array): Inverse distance matrix defined at last dimensions (..., N, N)
+            distances must be in Angstroem not in Bohr
+        protons (numpy array): An array of atomic numbers matching the invdistmat (..., N),
+            for which the radii are to be computed.
+        radii_dict (numpy array): Covalent radii for each element. If default=None, stored values are used.
+            Otherwise array with covalent bonding radii. Example: np.array([0, 0.34, 0.46, 1.2, ...]) from
+            {'H': 0.34, 'He': 0.46, 'Li': 1.2, ...}.
+        k1 (value): K1-value. Defaults to 16
+        k2 (value): K2-value. Defaults to 4.0/3.0
+        cutoff (value): Cutoff value to set values to Zero (no bond). Defaults to 0.85
+        force_bonds (value): Whether to force at least one bond in the bond table per atom (default = True).
         
-    Retruns:
-        Connectivity table with 1 for chemical bond and zero otherwise of shape (...,N,N) -> (...,N,N)
+    Returns:
+        np.array: Connectivity table with 1 for chemical bond and zero otherwise of shape (..., N, N) -> (..., N, N)
     """
     # Dictionary of bond radii
     proton_raddi_dict = np.array(
@@ -150,21 +149,21 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
                                    self_loops=False):
     """Construct adjacency matrix from a distance matrix by distance and number of neighbours. Works for batches.
     
-    This does take into account special bonds (e.g. chemical) just a general distance measure.
+    This does not take into account special bonds (e.g. chemical) just a general distance measure.
     Tries to connect nearest neighbours.
 
     Args:
-        distance_matrix (np.array): distance Matrix of shape (...,N,N)
+        distance_matrix (np.array): Distance Matrix of shape (..., N, N)
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to np.inf.
         max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to np.inf.
         exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
         self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
 
     Returns:
-        tuple: graph_adjacency,graph_indices
+        tuple: graph_adjacency, graph_indices
         
-        - graph_adjacency (np.array): Adjacency Matrix of shape (...,N,N) of dtype=np.bool.
-        - graph_indices (np.array): Flatten indices from former array that have Adjacency == True.
+        - graph_adjacency (np.array): Adjacency Matrix of shape (..., N, N) of dtype=np.bool.
+        - graph_indices (np.array): Flatten indices from former array that have adjacency == True.
     """
     distance_matrix = np.array(distance_matrix)
     num_atoms = distance_matrix.shape[-1]
@@ -210,13 +209,15 @@ def get_angle_indices(idx, is_sorted=False):
     """Compute index list for edge-pairs forming an angle.
 
     Args:
-        idx (np.array): List of edge indices of shape (N, 2)
-        is_sorted (bool): If edge indices are sorted
+        idx (np.array): List of edge indices referring to nodes of shape (N, 2)
+        is_sorted (bool): If edge indices are sorted, otherwise they will be sorted. Default is False.
 
     Returns:
-        tuple: (idx, idx_ijk, idx_ijk_ij)
+        tuple: idx, idx_ijk, idx_ijk_ij
 
-        - idx (np.array): Possibly sorted edge indices of shape (N, 2)
+        - idx (np.array): Possibly sorted edge indices referring to nodes of shape (N, 2)
+        - idx_ijk (np.array): Indices of nodes forming an angle as i<-j<-k of shape (M, 3)
+        - idx_ijk_ij (np.array): Indices for an angle referring to edges of shape (M, 2)
     """
 
     if not is_sorted:
@@ -248,6 +249,3 @@ def get_angle_indices(idx, is_sorted=False):
     idx_ijk_ij = idx_ijk_ij[back_and_forth]
 
     return idx, idx_ijk, idx_ijk_ij
-
-
-

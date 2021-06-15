@@ -9,6 +9,7 @@ from kgcnn.data.mol.methods import coordinates_to_distancematrix, invert_distanc
 from kgcnn.data.base import GraphDatasetBase
 
 class QM9Dataset(GraphDatasetBase):
+    """Store and Process QM9 dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "qm9"
@@ -22,6 +23,15 @@ class QM9Dataset(GraphDatasetBase):
 
 
     def prepare_data(self, overwrite=False):
+        """Process data by loading all single xyz-files and store all pickled information to file.
+        The single files are deleted afterwards, requires to re-extract the tar-file.
+
+        Args:
+            overwrite: Whether to redo the processing, requires un-zip of the data again. Defaults to False.
+
+        Returns:
+            pickle: Pickled QM9 data.
+        """
         path = os.path.join(self.data_main_dir, self.data_directory)
 
         datasetsize = 133885
@@ -44,7 +54,7 @@ class QM9Dataset(GraphDatasetBase):
             mol.append(int(lines[0]))
             labels = lines[1].strip().split(' ')[1].split('\t')
             if int(labels[0]) != i:
-                print("Warning index not matching xyz-file.")
+                print("Warning: Index not matching xyz-file.")
             labels = [int(labels[0])] + [float(x) for x in labels[1:]]
             mol.append(labels)
             cords = []
@@ -122,7 +132,7 @@ class QM9Dataset(GraphDatasetBase):
     def get_graph(self,max_distance=4, max_neighbours=15,
                   do_invert_distance= False, do_gauss_basis_expansion= True,
                   gauss_distance=None, max_mols=133885):
-        """Make graph objects from qm9 dataset.
+        """Make graph tensor from QM9 dataset.
 
         Args:
             max_distance (int): 4
