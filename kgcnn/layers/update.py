@@ -34,7 +34,7 @@ class TrafoMatMulMessages(GraphBaseLayer):
             - edges (tf.ragged): Edge embeddings or messages (batch, [M], F)
             
         Returns:
-            embeddings: Transformation of messages by matrix multiplication of shape (batch, [M], F)
+            tf.ragged: Transformation of messages by matrix multiplication of shape (batch, [M], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -132,13 +132,13 @@ class GRUupdate(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): of [nodes, updates]
+            inputs (list): [nodes, updates]
 
             - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
             - updates (tf.ragged): Matching node updates of shape (batch, [N], F
 
         Returns:
-            updated_nodes (tf.ragged): Updated nodes of shape (batch, [N], F)
+           tf.ragged: Updated nodes of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here

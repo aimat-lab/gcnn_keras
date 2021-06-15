@@ -64,7 +64,7 @@ class PoolingTopK(GraphBaseLayer):
             - edge_indices (tf.ragged): Edge index list of shape of shape (batch, [N], 2)
         
         Returns:
-            Tuple: [nodes, edges, edge_indices], [map_nodes, map_edges]
+            tuple: [nodes, edges, edge_indices], [map_nodes, map_edges]
             
             - nodes (tf.ragged): Pooled node feature tensor
             - edges (tf.ragged): Pooled edge feature list

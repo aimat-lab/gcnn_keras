@@ -10,8 +10,7 @@ from kgcnn.layers.base import GraphBaseLayer
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Set2Set')
 class Set2Set(GraphBaseLayer):
-    """
-    Set2Set layer. The Reading to Memory has to be handled seperately.
+    """Set2Set layer. The Reading to Memory has to be handled seperately.
     Uses a keras LSTM layer for the updates.
     
     Args:
@@ -164,10 +163,12 @@ class Set2Set(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
+            inputs: nodes
+
+             - nodes (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
         
         Returns:
-            q_star (tf.tensor): Pooled tensor of shape (batch, 1, 2*channels)
+            tf.tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         x, batch_num, batch_index = dyn_inputs[0].values, dyn_inputs[0].row_lengths(), dyn_inputs[0].value_rowids()
