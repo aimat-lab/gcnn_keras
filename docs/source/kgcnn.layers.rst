@@ -12,6 +12,22 @@ kgcnn.layers.attention module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.base module
+------------------------
+
+.. automodule:: kgcnn.layers.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.blocks module
+--------------------------
+
+.. automodule:: kgcnn.layers.blocks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.casting module
 ---------------------------
 
@@ -40,6 +56,22 @@ kgcnn.layers.gather module
 --------------------------
 
 .. automodule:: kgcnn.layers.gather
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.geom module
+------------------------
+
+.. automodule:: kgcnn.layers.geom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.interaction module
+-------------------------------
+
+.. automodule:: kgcnn.layers.interaction
    :members:
    :undoc-members:
    :show-inheritance:

@@ -20,6 +20,14 @@ kgcnn.ops.casting module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.ops.initializer module
+----------------------------
+
+.. automodule:: kgcnn.ops.initializer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.ops.models module
 -----------------------
 
@@ -32,6 +40,22 @@ kgcnn.ops.partition module
 --------------------------
 
 .. automodule:: kgcnn.ops.partition
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.polynom module
+------------------------
+
+.. automodule:: kgcnn.ops.polynom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.ops.ragged module
+-----------------------
+
+.. automodule:: kgcnn.ops.ragged
    :members:
    :undoc-members:
    :show-inheritance:

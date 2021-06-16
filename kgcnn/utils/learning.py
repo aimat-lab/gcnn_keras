@@ -3,8 +3,7 @@ import numpy as np
 
 
 def lr_lin_reduction(learning_rate_start = 1e-3,learning_rate_stop = 1e-5,epo = 10000,epomin= 1000):
-    """
-    Make learning rate schedule function for linear reduction.
+    """Make learning rate schedule function for linear reduction.
 
     Args:
         learning_rate_start (float, optional): Learning rate to start with. The default is 1e-3.

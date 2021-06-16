@@ -4,6 +4,22 @@ kgcnn.literature package
 Submodules
 ----------
 
+kgcnn.literature.AttentiveFP module
+-----------------------------------
+
+.. automodule:: kgcnn.literature.AttentiveFP
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.DimeNetPP module
+---------------------------------
+
+.. automodule:: kgcnn.literature.DimeNetPP
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.GAT module
 ---------------------------
 
