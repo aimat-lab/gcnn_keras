@@ -56,7 +56,7 @@ def make_nmpn(
             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
-        ks.models.Model: Message Passing model.
+        tf.keras.models.Model: Message Passing model.
     """
     # Make default parameter
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,

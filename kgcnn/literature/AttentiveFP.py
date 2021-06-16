@@ -46,7 +46,7 @@ def make_attentiveFP(  # Input
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}.
 
     Returns:
-        tf.keras.model: AttentiveFP model.
+        tf.keras.models.Model: AttentiveFP model.
     """
 
     # default values

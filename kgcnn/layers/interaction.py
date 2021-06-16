@@ -77,12 +77,12 @@ class SchNetInteraction(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
 
         Returns:
-            tf.ragged: Updated node embeddings.
+            tf.RaggedTensor: Updated node embeddings.
         """
         node, edge, indexlist = inputs
         x = self.lay_dense1(node)
@@ -152,10 +152,10 @@ class ResidualLayer(GraphBaseLayer):
         """Forward pass
 
         Args:
-            inputs (tf.ragged): Node or edge embedding of shape (batch, [N], F)
+            inputs (tf.RaggedTensor): Node or edge embedding of shape (batch, [N], F)
 
         Returns:
-            tf.ragged: Node or edge embedding of shape (batch, [N], F)
+            tf.RaggedTensor: Node or edge embedding of shape (batch, [N], F)
         """
         x = self.dense_1(inputs)
         x = self.dense_2(x)
@@ -266,13 +266,13 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         Args:
             inputs: [edges, rbf, sbf, angle_index]
 
-                - edges (tf.ragged): Edge embeddings of shape (batch, [M], F)
-                - rbf (tf.ragged): Radial basis features of shape (batch, [M], F)
-                - sbf (tf.ragged): Spherical basis features of shape (batch, [K], F)
-                - angle_index (tf.ragged): Angle indices referring to two edges of shape (batch, [K], 2)
+                - edges (tf.RaggedTensor): Edge embeddings of shape (batch, [M], F)
+                - rbf (tf.RaggedTensor): Radial basis features of shape (batch, [M], F)
+                - sbf (tf.RaggedTensor): Spherical basis features of shape (batch, [K], F)
+                - angle_index (tf.RaggedTensor): Angle indices referring to two edges of shape (batch, [K], 2)
 
         Returns:
-            tf.ragged: Updated edge embeddings.
+            tf.RaggedTensor: Updated edge embeddings.
         """
         x, rbf, sbf, id_expand = inputs
 

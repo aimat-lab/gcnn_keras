@@ -63,7 +63,7 @@ def make_dimnet_pp(
         output_init (int): Initialization method for the output layer (last layer in output block). Default is 'zeros'.
 
     Returns:
-        tf.keras.model: DimeNet++ model.
+        tf.keras.models.Model: DimeNet++ model.
     """
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}
                      }

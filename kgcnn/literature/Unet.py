@@ -59,7 +59,7 @@ def make_unet(
         use_reconnect (bool): Reconnect nodes after pooling. I.e. adj_matrix=adj_matrix^2. Default is True.
 
     Returns:
-        ks.models.Model: Unet model.
+        tf.keras.models.Model: Unet model.
     """
     # Default values update
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,

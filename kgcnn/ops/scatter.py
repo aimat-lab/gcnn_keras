@@ -9,12 +9,12 @@ def kgcnn_ops_scatter_segment_tensor_nd(data, segment_ids, target_shape):
     match with largest id.
 
     Args:
-        data (tf.tensor): Output of segment operation.
-        segment_ids (tf.tensor): Former ids of segment operation. 1D Tensor.
-        target_shape (tf.shape): of target tensor to scatter output into.
+        data (tf.Tensor): Output of segment operation.
+        segment_ids (tf.Tensor): Former ids of segment operation. 1D Tensor.
+        target_shape (tf.TensorShape): of target tensor to scatter output into.
 
     Returns:
-        tf.tensor: tensor with scattered data
+        tf.Tensor: tensor with scattered data
     """
     # If max id is not in segment_ids requires scatter into tensor of correct shape[0] that matches target first dim
     # out_target_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
@@ -30,13 +30,13 @@ def tensor_scatter_nd_mean(tensor, indices, updates, name=None):
     """Temporary replacement of tensor_scatter_nd_mean until its supported by tensorflow.
 
     Args:
-        tensor (tf.tensor): Tensor to scatter updates into.
-        indices (tf.tensor): Indices to for updates.
-        updates (tf.tensor): Updates of new entries for tensor.
+        tensor (tf.Tensor): Tensor to scatter updates into.
+        indices (tf.Tensor): Indices to for updates.
+        updates (tf.Tensor): Updates of new entries for tensor.
         name (str): Name of the tensor.
 
     Returns:
-        tf.tensor: Updates scattered into tensor with mean update
+        tf.Tensor: Updates scattered into tensor with mean update
     """
     pass
 
@@ -47,13 +47,13 @@ def kgcnn_ops_tensor_scatter_nd_by_name(segment_name, tensor, indices, updates, 
 
     Args:
         segment_name (str): Operation to update scattered updates. Either 'sum' or 'min' etc.
-        tensor (tf.tensor): Tensor to scatter updates into.
-        indices (tf.tensor): Indices to for updates.
-        updates (tf.tensor): Updates of new entries for tensor.
+        tensor (tf.Tensor): Tensor to scatter updates into.
+        indices (tf.Tensor): Indices to for updates.
+        updates (tf.Tensor): Updates of new entries for tensor.
         name (str): Name of the tensor.
 
     Returns:
-        tf.tensor: Updates scattered into tensor with different update rules.
+        tf.Tensor: Updates scattered into tensor with different update rules.
     """
     pool = None
     if segment_name in ["segment_mean", "mean", "reduce_mean"]:

@@ -29,11 +29,11 @@ class GatherNodes(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Gathered node embeddings that match the number of edges.
+            tf.RaggedTensor: Gathered node embeddings that match the number of edges.
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -84,11 +84,11 @@ class GatherNodesOutgoing(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
+            tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
 
@@ -136,11 +136,11 @@ class GatherNodesIngoing(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
+            tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
 
@@ -187,11 +187,11 @@ class GatherState(GraphBaseLayer):
         Args:
             inputs: [state, target]
 
-                - state (tf.tensor): Graph specific embedding tensor. This is tensor of shape (batch, F)
-                - target (tf.ragged): Target to collect state for, of shape (batch, [N], F)
+                - state (tf.Tensor): Graph specific embedding tensor. This is tensor of shape (batch, F)
+                - target (tf.RaggedTensor): Target to collect state for, of shape (batch, [N], F)
 
         Returns:
-            tf.ragged: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
+            tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
         """
         dyn_inputs, = self._kgcnn_map_input_ragged([inputs[1]], 1)
 

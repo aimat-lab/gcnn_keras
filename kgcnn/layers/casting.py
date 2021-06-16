@@ -118,7 +118,7 @@ class ChangeIndexing(ks.layers.Layer):
                 - edge_index: Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
-            tf.ragged: Corrected edge indices of shape (batch, [N], 2).
+            tensor-like: Corrected edge indices of shape (batch, [N], 2).
         """
         if self.input_tensor_type == "values_partition":
             [_, part_node], [edge_index, part_edge] = inputs

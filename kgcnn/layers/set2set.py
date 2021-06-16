@@ -165,10 +165,10 @@ class Set2Set(GraphBaseLayer):
         Args:
             inputs: nodes
 
-                - nodes (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
+                - nodes (tf.RaggedTensor): Embeddings to be encoded of shape (batch, [N], F)
         
         Returns:
-            tf.tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
+            tf.Tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         x, batch_num, batch_index = dyn_inputs[0].values, dyn_inputs[0].row_lengths(), dyn_inputs[0].value_rowids()
@@ -202,11 +202,11 @@ class Set2Set(GraphBaseLayer):
         """Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
-             fm (tf.tensor): of shape (batch*N, feat)
-             fq (tf.tensor): of shape (batch*N, feat)
+             fm (tf.Tensor): of shape (batch*N, feat)
+             fq (tf.Tensor): of shape (batch*N, feat)
             
         Returns:
-            tf.tensor: et of shape (batch*N, )
+            tf.Tensor: et of shape (batch*N, )
         """
         fet = self._pool(fm * fq, axis=1)  # (batch*N, 1)
         return fet

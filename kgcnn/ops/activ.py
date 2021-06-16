@@ -6,7 +6,7 @@ def shifted_softplus(x):
     """Shifted softplus activation function.
     
     Args:
-        x (tf.tensor): single values to apply activation to using tf.keras functions
+        x (tf.Tensor): single values to apply activation to using tf.keras functions
     
     Returns:
         tf.tensor: log(exp(x)+1) - log(2)
@@ -20,7 +20,7 @@ def softplus2(x):
     out = log(exp(x)+1) - log(2)
     
     Args:
-        x (tf.tensor): input tensor
+        x (tf.Tensor): input tensor
     
     Returns:
          tf.tensor: output tensor that computed log(exp(x)+1) - log(2)
@@ -79,9 +79,9 @@ def swish(x):
     from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"
 
     Args:
-        x (tf.tensor): Values to apply activation to. Using tf.keras functions.
+        x (tf.Tensor): Values to apply activation to. Using tf.keras functions.
 
     Returns:
-        tf.tensor: x*tf.sigmoid(x)
+        tf.Tensor: x*tf.sigmoid(x)
     """
     return x * tf.sigmoid(x)

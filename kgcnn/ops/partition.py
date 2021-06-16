@@ -12,9 +12,9 @@ def kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node
     to disjoint representation. To change indices, the row partition of edge and node tensor must be known.
 
     Args:
-        edge_index (tf.tensor): Edge indices of shape (batch*None, 2)
-        part_node (tf.tensor):  Node partition tensor.
-        part_edge (tf.tensor): Edge partition tensor.
+        edge_index (tf.Tensor): Edge indices of shape (batch*None, 2)
+        part_node (tf.Tensor):  Node partition tensor.
+        part_edge (tf.Tensor): Edge partition tensor.
         partition_type_node (str:) Node type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
         partition_type_edge (str): Edge type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
         from_indexing (str): Source index scheme
@@ -22,7 +22,7 @@ def kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node
         axis (int): Axis along which to shift indices. Default is 1.
 
     Returns:
-        tf.tensor: Index tensor of shifted indices.
+        tf.Tensor: Index tensor of shifted indices.
     """
     if to_indexing == from_indexing:
         # Nothing to do here
@@ -79,12 +79,12 @@ def kgcnn_ops_change_partition_type(in_partition, in_partition_type, out_partiti
     """Switch between partition types.
 
     Args:
-        in_partition (tf.tensor): Row partition tensor
+        in_partition (tf.Tensor): Row partition tensor
         in_partition_type (str): Source partition type, can be either 'row_splits', 'row_length' or 'value_rowids'
         out_partition_type (str): Target partition type, can be either 'row_splits', 'row_length' or 'value_rowids'
 
     Returns:
-        out_partition (tf.tensor): Row partition tensor of target type.
+        out_partition (tf.Tensor): Row partition tensor of target type.
     """
     if in_partition_type == out_partition_type:
         # Do nothing here

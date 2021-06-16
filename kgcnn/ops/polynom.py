@@ -13,7 +13,7 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
     Source: https://dlmf.nist.gov/10.49
 
     Args:
-        x (tf.tensor): Values to compute :math:`j_n(x)` for.
+        x (tf.Tensor): Values to compute :math:`j_n(x)` for.
         n (int): Positive integer for the bessel order :math:`n`.
 
     Returns:
@@ -41,7 +41,7 @@ def tf_spherical_bessel_jn(x, n=0):
     r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer :math:`n` via recursion.
 
     Args:
-        x (tf.tensor): Values to compute :math:`j_n(x)` for.
+        x (tf.Tensor): Values to compute :math:`j_n(x)` for.
         n (int): Positive integer for the bessel order :math:`n`.
 
     Returns:
@@ -69,7 +69,7 @@ def tf_legendre_polynomial_pn(x, n=0):
     via explicit formula.
 
     Args:
-        x (tf.tensor): Values to compute :math:`P_n(x)` for.
+        x (tf.Tensor): Values to compute :math:`P_n(x)` for.
         n (int): Positive integer for :math:`n` in :math:`P_n(x)`.
 
     Returns:
@@ -90,7 +90,7 @@ def tf_spherical_harmonics_yl(theta, l=0):
     r"""Compute the spherical harmonics :math:`Y_{ml}(\cos\theta)` for :math:`m=0` and constant non-integer :math:`l`.
 
     Args:
-        theta (tf.tensor): Values to compute :math:`Y_l(\cos\theta)` for.
+        theta (tf.Tensor): Values to compute :math:`Y_l(\cos\theta)` for.
         l (int): Positive integer for :math:`l` in :math:`Y_l(\cos\theta)`.
 
     Returns:
@@ -131,8 +131,8 @@ def spherical_bessel_jn(r, n):
     r"""Compute spherical Bessel function :math:`j_n(r)` via scipy.
 
     Args:
-        r (array_like): Argument
-        n (array_like): Order.
+        r (np.array): Argument
+        n (np.array): Order.
 
     Returns:
         np.array: Values of the spherical Bessel function

@@ -52,7 +52,7 @@ def make_graph_sage(  # Input
             {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
 
     Returns:
-        tf.keras.model: GraphSAGE model.
+        tf.keras.models.Model: GraphSAGE model.
     """
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,

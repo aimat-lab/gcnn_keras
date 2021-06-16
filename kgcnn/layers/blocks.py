@@ -93,13 +93,13 @@ class MEGnetBlock(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index, state]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
-                - state (tf.tensor): State information for the graph, a single tensor of shape (batch, F)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - state (tf.Tensor): State information for the graph, a single tensor of shape (batch, F)
 
         Returns:
-            tf.ragged: Updated node embeddings of shape (batch, [N], F)
+            tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F)
         """
         # Calculate edge Update
         node_input, edge_input, edge_index_input, env_input = inputs
@@ -204,13 +204,13 @@ class DimNetOutputBlock(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index, state]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-                - rbf (tf.ragged): Edge distance basis of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
+                - rbf (tf.RaggedTensor): Edge distance basis of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Updated node embeddings of shape (batch, [N], F_T).
+            tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F_T).
         """
         # Calculate edge Update
         n_atoms, x, rbf, idnb_i = inputs

@@ -83,12 +83,12 @@ class GCN(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Node embeddings of shape (batch, [N], F)
+            tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
         """
         node, edges, edge_index = inputs
         no = self.lay_dense(node)
@@ -172,12 +172,12 @@ class SchNetCFconv(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
         
         Returns:
-            tf.ragged: Updated node features.
+            tf.RaggedTensor: Updated node features.
         """
         node, edge, indexlist = inputs
         x = self.lay_dense1(edge)

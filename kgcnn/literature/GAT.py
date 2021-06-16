@@ -46,7 +46,7 @@ def make_gat(  # Input
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}
 
     Returns:
-        tf.keras.model: GAT model.
+        tf.keras.models.Model: GAT model.
     """
     # default values
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,

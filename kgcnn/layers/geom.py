@@ -29,11 +29,11 @@ class NodeDistance(GraphBaseLayer):
         Args:
             inputs (list): [position, edge_index]
 
-                - position (tf.ragged): Node positions of shape (batch, [N], 3)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
+            tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -81,11 +81,11 @@ class NodeAngle(GraphBaseLayer):
         Args:
             inputs (list): [position, edge_index]
 
-                - position (tf.ragged): Node positions of shape (batch, [N], 3)
-                - node_index (tf.ragged): Node indices of shape (batch, [M], 3) referring to nodes
+                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
+                - node_index (tf.RaggedTensor): Node indices of shape (batch, [M], 3) referring to nodes
 
         Returns:
-            tf.ragged: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
+            tf.RaggedTensor: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -140,12 +140,12 @@ class EdgeAngle(GraphBaseLayer):
         Args:
             inputs (list): [position, edge_index]
 
-                - position (tf.ragged): Node positions of shape (batch, [N], 3)
-                - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2) referring to nodes.
-                - angle_index (tf.ragged): Angle indices of shape (batch, [K], 2) referring to edges.
+                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
+                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
+                - angle_index (tf.RaggedTensor): Angle indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
-            tf.ragged: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
+            tf.RaggedTensor: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
@@ -230,10 +230,10 @@ class BesselBasisLayer(GraphBaseLayer):
         Args:
             inputs: distance
 
-                - distance (tf.ragged): Edge distance of shape (batch, [K], 1)
+                - distance (tf.RaggedTensor): Edge distance of shape (batch, [K], 1)
 
         Returns:
-            tf.ragged: Expanded distance. Shape is (batch, [K], #Radial)
+            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         # We cast to values here
@@ -298,12 +298,12 @@ class SphericalBasisLayer(GraphBaseLayer):
         Args:
             inputs: [distance, angles, angle_index]
 
-                - distance (tf.ragged): Edge distance of shape (batch, [M], 1)
-                - angles (tf.ragged): Angle list of shape (batch, [K], 1)
-                - angle_index (tf.ragged): Angle indices referring to edges of shape (batch, [K], 2)
+                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], 1)
+                - angles (tf.RaggedTensor): Angle list of shape (batch, [K], 1)
+                - angle_index (tf.RaggedTensor): Angle indices referring to edges of shape (batch, [K], 2)
 
         Returns:
-            tf.ragged: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
+            tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         edge, edge_part = dyn_inputs[0].values, dyn_inputs[0].row_splits

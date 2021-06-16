@@ -34,12 +34,12 @@ class PoolingLocalEdges(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_index]
 
-                - nodes (tf.ragged): Node features of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
     
         Returns:
-            tf.ragged: Pooled feature tensor of pooled edge features for each node.
+            tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here
@@ -109,14 +109,14 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_index, weights]
 
-                - nodes (tf.ragged): Node features of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
-                - weights (tf.ragged): Edge or message weights. Must broadcast to edges or messages,
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - weights (tf.RaggedTensor): Edge or message weights. Must broadcast to edges or messages,
                   e.g. (batch, [M], 1)
 
         Returns:
-            tf.ragged: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
+            tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 4)
         # We cast to values here
@@ -185,10 +185,10 @@ class PoolingNodes(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (tf.ragged): Node features of shape (batch, [N], F)
+            inputs (tf.RaggedTensor): Node features of shape (batch, [N], F)
     
         Returns:
-            tf.tensor: Pooled node features of shape (batch, F)
+            tf.Tensor: Pooled node features of shape (batch, F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         # We cast to values here
@@ -229,11 +229,11 @@ class PoolingWeightedNodes(GraphBaseLayer):
         Args:
             inputs (list): of [node, weights]
 
-                - nodes (tf.ragged): Node features of shape (batch, [N], F)
-                - weights (tf.ragged): Node or message weights. Most broadcast to nodes. Shape (batch, [N], 1).
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - weights (tf.RaggedTensor): Node or message weights. Most broadcast to nodes. Shape (batch, [N], 1).
 
         Returns:
-            tf.tensor: Pooled node features of shape (batch, F)
+            tf.Tensor: Pooled node features of shape (batch, F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
         # We cast to values here
@@ -273,10 +273,10 @@ class PoolingGlobalEdges(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (tf.ragged): Edge features or message embeddings of shape (batch, [M], F)
+            inputs (tf.RaggedTensor): Edge features or message embeddings of shape (batch, [M], F)
     
         Returns:
-            tf.tensor: Pooled edges feature list of shape (batch, F).
+            tf.Tensor: Pooled edges feature list of shape (batch, F).
         """
         dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
         # We cast to values here
@@ -407,12 +407,12 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edges, edge_index]
 
-                - nodes (tf.ragged): Node features of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
+            tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here

@@ -24,12 +24,12 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edges, edge_index]
 
-                - nodes (tf.ragged): Node feature tensor of shape (batch, [N], F)
-                - edges (tf.ragged): Edge feature ragged tensor of shape (batch, [M], 1)
-                - edge_index (tf.ragged): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node feature tensor of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge feature ragged tensor of shape (batch, [M], 1)
+                - edge_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.sparse: Sparse disjoint matrix of shape (batch*None,batch*None)
+            tf.SparseTensor: Sparse disjoint matrix of shape (batch*None,batch*None)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here
@@ -95,11 +95,11 @@ class PoolingAdjacencyMatmul(GraphBaseLayer):
         Args:
             inputs (list): [nodes, adjacency]
 
-                - nodes (tf.ragged): Node features of shape (batch, [N], F)
-                - adjacency (tf.sparse): SparseTensor of the adjacency matrix of shape (batch*None, batch*None)
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - adjacency (tf.SparseTensor): SparseTensor of the adjacency matrix of shape (batch*None, batch*None)
 
         Returns:
-            tf.ragged: Pooled node features of shape (batch, [N], F)
+            tf.RaggedTensor: Pooled node features of shape (batch, [N], F)
         """
         adj = inputs[1]
         dyn_inputs = self._kgcnn_map_input_ragged([inputs[0]], 0)
