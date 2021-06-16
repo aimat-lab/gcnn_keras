@@ -45,22 +45,22 @@ def make_dimnet_pp(
         input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}}
         output_embedd (dict): Dictionary of embedding parameters of the graph network. Not used.
-        emb_size (int):
-        out_emb_size (int):
-        int_emb_size (int):
-        basis_emb_size (int):
-        num_blocks (int):
-        num_spherical (int):
-        num_radial (int):
-        cutoff (float):
-        envelope_exponent (int):
-        num_before_skip (int):
-        num_after_skip (int):
-        num_dense_output (int):
-        num_targets (int):
-        activation (int):
-        extensive (int):
-        output_init (int):
+        emb_size (int): Embedding size used for the messages. Default is 128
+        out_emb_size (int): Embedding size used for atoms in the output block. Default is 256
+        int_emb_size (int): Embedding size used for interaction triplets. Default is 64
+        basis_emb_size (int): Embedding size used inside the basis transformation. Default is 8
+        num_blocks (int): Number of building blocks to be stacked. Default is 4
+        num_spherical (int): Number of spherical harmonics. Default is 7
+        num_radial (int): Number of radial basis functions. Default is 6
+        cutoff (float): Cutoff distance for inter-atomic interactions. Default is 5.0
+        envelope_exponent (int): Shape of the smooth cutoff. Default is 5
+        num_before_skip (int): Number of residual layers in interaction block before skip connection. Default is 1
+        num_after_skip (int): Number of residual layers in interaction block after skip connection. Default is 2
+        num_dense_output (int): Number of dense layers for the output blocks. Default is 3
+        num_targets (int): Number of targets to predict. Default is 12
+        activation (int): Activation function. Default is 'swish'
+        extensive (int): Whether the output should be extensive (proportional to the number of atoms). Default is True
+        output_init (int): Initialization method for the output layer (last layer in output block). Default is 'zeros'
 
     Returns:
         tf.keras.model: DimeNet++ model.
