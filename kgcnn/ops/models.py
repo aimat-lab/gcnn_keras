@@ -13,12 +13,12 @@ def generate_standard_graph_input(input_node_shape,
                                   input_tensor_type='ragged'):
     """Generate input for a standard graph tensor format.
     This includes nodes, edge, edge_indices and optional a graph state.
-    If input shape is (None,) a embedding layer is used to make the feature dimension.
+    If input shape is (None, ) a embedding layer is used to make the feature dimension.
 
     Args:
-        input_node_shape (list): Shape of node input without batch dimension. Either (None,F) or (None,)
-        input_edge_shape (list): Shape of edge input without batch dimension. Either (None,F) or (None,)
-        input_state_shape: Shape of state input without batch dimension. Either (F,) or (,)
+        input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
+        input_edge_shape (list): Shape of edge input without batch dimension. Either (None, F) or (None, )
+        input_state_shape: Shape of state input without batch dimension. Either (F, ) or (, )
         input_node_vocab (int): Vocabulary size of optional embedding layer.
         input_edge_vocab (int): Vocabulary size of optional embedding layer.
         input_state_vocab (int) Vocabulary size of optional embedding layer.
@@ -58,8 +58,7 @@ def generate_standard_graph_input(input_node_shape,
 
 
 def update_model_args(default_args=None, user_args=None):
-    """
-    Make arg dict with updated default values.
+    """Make arg dict with updated default values.
 
     Args:
         default_args (dict): Dictionary of default values.
@@ -86,13 +85,16 @@ def generate_mol_graph_input(input_node_shape,
                              input_node_vocab=95,
                              input_node_embedd=64,
                              input_tensor_type='ragged'):
-    """Generate input for a standard graph tensor format.
-    This includes nodes, edge, edge_indices and optional a graph state.
-    If input shape is (None,) a embedding layer is used to make the feature dimension.
+    """Generate input for a standard mol-graph tensor format.
+    This includes nodes, coordinates, edge_indices and optional angle and dihedral indices.
+    If input shape is (None, ) a embedding layer is used to make the feature dimension.
 
     Args:
-        input_node_shape (list): Shape of node input without batch dimension. Either (None,F) or (None,)
-        input_xyz_shape (list): Shape of xyz input without batch dimension (None,3).
+        input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
+        input_xyz_shape (list): Shape of xyz input without batch dimension (None, 3).
+        input_bond_index_shape (list): Shape of the bond indices. Not used if set to None.
+        input_angle_index_shape (list): Shape of the angle indices. Not used if set to None.
+        input_dihedral_index_shape (list): Shape of the dihedral indices. Not used if set to None.
         input_node_vocab (int): Vocabulary size of optional embedding layer.
         input_node_embedd (int): Embedding dimension for optional embedding layer.
         input_tensor_type (str): Type of input tensor. Only "ragged" is supported at the moment.
@@ -116,8 +118,8 @@ def generate_mol_graph_input(input_node_shape,
         angle_index_input = None
 
     if input_dihedral_index_shape is not None:
-        dihedral_index_input = ks.layers.Input(shape=input_dihedral_index_shape, name='dihedral_index_input', dtype="int64",
-                                               ragged=True)
+        dihedral_index_input = ks.layers.Input(shape=input_dihedral_index_shape, name='dihedral_index_input',
+                                               dtype="int64", ragged=True)
     else:
         dihedral_index_input = None
 

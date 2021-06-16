@@ -3,8 +3,7 @@ import scipy.sparse as sp
 
 
 def precompute_adjacency_scaled(adj_matrix, add_identity=True):
-    """
-    Precompute the scaled adjacency matrix A_scaled = D^-0.5 (adj_mat + I) D^-0.5.
+    """Precompute the scaled adjacency matrix A_scaled = D^-0.5 (adj_mat + I) D^-0.5.
 
     Args:
         adj_matrix (np.array,scipy.sparse): Adjacency matrix of shape (N,N).
