@@ -14,8 +14,8 @@ import kgcnn.ops.activ
 class GCN(GraphBaseLayer):
     r"""Graph convolution according to Kipf et al.
     
-    Computes graph convolution as :math:`\sigma(A_s*(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
-    matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D{^-0.5}` with the degree
+    Computes graph convolution as :math:`\sigma(A_s(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
+    matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D^{-0.5}` with the degree
     matrix :math:`D`. In place of :math:`A_s`, this layers uses edge features (that are the entries of :math:`A_s`) and
     edge indices. :math:`A_s` is considered pre-scaled, this is not done by this layer.
     If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
