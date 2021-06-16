@@ -4,14 +4,14 @@ import scipy.sparse as sp
 
 def precompute_adjacency_scaled(adj_matrix, add_identity=True):
     r"""Precompute the scaled adjacency matrix :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
-    after Thomas N. Kipf, Max Welling
+    after Thomas N. Kipf and Max Welling.
 
     Args:
         adj_matrix (np.array, scipy.sparse): Adjacency matrix of shape (N, N).
         add_identity (bool, optional): Whether to add identity. Defaults to True.
 
     Returns:
-        np.array: $A_{scaled} = D^{-0.5} (A + I) D^{-0.5}$.
+        np.array: :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
     """
     if isinstance(adj_matrix, np.ndarray):
         adj_matrix = np.array(adj_matrix, dtype=np.float)
@@ -52,14 +52,14 @@ def convert_scaled_adjacency_to_list(adj_scaled):
     r"""Map adjacency matrix to index list plus edge weights.
 
     Args:
-        adj_scaled (np.array, scipy.sparse): Scaled Adjacency matrix of shape (N, N).
-            $A_{scaled} = D^{-0.5} (A + I) D^{-0.5}$
+        adj_scaled (np.array, sp.sparse): Normal or scaled adjacency matrix of shape (N, N).
+            Scaled adjacency after :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
 
     Returns:
         list: [edge_index, edge_weight]
         
-        - edge_index (np.array): Index-list referring to nodes of shape (N, 2).
-        - edge_weight (np.array): Entries of Adjacency matrix of shape (N, N)
+            - edge_index (np.array): Index-list referring to nodes of shape (N, 2)
+            - edge_weight (np.array): Entries of Adjacency matrix of shape (N, N)
     """
     if isinstance(adj_scaled, np.ndarray):
         a = np.array(adj_scaled > 0, dtype=np.bool)
@@ -85,13 +85,13 @@ def convert_scaled_adjacency_to_list(adj_scaled):
 
 def make_adjacency_undirected_logical_or(adj_mat):
     r"""Make adjacency matrix undirected. This adds edges to make adj_matrix symmetric, only if is is not symmetric.
-    This is not equivalent to $(A+A^T)/2$ but to $A \lor A^T$
+    This is not equivalent to :math:`(A+A^T)/2` but to :math:`A \lor A^T` .
 
     Args:
-        adj_mat (np.array,scipy.sparse): Adjacency matrix of shape (N, N)
+        adj_mat (np.array, sp.sparse): Adjacency matrix of shape (N, N)
 
     Returns:
-        np.array, scipy.sparse: Undirected Adjacency matrix. This has $A=A^T$.
+        np.array, sp.sparse: Undirected Adjacency matrix. This has :math:`A=A^T`
     """
     if isinstance(adj_mat, np.ndarray):
         at = np.transpose(adj_mat)
@@ -213,8 +213,8 @@ def sort_edge_indices(edge_indices, edge_values=None):
     Returns:
         list: [edge_indices, edge_values] or edge_indices
         
-        - edge_indices (np.array): Sorted indices.
-        - edge_values (np.array): Edge values matching sorted indices.
+            - edge_indices (np.array): Sorted indices.
+            - edge_values (np.array): Edge values matching sorted indices.
     """
     val1 = None
     order1 = np.argsort(edge_indices[:, 1], axis=0, kind='mergesort')  # stable!
@@ -235,8 +235,8 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
     """Make adjacency sparse matrix from edge_indices and possible values.
 
     Args:
-        edge_indices (np.array): List of edge indices of shape (N,2)
-        edge_values (np.array): List of possible edge values of shape (N,)
+        edge_indices (np.array): List of edge indices of shape (N, 2)
+        edge_values (np.array): List of possible edge values of shape (N, )
 
     Returns:
         sp.sparse.coo_matrix: Sparse adjacency matrix.
