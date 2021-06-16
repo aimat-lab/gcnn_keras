@@ -7,16 +7,17 @@ from scipy.optimize import brentq
 
 @tf.function
 def tf_spherical_bessel_jn_explicit(x, n=0):
-    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer `n` explicitly.
-    TensorFlow has to cache the function for each n. No gradient through n or very large number of n's is possible.
+    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer :math:`n` explicitly.
+    TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
+    of :math:`n`'s is possible.
     Source: https://dlmf.nist.gov/10.49
 
     Args:
-        x (tf.tensor): Values to compute jn(x) for.
-        n (int): Positive integer for the bessel order n.
+        x (tf.tensor): Values to compute :math:`j_n(x)` for.
+        n (int): Positive integer for the bessel order :math:`n`.
 
     Returns:
-        tf.tensor: Spherical bessel function of order n
+        tf.tensor: Spherical bessel function of order :math:`n`
     """
     sin_x = tf.sin(x - n * np.pi / 2)
     cos_x = tf.cos(x - n * np.pi / 2)
@@ -37,14 +38,14 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
 
 @tf.function
 def tf_spherical_bessel_jn(x, n=0):
-    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer `n` via recursion.
+    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer :math:`n` via recursion.
 
     Args:
-        x (tf.tensor): Values to compute jn(x) for.
-        n (int): Positive integer for the bessel order n.
+        x (tf.tensor): Values to compute :math:`j_n(x)` for.
+        n (int): Positive integer for the bessel order :math:`n`.
 
     Returns:
-        tf.tensor: Spherical bessel function of order n
+        tf.tensor: Spherical bessel function of order :math:`n`
     """
     if n < 0:
         raise ValueError("Order parameter must be >= 0 for this implementation of spherical bessel function.")
@@ -64,14 +65,15 @@ def tf_spherical_bessel_jn(x, n=0):
 
 @tf.function
 def tf_legendre_polynomial_pn(x, n=0):
-    r"""Compute the (non-associated) Legendre polynomial for constant positive integer `n` via explicit formula.
+    r"""Compute the (non-associated) Legendre polynomial :math:`P_n(x)` for constant positive integer :math:`n`
+    via explicit formula.
 
     Args:
         x (tf.tensor): Values to compute :math:`P_n(x)` for.
-        n (int): Positive integer for `n` in :math:`P_n(x)`.
+        n (int): Positive integer for :math:`n` in :math:`P_n(x)`.
 
     Returns:
-        tf.tensor: Legendre Polynomial of order `n`.
+        tf.tensor: Legendre Polynomial of order :math:`n`.
     """
     out_sum = tf.zeros_like(x)
     prefactors = [
@@ -85,14 +87,14 @@ def tf_legendre_polynomial_pn(x, n=0):
 
 @tf.function
 def tf_spherical_harmonics_yl(theta, l=0):
-    r"""Compute the spherical harmonics for math:`m=0` and constant non-integer `l`.
+    r"""Compute the spherical harmonics :math:`Y_{ml}(x)` for :math:`m=0` and constant non-integer :math:`l`.
 
     Args:
-        theta (tf.tensor): Values to compute Yl(theta) for.
-        l (int): Positive integer for l in Yl(x).
+        theta (tf.tensor): Values to compute :math:`Y_l(\theta)` for.
+        l (int): Positive integer for :math:`l` in :math:`Y_l(\theta)`.
 
     Returns:
-        tf.tensor: Spherical harmonics for math:`m=0` and constant non-integer `l`.
+        tf.tensor: Spherical harmonics for :math:`m=0` and constant non-integer :math:`l`.
     """
     x = tf.cos(theta)
     out_sum = tf.zeros_like(x)
@@ -139,7 +141,8 @@ def spherical_bessel_jn(r, n):
 
 
 def spherical_bessel_jn_zeros(n, k):
-    r"""Compute the first `k` zeros of the spherical bessel functions :math:`j_n(r)` up to order `n` (excluded).
+    r"""Compute the first :math:`k` zeros of the spherical bessel functions :math:`j_n(r)` up to
+    order :math:`n` (excluded).
     Taken from https://github.com/klicperajo/dimenet.
 
     Args:
@@ -165,7 +168,7 @@ def spherical_bessel_jn_zeros(n, k):
 
 def spherical_bessel_jn_normalization_prefactor(n, k):
     r"""Compute the normalization or rescaling pre-factor for the spherical bessel functions :math:`j_n(r)` up to
-    order `n` (excluded) and maximum frequency `k` (excluded).
+    order :math:`n` (excluded) and maximum frequency :math:`k` (excluded).
     Taken from https://github.com/klicperajo/dimenet.
 
     Args:
