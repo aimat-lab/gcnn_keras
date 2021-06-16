@@ -38,6 +38,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 
         Args:
             inputs: [node, edges, attention, edge_indices]
+
                 - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
                 - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
                 - attention (tf.ragged): Attention coefficients of shape (batch, [M], 1)
@@ -159,12 +160,12 @@ class AttentionHeadGAT(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_indices]
 
-                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-                - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.ragged: Embedding tensor of pooled edge attentions for each node.
+            tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node.
         """
         node, edge, edge_index = inputs
 
