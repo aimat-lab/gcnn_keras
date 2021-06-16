@@ -13,12 +13,12 @@ from kgcnn.ops.segment import segment_softmax, kgcnn_ops_segment_operation_by_na
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
 class PoolingLocalEdgesAttention(GraphBaseLayer):
     r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
-    Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_ij`
-    The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_ij)` from the
-    attention coefficients :math:`a_ij`.
+    Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
+    The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
+    attention coefficients :math:`a_{ij}`.
     The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W n_i || W n_j)` and
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
-    In summary, :math:`n_i = \sum_j \text{softmax}_j (a_ij) e_ij` is computed by the layer.
+    In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
@@ -38,7 +38,6 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 
         Args:
             inputs: [node, edges, attention, edge_indices]
-
                 - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
                 - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
                 - attention (tf.ragged): Attention coefficients of shape (batch, [M], 1)
@@ -96,8 +95,8 @@ class AttentionHeadGAT(GraphBaseLayer):
     The attention coefficients are computed by :math:`a_{ij} = \sigma( W n_i || W n_j)`,
     optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
-    And the messages are pooled by :math:`n_i =  \sum_j \alpha_{ij} e_ij`.
-    And finally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_ij)`.
+    And the messages are pooled by :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`.
+    And finally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
