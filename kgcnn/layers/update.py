@@ -29,9 +29,9 @@ class TrafoMatMulMessages(GraphBaseLayer):
         Args:
             inputs (list): [trafo, edges]
 
-            - trafo (tf.ragged): Transformation by matrix multiplication for each message.
-              Must be reshaped to (batch, [M], FxF).
-            - edges (tf.ragged): Edge embeddings or messages (batch, [M], F)
+                - trafo (tf.ragged): Transformation by matrix multiplication for each message.
+                  Must be reshaped to (batch, [M], FxF).
+                - edges (tf.ragged): Edge embeddings or messages (batch, [M], F)
             
         Returns:
             tf.ragged: Transformation of messages by matrix multiplication of shape (batch, [M], F)
@@ -134,8 +134,8 @@ class GRUupdate(GraphBaseLayer):
         Args:
             inputs (list): [nodes, updates]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - updates (tf.ragged): Matching node updates of shape (batch, [N], F
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - updates (tf.ragged): Matching node updates of shape (batch, [N], F)
 
         Returns:
            tf.ragged: Updated nodes of shape (batch, [N], F)

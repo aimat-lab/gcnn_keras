@@ -59,18 +59,18 @@ class PoolingTopK(GraphBaseLayer):
         Args:
             inputs (list): [nodes, node_partition, edges, edge_partition, edge_indices]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edges (tf.ragged): Edge embeddings of shape (batch, [N], F)
-            - edge_indices (tf.ragged): Edge index list of shape of shape (batch, [N], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edges (tf.ragged): Edge embeddings of shape (batch, [N], F)
+                - edge_indices (tf.ragged): Edge index list of shape of shape (batch, [N], 2)
         
         Returns:
             tuple: [nodes, edges, edge_indices], [map_nodes, map_edges]
             
-            - nodes (tf.ragged): Pooled node feature tensor
-            - edges (tf.ragged): Pooled edge feature list
-            - edge_indices (tf.ragged): Pooled edge index list
-            - map_nodes (tf.ragged): Index map between original and pooled nodes
-            - map_edges (tf.ragged): Index map between original and pooled edges
+                - nodes (tf.ragged): Pooled node feature tensor
+                - edges (tf.ragged): Pooled edge feature list
+                - edge_indices (tf.ragged): Pooled edge index list
+                - map_nodes (tf.ragged): Index map between original and pooled nodes
+                - map_edges (tf.ragged): Index map between original and pooled edges
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
         # We cast to values here
@@ -241,21 +241,21 @@ class UnPoolingTopK(GraphBaseLayer):
         Args:
             inputs (list): [node, edge, edge_indices, map_node, map_edge, node_pool, edge_pool, edge_indices_pool]
 
-            - node (tf.ragged): Original node tensor
-            - edge (tf.ragged): Original edge feature tensor
-            - edge_indices (tf.ragged): Original index tensor
-            - map_node (tf.ragged): Index map between original and pooled nodes
-            - map_edge (tf.ragged): Index map between original and pooled edges
-            - node_pool (tf.ragged): Pooled node tensor
-            - edge_pool (tf.ragged): Pooled edge feature tensor
-            - edge_indices (tf.ragged): Pooled index tensor
+                - node (tf.ragged): Original node tensor
+                - edge (tf.ragged): Original edge feature tensor
+                - edge_indices (tf.ragged): Original index tensor
+                - map_node (tf.ragged): Index map between original and pooled nodes
+                - map_edge (tf.ragged): Index map between original and pooled edges
+                - node_pool (tf.ragged): Pooled node tensor
+                - edge_pool (tf.ragged): Pooled edge feature tensor
+                - edge_indices (tf.ragged): Pooled index tensor
         
         Returns:
             List: [nodes, edges, edge_indices]
             
-            - nodes (tf.ragged): Unpooled node feature tensor
-            - edges (tf.ragged): Unpooled edge feature list
-            - edge_indices (tf.ragged): Unpooled edge index
+                - nodes (tf.ragged): Un-pooled node feature tensor
+                - edges (tf.ragged): Un-pooled edge feature list
+                - edge_indices (tf.ragged): Un-pooled edge index
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 8)
         # We cast to values here

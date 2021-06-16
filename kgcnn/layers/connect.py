@@ -29,15 +29,15 @@ class AdjacencyPower(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edges, edge_indices]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edges (tf.ragged): Adjacency entries of shape (batch, [M], 1)
-            - edge_indices (tf.ragged): Edge-index list referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edges (tf.ragged): Adjacency entries of shape (batch, [M], 1)
+                - edge_indices (tf.ragged): Edge-index list referring to nodes of shape (batch, [M], 2)
             
         Returns:
             list: [edges, edge_indices]
 
-            - edges (tf.ragged): Adjacency entries of shape  (batch, [M], 1)
-            - edge_indices (tf.ragged): Flatten index list of shape (batch, [M], 2)
+                - edges (tf.ragged): Adjacency entries of shape  (batch, [M], 1)
+                - edge_indices (tf.ragged): Flatten index list of shape (batch, [M], 2)
         """
         dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
 

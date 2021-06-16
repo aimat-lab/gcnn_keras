@@ -29,8 +29,8 @@ class GatherNodes(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.ragged: Gathered node embeddings that match the number of edges.
@@ -84,8 +84,8 @@ class GatherNodesOutgoing(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
@@ -136,8 +136,8 @@ class GatherNodesIngoing(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.ragged: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
@@ -187,8 +187,8 @@ class GatherState(GraphBaseLayer):
         Args:
             inputs: [state, target]
 
-            - state (tf.tensor): Graph specific embedding tensor. This is tensor of shape (batch, F)
-            - target (tf.ragged): Target to collect state for, of shape (batch, [N], F)
+                - state (tf.tensor): Graph specific embedding tensor. This is tensor of shape (batch, F)
+                - target (tf.ragged): Target to collect state for, of shape (batch, [N], F)
 
         Returns:
             tf.ragged: Graph embedding with repeated single state for each graph of shape (batch, [N], F).

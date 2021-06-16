@@ -87,11 +87,11 @@ def tf_legendre_polynomial_pn(x, n=0):
 
 @tf.function
 def tf_spherical_harmonics_yl(theta, l=0):
-    r"""Compute the spherical harmonics :math:`Y_{ml}(x)` for :math:`m=0` and constant non-integer :math:`l`.
+    r"""Compute the spherical harmonics :math:`Y_{ml}(\cos\theta)` for :math:`m=0` and constant non-integer :math:`l`.
 
     Args:
-        theta (tf.tensor): Values to compute :math:`Y_l(\theta)` for.
-        l (int): Positive integer for :math:`l` in :math:`Y_l(\theta)`.
+        theta (tf.tensor): Values to compute :math:`Y_l(\cos\theta)` for.
+        l (int): Positive integer for :math:`l` in :math:`Y_l(\cos\theta)`.
 
     Returns:
         tf.tensor: Spherical harmonics for :math:`m=0` and constant non-integer :math:`l`.

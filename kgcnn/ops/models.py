@@ -44,6 +44,8 @@ def generate_standard_graph_input(input_node_shape,
     else:
         ed = edge_input
 
+    env_input = None
+    uenv = None
     if input_state_shape is not None:
         env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
         if len(input_state_shape) == 0:
@@ -51,10 +53,7 @@ def generate_standard_graph_input(input_node_shape,
         else:
             uenv = env_input
 
-    if input_state_shape is not None:
-        return node_input, n, edge_input, ed, edge_index_input, env_input, uenv,
-    else:
-        return node_input, n, edge_input, ed, edge_index_input, None, None
+    return node_input, n, edge_input, ed, edge_index_input, env_input, uenv
 
 
 def update_model_args(default_args=None, user_args=None):

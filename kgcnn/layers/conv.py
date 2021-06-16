@@ -14,10 +14,10 @@ import kgcnn.ops.activ
 class GCN(GraphBaseLayer):
     r"""Graph convolution according to Kipf et al.
     
-    Computes graph convolution as $\sigma(A_s*(WX+b))$ where $A_s$ is the precomputed and scaled adjacency matrix.
-    The scaled adjacency matrix is defined by $A_s = D^{-0.5} (A + I) D{^-0.5}$ with the degree matrix $D$.
-    In place of $A_s$, this layers uses edge features (that are the entries of $A_s$) and edge indices.
-    $A_s$ is considered pre-scaled, this is not done by this layer.
+    Computes graph convolution as :math:`\sigma(A_s*(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
+    matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D{^-0.5}` with the degree
+    matrix :math:`D`. In place of :math:`A_s`, this layers uses edge features (that are the entries of :math:`A_s`) and
+    edge indices. :math:`A_s` is considered pre-scaled, this is not done by this layer.
     If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
     obtain a similar behaviour that is expected by a pre-scaled adjacency matrix input.
     Edge features must be possible to broadcast to node features. Ideally they have shape (..., 1).
@@ -83,9 +83,9 @@ class GCN(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message embeddings of shape (batch, [M], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.ragged: Node embeddings of shape (batch, [N], F)
@@ -169,20 +169,12 @@ class SchNetCFconv(GraphBaseLayer):
     def call(self, inputs, **kwargs):
         """Forward pass: Calculate edge update.
 
-        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-        For disjoint representation (values, partition), the node embeddings are given by
-        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
-
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
         
         Returns:
             tf.ragged: Updated node features.

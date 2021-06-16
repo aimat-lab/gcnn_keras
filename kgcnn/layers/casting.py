@@ -4,9 +4,18 @@ import tensorflow.keras as ks
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeTensorType')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
 class ChangeTensorType(ks.layers.Layer):
     """Layer to change graph representation tensor type.
+
+    The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
+    The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
+    For disjoint representation (values, partition), the node embeddings are given by
+    a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+    "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
+    the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
+    For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
 
     Args:
         partition_type (str): Partition tensor type. Default is "row_length".
@@ -51,7 +60,7 @@ class ChangeTensorType(ks.layers.Layer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='ChangeIndexing')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeIndexing')
 class ChangeIndexing(ks.layers.Layer):
     """Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph
     representation or vice-versa.
@@ -102,19 +111,11 @@ class ChangeIndexing(ks.layers.Layer):
     def call(self, inputs, **kwargs):
         """Forward pass.
 
-        The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-        The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-        For disjoint representation (values, partition), the node embeddings are given by
-        a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-        "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-        the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-        For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
-
         Args:
             inputs (list): [nodes, edge_index]
 
-            - nodes: Node embeddings of shape (batch, [N], F)
-            - edge_index: Edge indices referring to nodes of shape (batch, [N], 2).
+                - nodes: Node embeddings of shape (batch, [N], F)
+                - edge_index: Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
             tf.ragged: Corrected edge indices of shape (batch, [N], 2).

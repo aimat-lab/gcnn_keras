@@ -165,7 +165,7 @@ class Set2Set(GraphBaseLayer):
         Args:
             inputs: nodes
 
-             - nodes (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
+                - nodes (tf.ragged): Embeddings to be encoded of shape (batch, [N], F)
         
         Returns:
             tf.tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
@@ -202,23 +202,23 @@ class Set2Set(GraphBaseLayer):
         """Function to compute scalar from m and q. Can apply sum or mean etc.
         
         Args:
-             fm (tf.tensor): of shape (batch*num,feat)
-             fq (tf.tensor): of shape (batch*num,feat)
+             fm (tf.tensor): of shape (batch*N, feat)
+             fq (tf.tensor): of shape (batch*N, feat)
             
         Returns:
-            et (tf.tensor): of shape (batch*num,)  
+            tf.tensor: et of shape (batch*N, )
         """
-        fet = self._pool(fm * fq, axis=1)  # (batch*num,1)
+        fet = self._pool(fm * fq, axis=1)  # (batch*N, 1)
         return fet
 
     @staticmethod
     def get_scale_per_batch(x):
-        """Get rescaleing for the batch."""
+        """Get re-scaling for the batch."""
         return tf.keras.backend.max(x, axis=0, keepdims=True)
 
     @staticmethod
     def get_scale_per_sample(x, ind, rep):
-        """Get rescaleing for the sample."""
+        """Get re-scaling for the sample."""
         out = tf.math.segment_max(x, ind)  # (batch,)
         out = tf.repeat(out, rep)  # (batch*num,)
         return out

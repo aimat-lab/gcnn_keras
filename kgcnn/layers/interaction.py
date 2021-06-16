@@ -77,9 +77,9 @@ class SchNetInteraction(GraphBaseLayer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-            - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
+                - nodes (tf.ragged): Node embeddings of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message embeddings of shape (batch, [N], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [N], 2)
 
         Returns:
             tf.ragged: Updated node embeddings.
@@ -266,10 +266,10 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         Args:
             inputs: [edges, rbf, sbf, angle_index]
 
-            - edges (tf.ragged): Edge embeddings of shape (batch, [M], F)
-            - rbf (tf.ragged): Radial basis features of shape (batch, [M], F)
-            - sbf (tf.ragged): Spherical basis features of shape (batch, [K], F)
-            - angle_index (tf.ragged): Angle indices referring to two edges of shape (batch, [K], 2)
+                - edges (tf.ragged): Edge embeddings of shape (batch, [M], F)
+                - rbf (tf.ragged): Radial basis features of shape (batch, [M], F)
+                - sbf (tf.ragged): Spherical basis features of shape (batch, [K], F)
+                - angle_index (tf.ragged): Angle indices referring to two edges of shape (batch, [K], 2)
 
         Returns:
             tf.ragged: Updated edge embeddings.

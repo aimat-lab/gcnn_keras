@@ -34,9 +34,9 @@ class PoolingLocalEdges(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_index]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node features of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
     
         Returns:
             tf.ragged: Pooled feature tensor of pooled edge features for each node.
@@ -109,10 +109,11 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Args:
             inputs (list): of [node, edges, edge_index, weights]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
-            - weights (tf.ragged): Edge or message weights. Must broadcast to edges or messages, e.g. (batch, [M], 1)
+                - nodes (tf.ragged): Node features of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.ragged): Edge indices referring to nodes of shape (batch, [M], 2)
+                - weights (tf.ragged): Edge or message weights. Must broadcast to edges or messages,
+                  e.g. (batch, [M], 1)
 
         Returns:
             tf.ragged: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
@@ -228,8 +229,8 @@ class PoolingWeightedNodes(GraphBaseLayer):
         Args:
             inputs (list): of [node, weights]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
-            - weights (tf.ragged): Node or message weights. Most broadcast to nodes. Shape (batch, [N], 1).
+                - nodes (tf.ragged): Node features of shape (batch, [N], F)
+                - weights (tf.ragged): Node or message weights. Most broadcast to nodes. Shape (batch, [N], 1).
 
         Returns:
             tf.tensor: Pooled node features of shape (batch, F)
@@ -406,9 +407,9 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Args:
             inputs (list): [nodes, edges, edge_index]
 
-            - nodes (tf.ragged): Node features of shape (batch, [N], F)
-            - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
-            - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
+                - nodes (tf.ragged): Node features of shape (batch, [N], F)
+                - edges (tf.ragged): Edge or message features of shape (batch, [M], F)
+                - edge_index (tf.ragged): Edge indices of shape (batch, [M], 2)
 
         Returns:
             tf.ragged: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
