@@ -7,12 +7,12 @@ Implementation
 Representation
 --------------
 
-The most frequent usage for graph convolutions is either node or graph classifaction. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered. 
+The most frequent usage for graph convolutions is either node or graph classification. As for their size, either a single large graph, e.g. citation network or small (batched) graphs like molecules have to be considered.
 Graphs can be represented by an index list of connections plus feature information. Typical quantities in tensor format to describe a graph are listed below.
 
 * ``nodes``: Nodelist of shape ``(batch, N, F)`` where ``N`` is the number of nodes and ``F`` is the node feature dimension.
-* ``edges``: Edgelist of shape ``(batch, M, F)`` where ``M`` is the number of edges and ``Fe`` is the edge feature dimension.
-* ``indices``: Connectionlist of shape ``(batch, M, 2)`` where ``M`` is the number of edges. The indices denote a connection of incoming i and outgoing j node as ``(i,j)``.
+* ``edges``: Edge-list of shape ``(batch, M, F)`` where ``M`` is the number of edges and ``Fe`` is the edge feature dimension.
+* ``indices``: Connection-list of shape ``(batch, M, 2)`` where ``M`` is the number of edges. The indices denote a connection of incoming i and outgoing j node as ``(i,j)``.
 * ``state``: Graph state information of shape ``(batch, F)`` where ``F`` denotes the feature dimension.
 
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using ``RaggedTensor``.
