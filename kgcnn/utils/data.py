@@ -25,7 +25,7 @@ def load_pickle_file(fname):
         fname (str): Filepath to load.
 
     Returns:
-        outlist (list): Pickle object.
+        pickle: Pickled object.
     """
     with open(fname, 'rb') as f:
         outlist = pickle.load(f)
