@@ -3,7 +3,7 @@ import scipy.sparse as sp
 
 
 def precompute_adjacency_scaled(adj_matrix, add_identity=True):
-    r"""Precompute the scaled adjacency matrix $A_{scaled} = D^{-0.5} (A + I) D^{-0.5}$
+    r"""Precompute the scaled adjacency matrix :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
     after Thomas N. Kipf, Max Welling
 
     Args:
