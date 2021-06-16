@@ -7,7 +7,7 @@ from scipy.optimize import brentq
 
 @tf.function
 def tf_spherical_bessel_jn_explicit(x, n=0):
-    r"""Compute spherical bessel functions $j_n(x)$ for constant positive integer $n$ explicitly.
+    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer `n` explicitly.
     TensorFlow has to cache the function for each n. No gradient through n or very large number of n's is possible.
     Source: https://dlmf.nist.gov/10.49
 
@@ -37,7 +37,7 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
 
 @tf.function
 def tf_spherical_bessel_jn(x, n=0):
-    """Compute spherical bessel functions jn(x) for constant positive integer n via recursion.
+    r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer `n` via recursion.
 
     Args:
         x (tf.tensor): Values to compute jn(x) for.
@@ -64,14 +64,14 @@ def tf_spherical_bessel_jn(x, n=0):
 
 @tf.function
 def tf_legendre_polynomial_pn(x, n=0):
-    """Compute the (non-associated) Legendre polynomial for constant positive integer n via explicit formula.
+    r"""Compute the (non-associated) Legendre polynomial for constant positive integer `n` via explicit formula.
 
     Args:
-        x (tf.tensor): Values to compute Pn(x) for.
-        n (int): Positive integer for n in Pn(x).
+        x (tf.tensor): Values to compute :math:`P_n(x)` for.
+        n (int): Positive integer for `n` in :math:`P_n(x)`.
 
     Returns:
-        tf.tensor: Legendre Polynomial of order n.
+        tf.tensor: Legendre Polynomial of order `n`.
     """
     out_sum = tf.zeros_like(x)
     prefactors = [
@@ -85,14 +85,14 @@ def tf_legendre_polynomial_pn(x, n=0):
 
 @tf.function
 def tf_spherical_harmonics_yl(theta, l=0):
-    """Compute the spherical harmonics for m=0 and constant non-integer l.
+    r"""Compute the spherical harmonics for math:`m=0` and constant non-integer `l`.
 
     Args:
         theta (tf.tensor): Values to compute Yl(theta) for.
         l (int): Positive integer for l in Yl(x).
 
     Returns:
-        tf.tensor: Spherical harmonics for m=0 and constant non-integer l.
+        tf.tensor: Spherical harmonics for math:`m=0` and constant non-integer `l`.
     """
     x = tf.cos(theta)
     out_sum = tf.zeros_like(x)
@@ -126,20 +126,20 @@ def tf_spherical_harmonics_yl(theta, l=0):
 
 
 def spherical_bessel_jn(r, n):
-    """Compute spherical Bessel function jn(r) via scipy.
+    r"""Compute spherical Bessel function :math:`j_n(r)` via scipy.
 
     Args:
         r (array_like): Argument
         n (array_like): Order.
 
     Returns:
-        array_like: Values of the spherical Bessel function
+        np.array: Values of the spherical Bessel function
     """
     return np.sqrt(np.pi / (2 * r)) * sp.special.jv(n + 0.5, r)
 
 
 def spherical_bessel_jn_zeros(n, k):
-    """Compute the first k zeros of the spherical bessel functions up to order n (excluded).
+    r"""Compute the first `k` zeros of the spherical bessel functions :math:`j_n(r)` up to order `n` (excluded).
     Taken from https://github.com/klicperajo/dimenet.
 
     Args:
@@ -147,7 +147,7 @@ def spherical_bessel_jn_zeros(n, k):
         k: Number of zero crossings.
 
     Returns:
-        zeros_jn: List of zero crossings of shape (n,k)
+        np.array: List of zero crossings of shape (n, k)
     """
     zerosj = np.zeros((n, k), dtype="float32")
     zerosj[0] = np.arange(1, k + 1) * np.pi
@@ -164,8 +164,8 @@ def spherical_bessel_jn_zeros(n, k):
 
 
 def spherical_bessel_jn_normalization_prefactor(n, k):
-    """Compute the normalization or rescaling pre-factor for the spherical bessel functions up to
-    order n (excluded) and maximum frequency k (excluded).
+    r"""Compute the normalization or rescaling pre-factor for the spherical bessel functions :math:`j_n(r)` up to
+    order `n` (excluded) and maximum frequency `k` (excluded).
     Taken from https://github.com/klicperajo/dimenet.
 
     Args:
@@ -173,7 +173,7 @@ def spherical_bessel_jn_normalization_prefactor(n, k):
         k: frequency.
 
     Returns:
-        norm: Normalization of shape (n, k)
+        np.array: Normalization of shape (n, k)
     """
     zeros = spherical_bessel_jn_zeros(n, k)
     normalizer = []
