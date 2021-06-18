@@ -17,7 +17,7 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
         n (int): Positive integer for the bessel order :math:`n`.
 
     Returns:
-        tf.tensor: Spherical bessel function of order :math:`n`
+        tf.Tensor: Spherical bessel function of order :math:`n`
     """
     sin_x = tf.sin(x - n * np.pi / 2)
     cos_x = tf.cos(x - n * np.pi / 2)
@@ -67,6 +67,7 @@ def tf_spherical_bessel_jn(x, n=0):
 def tf_legendre_polynomial_pn(x, n=0):
     r"""Compute the (non-associated) Legendre polynomial :math:`P_n(x)` for constant positive integer :math:`n`
     via explicit formula.
+    Closed form: https://en.wikipedia.org/wiki/Legendre_polynomials
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_n(x)` for.
@@ -108,31 +109,45 @@ def tf_spherical_harmonics_yl(theta, l=0):
     return out_sum
 
 
-# @tf.function
-# def tf_associated_legendre_polynomial(x, l=0, m=0):
-#     """Compute the associated Legendre polynomial for m and constant positive integer l via explicit formula.
-#
-#     Args:
-#         x (tf.tensor): Values to compute Plm(x) for.
-#         l (int): Positive integer for l in Plm(x).
-#         m (int): Positive/Negative integer for m in Plm(x).
-#
-#     Returns:
-#         tf.tensor: Legendre Polynomial of order n.
-#     """
-#     if m==0:
-#     else:
-#         prefactors = [ for k in range(m,l)]
-#         powers = [ for k in range(m,l)]
-#         if
+@tf.function
+def tf_associated_legendre_polynomial(x, l=0, m=0):
+    """Compute the associated Legendre polynomial :math:`P_{l}^{m}(x)` for :math:`m` and constant positive
+    integer :math:`l` via explicit formula.
+    Closed Form from: https://en.wikipedia.org/wiki/Associated_Legendre_polynomials
+
+    Args:
+        x (tf.Tensor): Values to compute :math:`P_{l}^{m}(x)` for.
+        l (int): Positive integer for :math:`l` in :math:`P_{l}^{m}(x)`.
+        m (int): Positive/Negative integer for :math:`m` in :math:`P_{l}^{m}(x)`.
+
+    Returns:
+        tf.tensor: Legendre Polynomial of order n.
+    """
+    if np.abs(m)>l:
+        raise ValueError("Error: Legendre polynomial must have -l<= m <= l")
+    if l<0:
+        raise ValueError("Error: Legendre polynomial must have l>=0")
+    if m < 0:
+        m = -m
+        neg_m = float(np.power(-1,m) * sp.special.factorial(l-m)/sp.special.factorial(l+m))
+    else:
+        neg_m = 1
+
+    x_prefactor = tf.pow(1 - tf.square(x), m/2) * float(np.power(-1,m) * np.power(2,l))
+    sum_out = tf.zeros_like(x)
+    for k in range(m,l+1):
+        sum_out += tf.pow(x,k-m) * float(sp.special.factorial(k)/sp.special.factorial(k-m)*sp.special.binom(l,k)*
+                                         sp.special.binom((l+k-1)/2,l))
+
+    return sum_out*x_prefactor*neg_m
 
 
 def spherical_bessel_jn(r, n):
     r"""Compute spherical Bessel function :math:`j_n(r)` via scipy.
 
     Args:
-        r (np.array): Argument
-        n (np.array): Order.
+        r (np.ndarray): Argument
+        n (np.ndarray): Order.
 
     Returns:
         np.array: Values of the spherical Bessel function
@@ -150,7 +165,7 @@ def spherical_bessel_jn_zeros(n, k):
         k: Number of zero crossings.
 
     Returns:
-        np.array: List of zero crossings of shape (n, k)
+        np.ndarray: List of zero crossings of shape (n, k)
     """
     zerosj = np.zeros((n, k), dtype="float32")
     zerosj[0] = np.arange(1, k + 1) * np.pi
@@ -176,7 +191,7 @@ def spherical_bessel_jn_normalization_prefactor(n, k):
         k: frequency.
 
     Returns:
-        np.array: Normalization of shape (n, k)
+        np.ndarray: Normalization of shape (n, k)
     """
     zeros = spherical_bessel_jn_zeros(n, k)
     normalizer = []

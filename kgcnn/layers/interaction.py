@@ -200,13 +200,13 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                  num_after_skip,
                  use_bias=True,
                  pooling_method="sum",
-                 activation='kgcnn>swish',  # default is 'swish'
+                 activation='kgcnn>swish',  # default is 'kgcnn>swish'
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 kernel_initializer="kgcnn>glorot_orthogonal",  # default is 'glorot_orthogonal'
+                 kernel_initializer="kgcnn>glorot_orthogonal",  # default is 'kgcnn>glorot_orthogonal'
                  bias_initializer='zeros',
                  **kwargs):
         super(DimNetInteractionPPBlock, self).__init__(**kwargs)
