@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import numpy as np
 
-from kgcnn.ops.models import generate_mol_graph_input,update_model_args
+from kgcnn.ops.models import generate_node_embedding, update_model_args
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add
@@ -68,12 +68,16 @@ def make_dimnet_pp(
     model_default = {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}
                      }
 
+    # Update model parameters
     input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
-    node_input, n, xyz_input, bond_index_input, angle_index_input, _ = generate_mol_graph_input(input_node_shape,
-                                                                                                [None, 3],
-                                                                                                [None, 2],
-                                                                                                [None, 2],
-                                                                                                **input_embedd)
+
+    # Make input
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    xyz_input = ks.layers.Input(shape=[None, 3], name='xyz_input', dtype="float32", ragged=True)
+    bond_index_input = ks.layers.Input(shape=[None, 2], name='bond_index_input', dtype="int64", ragged=True)
+    angle_index_input = ks.layers.Input(shape=[None, 2], name='angle_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+
     x = xyz_input
     edi = bond_index_input
     adi = angle_index_input

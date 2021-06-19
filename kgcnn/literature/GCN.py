@@ -1,11 +1,11 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
@@ -70,11 +70,11 @@ def make_gcn(
     gcn_args = update_model_args(model_default['gcn_args'], gcn_args)
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
-                                                                                                     input_edge_shape,
-                                                                                                     None,
-                                                                                                     **input_embedd)
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
 
     # Map to units
@@ -156,14 +156,14 @@ def make_gcn_node_weights(
     gcn_args = update_model_args(model_default['gcn_args'], gcn_args)
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
-                                                                                                     input_edge_shape,
-                                                                                                     None,
-                                                                                                     **input_embedd)
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
     node_weights_input = ks.layers.Input(shape=(None, 1), name='node_weights', dtype="float32", ragged=True)
-
-    nw = node_weights_input
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
+    nw = node_weights_input
 
     # Map to units
     n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)

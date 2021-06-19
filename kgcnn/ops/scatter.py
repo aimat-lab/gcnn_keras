@@ -42,7 +42,7 @@ def tensor_scatter_nd_mean(tensor, indices, updates, name=None):
 
 
 @tf.function
-def kgcnn_ops_tensor_scatter_nd_by_name(segment_name, tensor, indices, updates, name=None):
+def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=None):
     """Scatter operation chosen by name that can replace segment-operations.
 
     Args:

@@ -76,12 +76,12 @@ def kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node
 
 @tf.function
 def kgcnn_ops_change_partition_type(in_partition, in_partition_type, out_partition_type):
-    """Switch between partition types.
+    """Switch between partition types. Only for 1-D partitions.
 
     Args:
-        in_partition (tf.Tensor): Row partition tensor
-        in_partition_type (str): Source partition type, can be either 'row_splits', 'row_length' or 'value_rowids'
-        out_partition_type (str): Target partition type, can be either 'row_splits', 'row_length' or 'value_rowids'
+        in_partition (tf.Tensor): Row partition tensor of shape (N, ).
+        in_partition_type (str): Source partition type, can be either 'row_splits', 'row_length', 'value_rowids'.
+        out_partition_type (str): Target partition type, can be either 'row_splits', 'row_length', 'value_rowids'.
 
     Returns:
         out_partition (tf.Tensor): Row partition tensor of target type.
@@ -89,26 +89,33 @@ def kgcnn_ops_change_partition_type(in_partition, in_partition_type, out_partiti
     if in_partition_type == out_partition_type:
         # Do nothing here
         out_partition = in_partition
+
     elif in_partition_type == "row_length" and out_partition_type == "row_splits":
         # We need ex. (1,2,3) -> (0,1,3,6)
         out_partition = tf.pad(tf.cumsum(in_partition), [[1, 0]])
+
     elif in_partition_type == "row_splits" and out_partition_type == "row_length":
         # Matches length if (0,1,3,6) -> (1,2,3)
         out_partition = in_partition[1:] - in_partition[:-1]
+
     elif in_partition_type == "row_length" and out_partition_type == "value_rowids":
         # May cast to dtype = tf.int32 here
         out_partition = tf.repeat(tf.range(tf.shape(in_partition)[0]), in_partition)
+
     elif in_partition_type == "value_rowids" and out_partition_type == "row_length":
         out_partition = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
+
     elif in_partition_type == "value_rowids" and out_partition_type == "row_splits":
         # Get row_length
         part_sum = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
         out_partition = tf.pad(tf.cumsum(part_sum), [[1, 0]])
+
     elif in_partition_type == "row_splits" and out_partition_type == "value_rowids":
         # Get row_length
         part_sum = in_partition[1:] - in_partition[:-1]
         out_partition = tf.repeat(tf.range(tf.shape(part_sum)[0]), part_sum)
+
     else:
-        raise TypeError("Unknown partition scheme, use: 'value_rowids', 'row_splits', row_length")
+        raise TypeError("Error: Unknown partition scheme, use: 'value_rowids', 'row_splits', row_length.")
 
     return out_partition

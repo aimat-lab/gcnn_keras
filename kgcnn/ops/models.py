@@ -1,6 +1,63 @@
 import tensorflow.keras as ks
 
 
+def generate_node_embedding(node_input, input_node_shape, input_node_vocab=95, input_node_embedd=64, **kwargs):
+    """Optional node embedding for tensor input.
+
+    Args:
+        node_input (tf.Tensor): Input tensor to make embedding for.
+        input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
+        input_node_vocab (int): Vocabulary size of optional embedding layer.
+        input_node_embedd (int): Embedding dimension for optional embedding layer.
+
+    Returns:
+        tf.Tensor: Tensor output.
+    """
+    if len(input_node_shape) == 1:
+        n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
+    else:
+        n = node_input
+    return n
+
+
+def generate_edge_embedding(edge_input, input_edge_shape, input_edge_vocab=5, input_edge_embedd=64, **kwargs):
+    """Optional edge embedding for tensor input.
+
+    Args:
+        edge_input (tf.Tensor): Input tensor to make embedding for.
+        input_edge_shape (list): Shape of edge input without batch dimension. Either (None, F) or (None, )
+        input_edge_vocab (int): Vocabulary size of optional embedding layer.
+        input_edge_embedd (int): Embedding dimension for optional embedding layer.
+
+    Returns:
+        tf.Tensor: Tensor output.
+    """
+    if len(input_edge_shape) == 1:
+        ed = ks.layers.Embedding(input_edge_vocab, input_edge_embedd, name='edge_embedding')(edge_input)
+    else:
+        ed = edge_input
+    return ed
+
+
+def generate_state_embedding(env_input, input_state_shape, input_state_vocab=100, input_state_embedd=64, **kwargs):
+    """Optional state embedding for tensor input.
+
+    Args:
+        env_input (tf.Tensor): Input tensor to make embedding for.
+        input_state_shape: Shape of state input without batch dimension. Either (F, ) or (, )
+        input_state_vocab (int) Vocabulary size of optional embedding layer.
+        input_state_embedd (int): Embedding dimension for optional embedding layer.
+
+    Returns:
+        tf.Tensor: Tensor output.
+    """
+    if len(input_state_shape) == 0:
+        uenv = ks.layers.Embedding(input_state_vocab, input_state_embedd, name='state_embedding')(env_input)
+    else:
+        uenv = env_input
+    return uenv
+
+
 def generate_standard_graph_input(input_node_shape,
                                   input_edge_shape,
                                   input_state_shape,

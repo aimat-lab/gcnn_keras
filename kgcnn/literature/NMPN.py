@@ -7,7 +7,7 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
 from kgcnn.layers.update import GRUupdate, TrafoMatMulMessages
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
 # Neural Message Passing for Quantum Chemistry
@@ -80,13 +80,13 @@ def make_nmpn(
     edge_dense = update_model_args(model_default['edge_dense'], edge_dense)
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
-                                                                                          input_edge_shape,
-                                                                                          None,
-                                                                                          **input_embedd)
-
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
+
     n = Dense(node_dim, activation="linear")(n)
     edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
     gru = GRUupdate(node_dim)

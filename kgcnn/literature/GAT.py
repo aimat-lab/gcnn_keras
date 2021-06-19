@@ -6,7 +6,7 @@ from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 from kgcnn.layers.keras import Concatenate, Dense, Average
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # Graph Attention Networks by Veličković et al. (2018)
@@ -66,10 +66,11 @@ def make_gat(  # Input
     pooling_nodes_args = {}
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
-                                                                                          input_edge_shape, None,
-                                                                                          **input_embedd)
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
 
     nk = Dense(units=attention_args["units"], activation="linear")(n)

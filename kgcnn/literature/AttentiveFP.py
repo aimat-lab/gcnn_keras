@@ -6,7 +6,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.update import GRUupdate
 from kgcnn.layers.mlp import MLP
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -66,11 +66,13 @@ def make_attentiveFP(  # Input
     attention_args = update_model_args(model_default['attention_args'], attention_args)
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
-                                                                                          input_edge_shape, None,
-                                                                                          **input_embedd)
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
+
     nk = Dense(units=attention_args['units'])(n)
     Ck = AttentiveHeadFP(use_edge_features=True,**attention_args)([nk,ed,edi])
     nk = GRUupdate(units=attention_args['units'])([nk,Ck])

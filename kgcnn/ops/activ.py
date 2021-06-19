@@ -1,7 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='shifted_softplus')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')
 def shifted_softplus(x):
     """Shifted softplus activation function.
     
@@ -14,7 +15,7 @@ def shifted_softplus(x):
     return ks.activations.softplus(x) - ks.backend.log(2.0)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='softplus2')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='softplus2')
 def softplus2(x):
     """softplus function that is 0 at x=0, the implementation aims at avoiding overflow
     out = log(exp(x)+1) - log(2)
@@ -28,7 +29,7 @@ def softplus2(x):
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='leaky_softplus')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_softplus')
 class leaky_softplus(tf.keras.layers.Layer):
     """Leaky softplus activation function similar to leakyRELU but smooth.
 
@@ -36,7 +37,7 @@ class leaky_softplus(tf.keras.layers.Layer):
         alpha (float, optional): Leaking slope. The default is 0.3.
     """
 
-    def __init__(self,alpha = 0.3,**kwargs):
+    def __init__(self, alpha=0.3, **kwargs):
         super(leaky_softplus, self).__init__(**kwargs)
         self.alpha = alpha
 
@@ -50,7 +51,7 @@ class leaky_softplus(tf.keras.layers.Layer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='leaky_relu')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
     """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
 
@@ -58,7 +59,7 @@ class leaky_relu(tf.keras.layers.Layer):
         alpha (float, optional): leak alpha = 0.2
     """
 
-    def __init__(self,alpha = 0.2, **kwargs):
+    def __init__(self, alpha=0.2, **kwargs):
         super(leaky_relu, self).__init__(**kwargs)
         self.alpha = alpha
 
@@ -73,7 +74,7 @@ class leaky_relu(tf.keras.layers.Layer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='swish')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 def swish(x):
     """Swish activation function,
     from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"

@@ -1,12 +1,14 @@
 import tensorflow.keras as ks
 
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding, \
+    generate_state_embedding
 from kgcnn.layers.blocks import MEGnetBlock
 from kgcnn.layers.keras import Dense, Add, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+# from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
 # by Chi Chen, Weike Ye, Yunxing Zuo, Chen Zheng, and Shyue Ping Ong*
@@ -96,13 +98,13 @@ def make_megnet(
     state_ff_args.update({"input_tensor_type": "tensor"})
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, env_input, uenv = generate_standard_graph_input(input_node_shape,
-                                                                                                     input_edge_shape,
-                                                                                                     input_state_shape,
-                                                                                                     **input_embedd)
-
-
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
+    uenv = generate_state_embedding(env_input, input_state_shape, **input_embedd)
     edi = edge_index_input
 
     # starting

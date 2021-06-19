@@ -7,7 +7,7 @@ from kgcnn.layers.pooling import PoolingNodes
 import kgcnn.ops.activ
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
-from kgcnn.ops.segment import segment_softmax, kgcnn_ops_segment_operation_by_name
+from kgcnn.ops.segment import segment_softmax, segment_ops_by_name
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')

@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
 from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
-from kgcnn.ops.segment import kgcnn_ops_segment_operation_by_name
+from kgcnn.ops.segment import segment_ops_by_name
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
@@ -61,7 +61,7 @@ class PoolingLocalEdges(GraphBaseLayer):
             nodind = tf.gather(nodind, node_order, axis=0)
             dens = tf.gather(dens, node_order, axis=0)
         # Pooling via e.g. segment_sum
-        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
+        out = segment_ops_by_name(self.pooling_method, dens, nodind)
         if self.has_unconnected:
             out = kgcnn_ops_scatter_segment_tensor_nd(out, nodind, tf.shape(nod))
 
@@ -143,7 +143,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
             wval = tf.gather(wval, node_order, axis=0)
 
         # Pooling via e.g. segment_sum
-        get = kgcnn_ops_segment_operation_by_name(self.pooling_method, dens, nodind)
+        get = segment_ops_by_name(self.pooling_method, dens, nodind)
 
         if self.normalize_by_weights:
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
@@ -194,7 +194,7 @@ class PoolingNodes(GraphBaseLayer):
         # We cast to values here
         nod, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
 
-        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, nod, batchi)
+        out = segment_ops_by_name(self.pooling_method, nod, batchi)
 
         # Output should have correct shape
         return out
@@ -241,7 +241,7 @@ class PoolingWeightedNodes(GraphBaseLayer):
         weights, _ = dyn_inputs[1].values, dyn_inputs[1].value_rowids()
 
         nod = tf.math.multiply(nod, weights)
-        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, nod, batchi)
+        out = segment_ops_by_name(self.pooling_method, nod, batchi)
         # Output should have correct shape
         return out
 
@@ -282,7 +282,7 @@ class PoolingGlobalEdges(GraphBaseLayer):
         # We cast to values here
         edge, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
 
-        out = kgcnn_ops_segment_operation_by_name(self.pooling_method, edge, batchi)
+        out = segment_ops_by_name(self.pooling_method, edge, batchi)
         # Output already has correct shape and type
         return out
 

@@ -7,7 +7,7 @@ from kgcnn.layers.keras import Dense, Activation, Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.topk import PoolingTopK, UnPoolingTopK
-from kgcnn.ops.models import generate_standard_graph_input, update_model_args
+from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
 # Graph U-Nets
@@ -77,10 +77,11 @@ def make_unet(
     gather_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample'}
 
     # Make input embedding, if no feature dimension
-    node_input, n, edge_input, ed, edge_index_input, _, _ = generate_standard_graph_input(input_node_shape,
-                                                                                          input_edge_shape, None,
-                                                                                          **input_embedd)
-
+    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
     edi = edge_index_input
 
     # Graph lists

@@ -54,7 +54,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                                                "tensor", "RaggedTensor", "Tensor"]
 
         self._tensor_input_type_found = []
-        self._test_tensor_input = self._kgcnn_static_tensor_input_check()
+        self._test_tensor_input_type = self._kgcnn_static_tensor_input_check()
 
         self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
                             "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
