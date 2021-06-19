@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type
+from kgcnn.ops.partition import change_partition_by_name
 from kgcnn.ops.ragged import DummyRankOneRaggedTensor
 
 
@@ -170,7 +170,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 return x
             elif output_tensor_type in value_partition_keys:
                 return kgcnn_ops_dyn_cast(x, input_tensor_type="ragged",
-                                          output_tensor_type=output_tensor_type, partition_type=self.partition_type)
+                                          output_tensor_type=output_tensor_type,
+                                          partition_type=self.partition_type)
             else:
                 raise TypeError("Error:", self.name, "output type for ragged-like input is not supported for", x)
 
@@ -181,7 +182,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 return kgcnn_ops_dyn_cast(x, input_tensor_type="values_partition",
                                           output_tensor_type=output_tensor_type, partition_type=input_partition_type)
             elif output_tensor_type in value_partition_keys:
-                tens_part = kgcnn_ops_change_partition_type(x[1], input_partition_type, self.partition_type)
+                tens_part = change_partition_by_name(x[1], input_partition_type, self.partition_type)
                 return [x[0], tens_part]
             else:
                 raise TypeError("Error:", self.name, "output type for ragged-like input is not supported for", x)

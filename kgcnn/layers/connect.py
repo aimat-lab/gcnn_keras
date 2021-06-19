@@ -1,7 +1,7 @@
 import tensorflow as tf
 # import tensorflow.keras.backend as ksb
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import change_row_index_partition
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AdjacencyPower')
@@ -46,12 +46,12 @@ class AdjacencyPower(GraphBaseLayer):
         edge_index, edge_len = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         # batch-wise indexing
-        edge_index = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index,
-                                                                            node_len, edge_len,
-                                                                            partition_type_node="row_length",
-                                                                            partition_type_edge="row_length",
-                                                                            from_indexing=self.node_indexing,
-                                                                            to_indexing="sample")
+        edge_index = change_row_index_partition(edge_index,
+                                                node_len, edge_len,
+                                                partition_type_node="row_length",
+                                                partition_type_edge="row_length",
+                                                from_indexing=self.node_indexing,
+                                                to_indexing="sample")
 
         ind_batch = tf.cast(tf.expand_dims(tf.repeat(tf.range(tf.shape(edge_len)[0]), edge_len), axis=-1),
                             dtype=edge_index.dtype)
@@ -89,12 +89,12 @@ class AdjacencyPower(GraphBaseLayer):
                                                 tf.ones_like(new_egde_ids))
 
         # batchwise indexing
-        new_edge_index = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(new_edge_index,
-                                                                                node_len, new_edge_len,
-                                                                                partition_type_node="row_length",
-                                                                                partition_type_edge="row_length",
-                                                                                from_indexing="sample",
-                                                                                to_indexing=self.node_indexing)
+        new_edge_index = change_row_index_partition(new_edge_index,
+                                                    node_len, new_edge_len,
+                                                    partition_type_node="row_length",
+                                                    partition_type_edge="row_length",
+                                                    from_indexing="sample",
+                                                    to_indexing=self.node_indexing)
 
         outlist = [self._kgcnn_map_output_ragged([new_edge, new_edge_len], "row_length", 1),
                    self._kgcnn_map_output_ragged([new_edge_index, new_edge_len], "row_length", 2)]

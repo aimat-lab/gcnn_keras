@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import tensorflow.keras.backend as ksb
 
-from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition, kgcnn_ops_change_partition_type
+from kgcnn.ops.partition import change_row_index_partition, change_partition_by_name
 
 
 @tf.function
@@ -54,7 +54,7 @@ def kgcnn_ops_cast_masked_to_value_partition(inputs, partition_type="row_length"
     flat_tens = tf.boolean_mask(batchred_tens, batchred_mask)
 
     # Output
-    outpart = kgcnn_ops_change_partition_type(row_lengths, "row_length", partition_type)
+    outpart = change_partition_by_name(row_lengths, "row_length", partition_type)
 
     return [flat_tens, outpart]
 
@@ -67,7 +67,7 @@ def kgcnn_ops_cast_tensor_to_value_partition(inputs, partition_type ="row_length
     out_len = tf.repeat(sh_feat[1], sh_feat[0])
 
     # Output
-    outpart = kgcnn_ops_change_partition_type(out_len, "row_length", partition_type)
+    outpart = change_partition_by_name(out_len, "row_length", partition_type)
 
     return [out, outpart]
 

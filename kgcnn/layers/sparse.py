@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import change_row_index_partition
 
 
 class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
@@ -38,12 +38,12 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         edge_index, edge_len = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         # batch-wise indexing
-        edge_index = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index,
-                                                                            node_len, edge_len,
-                                                                            partition_type_node="row_length",
-                                                                            partition_type_edge="row_length",
-                                                                            from_indexing=self.node_indexing,
-                                                                            to_indexing="batch")
+        edge_index = change_row_index_partition(edge_index,
+                                                node_len, edge_len,
+                                                partition_type_node="row_length",
+                                                partition_type_edge="row_length",
+                                                from_indexing=self.node_indexing,
+                                                to_indexing="batch")
         indexlist = edge_index
         valuelist = edge
 

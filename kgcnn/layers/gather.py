@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import change_row_index_partition
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodes')
@@ -40,11 +40,11 @@ class GatherNodes(GraphBaseLayer):
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                           partition_type_node="row_splits",
-                                                                           partition_type_edge="row_length",
-                                                                           to_indexing='batch',
-                                                                           from_indexing=self.node_indexing)
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
+                                               partition_type_node="row_splits",
+                                               partition_type_edge="row_length",
+                                               to_indexing='batch',
+                                               from_indexing=self.node_indexing)
         out = tf.gather(node, indexlist, axis=0)
         if self.concat_nodes:
             out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
@@ -96,11 +96,11 @@ class GatherNodesOutgoing(GraphBaseLayer):
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                           partition_type_node="row_splits",
-                                                                           partition_type_edge="row_length",
-                                                                           to_indexing='batch',
-                                                                           from_indexing=self.node_indexing)
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
+                                               partition_type_node="row_splits",
+                                               partition_type_edge="row_length",
+                                               to_indexing='batch',
+                                               from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, edge_index[:, :, 1], batch_dims=1)
         out = tf.gather(node, indexlist[:, 1], axis=0)
@@ -149,11 +149,11 @@ class GatherNodesIngoing(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
         # We cast to values here
-        indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, node_part, edge_part,
-                                                                           partition_type_node="row_splits",
-                                                                           partition_type_edge="row_length",
-                                                                           to_indexing='batch',
-                                                                           from_indexing=self.node_indexing)
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
+                                               partition_type_node="row_splits",
+                                               partition_type_edge="row_length",
+                                               to_indexing='batch',
+                                               from_indexing=self.node_indexing)
         out = tf.gather(node, indexlist[:, 0], axis=0)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)

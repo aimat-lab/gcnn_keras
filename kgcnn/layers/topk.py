@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type, kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import change_partition_by_name, change_row_index_partition
 from kgcnn.layers.base import GraphBaseLayer
 
 
@@ -129,12 +129,9 @@ class PoolingTopK(GraphBaseLayer):
         # Shift index if necessary
         edge_ids = tf.repeat(tf.range(tf.shape(edgelen)[0], dtype=index_dtype), edgelen)
 
-        shiftind = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edgeindref,
-                                                                          nrowlength, edge_ids,
-                                                                          partition_type_node="row_length",
-                                                                          partition_type_edge="value_rowids",
-                                                                          from_indexing=self.node_indexing,
-                                                                          to_indexing="batch")
+        shiftind = change_row_index_partition(edgeindref,nrowlength, edge_ids,
+                                              partition_type_node="row_length", partition_type_edge="value_rowids",
+                                              from_indexing=self.node_indexing, to_indexing="batch")
 
         shiftind = tf.cast(shiftind, dtype=index_dtype)  # already shifted by batch offset (sub-graphs)
 
@@ -156,12 +153,12 @@ class PoolingTopK(GraphBaseLayer):
         new_edge_index_sorted = tf.gather(new_edge_index, batch_order, axis=0)
 
         # Remove the batch offset from edge_indices again for indexing type
-        out_indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(new_edge_index_sorted,
-                                                                               pooled_len, clean_edge_ids,
-                                                                               partition_type_node="row_length",
-                                                                               partition_type_edge="value_rowids",
-                                                                               from_indexing="batch",
-                                                                               to_indexing=self.node_indexing)
+        out_indexlist = change_row_index_partition(new_edge_index_sorted,
+                                                   pooled_len, clean_edge_ids,
+                                                   partition_type_node="row_length",
+                                                   partition_type_edge="value_rowids",
+                                                   from_indexing="batch",
+                                                   to_indexing=self.node_indexing)
 
         # Correct edge features the same way (remove and reorder)
         edge_feat = edgefeat
@@ -184,18 +181,18 @@ class PoolingTopK(GraphBaseLayer):
 
         # Collect reverse pooling info
         # Remove batch offset for old indicies -> but with new length
-        out_pool = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(pooled_index,
-                                                                          nrowlength, pooled_len,
-                                                                          partition_type_node="row_length",
-                                                                          partition_type_edge="row_length",
-                                                                          from_indexing="batch",
-                                                                          to_indexing=self.node_indexing, axis=0)
-        out_pool_edge = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_position_new,
-                                                                               erowlength, clean_edge_ids,
-                                                                               partition_type_node="row_length",
-                                                                               partition_type_edge="value_rowids",
-                                                                               from_indexing="batch",
-                                                                               to_indexing=self.node_indexing, axis=0)
+        out_pool = change_row_index_partition(pooled_index,
+                                              nrowlength, pooled_len,
+                                              partition_type_node="row_length",
+                                              partition_type_edge="row_length",
+                                              from_indexing="batch",
+                                              to_indexing=self.node_indexing)
+        out_pool_edge = change_row_index_partition(edge_position_new,
+                                                   erowlength, clean_edge_ids,
+                                                   partition_type_node="row_length",
+                                                   partition_type_edge="value_rowids",
+                                                   from_indexing="batch",
+                                                   to_indexing=self.node_indexing)
 
         out = [self._kgcnn_map_output_ragged([out_node, out_np], "row_length", 0),
                self._kgcnn_map_output_ragged([out_edge, out_ep], "row_length", 1),
@@ -269,18 +266,15 @@ class UnPoolingTopK(GraphBaseLayer):
         edgeind_new, _ = dyn_inputs[7].values, dyn_inputs[7].row_lengths()
 
         # Correct map index for flatten batch offset
-        map_node = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(map_node,
-                                                                          nrowlength, pool_node_len,
-                                                                          partition_type_node="row_length",
-                                                                          partition_type_edge="row_length",
-                                                                          from_indexing=self.node_indexing,
-                                                                          to_indexing="batch", axis=0)
-        map_edge = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(map_edge,
-                                                                          erowlength, pool_edge_id,
-                                                                          partition_type_node="row_length",
-                                                                          partition_type_edge="value_rowids",
-                                                                          from_indexing=self.node_indexing,
-                                                                          to_indexing="batch", axis=0)
+        map_node = change_row_index_partition(map_node,nrowlength, pool_node_len,
+                                              partition_type_node="row_length", partition_type_edge="row_length",
+                                              from_indexing=self.node_indexing, to_indexing="batch")
+        map_edge = change_row_index_partition(map_edge,
+                                              erowlength, pool_edge_id,
+                                              partition_type_node="row_length",
+                                              partition_type_edge="value_rowids",
+                                              from_indexing=self.node_indexing,
+                                              to_indexing="batch")
 
         index_dtype = map_node.dtype
         node_shape = tf.stack([tf.cast(tf.shape(node_old)[0], dtype=index_dtype),

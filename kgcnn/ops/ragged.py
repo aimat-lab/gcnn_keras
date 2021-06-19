@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from kgcnn.ops.partition import kgcnn_ops_change_partition_type
+from kgcnn.ops.partition import change_partition_by_name
 
 class DummyRankOneRaggedTensor:
     """Dummy python class. Can not be passed between layers. Does not inherit from Tensor or CompositeTensor."""
@@ -14,19 +14,19 @@ class DummyRankOneRaggedTensor:
     def from_row_splits(self, values, part):
         self.values = values
         self.row_splits = part
-        self._row_lengths = kgcnn_ops_change_partition_type(part, "row_splits", "row_length")
-        self._value_rowids = kgcnn_ops_change_partition_type(part, "row_splits", "value_rowids")
+        self._row_lengths = change_partition_by_name(part, "row_splits", "row_length")
+        self._value_rowids = change_partition_by_name(part, "row_splits", "value_rowids")
 
     def from_row_lengths(self, values, part):
         self.values = values
-        self.row_splits = kgcnn_ops_change_partition_type(part, "row_length", "row_splits")
+        self.row_splits = change_partition_by_name(part, "row_length", "row_splits")
         self._row_lengths = part
-        self._value_rowids = kgcnn_ops_change_partition_type(part, "row_length", "value_rowids")
+        self._value_rowids = change_partition_by_name(part, "row_length", "value_rowids")
 
     def from_value_rowids(self, values, part):
         self.values = values
-        self.row_splits = kgcnn_ops_change_partition_type(part, "value_rowids", "row_splits")
-        self._row_lengths = kgcnn_ops_change_partition_type(part, "value_rowids", "row_length")
+        self.row_splits = change_partition_by_name(part, "value_rowids", "row_splits")
+        self._row_lengths = change_partition_by_name(part, "value_rowids", "row_length")
         self._value_rowids = part
 
     def row_lengths(self):

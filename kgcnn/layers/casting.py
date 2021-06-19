@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.partition import kgcnn_ops_change_edge_tensor_indexing_by_row_partition
+from kgcnn.ops.partition import change_row_index_partition
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
@@ -123,25 +123,25 @@ class ChangeIndexing(ks.layers.Layer):
         if self.input_tensor_type == "values_partition":
             [_, part_node], [edge_index, part_edge] = inputs
 
-            indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index, part_node, part_edge,
-                                                                               partition_type_node=self.partition_type,
-                                                                               partition_type_edge=self.partition_type,
-                                                                               from_indexing=self.from_indexing,
-                                                                               to_indexing=self.to_indexing
-                                                                               )
+            indexlist = change_row_index_partition(edge_index, part_node, part_edge,
+                                                   partition_type_node=self.partition_type,
+                                                   partition_type_edge=self.partition_type,
+                                                   from_indexing=self.from_indexing,
+                                                   to_indexing=self.to_indexing
+                                                   )
 
             return [indexlist, part_edge]
 
         elif self.input_tensor_type == "ragged":
             nod, edge_index = inputs
-            indexlist = kgcnn_ops_change_edge_tensor_indexing_by_row_partition(edge_index.values,
-                                                                               nod.row_splits,
-                                                                               edge_index.value_rowids(),
-                                                                               partition_type_node="row_splits",
-                                                                               partition_type_edge="value_rowids",
-                                                                               from_indexing=self.from_indexing,
-                                                                               to_indexing=self.to_indexing
-                                                                               )
+            indexlist = change_row_index_partition(edge_index.values,
+                                                   nod.row_splits,
+                                                   edge_index.value_rowids(),
+                                                   partition_type_node="row_splits",
+                                                   partition_type_edge="value_rowids",
+                                                   from_indexing=self.from_indexing,
+                                                   to_indexing=self.to_indexing
+                                                   )
 
             out = tf.RaggedTensor.from_row_splits(indexlist, edge_index.row_splits, validate=self.ragged_validate)
             return out
