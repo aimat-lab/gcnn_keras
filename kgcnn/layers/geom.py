@@ -27,10 +27,10 @@ class NodeDistance(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index]
+            inputs (list): [position, tensor_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
@@ -41,12 +41,12 @@ class NodeDistance(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
+        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
 
@@ -79,7 +79,7 @@ class NodeAngle(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index]
+            inputs (list): [position, tensor_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
                 - node_index (tf.RaggedTensor): Node indices of shape (batch, [M], 3) referring to nodes
@@ -93,12 +93,12 @@ class NodeAngle(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
+        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
         xk = tf.gather(node, indexlist[:, 2], axis=0)
@@ -138,10 +138,10 @@ class EdgeAngle(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index]
+            inputs (list): [position, tensor_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
+                - tensor_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
                 - angle_index (tf.RaggedTensor): Angle indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
@@ -153,19 +153,19 @@ class EdgeAngle(GraphBaseLayer):
         angle_index, angle_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
 
         indexlist2 = change_row_index_partition(angle_index, edge_part, angle_part,
-                                                partition_type_node="row_splits",
-                                                partition_type_edge="row_length",
+                                                partition_type_target="row_splits",
+                                                partition_type_index="row_length",
                                                 to_indexing='batch',
                                                 from_indexing=self.node_indexing)
 
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
+        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
         xj = tf.gather(node, indexlist[:, 1], axis=0)
         vs = xi - xj
@@ -311,8 +311,8 @@ class SphericalBasisLayer(GraphBaseLayer):
         angle_index, angle_index_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         indexlist = change_row_index_partition(angle_index, edge_part, angle_index_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
 

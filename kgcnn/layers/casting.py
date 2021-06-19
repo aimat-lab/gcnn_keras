@@ -112,10 +112,10 @@ class ChangeIndexing(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edge_index]
+            inputs (list): [nodes, tensor_index]
 
                 - nodes: Node embeddings of shape (batch, [N], F)
-                - edge_index: Edge indices referring to nodes of shape (batch, [N], 2).
+                - tensor_index: Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
             tensor-like: Corrected edge indices of shape (batch, [N], 2).
@@ -124,8 +124,8 @@ class ChangeIndexing(ks.layers.Layer):
             [_, part_node], [edge_index, part_edge] = inputs
 
             indexlist = change_row_index_partition(edge_index, part_node, part_edge,
-                                                   partition_type_node=self.partition_type,
-                                                   partition_type_edge=self.partition_type,
+                                                   partition_type_target=self.partition_type,
+                                                   partition_type_index=self.partition_type,
                                                    from_indexing=self.from_indexing,
                                                    to_indexing=self.to_indexing
                                                    )
@@ -137,8 +137,8 @@ class ChangeIndexing(ks.layers.Layer):
             indexlist = change_row_index_partition(edge_index.values,
                                                    nod.row_splits,
                                                    edge_index.value_rowids(),
-                                                   partition_type_node="row_splits",
-                                                   partition_type_edge="value_rowids",
+                                                   partition_type_target="row_splits",
+                                                   partition_type_index="value_rowids",
                                                    from_indexing=self.from_indexing,
                                                    to_indexing=self.to_indexing
                                                    )

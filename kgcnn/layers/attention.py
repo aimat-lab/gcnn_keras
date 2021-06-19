@@ -22,7 +22,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
-    Important: edge_index[:,0] are sorted for segment-operation for pooling with respect to edge_index[:,0].
+    Important: tensor_index[:,0] are sorted for segment-operation for pooling with respect to tensor_index[:,0].
     """
 
     def __init__(self, **kwargs):
@@ -42,7 +42,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
                 - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [M], 1)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
@@ -56,8 +56,8 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
         shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_node="row_length",
-                                              partition_type_edge="row_length",
+                                              partition_type_target="row_length",
+                                              partition_type_index="row_length",
                                               to_indexing='batch',
                                               from_indexing=self.node_indexing)
 
@@ -162,7 +162,7 @@ class AttentionHeadGAT(GraphBaseLayer):
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node.
@@ -270,7 +270,7 @@ class AttentiveHeadFP(GraphBaseLayer):
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Hidden tensor of pooled edge attentions for each node.

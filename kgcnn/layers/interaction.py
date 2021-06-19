@@ -75,11 +75,11 @@ class SchNetInteraction(GraphBaseLayer):
         """Forward pass: Calculate node update.
 
         Args:
-            inputs: [nodes, edges, edge_index]
+            inputs: [nodes, edges, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
 
         Returns:
             tf.RaggedTensor: Updated node embeddings.

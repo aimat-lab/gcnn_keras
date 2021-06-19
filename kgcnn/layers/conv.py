@@ -81,11 +81,11 @@ class GCN(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs: [nodes, edges, edge_index]
+            inputs: [nodes, edges, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
@@ -170,11 +170,11 @@ class SchNetCFconv(GraphBaseLayer):
         """Forward pass: Calculate edge update.
 
         Args:
-            inputs: [nodes, edges, edge_index]
+            inputs: [nodes, edges, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
         
         Returns:
             tf.RaggedTensor: Updated node features.

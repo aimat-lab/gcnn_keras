@@ -56,9 +56,9 @@ def convert_scaled_adjacency_to_list(adj_scaled):
             Scaled adjacency after :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
 
     Returns:
-        list: [edge_index, edge_weight]
+        list: [tensor_index, edge_weight]
         
-            - edge_index (np.array): Index-list referring to nodes of shape (N, 2)
+            - tensor_index (np.array): Index-list referring to nodes of shape (N, 2)
             - edge_weight (np.array): Entries of Adjacency matrix of shape (N, N)
     """
     if isinstance(adj_scaled, np.ndarray):

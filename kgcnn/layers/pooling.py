@@ -13,7 +13,7 @@ class PoolingLocalEdges(GraphBaseLayer):
     
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     Apply e.g. segment_mean for index[0] incoming nodes. 
-    Important: edge_index[:,0] are sorted for segment-operation.
+    Important: tensor_index[:,0] are sorted for segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -32,11 +32,11 @@ class PoolingLocalEdges(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, edges, edge_index]
+            inputs (list): of [node, edges, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
     
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
@@ -48,8 +48,8 @@ class PoolingLocalEdges(GraphBaseLayer):
         edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_node="row_splits",
-                                              partition_type_edge="row_length",
+                                              partition_type_target="row_splits",
+                                              partition_type_index="row_length",
                                               to_indexing='batch',
                                               from_indexing=self.node_indexing)
 
@@ -84,7 +84,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
     
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     Apply e.g. segment_mean for index[0] incoming nodes. 
-    Important: edge_index[:,0] could be sorted for segment-operation.
+    Important: tensor_index[:,0] could be sorted for segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -107,11 +107,11 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): of [node, edges, edge_index, weights]
+            inputs (list): of [node, edges, tensor_index, weights]
 
                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
                 - weights (tf.RaggedTensor): Edge or message weights. Must broadcast to edges or messages,
                   e.g. (batch, [M], 1)
 
@@ -126,8 +126,8 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         weights, _ = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
         shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_node="row_splits",
-                                              partition_type_edge="row_length",
+                                              partition_type_target="row_splits",
+                                              partition_type_index="row_length",
                                               to_indexing='batch',
                                               from_indexing=self.node_indexing)
 
@@ -301,7 +301,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
 
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     Apply e.g. segment_mean for index[0] incoming nodes.
-    Important: edge_index[:,0] are sorted for segment-operation.
+    Important: tensor_index[:,0] are sorted for segment-operation.
 
     Args:
         units (int): Units for LSTM cell.
@@ -405,11 +405,11 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edges, edge_index]
+            inputs (list): [nodes, edges, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
@@ -421,8 +421,8 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_node="row_splits",
-                                              partition_type_edge="row_length",
+                                              partition_type_target="row_splits",
+                                              partition_type_index="row_length",
                                               to_indexing='batch',
                                               from_indexing=self.node_indexing)
 

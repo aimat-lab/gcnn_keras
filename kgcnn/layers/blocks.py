@@ -91,11 +91,11 @@ class MEGnetBlock(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs: [nodes, edges, edge_index, state]
+            inputs: [nodes, edges, tensor_index, state]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
                 - state (tf.Tensor): State information for the graph, a single tensor of shape (batch, F)
 
         Returns:
@@ -202,12 +202,12 @@ class DimNetOutputBlock(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs: [nodes, edges, edge_index, state]
+            inputs: [nodes, edges, tensor_index, state]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
                 - rbf (tf.RaggedTensor): Edge distance basis of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F_T).

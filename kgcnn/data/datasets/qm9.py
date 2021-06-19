@@ -228,7 +228,7 @@ class QM9Dataset(GraphDatasetBase):
         # edge_len = np.array([len(x) for x in edge_idx], dtype=np.int)
         # edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
         # edges = [edges[i] for i in range(len(edge_idx))]
-        # self.edge_index = edge_idx[:max_mols]
+        # self.tensor_index = edge_idx[:max_mols]
 
         return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
 

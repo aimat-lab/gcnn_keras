@@ -49,20 +49,21 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
 
 
 @tf.function
-def change_row_index_partition(edge_index, part_node, part_edge,
-                               partition_type_node,
-                               partition_type_edge,
+def change_row_index_partition(tensor_index, part_target, part_index,
+                               partition_type_target,
+                               partition_type_index,
                                from_indexing='sample',
                                to_indexing='batch'):
-    """Change the index tensor indexing between per graph and per batch assignment. Batch assignment is equivalent
-    to disjoint representation. To change indices, the row partition of edge and node tensor must be known.
+    """Change the index tensor indexing to reference within row partition. This can be between e.g. per graph and per
+    batch assignment. Batch assignment is equivalent to disjoint representation.
+    To change indices, the row partition of index and target tensor must be known.
 
     Args:
-        edge_index (tf.Tensor): Edge indices of shape (None, 2)
-        part_node (tf.Tensor):  Node partition tensor.
-        part_edge (tf.Tensor): Edge partition tensor.
-        partition_type_node (str:) Node type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
-        partition_type_edge (str): Edge type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
+        tensor_index (tf.Tensor): Indices of shape (None, 2)
+        part_target (tf.Tensor): Target partition tensor.
+        part_index (tf.Tensor): Index partition tensor.
+        partition_type_target (str:) Node type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
+        partition_type_index (str): Edge type of partition, can be either 'row_splits', 'row_length' or 'value_rowids'
         from_indexing (str): Source index scheme
         to_indexing (str): Target index scheme
 
@@ -71,29 +72,29 @@ def change_row_index_partition(edge_index, part_node, part_edge,
     """
     if to_indexing == from_indexing:
         # Nothing to do here
-        return edge_index
+        return tensor_index
 
     # we need node row_splits
-    nod_splits = change_partition_by_name(part_node, partition_type_node, "row_splits")
+    nod_splits = change_partition_by_name(part_target, partition_type_target, "row_splits")
 
     # we need edge value_rowids
-    edge_ids = change_partition_by_name(part_edge, partition_type_edge, "value_rowids")
+    edge_ids = change_partition_by_name(part_index, partition_type_index, "value_rowids")
 
     # Just gather the splits i.e. index offset for each graph id
     shift_index = tf.gather(nod_splits, edge_ids)
 
     # Expand dimension to broadcast to indices for suitable axis
     # The shift_index is always 1D tensor.
-    for i in range(1, edge_index.shape.rank):
+    for i in range(1, tensor_index.shape.rank):
         shift_index = tf.expand_dims(shift_index,axis=-1)
 
-    # Add or substract batch offset from index tensor
+    # Add or remove batch offset from index tensor
     if to_indexing == 'batch' and from_indexing == 'sample':
-        indexlist = edge_index + tf.cast(shift_index, dtype=edge_index.dtype)
+        indexlist = tensor_index + tf.cast(shift_index, dtype=tensor_index.dtype)
     elif to_indexing == 'sample' and from_indexing == 'batch':
-        indexlist = edge_index - tf.cast(shift_index, dtype=edge_index.dtype)
+        indexlist = tensor_index - tf.cast(shift_index, dtype=tensor_index.dtype)
     else:
-        raise TypeError("Unknown index change, use: 'sample', 'batch', ...")
+        raise TypeError("Error: Unknown index change, use: 'sample', 'batch', ...")
 
     out = indexlist
     return out

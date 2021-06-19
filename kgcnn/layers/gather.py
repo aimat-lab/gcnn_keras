@@ -27,10 +27,10 @@ class GatherNodes(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edge_index]
+            inputs (list): [nodes, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Gathered node embeddings that match the number of edges.
@@ -41,17 +41,17 @@ class GatherNodes(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
         out = tf.gather(node, indexlist, axis=0)
         if self.concat_nodes:
             out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index, batch_dims=1) # Works now
+        # out = tf.gather(nod, tensor_index, batch_dims=1) # Works now
         # if self.concat_nodes:
-        #   out = tf.keras.backend.concatenate([out[:, :, i] for i in range(edge_index.shape[-1])], axis=2)
+        #   out = tf.keras.backend.concatenate([out[:, :, i] for i in range(tensor_index.shape[-1])], axis=2)
         out = self._kgcnn_map_output_ragged([out, edge_part], "row_length", 1)
         return out
 
@@ -82,10 +82,10 @@ class GatherNodesOutgoing(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edge_index]
+            inputs (list): [nodes, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
@@ -97,12 +97,12 @@ class GatherNodesOutgoing(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index[:, :, 1], batch_dims=1)
+        # out = tf.gather(nod, tensor_index[:, :, 1], batch_dims=1)
         out = tf.gather(node, indexlist[:, 1], axis=0)
 
         out = self._kgcnn_map_output_ragged([out, edge_part], "row_length", 1)
@@ -134,10 +134,10 @@ class GatherNodesIngoing(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edge_index]
+            inputs (list): [nodes, tensor_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
@@ -150,13 +150,13 @@ class GatherNodesIngoing(GraphBaseLayer):
 
         # We cast to values here
         indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_node="row_splits",
-                                               partition_type_edge="row_length",
+                                               partition_type_target="row_splits",
+                                               partition_type_index="row_length",
                                                to_indexing='batch',
                                                from_indexing=self.node_indexing)
         out = tf.gather(node, indexlist[:, 0], axis=0)
         # For ragged tensor we can now also try:
-        # out = tf.gather(nod, edge_index[:, :, 0], batch_dims=1)
+        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         out = self._kgcnn_map_output_ragged([out, edge_part], "row_length", 1)
         return out
 

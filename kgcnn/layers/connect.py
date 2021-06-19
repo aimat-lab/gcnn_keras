@@ -48,8 +48,8 @@ class AdjacencyPower(GraphBaseLayer):
         # batch-wise indexing
         edge_index = change_row_index_partition(edge_index,
                                                 node_len, edge_len,
-                                                partition_type_node="row_length",
-                                                partition_type_edge="row_length",
+                                                partition_type_target="row_length",
+                                                partition_type_index="row_length",
                                                 from_indexing=self.node_indexing,
                                                 to_indexing="sample")
 
@@ -91,8 +91,8 @@ class AdjacencyPower(GraphBaseLayer):
         # batchwise indexing
         new_edge_index = change_row_index_partition(new_edge_index,
                                                     node_len, new_edge_len,
-                                                    partition_type_node="row_length",
-                                                    partition_type_edge="row_length",
+                                                    partition_type_target="row_length",
+                                                    partition_type_index="row_length",
                                                     from_indexing="sample",
                                                     to_indexing=self.node_indexing)
 
