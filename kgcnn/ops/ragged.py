@@ -3,6 +3,7 @@ import tensorflow as tf
 
 @tf.function
 def ragged_tensor_from_partition_by_name(value, part, partition_type, ragged_validate):
+    # Not for nested ragged definition
     if partition_type in ["row_length", "row_lengths"]:
         out = tf.RaggedTensor.from_row_lengths(value, part, validate=ragged_validate)
     elif partition_type == "row_splits":
@@ -16,8 +17,8 @@ def ragged_tensor_from_partition_by_name(value, part, partition_type, ragged_val
 
 @tf.function
 def partition_from_ragged_tensor_by_name(tens, partition_type):
+    # Not for nested ragged definition
     flat_tens = tens.values
-
     if partition_type in ["row_length", "row_lengths"]:
         outpart = tens.row_lengths()
     elif partition_type == "row_splits":
