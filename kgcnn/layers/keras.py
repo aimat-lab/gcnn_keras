@@ -3,6 +3,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import KerasWrapperBaseLayer
 
+# There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers,
+# as a temporary solution until further versions of tensorflow.
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dense')
 class Dense(KerasWrapperBaseLayer):
