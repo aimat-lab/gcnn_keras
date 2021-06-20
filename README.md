@@ -69,9 +69,6 @@ Graphs can be represented by an index list of connections plus feature informati
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`.
 
-Note: At the moment, most layers support also a disjoint representation of flatten values plus graph-id tensor `[values, partition]` in place of the `RaggedTensor` for comparison purposes. 
-However, this will likely be removed in future versions, as `RaggedTensor` is intended be the only tensor representation passed to and within the model.
-
 
 ### Input
 

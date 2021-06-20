@@ -105,10 +105,10 @@ class MLP(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs: Input tensor.
+            inputs (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not None.
 
         Returns:
-            tensor: MLP pass.
+            tf.Tensor: MLP pass.
         """
         x = inputs
         for i in range(len(self.mlp_units)):

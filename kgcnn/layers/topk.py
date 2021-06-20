@@ -38,9 +38,7 @@ class PoolingTopK(GraphBaseLayer):
         """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
 
-        if self.input_tensor_type == "values_partition":
-            self.units_p = input_shape[0][0][-1]
-        elif self.input_tensor_type == "ragged":
+        if self.input_tensor_type in ["ragged", "RaggedTensor"]:
             self.units_p = input_shape[0][-1]
         else:
             raise NotImplementedError("Error: Not supported input tensor type.")
@@ -72,7 +70,7 @@ class PoolingTopK(GraphBaseLayer):
                 - map_nodes (tf.RaggedTensor): Index map between original and pooled nodes
                 - map_edges (tf.RaggedTensor): Index map between original and pooled edges
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         # We cast to values here
         node, nodelen = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
         edgefeat, edgelen = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -194,11 +192,11 @@ class PoolingTopK(GraphBaseLayer):
                                                    from_indexing="batch",
                                                    to_indexing=self.node_indexing)
 
-        out = [self._kgcnn_map_output_ragged([out_node, out_np], "row_length", 0),
-               self._kgcnn_map_output_ragged([out_edge, out_ep], "row_length", 1),
-               self._kgcnn_map_output_ragged([out_edge_index, out_ep], "row_length", 2)]
-        out_map = [self._kgcnn_map_output_ragged([out_pool, out_np], "row_length", 0),
-                   self._kgcnn_map_output_ragged([out_pool_edge, out_ep], "row_length", 1)]
+        out = [tf.RaggedTensor.from_row_lengths(out_node, out_np, validate=self.ragged_validate),
+               tf.RaggedTensor.from_row_lengths(out_edge, out_ep, validate=self.ragged_validate),
+               tf.RaggedTensor.from_row_lengths(out_edge_index, out_ep, validate=self.ragged_validate)]
+        out_map = [tf.RaggedTensor.from_row_lengths(out_pool, out_np, validate=self.ragged_validate),
+                   tf.RaggedTensor.from_row_lengths(out_pool_edge, out_ep, validate=self.ragged_validate)]
 
         return out, out_map
 
@@ -254,7 +252,7 @@ class UnPoolingTopK(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Un-pooled edge feature list
                 - edge_indices (tf.RaggedTensor): Un-pooled edge index
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 8)
+        dyn_inputs = inputs
         # We cast to values here
         node_old, nrowlength = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
         edge_old, erowlength = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -286,9 +284,9 @@ class UnPoolingTopK(GraphBaseLayer):
                                tf.cast(tf.shape(edge_new)[1], dtype=index_dtype)])
         out_edge = tf.scatter_nd(ks.backend.expand_dims(map_edge, axis=-1), edge_new, edge_shape)
 
-        outlist = [self._kgcnn_map_output_ragged([out_node, nrowlength], "row_length", 0),
-                   self._kgcnn_map_output_ragged([out_edge, erowlength], "row_length", 1),
-                   self._kgcnn_map_output_ragged([edgeind_old, erowlength], "row_length", 2)]
+        outlist = [tf.RaggedTensor.from_row_lengths(out_node, nrowlength, validate=self.ragged_validate),
+                   tf.RaggedTensor.from_row_lengths(out_edge, erowlength, validate=self.ragged_validate),
+                   tf.RaggedTensor.from_row_lengths(edgeind_old, erowlength, validate=self.ragged_validate)]
         return outlist
 
     def get_config(self):

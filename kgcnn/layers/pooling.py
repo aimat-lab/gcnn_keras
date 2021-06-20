@@ -41,7 +41,7 @@ class PoolingLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         # We cast to values here
         nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -65,7 +65,7 @@ class PoolingLocalEdges(GraphBaseLayer):
         if self.has_unconnected:
             out = kgcnn_ops_scatter_segment_tensor_nd(out, nodind, tf.shape(nod))
 
-        out = self._kgcnn_map_output_ragged([out, node_part], "row_splits", 0)
+        out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -118,7 +118,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 4)
+        dyn_inputs = inputs
         # We cast to values here
         nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -126,10 +126,8 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         weights, _ = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
         shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_target="row_splits",
-                                              partition_type_index="row_length",
-                                              to_indexing='batch',
-                                              from_indexing=self.node_indexing)
+                                              partition_type_target="row_splits", partition_type_index="row_length",
+                                              to_indexing='batch', from_indexing=self.node_indexing)
 
         wval = weights
         dens = edge * wval
@@ -151,7 +149,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         if self.has_unconnected:
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        out = self._kgcnn_map_output_ragged([get, node_part], "row_splits", 0)
+        out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -190,7 +188,7 @@ class PoolingNodes(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled node features of shape (batch, F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
+        dyn_inputs = [inputs]
         # We cast to values here
         nod, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
 
@@ -235,7 +233,7 @@ class PoolingWeightedNodes(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled node features of shape (batch, F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
+        dyn_inputs = inputs
         # We cast to values here
         nod, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
         weights, _ = dyn_inputs[1].values, dyn_inputs[1].value_rowids()
@@ -278,7 +276,7 @@ class PoolingGlobalEdges(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled edges feature list of shape (batch, F).
         """
-        dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
+        dyn_inputs = [inputs]
         # We cast to values here
         edge, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
 
@@ -414,7 +412,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         # We cast to values here
         nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -444,7 +442,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
             # Does not happen if all nodes are also connected
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        out = self._kgcnn_map_output_ragged([get, node_part], "row_splits", 0)
+        out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):

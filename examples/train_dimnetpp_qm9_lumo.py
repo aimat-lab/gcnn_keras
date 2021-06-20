@@ -57,7 +57,7 @@ ytest = labels_test
 model = make_dimnet_pp(input_node_shape=[None],
                        input_embedd={'input_node_vocab': 10,
                                      'input_node_embedd': 128,
-                                     'input_tensor_type': 'ragged'},
+                                     },
                        num_targets=1,
                        extensive=False,
                        cutoff=4.0,

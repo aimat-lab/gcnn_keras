@@ -54,8 +54,8 @@ model = make_schnet(
     input_node_shape=[None],
     input_edge_shape=[None, 20],
     input_embedd={'input_node_vocab': 10,
-                  'input_node_embedd': 128,
-                  'input_tensor_type': 'ragged'},
+                  'input_node_embedd': 128
+                  },
     # Output
     output_mlp={"use_bias": [True, True],
                 "units": [128, 64],

@@ -31,7 +31,7 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         Returns:
             tf.SparseTensor: Sparse disjoint matrix of shape (batch*None,batch*None)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         # We cast to values here
         nod, node_len = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
@@ -102,11 +102,11 @@ class PoolingAdjacencyMatmul(GraphBaseLayer):
             tf.RaggedTensor: Pooled node features of shape (batch, [N], F)
         """
         adj = inputs[1]
-        dyn_inputs = self._kgcnn_map_input_ragged([inputs[0]], 0)
+        dyn_inputs = self._kgcnn_inspect_input_ragged([inputs[0]], 0)
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
 
         out = tf.sparse.sparse_dense_matmul(adj, node)
-        out = self._kgcnn_map_output_ragged([out, node_part], "row_splits", 0)
+        out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):

@@ -39,7 +39,7 @@ class AdjacencyPower(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Adjacency entries of shape  (batch, [M], 1)
                 - edge_indices (tf.RaggedTensor): Flatten index list of shape (batch, [M], 2)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
 
         nod, node_len = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
         edge = dyn_inputs[1].values
@@ -96,8 +96,8 @@ class AdjacencyPower(GraphBaseLayer):
                                                     from_indexing="sample",
                                                     to_indexing=self.node_indexing)
 
-        outlist = [self._kgcnn_map_output_ragged([new_edge, new_edge_len], "row_length", 1),
-                   self._kgcnn_map_output_ragged([new_edge_index, new_edge_len], "row_length", 2)]
+        outlist = [tf.RaggedTensor.from_row_lengths(new_edge, new_edge_len, validate=self.ragged_validate),
+                   tf.RaggedTensor.from_row_lengths(new_edge_index, new_edge_len, validate=self.ragged_validate)]
 
         return outlist
 

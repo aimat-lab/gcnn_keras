@@ -35,15 +35,13 @@ class NodeDistance(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
+        dyn_inputs = inputs
         # We cast to values here
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                               partition_type_index="row_length", to_indexing='batch',
                                                from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
@@ -51,7 +49,8 @@ class NodeDistance(GraphBaseLayer):
         xj = tf.gather(node, indexlist[:, 1], axis=0)
 
         out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
-        out = self._kgcnn_map_output_ragged([out, edge_part], "row_length", 1)
+
+        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -87,15 +86,13 @@ class NodeAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
+        dyn_inputs = inputs
         # We cast to values here
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                               partition_type_index="row_length", to_indexing='batch',
                                                from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
@@ -110,7 +107,7 @@ class NodeAngle(GraphBaseLayer):
         angle = tf.math.atan2(y, x)
         angle = tf.expand_dims(angle, axis=-1)
 
-        out = self._kgcnn_map_output_ragged([angle, edge_part], "row_length", 1)
+        out = tf.RaggedTensor.from_row_lengths(angle, edge_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -147,21 +144,17 @@ class EdgeAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
         angle_index, angle_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
+        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                               partition_type_index="row_length", to_indexing='batch',
                                                from_indexing=self.node_indexing)
 
-        indexlist2 = change_row_index_partition(angle_index, edge_part, angle_part,
-                                                partition_type_target="row_splits",
-                                                partition_type_index="row_length",
-                                                to_indexing='batch',
+        indexlist2 = change_row_index_partition(angle_index, edge_part, angle_part, partition_type_target="row_splits",
+                                                partition_type_index="row_length", to_indexing='batch',
                                                 from_indexing=self.node_indexing)
 
         # For ragged tensor we can now also try:
@@ -177,7 +170,7 @@ class EdgeAngle(GraphBaseLayer):
         angle = tf.math.atan2(y, x)
         angle = tf.expand_dims(angle, axis=-1)
 
-        out = self._kgcnn_map_output_ragged([angle, angle_part], "row_length", 2)
+        out = tf.RaggedTensor.from_row_lengths(angle, angle_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -235,14 +228,14 @@ class BesselBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
+        dyn_inputs = [inputs]
         # We cast to values here
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
 
         d_scaled = node * self.inv_cutoff
         d_cutoff = self.envelope(d_scaled)
         out = d_cutoff * tf.sin(self.frequencies * d_scaled)
-        out = self._kgcnn_map_output_ragged([out, node_part], "row_splits", 0)
+        out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -305,16 +298,14 @@ class SphericalBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 3)
+        dyn_inputs = inputs
         edge, edge_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         angles, angle_part = dyn_inputs[1].values, dyn_inputs[1].row_splits
         angle_index, angle_index_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
         indexlist = change_row_index_partition(angle_index, edge_part, angle_index_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
-                                               from_indexing=self.node_indexing)
+                                               partition_type_target="row_splits", partition_type_index="row_length",
+                                               to_indexing='batch', from_indexing=self.node_indexing)
 
         d = edge
         id_expand_kj = indexlist
@@ -335,7 +326,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         cbf = tf.repeat(cbf, self.num_radial, axis=1)
         out = rbf_env * cbf
 
-        out = self._kgcnn_map_output_ragged([out, angle_part], "row_splits", 0)  # out
+        out = tf.RaggedTensor.from_row_splits(out, angle_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):

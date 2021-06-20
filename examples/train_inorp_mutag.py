@@ -42,7 +42,7 @@ model = make_inorp(
     input_edge_shape=[None],
     input_state_shape=[],
     input_embedd= {"input_node_vocab" : 60, "input_edge_vocab" : 4, "input_state_vocab": 30, "input_node_embedd" : 16,
-                    "input_edge_embedd" : 8, "input_state_embedd": 16, "input_tensor_type" : 'ragged'},
+                    "input_edge_embedd" : 8, "input_state_embedd": 16},
     # Output
     output_embedd= {"output_mode": 'graph', "output_type": 'padded'},
     output_mlp= {"units": [16, 8, 1], "use_bias" : [True, True, False], "activation" : ['relu', 'relu', 'sigmoid'] },

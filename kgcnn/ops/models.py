@@ -67,7 +67,7 @@ def generate_standard_graph_input(input_node_shape,
                                   input_node_embedd=64,
                                   input_edge_embedd=64,
                                   input_state_embedd=64,
-                                  input_tensor_type='ragged'):
+                                  **kwargs):
     """Generate input for a standard graph tensor format.
     This includes nodes, edge, edge_indices and optional a graph state.
     If input shape is (None, ) a embedding layer is used to make the feature dimension.
@@ -140,7 +140,7 @@ def generate_mol_graph_input(input_node_shape,
                              input_dihedral_index_shape=None,
                              input_node_vocab=95,
                              input_node_embedd=64,
-                             input_tensor_type='ragged'):
+                             **kwargs):
     """Generate input for a standard mol-graph tensor format.
     This includes nodes, coordinates, edge_indices and optional angle and dihedral indices.
     If input shape is (None, ) a embedding layer is used to make the feature dimension.

@@ -47,7 +47,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 4)
+        dyn_inputs = inputs
 
         # We cast to values here
         nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
@@ -55,10 +55,8 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         attention = dyn_inputs[2].values
         edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
-        shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_target="row_length",
-                                              partition_type_index="row_length",
-                                              to_indexing='batch',
+        shiftind = change_row_index_partition(edgeind, node_part, edge_part, partition_type_target="row_length",
+                                              partition_type_index="row_length", to_indexing='batch',
                                               from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
@@ -81,7 +79,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
             # Does not happen if all nodes are also connected
             get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
 
-        out = self._kgcnn_map_output_ragged([get, node_part], "row_length", 0)
+        out = tf.RaggedTensor.from_row_lengths(get, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -339,7 +337,7 @@ class PoolingNodesAttention(GraphBaseLayer):
         Returns:
             tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged(inputs, 2)
+        dyn_inputs = inputs
         # We cast to values here
         nod, batchi, target_len = dyn_inputs[0].values, dyn_inputs[0].value_rowids(), dyn_inputs[0].row_lengths()
         ats = dyn_inputs[1].values

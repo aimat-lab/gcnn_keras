@@ -170,7 +170,7 @@ class Set2Set(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
-        dyn_inputs = self._kgcnn_map_input_ragged([inputs], 1)
+        dyn_inputs = [inputs]
         x, batch_num, batch_index = dyn_inputs[0].values, dyn_inputs[0].row_lengths(), dyn_inputs[0].value_rowids()
 
         # Reading to memory removed here, is to be done by seperately

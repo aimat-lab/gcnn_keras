@@ -3,9 +3,9 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import KerasWrapperBaseLayer
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dense')
 class Dense(KerasWrapperBaseLayer):
-    """Dense Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
                  units,
@@ -21,7 +21,6 @@ class Dense(KerasWrapperBaseLayer):
                  **kwargs):
         """Initialize layer as tf.keras.Dense."""
         super(Dense, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 0
         self._kgcnn_wrapper_args = ["units", "activation", "use_bias", "kernel_initializer", "bias_initializer",
                                     "kernel_regularizer", "bias_regularizer", "activity_regularizer",
                                     "kernel_constraint", "bias_constraint"]
@@ -33,11 +32,23 @@ class Dense(KerasWrapperBaseLayer):
                                                     activity_regularizer=activity_regularizer,
                                                     kernel_constraint=kernel_constraint,
                                                     bias_constraint=bias_constraint)
+    def build(self, input_shape):
+        input_shape = tf.TensorShape(input_shape)
+        last_dim = input_shape[-1]
+        if last_dim is None:
+            raise ValueError('The last dimension of the inputs to `Dense` '
+                             'should be defined. Found `None`.')
+
+    def call(self, inputs, **kwargs):
+        # Call on a single Tensor
+        if isinstance(inputs, tf.RaggedTensor):
+            return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
+        # Stay with keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Activation')
 class Activation(KerasWrapperBaseLayer):
-    """Activation Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
                  activation,
@@ -45,65 +56,72 @@ class Activation(KerasWrapperBaseLayer):
                  **kwargs):
         """Initialize layer same as tf.keras.Activation."""
         super(Activation, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 0
         self._kgcnn_wrapper_args = ["activation", "activity_regularizer"]
         self._kgcnn_wrapper_layer = tf.keras.layers.Activation(activation=activation,
                                                                activity_regularizer=activity_regularizer)
+    def call(self, inputs, **kwargs):
+        # Can call on values
+        return self._kgcnn_wrapper_call_values(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Add')
 class Add(KerasWrapperBaseLayer):
-    """Add Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Add."""
         super(Add, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 1
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = ks.layers.Add()
+
+    def call(self, inputs, **kwargs):
+        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Average')
 class Average(KerasWrapperBaseLayer):
-    """Average Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Average."""
         super(Average, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 1
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = ks.layers.Average()
+
+    def call(self, inputs, **kwargs):
+        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Multiply')
 class Multiply(KerasWrapperBaseLayer):
-    """Multiply Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Multiply."""
         super(Multiply, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 1
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
+
+    def call(self, inputs, **kwargs):
+        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Concatenate')
 class Concatenate(KerasWrapperBaseLayer):
-    """Concatenate Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
-                 axis,
+                 axis=-1,
                  **kwargs):
-        """Initialize layer same as tf.keras.Concatenate."""
         super(Concatenate, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 1
         self._kgcnn_wrapper_args = ["axis"]
         self._kgcnn_wrapper_layer = ks.layers.Concatenate(axis=axis)
+
+    def call(self, inputs, **kwargs):
+        # For defined inner-dimension and raggd_rank=1 can do sloppy concatenate on values.
+        if self._kgcnn_wrapper_layer.axis == -1 and all([x.shape[-1] is not None for x in inputs]):
+            return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dropout')
 class Dropout(KerasWrapperBaseLayer):
-    """Dropout Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
                  rate,
@@ -112,14 +130,15 @@ class Dropout(KerasWrapperBaseLayer):
                  **kwargs):
         """Initialize layer same as Activation."""
         super(Dropout, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 0
         self._kgcnn_wrapper_args = ["rate", "noise_shape", "seed"]
         self._kgcnn_wrapper_layer = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
+
+    def call(self, inputs, **kwargs):
+        return self._kgcnn_wrapper_call_values(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='LayerNormalization')
 class LayerNormalization(KerasWrapperBaseLayer):
-    """LayerNormalization Wrapper Layer to support RaggedTensor input with ragged-rank=1."""
 
     def __init__(self,
                  axis=-1,
@@ -130,7 +149,6 @@ class LayerNormalization(KerasWrapperBaseLayer):
                  **kwargs):
         """Initialize layer same as Activation."""
         super(LayerNormalization, self).__init__(**kwargs)
-        self._kgcnn_wrapper_call_type = 0
         self._kgcnn_wrapper_args = ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
                                     "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]
         self._kgcnn_wrapper_layer = ks.layers.LayerNormalization(axis=axis, epsilon=epsilon, center=center, scale=scale,
@@ -140,3 +158,7 @@ class LayerNormalization(KerasWrapperBaseLayer):
                                                                  gamma_regularizer=gamma_regularizer,
                                                                  beta_constraint=beta_constraint,
                                                                  gamma_constraint=gamma_constraint)
+    def call(self, inputs, **kwargs):
+        if self._kgcnn_wrapper_layer.axis == -1 and all([x.shape[-1] is not None for x in inputs]):
+            return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
