@@ -1,9 +1,5 @@
 import tensorflow as tf
 
-from kgcnn.ops.casting import kgcnn_ops_dyn_cast
-from kgcnn.ops.partition import change_partition_by_name
-from kgcnn.ops.ragged import DummyRankOneRaggedTensor
-
 
 class GraphBaseLayer(tf.keras.layers.Layer):
     """
@@ -52,9 +48,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 
         self._tensor_input_type_known = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor",
                                          "Tensor", "Sparse", "SparseTensor"]
-
-        self._tensor_input_type_found = []
-        self._test_tensor_input_type = self._kgcnn_static_tensor_input_check()
+        self._kgcnn_static_tensor_input_check()
 
         # All info as dict
         self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,

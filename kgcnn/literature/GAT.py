@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.attention import AttentionHeadGAT
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Concatenate, Dense, Average
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes

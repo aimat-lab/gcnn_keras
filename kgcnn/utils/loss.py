@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
 class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
 
     def __init__(self, scaling_shape=(), name='mean_absolute_error', **kwargs):

@@ -1,6 +1,6 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.interaction import SchNetInteraction
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP

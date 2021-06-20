@@ -1,37 +1,39 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.casting import kgcnn_ops_dyn_cast
 from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.ragged import partition_from_ragged_tensor_by_name
+from kgcnn.layers.base import GraphBaseLayer
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
-class ChangeTensorType(ks.layers.Layer):
+class ChangeTensorType(GraphBaseLayer):
     """Layer to change graph representation tensor type.
 
     The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
     The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
     For disjoint representation (values, partition), the node embeddings are given by
     a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-    "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information. In this case
-    the partition_type and node_indexing scheme, i.e. "batch", must be known by the layer.
-    For edge indices, the last dimension holds indices from outgoing to ingoing node (i,j) as a directed edge.
+    "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information.
 
     Args:
         partition_type (str): Partition tensor type. Default is "row_length".
-        input_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
-        output_tensor_type (str): Input type of the tensors for call(). Default is "ragged".
+        input_tensor_type (str): Input type of the tensors for call(). Default is "RaggedTensor".
+        output_tensor_type (str): Input type of the tensors for call(). Default is "RaggedTensor".
     """
     def __init__(self,
                  partition_type="row_length",
-                 input_tensor_type="ragged",
-                 output_tensor_type="ragged",
+                 input_tensor_type="RaggedTensor",
+                 output_tensor_type="RaggedTensor",
                  **kwargs):
         """Initialize layer."""
         super(ChangeTensorType, self).__init__(**kwargs)
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
         self.output_tensor_type = output_tensor_type
+
+        if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
+            raise ValueError("Error: Input must be RaggedTensor for layer", self.name)
 
     def build(self, input_shape):
         """Build layer."""
@@ -41,14 +43,20 @@ class ChangeTensorType(ks.layers.Layer):
         """Forward pass.
 
         Args:
-            inputs: Graph tensor.
+            inputs (tf.RaggedTensor): Graph tensor.
 
         Returns:
             tensor: Changed tensor type.
         """
-        return kgcnn_ops_dyn_cast(inputs, input_tensor_type=self.input_tensor_type,
-                                  output_tensor_type=self.output_tensor_type,
-                                  partition_type=self.partition_type)
+
+        if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
+            return inputs.to_tensor()
+
+        elif self.output_tensor_type in ["disjoint", "row_partition", "nested", "values_partition"]:
+            return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
+
+        else:
+            raise NotImplementedError("Error: Unsupported output_tensor_type", self.output_tensor_type)
 
     def get_config(self):
         """Update layer config."""
@@ -61,7 +69,7 @@ class ChangeTensorType(ks.layers.Layer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeIndexing')
-class ChangeIndexing(ks.layers.Layer):
+class ChangeIndexing(GraphBaseLayer):
     """Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph
     representation or vice-versa.
     
@@ -95,14 +103,15 @@ class ChangeIndexing(ks.layers.Layer):
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-        self._tensor_input_type_implemented = ["ragged", "values_partition"]
 
-        if self.input_tensor_type not in self._tensor_input_type_implemented:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for this layer ", self.name, "choose one of the following:",
-                                      self._tensor_input_type_implemented)
+        if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
+            raise ValueError("Error: Input must be RaggedTensor for layer", self.name)
 
         self._supports_ragged_inputs = True
+
+        if self.from_indexing != self.node_indexing:
+            print("Warning: Graph layer's node_indexing does not agree with from_indexing", self.node_indexing,
+                  "vs.", self.to_indexing)
 
     def build(self, input_shape):
         """Build layer."""
@@ -114,37 +123,25 @@ class ChangeIndexing(ks.layers.Layer):
         Args:
             inputs (list): [nodes, tensor_index]
 
-                - nodes: Node embeddings of shape (batch, [N], F)
-                - tensor_index: Edge indices referring to nodes of shape (batch, [N], 2).
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
-            tensor-like: Corrected edge indices of shape (batch, [N], 2).
+            tf.RaggedTensor: Corrected edge indices of shape (batch, [N], 2).
         """
-        if self.input_tensor_type == "values_partition":
-            [_, part_node], [edge_index, part_edge] = inputs
 
-            indexlist = change_row_index_partition(edge_index, part_node, part_edge,
-                                                   partition_type_target=self.partition_type,
-                                                   partition_type_index=self.partition_type,
-                                                   from_indexing=self.from_indexing,
-                                                   to_indexing=self.to_indexing
-                                                   )
+        nod, edge_index = inputs
+        indexlist = change_row_index_partition(edge_index.values,
+                                               nod.row_splits,
+                                               edge_index.value_rowids(),
+                                               partition_type_target="row_splits",
+                                               partition_type_index="value_rowids",
+                                               from_indexing=self.from_indexing,
+                                               to_indexing=self.to_indexing
+                                               )
 
-            return [indexlist, part_edge]
-
-        elif self.input_tensor_type == "ragged":
-            nod, edge_index = inputs
-            indexlist = change_row_index_partition(edge_index.values,
-                                                   nod.row_splits,
-                                                   edge_index.value_rowids(),
-                                                   partition_type_target="row_splits",
-                                                   partition_type_index="value_rowids",
-                                                   from_indexing=self.from_indexing,
-                                                   to_indexing=self.to_indexing
-                                                   )
-
-            out = tf.RaggedTensor.from_row_splits(indexlist, edge_index.row_splits, validate=self.ragged_validate)
-            return out
+        out = tf.RaggedTensor.from_row_splits(indexlist, edge_index.row_splits, validate=self.ragged_validate)
+        return out
 
     def get_config(self):
         """Update layer config."""

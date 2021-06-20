@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.casting import ChangeIndexing, ChangeTensorType
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP

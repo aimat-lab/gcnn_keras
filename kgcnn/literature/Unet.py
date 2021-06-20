@@ -1,6 +1,6 @@
 import tensorflow.keras as ks
 
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.connect import AdjacencyPower
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense, Activation, Add
