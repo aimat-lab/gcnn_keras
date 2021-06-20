@@ -60,9 +60,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 
         if self.input_tensor_type not in self._tensor_input_type_known:
             raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
-                                      "is not implemented for", self.name,", expected one of the following:",
+                                      "is not implemented for", self.name, ", expected one of the following:",
                                       self._tensor_input_type_known)
-
 
     def get_config(self):
         config = super(GraphBaseLayer, self).get_config()
@@ -77,18 +76,16 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        })
         return config
 
-
     def build(self, input_shape):
         super(GraphBaseLayer, self).build(input_shape)
         if isinstance(input_shape, list):
             for i, ips in enumerate(input_shape):
                 if isinstance(ips, tf.TensorShape):
                     if ips[-1] is None:
-                        print("Warning: Layer", self.name, "has undefined inner dimension",ips
-                              ,"for input", i)
+                        print("Warning: Layer", self.name, "has undefined inner dimension", ips, "for input", i)
         if isinstance(input_shape, tf.TensorShape):
             if input_shape[-1] is None:
-                print("Warning: Layer", self.name, "has undefined inner dimension for input",input_shape)
+                print("Warning: Layer", self.name, "has undefined inner dimension for input", input_shape)
 
 
 class KerasWrapperBaseLayer(tf.keras.layers.Layer):
@@ -142,7 +139,6 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                             "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
                             "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
 
-
         # Keras layer
         self._kgcnn_wrapper_args = []
         self._kgcnn_wrapper_layer = None
@@ -157,7 +153,6 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
         # Stay with keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
-
     def _kgcnn_wrapper_call_values_list(self, inputs, **kwargs):
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
@@ -168,7 +163,6 @@ class KerasWrapperBaseLayer(tf.keras.layers.Layer):
                 return out
         # Stay with keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
-
 
     def get_config(self):
         config = super(KerasWrapperBaseLayer, self).get_config()
