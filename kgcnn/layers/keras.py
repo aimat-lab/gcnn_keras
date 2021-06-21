@@ -1,15 +1,15 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.base import KerasWrapperBaseLayer
+from kgcnn.layers.base import GraphBaseLayer
 
-
-# There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers,
-# as a temporary solution until further versions of tensorflow.
+# There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers.
+# This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
+# Since all kgcnn layers work with ragged_rank=1 and defined inner dimension. This case can be caught explicitly.
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dense')
-class Dense(KerasWrapperBaseLayer):
+class Dense(GraphBaseLayer):
 
     def __init__(self,
                  units,
@@ -37,23 +37,16 @@ class Dense(KerasWrapperBaseLayer):
                                                     kernel_constraint=kernel_constraint,
                                                     bias_constraint=bias_constraint)
 
-    def build(self, input_shape):
-        input_shape = tf.TensorShape(input_shape)
-        last_dim = input_shape[-1]
-        if last_dim is None:
-            raise ValueError('The last dimension of the inputs to `Dense` '
-                             'should be defined. Found `None`.')
-
     def call(self, inputs, **kwargs):
         # Call on a single Tensor
         if isinstance(inputs, tf.RaggedTensor):
             return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
-        # Stay with keras call
+        # Try normal keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Activation')
-class Activation(KerasWrapperBaseLayer):
+class Activation(GraphBaseLayer):
 
     def __init__(self,
                  activation,
@@ -66,12 +59,17 @@ class Activation(KerasWrapperBaseLayer):
                                                                activity_regularizer=activity_regularizer)
 
     def call(self, inputs, **kwargs):
-        # Can call on values
-        return self._kgcnn_wrapper_call_values(inputs, **kwargs)
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                value_tensor = inputs.values  # will be Tensor
+                out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
+                return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Add')
-class Add(KerasWrapperBaseLayer):
+class Add(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Add."""
@@ -80,11 +78,19 @@ class Add(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Add()
 
     def call(self, inputs, **kwargs):
-        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
+            # However, partition could be different, so this is only okay if ragged_validate=False
+            if all([x.ragged_rank == 1 for x in inputs]):
+                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                return out
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Average')
-class Average(KerasWrapperBaseLayer):
+class Average(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Average."""
@@ -93,11 +99,19 @@ class Average(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Average()
 
     def call(self, inputs, **kwargs):
-        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
+            # However, partition could be different, so this is only okay if ragged_validate=False
+            if all([x.ragged_rank == 1 for x in inputs]):
+                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                return out
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Multiply')
-class Multiply(KerasWrapperBaseLayer):
+class Multiply(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Multiply."""
@@ -106,11 +120,19 @@ class Multiply(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
 
     def call(self, inputs, **kwargs):
-        return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
+            # However, partition could be different, so this is only okay if ragged_validate=False
+            if all([x.ragged_rank == 1 for x in inputs]):
+                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                return out
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Concatenate')
-class Concatenate(KerasWrapperBaseLayer):
+class Concatenate(GraphBaseLayer):
 
     def __init__(self,
                  axis=-1,
@@ -122,12 +144,19 @@ class Concatenate(KerasWrapperBaseLayer):
     def call(self, inputs, **kwargs):
         # For defined inner-dimension and raggd_rank=1 can do sloppy concatenate on values.
         if self._kgcnn_wrapper_layer.axis == -1 and all([x.shape[-1] is not None for x in inputs]):
-            return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+            # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+            if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
+                # However, partition could be different, so this is only okay if ragged_validate=False
+                if all([x.ragged_rank == 1 for x in inputs]):
+                    out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                    out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+                    return out
+        # Try normal keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dropout')
-class Dropout(KerasWrapperBaseLayer):
+class Dropout(GraphBaseLayer):
 
     def __init__(self,
                  rate,
@@ -140,11 +169,18 @@ class Dropout(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
 
     def call(self, inputs, **kwargs):
-        return self._kgcnn_wrapper_call_values(inputs, **kwargs)
+        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                value_tensor = inputs.values  # will be Tensor
+                out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
+                return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LayerNormalization')
-class LayerNormalization(KerasWrapperBaseLayer):
+class LayerNormalization(GraphBaseLayer):
 
     def __init__(self,
                  axis=-1,
@@ -167,5 +203,11 @@ class LayerNormalization(KerasWrapperBaseLayer):
 
     def call(self, inputs, **kwargs):
         if self._kgcnn_wrapper_layer.axis == -1 and all([x.shape[-1] is not None for x in inputs]):
-            return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
+            if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and not self.ragged_validate:
+                # However, partition could be different, so this is only okay if ragged_validate=False
+                if all([x.ragged_rank == 1 for x in inputs]):
+                    out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                    out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                    return out
+        # Try normal keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
