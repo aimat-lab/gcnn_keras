@@ -46,7 +46,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         self.has_unconnected = has_unconnected
         self._supports_ragged_inputs = True
 
-        self._tensor_input_type_known = ["ragged", "values_partition", "disjoint", "tensor", "RaggedTensor",
+        self._tensor_input_type_known = ["ragged", "tensor", "RaggedTensor",
                                          "Tensor", "Sparse", "SparseTensor"]
         self._kgcnn_static_tensor_input_check()
 

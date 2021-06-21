@@ -3,10 +3,12 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import KerasWrapperBaseLayer
 
+
 # There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers,
 # as a temporary solution until further versions of tensorflow.
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dense')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dense')
 class Dense(KerasWrapperBaseLayer):
 
     def __init__(self,
@@ -34,6 +36,7 @@ class Dense(KerasWrapperBaseLayer):
                                                     activity_regularizer=activity_regularizer,
                                                     kernel_constraint=kernel_constraint,
                                                     bias_constraint=bias_constraint)
+
     def build(self, input_shape):
         input_shape = tf.TensorShape(input_shape)
         last_dim = input_shape[-1]
@@ -49,7 +52,7 @@ class Dense(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Activation')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Activation')
 class Activation(KerasWrapperBaseLayer):
 
     def __init__(self,
@@ -61,12 +64,13 @@ class Activation(KerasWrapperBaseLayer):
         self._kgcnn_wrapper_args = ["activation", "activity_regularizer"]
         self._kgcnn_wrapper_layer = tf.keras.layers.Activation(activation=activation,
                                                                activity_regularizer=activity_regularizer)
+
     def call(self, inputs, **kwargs):
         # Can call on values
         return self._kgcnn_wrapper_call_values(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Add')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Add')
 class Add(KerasWrapperBaseLayer):
 
     def __init__(self, **kwargs):
@@ -79,7 +83,7 @@ class Add(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Average')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Average')
 class Average(KerasWrapperBaseLayer):
 
     def __init__(self, **kwargs):
@@ -92,7 +96,7 @@ class Average(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Multiply')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Multiply')
 class Multiply(KerasWrapperBaseLayer):
 
     def __init__(self, **kwargs):
@@ -105,7 +109,7 @@ class Multiply(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Concatenate')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Concatenate')
 class Concatenate(KerasWrapperBaseLayer):
 
     def __init__(self,
@@ -122,7 +126,7 @@ class Concatenate(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Dropout')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dropout')
 class Dropout(KerasWrapperBaseLayer):
 
     def __init__(self,
@@ -139,7 +143,7 @@ class Dropout(KerasWrapperBaseLayer):
         return self._kgcnn_wrapper_call_values(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='LayerNormalization')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LayerNormalization')
 class LayerNormalization(KerasWrapperBaseLayer):
 
     def __init__(self,
@@ -160,6 +164,7 @@ class LayerNormalization(KerasWrapperBaseLayer):
                                                                  gamma_regularizer=gamma_regularizer,
                                                                  beta_constraint=beta_constraint,
                                                                  gamma_constraint=gamma_constraint)
+
     def call(self, inputs, **kwargs):
         if self._kgcnn_wrapper_layer.axis == -1 and all([x.shape[-1] is not None for x in inputs]):
             return self._kgcnn_wrapper_call_values_list(inputs, **kwargs)
