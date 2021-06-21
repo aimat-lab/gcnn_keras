@@ -45,7 +45,7 @@ def precompute_adjacency_scaled(adj_matrix, add_identity=True):
         dj = sp.diags(d_jj, format='coo')
         return di.dot(adj).dot(dj).tocoo()
     else:
-        raise TypeError("Error: Matrix format not supported:", type(adj_matrix))
+        raise TypeError("Matrix format not supported:", type(adj_matrix))
 
 
 def convert_scaled_adjacency_to_list(adj_scaled):
@@ -80,7 +80,7 @@ def convert_scaled_adjacency_to_list(adj_scaled):
         edge_weight = np.array(adj_scaled.data)
         return edge_index, edge_weight
     else:
-        raise TypeError("Error: Matrix format not supported:", type(adj_scaled))
+        raise TypeError("Matrix format not supported:", type(adj_scaled))
 
 
 def make_adjacency_undirected_logical_or(adj_mat):

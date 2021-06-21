@@ -122,7 +122,7 @@ class MUTAGDataset(GraphDatasetBase):
         all_cons = np.array(all_cons)
 
         if verbose > 0:
-            print("Datainfo: Mol index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+            print("INFO: Mol index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
                   all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         # Set Graph props

@@ -47,5 +47,5 @@ def segment_ops_by_name(segment_name, data, segment_ids):
     elif segment_name in ["segment_softmax", "segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
         pool = segment_softmax(data, segment_ids)
     else:
-        raise TypeError("Error: Unknown segment operation, choose: 'segment_mean', 'segment_sum', ...")
+        raise TypeError("Unknown segment operation, choose: 'segment_mean', 'segment_sum', ...")
     return pool

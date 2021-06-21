@@ -59,7 +59,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
     def _kgcnn_static_tensor_input_check(self):
 
         if self.input_tensor_type not in self._tensor_input_type_known:
-            raise NotImplementedError("Error: Tensor input type ", self.input_tensor_type,
+            raise NotImplementedError("Tensor input type ", self.input_tensor_type,
                                       "is not implemented for", self.name, ", expected one of the following:",
                                       self._tensor_input_type_known)
 
@@ -89,8 +89,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             for i, ips in enumerate(input_shape):
                 if isinstance(ips, tf.TensorShape):
                     if ips[-1] is None:
-                        print("Warning: Layer", self.name, "has undefined inner dimension", ips, "for input", i)
+                        print("WARNING: Layer", self.name, "has undefined inner dimension", ips, "for input", i)
         if isinstance(input_shape, tf.TensorShape):
             if input_shape[-1] is None:
-                print("Warning: Layer", self.name, "has undefined inner dimension for input", input_shape)
+                print("WARNING: Layer", self.name, "has undefined inner dimension for input", input_shape)
 

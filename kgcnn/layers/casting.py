@@ -33,7 +33,7 @@ class ChangeTensorType(GraphBaseLayer):
         self.output_tensor_type = output_tensor_type
 
         if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-            raise ValueError("Error: Input must be RaggedTensor for layer", self.name)
+            raise ValueError("Input must be RaggedTensor for layer", self.name)
 
     def build(self, input_shape):
         """Build layer."""
@@ -56,7 +56,7 @@ class ChangeTensorType(GraphBaseLayer):
             return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
 
         else:
-            raise NotImplementedError("Error: Unsupported output_tensor_type", self.output_tensor_type)
+            raise NotImplementedError("Unsupported output_tensor_type", self.output_tensor_type)
 
     def get_config(self):
         """Update layer config."""
@@ -105,12 +105,12 @@ class ChangeIndexing(GraphBaseLayer):
         self.ragged_validate = ragged_validate
 
         if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-            raise ValueError("Error: Input must be RaggedTensor for layer", self.name)
+            raise ValueError("Input must be RaggedTensor for layer", self.name)
 
         self._supports_ragged_inputs = True
 
         if self.from_indexing != self.node_indexing:
-            print("Warning: Graph layer's node_indexing does not agree with from_indexing", self.node_indexing,
+            print("WARNING: Graph layer's node_indexing does not agree with from_indexing", self.node_indexing,
                   "vs.", self.to_indexing)
 
     def build(self, input_shape):
