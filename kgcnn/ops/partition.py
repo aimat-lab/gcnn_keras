@@ -18,33 +18,75 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
         # Do nothing here
         out_partition = in_partition
 
-    elif in_partition_type in ["row_length", "row_lengths"] and out_partition_type == "row_splits":
+    # row_lengths
+    elif in_partition_type in ["row_length", "row_lengths"] and out_partition_type in ["row_split", "row_splits"]:
         # We need ex. (1,2,3) -> (0,1,3,6)
         out_partition = tf.pad(tf.cumsum(in_partition), [[1, 0]])
 
     elif in_partition_type in ["row_length", "row_lengths"] and out_partition_type == "value_rowids":
-        # May cast to dtype = tf.int32 here
         out_partition = tf.repeat(tf.range(tf.shape(in_partition)[0]), in_partition)
 
-    elif in_partition_type == "row_splits" and out_partition_type in ["row_length", "row_lengths"]:
+    elif in_partition_type in ["row_length", "row_lengths"] and out_partition_type in ["row_start", "row_starts"]:
+        out_partition = tf.cumsum(in_partition, exclusive=True)
+
+    elif in_partition_type in ["row_length", "row_lengths"] and out_partition_type in ["row_limit", "row_limits"]:
+        out_partition = tf.cumsum(in_partition)
+
+    # row_splits
+    elif in_partition_type in ["row_split", "row_splits"] and out_partition_type in ["row_length", "row_lengths"]:
         # Matches length if (0,1,3,6) -> (1,2,3)
         out_partition = in_partition[1:] - in_partition[:-1]
 
-    elif in_partition_type == "row_splits" and out_partition_type == "value_rowids":
+    elif in_partition_type in ["row_split", "row_splits"] and out_partition_type == "value_rowids":
         # Get row_length
         part_sum = in_partition[1:] - in_partition[:-1]
         out_partition = tf.repeat(tf.range(tf.shape(part_sum)[0]), part_sum)
 
+    elif in_partition_type in ["row_split", "row_splits"] and out_partition_type in ["row_limit", "row_limits"]:
+        out_partition = in_partition[1:]
+
+    elif in_partition_type in ["row_split", "row_splits"] and out_partition_type in ["row_start", "row_starts"]:
+        out_partition = in_partition[:-1]
+
+    # value_rowids
     elif in_partition_type == "value_rowids" and out_partition_type in ["row_length", "row_lengths"]:
         out_partition = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
 
-    elif in_partition_type == "value_rowids" and out_partition_type == "row_splits":
+    elif in_partition_type == "value_rowids" and out_partition_type in ["row_split", "row_splits"]:
         # Get row_length
         part_sum = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
         out_partition = tf.pad(tf.cumsum(part_sum), [[1, 0]])
 
+    elif in_partition_type == "value_rowids" and out_partition_type in ["row_limit", "row_limits"]:
+        part_sum = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
+        out_partition = tf.cumsum(part_sum)
+
+    elif in_partition_type == "value_rowids" and out_partition_type in ["row_start", "row_starts"]:
+        part_sum = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
+        out_partition = tf.pad(tf.cumsum(part_sum)[:-1], [[1, 0]])
+
+    # row_starts
+    elif in_partition_type in ["row_start", "row_starts"]:
+        raise ValueError("Can not infer partition scheme from row_starts alone, missing nvals")
+
+    # row_starts
+    elif in_partition_type in ["row_limit", "row_limits"] and out_partition_type in ["row_length", "row_lengths"]:
+        part_split = tf.pad(in_partition, [[1, 0]])
+        out_partition = part_split[1:] - part_split[:-1]
+
+    elif in_partition_type in ["row_limit", "row_limits"] and out_partition_type == "value_rowids":
+        part_split = tf.pad(in_partition, [[1, 0]])
+        part_sum = part_split[1:] - part_split[:-1]
+        out_partition = tf.repeat(tf.range(tf.shape(part_sum)[0]), part_sum)
+
+    elif in_partition_type in ["row_limit", "row_limits"] and out_partition_type in ["row_split", "row_splits"]:
+        out_partition = tf.pad(in_partition, [[1, 0]])
+
+    elif in_partition_type in ["row_limit", "row_limits"] and out_partition_type in ["row_start", "row_starts"]:
+        out_partition = tf.pad(in_partition, [[1, 0]])[:-1]
+
     else:
-        raise TypeError("Error: Unknown partition scheme, use: 'value_rowids', 'row_splits', row_length.")
+        raise TypeError("Unknown partition scheme, use: 'value_rowids', 'row_splits', 'row_lengths', etc.")
 
     return out_partition
 
