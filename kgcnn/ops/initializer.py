@@ -2,21 +2,49 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='glorot_orthogonal')
-class GlorotOrthogonal(tf.initializers.Initializer):
-    """
-    @TODO: Generalize and inherit from Orthogonal
-    (stated by eg. "Reducing overfitting in deep networks by decorrelating representations",
-    "Dropout: a simple way to prevent neural networks from overfitting",
-    "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks")
-    """
+class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
 
-    def __init__(self, scale=2.0, seed=None):
-        super().__init__()
-        self.orth_init = tf.initializers.Orthogonal(seed=seed)
+    def __init__(self, gain=1.0, seed=None, scale=1.0, mode='fan_avg'):
+        super(GlorotOrthogonal, self).__init__(gain=gain, seed=seed)
         self.scale = scale
+        self.mode = mode
 
     def __call__(self, shape, dtype=tf.float32, **kwargs):
-        assert len(shape) == 2
-        W = self.orth_init(shape, dtype)
-        W *= tf.sqrt(self.scale / ((shape[0] + shape[1]) * tf.math.reduce_variance(W)))
+        W = super(GlorotOrthogonal, self).__call__(shape, dtype=tf.float32, **kwargs)
+        scale = self.scale
+        fan_in, fan_out = self._compute_fans(shape)
+        if self.mode == "fan_in":
+            scale /= max(1., fan_in)
+        elif self.mode == "fan_out":
+            scale /= max(1., fan_out)
+        else:
+            scale /= max(1., (fan_in + fan_out) / 2.)
+        stddev = tf.math.sqrt(scale/tf.math.reduce_variance(W))
+        W *= stddev
         return W
+
+    def _compute_fans(self, shape):
+        """Computes the number of input and output units for a weight shape.
+
+        Args:
+            shape: Integer shape tuple or TF tensor shape.
+
+        Returns:
+            A tuple of integer scalars (fan_in, fan_out).
+        """
+        if len(shape) < 1:  # Just to avoid errors for constants.
+            fan_in = fan_out = 1
+        elif len(shape) == 1:
+            fan_in = fan_out = shape[0]
+        elif len(shape) == 2:
+            fan_in = shape[0]
+            fan_out = shape[1]
+        else:
+            # Assuming convolution kernels (2D, 3D, or more).
+            # kernel shape: (..., input_depth, depth)
+            receptive_field_size = 1
+            for dim in shape[:-2]:
+                receptive_field_size *= dim
+            fan_in = shape[-2] * receptive_field_size
+            fan_out = shape[-1] * receptive_field_size
+        return int(fan_in), int(fan_out)
