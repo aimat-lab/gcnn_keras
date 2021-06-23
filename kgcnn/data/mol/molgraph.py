@@ -15,7 +15,7 @@ import rdkit.Chem.AllChem
 
 
 # Will be replaced by a more general method in the future.
-def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
+def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True, add_Hs=True):
     """This is a rudiment function for converting a smile string to a graph-like object.
 
     Args:
@@ -24,6 +24,7 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
         edges (list): Optional list of edge properties to extract.
         state (list): Optional list of molecule properties to extract.
         is_directed (bool): Whether to add a bond for a directed graph. Default is True.
+        add_Hs (bool): Whether to add hydrogen after creating the smile mol object. Default is True.
 
     Returns:
         tuple: atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info
@@ -85,7 +86,8 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
 
     # Make molecule from smile via rdkit
     m = rdkit.Chem.MolFromSmiles(smile)
-    m = rdkit.Chem.AddHs(m)  # add H's to the molecule
+    if add_Hs:
+        m = rdkit.Chem.AddHs(m)  # add H's to the molecule
     rdkit.Chem.AssignStereochemistry(m)
     # rdkit.Chem.FindPotentialStereo(m)  # Assign Stereochemistry new method
     rdkit.Chem.AllChem.EmbedMolecule(m)
@@ -117,15 +119,16 @@ def smile_to_graph(smile, nodes=None, edges=None, state=None, is_directed=True):
 
     # Sort directed bonds
     bond_idx = np.array(bond_idx, dtype="int64")
-    order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
-    ind1 = bond_idx[order1]
-    val1 = [bond_info[i] for i in order1]
-    order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
-    ind2 = ind1[order2]
-    val2 = [val1[i] for i in order2]
+    if len(bond_idx) > 0:
+        order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
+        ind1 = bond_idx[order1]
+        val1 = [bond_info[i] for i in order1]
+        order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
+        ind2 = ind1[order2]
+        val2 = [val1[i] for i in order2]
+        # Take the sorted bonds
+        bond_idx = ind2
+        bond_info = val2
 
-    # Take the sorted bonds
-    bond_idx = ind2
-    bond_info = val2
 
     return atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info

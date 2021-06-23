@@ -52,8 +52,6 @@ class ESOLDataset(GraphDatasetBase):
         """
         labels2 = np.expand_dims(np.array(self.data['measured log solubility in mols per litre']), axis=-1)
         # labels1 = np.expand_dims(np.array(self.data['ESOL predicted log solubility in mols per litre']), axis=-1)
-        # labels = np.concatenate([labels1, labels2], axis=-1)
-        labels = labels2
 
         if verbose > 0:
             print("INFO: Making graph...", end='', flush=True)
@@ -70,14 +68,19 @@ class ESOLDataset(GraphDatasetBase):
         nodes = []
         edges = []
         edge_indices = []
+        labels = []
+
         for i, sm in enumerate(smiles):
-            atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info = smile_to_graph(sm, nodes=nf,
-                                                                                          edges=ef, state=sf)
-            nodes.append(np.array(atom_info, dtype="float32"))
-            edges.append(np.array(bond_info, dtype="float32"))
-            edge_indices.append(np.array(bond_idx, dtype="int64"))
-            graph_state.append(np.array(mol_info, dtype="float32"))
-            atom_label.append(atom_sym)
+            atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info = smile_to_graph(sm, nodes=nf, edges=ef,
+                                                                                          state=sf, add_Hs=False)
+            if len(bond_idx) > 0:
+                nodes.append(np.array(atom_info, dtype="float32"))
+                edges.append(np.array(bond_info, dtype="float32"))
+                edge_indices.append(np.array(bond_idx, dtype="int64"))
+                graph_state.append(np.array(mol_info, dtype="float32"))
+                atom_label.append(atom_sym)
+                labels.append(labels2[i])
+
 
         # Prepare graph state for all molecules as a single np.array
         graph_state = np.array(graph_state, dtype="float32")
@@ -92,6 +95,8 @@ class ESOLDataset(GraphDatasetBase):
         # Add one-hot encoding to node features
         for i, x in enumerate(nodes):
             nodes[i] = np.concatenate([atom_label[i], x], axis=-1)
+
+        labels = np.array(labels)
 
         if verbose > 0:
             print("done")
