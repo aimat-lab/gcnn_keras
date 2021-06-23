@@ -41,7 +41,7 @@ model = make_attentiveFP(
     input_edge_shape=[None, 5],
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp={"use_bias": [True, True, False], "units": [64, 32, 2], "activation": ['relu', 'relu', 'linear']},
+    output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'linear']},
     # model specs
     attention_args= {"units": 32, 'is_sorted': False, 'has_unconnected': True},
     depth=3
