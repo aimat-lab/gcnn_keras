@@ -63,7 +63,7 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
 
     elif in_partition_type == "value_rowids" and out_partition_type in ["row_start", "row_starts"]:
         part_sum = tf.math.segment_sum(tf.ones_like(in_partition), in_partition)
-        out_partition = tf.pad(tf.cumsum(part_sum)[:-1], [[1, 0]])
+        out_partition = tf.cumsum(part_sum, exclusive=True)
 
     # row_starts
     elif in_partition_type in ["row_start", "row_starts"]:
