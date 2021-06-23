@@ -465,7 +465,7 @@ class AttentiveNodePooling(GraphBaseLayer):
         conf_context = self.lay_final_activ.get_config()
         config.update({"activation_context": conf_context["activation"]})
         conf_gru = self.lay_gru.get_config()
-        for x in ["recurrent_activation", "recurrent_initializer", "mrecurrent_regularizer", "recurrent_constraint",
+        for x in ["recurrent_activation", "recurrent_initializer", "recurrent_regularizer", "recurrent_constraint",
                   "dropout", "recurrent_dropout", "reset_after"]:
             config.update({x: conf_gru[x]})
         return config
