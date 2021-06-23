@@ -214,10 +214,12 @@ class LayerNormalization(GraphBaseLayer):
                                                                  gamma_regularizer=gamma_regularizer,
                                                                  beta_constraint=beta_constraint,
                                                                  gamma_constraint=gamma_constraint)
+        if self.axis != -1:
+            print("WARNING: This implementation only supports axis=-1 for RaggedTensors for now.")
 
     def call(self, inputs, **kwargs):
         if isinstance(inputs, tf.RaggedTensor):
-            if self.axis ==-1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
+            if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor
                 out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
                 return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
