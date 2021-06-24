@@ -43,24 +43,24 @@ model = make_attentiveFP(
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'linear']},
     # model specs
-    attention_args= {"units": 32, 'is_sorted': False, 'has_unconnected': True},
+    attention_args= {"units": 200, 'is_sorted': False, 'has_unconnected': True},
     depth=3
 )
 
 # Define learning rate and epochs
-learning_rate_start = 0.5e-3
-learning_rate_stop = 1e-5
-epo = 500
-epomin = 400
+learning_rate_start = 10**-2.5
+# learning_rate_stop = 1e-5
+epo = 200
+# epomin = 400
 epostep = 10
 
 # Compile model with optimizer and learning rate
 # The scaled metric is meant to display the inverse-scaled mae values (optional)
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+# cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
-              metrics=['mean_absolute_error'])
+              metrics=['mean_absolute_error', tf.keras.metrics.RootMeanSquaredError()])
 print(model.summary())
 
 
@@ -68,8 +68,8 @@ print(model.summary())
 start = time.process_time()
 hist = model.fit(xtrain, ytrain,
                  epochs=epo,
-                 batch_size=32,
-                 callbacks=[cbks],
+                 batch_size=200,
+                 # callbacks=[cbks],
                  validation_freq=epostep,
                  validation_data=(xtest, ytest),
                  verbose=2
