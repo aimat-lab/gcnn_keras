@@ -3,6 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.base import GraphBaseLayer
+import kgcnn.ops.activ
 
 # import tensorflow.keras.backend as ksb
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
