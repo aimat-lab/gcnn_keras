@@ -3,7 +3,9 @@ import numpy as np
 import pandas as pd
 
 from kgcnn.data.base import GraphDatasetBase
-from kgcnn.data.mol.molgraph import smile_to_graph
+from kgcnn.data.mol.molgraph import MolecularGraph, OneHotEncoder
+
+import rdkit.Chem as Chem
 
 
 class ESOLDataset(GraphDatasetBase):
@@ -58,47 +60,58 @@ class ESOLDataset(GraphDatasetBase):
         smiles = self.data['smiles'].values
 
         # Choose node feautres:
-        nf = ['AtomicNum', 'NumExplicitHs', 'NumImplicitHs', 'IsAromatic', 'TotalDegree', 'TotalValence', 'Mass',
-              'IsInRing', 'Hybridization', 'ChiralTag', 'FormalCharge', 'ImplicitValence', 'NumRadicalElectrons']
-        ef = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
+        nf = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
+              'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
+        ef = ['BondType', 'Stereo', 'IsAromatic', 'IsConjugated', 'IsInRing', "Stereo"]
         sf = ['ExactMolWt', 'NumAtoms']
+        encoder = {
+            "Symbol": OneHotEncoder(['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At']),
+            "Hybridization": OneHotEncoder([Chem.rdchem.HybridizationType.SP,
+                                            Chem.rdchem.HybridizationType.SP2,
+                                            Chem.rdchem.HybridizationType.SP3,
+                                            Chem.rdchem.HybridizationType.SP3D,
+                                            Chem.rdchem.HybridizationType.SP3D2]),
+            "TotalDegree": OneHotEncoder([0, 1, 2, 3, 4, 5], add_others=False),
+            "TotalNumHs": OneHotEncoder([0, 1, 2, 3, 4], add_others=False),
+            "BondType": OneHotEncoder([Chem.rdchem.BondType.SINGLE,
+                                       Chem.rdchem.BondType.DOUBLE,
+                                       Chem.rdchem.BondType.TRIPLE,
+                                       Chem.rdchem.BondType.AROMATIC], add_others=False),
+            "Stereo": OneHotEncoder([Chem.rdchem.BondStereo.STEREONONE,
+                                     Chem.rdchem.BondStereo.STEREOANY,
+                                     Chem.rdchem.BondStereo.STEREOZ,
+                                     Chem.rdchem.BondStereo.STEREOE], add_others=False),
+            "CIPCode": OneHotEncoder(['R', 'S'], add_others=False)}
 
         graph_state = []
-        atom_label = []
         nodes = []
         edges = []
         edge_indices = []
         labels = []
 
         for i, sm in enumerate(smiles):
-            atom_sym, atom_pos, atom_info, bond_idx, bond_info, mol_info = smile_to_graph(sm, nodes=nf, edges=ef,
-                                                                                          state=sf, add_Hs=False)
+            mg = MolecularGraph(sm, add_Hs=False)
+            mg.make_features(nodes=nf, edges=ef, state=sf, encoder=encoder)
+            atom_info, bond_info, bond_idx, mol_info = mg.atom_features, mg.bond_features, mg.bond_indices, mg.molecule_features
+
             if len(bond_idx) > 0:
                 nodes.append(np.array(atom_info, dtype="float32"))
                 edges.append(np.array(bond_info, dtype="float32"))
                 edge_indices.append(np.array(bond_idx, dtype="int64"))
                 graph_state.append(np.array(mol_info, dtype="float32"))
-                atom_label.append(atom_sym)
                 labels.append(labels2[i])
-
 
         # Prepare graph state for all molecules as a single np.array
         graph_state = np.array(graph_state, dtype="float32")
-
-        # One-hot encoding
-        one_hot_list = ['Br', 'C', 'Cl', 'F', 'H', 'I', 'N', 'O', 'P', 'S']
-        for i, mol in enumerate(atom_label):
-            for j, at in enumerate(mol):
-                atom_label[i][j] = [1 if x == at else 0 for x in one_hot_list]
-        atom_label = [np.array(x, dtype='float32') for x in atom_label]
-
-        # Add one-hot encoding to node features
-        for i, x in enumerate(nodes):
-            nodes[i] = np.concatenate([atom_label[i], x], axis=-1)
 
         labels = np.array(labels)
 
         if verbose > 0:
             print("done")
+            for key, value in encoder.items():
+                print("INFO: OneHotEncoder", key, "found", value.found_values)
 
         return labels, nodes, edges, edge_indices, graph_state
+
+# ed = ESOLDataset()
+# labels, nodes, edges, edge_indices, graph_state = ed.get_graph()

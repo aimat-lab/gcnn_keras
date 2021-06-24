@@ -37,8 +37,8 @@ ytrain = labels_train
 ytest = labels_test
 
 model = make_attentiveFP(
-    input_node_shape=[None, 23],
-    input_edge_shape=[None, 5],
+    input_node_shape=[None, 41],
+    input_edge_shape=[None, 15],
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'linear']},
