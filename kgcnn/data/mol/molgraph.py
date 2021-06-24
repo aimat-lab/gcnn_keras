@@ -52,7 +52,7 @@ class MolecularGraph:
         "ImplicitValence": rdkit.Chem.rdchem.Atom.GetImplicitValence,
         "NumRadicalElectrons": rdkit.Chem.rdchem.Atom.GetNumRadicalElectrons,
         "Idx": rdkit.Chem.rdchem.Atom.GetIdx,
-        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else False ,
+        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else False,
         "ChiralityPossible": lambda atom: atom.HasProp('_ChiralityPossible')
     }
 
@@ -69,7 +69,7 @@ class MolecularGraph:
         "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
     }
 
-    def __init__(self, smile, add_Hs=True):
+    def __init__(self, smile, add_Hs=True, sanitize=True):
         """Make molecule from smile.
 
         Args:
@@ -79,12 +79,32 @@ class MolecularGraph:
 
         # Make molecule from smile via rdkit
         m = rdkit.Chem.MolFromSmiles(smile)
+        if sanitize:
+            rdkit.Chem.SanitizeMol(m)
         if add_Hs:
             m = rdkit.Chem.AddHs(m)  # add H's to the molecule
-        rdkit.Chem.AssignStereochemistry(m)
-        # rdkit.Chem.FindPotentialStereo(m)  # Assign Stereochemistry new method
-        rdkit.Chem.AllChem.EmbedMolecule(m)
-        rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+
+        try:
+            # rdkit.Chem.FindPotentialStereo(m)  # Assign Stereochemistry new method
+            rdkit.Chem.AssignStereochemistry(m)
+            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+            rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+            # rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+            rdkit.Chem.AssignStereochemistryFrom3D(m)
+            rdkit.Chem.AssignStereochemistry(m)
+        except ValueError:
+            try:
+                rdkit.Chem.RemoveStereochemistry(m)
+                rdkit.Chem.AssignStereochemistry(m)
+                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+                # rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+                rdkit.Chem.AssignStereochemistryFrom3D(m)
+                rdkit.Chem.AssignStereochemistry(m)
+            except ValueError:
+                print("WARNING: Rdkit could not embed molecule with smile", smile)
+
+
 
         self.mol = m
         self.atom_labels = None
@@ -145,7 +165,8 @@ class MolecularGraph:
 
         # List of information and properties
         self.atom_labels = [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in m.GetAtoms()]
-        self.coordinates = m.GetConformers()[0].GetPositions()
+        if len(m.GetConformers()) > 0:
+            self.coordinates = m.GetConformers()[0].GetPositions()
 
         # Features to fill
         atom_info = []

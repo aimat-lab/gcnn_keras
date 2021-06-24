@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow_addons.optimizers import AdamW
 
 from kgcnn.literature.AttentiveFP import make_attentiveFP
+from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
 
@@ -42,12 +43,12 @@ model = make_attentiveFP(
     input_node_shape=[None, 41],
     input_edge_shape=[None, 15],
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedd={"output_mode": 'graph'},
     output_mlp={"use_bias": [True, True], "units": [200, 1], "activation": ['kgcnn>leaky_relu', 'linear']},
     # model specs
     attention_args= {"units": 200, 'is_sorted': False, 'has_unconnected': True},
     depth=2,
-    dropout=0.0
+    dropout=0.1
 )
 
 # Define learning rate and epochs
@@ -63,9 +64,14 @@ epostep = 5
 # optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
 optimizer = AdamW(lr=learning_rate_start, weight_decay=weight_decay)
 # cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+mae_metric = ScaledMeanAbsoluteError((1, 1))
+rms_metric = ScaledRootMeanSquaredError((1,1))
+if scaler.scale_ is not None:
+    mae_metric.set_scale(np.expand_dims(scaler.scale_,axis=0))
+    rms_metric.set_scale(np.expand_dims(scaler.scale_,axis=0))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
-              metrics=['mean_absolute_error', tf.keras.metrics.RootMeanSquaredError()])
+              metrics=[mae_metric, rms_metric])
 print(model.summary())
 
 
