@@ -44,7 +44,7 @@ model = make_attentiveFP(
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'linear']},
     # model specs
     attention_args= {"units": 200, 'is_sorted': False, 'has_unconnected': True},
-    depth=3
+    depth=2
 )
 
 # Define learning rate and epochs
