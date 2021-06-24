@@ -5,6 +5,8 @@ import numpy as np
 import time
 from sklearn.preprocessing import StandardScaler
 
+from tensorflow_addons.optimizers import AdamW
+
 from kgcnn.literature.AttentiveFP import make_attentiveFP
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.learning import lr_lin_reduction
@@ -41,7 +43,7 @@ model = make_attentiveFP(
     input_edge_shape=[None, 15],
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'linear']},
+    output_mlp={"use_bias": [True, True], "units": [200, 1], "activation": ['swish', 'linear']},
     # model specs
     attention_args= {"units": 200, 'is_sorted': False, 'has_unconnected': True},
     depth=2
@@ -49,14 +51,16 @@ model = make_attentiveFP(
 
 # Define learning rate and epochs
 learning_rate_start = 10**-2.5
+weight_decay = 10**-5
 # learning_rate_stop = 1e-5
 epo = 200
 # epomin = 400
-epostep = 10
+epostep = 5
 
 # Compile model with optimizer and learning rate
 # The scaled metric is meant to display the inverse-scaled mae values (optional)
-optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
+# optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
+optimizer = AdamW(lr=learning_rate_start, weight_decay=weight_decay)
 # cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
