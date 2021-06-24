@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.attention import AttentiveHeadFP, AttentiveNodePooling
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.keras import Dense, Dropout
 from kgcnn.layers.update import GRUupdate
 from kgcnn.layers.mlp import MLP
 from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
@@ -25,7 +25,8 @@ def make_attentiveFP(  # Input
         output_mlp: dict = None,
         # Model specific parameter
         depth=3,
-        attention_args: dict = None
+        attention_args: dict = None,
+        dropout=0.1
 ):
     """Make AttentiveFP network.
 
@@ -44,6 +45,7 @@ def make_attentiveFP(  # Input
         depth (int): Number of convolution layers. Default is 3.
         attention_args (dict): Layer arguments for attention layer. Default is
             {"units": 32, 'is_sorted': False, 'has_unconnected': True}.
+        dropout (float): Dropout rate for the Dropout layers in the model.
 
     Returns:
         tf.keras.models.Model: AttentiveFP model.
@@ -80,6 +82,7 @@ def make_attentiveFP(  # Input
     for i in range(1, depth):
         Ck = AttentiveHeadFP(**attention_args)([nk,ed,edi])
         nk = GRUupdate(units=attention_args['units'])([nk, Ck])
+        nk = Dropout(rate=dropout)(nk)
 
     n = nk
     if output_embedd["output_mode"] == 'graph':
