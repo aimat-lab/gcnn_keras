@@ -37,8 +37,8 @@ class leaky_softplus(tf.keras.layers.Layer):
         alpha (float, optional): Leaking slope. The default is 0.3.
     """
 
-    def __init__(self, alpha=0.3, **kwargs):
-        super(leaky_softplus, self).__init__(**kwargs)
+    def __init__(self, alpha=0.3, trainable=False, **kwargs):
+        super(leaky_softplus, self).__init__(trainable=trainable, **kwargs)
         self.alpha = alpha
 
     def call(self, inputs, **kwargs):
@@ -59,12 +59,11 @@ class leaky_relu(tf.keras.layers.Layer):
         alpha (float, optional): leak alpha = 0.2
     """
 
-    def __init__(self, alpha=0.2, **kwargs):
-        super(leaky_relu, self).__init__(**kwargs)
+    def __init__(self, alpha=0.2, trainable=False, **kwargs):
+        super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
         self.alpha = alpha
 
     def call(self, inputs, **kwargs):
-
         x = inputs
         return tf.nn.leaky_relu(x, alpha=self.alpha)
 

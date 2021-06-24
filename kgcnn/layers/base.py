@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+import kgcnn.ops.activ
 
 class GraphBaseLayer(tf.keras.layers.Layer):
     """
