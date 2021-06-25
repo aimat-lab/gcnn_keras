@@ -25,11 +25,9 @@ labels, nodes, _, edge_indices, _ = datasets.get_graph(do_invert_distance=False,
                                                        max_mols=10000)  # max is 133885
 coord = datasets.coord[:10000]
 edge_indices, _, angle_indices = datasets.get_angle_index(edge_indices)
+
 # Select LUMO as target and convert into eV from H
-# Standardize output with scikit-learn std-scaler
 labels = labels[:, 7:8] * 27.2114
-scaler = StandardScaler(with_std=False, with_mean=True)
-labels = scaler.fit_transform(labels)
 data_unit = 'eV'
 
 # Train Test split
@@ -46,6 +44,11 @@ nodes_train, coord_train, edge_indices_train, angle_indices_train = ragged_tenso
 nodes_test, coord_test, edge_indices_test, angle_indices_test = ragged_tensor_from_nested_numpy(
     nodes_test), ragged_tensor_from_nested_numpy(coord_test), ragged_tensor_from_nested_numpy(
     edge_indices_test), ragged_tensor_from_nested_numpy(angle_indices_test)
+
+# Standardize output with scikit-learn std-scaler
+scaler = StandardScaler(with_std=False, with_mean=True)
+labels_train = scaler.fit_transform(labels_train)
+labels_test = scaler.transform(labels_test)
 
 # Define input and output data
 xtrain = nodes_train, coord_train, edge_indices_train, angle_indices_train
