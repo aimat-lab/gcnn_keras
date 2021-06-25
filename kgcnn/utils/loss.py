@@ -8,14 +8,20 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
     def __init__(self, scaling_shape=(), name='mean_absolute_error', **kwargs):
         super(ScaledMeanAbsoluteError, self).__init__(name=name, **kwargs)
         self.scale = self.add_weight(shape=scaling_shape,
-                                     initializer=tf.keras.initializers.Ones(), name='scale_mae',
+                                     initializer=tf.keras.initializers.Ones(), name='kgcnn_scale_mae',
                                      dtype=tf.keras.backend.floatx())
         self.scaling_shape = scaling_shape
 
     def reset_state(self):
-        # Super variables
-        ks.backend.set_value(self.total, 0)
-        ks.backend.set_value(self.count, 0)
+        # ks.backend.set_value(self.total, 0)
+        # ks.backend.set_value(self.count, 0)
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
+
+
+    def reset_states(self):
+        # ks.backend.set_value(self.total, 0)
+        # ks.backend.set_value(self.count, 0)
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = self.scale * y_true
@@ -38,14 +44,19 @@ class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
     def __init__(self, scaling_shape=(), name='root_mean_squared_error', **kwargs):
         super(ScaledRootMeanSquaredError, self).__init__(name=name, **kwargs)
         self.scale = self.add_weight(shape=scaling_shape,
-                                     initializer=tf.keras.initializers.Ones(), name='scale_mae',
+                                     initializer=tf.keras.initializers.Ones(), name='kgcnn_scale_rmse',
                                      dtype=tf.keras.backend.floatx())
         self.scaling_shape = scaling_shape
 
     def reset_state(self):
-        # Super variables
-        ks.backend.set_value(self.total, 0)
-        ks.backend.set_value(self.count, 0)
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_rmse' not in v.name])
+        # ks.backend.set_value(self.total, 0)
+        # ks.backend.set_value(self.count, 0)
+
+    def reset_states(self):
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_rmse' not in v.name])
+        # ks.backend.set_value(self.total, 0)
+        # ks.backend.set_value(self.count, 0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = self.scale * y_true
