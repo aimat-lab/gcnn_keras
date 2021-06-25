@@ -16,9 +16,7 @@ from kgcnn.data.datasets.ESOL import ESOLDataset
 
 dataset = ESOLDataset()
 data_unit = "mol/L"
-labels_val, nodes, edges, edge_indices, _ = dataset.get_graph()
-scaler = StandardScaler(with_std=False, with_mean=True, copy=True)
-labels = scaler.fit_transform(labels_val)
+labels, nodes, edges, edge_indices, _ = dataset.get_graph()
 
 # Train Test split
 labels_train, labels_test, nodes_train, nodes_test, edges_train, edges_test, edge_indices_train, edge_indices_test = train_test_split(
@@ -34,6 +32,12 @@ nodes_test, edges_test, edge_indices_test = ragged_tensor_from_nested_numpy(
     nodes_test), ragged_tensor_from_nested_numpy(edges_test), ragged_tensor_from_nested_numpy(
     edge_indices_test)
 
+# Scaling
+scaler = StandardScaler(with_std=False, with_mean=True, copy=True)
+labels_train = scaler.fit_transform(labels_train)
+labels_test = scaler.transform(labels_test)
+
+# Define training and test data
 xtrain = nodes_train, edges_train, edge_indices_train
 xtest = nodes_test, edges_test, edge_indices_test
 ytrain = labels_train
