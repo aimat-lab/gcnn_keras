@@ -9,3 +9,4 @@ dist
 kgcnn.egg-info
 /legacy/
 /examples/.ipynb_checkpoints/
+/examples/kt_test/
