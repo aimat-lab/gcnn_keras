@@ -21,10 +21,7 @@ datasets = QM9Dataset()
 labels, nodes, edges, edge_indices, graph_state = datasets.get_graph(max_mols=10000)  # max is 133885
 
 # Select LUMO as target and convert into eV from H
-# Standardize output with scikit-learn std-scaler
 labels = labels[:, 7:8] * 27.2114
-scaler = StandardScaler(with_std=False, with_mean=True)
-labels = scaler.fit_transform(labels)
 data_unit = 'eV'
 
 # Train Test split
@@ -41,6 +38,11 @@ nodes_train, edges_train, edge_indices_train, graph_state_train = ragged_tensor_
 nodes_test, edges_test, edge_indices_test, graph_state_test = ragged_tensor_from_nested_numpy(
     nodes_test), ragged_tensor_from_nested_numpy(edges_test), ragged_tensor_from_nested_numpy(
     edge_indices_test), tf.constant(graph_state_test)
+
+# Standardize output with scikit-learn std-scaler
+scaler = StandardScaler(with_std=False, with_mean=True)
+labels_train = scaler.fit_transform(labels_train)
+labels_test = scaler.transform(labels_test)
 
 # Define input and output data
 xtrain = nodes_train, edges_train, edge_indices_train, graph_state_train
