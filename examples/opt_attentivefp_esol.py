@@ -12,10 +12,10 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from kgcnn.utils.learning import lr_lin_reduction
 
-from kgcnn.data.datasets.lipop import LipopDataset
+from kgcnn.data.datasets.ESOL import ESOLDataset
 
-dataset = LipopDataset()
-data_unit = "logD at pH 7.4"
+dataset = ESOLDataset()
+data_unit = "mol/L"
 labels, nodes, edges, edge_indices, _ = dataset.get_graph()
 
 # Train Test split
@@ -47,7 +47,7 @@ ytest = labels_test
 def build_model(hp):
     hp_depth = hp.Int('depth', min_value=1, max_value=5, step=1)
     hp_nnsize = hp.Int('nn_size', min_value=25, max_value=400, step=20)
-    hp_lr_start = hp.Choice('lr_start', [5e-3, 1e-3, 5e-4, 1e-4])
+    hp_lr_start = hp.Choice('lr_start', [1e-2, 5e-3, 1e-3, 5e-4, 1e-4])
     hp_dropout = hp.Choice('dropout', [0.0, 0.05, 0.1, 0.2])
 
     model = make_attentiveFP(
