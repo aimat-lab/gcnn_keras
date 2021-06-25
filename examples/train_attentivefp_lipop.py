@@ -94,7 +94,7 @@ print("Print Time for taining: ", stop - start)
 trainlossall = np.array(hist.history['mean_absolute_error'])
 testlossall = np.array(hist.history['val_mean_absolute_error'])
 
-# Predict LUMO with model
+# Predict ESOL with model
 pred_test = scaler.inverse_transform(model.predict(xtest))
 true_test = scaler.inverse_transform(ytest)
 mae_valid = np.mean(np.abs(pred_test - true_test))
