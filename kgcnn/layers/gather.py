@@ -141,6 +141,7 @@ class GatherNodesIngoing(GraphBaseLayer):
     def __init__(self, axis=1, **kwargs):
         """Initialize layer."""
         super(GatherNodesIngoing, self).__init__(**kwargs)
+        self.axis= axis
 
     def build(self, input_shape):
         """Build layer."""
