@@ -1,28 +1,5 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
-
-@tf.function
-def scatter_nd_segment(data, segment_ids, target_shape):
-    """Scatter output of segment operation into target shape.
-    This additional step is required since segment_ids may not contain largest id but target_shape must
-    match with largest id.
-
-    Args:
-        data (tf.Tensor): Output of segment operation.
-        segment_ids (tf.Tensor): Former ids of segment operation. 1D Tensor.
-        target_shape (tf.TensorShape): of target tensor to scatter output into.
-
-    Returns:
-        tf.Tensor: tensor with scattered data
-    """
-    # If max id is not in segment_ids requires scatter into tensor of correct shape[0] that matches target first dim
-    # out_target_shape = (tf.shape(nod, out_type=nodind.dtype)[0], ks.backend.int_shape(dens)[-1])
-    out_target_shape = tf.concat([target_shape[:1], tf.shape(data)[1:]], axis=0)
-    # Make segment indices
-    segment_index = tf.range(tf.shape(data)[0])
-    out_tensor = tf.scatter_nd(ks.backend.expand_dims(segment_index, axis=-1), data, out_target_shape)
-    return out_tensor
+# import tensorflow.keras as ks
 
 
 @tf.function
@@ -55,7 +32,6 @@ def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=N
     Returns:
         tf.Tensor: Updates scattered into tensor with different update rules.
     """
-    pool = None
     if segment_name in ["segment_mean", "mean", "reduce_mean"]:
         pool = tensor_scatter_nd_mean(tensor, indices, updates, name=name)
     elif segment_name in ["segment_sum", "sum", "reduce_sum"]:
@@ -67,4 +43,3 @@ def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=N
     else:
         raise TypeError("Unknown pooling, choose: 'mean', 'sum', ...")
     return pool
-

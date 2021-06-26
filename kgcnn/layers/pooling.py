@@ -3,7 +3,6 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import change_row_index_partition
-from kgcnn.ops.scatter import scatter_nd_segment
 from kgcnn.ops.segment import segment_ops_by_name
 
 
@@ -63,7 +62,8 @@ class PoolingLocalEdges(GraphBaseLayer):
         # Pooling via e.g. segment_sum
         out = segment_ops_by_name(self.pooling_method, dens, nodind)
         if self.has_unconnected:
-            out = scatter_nd_segment(out, nodind, tf.shape(nod))
+            out = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
+                                tf.concat([tf.shape(nod)[:1], tf.shape(out)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
@@ -147,7 +147,8 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
 
         if self.has_unconnected:
-            get = scatter_nd_segment(get, nodind, tf.shape(nod))
+            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+                                tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
         return out
@@ -440,7 +441,8 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = scatter_nd_segment(get, nodind, tf.shape(nod))
+            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+                                tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
         return out
