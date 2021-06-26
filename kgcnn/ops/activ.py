@@ -62,8 +62,10 @@ class leaky_relu(tf.keras.layers.Layer):
 
     def __init__(self, alpha=0.2, trainable=False, **kwargs):
         super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
-        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
-        self.set_weights([np.array(alpha)])
+        # We can not make alpha trainable atm with tf.nn.leaky_relu
+        # self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
+        self.alpha = alpha
+        # self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
         x = inputs
