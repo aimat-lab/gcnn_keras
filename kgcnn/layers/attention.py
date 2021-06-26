@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Dense, Activation, Concatenate
 from kgcnn.layers.pooling import PoolingNodes
 import kgcnn.ops.activ
 from kgcnn.ops.partition import change_row_index_partition
-from kgcnn.ops.scatter import kgcnn_ops_scatter_segment_tensor_nd
+from kgcnn.ops.scatter import scatter_nd_segment
 from kgcnn.ops.segment import segment_softmax, segment_ops_by_name
 
 
@@ -77,7 +77,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = kgcnn_ops_scatter_segment_tensor_nd(get, nodind, tf.shape(nod))
+            get = scatter_nd_segment(get, nodind, tf.shape(nod))
 
         out = tf.RaggedTensor.from_row_lengths(get, node_part, validate=self.ragged_validate)
         return out

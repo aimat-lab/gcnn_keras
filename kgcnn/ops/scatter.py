@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 
 @tf.function
-def kgcnn_ops_scatter_segment_tensor_nd(data, segment_ids, target_shape):
+def scatter_nd_segment(data, segment_ids, target_shape):
     """Scatter output of segment operation into target shape.
     This additional step is required since segment_ids may not contain largest id but target_shape must
     match with largest id.

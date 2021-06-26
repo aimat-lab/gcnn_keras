@@ -9,7 +9,9 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
     Args:
         in_partition (tf.Tensor): Row partition tensor of shape (N, ).
         in_partition_type (str): Source partition type, can be either 'row_splits', 'row_length', 'value_rowids',
+            'row_starts' or 'row_limits'
         out_partition_type (str): Target partition type, can be either 'row_splits', 'row_length', 'value_rowids',
+            'row_starts' or 'row_limits'
 
     Returns:
         tf.Tensor: Row partition tensor of target type.

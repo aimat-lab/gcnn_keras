@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-
+import numpy as np
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')
 def shifted_softplus(x):
@@ -37,9 +37,10 @@ class leaky_softplus(tf.keras.layers.Layer):
         alpha (float, optional): Leaking slope. The default is 0.3.
     """
 
-    def __init__(self, alpha=0.3, trainable=False, **kwargs):
+    def __init__(self, alpha=0.2, trainable=False, **kwargs):
         super(leaky_softplus, self).__init__(trainable=trainable, **kwargs)
-        self.alpha = alpha
+        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
+        self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
         x = inputs
@@ -47,7 +48,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(leaky_softplus, self).get_config()
-        config.update({"alpha": self.alpha})
+        config.update({"alpha": float(self.alpha)})
         return config
 
 
@@ -61,7 +62,8 @@ class leaky_relu(tf.keras.layers.Layer):
 
     def __init__(self, alpha=0.2, trainable=False, **kwargs):
         super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
-        self.alpha = alpha
+        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
+        self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
         x = inputs
@@ -69,19 +71,28 @@ class leaky_relu(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(leaky_relu, self).get_config()
-        config.update({"alpha": self.alpha})
+        config.update({"alpha": float(self.alpha)})
         return config
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
-def swish(x):
-    """Swish activation function,
-    from Ramachandran, Zopf, Le 2017. "Searching for Activation Functions"
+class swish(tf.keras.layers.Layer):
+    """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
 
     Args:
-        x (tf.Tensor): Values to apply activation to. Using tf.keras functions.
-
-    Returns:
-        tf.Tensor: x*tf.sigmoid(x)
+        alpha (float, optional): leak alpha = 0.2
     """
-    return x * tf.sigmoid(x)
+
+    def __init__(self, beta=1.0, trainable=False, **kwargs):
+        super(swish, self).__init__(trainable=trainable, **kwargs)
+        self.beta = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
+        self.set_weights([np.array(beta)])
+
+    def call(self, inputs, **kwargs):
+        x = inputs
+        return x * tf.sigmoid(self.beta*x)
+
+    def get_config(self):
+        config = super(swish, self).get_config()
+        config.update({"beta": float(self.beta)})
+        return config

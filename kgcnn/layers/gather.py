@@ -13,15 +13,21 @@ class GatherNodes(GraphBaseLayer):
     """
 
     def __init__(self,
-                 concat_nodes=True,
+                 axis=1,
+                 concat_axis=2,
                  **kwargs):
         """Initialize layer."""
         super(GatherNodes, self).__init__(**kwargs)
-        self.concat_nodes = concat_nodes
+        self.concat_axis = concat_axis
+        self.axis = axis
 
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodes, self).build(input_shape)
+        if len(input_shape) != 2:
+            print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
+        if [i for i in range(len(input_shape[0]))][self.axis] == 0:
+            print("WARNING: Shape error for", self.name, ", gather from batch-dimension is not intended.")
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -33,32 +39,35 @@ class GatherNodes(GraphBaseLayer):
                 - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.RaggedTensor: Gathered node embeddings that match the number of edges.
+            tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], 2*F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
+        # The primary case for aggregation of nodes from node feature list. Case from doc-string.
+        # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.concat_axis in [None, 2]:
+                node, node_part = inputs[0].values, inputs[0].row_splits
+                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
+                disjoint_list = change_row_index_partition(edge_index, node_part, edge_part,
+                                                       partition_type_target="row_splits",
+                                                       partition_type_index="row_length", to_indexing='batch',
+                                                       from_indexing=self.node_indexing)
+                out = tf.gather(node, disjoint_list, axis=0)
+                if self.concat_axis == 2:
+                    out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
+                out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+                return out
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
-                                               from_indexing=self.node_indexing)
-        out = tf.gather(node, indexlist, axis=0)
-        if self.concat_nodes:
-            out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
-        # For ragged tensor we can now also try:
-        # out = tf.gather(nod, tensor_index, batch_dims=1) # Works now
-        # if self.concat_nodes:
-        #   out = tf.keras.backend.concatenate([out[:, :, i] for i in range(tensor_index.shape[-1])], axis=2)
-        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
+        out = tf.gather(inputs[0], inputs[1], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
+        if self.concat_axis is not None:
+            out = tf.concat([tf.gather(out, i, axis=self.concat_axis) for i in range(out.shape[self.concat_axis])],
+                            axis=self.concat_axis)
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodes, self).get_config()
-        config.update({"concat_nodes": self.concat_nodes})
+        config.update({"concat_axis": self.concat_axis, "axis": self.axis})
         return config
 
 
@@ -70,13 +79,18 @@ class GatherNodesOutgoing(GraphBaseLayer):
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, axis=1, **kwargs):
         """Initialize layer."""
         super(GatherNodesOutgoing, self).__init__(**kwargs)
+        self.axis = axis
 
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodesOutgoing, self).build(input_shape)
+        if len(input_shape) != 2:
+            print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
+        if [i for i in range(len(input_shape[0]))][self.axis] == 0:
+            print("WARNING: Shape error for", self.name, ", gather from batch-dimension is not intended.")
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -90,27 +104,29 @@ class GatherNodesOutgoing(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
-        dyn_inputs = inputs
+        # The primary case for aggregation of nodes from node feature list. Case from doc-string.
+        # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1:
+                # We cast to values here
+                node, node_part = inputs[0].values, inputs[0].row_splits
+                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
+                indexlist = change_row_index_partition(edge_index, node_part, edge_part,
+                                                       partition_type_target="row_splits",
+                                                       partition_type_index="row_length",
+                                                       to_indexing='batch', from_indexing=self.node_indexing)
+                out = tf.gather(node, indexlist[:, 1], axis=0)
+                out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+                return out
 
-        # We cast to values here
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
-                                               from_indexing=self.node_indexing)
-        # For ragged tensor we can now also try:
-        # out = tf.gather(nod, tensor_index[:, :, 1], batch_dims=1)
-        out = tf.gather(node, indexlist[:, 1], axis=0)
-
-        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
+        out = tf.gather(inputs[0], inputs[1][:, :, 1], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodesOutgoing, self).get_config()
+        config.update({"axis": self.axis})
         return config
 
 
@@ -122,13 +138,17 @@ class GatherNodesIngoing(GraphBaseLayer):
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, axis=1, **kwargs):
         """Initialize layer."""
         super(GatherNodesIngoing, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
         super(GatherNodesIngoing, self).build(input_shape)
+        if len(input_shape) != 2:
+            print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
+        if [i for i in range(len(input_shape[0]))][self.axis] == 0:
+            print("WARNING: Shape error for", self.name, ", gather from batch-dimension is not intended.")
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -142,27 +162,30 @@ class GatherNodesIngoing(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape (batch, [M], F)
         """
-        dyn_inputs = inputs
+        # The primary case for aggregation of nodes from node feature list. Case from doc-string.
+        # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1:
+                # We cast to values here
+                node, node_part = inputs[0].values, inputs[0].row_splits
+                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
+                indexlist = change_row_index_partition(edge_index, node_part, edge_part,
+                                                       partition_type_target="row_splits",
+                                                       partition_type_index="row_length",
+                                                       to_indexing='batch',
+                                                       from_indexing=self.node_indexing)
+                out = tf.gather(node, indexlist[:, 0], axis=0)
+                out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+                return out
 
-        # We cast to values here
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-
-        # We cast to values here
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                               partition_type_target="row_splits",
-                                               partition_type_index="row_length",
-                                               to_indexing='batch',
-                                               from_indexing=self.node_indexing)
-        out = tf.gather(node, indexlist[:, 0], axis=0)
-        # For ragged tensor we can now also try:
-        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
-        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
+        out = tf.gather(inputs[0], inputs[1][:, :, 0], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodesIngoing, self).get_config()
+        config.update({"axis": self.axis})
         return config
 
 

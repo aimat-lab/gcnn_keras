@@ -267,8 +267,7 @@ class UnPoolingTopK(GraphBaseLayer):
         map_node = change_row_index_partition(map_node, nrowlength, pool_node_len,
                                               partition_type_target="row_length", partition_type_index="row_length",
                                               from_indexing=self.node_indexing, to_indexing="batch")
-        map_edge = change_row_index_partition(map_edge,
-                                              erowlength, pool_edge_id,
+        map_edge = change_row_index_partition(map_edge, erowlength, pool_edge_id,
                                               partition_type_target="row_length",
                                               partition_type_index="value_rowids",
                                               from_indexing=self.node_indexing,
