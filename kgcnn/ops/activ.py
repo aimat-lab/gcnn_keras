@@ -37,7 +37,7 @@ class leaky_softplus(tf.keras.layers.Layer):
         alpha (float, optional): Leaking slope. The default is 0.3.
     """
 
-    def __init__(self, alpha=0.2, trainable=False, **kwargs):
+    def __init__(self, alpha=0.05, trainable=False, **kwargs):
         super(leaky_softplus, self).__init__(trainable=trainable, **kwargs)
         self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
         self.set_weights([np.array(alpha)])
@@ -60,16 +60,15 @@ class leaky_relu(tf.keras.layers.Layer):
         alpha (float, optional): leak alpha = 0.2
     """
 
-    def __init__(self, alpha=0.2, trainable=False, **kwargs):
+    def __init__(self, alpha=0.05, trainable=False, **kwargs):
         super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
-        # We can not make alpha trainable atm with tf.nn.leaky_relu
-        # self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
-        self.alpha = alpha
-        # self.set_weights([np.array(alpha)])
+        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
+        self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
         x = inputs
-        return tf.nn.leaky_relu(x, alpha=self.alpha)
+        # return tf.nn.leaky_relu(x, alpha=self.alpha)
+        return tf.nn.relu(x) + tf.nn.relu(-x)*self.alpha
 
     def get_config(self):
         config = super(leaky_relu, self).get_config()
