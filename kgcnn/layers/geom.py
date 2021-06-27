@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 
@@ -40,9 +40,9 @@ class NodeDistance(GraphBaseLayer):
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
-                                               partition_type_index="row_length", to_indexing='batch',
-                                               from_indexing=self.node_indexing)
+        indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                           partition_type_index="row_length", to_indexing='batch',
+                                           from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
@@ -91,9 +91,9 @@ class NodeAngle(GraphBaseLayer):
         node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
-                                               partition_type_index="row_length", to_indexing='batch',
-                                               from_indexing=self.node_indexing)
+        indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                           partition_type_index="row_length", to_indexing='batch',
+                                           from_indexing=self.node_indexing)
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
         xi = tf.gather(node, indexlist[:, 0], axis=0)
@@ -149,13 +149,13 @@ class EdgeAngle(GraphBaseLayer):
         edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
         angle_index, angle_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
-        indexlist = change_row_index_partition(edge_index, node_part, edge_part, partition_type_target="row_splits",
-                                               partition_type_index="row_length", to_indexing='batch',
-                                               from_indexing=self.node_indexing)
+        indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                           partition_type_index="row_length", to_indexing='batch',
+                                           from_indexing=self.node_indexing)
 
-        indexlist2 = change_row_index_partition(angle_index, edge_part, angle_part, partition_type_target="row_splits",
-                                                partition_type_index="row_length", to_indexing='batch',
-                                                from_indexing=self.node_indexing)
+        indexlist2 = partition_row_indexing(angle_index, edge_part, angle_part, partition_type_target="row_splits",
+                                            partition_type_index="row_length", to_indexing='batch',
+                                            from_indexing=self.node_indexing)
 
         # For ragged tensor we can now also try:
         # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
@@ -303,9 +303,9 @@ class SphericalBasisLayer(GraphBaseLayer):
         angles, angle_part = dyn_inputs[1].values, dyn_inputs[1].row_splits
         angle_index, angle_index_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
-        indexlist = change_row_index_partition(angle_index, edge_part, angle_index_part,
-                                               partition_type_target="row_splits", partition_type_index="row_length",
-                                               to_indexing='batch', from_indexing=self.node_indexing)
+        indexlist = partition_row_indexing(angle_index, edge_part, angle_index_part,
+                                           partition_type_target="row_splits", partition_type_index="row_length",
+                                           to_indexing='batch', from_indexing=self.node_indexing)
 
         d = edge
         id_expand_kj = indexlist

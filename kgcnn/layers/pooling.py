@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.segment import segment_ops_by_name
 
 
@@ -46,11 +46,11 @@ class PoolingLocalEdges(GraphBaseLayer):
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
         edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
-        shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_target="row_splits",
-                                              partition_type_index="row_length",
-                                              to_indexing='batch',
-                                              from_indexing=self.node_indexing)
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
+                                          partition_type_target="row_splits",
+                                          partition_type_index="row_length",
+                                          to_indexing='batch',
+                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge
@@ -125,9 +125,9 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
         weights, _ = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
-        shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_target="row_splits", partition_type_index="row_length",
-                                              to_indexing='batch', from_indexing=self.node_indexing)
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
+                                          partition_type_target="row_splits", partition_type_index="row_length",
+                                          to_indexing='batch', from_indexing=self.node_indexing)
 
         wval = weights
         dens = edge * wval
@@ -419,11 +419,11 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
         edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
 
-        shiftind = change_row_index_partition(edgeind, node_part, edge_part,
-                                              partition_type_target="row_splits",
-                                              partition_type_index="row_length",
-                                              to_indexing='batch',
-                                              from_indexing=self.node_indexing)
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
+                                          partition_type_target="row_splits",
+                                          partition_type_index="row_length",
+                                          to_indexing='batch',
+                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge

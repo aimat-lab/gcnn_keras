@@ -5,7 +5,7 @@ from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherS
 from kgcnn.layers.keras import Dense, Activation, Concatenate
 from kgcnn.layers.pooling import PoolingNodes
 import kgcnn.ops.activ
-from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.segment import segment_softmax, segment_ops_by_name
 
 
@@ -54,9 +54,9 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         attention = dyn_inputs[2].values
         edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
 
-        shiftind = change_row_index_partition(edgeind, node_part, edge_part, partition_type_target="row_length",
-                                              partition_type_index="row_length", to_indexing='batch',
-                                              from_indexing=self.node_indexing)
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part, partition_type_target="row_length",
+                                          partition_type_index="row_length", to_indexing='batch',
+                                          from_indexing=self.node_indexing)
 
         nodind = shiftind[:, 0]  # Pick first index eg. ingoing
         dens = edge

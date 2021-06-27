@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.ragged import partition_from_ragged_tensor_by_name
 from kgcnn.layers.base import GraphBaseLayer
 
@@ -131,14 +131,14 @@ class ChangeIndexing(GraphBaseLayer):
         """
 
         nod, edge_index = inputs
-        indexlist = change_row_index_partition(edge_index.values,
-                                               nod.row_splits,
-                                               edge_index.value_rowids(),
-                                               partition_type_target="row_splits",
-                                               partition_type_index="value_rowids",
-                                               from_indexing=self.from_indexing,
-                                               to_indexing=self.to_indexing
-                                               )
+        indexlist = partition_row_indexing(edge_index.values,
+                                           nod.row_splits,
+                                           edge_index.value_rowids(),
+                                           partition_type_target="row_splits",
+                                           partition_type_index="value_rowids",
+                                           from_indexing=self.from_indexing,
+                                           to_indexing=self.to_indexing
+                                           )
 
         out = tf.RaggedTensor.from_row_splits(indexlist, edge_index.row_splits, validate=self.ragged_validate)
         return out

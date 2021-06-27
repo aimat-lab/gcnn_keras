@@ -94,11 +94,11 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
 
 
 @tf.function
-def change_row_index_partition(tensor_index, part_target, part_index,
-                               partition_type_target,
-                               partition_type_index,
-                               from_indexing='sample',
-                               to_indexing='batch'):
+def partition_row_indexing(tensor_index, part_target, part_index,
+                           partition_type_target,
+                           partition_type_index,
+                           from_indexing='sample',
+                           to_indexing='batch'):
     """Change the index tensor indexing to reference within row partition. This can be between e.g. per graph and per
     batch assignment. Batch assignment is equivalent to disjoint representation.
     To change indices, the row partition of index and target tensor must be known.

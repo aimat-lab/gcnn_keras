@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.ops.partition import change_row_index_partition
+from kgcnn.ops.partition import partition_row_indexing
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodes')
@@ -47,7 +47,7 @@ class GatherNodes(GraphBaseLayer):
             if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.concat_axis in [None, 2]:
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
-                disjoint_list = change_row_index_partition(edge_index, node_part, edge_part,
+                disjoint_list = partition_row_indexing(edge_index, node_part, edge_part,
                                                        partition_type_target="row_splits",
                                                        partition_type_index="row_length", to_indexing='batch',
                                                        from_indexing=self.node_indexing)
@@ -111,10 +111,10 @@ class GatherNodesOutgoing(GraphBaseLayer):
                 # We cast to values here
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
-                indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                                       partition_type_target="row_splits",
-                                                       partition_type_index="row_length",
-                                                       to_indexing='batch', from_indexing=self.node_indexing)
+                indexlist = partition_row_indexing(edge_index, node_part, edge_part,
+                                                   partition_type_target="row_splits",
+                                                   partition_type_index="row_length",
+                                                   to_indexing='batch', from_indexing=self.node_indexing)
                 out = tf.gather(node, indexlist[:, 1], axis=0)
                 out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 return out
@@ -170,11 +170,11 @@ class GatherNodesIngoing(GraphBaseLayer):
                 # We cast to values here
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
-                indexlist = change_row_index_partition(edge_index, node_part, edge_part,
-                                                       partition_type_target="row_splits",
-                                                       partition_type_index="row_length",
-                                                       to_indexing='batch',
-                                                       from_indexing=self.node_indexing)
+                indexlist = partition_row_indexing(edge_index, node_part, edge_part,
+                                                   partition_type_target="row_splits",
+                                                   partition_type_index="row_length",
+                                                   to_indexing='batch',
+                                                   from_indexing=self.node_indexing)
                 out = tf.gather(node, indexlist[:, 0], axis=0)
                 out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 return out
