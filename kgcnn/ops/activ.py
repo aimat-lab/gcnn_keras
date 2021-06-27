@@ -68,7 +68,7 @@ class leaky_relu(tf.keras.layers.Layer):
     def call(self, inputs, **kwargs):
         x = inputs
         # return tf.nn.leaky_relu(x, alpha=self.alpha)
-        return tf.nn.relu(x) + tf.nn.relu(-x)*self.alpha
+        return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
 
     def get_config(self):
         config = super(leaky_relu, self).get_config()
