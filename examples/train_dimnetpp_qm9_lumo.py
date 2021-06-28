@@ -13,6 +13,7 @@ from kgcnn.utils.learning import LinearWarmupExponentialDecay, LearningRateLoggi
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.DimeNetPP import make_dimnet_pp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
+from kgcnn.utils.loss import ScaledMeanAbsoluteError
 
 # Download and generate dataset.
 # QM9 has about 200 MB of data
@@ -46,7 +47,7 @@ nodes_test, coord_test, edge_indices_test, angle_indices_test = ragged_tensor_fr
     edge_indices_test), ragged_tensor_from_nested_numpy(angle_indices_test)
 
 # Standardize output with scikit-learn std-scaler
-scaler = StandardScaler(with_std=True, with_mean=True)
+scaler = StandardScaler(with_std=False, with_mean=True)
 labels_train = scaler.fit_transform(labels_train)
 labels_test = scaler.transform(labels_test)
 
@@ -80,6 +81,9 @@ learn_dec = LinearWarmupExponentialDecay(learning_rate, warmup_steps, decay_step
 optimizer = tf.keras.optimizers.Adam(learning_rate=learn_dec, amsgrad=True)
 optimizer_ma = tfa.optimizers.MovingAverage(optimizer, average_decay=ema_decay)
 cbks = []
+mae_metric = ScaledMeanAbsoluteError((1, 1))
+if scaler.scale_ is not None:
+    mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer_ma,
               metrics=['mean_absolute_error'])
