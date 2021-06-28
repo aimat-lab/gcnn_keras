@@ -86,7 +86,7 @@ if scaler.scale_ is not None:
     mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
 model.compile(loss='mean_squared_error',
               optimizer=optimizer_ma,
-              metrics=['mean_absolute_error'])
+              metrics=[mae_metric])
 print(model.summary())
 
 # Start training
