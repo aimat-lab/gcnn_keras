@@ -3,15 +3,15 @@ import time
 import matplotlib as mpl
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
+from kgcnn.utils.learning import LinearWarmupExponentialDecay
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.DimeNetPP import make_dimnet_pp
-from kgcnn.utils.learning import lr_lin_reduction
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
 # Download and generate dataset.
@@ -19,8 +19,8 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 # You need at least 10 GB of RAM to load and process full dataset into memory.
 datasets = QM9Dataset()
 labels, nodes, _, edge_indices, _ = datasets.get_graph(do_invert_distance=False,
-                                                       max_distance=4,
-                                                       max_neighbours=15,
+                                                       max_distance=5,
+                                                       max_neighbours=20,
                                                        do_gauss_basis_expansion=False,
                                                        max_mols=10000)  # max is 133885
 coord = datasets.coord[:10000]
@@ -46,7 +46,7 @@ nodes_test, coord_test, edge_indices_test, angle_indices_test = ragged_tensor_fr
     edge_indices_test), ragged_tensor_from_nested_numpy(angle_indices_test)
 
 # Standardize output with scikit-learn std-scaler
-scaler = StandardScaler(with_std=False, with_mean=True)
+scaler = StandardScaler(with_std=True, with_mean=True)
 labels_train = scaler.fit_transform(labels_train)
 labels_test = scaler.transform(labels_test)
 
@@ -58,27 +58,30 @@ ytest = labels_test
 
 # Get Model with matching input and output properties
 model = make_dimnet_pp(input_node_shape=[None],
-                       input_embedd={'input_node_vocab': 10,
+                       input_embedd={'input_node_vocab': 95,
                                      'input_node_embedd': 128,
                                      },
                        num_targets=1,
                        extensive=False,
-                       cutoff=4.0,
+                       cutoff=5.0,
                        )
 
 # Define learning rate and epochs
-learning_rate_start = 0.5e-3
-learning_rate_stop = 1e-5
-epo = 1000
-epomin = 500
+learning_rate=1e-3
+warmup_steps=3000
+decay_steps=4000000
+decay_rate=0.01
+ema_decay=0.999
+epo = 900
 epostep = 10
+# max_grad_norm=10.0
 
-# Compile model with optimizer and learning rate
-# The scaled metric is meant to display the inverse-scaled mae values (optional)
-optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+learn_dec = LinearWarmupExponentialDecay(learning_rate, warmup_steps, decay_steps, decay_rate)
+optimizer = tf.keras.optimizers.Adam(learning_rate=learn_dec, amsgrad=True)
+optimizer_ma = tfa.optimizers.MovingAverage(optimizer, average_decay=ema_decay)
+cbks = []
 model.compile(loss='mean_squared_error',
-              optimizer=optimizer,
+              optimizer=optimizer_ma,
               metrics=['mean_absolute_error'])
 print(model.summary())
 
@@ -87,7 +90,7 @@ start = time.process_time()
 hist = model.fit(xtrain, ytrain,
                  epochs=epo,
                  batch_size=32,
-                 callbacks=[cbks],
+                 callbacks=[],
                  validation_freq=epostep,
                  validation_data=(xtest, ytest),
                  verbose=2
@@ -111,7 +114,7 @@ plt.plot(np.arange(epostep, epo + epostep, epostep), testloss, label='Test Loss'
 plt.scatter([trainloss.shape[0]], [mae_valid], label="{0:0.4f} ".format(mae_valid) + "[" + data_unit + "]", c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Loss ' + "[" + data_unit + "]")
-plt.title('SchNet Loss')
+plt.title('DimeNet++ Loss')
 plt.legend(loc='upper right', fontsize='x-large')
 plt.savefig('dimnet_loss.png')
 plt.show()

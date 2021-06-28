@@ -10,7 +10,7 @@ from kgcnn.literature.GNNExplain import GNNExplainer, GNNInterface
 # from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, add_self_loops_to_edge_indices
 from kgcnn.literature.GCN import make_gcn
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import cdist
@@ -57,7 +57,7 @@ model = make_gcn(
     output_mlp={"use_bias": [True, True, False], "units": [140, 70, 1], "activation": ['relu', 'relu', 'sigmoid']},
     # model specs
     depth=3,
-    gcn_args={"units": 64, "use_bias": True, "activation": "relu", "has_unconnected": True, "is_sorted": False, "pooling_method": 'segment_mean'}
+    gcn_args={"units": 64, "use_bias": True, "activation": "relu", "pooling_method": 'segment_mean'}
 )
 
 # Set learning rate and epochs
@@ -69,7 +69,7 @@ epostep = 10
 
 # Compile model with optimizer and loss
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='binary_crossentropy',
               optimizer=optimizer,
               weighted_metrics=['accuracy'])

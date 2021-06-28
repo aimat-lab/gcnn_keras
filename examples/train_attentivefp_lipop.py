@@ -10,7 +10,6 @@ from tensorflow_addons.optimizers import AdamW
 from kgcnn.literature.AttentiveFP import make_attentiveFP
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
-from kgcnn.utils.learning import lr_lin_reduction
 
 from kgcnn.data.datasets.lipop import LipopDataset
 
@@ -58,9 +57,7 @@ model = make_attentiveFP(
 # Define learning rate and epochs
 learning_rate_start = 10**-2.5
 weight_decay = 10**-5
-# learning_rate_stop = 1e-5
 epo = 200
-# epomin = 400
 epostep = 5
 
 # Compile model with optimizer and learning rate

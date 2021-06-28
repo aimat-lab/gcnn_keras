@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from kgcnn.data.datasets.mutag import MUTAGDataset
 from kgcnn.literature.INorp import make_inorp as make_inorp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 # Download and compute dataset
 dataset = MUTAGDataset()
@@ -63,7 +63,7 @@ epostep = 10
 
 # Compile model and optimizer
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='binary_crossentropy',
               optimizer=optimizer,
               metrics=['accuracy'])

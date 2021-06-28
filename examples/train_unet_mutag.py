@@ -10,7 +10,7 @@ from kgcnn.data.datasets.mutag import MUTAGDataset
 from kgcnn.literature.Unet import make_unet as make_unet
 from kgcnn.utils.adj import add_self_loops_to_edge_indices
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 # Download and prepare dataset
 dataset = MUTAGDataset()
@@ -73,7 +73,7 @@ epostep = 2
 
 # Compile model with optimizer
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='binary_crossentropy',
               optimizer=optimizer,
               metrics=['accuracy'])

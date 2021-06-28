@@ -10,7 +10,7 @@ from kgcnn.data.datasets.cora import CoraDataset
 from kgcnn.literature.GCN import make_gcn as make_gcn
 from kgcnn.utils.adj import precompute_adjacency_scaled, convert_scaled_adjacency_to_list, make_adjacency_undirected_logical_or
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 # Download and load Dataset
 dataset = CoraDataset()
@@ -66,7 +66,7 @@ epostep = 10
 
 # Compile model with optimizer and loss
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizer,
               weighted_metrics=['categorical_accuracy'])

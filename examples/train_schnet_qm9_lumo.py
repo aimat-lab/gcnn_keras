@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Import example dataset loader and SchNet model
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.Schnet import make_schnet as make_schnet
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
 # Download and generate dataset.
@@ -87,7 +87,7 @@ epostep = 10
 # Compile model with optimizer and learning rate
 # The scaled metric is meant to display the inverse-scaled mae values (optional)
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='mean_squared_error',
               optimizer=optimizer,
               metrics=['mean_absolute_error'])

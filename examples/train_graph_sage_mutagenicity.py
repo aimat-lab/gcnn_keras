@@ -6,7 +6,7 @@ import time
 
 from kgcnn.literature.GraphSAGE import make_graph_sage as make_graph_sage
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
 
@@ -60,7 +60,7 @@ epostep = 10
 
 # Compile model with optimizer and loss
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='binary_crossentropy',
               optimizer=optimizer,
               weighted_metrics=['accuracy'])

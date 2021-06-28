@@ -12,7 +12,7 @@ from kgcnn.literature.GNNExplain import GNNExplainer, GNNInterface
 from kgcnn.utils.adj import precompute_adjacency_scaled, sort_edge_indices, make_adjacency_from_edge_indices, \
     make_adjacency_undirected_logical_or, convert_scaled_adjacency_to_list
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 
 # Find a color to visualize a label
@@ -82,7 +82,7 @@ epostep = 10
 
 # Compile model with optimizer and loss
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo, verbose=0)
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizer,
               weighted_metrics=['categorical_accuracy'])

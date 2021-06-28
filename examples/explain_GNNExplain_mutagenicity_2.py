@@ -12,7 +12,7 @@ from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
 from kgcnn.literature.GCN import make_gcn, make_gcn_node_weights
 from kgcnn.literature.GNNExplain import GNNExplainer, GNNInterface
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
-from kgcnn.utils.learning import lr_lin_reduction
+from kgcnn.utils.learning import LinearLearningRateScheduler
 
 dataset = MutagenicityDataset()
 labels, nodes, edge_indices, edges, atoms = dataset.get_graph()
@@ -53,8 +53,7 @@ model_args = {"input_node_shape": [None, 14],
                              "activation": ['relu', 'relu', 'sigmoid']},
               # model specs
               "depth": 3,
-              "gcn_args": {"units": 64, "use_bias": True, "activation": "relu", "has_unconnected": True,
-                           "is_sorted": False, "pooling_method": 'segment_mean'}
+              "gcn_args": {"units": 64, "use_bias": True, "activation": "relu", "pooling_method": 'segment_mean'}
               }
 model = make_gcn(**model_args)
 model_node_weights = make_gcn_node_weights(**model_args)
@@ -68,7 +67,7 @@ epostep = 10
 
 # Compile model with optimizer and loss
 optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-cbks = tf.keras.callbacks.LearningRateScheduler(lr_lin_reduction(learning_rate_start, learning_rate_stop, epomin, epo))
+cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
 model.compile(loss='binary_crossentropy',
               optimizer=optimizer,
               weighted_metrics=['accuracy'])
