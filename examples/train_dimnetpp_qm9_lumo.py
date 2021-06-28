@@ -9,7 +9,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from kgcnn.utils.learning import LinearWarmupExponentialDecay
+from kgcnn.utils.learning import LinearWarmupExponentialDecay, LearningRateLoggingCallback
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.DimeNetPP import make_dimnet_pp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
@@ -90,7 +90,7 @@ start = time.process_time()
 hist = model.fit(xtrain, ytrain,
                  epochs=epo,
                  batch_size=32,
-                 callbacks=[],
+                 callbacks=cbks,
                  validation_freq=epostep,
                  validation_data=(xtest, ytest),
                  verbose=2

@@ -52,12 +52,19 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
 
+    def __init__(self, verbose=0):
+        super(LearningRateLoggingCallback, self).__init__()
+        self.verbose=verbose
+
     def on_epoch_end(self, epoch, logs=None):
         lr = self.model.optimizer.lr
         tf.summary.scalar('learning rate', data=lr, step=epoch)
         logs = logs or {}
         logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
+        if self.verbose > 0:
+            print('\nEpoch %05d: LearningRateScheduler reducing learning '
+                  'rate to %s.' % (epoch + 1, lr))
 
     def get_config(self):
-        config = {}
+        config = {"verbose": self.verbose}
         return config
