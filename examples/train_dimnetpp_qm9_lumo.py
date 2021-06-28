@@ -1,15 +1,16 @@
 import time
 
 import matplotlib as mpl
+
+mpl.use('Agg')
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
-
-mpl.use('Agg')
 import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from kgcnn.utils.learning import LinearWarmupExponentialDecay, LearningRateLoggingCallback
+from kgcnn.utils.learning import LinearWarmupExponentialDecay
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.literature.DimeNetPP import make_dimnet_pp
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
@@ -47,7 +48,7 @@ nodes_test, coord_test, edge_indices_test, angle_indices_test = ragged_tensor_fr
     edge_indices_test), ragged_tensor_from_nested_numpy(angle_indices_test)
 
 # Standardize output with scikit-learn std-scaler
-scaler = StandardScaler(with_std=False, with_mean=True)
+scaler = StandardScaler(with_std=True, with_mean=True)
 labels_train = scaler.fit_transform(labels_train)
 labels_test = scaler.transform(labels_test)
 
@@ -68,11 +69,11 @@ model = make_dimnet_pp(input_node_shape=[None],
                        )
 
 # Define learning rate and epochs
-learning_rate=1e-3
-warmup_steps=3000
-decay_steps=4000000
-decay_rate=0.01
-ema_decay=0.999
+learning_rate = 1e-3
+warmup_steps = 3000
+decay_steps = 4000000
+decay_rate = 0.01
+ema_decay = 0.999
 epo = 900
 epostep = 10
 # max_grad_norm=10.0
@@ -84,7 +85,7 @@ cbks = []
 mae_metric = ScaledMeanAbsoluteError((1, 1))
 if scaler.scale_ is not None:
     mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-model.compile(loss='mean_squared_error',
+model.compile(loss='mean_absolute_error',
               optimizer=optimizer_ma,
               metrics=[mae_metric])
 print(model.summary())
