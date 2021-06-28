@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='TrafoMatMulMessages')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoMatMulMessages')
 class TrafoMatMulMessages(GraphBaseLayer):
     """Apply message by edge matrix multiplication.
     
@@ -55,7 +55,7 @@ class TrafoMatMulMessages(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='GRUupdate')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUupdate')
 class GRUupdate(GraphBaseLayer):
     """Gated recurrent unit update.
     
