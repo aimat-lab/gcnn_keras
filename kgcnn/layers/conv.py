@@ -10,20 +10,16 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, P
 import kgcnn.ops.activ
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GIN')
 class GIN(GraphBaseLayer):
-    r"""Graph convolution according to Kipf et al.
+    r"""Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
 
-    Computes graph convolution as :math:`\sigma(A_s(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
-    matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D^{-0.5}` with the degree
-    matrix :math:`D`. In place of :math:`A_s`, this layers uses edge features (that are the entries of :math:`A_s`) and
-    edge indices. :math:`A_s` is considered pre-scaled, this is not done by this layer.
-    If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
-    obtain a similar behaviour that is expected by a pre-scaled adjacency matrix input.
-    Edge features must be possible to broadcast to node features. Ideally they have shape (..., 1).
+    Computes graph convolution as
+    :math:`h_\nu^{(k)} = \text{MLP}^{(k)} ((1+\epsilon^{(k)}) h_\nu^{k-1} + \sum\limits_{u\in N(\nu)}) h_u^{k-1}`.
+    with optional learnable :math:`\epsilon^{(k)}`
 
     Args:
-        units (int): Output dimension/ units of dense layer.
+        units (int): Output dimension/units of dense layer.
         pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
         use_bias (bool): Use bias. Default is True.
@@ -39,6 +35,7 @@ class GIN(GraphBaseLayer):
     def __init__(self,
                  units,
                  pooling_method='sum',
+                 epsilon_learnable=False,
                  activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
@@ -53,6 +50,7 @@ class GIN(GraphBaseLayer):
         super(GIN, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.units = units
+        self.epsilon_learnable = epsilon_learnable
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -65,6 +63,10 @@ class GIN(GraphBaseLayer):
         self.lay_pool = PoolingLocalEdges(**pool_args, **self._kgcnn_info)
         self.lay_add = Add(**self._kgcnn_info)
         self.lay_dense = MLP(units=self.units, activation=activation, **kernel_args, **self._kgcnn_info)
+
+        # Epsilon with trainable as optional and default zeros initialized.
+        self.eps_k = self.add_weight(units=None, trainable=self.epsilon_learnable,
+                                     initializer="zeros", dtype=self.dtype)
 
     def build(self, input_shape):
         """Build layer."""
@@ -85,14 +87,15 @@ class GIN(GraphBaseLayer):
         node, edge_index = inputs
         ed = self.lay_gather([node, edge_index])
         nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
-        out = self.lay_add([node, nu])  # we could multiply with (1+epsilon) here before adding.
+        out = self.lay_add([(1+self.eps_k)*node, nu])
         out = self.lay_dense(out)
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GIN, self).get_config()
-        config.update({"pooling_method": self.pooling_method, "units": self.units})
+        config.update({"pooling_method": self.pooling_method, "units": self.units,
+                       "epsilon_learnable": self.epsilon_learnable})
         conf_dense = self.lay_dense.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias", "activation"]:

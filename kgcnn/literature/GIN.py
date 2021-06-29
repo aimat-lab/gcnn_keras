@@ -9,7 +9,13 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv import GIN
 
-def make_gcn(
+
+# How Powerful are Graph Neural Networks?
+# Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
+# https://arxiv.org/abs/1810.00826
+
+
+def make_gin(
         # Input
         input_node_shape,
         input_embedd: dict = None,
