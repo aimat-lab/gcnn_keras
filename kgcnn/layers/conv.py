@@ -85,7 +85,7 @@ class GIN(GraphBaseLayer):
         node, edge_index = inputs
         ed = self.lay_gather([node, edge_index])
         nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
-        out = self.lay_add([node, nu])
+        out = self.lay_add([node, nu])  # we could multiply with (1+epsilon) here before adding.
         out = self.lay_dense(out)
         return out
 
