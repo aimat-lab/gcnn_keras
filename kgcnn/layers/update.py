@@ -55,8 +55,8 @@ class TrafoMatMulMessages(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUupdate')
-class GRUupdate(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
+class GRUUpdate(GraphBaseLayer):
     """Gated recurrent unit update.
     
     Args:
@@ -106,7 +106,7 @@ class GRUupdate(GraphBaseLayer):
                  recurrent_dropout=0.0, reset_after=True,
                  **kwargs):
         """Initialize layer."""
-        super(GRUupdate, self).__init__(**kwargs)
+        super(GRUUpdate, self).__init__(**kwargs)
         self.units = units
 
         self.gru_cell = tf.keras.layers.GRUCell(units=units,
@@ -126,7 +126,7 @@ class GRUupdate(GraphBaseLayer):
     def build(self, input_shape):
         """Build layer."""
         # self.gru.build(channels)
-        super(GRUupdate, self).build(input_shape)
+        super(GRUUpdate, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -152,7 +152,7 @@ class GRUupdate(GraphBaseLayer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(GRUupdate, self).get_config()
+        config = super(GRUUpdate, self).get_config()
         conf_cell = self.gru_cell.get_config()
         param_list = ["units", "activation", "recurrent_activation",
                       "use_bias", "kernel_initializer",

@@ -11,6 +11,96 @@ import kgcnn.ops.activ
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
+class GIN(GraphBaseLayer):
+    r"""Graph convolution according to Kipf et al.
+
+    Computes graph convolution as :math:`\sigma(A_s(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
+    matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D^{-0.5}` with the degree
+    matrix :math:`D`. In place of :math:`A_s`, this layers uses edge features (that are the entries of :math:`A_s`) and
+    edge indices. :math:`A_s` is considered pre-scaled, this is not done by this layer.
+    If no scaled edge features are available, you could consider use e.g. "segment_mean", or normalize_by_weights to
+    obtain a similar behaviour that is expected by a pre-scaled adjacency matrix input.
+    Edge features must be possible to broadcast to node features. Ideally they have shape (..., 1).
+
+    Args:
+        units (int): Output dimension/ units of dense layer.
+        pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
+        use_bias (bool): Use bias. Default is True.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
+    """
+
+    def __init__(self,
+                 units,
+                 pooling_method='sum',
+                 activation='kgcnn>leaky_relu',
+                 use_bias=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 **kwargs):
+        """Initialize layer."""
+        super(GIN, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self.units = units
+
+        kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
+                       "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
+                       "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
+                       "bias_initializer": bias_initializer, "use_bias": use_bias}
+        pool_args = {"pooling_method": pooling_method}
+
+        # Layers
+        self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)
+        self.lay_pool = PoolingLocalEdges(**pool_args, **self._kgcnn_info)
+        self.lay_add = Add(**self._kgcnn_info)
+        self.lay_dense = MLP(units=self.units, activation=activation, **kernel_args, **self._kgcnn_info)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(GIN, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, edge_index]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+
+        Returns:
+            tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
+        """
+        node, edge_index = inputs
+        ed = self.lay_gather([node, edge_index])
+        nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
+        out = self.lay_add([node, nu])
+        out = self.lay_dense(out)
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(GIN, self).get_config()
+        config.update({"pooling_method": self.pooling_method, "units": self.units})
+        conf_dense = self.lay_dense.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias", "activation"]:
+            config.update({x: conf_dense[x]})
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
 class GCN(GraphBaseLayer):
     r"""Graph convolution according to Kipf et al.
     

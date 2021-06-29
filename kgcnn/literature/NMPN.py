@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
-from kgcnn.layers.update import GRUupdate, TrafoMatMulMessages
+from kgcnn.layers.update import GRUUpdate, TrafoMatMulMessages
 from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
@@ -89,7 +89,7 @@ def make_nmpn(
 
     n = Dense(node_dim, activation="linear")(n)
     edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
-    gru = GRUupdate(node_dim)
+    gru = GRUUpdate(node_dim)
 
     for i in range(0, depth):
         eu = GatherNodesOutgoing()([n, edi])

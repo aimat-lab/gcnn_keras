@@ -354,8 +354,8 @@ class PoolingNodesAttention(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentiveNodePooling')
-class AttentiveNodePooling(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttentive')
+class PoolingNodesAttentive(GraphBaseLayer):
     r"""Computes the attentive pooling for node embeddings.
 
     Args:
@@ -397,7 +397,7 @@ class AttentiveNodePooling(GraphBaseLayer):
                  reset_after=True,
                  **kwargs):
         """Initialize layer."""
-        super(AttentiveNodePooling, self).__init__(**kwargs)
+        super(PoolingNodesAttentive, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.depth = depth
         # dense args
@@ -426,7 +426,7 @@ class AttentiveNodePooling(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(AttentiveNodePooling, self).build(input_shape)
+        super(PoolingNodesAttentive, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -456,7 +456,7 @@ class AttentiveNodePooling(GraphBaseLayer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(AttentiveNodePooling, self).get_config()
+        config = super(PoolingNodesAttentive, self).get_config()
         config.update({"units": self.units, "depth": self.depth, "pooling_method": self.pooling_method})
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
