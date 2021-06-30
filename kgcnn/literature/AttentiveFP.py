@@ -76,11 +76,11 @@ def make_attentiveFP(  # Input
     edi = edge_index_input
 
     nk = Dense(units=attention_args['units'])(n)
-    Ck = AttentiveHeadFP(use_edge_features=True,**attention_args)([nk,ed,edi])
+    Ck = AttentiveHeadFP(use_edge_features=True,**attention_args)([nk, ed, edi])
     nk = GRUUpdate(units=attention_args['units'])([nk, Ck])
 
     for i in range(1, depth):
-        Ck = AttentiveHeadFP(**attention_args)([nk,ed,edi])
+        Ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
         nk = GRUUpdate(units=attention_args['units'])([nk, Ck])
         nk = Dropout(rate=dropout)(nk)
 
