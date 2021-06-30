@@ -27,9 +27,6 @@ class CoraLUDataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.nodes = None
-        self.indices = None
-        self.label_id = None
         self.class_label_mapping = None
         # Use default base class init()
         super(CoraLUDataset, self).__init__(reload=reload, verbose=verbose)
@@ -70,16 +67,16 @@ class CoraLUDataset(GraphDatasetBase):
         label_id = np.array([class_label_mapping[x] for x in labels], dtype=np.int)
 
         self.nodes = nodes
-        self.indices = indices
-        self.label_id = label_id
+        self.edge_indices = indices
+        self.labels_node = label_id
         self.class_label_mapping = class_label_mapping
 
-        return self.nodes, self.indices, self.label_id, self.class_label_mapping
+        return self.nodes, self.edge_indices, self.labels_node, self.class_label_mapping
 
     def get_graph(self):
         """Make graph tensor objects for Cora dataset after Lu et al. 2003.
 
         Returns:
-            tuple: nodes, indices, label_id, class_label_mapping
+            tuple: nodes, indices, labels, class_label_mapping
         """
-        return self.nodes, self.indices, self.label_id, self.class_label_mapping
+        return self.nodes, self.edge_indices, self.labels_node, self.class_label_mapping

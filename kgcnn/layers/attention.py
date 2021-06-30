@@ -90,7 +90,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
 class AttentionHeadGAT(GraphBaseLayer):
-    r"""Computes the attention head according to GAT.
+    r"""Computes the attention head according to GAT from https://arxiv.org/abs/1710.10903.
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
     optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -195,7 +195,7 @@ class AttentionHeadGAT(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGATV2')
 class AttentionHeadGATV2(GraphBaseLayer):
-    r"""Computes the attention head according to GAT.
+    r"""Computes the modified attention head according to https://arxiv.org/pdf/2105.14491.pdf.
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
     optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -398,7 +398,7 @@ class AttentiveHeadFP(GraphBaseLayer):
 
         wn_out = self.lay_linear_trafo(n_out)
         e_ij = self.lay_concat([n_in, n_out])
-        e_ij = self.lay_alpha_activation(e_ij)
+        e_ij = self.lay_alpha_activation(e_ij)  # Maybe uses GAT original definition.
         # a_ij = e_ij
         a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch,None,1) not fully clear in original paper SI.
         n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])

@@ -23,11 +23,6 @@ class MutagenicityDataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.labels = None
-        self.nodes = None
-        self.edge_indices = None
-        self.edges = None
-        self.atoms = None
         # Use default base class init()
         super(MutagenicityDataset, self).__init__(reload=reload, verbose=verbose)
 
@@ -161,14 +156,14 @@ class MutagenicityDataset(GraphDatasetBase):
         if verbose > 0:
             print("INFO: Database still has unconnected Na+,Li+,ksb+ etc.")
 
-        self.labels = labels_clean
+        self.labels_graph = labels_clean
         self.nodes = nodes_clean
         self.edge_indices = edge_indices_clean
         self.edges = edges_clean
         self.atoms = atoms_clean
 
         # return labels,nodes,edge_indices,edges,atoms
-        return self.labels, self.nodes, self.edge_indices, self.edges, self.atoms
+        return self.labels_graph, self.nodes, self.edge_indices, self.edges, self.atoms
 
     def get_graph(self):
         """Make graph tensor objects for Mutagenicity.
@@ -176,7 +171,7 @@ class MutagenicityDataset(GraphDatasetBase):
         Returns:
             tuple: labels, nodes, edge_indices, edges, atoms
         """
-        return self.labels, self.nodes, self.edge_indices, self.edges, self.atoms
+        return self.labels_graph, self.nodes, self.edge_indices, self.edges, self.atoms
 
 
 # labels,nodes,edge_indices,edges,atoms = mutagenicity_graph()

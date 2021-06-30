@@ -13,6 +13,7 @@ class MUTAGDataset(GraphDatasetBase):
     file_name = "MUTAG.zip"
     unpack_zip = True
     unpack_directory = "MUTAG"
+    fits_in_memory = True
 
     def __init__(self, reload=False, verbose=1):
         """Initialize MUTAG dataset.
@@ -126,12 +127,12 @@ class MUTAGDataset(GraphDatasetBase):
                   all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         # Set Graph props
-        self.labels = labels
+        self.labels_graph = labels
         self.nodes = nodes
         self.edge_indices = edge_indices
         self.edges = edges
 
-        return self.labels, self.nodes, self.edge_indices, self.edges
+        return self.labels_graph, self.nodes, self.edge_indices, self.edges
 
     def get_graph(self):
         """Make graph tensor objects for MUTAG.
@@ -139,4 +140,4 @@ class MUTAGDataset(GraphDatasetBase):
         Returns:
             tuple: labels, nodes, edge_indices, edges
         """
-        return self.labels, self.nodes, self.edge_indices, self.edges
+        return self.labels_graph, self.nodes, self.edge_indices, self.edges

@@ -1,8 +1,7 @@
-import tensorflow as tf
 import numpy as np
 import unittest
 
-from kgcnn.data.mol.methods import get_angle_indices
+from kgcnn.mol.methods import get_angle_indices
 
 class TestFindAnglePairs(unittest.TestCase):
 

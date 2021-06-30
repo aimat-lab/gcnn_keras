@@ -3,7 +3,6 @@ import unittest
 import numpy as np
 
 import tensorflow as tf
-from kgcnn.data.mol.methods import get_angle_indices
 from kgcnn.layers.geom import BesselBasisLayer, NodeDistance
 
 

@@ -6,7 +6,7 @@ from scipy.optimize import brentq
 from scipy import special as sp
 
 import tensorflow as tf
-from kgcnn.data.mol.methods import get_angle_indices
+from kgcnn.mol.methods import get_angle_indices
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle
 
 class TestSphericalBasisLayer(unittest.TestCase):

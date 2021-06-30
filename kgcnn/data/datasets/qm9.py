@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 # import shutil
 
-from kgcnn.data.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
+from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance, get_angle_indices
 
 from kgcnn.data.base import GraphDatasetBase
@@ -29,12 +29,6 @@ class QM9Dataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        # Properties set when loading into memory
-        self.coord = None
-        self.labels = None
-        self.atoms = None
-        self.nodes = None
-        self.mmw = None
         # Run base class default init()
         super(QM9Dataset, self).__init__(reload=reload, verbose=verbose)
 
@@ -153,11 +147,11 @@ class QM9Dataset(GraphDatasetBase):
         coord = [[[y[1], y[2], y[3]] for y in x[2]] for x in qm9]
         coord = [np.array(x) for x in coord]
 
-        self.coord = coord
-        self.labels = labels
+        self.coordinates = coord
+        self.labels_graph = labels
         self.atoms = atoms
         self.nodes = nodes
-        self.mmw = mmw
+        self.graph_state = mmw
 
         if verbose > 0:
             print('done')
@@ -190,10 +184,10 @@ class QM9Dataset(GraphDatasetBase):
         if gauss_distance is None:
             gauss_distance = {'gbins': 20, 'grange': 4, 'gsigma': 0.4}
 
-        coord = self.coord
-        labels = self.labels
+        coord = self.coordinates
+        labels = self.labels_graph
         nodes = self.nodes
-        gstates = self.mmw
+        gstates = self.graph_state
         gstates = gstates - 7.0  # center at 0
 
         edge_idx = []

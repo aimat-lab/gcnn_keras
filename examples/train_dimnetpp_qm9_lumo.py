@@ -25,7 +25,7 @@ labels, nodes, _, edge_indices, _ = datasets.get_graph(do_invert_distance=False,
                                                        max_neighbours=20,
                                                        do_gauss_basis_expansion=False,
                                                        max_mols=10000)  # max is 133885
-coord = datasets.coord[:10000]
+coord = datasets.coordinates[:10000]
 edge_indices, _, angle_indices = datasets.get_angle_index(edge_indices)
 
 # Select LUMO as target and convert into eV from H

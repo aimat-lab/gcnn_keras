@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from kgcnn.data.base import GraphDatasetBase
-from kgcnn.data.mol.molgraph import MolecularGraph, OneHotEncoder
+from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
 
 import rdkit.Chem as Chem
 
@@ -27,7 +27,6 @@ class ESOLDataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.data = None
         self.data_keys = None
         # Use default base class init()
         super(ESOLDataset, self).__init__(reload=reload, verbose=verbose)

@@ -1,4 +1,4 @@
-# import numpy as np
+import numpy as np
 import os
 import requests
 # import scipy.sparse as sp
@@ -12,17 +12,19 @@ class GraphDatasetBase:
     """Base layer for datasets. Provides functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() or read_in_memory() must be implemented in subclasses.
     Information about the dataset can be set with class properties.
+    Each dataset should implement a get_graph() method which actually makes the graph with specific settings.
 
     """
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
+    kgcnn_dataset_name = None
     data_directory = None
     download_url = None
     file_name = None
     unpack_tar = False
     unpack_zip = False
     unpack_directory = None
-    fits_in_memory = True
+    fits_in_memory = False
     process_dataset = False
 
     def __init__(self, reload=False, verbose=1):
@@ -32,7 +34,20 @@ class GraphDatasetBase:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
+        # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
+        self.data = None
+        self.nodes = None
+        self.edges = None
+        self.labels_graph = None
+        self.labels_node = None
+        self.labels_edge = None
+        self.edge_indices = None
+        self.graph_state = None
+        self.graph_adjacency = None
+        self.atoms = None
+        self.coordinates = None
 
+        # Default functions to load a dataset.
         if self.data_directory is not None:
             self.setup_dataset_main(self.data_main_dir, verbose=verbose)
             self.setup_dataset_dir(self.data_main_dir, self.data_directory, verbose=verbose)
@@ -50,6 +65,7 @@ class GraphDatasetBase:
                                  self.unpack_directory, overwrite=reload, verbose=verbose)
 
         if self.process_dataset:
+            # Used if a standard processing of the data has to be done.
             self.prepare_data(overwrite=reload, verbose=verbose)
 
         if self.fits_in_memory:
@@ -190,6 +206,27 @@ class GraphDatasetBase:
 
         return os.path.join(path, unpack_directory)
 
+    @classmethod
+    def read_csv_simple(cls, filepath, delimiter=",", dtype=float):
+        """Very simple python-only function to read in a csv-file from file.
+
+        Args:
+            filepath (str): Full filepath of csv-file to read in.
+            delimiter (str): Delimiter character for separation. Default is ",".
+            dtype: Callable type conversion from string. Default is float.
+
+        Returns:
+            list: Python list of values. Length of the list equals the number of lines.
+        """
+        out = []
+        open_file = open(filepath, "r")
+        for lines in open_file.readlines():
+            string_list = lines.strip().split(delimiter)
+            values_list = [dtype(x.strip()) for x in string_list]
+            out.append(values_list)
+        open_file.close()
+        return out
+
     def read_in_memory(self, verbose=1):
         pass
 
@@ -198,3 +235,122 @@ class GraphDatasetBase:
 
     def prepare_data(self, overwrite=False, verbose=1):
         pass
+
+
+class GraphTUDataset(GraphDatasetBase):
+
+    all_tudataset_identifier = []
+
+    def __init__(self, tudataset_name=None, reload=False, verbose=1):
+        if isinstance(tudataset_name, str) and tudataset_name in self.all_tudataset_identifier:
+            self.data_directory = tudataset_name
+            self.download_url = ""+tudataset_name+".zip"
+            self.file_name = tudataset_name+".zip"
+            self.unpack_zip = True
+            self.unpack_directory = tudataset_name
+            self.fits_in_memory = True
+
+        super(GraphTUDataset, self).__init__(reload=reload, verbose=verbose)
+
+
+    def read_in_memory(self, verbose=1):
+        path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory, "PROTEINS")
+
+        name_dataset = "PROTEINS"
+        # Define a graph with indices
+        # They must be defined
+        g_a = np.array(self.read_csv_simple(os.path.join(path, name_dataset + "_A.txt"), dtype=int), dtype="int")
+        g_n_id = np.array(self.read_csv_simple(os.path.join(path, name_dataset + "_graph_indicator.txt"), dtype=int),
+                          dtype="int")
+
+        # Try read in labels
+        try:
+            g_labels = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_graph_labels.txt"), dtype=float))
+        except FileNotFoundError:
+            g_labels = None
+        try:
+            n_labels = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_node_labels.txt"), dtype=float))
+        except FileNotFoundError:
+            n_labels = None
+        try:
+            e_labels = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_edge_labels.txt"), dtype=float))
+        except FileNotFoundError:
+            e_labels = None
+
+        # Try read in attributes
+        try:
+            n_attr = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_node_attributes.txt"), dtype=float))
+        except FileNotFoundError:
+            n_attr = None
+        try:
+            e_attr = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_edge_attributes.txt"), dtype=float))
+        except FileNotFoundError:
+            e_attr = None
+        try:
+            g_attr = np.array(
+                self.read_csv_simple(os.path.join(path, name_dataset + "_graph_attributes.txt"), dtype=float))
+        except FileNotFoundError:
+            g_attr = None
+
+        # labels
+        num_graphs = len(g_labels)
+
+        # shift index, should start at 0 for python indexing
+        if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
+            if verbose > 0:
+                print("INFO: Shift index of graph id to zero for", name_dataset, "to match python indexing.")
+            g_a = g_a - 1
+            g_n_id = g_n_id - 1
+
+        # split into separate graphs
+        graph_id, counts = np.unique(g_n_id, return_counts=True)
+        graphlen = np.zeros(num_graphs, dtype=np.int)
+        graphlen[graph_id] = counts
+
+        if n_attr is not None:
+            n_attr = np.split(n_attr, np.cumsum(graphlen)[:-1])
+        if n_labels is not None:
+            n_labels = np.split(n_labels, np.cumsum(graphlen)[:-1])
+
+        # edge_indicator
+        graph_id_edge = g_n_id[g_a[:, 0]]  # is the same for adj_matrix[:,1]
+        graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
+        edgelen = np.zeros(num_graphs, dtype=np.int)
+        edgelen[graph_id2] = counts_edge
+
+        if e_attr is not None:
+            e_attr = np.split(e_attr, np.cumsum(edgelen)[:-1])
+        if e_labels is not None:
+            e_labels = np.split(e_labels, np.cumsum(edgelen)[:-1])
+
+        # edge_indices
+        node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
+        edge_indices = node_index[g_a]
+        edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
+
+        # Check if unconnected
+        all_cons = []
+        for i in range(num_graphs):
+            cons = np.arange(len(n_attr[i]))
+            test_cons = np.sort(np.unique(cons[edge_indices[i]].flatten()))
+            is_cons = np.zeros_like(cons, dtype=np.bool)
+            is_cons[test_cons] = True
+            all_cons.append(np.sum(is_cons == False))
+        all_cons = np.array(all_cons)
+
+        if verbose > 0:
+            print("INFO: Mol index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+                  all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
+
+        self.nodes = n_attr
+        self.edges = e_attr
+        self.graph_state = g_attr
+        self.edge_indices = edge_indices
+        self.labels_node = n_labels
+        self.labels_edge = e_labels
+        self.labels_graph = g_labels

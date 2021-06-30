@@ -25,9 +25,6 @@ class CoraDataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.labels = None
-        self.a = None
-        self.x = None
         # Use default base class init()
         super(CoraDataset, self).__init__(reload=reload, verbose=verbose)
 
@@ -78,11 +75,11 @@ class CoraDataset(GraphDatasetBase):
         #     attr_idx_list.append(cols)
         # attr_val_list = np.array(attr_val_list)
 
-        self.labels = loader.get('labels')
-        self.a = a
-        self.x = x
+        self.labels_node = loader.get('labels')
+        self.graph_adjacency = a
+        self.nodes = x
 
-        return self.a, self.x, self.labels
+        return self.graph_adjacency, self.nodes, self.labels_node
 
     def get_graph(self):
         """Make graph tensor objects for Cora dataset.
@@ -90,4 +87,4 @@ class CoraDataset(GraphDatasetBase):
         Returns:
             tuple: A, X, labels
         """
-        return self.a, self.x, self.labels
+        return self.graph_adjacency, self.nodes, self.labels_node
