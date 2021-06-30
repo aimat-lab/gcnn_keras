@@ -184,4 +184,4 @@ try:
 
         return model
 except:
-    print("INFO: Haste implementation not available")
+    print("WARNING: Haste implementation not available.")
