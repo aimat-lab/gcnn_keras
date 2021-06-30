@@ -42,7 +42,7 @@ def make_gin(
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int, optional): Number of convolutions. Defaults to 3.
         gin_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
-            {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum',
+            {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'], "pooling_method": 'sum',
             "is_sorted": False, "has_unconnected": "True"}.
 
     Returns:
@@ -52,7 +52,7 @@ def make_gin(
     model_default = {'input_embedd': {"input_node_vocab": 100, "input_edge_vocab": 10, "input_state_vocab": 100,
                                       "input_node_embedd": 64, "input_edge_embedd": 64, "input_state_embedd": 64,
                                       "input_tensor_type": 'ragged'},
-                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'masked'},
+                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
