@@ -41,7 +41,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
                 - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [M], 1)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
+                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
@@ -134,14 +134,15 @@ class AttentionHeadGAT(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
+        self.use_bias = use_bias
 
-        kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
+        kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args, **self._kgcnn_info)
+        self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args, **self._kgcnn_info)
         self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
         self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
@@ -160,7 +161,7 @@ class AttentionHeadGAT(GraphBaseLayer):
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node.
@@ -183,11 +184,11 @@ class AttentionHeadGAT(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(AttentionHeadGAT, self).get_config()
-        config.update({"use_edge_features": self.use_edge_features,
+        config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
                        "units": self.units})
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
-                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
             config.update({x: conf_sub[x]})
         return config
 
@@ -238,22 +239,25 @@ class AttentiveHeadFP(GraphBaseLayer):
 
         # dense args
         self.units = int(units)
+        self.use_bias = use_bias
 
-        kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
+        kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args, **self._kgcnn_info)
+        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args,
+                                          **self._kgcnn_info)
+        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args, **self._kgcnn_info)
         self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
         self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
         self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
         self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
         if use_edge_features:
-            self.lay_fc1 = Dense(units, activation=activation, **kernel_args, **self._kgcnn_info)
-            self.lay_fc2 = Dense(units, activation=activation, **kernel_args, **self._kgcnn_info)
+            self.lay_fc1 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args, **self._kgcnn_info)
+            self.lay_fc2 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args, **self._kgcnn_info)
             self.lay_concat_edge = Concatenate(axis=-1, **self._kgcnn_info)
 
     def build(self, input_shape):
@@ -268,7 +272,7 @@ class AttentiveHeadFP(GraphBaseLayer):
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Hidden tensor of pooled edge attentions for each node.
@@ -287,7 +291,8 @@ class AttentiveHeadFP(GraphBaseLayer):
 
         wn_out = self.lay_linear_trafo(n_out)
         e_ij = self.lay_concat([n_in, n_out])
-        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch,None,1)
+        e_ij = self.lay_alpha_activation(e_ij)
+        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch,None,1) not fully clear in original paper SI.
         n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
         out = self.lay_final_activ(n_i)
         return out
@@ -295,11 +300,11 @@ class AttentiveHeadFP(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(AttentiveHeadFP, self).get_config()
-        config.update({"use_edge_features": self.use_edge_features,
+        config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
                        "units": self.units})
-        conf_sub = self.lay_alpha.get_config()
+        conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
-                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
             config.update({x: conf_sub[x]})
         conf_context = self.lay_final_activ.get_config()
         config.update({"activation_context": conf_context["activation"]})

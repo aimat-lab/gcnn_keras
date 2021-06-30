@@ -81,7 +81,7 @@ class HasteLayerNormGRUUpdate(GraphBaseLayer):
         self.gru_dropout = dropout
         self.forget_bias = forget_bias
 
-        self.gru_cell = haste.LayerNormGRUCell(units, forget_bias=forget_bias, dopout=dropout, trainable=trainable)
+        self.gru_cell = haste.LayerNormGRUCell(units, forget_bias=forget_bias, dropout=dropout, trainable=trainable)
 
     def build(self, input_shape):
         """Build layer."""
