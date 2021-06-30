@@ -76,7 +76,8 @@ def make_gin(
     # n = Dense(gin_args["units"][0], use_bias=True, activation='linear')(n)
 
     # n-Layer Step
-    list_embeddings = []
+    n = MLP(gin_args["units"], use_bias=gin_args["use_bias"], activation=gin_args["activation"])(n)
+    list_embeddings = [n]
     for i in range(0, depth):
         n = GIN(**gin_args)([n, edi])
         list_embeddings.append(n)

@@ -37,15 +37,15 @@ model = make_gin(
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True], "units": [2], "activation": ['softmax']},
     # model specs
-    depth=4,
+    depth=5,
     dropout=0.2,
     gin_args={"units": [32, 32], "use_bias": True, "activation": ['relu', 'linear']}
 )
 
 # Set learning rate and epochs
-learning_rate_start = 1e-2
-learning_rate_stop = 0.5e-3
-epo = 250
+learning_rate_start = 5e-3
+learning_rate_stop = 1e-4
+epo = 350
 epomin = 0
 epostep = 10
 
