@@ -14,6 +14,7 @@ class MUTAGDataset(GraphDatasetBase):
     unpack_zip = True
     unpack_directory = "MUTAG"
     fits_in_memory = True
+    kgcnn_dataset_name = "MUTAG"
 
     def __init__(self, reload=False, verbose=1):
         """Initialize MUTAG dataset.
@@ -22,10 +23,6 @@ class MUTAGDataset(GraphDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.labels = None
-        self.nodes = None
-        self.edge_indices = None
-        self.edges = None
         # Use default base class init()
         super(MUTAGDataset, self).__init__(reload=reload, verbose=verbose)
 
@@ -141,3 +138,5 @@ class MUTAGDataset(GraphDatasetBase):
             tuple: labels, nodes, edge_indices, edges
         """
         return self.labels_graph, self.nodes, self.edge_indices, self.edges
+
+

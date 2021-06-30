@@ -65,7 +65,7 @@ class GIN(GraphBaseLayer):
         self.lay_dense = MLP(units=self.units, activation=activation, **kernel_args, **self._kgcnn_info)
 
         # Epsilon with trainable as optional and default zeros initialized.
-        self.eps_k = self.add_weight(units=None, trainable=self.epsilon_learnable,
+        self.eps_k = self.add_weight(None, trainable=self.epsilon_learnable,
                                      initializer="zeros", dtype=self.dtype)
 
     def build(self, input_shape):

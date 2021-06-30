@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.ops.models import update_model_args
 from kgcnn.ops.models import generate_node_embedding
-from kgcnn.layers.keras import Dense, Concatenate
+from kgcnn.layers.keras import Dense, Concatenate, Dropout, Add
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.casting import ChangeTensorType
@@ -24,7 +24,8 @@ def make_gin(
         output_mlp: dict = None,
         # Model specific
         depth=3,
-        gcn_args: dict = None
+        dropout=0.0,
+        gin_args: dict = None
 ):
     """Make GCN model.
 
@@ -40,7 +41,7 @@ def make_gin(
             {"use_bias": [True, True, False], "units": [25, 10, 1],
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int, optional): Number of convolutions. Defaults to 3.
-        gcn_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
+        gin_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
             {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum',
             "is_sorted": False, "has_unconnected": "True"}.
 
@@ -54,7 +55,8 @@ def make_gin(
                      'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'masked'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
+                     'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
+                                  "pooling_method": 'sum',
                                   "is_sorted": False, "has_unconnected": True}
                      }
 
@@ -62,7 +64,7 @@ def make_gin(
     input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
     output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
-    gcn_args = update_model_args(model_default['gcn_args'], gcn_args)
+    gin_args = update_model_args(model_default['gin_args'], gin_args)
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
@@ -70,19 +72,19 @@ def make_gin(
     n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
     edi = edge_index_input
 
-    # Map required number of units
-    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)
+    # Map to the required number of units.
+    # n = Dense(gin_args["units"][0], use_bias=True, activation='linear')(n)
 
     # n-Layer Step
     list_embeddings = []
     for i in range(0, depth):
-        n = GIN(**gcn_args)([n, edi])
+        n = GIN(**gin_args)([n, edi])
         list_embeddings.append(n)
 
     if output_embedd["output_mode"] == "graph":
         out = [PoolingNodes()(x) for x in list_embeddings]  # will return tensor
+        out = [Dropout(dropout)(x) for x in out]
         out = Concatenate(axis=-1)(out)
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
