@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 import kgcnn.ops.activ
@@ -15,54 +15,30 @@ class GIN(GraphBaseLayer):
     r"""Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
 
     Computes graph convolution as
-    :math:`h_\nu^{(k)} = \text{MLP}^{(k)} ((1+\epsilon^{(k)}) h_\nu^{k-1} + \sum\limits_{u\in N(\nu)}) h_u^{k-1}`.
+    :math:`h_\nu^{(k)} = \phi^{(k)} ((1+\epsilon^{(k)}) h_\nu^{k-1} + \sum\limits_{u\in N(\nu)}) h_u^{k-1}`.
     with optional learnable :math:`\epsilon^{(k)}`
+    Note: The non-linear mapping :math:`\phi^{(k)}`, usually an MLP, is not included in this layer.
 
     Args:
-        units (int): Output dimension/units of dense layer.
+        epsilon_learnable (bool): If epsilon is learnable or just constant zero. Default is False.
         pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
-        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
-        use_bias (bool): Use bias. Default is True.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
-                 units,
                  pooling_method='sum',
                  epsilon_learnable=False,
-                 activation='kgcnn>leaky_relu',
-                 use_bias=True,
-                 kernel_regularizer=None,
-                 bias_regularizer=None,
-                 activity_regularizer=None,
-                 kernel_constraint=None,
-                 bias_constraint=None,
-                 kernel_initializer='glorot_uniform',
-                 bias_initializer='zeros',
                  **kwargs):
         """Initialize layer."""
         super(GIN, self).__init__(**kwargs)
         self.pooling_method = pooling_method
-        self.units = units
         self.epsilon_learnable = epsilon_learnable
 
-        kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
-                       "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
-                       "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
-                       "bias_initializer": bias_initializer, "use_bias": use_bias}
         pool_args = {"pooling_method": pooling_method}
 
         # Layers
         self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_pool = PoolingLocalEdges(**pool_args, **self._kgcnn_info)
         self.lay_add = Add(**self._kgcnn_info)
-        self.lay_dense = MLP(units=self.units, activation=activation, **kernel_args, **self._kgcnn_info)
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(None, trainable=self.epsilon_learnable,
@@ -88,18 +64,13 @@ class GIN(GraphBaseLayer):
         ed = self.lay_gather([node, edge_index])
         nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
         out = self.lay_add([(1+self.eps_k)*node, nu])
-        out = self.lay_dense(out)
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GIN, self).get_config()
-        config.update({"pooling_method": self.pooling_method, "units": self.units,
+        config.update({"pooling_method": self.pooling_method,
                        "epsilon_learnable": self.epsilon_learnable})
-        conf_dense = self.lay_dense.get_config()
-        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
-                  "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias", "activation"]:
-            config.update({x: conf_dense[x]})
         return config
 
 

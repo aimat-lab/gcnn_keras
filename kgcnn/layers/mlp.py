@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.keras import Dense, Activation, BatchNormalization
 from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
 
@@ -236,7 +236,6 @@ class BatchNormMLP(GraphBaseLayer):
             if len(x) != len(units):
                 raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
 
-
         # Serialized args
         self.mlp_units = list(units)
         self.mlp_use_bias = list(use_bias)
@@ -263,13 +262,12 @@ class BatchNormMLP(GraphBaseLayer):
         self.mlp_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
         self.mlp_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
 
-
         self.mlp_dense_list = [Dense(
             units=self.mlp_units[i],
             use_bias=self.mlp_use_bias[i],
             name=self.name + '_dense_' + str(i),
-            activation=self.mlp_activation[i],
-            activity_regularizer=self.mlp_activity_regularizer[i],
+            activation="linear",
+            activity_regularizer=None,
             kernel_regularizer=self.mlp_kernel_regularizer[i],
             bias_regularizer=self.mlp_bias_regularizer[i],
             kernel_initializer=self.mlp_kernel_initializer[i],
@@ -278,6 +276,27 @@ class BatchNormMLP(GraphBaseLayer):
             bias_constraint=self.mlp_bias_constraint[i],
             ragged_validate=self.ragged_validate,
             input_tensor_type=self.input_tensor_type
+        ) for i in range(len(self.mlp_units))]
+
+        self.mlp_activation_layer_list = [Activation(
+            activation=self.mlp_activation[i],
+            activity_regularizer=self.mlp_activity_regularizer[i],
+        ) for i in range(len(self.mlp_units))]
+
+        self.mlp_batch_norm_list = [BatchNormalization(
+            axis=self.mlp_axis[i],
+            momentum=self.mlp_momentum[i],
+            epsilon=self.mlp_epsilon[i],
+            center=self.mlp_center[i],
+            scale=self.mlp_scale[i],
+            beta_initializer=self.beta_initializer[i],
+            gamma_initializer=self.gamma_initializer[i],
+            moving_mean_initializer=self.mlp_moving_mean_initializer[i],
+            moving_variance_initializer=self.mlp_moving_variance_initializer[i],
+            beta_regularizer=self.mlp_beta_regularizer[i],
+            gamma_regularizer=self.mlp_gamma_regularizer[i],
+            beta_constraint=self.mlp_beta_constraint[i],
+            gamma_constraint=self.mlp_gamma_constraint[i],
         ) for i in range(len(self.mlp_units))]
 
     def build(self, input_shape):
@@ -296,6 +315,8 @@ class BatchNormMLP(GraphBaseLayer):
         x = inputs
         for i in range(len(self.mlp_units)):
             x = self.mlp_dense_list[i](x, **kwargs)
+            x = self.mlp_batch_norm_list[i](x, **kwargs)
+            x = self.mlp_activation_layer_list[i](x, **kwargs)
         out = x
         return out
 
@@ -313,5 +334,20 @@ class BatchNormMLP(GraphBaseLayer):
                        "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
                        "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
                        "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
+                       "axis": list(self.mlp_axis),
+                       "momentum": self.mlp_momentum,
+                       "epsilon": self.mlp_epsilon,
+                       "center": self.mlp_center,
+                       "scale": self.mlp_scale,
+                       "beta_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_beta_initializer],
+                       "gamma_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_gamma_initializer],
+                       "moving_mean_initializer": [tf.keras.initializers.serialize(x) for x in
+                                                   self.mlp_moving_mean_initializer],
+                       "moving_variance_initializer": [tf.keras.initializers.serialize(x) for x in
+                                                       self.mlp_moving_variance_initializer],
+                       "beta_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_beta_regularizer],
+                       "gamma_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_gamma_regularizer],
+                       "beta_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_beta_constraint],
+                       "gamma_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_gamma_constraint]
                        })
         return config

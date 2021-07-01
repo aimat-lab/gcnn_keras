@@ -58,7 +58,6 @@ def make_gin(
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'linear']},
                      'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
-                                  "pooling_method": 'sum',
                                   "is_sorted": False, "has_unconnected": True}
                      }
 
@@ -80,9 +79,8 @@ def make_gin(
 
     list_embeddings = [n]
     for i in range(0, depth):
-        n = GIN(**gin_args)([n, edi])
-        n = BatchNormalization()(n)
-        n = Activation("relu")(n)
+        n = GIN()([n, edi])
+        n = MLP(**gin_args)(n)
         list_embeddings.append(n)
 
     if output_embedd["output_mode"] == "graph":
