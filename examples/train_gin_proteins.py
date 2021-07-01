@@ -35,15 +35,16 @@ model = make_gin(
     input_embedd={'input_node_vocab': 800, "input_node_embedd": 64},
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp={"use_bias": [True], "units": [2], "activation": ['softmax']},
+    output_mlp={"use_bias": [True], "units": [2], "activation": ['linear']},
     # model specs
-    depth=5,
-    dropout=0.2,
-    gin_args={"units": [32, 32], "use_bias": True, "activation": ['relu', 'linear']}
+    depth=2,
+    dropout=0.5,
+    output_activation="softmax",
+    gin_args={"units": [16, 16], "use_bias": True, "activation": ['relu', 'linear']}
 )
 
 # Set learning rate and epochs
-learning_rate_start = 5e-3
+learning_rate_start = 1e-2
 learning_rate_stop = 1e-4
 epo = 350
 epomin = 0

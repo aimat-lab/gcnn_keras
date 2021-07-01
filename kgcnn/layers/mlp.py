@@ -5,6 +5,7 @@ from kgcnn.layers.keras import Dense
 from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
 
+
 # import tensorflow.keras.backend as ksb
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(GraphBaseLayer):
@@ -46,23 +47,23 @@ class MLP(GraphBaseLayer):
         if isinstance(units, int):
             units = [units]
 
-        if not isinstance(use_bias, list) and not isinstance(use_bias, tuple):
+        if not isinstance(use_bias, (list, tuple)):
             use_bias = [use_bias for _ in units]
-        if not isinstance(activation, list) and not isinstance(activation, tuple):
+        if not isinstance(activation, (list, tuple)):
             activation = [activation for _ in units]
-        if not isinstance(kernel_regularizer, list) and not isinstance(kernel_regularizer, tuple):
+        if not isinstance(kernel_regularizer, (list, tuple)):
             kernel_regularizer = [kernel_regularizer for _ in units]
-        if not isinstance(bias_regularizer, list) and not isinstance(bias_regularizer, tuple):
+        if not isinstance(bias_regularizer, (list, tuple)):
             bias_regularizer = [bias_regularizer for _ in units]
-        if not isinstance(activity_regularizer, list) and not isinstance(activity_regularizer, tuple):
+        if not isinstance(activity_regularizer, (list, tuple)):
             activity_regularizer = [activity_regularizer for _ in units]
-        if not isinstance(kernel_initializer, list) and not isinstance(kernel_initializer, tuple):
+        if not isinstance(kernel_initializer, (list, tuple)):
             kernel_initializer = [kernel_initializer for _ in units]
-        if not isinstance(bias_initializer, list) and not isinstance(bias_initializer, tuple):
+        if not isinstance(bias_initializer, (list, tuple)):
             bias_initializer = [bias_initializer for _ in units]
-        if not isinstance(kernel_constraint, list) and not isinstance(kernel_constraint, tuple):
+        if not isinstance(kernel_constraint, (list, tuple)):
             kernel_constraint = [kernel_constraint for _ in units]
-        if not isinstance(bias_constraint, list) and not isinstance(bias_constraint, tuple):
+        if not isinstance(bias_constraint, (list, tuple)):
             bias_constraint = [bias_constraint for _ in units]
 
         for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
@@ -70,7 +71,7 @@ class MLP(GraphBaseLayer):
             if len(x) != len(units):
                 raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
 
-        # Serialized props
+        # Serialized args
         self.mlp_units = list(units)
         self.mlp_use_bias = list(use_bias)
         self.mlp_activation = list([tf.keras.activations.get(x) for x in activation])
@@ -120,6 +121,187 @@ class MLP(GraphBaseLayer):
     def get_config(self):
         """Update config."""
         config = super(MLP, self).get_config()
+        config.update({"units": self.mlp_units,
+                       'use_bias': self.mlp_use_bias,
+                       'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
+                       'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in
+                                                self.mlp_activity_regularizer],
+                       'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_kernel_regularizer],
+                       'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_bias_regularizer],
+                       "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_kernel_initializer],
+                       "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
+                       "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
+                       "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
+                       })
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='BatchNormMLP')
+class BatchNormMLP(GraphBaseLayer):
+    """Multilayer perceptron that consist of N dense keras layers.
+
+    Args:
+        units: Positive integer, dimensionality of the output space.
+        activation: Activation function to use.
+            If you don't specify anything, no activation is applied
+            (ie. "linear" activation: `a(x) = x`).
+        use_bias: Boolean, whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to
+            the `kernel` weights matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        activity_regularizer: Regularizer function applied to
+            the output of the layer (its "activation").
+        kernel_constraint: Constraint function applied to
+            the `kernel` weights matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+    """
+
+    def __init__(self,
+                 units,
+                 use_bias=True,
+                 activation=None,
+                 activity_regularizer=None,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 # Batch-Normalization args
+                 axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
+                 beta_initializer='zeros', gamma_initializer='ones',
+                 moving_mean_initializer='zeros',
+                 moving_variance_initializer='ones', beta_regularizer=None,
+                 gamma_regularizer=None, beta_constraint=None, gamma_constraint=None,
+                 **kwargs):
+        """Initialize MLP as for dense."""
+        super(BatchNormMLP, self).__init__(**kwargs)
+        # Make to one element list
+        if isinstance(units, int):
+            units = [units]
+
+        if not isinstance(use_bias, (list, tuple)):
+            use_bias = [use_bias for _ in units]
+        if not isinstance(activation, (list, tuple)):
+            activation = [activation for _ in units]
+        if not isinstance(kernel_regularizer, (list, tuple)):
+            kernel_regularizer = [kernel_regularizer for _ in units]
+        if not isinstance(bias_regularizer, (list, tuple)):
+            bias_regularizer = [bias_regularizer for _ in units]
+        if not isinstance(activity_regularizer, (list, tuple)):
+            activity_regularizer = [activity_regularizer for _ in units]
+        if not isinstance(kernel_initializer, (list, tuple)):
+            kernel_initializer = [kernel_initializer for _ in units]
+        if not isinstance(bias_initializer, (list, tuple)):
+            bias_initializer = [bias_initializer for _ in units]
+        if not isinstance(kernel_constraint, (list, tuple)):
+            kernel_constraint = [kernel_constraint for _ in units]
+        if not isinstance(bias_constraint, (list, tuple)):
+            bias_constraint = [bias_constraint for _ in units]
+
+        if not isinstance(axis, list):  # Special case, if axis is supposed to be multiple axis, use tuple here.
+            axis = [axis for _ in units]
+        if not isinstance(momentum, (list, tuple)):
+            momentum = [momentum for _ in units]
+        if not isinstance(epsilon, (list, tuple)):
+            epsilon = [epsilon for _ in units]
+        if not isinstance(center, (list, tuple)):
+            center = [center for _ in units]
+        if not isinstance(scale, (list, tuple)):
+            scale = [scale for _ in units]
+        if not isinstance(beta_initializer, (list, tuple)):
+            beta_initializer = [beta_initializer for _ in units]
+        if not isinstance(gamma_initializer, (list, tuple)):
+            gamma_initializer = [gamma_initializer for _ in units]
+        if not isinstance(moving_mean_initializer, (list, tuple)):
+            moving_mean_initializer = [moving_mean_initializer for _ in units]
+        if not isinstance(moving_variance_initializer, (list, tuple)):
+            moving_variance_initializer = [moving_variance_initializer for _ in units]
+        if not isinstance(beta_regularizer, (list, tuple)):
+            beta_regularizer = [beta_regularizer for _ in units]
+        if not isinstance(gamma_regularizer, (list, tuple)):
+            gamma_regularizer = [gamma_regularizer for _ in units]
+        if not isinstance(beta_constraint, (list, tuple)):
+            beta_constraint = [beta_constraint for _ in units]
+        if not isinstance(gamma_constraint, (list, tuple)):
+            gamma_constraint = [gamma_constraint for _ in units]
+
+        for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
+                  bias_initializer, kernel_constraint, bias_constraint, use_bias, axis, momentum, epsilon,
+                  center, scale, beta_initializer, gamma_initializer, moving_mean_initializer,
+                  moving_variance_initializer, beta_regularizer, gamma_regularizer, beta_constraint,
+                  gamma_constraint]:
+            if len(x) != len(units):
+                raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
+
+
+        # Serialized args
+        self.mlp_units = list(units)
+        self.mlp_use_bias = list(use_bias)
+        self.mlp_activation = list([tf.keras.activations.get(x) for x in activation])
+        self.mlp_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
+        self.mlp_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
+        self.mlp_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
+        self.mlp_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
+        self.mlp_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
+        self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
+        self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
+        # Serialized args for batch-norm
+        self.mlp_axis = list(axis)
+        self.mlp_momentum = list(momentum)
+        self.mlp_epsilon = list(epsilon)
+        self.mlp_center = list(center)
+        self.mlp_scale = list(scale)
+        self.mlp_beta_initializer = list([tf.keras.initializers.get(x) for x in beta_initializer])
+        self.mlp_gamma_initializer = list([tf.keras.initializers.get(x) for x in gamma_initializer])
+        self.mlp_moving_mean_initializer = list([tf.keras.initializers.get(x) for x in moving_mean_initializer])
+        self.mlp_moving_variance_initializer = list([tf.keras.initializers.get(x) for x in moving_variance_initializer])
+        self.mlp_beta_regularizer = list([tf.keras.regularizers.get(x) for x in beta_regularizer])
+        self.mlp_gamma_regularizer = list([tf.keras.regularizers.get(x) for x in gamma_regularizer])
+        self.mlp_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
+        self.mlp_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
+
+
+        self.mlp_dense_list = [Dense(
+            units=self.mlp_units[i],
+            use_bias=self.mlp_use_bias[i],
+            name=self.name + '_dense_' + str(i),
+            activation=self.mlp_activation[i],
+            activity_regularizer=self.mlp_activity_regularizer[i],
+            kernel_regularizer=self.mlp_kernel_regularizer[i],
+            bias_regularizer=self.mlp_bias_regularizer[i],
+            kernel_initializer=self.mlp_kernel_initializer[i],
+            bias_initializer=self.mlp_bias_initializer[i],
+            kernel_constraint=self.mlp_kernel_constraint[i],
+            bias_constraint=self.mlp_bias_constraint[i],
+            ragged_validate=self.ragged_validate,
+            input_tensor_type=self.input_tensor_type
+        ) for i in range(len(self.mlp_units))]
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(BatchNormMLP, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not None.
+
+        Returns:
+            tf.Tensor: MLP pass.
+        """
+        x = inputs
+        for i in range(len(self.mlp_units)):
+            x = self.mlp_dense_list[i](x, **kwargs)
+        out = x
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(BatchNormMLP, self).get_config()
         config.update({"units": self.mlp_units,
                        'use_bias': self.mlp_use_bias,
                        'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
