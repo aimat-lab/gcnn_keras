@@ -100,7 +100,7 @@ plt.plot(np.arange(epostep, epo + epostep, epostep), testlossall, label='Test AC
 plt.scatter([trainlossall.shape[0]], [acc_valid], label="{0:0.4f} ".format(acc_valid), c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('Interaction Network Loss')
+plt.title('GCN Network Loss')
 plt.legend(loc='upper right', fontsize='x-large')
 plt.savefig('gcn_explain_mutag.png')
 plt.show()

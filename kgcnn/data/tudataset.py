@@ -109,7 +109,7 @@ class GraphTUDataset(GraphDatasetBase):
         # Check if unconnected
         all_cons = []
         for i in range(num_graphs):
-            cons = np.arange(len(n_attr[i]))
+            cons = np.arange(graphlen[i])
             test_cons = np.sort(np.unique(cons[edge_indices[i]].flatten()))
             is_cons = np.zeros_like(cons, dtype=np.bool)
             is_cons[test_cons] = True
