@@ -5,7 +5,7 @@ from kgcnn.ops.models import update_model_args
 from kgcnn.ops.models import generate_node_embedding
 from kgcnn.layers.keras import Dense, Concatenate, Dropout, Add, BatchNormalization, Activation
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv import GIN
 
@@ -80,7 +80,7 @@ def make_gin(
     list_embeddings = [n]
     for i in range(0, depth):
         n = GIN()([n, edi])
-        n = MLP(**gin_args)(n)
+        n = BatchNormMLP(**gin_args)(n)
         list_embeddings.append(n)
 
     if output_embedd["output_mode"] == "graph":
