@@ -36,11 +36,11 @@ model = make_gin(
     # Output
     output_embedd={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True], "units": [2], "activation": ['linear']},
+    output_activation="softmax",
     # model specs
     depth=2,
     dropout=0.5,
-    output_activation="softmax",
-    gin_args={"units": [16, 16], "use_bias": True, "activation": ['relu', 'linear']}
+    gin_args={"units": [16, 16], "use_bias": True, "activation": ['relu', 'relu']}
 )
 
 # Set learning rate and epochs
