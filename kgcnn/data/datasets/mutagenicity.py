@@ -161,12 +161,14 @@ class MutagenicityDataset(GraphTUDataset):
             labels_clean.append(labels[i])
 
         if verbose > 0:
-            print("INFO: Database still has unconnected Na+,Li+,ksb+ etc.")
+            print("INFO: Database still has unconnected Na+, Li+, ksb+ etc.")
 
         self.labels_graph = labels_clean
-        self.nodes = nodes_clean
         self.edge_indices = edge_indices_clean
+        self.nodes = nodes_clean
         self.edges = edges_clean
+        self.labels_node = nodes_clean
+        self.labels_edge = edges_clean
         self.atoms = atoms_clean
 
         # return labels,nodes,edge_indices,edges,atoms

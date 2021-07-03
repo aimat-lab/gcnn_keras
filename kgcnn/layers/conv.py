@@ -63,7 +63,9 @@ class GIN(GraphBaseLayer):
         node, edge_index = inputs
         ed = self.lay_gather([node, edge_index])
         nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
-        out = self.lay_add([(1+self.eps_k)*node, nu])
+        no = (1+self.eps_k)*node
+        # no = node
+        out = self.lay_add([no, nu])
         return out
 
     def get_config(self):

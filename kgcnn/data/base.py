@@ -37,6 +37,7 @@ class GraphDatasetBase:
         # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
         self.data = None
         self.nodes = None
+        self.nodes_degree = None
         self.edges = None
         self.labels_graph = None
         self.labels_node = None
