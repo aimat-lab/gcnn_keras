@@ -47,24 +47,22 @@ class MLP(GraphBaseLayer):
         if isinstance(units, int):
             units = [units]
 
-        if not isinstance(use_bias, (list, tuple)):
-            use_bias = [use_bias for _ in units]
-        if not isinstance(activation, (list, tuple)):
-            activation = [activation for _ in units]
-        if not isinstance(kernel_regularizer, (list, tuple)):
-            kernel_regularizer = [kernel_regularizer for _ in units]
-        if not isinstance(bias_regularizer, (list, tuple)):
-            bias_regularizer = [bias_regularizer for _ in units]
-        if not isinstance(activity_regularizer, (list, tuple)):
-            activity_regularizer = [activity_regularizer for _ in units]
-        if not isinstance(kernel_initializer, (list, tuple)):
-            kernel_initializer = [kernel_initializer for _ in units]
-        if not isinstance(bias_initializer, (list, tuple)):
-            bias_initializer = [bias_initializer for _ in units]
-        if not isinstance(kernel_constraint, (list, tuple)):
-            kernel_constraint = [kernel_constraint for _ in units]
-        if not isinstance(bias_constraint, (list, tuple)):
-            bias_constraint = [bias_constraint for _ in units]
+        self.depth = len(units)
+
+        def assert_args_is_list(args):
+            if not isinstance(args, (list, tuple)):
+                return [args for _ in range(self.depth)]
+            return args
+
+        use_bias = assert_args_is_list(use_bias)
+        activation = assert_args_is_list(activation)
+        kernel_regularizer = assert_args_is_list(kernel_regularizer)
+        bias_regularizer = assert_args_is_list(bias_regularizer)
+        activity_regularizer = assert_args_is_list(activity_regularizer)
+        kernel_initializer = assert_args_is_list(kernel_initializer)
+        bias_initializer = assert_args_is_list(bias_initializer)
+        kernel_constraint = assert_args_is_list(kernel_constraint)
+        bias_constraint = assert_args_is_list(bias_constraint)
 
         for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
                   bias_initializer, kernel_constraint, bias_constraint, use_bias]:
@@ -182,51 +180,37 @@ class BatchNormMLP(GraphBaseLayer):
         if isinstance(units, int):
             units = [units]
 
-        if not isinstance(use_bias, (list, tuple)):
-            use_bias = [use_bias for _ in units]
-        if not isinstance(activation, (list, tuple)):
-            activation = [activation for _ in units]
-        if not isinstance(kernel_regularizer, (list, tuple)):
-            kernel_regularizer = [kernel_regularizer for _ in units]
-        if not isinstance(bias_regularizer, (list, tuple)):
-            bias_regularizer = [bias_regularizer for _ in units]
-        if not isinstance(activity_regularizer, (list, tuple)):
-            activity_regularizer = [activity_regularizer for _ in units]
-        if not isinstance(kernel_initializer, (list, tuple)):
-            kernel_initializer = [kernel_initializer for _ in units]
-        if not isinstance(bias_initializer, (list, tuple)):
-            bias_initializer = [bias_initializer for _ in units]
-        if not isinstance(kernel_constraint, (list, tuple)):
-            kernel_constraint = [kernel_constraint for _ in units]
-        if not isinstance(bias_constraint, (list, tuple)):
-            bias_constraint = [bias_constraint for _ in units]
+        self.depth = len(units)
+
+        def assert_args_is_list(args):
+            if not isinstance(args, (list, tuple)):
+                return [args for _ in range(self.depth)]
+            return args
+
+        use_bias = assert_args_is_list(use_bias)
+        activation = assert_args_is_list(activation)
+        kernel_regularizer = assert_args_is_list(kernel_regularizer)
+        bias_regularizer = assert_args_is_list(bias_regularizer)
+        activity_regularizer = assert_args_is_list(activity_regularizer)
+        kernel_initializer = assert_args_is_list(kernel_initializer)
+        bias_initializer = assert_args_is_list(bias_initializer)
+        kernel_constraint = assert_args_is_list(kernel_constraint)
+        bias_constraint = assert_args_is_list(bias_constraint)
 
         if not isinstance(axis, list):  # Special case, if axis is supposed to be multiple axis, use tuple here.
             axis = [axis for _ in units]
-        if not isinstance(momentum, (list, tuple)):
-            momentum = [momentum for _ in units]
-        if not isinstance(epsilon, (list, tuple)):
-            epsilon = [epsilon for _ in units]
-        if not isinstance(center, (list, tuple)):
-            center = [center for _ in units]
-        if not isinstance(scale, (list, tuple)):
-            scale = [scale for _ in units]
-        if not isinstance(beta_initializer, (list, tuple)):
-            beta_initializer = [beta_initializer for _ in units]
-        if not isinstance(gamma_initializer, (list, tuple)):
-            gamma_initializer = [gamma_initializer for _ in units]
-        if not isinstance(moving_mean_initializer, (list, tuple)):
-            moving_mean_initializer = [moving_mean_initializer for _ in units]
-        if not isinstance(moving_variance_initializer, (list, tuple)):
-            moving_variance_initializer = [moving_variance_initializer for _ in units]
-        if not isinstance(beta_regularizer, (list, tuple)):
-            beta_regularizer = [beta_regularizer for _ in units]
-        if not isinstance(gamma_regularizer, (list, tuple)):
-            gamma_regularizer = [gamma_regularizer for _ in units]
-        if not isinstance(beta_constraint, (list, tuple)):
-            beta_constraint = [beta_constraint for _ in units]
-        if not isinstance(gamma_constraint, (list, tuple)):
-            gamma_constraint = [gamma_constraint for _ in units]
+        momentum = assert_args_is_list(momentum)
+        epsilon = assert_args_is_list(epsilon)
+        center = assert_args_is_list(center)
+        scale = assert_args_is_list(scale)
+        beta_initializer = assert_args_is_list(beta_initializer)
+        gamma_initializer = assert_args_is_list(gamma_initializer)
+        moving_mean_initializer = assert_args_is_list(moving_mean_initializer)
+        moving_variance_initializer = assert_args_is_list(moving_variance_initializer)
+        beta_regularizer = assert_args_is_list(beta_regularizer)
+        gamma_regularizer = assert_args_is_list(gamma_regularizer)
+        beta_constraint = assert_args_is_list(beta_constraint)
+        gamma_constraint = assert_args_is_list(gamma_constraint)
 
         for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
                   bias_initializer, kernel_constraint, bias_constraint, use_bias, axis, momentum, epsilon,
