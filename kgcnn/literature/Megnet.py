@@ -46,8 +46,7 @@ def make_megnet(
         input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {"nodes": {"input_dim": 95, "output_dim": 64},
             "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64},
-            'input_tensor_type': 'ragged'}.
+            "state": {"input_dim": 100, "output_dim": 64}}.
         output_embedding (str): Dictionary of embedding parameters of the graph network. Default is
             {"output_mode": 'graph', "output_tensor_type": 'padded'}
         output_mlp (dict): Dictionary of MLP arguments for output regression or classification. Default is
@@ -76,8 +75,7 @@ def make_megnet(
     # Default arguments if None
     model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64},
-                                         'input_tensor_type': 'ragged'},
+                                         "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
                                     "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},

@@ -42,8 +42,7 @@ def make_unet(
         input_embedding (list): Dictionary of embedding parameters used if input shape is None. Default is
             {"nodes": {"input_dim": 95, "output_dim": 64},
             "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64},
-            'input_tensor_type': 'ragged'}.
+            "state": {"input_dim": 100, "output_dim": 64}}.
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
             {"use_bias": [True, False], "output_dim": [25, 1],
             "activation": ['relu', 'sigmoid']}
@@ -65,8 +64,7 @@ def make_unet(
     # Default values update
     model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64},
-                                         'input_tensor_type': 'ragged'},
+                                         "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}
                      }

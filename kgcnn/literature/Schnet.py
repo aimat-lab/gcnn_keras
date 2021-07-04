@@ -38,8 +38,7 @@ def make_schnet(
         input_embedding (list): Dictionary of embedding parameters used if input shape is None. Default is
             {"nodes": {"input_dim": 95, "output_dim": 64},
             "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64},
-            'input_tensor_type': 'ragged'}.
+            "state": {"input_dim": 100, "output_dim": 64}}.
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
             {"use_bias": [True, True], "units": [128, 64],
             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']}
@@ -60,8 +59,7 @@ def make_schnet(
     # Make default values if None
     model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64},
-                                         'input_tensor_type': 'ragged'},
+                                         "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'interaction_args': {"units": 128, "use_bias": True,
                                           "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum',

@@ -58,7 +58,9 @@ def generate_state_embedding(env_input, input_state_shape, embedding_args, **kwa
 def generate_standard_graph_input(input_node_shape,
                                   input_edge_shape,
                                   input_state_shape,
-                                  embedding_args,
+                                  embedding_nodes,
+                                  embedding_edges,
+                                  embedding_state,
                                   **kwargs):
     """Generate input for a standard graph tensor format.
     This includes nodes, edge, edge_indices and optional a graph state.
@@ -68,7 +70,9 @@ def generate_standard_graph_input(input_node_shape,
         input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
         input_edge_shape (list): Shape of edge input without batch dimension. Either (None, F) or (None, )
         input_state_shape: Shape of state input without batch dimension. Either (F, ) or (, )
-        embedding_args (dict): Arguments for embedding layer.
+        embedding_nodes (dict): Arguments for embedding layer.
+        embedding_edges (dict): Arguments for embedding layer.
+        embedding_state (dict): Arguments for embedding layer.
 
     Returns:
         list: [node_input, node_embedding, edge_input, edge_embedding, edge_index_input, state_input, state_embedding]
@@ -78,12 +82,12 @@ def generate_standard_graph_input(input_node_shape,
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
 
     if len(input_node_shape) == 1:
-        n = ks.layers.Embedding(**embedding_args['nodes'])(node_input)
+        n = ks.layers.Embedding(**embedding_nodes)(node_input)
     else:
         n = node_input
 
     if len(input_edge_shape) == 1:
-        ed = ks.layers.Embedding(**embedding_args['edges'])(edge_input)
+        ed = ks.layers.Embedding(**embedding_edges)(edge_input)
     else:
         ed = edge_input
 
@@ -92,7 +96,7 @@ def generate_standard_graph_input(input_node_shape,
     if input_state_shape is not None:
         env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
         if len(input_state_shape) == 0:
-            uenv = ks.layers.Embedding(**embedding_args['state'])(env_input)
+            uenv = ks.layers.Embedding(**embedding_state)(env_input)
         else:
             uenv = env_input
 
@@ -124,8 +128,7 @@ def generate_mol_graph_input(input_node_shape,
                              input_bond_index_shape=None,
                              input_angle_index_shape=None,
                              input_dihedral_index_shape=None,
-                             input_node_vocab=95,
-                             input_node_embedd=64,
+                             embedding_args=None,
                              **kwargs):
     """Generate input for a standard mol-graph tensor format.
     This includes nodes, coordinates, edge_indices and optional angle and dihedral indices.
@@ -137,12 +140,10 @@ def generate_mol_graph_input(input_node_shape,
         input_bond_index_shape (list): Shape of the bond indices. Not used if set to None.
         input_angle_index_shape (list): Shape of the angle indices. Not used if set to None.
         input_dihedral_index_shape (list): Shape of the dihedral indices. Not used if set to None.
-        input_node_vocab (int): Vocabulary size of optional embedding layer.
-        input_node_embedd (int): Embedding dimension for optional embedding layer.
-        input_tensor_type (str): Type of input tensor. Only "ragged" is supported at the moment.
+        embedding_args (dict): Arguments for embedding layer
 
     Returns:
-        list: [node_input, node_embedding, edge_input, edge_embedding, edge_index_input, state_input, state_embedding]
+        list: [node_input, node_embedding, coordinates, edge_index, angle_index, dihedral_index]
     """
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     xyz_input = ks.layers.Input(shape=input_xyz_shape, name='xyz_input', dtype="float32", ragged=True)
@@ -166,7 +167,7 @@ def generate_mol_graph_input(input_node_shape,
         dihedral_index_input = None
 
     if len(input_node_shape) == 1:
-        n = ks.layers.Embedding(input_node_vocab, input_node_embedd, name='node_embedding')(node_input)
+        n = ks.layers.Embedding(**embedding_args)(node_input)
     else:
         n = node_input
 

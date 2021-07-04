@@ -71,9 +71,8 @@ def make_dimnet_pp(
     """
     model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 128,
                                                    'embeddings_initializer': {'class_name': 'RandomUniform',
-                                                                              'config': {'minval': -1.7320508075688772,
-                                                                                         'maxval': 1.7320508075688772,
-                                                                                         }}}},
+                                                   'config': {'minval': -1.7320508075688772,
+                                                              'maxval': 1.7320508075688772}}}},
                      }
 
     # Update model parameters
@@ -88,11 +87,7 @@ def make_dimnet_pp(
     # Atom embedding
     n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
     # if len(input_node_shape) == 1:
-    #     n = EmbeddingDimeBlock(input_embedding['input_node_vocab'], emb_size,
-    #                            embeddings_initializer={'class_name': 'RandomUniform',
-    #                                                    'config': {'minval': -1.7320508075688772,
-    #                                                               'maxval': 1.7320508075688772, 'seed': None}})(
-    #         node_input)
+    #     n = EmbeddingDimeBlock(**input_embedding['nodes'])(node_input)
     # else:
     #     n = node_input
 

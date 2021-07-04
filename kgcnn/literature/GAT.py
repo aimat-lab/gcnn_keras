@@ -33,8 +33,7 @@ def make_gat(  # Input
         input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
             {"nodes": {"input_dim": 95, "output_dim": 64},
             "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64},
-            'input_tensor_type': 'ragged'}.
+            "state": {"input_dim": 100, "output_dim": 64}}.
         output_embedding (dict): Dictionary of embedding parameters of the graph network. Default is
             {"output_mode": 'graph', "output_tensor_type": 'padded'}.
         output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
@@ -52,8 +51,7 @@ def make_gat(  # Input
     # default values
     model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64},
-                                         'input_tensor_type': 'ragged'},
+                                         "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
