@@ -9,6 +9,8 @@ from kgcnn.layers.keras import Dense, Concatenate, Add
 from kgcnn.layers.interaction import DimNetInteractionPPBlock
 from kgcnn.layers.blocks import DimNetOutputBlock
 from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.embedding import EmbeddingDimeBlock
+
 
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
@@ -17,9 +19,9 @@ from kgcnn.layers.pooling import PoolingNodes
 def make_dimnet_pp(
         # Input
         input_node_shape,
-        input_embedd: dict = None,
+        input_embedding: dict = None,
         # Output
-        output_embedd: dict = None,
+        output_embedding: dict = None,
         # Model specific parameter
         emb_size=128,
         out_emb_size=256,
@@ -37,14 +39,16 @@ def make_dimnet_pp(
         activation="swish",
         extensive=True,
         output_init='zeros',
-        ):
+):
     """Make DimeNet++ network.
 
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
-        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
-            {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}}
-        output_embedd (dict): Dictionary of embedding parameters of the graph network. Not used.
+        input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
+            {"nodes": {"input_dim": 95, "output_dim": 128,
+            'embeddings_initializer': {'class_name': 'RandomUniform', 'config': {'minval': -1.7320508075688772,
+            'maxval': 1.7320508075688772}}}
+        output_embedding (dict): Dictionary of embedding parameters of the graph network. Not used.
         emb_size (int): Embedding size used for the messages. Default is 128.
         out_emb_size (int): Embedding size used for atoms in the output block. Default is 256.
         int_emb_size (int): Embedding size used for interaction triplets. Default is 64.
@@ -65,18 +69,32 @@ def make_dimnet_pp(
     Returns:
         tf.keras.models.Model: DimeNet++ model.
     """
-    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_node_embedd': 64, 'input_tensor_type': 'ragged'}
+    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 128,
+                                                   'embeddings_initializer': {'class_name': 'RandomUniform',
+                                                                              'config': {'minval': -1.7320508075688772,
+                                                                                         'maxval': 1.7320508075688772,
+                                                                                         }}}},
                      }
 
     # Update model parameters
-    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
 
     # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     xyz_input = ks.layers.Input(shape=[None, 3], name='xyz_input', dtype="float32", ragged=True)
     bond_index_input = ks.layers.Input(shape=[None, 2], name='bond_index_input', dtype="int64", ragged=True)
     angle_index_input = ks.layers.Input(shape=[None, 2], name='angle_index_input', dtype="int64", ragged=True)
-    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
+
+    # Atom embedding
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+    # if len(input_node_shape) == 1:
+    #     n = EmbeddingDimeBlock(input_embedding['input_node_vocab'], emb_size,
+    #                            embeddings_initializer={'class_name': 'RandomUniform',
+    #                                                    'config': {'minval': -1.7320508075688772,
+    #                                                               'maxval': 1.7320508075688772, 'seed': None}})(
+    #         node_input)
+    # else:
+    #     n = node_input
 
     x = xyz_input
     edi = bond_index_input
@@ -92,10 +110,10 @@ def make_dimnet_pp(
                               envelope_exponent=envelope_exponent)([d, a, adi])
 
     # Embedding block
-    rbf_emb = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="orthogonal")(rbf)
+    rbf_emb = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
     n_pairs = GatherNodes()([n, edi])
     x = Concatenate(axis=-1)([n_pairs, rbf_emb])
-    x = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="orthogonal")(x)
+    x = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
     ps = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
                            output_kernel_initializer=output_init)([n, x, rbf, edi])
 
@@ -117,5 +135,3 @@ def make_dimnet_pp(
                                   outputs=main_output)
 
     return model
-
-

@@ -51,9 +51,9 @@ ytest = np.expand_dims(labels_test, axis=-1)
 model = make_gcn(
     input_node_shape=[None,14],
     input_edge_shape=[None, 1],
-    input_embedd={'input_node_vocab': 55, "input_node_embedd": 64},
+    input_embedding={"nodes": {"input_dim": 55, "output_dim": 64}},
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False], "units": [140, 70, 1], "activation": ['relu', 'relu', 'sigmoid']},
     # model specs
     depth=3,

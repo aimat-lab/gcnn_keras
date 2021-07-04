@@ -19,9 +19,9 @@ from kgcnn.ops.models import generate_node_embedding, update_model_args, generat
 def make_attentiveFP(  # Input
         input_node_shape,
         input_edge_shape,
-        input_embedd: dict = None,
+        input_embedding: dict = None,
         # Output
-        output_embedd: dict = None,
+        output_embedding: dict = None,
         output_mlp: dict = None,
         # Model specific parameter
         depth=3,
@@ -33,11 +33,12 @@ def make_attentiveFP(  # Input
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
-            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+        input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
+            {"nodes": {"input_dim": 95, "output_dim": 64},
+            "edges": {"input_dim": 5, "output_dim": 64},
+            "state": {"input_dim": 100, "output_dim": 64},
             'input_tensor_type': 'ragged'}.
-        output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
+        output_embedding (dict): Dictionary of embedding parameters of the graph network. Default is
             {"output_mode": 'graph', "output_tensor_type": 'padded'}.
         output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
             {"use_bias": [True, True, False], "units": [25, 10, 1],
@@ -52,18 +53,19 @@ def make_attentiveFP(  # Input
     """
 
     # default values
-    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_tensor_type': 'ragged'},
-                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
+    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+                                         "edges": {"input_dim": 5, "output_dim": 64},
+                                         "state": {"input_dim": 100, "output_dim": 64},
+                                         'input_tensor_type': 'ragged'},
+                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'attention_args': {"units": 32, 'is_sorted': False, 'has_unconnected': True}
                      }
 
     # Update default values
-    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
-    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
+    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
     attention_args = update_model_args(model_default['attention_args'], attention_args)
 
@@ -71,8 +73,8 @@ def make_attentiveFP(  # Input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
-    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
 
     nk = Dense(units=attention_args['units'])(n)
@@ -85,7 +87,7 @@ def make_attentiveFP(  # Input
         nk = Dropout(rate=dropout)(nk)
 
     n = nk
-    if output_embedd["output_mode"] == 'graph':
+    if output_embedding["output_mode"] == 'graph':
         out = PoolingNodesAttentive(units=attention_args['units'])(n)
         output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
@@ -106,9 +108,9 @@ try:
     def make_haste_attentiveFP(  # Input
             input_node_shape,
             input_edge_shape,
-            input_embedd: dict = None,
+            input_embedding: dict = None,
             # Output
-            output_embedd: dict = None,
+            output_embedding: dict = None,
             output_mlp: dict = None,
             # Model specific parameter
             depth=3,
@@ -120,11 +122,12 @@ try:
         Args:
             input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
             input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-            input_embedd (dict): Dictionary of embedding parameters used if input shape is None. Default is
-                {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
+            input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
+                {"nodes": {"input_dim": 95, "output_dim": 64},
+                "edges": {"input_dim": 5, "output_dim": 64},
+                "state": {"input_dim": 100, "output_dim": 64},
                 'input_tensor_type': 'ragged'}.
-            output_embedd (dict): Dictionary of embedding parameters of the graph network. Default is
+            output_embedding (dict): Dictionary of embedding parameters of the graph network. Default is
                 {"output_mode": 'graph', "output_tensor_type": 'padded'}.
             output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
                 {"use_bias": [True, True, False], "units": [25, 10, 1],
@@ -139,9 +142,10 @@ try:
         """
 
         # default values
-        model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                                          'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                          'input_tensor_type': 'ragged'},
+        model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+                                             "edges": {"input_dim": 5, "output_dim": 64},
+                                             "state": {"input_dim": 100, "output_dim": 64},
+                                             'input_tensor_type': 'ragged'},
                          'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                          'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                         "activation": ['relu', 'relu', 'sigmoid']},
@@ -149,8 +153,8 @@ try:
                          }
 
         # Update default values
-        input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
-        output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+        input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
+        output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
         output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
         attention_args = update_model_args(model_default['attention_args'], attention_args)
 
@@ -158,8 +162,8 @@ try:
         node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
         edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
         edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-        n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
-        ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
+        n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+        ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
         edi = edge_index_input
 
         nk = Dense(units=attention_args['units'])(n)
@@ -171,7 +175,7 @@ try:
             nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, Ck])
 
         n = nk
-        if output_embedd["output_mode"] == 'graph':
+        if output_embedding["output_mode"] == 'graph':
             out = HastePoolingNodesAttentiveLayerNorm(units=attention_args['units'], dropout=dropout)(n)
             output_mlp.update({"input_tensor_type": "tensor"})
             out = MLP(**output_mlp)(out)

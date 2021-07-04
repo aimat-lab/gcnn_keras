@@ -53,7 +53,7 @@ def build_model(hp):
         input_node_shape=[None, 41],
         input_edge_shape=[None, 15],
         # Output
-        output_embedd={"output_mode": 'graph'},
+        output_embedding={"output_mode": 'graph'},
         output_mlp={"use_bias": [True, True], "units": [hp_nnsize, 1], "activation": ['kgcnn>leaky_relu', 'linear']},
         # model specs
         attention_args={"units": hp_nnsize},

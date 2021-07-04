@@ -33,9 +33,9 @@ ytest = labels_test
 
 model = make_gin(
     input_node_shape=[None, 3],
-    input_embedd={'input_node_vocab': 800, "input_node_embedd": 64},
+    input_embedding={"nodes": {"input_dim": 800, "output_dim": 64}},
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True], "units": [2], "activation": ['linear']},
     output_activation="softmax",
     # model specs

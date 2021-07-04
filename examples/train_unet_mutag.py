@@ -45,10 +45,9 @@ ytest = labels_test
 model = make_unet(
     input_node_shape=[None],
     input_edge_shape=[None, 1],
-    input_embedd={"input_node_vocab": 60,
-                  "input_node_embedd": 128},
+    input_embedding={"nodes": {"input_dim": 60, "output_dim": 128}},
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, False], "units": [25, 1],
                 "activation": ['relu', 'sigmoid'],
                 },

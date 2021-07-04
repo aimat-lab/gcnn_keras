@@ -56,7 +56,7 @@ model = make_nmpn(
     input_node_shape=[None],
     input_edge_shape=[None, 20],
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False],
                 "units": [25, 10, 1],
                 "activation": ['selu', 'selu', 'linear'],

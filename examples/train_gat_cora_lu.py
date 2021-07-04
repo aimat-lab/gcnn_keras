@@ -62,7 +62,7 @@ model = make_gat(
     input_node_shape=[None, 1433],
     input_edge_shape=[None, 1],
     # Output
-    output_embedd={"output_mode": 'node'},
+    output_embedding={"output_mode": 'node'},
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 7], "activation": ['relu', 'relu', 'softmax']},
     # model specs
     depth=3,

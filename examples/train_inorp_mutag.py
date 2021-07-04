@@ -41,11 +41,12 @@ model = make_inorp(
     input_node_shape=[None],
     input_edge_shape=[None],
     input_state_shape=[],
-    input_embedd= {"input_node_vocab" : 60, "input_edge_vocab" : 4, "input_state_vocab": 30, "input_node_embedd" : 16,
-                    "input_edge_embedd" : 8, "input_state_embedd": 16},
+    input_embedding= {"nodes": {"input_dim": 60, "output_dim": 16},
+                      "edges": {"input_dim": 4, "output_dim": 8},
+                      "state": {"input_dim": 30, "output_dim": 16}},
     # Output
-    output_embedd= {"output_mode": 'graph', "output_type": 'padded'},
-    output_mlp= {"units": [16, 8, 1], "use_bias" : [True, True, False], "activation" : ['relu', 'relu', 'sigmoid'] },
+    output_embedding= {"output_mode": 'graph', "output_type": 'padded'},
+    output_mlp= {"units": [16, 8, 1], "use_bias" : [True, True, False], "activation" : ['relu', 'relu', 'sigmoid']},
     # Model
     depth=1,
     node_mlp_args = {"units" : [16,16], "use_bias" : True, "activation" : ['relu',"linear"]},

@@ -19,9 +19,9 @@ def make_unet(
         # Input
         input_node_shape,
         input_edge_shape,
-        input_embedd: dict = None,
+        input_embedding: dict = None,
         # Output
-        output_embedd: dict = None,
+        output_embedding: dict = None,
         output_mlp: dict = None,
         # Model specific
         hidden_dim=32,
@@ -39,14 +39,15 @@ def make_unet(
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedd (list): Dictionary of embedding parameters used if input shape is None. Default is
-            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-            'input_tensor_type': 'ragged'}
+        input_embedding (list): Dictionary of embedding parameters used if input shape is None. Default is
+            {"nodes": {"input_dim": 95, "output_dim": 64},
+            "edges": {"input_dim": 5, "output_dim": 64},
+            "state": {"input_dim": 100, "output_dim": 64},
+            'input_tensor_type': 'ragged'}.
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
             {"use_bias": [True, False], "output_dim": [25, 1],
             "activation": ['relu', 'sigmoid']}
-        output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
+        output_embedding (str): Dictionary of embedding parameters of the graph network. Default is
             {"output_mode": 'graph', "output_tensor_type": 'padded'}
         hidden_dim (int): Hidden node feature dimension 32,
         depth (int): Depth of pooling steps. Default is 4.
@@ -62,16 +63,17 @@ def make_unet(
         tf.keras.models.Model: Unet model.
     """
     # Default values update
-    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_tensor_type': 'ragged'},
-                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
+    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+                                         "edges": {"input_dim": 5, "output_dim": 64},
+                                         "state": {"input_dim": 100, "output_dim": 64},
+                                         'input_tensor_type': 'ragged'},
+                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}
                      }
 
     # Update model args
-    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
-    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
+    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
     pooling_args = {"pooling_method": 'segment_mean', "is_sorted": is_sorted, "has_unconnected": has_unconnected}
     gather_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample'}
@@ -80,8 +82,8 @@ def make_unet(
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
-    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
 
     # Graph lists
@@ -130,7 +132,7 @@ def make_unet(
 
     # Otuput
     n = ui_graph[0]
-    if output_embedd["output_mode"] == 'graph':
+    if output_embedding["output_mode"] == 'graph':
         out = PoolingNodes(**pooling_args)(n)
 
         output_mlp.update({"input_tensor_type": "tensor"})

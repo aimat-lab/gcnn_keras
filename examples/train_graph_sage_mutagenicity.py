@@ -39,9 +39,9 @@ ytest = np.expand_dims(labels_test, axis=-1)
 model = make_graph_sage(
     input_node_shape=[None],
     input_edge_shape=[None, 1],
-    input_embedd={'input_node_vocab': 55, "input_node_embedd": 64},
+    input_embedding={"nodes": {"input_dim": 55, "output_dim": 64}},
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'sigmoid']},
     node_mlp_args= {"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
     edge_mlp_args= {"units": 64, "use_bias": True, "activation": 'relu'},

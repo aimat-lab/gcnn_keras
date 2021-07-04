@@ -120,7 +120,7 @@ class GraphTUDataset(GraphDatasetBase):
             print("INFO: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
                   all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
-        node_degree = [np.zeros(len(x), dtype="int") for x in graphlen]
+        node_degree = [np.zeros(x, dtype="int") for x in graphlen]
         for i, x in enumerate(edge_indices):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts

@@ -56,15 +56,13 @@ model = make_schnet(
     # Input
     input_node_shape=[None],
     input_edge_shape=[None, 20],
-    input_embedd={'input_node_vocab': 10,
-                  'input_node_embedd': 128
-                  },
+    input_embedding={"nodes": {"input_dim": 10, "output_dim": 128}},
     # Output
     output_mlp={"use_bias": [True, True],
                 "units": [128, 64],
                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
     output_dense={"units": 1, "activation": 'linear', "use_bias": True},
-    output_embedd={'output_mode': 'graph'},
+    output_embedding={'output_mode': 'graph'},
     # Model specific
     depth=4,
     out_scale_pos=0,

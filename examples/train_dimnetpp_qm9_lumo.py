@@ -22,7 +22,7 @@ from kgcnn.utils.loss import ScaledMeanAbsoluteError
 datasets = QM9Dataset()
 labels, nodes, _, edge_indices, _ = datasets.get_graph(do_invert_distance=False,
                                                        max_distance=5,
-                                                       max_neighbours=20,
+                                                       max_neighbours=1000,
                                                        do_gauss_basis_expansion=False,
                                                        max_mols=10000)  # max is 133885
 coord = datasets.coordinates[:10000]
@@ -60,21 +60,24 @@ ytest = labels_test
 
 # Get Model with matching input and output properties
 model = make_dimnet_pp(input_node_shape=[None],
-                       input_embedd={'input_node_vocab': 95,
-                                     'input_node_embedd': 128,
-                                     },
+                       input_embedding={"nodes": {"input_dim": 95, "output_dim": 128,
+                                                  'embeddings_initializer': {'class_name': 'RandomUniform',
+                                                                             'config': {'minval': -1.7320508075688772,
+                                                                                        'maxval': 1.7320508075688772}}}
+                                        },
                        num_targets=1,
                        extensive=False,
                        cutoff=5.0,
                        )
 
 # Define learning rate and epochs
+batch_size = 32
 learning_rate = 1e-3
-warmup_steps = 3000
-decay_steps = 4000000
+warmup_steps = 3000*32/batch_size
+decay_steps = 4000000*32/batch_size
 decay_rate = 0.01
 ema_decay = 0.999
-epo = 900
+epo = 872
 epostep = 10
 # max_grad_norm=10.0
 
@@ -94,7 +97,7 @@ print(model.summary())
 start = time.process_time()
 hist = model.fit(xtrain, ytrain,
                  epochs=epo,
-                 batch_size=32,
+                 batch_size=batch_size,
                  callbacks=cbks,
                  validation_freq=epostep,
                  validation_data=(xtest, ytest),

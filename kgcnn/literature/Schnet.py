@@ -19,11 +19,11 @@ def make_schnet(
         # Input
         input_node_shape,
         input_edge_shape,
-        input_embedd: dict = None,
+        input_embedding: dict = None,
         # Output
         output_mlp: dict = None,
         output_dense: dict = None,
-        output_embedd: dict = None,
+        output_embedding: dict = None,
         # Model specific
         depth=4,
         out_scale_pos=0,
@@ -35,16 +35,17 @@ def make_schnet(
     Args:
         input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
         input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedd (list): Dictionary of embedding parameters used if input shape is None. Default is
-            {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-            'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-            'input_tensor_type': 'ragged'}
+        input_embedding (list): Dictionary of embedding parameters used if input shape is None. Default is
+            {"nodes": {"input_dim": 95, "output_dim": 64},
+            "edges": {"input_dim": 5, "output_dim": 64},
+            "state": {"input_dim": 100, "output_dim": 64},
+            'input_tensor_type': 'ragged'}.
         output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
             {"use_bias": [True, True], "units": [128, 64],
             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']}
         output_dense (dict): Parameter for Dense scaling layer. Defaults to {"units": 1, "activation": 'linear',
              "use_bias": True}.
-        output_embedd (str): Dictionary of embedding parameters of the graph network. Default is
+        output_embedding (str): Dictionary of embedding parameters of the graph network. Default is
              {"output_mode": 'graph', "output_tensor_type": 'padded'}
         depth (int, optional): Number of Interaction units. Defaults to 4.
         out_scale_pos (int, optional): Scaling output, position of layer. Defaults to 0.
@@ -57,10 +58,11 @@ def make_schnet(
         tf.keras.models.Model: SchNet.
     """
     # Make default values if None
-    model_default = {'input_embedd': {'input_node_vocab': 95, 'input_edge_vocab': 5, 'input_state_vocab': 100,
-                                      'input_node_embedd': 64, 'input_edge_embedd': 64, 'input_state_embedd': 64,
-                                      'input_tensor_type': 'ragged'},
-                     'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
+    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+                                         "edges": {"input_dim": 5, "output_dim": 64},
+                                         "state": {"input_dim": 100, "output_dim": 64},
+                                         'input_tensor_type': 'ragged'},
+                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'interaction_args': {"units": 128, "use_bias": True,
                                           "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum',
                                           "is_sorted": False, "has_unconnected": True},
@@ -71,19 +73,19 @@ def make_schnet(
                      }
 
     # Update args
-    input_embedd = update_model_args(model_default['input_embedd'], input_embedd)
+    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
     interaction_args = update_model_args(model_default['interaction_args'], interaction_args)
     output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
     output_dense = update_model_args(model_default['output_dense'], output_dense)
-    output_embedd = update_model_args(model_default['output_embedd'], output_embedd)
+    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
     node_pooling_args = update_model_args(model_default['node_pooling_args'], node_pooling_args)
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    n = generate_node_embedding(node_input, input_node_shape, **input_embedd)
-    ed = generate_edge_embedding(edge_input, input_edge_shape, **input_embedd)
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
 
     n = Dense(interaction_args["units"], activation='linear')(n)
@@ -95,7 +97,7 @@ def make_schnet(
 
     mlp_last = Dense(**output_dense)
 
-    if output_embedd["output_mode"] == 'graph':
+    if output_embedding["output_mode"] == 'graph':
         if out_scale_pos == 0:
             n = mlp_last(n)
         out = PoolingNodes(**node_pooling_args)(n)

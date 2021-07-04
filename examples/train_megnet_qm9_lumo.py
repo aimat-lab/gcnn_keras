@@ -55,12 +55,10 @@ model = make_megnet(
     input_node_shape=[None],
     input_edge_shape=[None, 20],
     input_state_shape=[1],
-    input_embedd={'input_node_vocab': 10,
-                  'input_node_embedd': 16,
-                  'input_edge_embedd': 16,
-                  },
+    input_embedding={"nodes": {"input_dim": 10, "output_dim": 16},
+                     "edges": {"input_dim": 5, "output_dim": 16}},
     # Output
-    output_embedd={"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
+    output_embedding={"output_mode": 'graph', "output_type": 'padded'},  # Only graph possible for megnet
     output_mlp={"use_bias": [True, True, True],
                 "units": [32, 16, 1],
                 "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
