@@ -25,7 +25,7 @@ def make_gat_v2(**kwargs):
     Returns:
         tf.keras.models.Model: GAT model.
     """
-    model_args = locals()
+    model_args = kwargs
     model_default = {'input_node_shape': [None], 'input_edge_shape': [None],
                      'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},

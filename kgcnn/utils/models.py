@@ -118,6 +118,12 @@ def update_model_args(default_args=None, user_args=None):
         default_args = {}
     if user_args is None:
         user_args = {}
+
+    # Check valid args
+    for iter_key in user_args.keys():
+        if iter_key not in default_args:
+            raise ValueError("Model arg", iter_key, "not in default arguments", default_args.keys())
+
     out.update(default_args)
 
     # Nested update of args:
