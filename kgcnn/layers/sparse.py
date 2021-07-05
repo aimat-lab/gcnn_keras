@@ -22,11 +22,11 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [nodes, edges, tensor_index]
+            inputs (list): [nodes, edges, edge_index]
 
                 - nodes (tf.RaggedTensor): Node feature tensor of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge feature ragged tensor of shape (batch, [M], 1)
-                - tensor_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
+                - edge_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.SparseTensor: Sparse disjoint matrix of shape (batch*None,batch*None)

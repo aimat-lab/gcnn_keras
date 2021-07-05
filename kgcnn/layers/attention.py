@@ -2,7 +2,7 @@ import tensorflow as tf
 # import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
-from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.layers.keras import Dense, Activation, Concatenate, Multiply, Add
 from kgcnn.layers.pooling import PoolingNodes
 import kgcnn.ops.activ
 from kgcnn.ops.partition import partition_row_indexing
@@ -92,10 +92,11 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
 class AttentionHeadGAT(GraphBaseLayer):
     r"""Computes the attention head according to GAT from https://arxiv.org/abs/1710.10903.
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
-    optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})`.
+    optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
-    And the messages are pooled by :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`.
-    And finally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
+    And the messages are pooled by :math:`m_i = \sum_j \alpha_{ij} W n_j`.
+    If the graph has no self-loops, they must be added beforehand or use external skip connections.
+    And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} W n_j)`.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
@@ -103,6 +104,8 @@ class AttentionHeadGAT(GraphBaseLayer):
     Args:
         units (int): Units for the linear trafo of node features before attention.
         use_edge_features (bool): Append edge features to attention computation. Default is False.
+        use_final_activation (bool): Whether to apply the final activation for the output.
+        has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
         activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
@@ -117,6 +120,8 @@ class AttentionHeadGAT(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
+                 use_final_activation=True,
+                 has_self_loops=True,
                  activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
@@ -131,6 +136,8 @@ class AttentionHeadGAT(GraphBaseLayer):
         super(AttentionHeadGAT, self).__init__(**kwargs)
         # graph args
         self.use_edge_features = use_edge_features
+        self.use_final_activation = use_final_activation
+        self.has_self_loops = has_self_loops
 
         # dense args
         self.units = int(units)
@@ -168,24 +175,26 @@ class AttentionHeadGAT(GraphBaseLayer):
         """
         node, edge, edge_index = inputs
 
-        n_in = self.lay_gather_in([node, edge_index])
-        n_out = self.lay_gather_out([node, edge_index])
-        wn_in = self.lay_linear_trafo(n_in)
-        wn_out = self.lay_linear_trafo(n_out)
+        w_n = self.lay_linear_trafo(node)
+        wn_in = self.lay_gather_in([w_n, edge_index])
+        wn_out = self.lay_gather_out([w_n, edge_index])
         if self.use_edge_features:
             e_ij = self.lay_concat([wn_in, wn_out, edge])
         else:
             e_ij = self.lay_concat([wn_in, wn_out])
         a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch*None,1)
-        n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
-        out = self.lay_final_activ(n_i)
-        return out
+        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
+
+        if self.use_final_activation:
+            h_i = self.lay_final_activ(h_i)
+        return h_i
 
     def get_config(self):
         """Update layer config."""
         config = super(AttentionHeadGAT, self).get_config()
         config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
-                       "units": self.units})
+                       "units": self.units, "has_self_loops": self.has_self_loops,
+                       "use_final_activation": self.use_final_activation})
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
@@ -197,10 +206,11 @@ class AttentionHeadGAT(GraphBaseLayer):
 class AttentionHeadGATV2(GraphBaseLayer):
     r"""Computes the modified attention head according to https://arxiv.org/pdf/2105.14491.pdf.
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
-    optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )`.
+    optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
-    And the messages are pooled by :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`.
-    And finally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
+    And the messages are pooled by :math:`m_i =  \sum_j \alpha_{ij} e_{ij}`.
+    If the graph has no self-loops, they must be added beforehand or use external skip connections.
+    And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
@@ -208,6 +218,8 @@ class AttentionHeadGATV2(GraphBaseLayer):
     Args:
         units (int): Units for the linear trafo of node features before attention.
         use_edge_features (bool): Append edge features to attention computation. Default is False.
+        use_final_activation (bool): Whether to apply the final activation for the output.
+        has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
         activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
@@ -222,6 +234,8 @@ class AttentionHeadGATV2(GraphBaseLayer):
     def __init__(self,
                  units,
                  use_edge_features=False,
+                 use_final_activation=True,
+                 has_self_loops=True,
                  activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
@@ -236,6 +250,8 @@ class AttentionHeadGATV2(GraphBaseLayer):
         super(AttentionHeadGATV2, self).__init__(**kwargs)
         # graph args
         self.use_edge_features = use_edge_features
+        self.use_final_activation = use_final_activation
+        self.has_self_loops = has_self_loops
 
         # dense args
         self.units = int(units)
@@ -275,24 +291,28 @@ class AttentionHeadGATV2(GraphBaseLayer):
         """
         node, edge, edge_index = inputs
 
+        w_n = self.lay_linear_trafo(node)
         n_in = self.lay_gather_in([node, edge_index])
         n_out = self.lay_gather_out([node, edge_index])
-        wn_out = self.lay_linear_trafo(n_out)
+        wn_out = self.lay_gather_out([w_n, edge_index])
         if self.use_edge_features:
             e_ij = self.lay_concat([n_in, n_out, edge])
         else:
             e_ij = self.lay_concat([n_in, n_out])
         a_ij = self.lay_alpha_activation(e_ij)
         a_ij = self.lay_alpha(a_ij)
-        n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
-        out = self.lay_final_activ(n_i)
-        return out
+        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
+
+        if self.use_final_activation:
+            h_i = self.lay_final_activ(h_i)
+        return h_i
 
     def get_config(self):
         """Update layer config."""
         config = super(AttentionHeadGATV2, self).get_config()
         config.update({"use_edge_features": self.use_edge_features, "use_bias": self.use_bias,
-                       "units": self.units})
+                       "units": self.units, "has_self_loops": self.has_self_loops,
+                       "use_final_activation": self.use_final_activation})
         conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:

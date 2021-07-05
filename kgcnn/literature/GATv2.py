@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.attention import AttentionHeadGATV2
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.keras import Concatenate, Dense, Average
+from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
@@ -46,32 +46,41 @@ def make_gat_v2(  # Input
         attention_heads_num (int): Number of attention heads. Default is 5.
         attention_heads_concat (bool): Concat attention. Default is False.
         attention_args (dict): Layer arguments for attention layer. Default is
-            {"units": 32}
+            {"units": 32, "use_final_activation": False, "use_edge_features": True,
+            "has_self_loops": True, "activation": "kgcnn>leaky_relu"}
 
     Returns:
         tf.keras.models.Model: GAT model.
     """
-    # default values
-    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+    model_args = locals()
+    model_default = {'input_node_shape': [None], 'input_edge_shape': [None],
+                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
                                          "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'attention_args': {"units": 32}
+                     'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
+                                        "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
+                     'pooling_nodes_args': {'pooling_method': 'mean'},
+                     'depth': 3,
+                     'attention_heads_num': 5,
+                     'attention_heads_concat': False,
                      }
+    m = update_model_args(model_default, model_args)
+    # Shortcuts for model_args
+    attention_args = m['attention_args']
+    output_embedding = m['output_embedding']
+    input_embedding = m['input_embedding']
+    output_mlp = m['output_mlp']
+    pooling_nodes_args = m['pooling_nodes_args']
 
-    # Update default values
-    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
-    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
-    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
-    attention_args = update_model_args(model_default['attention_args'], attention_args)
-    pooling_nodes_args = {}
-
-    # Make input embedding, if no feature dimension
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
+    # Make input
+    node_input = ks.layers.Input(shape=m['input_node_shape'], name='node_input', dtype="float32", ragged=True)
+    edge_input = ks.layers.Input(shape=m['input_edge_shape'], name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+
+    # Embedding, if no feature dimension
     n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
     ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
@@ -83,6 +92,7 @@ def make_gat_v2(  # Input
             nk = Concatenate(axis=-1)(heads)
         else:
             nk = Average()(heads)
+            nk = Activation(activation=attention_args["activation"])(nk)
 
     n = nk
     if output_embedding["output_mode"] == 'graph':
@@ -93,6 +103,6 @@ def make_gat_v2(  # Input
         out = MLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
 
+    # Define model output
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
-
     return model

@@ -104,11 +104,11 @@ def generate_standard_graph_input(input_node_shape,
 
 
 def update_model_args(default_args=None, user_args=None):
-    """Make arg dict with updated default values.
+    """Make model parameter dictionary with updated default values.
 
     Args:
         default_args (dict): Dictionary of default values.
-        user_args (dict): Dictionary of args from.
+        user_args (dict): Dictionary of args to update.
 
     Returns:
         dict: Make new dict and update with first default and then user args.
@@ -119,18 +119,23 @@ def update_model_args(default_args=None, user_args=None):
     if user_args is None:
         user_args = {}
     out.update(default_args)
+
     # Nested update of args:
     def _nested_update(dict1, dict2):
         for key, values in dict2.items():
             if key not in dict1:
+                print("WARNING: Unknown model argument:", key, "with value", values)
                 dict1[key] = values
             else:
                 if isinstance(dict1[key], dict) and isinstance(values, dict):
+                    # The value is a dict of model arguments itself. Update the same way.
                     dict1[key] = _nested_update(dict1[key], values)
                 elif isinstance(dict1[key], dict) and not isinstance(values, dict):
-                    print("WARNING: Overwriting dictionary of model parameters with value.")
-                    dict1[key] = values
+                    # If values is None, means no information, keep dict1 values untouched.
+                    if values is not None:
+                        raise ValueError("Error: Can not overwriting dictionary of", key, "with", values)
                 else:
+                    # Just any other value to update
                     dict1[key] = values
         return dict1
 
