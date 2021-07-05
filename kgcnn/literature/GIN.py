@@ -44,8 +44,7 @@ def make_gin(
         output_activation (str): Final activation at output. Defaults to "softmax".
         depth (int, optional): Number of convolutions. Defaults to 3.
         gin_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
-            {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'], "pooling_method": 'sum',
-            "is_sorted": False, "has_unconnected": "True"}.
+            {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'], "pooling_method": 'sum'}.
 
     Returns:
         tf.keras.models.Model: Un-compiled GCN model.
@@ -57,8 +56,7 @@ def make_gin(
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'linear']},
-                     'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
-                                  "is_sorted": False, "has_unconnected": True}
+                     'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear']}
                      }
 
     # Update model parameter

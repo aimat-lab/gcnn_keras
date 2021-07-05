@@ -107,7 +107,6 @@ def make_nmpn(
             out = PoolingNodes(**pooling_args)(n)
 
         # final dense layers
-        output_mlp.update({"input_tensor_type": "tensor"})
         main_output = MLP(**output_mlp)(out)
 
     else:  # Node labeling

@@ -86,7 +86,6 @@ def make_gcn(
 
     if output_embedding["output_mode"] == "graph":
         out = PoolingNodes()(n)  # will return tensor
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling
@@ -174,7 +173,6 @@ def make_gcn_node_weights(
 
     if output_embedding["output_mode"] == "graph":
         out = PoolingWeightedNodes()([n, nw])  # will return tensor
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
 
     else:  # Node labeling

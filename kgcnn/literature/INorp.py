@@ -127,8 +127,6 @@ def make_inorp(  # Input
             out = Set2Set(**set2set_args)(outss)
         else:
             out = PoolingNodes(**pooling_args)(n)
-
-        output_mlp.update({"input_tensor_type": "tensor"})
         main_output = MLP(**output_mlp)(out)
 
     else:  # Node labeling

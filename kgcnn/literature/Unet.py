@@ -132,8 +132,6 @@ def make_unet(
     n = ui_graph[0]
     if output_embedding["output_mode"] == 'graph':
         out = PoolingNodes(**pooling_args)(n)
-
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding

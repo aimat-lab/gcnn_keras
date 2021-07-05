@@ -87,7 +87,6 @@ def make_attentiveFP(  # Input
     n = nk
     if output_embedding["output_mode"] == 'graph':
         out = PoolingNodesAttentive(units=attention_args['units'])(n)
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding

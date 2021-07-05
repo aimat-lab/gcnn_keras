@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
-from kgcnn.literature.GAT import make_gat as make_gat
+from kgcnn.literature.GATv2 import make_gat_v2 as make_gat
 from kgcnn.data.datasets.cora_lu import CoraLUDataset
 from kgcnn.utils.adj import precompute_adjacency_scaled, sort_edge_indices, make_adjacency_from_edge_indices, \
     make_adjacency_undirected_logical_or, convert_scaled_adjacency_to_list
@@ -74,7 +74,7 @@ model = make_gat(
 # Set learning rate and epochs
 learning_rate_start = 1e-3
 learning_rate_stop = 1e-4
-epo = 250
+epo = 300
 epomin = 200
 epostep = 10
 
@@ -115,7 +115,7 @@ plt.plot(np.arange(1, len(trainlossall) + 1), trainlossall, label='Training Loss
 plt.plot(np.arange(epostep, epo + epostep, epostep), testlossall[:, 1], label='Test Loss', c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Accurarcy')
-plt.title('GAT')
+plt.title('GAT V2')
 plt.legend(loc='lower right', fontsize='x-large')
-plt.savefig('gat_loss_cora.png')
+plt.savefig('gat_v2_loss_cora.png')
 plt.show()

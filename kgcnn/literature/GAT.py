@@ -43,7 +43,7 @@ def make_gat(  # Input
         attention_heads_num (int): Number of attention heads. Default is 5.
         attention_heads_concat (bool): Concat attention. Default is False.
         attention_args (dict): Layer arguments for attention layer. Default is
-            {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+            {"units": 32, 'is_sorted': False}
 
     Returns:
         tf.keras.models.Model: GAT model.
@@ -55,7 +55,7 @@ def make_gat(  # Input
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'attention_args': {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+                     'attention_args': {"units": 32, 'is_sorted': False}
                      }
 
     # Update default values
@@ -84,7 +84,6 @@ def make_gat(  # Input
     n = nk
     if output_embedding["output_mode"] == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
-        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     else:  # node embedding
