@@ -1,7 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='glorot_orthogonal')
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='glorot_orthogonal')
 class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
 
     def __init__(self, gain=1.0, seed=None, scale=1.0, mode='fan_avg'):
@@ -48,3 +49,8 @@ class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
             fan_in = shape[-2] * receptive_field_size
             fan_out = shape[-1] * receptive_field_size
         return int(fan_in), int(fan_out)
+
+    def get_config(self):
+        config = super(GlorotOrthogonal, self).get_config()
+        config.update({"scale": self.scale, "mode": self.mode})
+        return config
