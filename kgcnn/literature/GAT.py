@@ -59,7 +59,7 @@ def make_gat(  # Input
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
                                         "has_self_loops": True, "activation": "kgcnn>leaky_relu", 'use_bias': True},
-                     'pooling_nodes_args': {'mean'},
+                     'pooling_nodes_args': {'pooling_method': 'mean'},
                      'depth': 3,
                      'attention_heads_num': 5,
                      'attention_heads_concat': False,
