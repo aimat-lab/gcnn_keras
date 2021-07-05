@@ -5,7 +5,7 @@ from kgcnn.layers.interaction import SchNetInteraction
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
 # Model Schnet as defined

@@ -1,9 +1,8 @@
-import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.ops.models import update_model_args
-from kgcnn.ops.models import generate_node_embedding
-from kgcnn.layers.keras import Dense, Concatenate, Dropout, Add, BatchNormalization, Activation
+from kgcnn.utils.models import update_model_args
+from kgcnn.utils.models import generate_node_embedding
+from kgcnn.layers.keras import Dropout, Activation
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.casting import ChangeTensorType

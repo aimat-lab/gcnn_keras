@@ -5,7 +5,7 @@ from kgcnn.layers.conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'

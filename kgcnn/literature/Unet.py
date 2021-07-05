@@ -7,7 +7,7 @@ from kgcnn.layers.keras import Dense, Activation, Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.topk import PoolingTopK, UnPoolingTopK
-from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
 # Graph U-Nets

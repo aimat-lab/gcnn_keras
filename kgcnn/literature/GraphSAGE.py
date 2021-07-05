@@ -6,7 +6,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
-from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # 'Inductive Representation Learning on Large Graphs'

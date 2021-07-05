@@ -6,7 +6,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense, Dropout
 from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.mlp import MLP
-from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism

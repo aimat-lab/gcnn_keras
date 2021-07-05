@@ -1,15 +1,13 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-import numpy as np
 
-from kgcnn.ops.models import generate_node_embedding, update_model_args
+from kgcnn.utils.models import generate_node_embedding, update_model_args
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add
 from kgcnn.layers.interaction import DimNetInteractionPPBlock
 from kgcnn.layers.blocks import DimNetOutputBlock
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.embedding import EmbeddingDimeBlock
 
 
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules

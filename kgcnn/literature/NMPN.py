@@ -7,7 +7,7 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
 from kgcnn.layers.update import GRUUpdate, TrafoMatMulMessages
-from kgcnn.ops.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
 # Neural Message Passing for Quantum Chemistry

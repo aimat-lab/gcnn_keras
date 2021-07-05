@@ -1,6 +1,6 @@
 import tensorflow.keras as ks
 
-from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_edge_embedding, \
+from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding, \
     generate_state_embedding
 from kgcnn.layers.blocks import MEGnetBlock
 from kgcnn.layers.keras import Dense, Add, Dropout

@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Concatenate, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import Set2Set
-from kgcnn.ops.models import generate_node_embedding, update_model_args, generate_state_embedding, \
+from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_state_embedding, \
     generate_edge_embedding
 
 

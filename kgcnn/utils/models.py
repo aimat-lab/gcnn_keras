@@ -119,8 +119,22 @@ def update_model_args(default_args=None, user_args=None):
     if user_args is None:
         user_args = {}
     out.update(default_args)
-    out.update(user_args)
-    return out
+    # Nested update of args:
+    def _nested_update(dict1, dict2):
+        for key, values in dict2.items():
+            if key not in dict1:
+                dict1[key] = values
+            else:
+                if isinstance(dict1[key], dict) and isinstance(values, dict):
+                    dict1[key] = _nested_update(dict1[key], values)
+                elif isinstance(dict1[key], dict) and not isinstance(values, dict):
+                    print("WARNING: Overwriting dictionary of model parameters with value.")
+                    dict1[key] = values
+                else:
+                    dict1[key] = values
+        return dict1
+
+    return _nested_update(out, user_args)
 
 
 def generate_mol_graph_input(input_node_shape,
