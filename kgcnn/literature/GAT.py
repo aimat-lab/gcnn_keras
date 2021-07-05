@@ -72,10 +72,11 @@ def make_gat(  # Input
     attention_args = m['attention_args']
     pooling_nodes_args = m['pooling_nodes_args']
 
-    # Make input embedding, if no feature dimension
+    # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    # Embedding, if no feature dimension
     n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
     ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input

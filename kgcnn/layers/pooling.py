@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
-from kgcnn.ops.segment import segment_ops_by_name
+from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
@@ -463,3 +463,130 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
 
 
 PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
+class PoolingLocalEdgesAttention(GraphBaseLayer):
+    r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
+    Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
+    The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
+    attention coefficients :math:`a_{ij}`.
+    The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W n_i || W n_j)` and
+    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
+    In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
+
+    An edge is defined by index tuple (i,j) with i<-j connection.
+    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    Important: tensor_index[:,0] are sorted for segment-operation for pooling with respect to tensor_index[:,0].
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(PoolingLocalEdgesAttention, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingLocalEdgesAttention, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [node, edges, attention, edge_indices]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
+                - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [M], 1)
+                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
+
+        Returns:
+            tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
+        """
+        dyn_inputs = inputs
+
+        # We cast to values here
+        nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
+        edge = dyn_inputs[1].values
+        attention = dyn_inputs[2].values
+        edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
+
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part, partition_type_target="row_length",
+                                          partition_type_index="row_length", to_indexing='batch',
+                                          from_indexing=self.node_indexing)
+
+        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
+        dens = edge
+        ats = attention
+        if not self.is_sorted:
+            # Sort edgeindices
+            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
+            nodind = tf.gather(nodind, node_order, axis=0)
+            dens = tf.gather(dens, node_order, axis=0)
+            ats = tf.gather(ats, node_order, axis=0)
+
+        # Apply segmented softmax
+        ats = segment_softmax(ats, nodind)
+        get = dens * ats
+        get = tf.math.segment_sum(get, nodind)
+
+        if self.has_unconnected:
+            # Need to fill tensor since the maximum node may not be also in pooled
+            # Does not happen if all nodes are also connected
+            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+                                tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
+
+        out = tf.RaggedTensor.from_row_lengths(get, node_part, validate=self.ragged_validate)
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingLocalEdgesAttention, self).get_config()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttention')
+class PoolingNodesAttention(GraphBaseLayer):
+    r"""Pooling all nodes.
+    Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i`
+    The attention is computed via: :math:`\alpha_i = \text{softmax}_i(a_i)` from the attention coefficients :math:`a_i`.
+    The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W [s || n_i])` and
+    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
+    In summary, :math:`s =  \sum_i \text{softmax}_j(a_i) n_i` is computed by the layer.
+
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(PoolingNodesAttention, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingNodesAttention, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, attention]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [N], 1)
+
+        Returns:
+            tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
+        """
+        dyn_inputs = inputs
+        # We cast to values here
+        nod, batchi, target_len = dyn_inputs[0].values, dyn_inputs[0].value_rowids(), dyn_inputs[0].row_lengths()
+        ats = dyn_inputs[1].values
+
+        ats = segment_softmax(ats, batchi)
+        get = nod * ats
+        out = tf.math.segment_sum(get, batchi)
+
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingNodesAttention, self).get_config()
+        return config

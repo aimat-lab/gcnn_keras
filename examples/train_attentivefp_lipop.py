@@ -49,7 +49,7 @@ model = make_attentiveFP(
     output_embedding={"output_mode": 'graph'},
     output_mlp={"use_bias": [True, True], "units": [200, 1], "activation": ['kgcnn>leaky_relu', 'linear']},
     # model specs
-    attention_args= {"units": 200, 'is_sorted': False, 'has_unconnected': True},
+    attention_args={"units": 200},
     depth=2,
     dropout=0.1
 )
