@@ -39,7 +39,7 @@ def make_gat(**kwargs):
                      'attention_heads_concat': False,
                      }
     m = update_model_args(model_default, model_args)
-    print("INFO: make_gat() kwargs:")
+    print("INFO: Updated functional make model kwargs:")
     pprint.pprint(m)
 
     # Local variables for model args
