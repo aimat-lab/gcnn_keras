@@ -49,7 +49,7 @@ def make_graph_sage(  # Input
             {"units": [100, 100, 100, 100, 50],
             "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
         pooling_args (dict): Dictionary for message pooling arguments. Default is
-            {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+            {'pooling_method': "segment_mean"}
 
     Returns:
         tf.keras.models.Model: GraphSAGE model.
@@ -63,7 +63,7 @@ def make_graph_sage(  # Input
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                      'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                     'pooling_args': {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+                     'pooling_args': {'pooling_method': "segment_mean"}
                      }
 
     # Update default values
@@ -73,9 +73,9 @@ def make_graph_sage(  # Input
     node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
     edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
     pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
-    pooling_nodes_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample', 'pooling_method': "mean"}
-    gather_args = {"node_indexing": 'sample'}
-    concat_args = {"axis": -1, "input_tensor_type": 'ragged'}
+    pooling_nodes_args = {'pooling_method': "mean"}
+    gather_args = {}
+    concat_args = {"axis": -1}
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)

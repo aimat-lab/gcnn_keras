@@ -60,7 +60,7 @@ def make_inorp(  # Input
         set2set_args (dict): Dictionary of set2set layer arguments. Default is
             {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"}.
         pooling_args (dict): Dictionary for message pooling arguments. Default is
-            {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+            {'pooling_method': "segment_mean"}
 
     Returns:
         tf.keras.models.Model: Interaction model.
@@ -77,7 +77,7 @@ def make_inorp(  # Input
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                      'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
                                        "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
-                     'pooling_args': {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+                     'pooling_args': {'pooling_method': "segment_mean"}
                      }
 
     # Update default values

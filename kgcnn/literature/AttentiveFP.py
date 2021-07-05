@@ -44,7 +44,7 @@ def make_attentiveFP(  # Input
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int): Number of convolution layers. Default is 3.
         attention_args (dict): Layer arguments for attention layer. Default is
-            {"units": 32, 'is_sorted': False, 'has_unconnected': True}.
+            {"units": 32}.
         dropout (float): Dropout rate for the Dropout layers in the model.
 
     Returns:
@@ -58,7 +58,7 @@ def make_attentiveFP(  # Input
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'attention_args': {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+                     'attention_args': {"units": 32}
                      }
 
     # Update default values
@@ -130,7 +130,7 @@ try:
                 "activation": ['relu', 'relu', 'sigmoid']}.
             depth (int): Number of convolution layers. Default is 3.
             attention_args (dict): Layer arguments for attention layer. Default is
-                {"units": 32, 'is_sorted': False, 'has_unconnected': True}.
+                {"units": 32}.
             dropout (float): Dropout rate for the Dropout layers in the model.
 
         Returns:
@@ -144,7 +144,7 @@ try:
                          'output_embedd': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                          'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                         "activation": ['relu', 'relu', 'sigmoid']},
-                         'attention_args': {"units": 32, 'is_sorted': False, 'has_unconnected': True}
+                         'attention_args': {"units": 32}
                          }
 
         # Update default values

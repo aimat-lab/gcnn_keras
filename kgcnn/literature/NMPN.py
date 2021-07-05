@@ -53,7 +53,7 @@ def make_nmpn(
         set2set_args (dict): Dictionary of Set2Set Layer Arguments. Default is
             {'channels': 32, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}
         pooling_args (dict): Dictionary for message pooling arguments. Default is
-            {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"}
+            {'pooling_method': "segment_mean"}
 
     Returns:
         tf.keras.models.Model: Message Passing model.
@@ -67,7 +67,7 @@ def make_nmpn(
                                     "activation": ['selu', 'selu', 'sigmoid']},
                      'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
                                       "init_qstar": "0"},
-                     'pooling_args': {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "segment_mean"},
+                     'pooling_args': {'pooling_method': "segment_mean"},
                      'edge_dense': {'use_bias': True, 'activation': 'selu'}
                      }
 

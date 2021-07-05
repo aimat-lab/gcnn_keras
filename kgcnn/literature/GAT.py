@@ -43,7 +43,7 @@ def make_gat(  # Input
         attention_heads_num (int): Number of attention heads. Default is 5.
         attention_heads_concat (bool): Concat attention. Default is False.
         attention_args (dict): Layer arguments for attention layer. Default is
-            {"units": 32, 'is_sorted': False}
+            {"units": 32}
 
     Returns:
         tf.keras.models.Model: GAT model.
@@ -55,7 +55,7 @@ def make_gat(  # Input
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'attention_args': {"units": 32, 'is_sorted': False}
+                     'attention_args': {"units": 32}
                      }
 
     # Update default values

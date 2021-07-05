@@ -54,8 +54,7 @@ def make_megnet(
             "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}.
         meg_block_args (dict): Dictionary of MegBlock arguments. Default is
             {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-            'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2', 'is_sorted': False,
-            'has_unconnected': True}.
+            'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'}.
         node_ff_args (dict): Dictionary of Feed-Forward Layer arguments. Default is
             {"units": [64, 32], "activation": "kgcnn>softplus2"}.
         edge_ff_args (dict): Dictionary of  Feed-Forward Layer arguments. Default is
@@ -80,8 +79,7 @@ def make_megnet(
                      'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
                                     "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
                      'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                                        'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2', 'is_sorted': False,
-                                        'has_unconnected': True},
+                                        'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
                      'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
                      'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
                      'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},

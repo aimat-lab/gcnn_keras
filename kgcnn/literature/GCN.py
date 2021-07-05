@@ -127,8 +127,7 @@ def make_gcn_node_weights(
             "activation": ['relu', 'relu', 'sigmoid']}.
         depth (int, optional): Number of convolutions. Defaults to 3.
         gcn_args (dict): Dictionary of arguments for the GCN convolutional unit. Defaults to
-            {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum',
-            "is_sorted": False, "has_unconnected": "True"}.
+            {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'segment_sum'}.
 
     Returns:
         tf.keras.models.Model: Un-compiled GCN model.
@@ -144,8 +143,7 @@ def make_gcn_node_weights(
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'masked'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
-                                  "is_sorted": False, "has_unconnected": True}
+                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum'}
                      }
 
     # Update model parameter
