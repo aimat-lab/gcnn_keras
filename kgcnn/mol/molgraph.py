@@ -1,18 +1,11 @@
 import numpy as np
 
-try:
-    import rdkit
-    import rdkit.Chem
-    import rdkit.Chem.AllChem
-except ModuleNotFoundError:
-    print("ERROR: For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html",
-          "or check https://pypi.org/project/rdkit-pypi/")
-
 import rdkit
 import rdkit.Chem
-import rdkit.Chem.Descriptors
 import rdkit.Chem.AllChem
 
+# For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
+# or check https://pypi.org/project/rdkit-pypi/
 
 class OneHotEncoder:
 

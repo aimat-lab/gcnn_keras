@@ -19,11 +19,11 @@ from kgcnn.utils.models import generate_node_embedding, update_model_args, gener
 def make_attentiveFP(  # Input
         input_node_shape,
         input_edge_shape,
-        input_embedding: dict = None,
         # Output
         output_embedding: dict = None,
         output_mlp: dict = None,
         # Model specific parameter
+        input_embedding: dict = None,
         depth=3,
         attention_args: dict = None,
         dropout=0.1
@@ -58,7 +58,9 @@ def make_attentiveFP(  # Input
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
-                     'attention_args': {"units": 32}
+                     'attention_args': {"units": 32},
+                     'depth': 3,
+                     'dropout': 0.1
                      }
 
     # Update default values
@@ -76,7 +78,7 @@ def make_attentiveFP(  # Input
     edi = edge_index_input
 
     nk = Dense(units=attention_args['units'])(n)
-    Ck = AttentiveHeadFP(use_edge_features=True,**attention_args)([nk, ed, edi])
+    Ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
     nk = GRUUpdate(units=attention_args['units'])([nk, Ck])
 
     for i in range(1, depth):

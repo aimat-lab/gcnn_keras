@@ -135,8 +135,8 @@ def tf_associated_legendre_polynomial(x, l=0, m=0):
 
     x_prefactor = tf.pow(1 - tf.square(x), m/2) * float(np.power(-1,m) * np.power(2,l))
     sum_out = tf.zeros_like(x)
-    for k in range(m,l+1):
-        sum_out += tf.pow(x,k-m) * float(sp.special.factorial(k)/sp.special.factorial(k-m)*sp.special.binom(l,k)*
+    for k in range(m, l+1):
+        sum_out += tf.pow(x, k-m) * float(sp.special.factorial(k)/sp.special.factorial(k-m)*sp.special.binom(l,k)*
                                          sp.special.binom((l+k-1)/2,l))
 
     return sum_out*x_prefactor*neg_m

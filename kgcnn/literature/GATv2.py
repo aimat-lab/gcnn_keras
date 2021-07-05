@@ -18,11 +18,11 @@ from kgcnn.utils.models import generate_node_embedding, update_model_args, gener
 def make_gat_v2(  # Input
         input_node_shape,
         input_edge_shape,
-        input_embedding: dict = None,
         # Output
         output_embedding: dict = None,
         output_mlp: dict = None,
         # Model specific parameter
+        input_embedding: dict = None,
         depth=3,
         attention_heads_num=5,
         attention_heads_concat=False,
