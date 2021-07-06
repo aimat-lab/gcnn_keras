@@ -24,7 +24,7 @@ def make_gat(**kwargs):
         tf.keras.models.Model: GAT model.
     """
     model_args = kwargs
-    model_default = {'input_node_shape': [None], 'input_edge_shape': [None],
+    model_default = {'input_node_shape': None, 'input_edge_shape': None,
                      'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
                                          "state": {"input_dim": 100, "output_dim": 64}},
@@ -34,13 +34,13 @@ def make_gat(**kwargs):
                      'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
                                         "has_self_loops": True, "activation": "kgcnn>leaky_relu", 'use_bias': True},
                      'pooling_nodes_args': {'pooling_method': 'mean'},
-                     'depth': 3,
-                     'attention_heads_num': 5,
-                     'attention_heads_concat': False,
+                     'depth': 3, 'attention_heads_num': 5,
+                     'attention_heads_concat': False, 'verbose': 1
                      }
     m = update_model_args(model_default, model_args)
-    print("INFO: Updated functional make model kwargs:")
-    pprint.pprint(m)
+    if m['verbose'] > 0:
+        print("INFO: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
     # Local variables for model args
     input_embedding = m['input_embedding']
@@ -84,5 +84,4 @@ def make_gat(**kwargs):
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
 
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
-
     return model
