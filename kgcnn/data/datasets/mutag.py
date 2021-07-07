@@ -105,6 +105,7 @@ class MUTAGDataset(GraphTUDataset):
         # edgelen = np.zeros(n_data, dtype=np.int)
         # edgelen[graph_id2] = counts_edge
         # edges = np.split(mutag_e, np.cumsum(edgelen)[:-1])
+        self.edges = [x[:,0] for x in self.labels_edge]
 
         # edge_indices
         # node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)

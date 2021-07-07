@@ -3,6 +3,7 @@ import numpy as np
 import rdkit
 import rdkit.Chem
 import rdkit.Chem.AllChem
+import rdkit.Chem.Descriptors
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
 # or check https://pypi.org/project/rdkit-pypi/
