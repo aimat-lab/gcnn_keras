@@ -52,19 +52,15 @@ model = make_unet(
                 "activation": ['relu', 'sigmoid'],
                 },
     # Model specific
-    hidden_dim=128,
+    hidden_dim={'units': 32, 'use_bias': True, 'activation': 'linear'},
+    top_k_args={'k': 0.3, 'kernel_initializer': 'ones'},
     depth=4,
-    k=0.3,
-    score_initializer='ones',
-    use_bias=True,
     activation='relu',
-    is_sorted=False,
-    has_unconnected=True,
-    use_reconnect=True
+    use_reconnect=True,
 )
 
 # Define learning rate
-learning_rate_start = 1e-4
+learning_rate_start = 5e-4
 learning_rate_stop = 1e-5
 epo = 500
 epomin = 400
