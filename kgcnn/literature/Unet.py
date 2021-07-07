@@ -31,7 +31,7 @@ def make_unet(**kwargs):
                                          "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
                      'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
-                     'dense_args': {'hidden_dim': 32, 'use_bias': True, 'activation': 'linear'},
+                     'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
                      'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
                      'activation': 'relu',
                      'use_reconnect': True,
@@ -56,7 +56,7 @@ def make_unet(**kwargs):
     top_k_args = m['top_k_args']
     depth = m['depth']
     use_reconnect = m['use_reconnect']
-    dense_args = m['dense_args']
+    hidden_dim = m['hidden_dim']
     activation = m['activation']
 
     # Make input
@@ -70,7 +70,7 @@ def make_unet(**kwargs):
     edi = edge_index_input
 
     # Model
-    n = Dense(**dense_args)(n)
+    n = Dense(**hidden_dim)(n)
     in_graph = [n, ed, edi]
     graph_list = [in_graph]
     map_list = []
@@ -82,7 +82,7 @@ def make_unet(**kwargs):
         n, ed, edi = i_graph
         # GCN layer
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(**dense_args)(eu)
+        eu = Dense(**hidden_dim)(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         n = Activation(activation=activation)(nu)
 
@@ -107,7 +107,7 @@ def make_unet(**kwargs):
         n = Add()([n, o_graph[0]])
         # GCN
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(**dense_args)(eu)
+        eu = Dense(**hidden_dim)(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         n = Activation(activation=activation)(nu)
 
@@ -124,5 +124,4 @@ def make_unet(**kwargs):
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
-
     return model
