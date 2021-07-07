@@ -1,5 +1,5 @@
 import tensorflow.keras as ks
-
+import pprint
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense
@@ -15,51 +15,18 @@ from kgcnn.utils.models import generate_edge_embedding, update_model_args, gener
 # http://arxiv.org/abs/1704.01212    
 
 
-def make_nmpn(
-        # Input
-        input_node_shape,
-        input_edge_shape,
-        input_embedding: dict = None,
-        # Output
-        output_embedding: dict = None,
-        output_mlp: dict = None,
-        # Model specific
-        depth=3,
-        node_dim=128,
-        edge_dense: dict = None,
-        use_set2set=True,
-        set2set_args: dict = None,
-        pooling_args: dict = None
-):
+def make_nmpn(**kwargs):
     """Get Message passing model.
 
     Args:
-        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
-        input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
-            {"nodes": {"input_dim": 95, "output_dim": 64},
-            "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64}}.
-        output_embedding (str): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_tensor_type": 'padded'}
-        output_mlp (dict): Dictionary of MLP arguments for output regression or classification. Default is
-            {"use_bias": [True, True, False], "units": [25, 10, 1],
-            "output_activation": ['selu', 'selu', 'sigmoid']}
-        depth (int, optional): Depth. Defaults to 3.
-        node_dim (int, optional): Dimension for hidden node representation. Defaults to 128.
-        edge_dense (dict): Dictionary of arguments for NN to make edge matrix. Default is
-            {'use_bias' : True, 'activation' : 'selu'}
-        use_set2set (bool, optional): Use set2set layer. Defaults to True.
-        set2set_args (dict): Dictionary of Set2Set Layer Arguments. Default is
-            {'channels': 32, 'T': 3, "pooling_method": "sum", "init_qstar": "0"}
-        pooling_args (dict): Dictionary for message pooling arguments. Default is
-            {'pooling_method': "segment_mean"}
+        **kwargs
 
     Returns:
         tf.keras.models.Model: Message Passing model.
     """
-    # Make default parameter
-    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+    model_args = kwargs
+    model_default = {'input_node_shape': None, 'input_edge_shape': None,
+                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
                                          "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
@@ -68,25 +35,39 @@ def make_nmpn(
                      'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
                                       "init_qstar": "0"},
                      'pooling_args': {'pooling_method': "segment_mean"},
-                     'edge_dense': {'use_bias': True, 'activation': 'selu'}
+                     'edge_dense': {'use_bias': True, 'activation': 'selu'},
+                     'use_set2set': True, 'depth': 3, 'node_dim': 128,
+                     'verbose': 1
                      }
+    m = update_model_args(model_default, model_args)
+    if m['verbose'] > 0:
+        print("INFO: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
-    # Update model args
-    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
-    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
-    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
-    set2set_args = update_model_args(model_default['set2set_args'], set2set_args)
-    pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
-    edge_dense = update_model_args(model_default['edge_dense'], edge_dense)
+    # local updated model args
+    input_node_shape = m['input_node_shape']
+    input_edge_shape = m['input_edge_shape']
+    input_embedding = m['input_embedding']
+    output_embedding = m['output_embedding']
+    output_mlp = m['output_mlp']
+    set2set_args = m['set2set_args']
+    pooling_args = m['pooling_args']
+    edge_dense = m['edge_dense']
+    use_set2set = m['use_set2set']
+    node_dim = m['node_dim']
+    depth = m['depth']
 
-    # Make input embedding, if no feature dimension
+    # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+
+    # embedding, if no feature dimension
     n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
     ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
 
+    # Model
     n = Dense(node_dim, activation="linear")(n)
     edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
     gru = GRUUpdate(node_dim)
@@ -98,6 +79,7 @@ def make_nmpn(
             [n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
 
+    # Output embedding choice
     if output_embedding["output_mode"] == 'graph':
         if use_set2set:
             # output
@@ -108,7 +90,6 @@ def make_nmpn(
 
         # final dense layers
         main_output = MLP(**output_mlp)(out)
-
     else:  # Node labeling
         out = n
         main_output = MLP(**output_mlp)(out)
@@ -116,5 +97,4 @@ def make_nmpn(
         # no ragged for distribution supported atm
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
-
     return model

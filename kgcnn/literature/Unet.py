@@ -1,5 +1,5 @@
 import tensorflow.keras as ks
-
+import pprint
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.connect import AdjacencyPower
 from kgcnn.layers.gather import GatherNodesOutgoing
@@ -15,76 +15,59 @@ from kgcnn.utils.models import generate_edge_embedding, update_model_args, gener
 # https://arxiv.org/pdf/1905.05178.pdf
 
 
-def make_unet(
-        # Input
-        input_node_shape,
-        input_edge_shape,
-        input_embedding: dict = None,
-        # Output
-        output_embedding: dict = None,
-        output_mlp: dict = None,
-        # Model specific
-        hidden_dim=32,
-        depth=4,
-        k=0.3,
-        score_initializer='ones',
-        use_bias=True,
-        activation='relu',
-        is_sorted=False,
-        has_unconnected=True,
-        use_reconnect=True
-):
+def make_unet(**kwargs):
     """Make Graph U-Net.
 
     Args:
-        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
-        input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedding (list): Dictionary of embedding parameters used if input shape is None. Default is
-            {"nodes": {"input_dim": 95, "output_dim": 64},
-            "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64}}.
-        output_mlp (dict, optional): Parameter for MLP output classification/ regression. Defaults to
-            {"use_bias": [True, False], "output_dim": [25, 1],
-            "activation": ['relu', 'sigmoid']}
-        output_embedding (str): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_tensor_type": 'padded'}
-        hidden_dim (int): Hidden node feature dimension 32,
-        depth (int): Depth of pooling steps. Default is 4.
-        k (float): Pooling ratio. Default is 0.3.
-        score_initializer (str): How to initialize score kernel. Default is 'ones'.
-        use_bias (bool): Use bias. Default is True.
-        activation (str): Activation function used. Default is 'relu'.
-        is_sorted (bool, optional): Edge edge_indices are sorted. Defaults to False.
-        has_unconnected (bool, optional): Has unconnected nodes. Defaults to True.
-        use_reconnect (bool): Reconnect nodes after pooling. I.e. adj_matrix=adj_matrix^2. Default is True.
+        **kwargs
 
     Returns:
         tf.keras.models.Model: Unet model.
     """
-    # Default values update
-    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+    model_args = kwargs
+    model_default = {'input_node_shape': None, 'input_edge_shape': None,
+                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
                                          "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
-                     'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}
+                     'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
+                     'hidden_dim': 32,   'use_bias': True,
+                     'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
+                     'activation': 'relu',
+                     'use_reconnect': True,
+                     'depth': 4,
+                     'pooling_args': {"pooling_method": 'segment_mean'},
+                     'gather_args': {"node_indexing": 'sample'},
+                     'verbose': 1
                      }
+    m = update_model_args(model_default, model_args)
+    if m['verbose'] > 0:
+        print("INFO: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
     # Update model args
-    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
-    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
-    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
-    pooling_args = {"pooling_method": 'segment_mean', "is_sorted": is_sorted, "has_unconnected": has_unconnected}
-    gather_args = {"input_tensor_type": 'ragged', "node_indexing": 'sample'}
+    input_node_shape = m['input_node_shape']
+    input_edge_shape = m['input_edge_shape']
+    input_embedding = m['input_embedding']
+    output_embedding = m['output_embedding']
+    output_mlp = m['output_mlp']
+    pooling_args = m["pooling_args"]
+    gather_args = m['gather_args']
+    top_k_args = m['top_k_args']
+    depth = m['depth']
+    use_reconnect = m['use_reconnect']
 
-    # Make input embedding, if no feature dimension
+    # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
     edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
     edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+
+    # embedding, if no feature dimension
     n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
     ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
     edi = edge_index_input
 
-    # Graph lists
+    # Model
     n = Dense(hidden_dim, use_bias=use_bias, activation='linear')(n)
     in_graph = [n, ed, edi]
     graph_list = [in_graph]
@@ -105,7 +88,7 @@ def make_unet(
             ed, edi = AdjacencyPower(n=2)([n, ed, edi])
 
         # Pooling
-        i_graph, i_map = PoolingTopK(k=k, kernel_initializer=score_initializer)([n, ed, edi])
+        i_graph, i_map = PoolingTopK(**top_k_args)([n, ed, edi])
 
         graph_list.append(i_graph)
         map_list.append(i_map)
@@ -128,7 +111,7 @@ def make_unet(
 
         ui_graph = [n, ed, edi]
 
-    # Otuput
+    # Output embedding choice
     n = ui_graph[0]
     if output_embedding["output_mode"] == 'graph':
         out = PoolingNodes(**pooling_args)(n)

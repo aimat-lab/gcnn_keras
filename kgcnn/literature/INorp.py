@@ -47,7 +47,7 @@ def make_inorp(**kwargs):
         print("INFO: Updated functional make model kwargs:")
         pprint.pprint(m)
 
-    # Update default values
+    # local updated default values
     input_embedding = m['input_embedding']
     output_embedding = m['output_embedding']
     output_mlp = m['output_mlp']
