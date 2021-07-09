@@ -234,3 +234,4 @@ class DimNetOutputBlock(GraphBaseLayer):
         config.update({"emb_size": self.emb_size, "out_emb_size": self.out_emb_size, "num_dense": self.num_dense,
                        "num_targets": self.num_targets})
         return config
+

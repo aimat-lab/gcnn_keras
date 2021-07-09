@@ -1,7 +1,10 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
+from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate
+from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoMatMulMessages')
@@ -58,7 +61,7 @@ class TrafoMatMulMessages(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
 class GRUUpdate(GraphBaseLayer):
     """Gated recurrent unit update.
-    
+
     Args:
         units (int): Units for GRU.
         activation: Activation function to use. Default: hyperbolic tangent
@@ -164,3 +167,197 @@ class GRUUpdate(GraphBaseLayer):
         for x in param_list:
             config.update({x: conf_cell[x]})
         return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MultiplyEquivariant')
+class MultiplyEquivariant(GraphBaseLayer):
+    """Multiplication of equivariant and scalar features with pre-defined broadcasting.
+    Used by PAiNN. Require ragged_rank=1 and rank=3 or rank=4.
+
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer same as tf.keras.Multiply."""
+        super(MultiplyEquivariant, self).__init__(**kwargs)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [scalar, equivariant]
+
+                - scalar (tf.RaggedTensor): Scalar embeddings of shape (batch, [N], F)
+                    or shape (batch, [N], F, D)
+                - equivariant (tf.RaggedTensor): Geometric embedding (batch, [N], D)
+                    or shape (batch, [N], F, D)
+
+        Returns:
+           tf.RaggedTensor: Multiplication of shape (batch, [N], F, D)
+        """
+        s, v = inputs
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs])
+        sval = s.values
+        vval = v.values
+        if len(s.shape) == 3:
+            sval = tf.expand_dims(sval, axis=-1)
+        if len(v.shape) == 3:
+            vval = tf.expand_dims(vval, axis=-2)
+        out = sval*vval
+        out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+        return out
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEquivariant')
+class LinearEquivariant(GraphBaseLayer):
+    """Linear Combination of equivariant features.
+    Used by PAiNN. Require ragged_rank=1 and rank=4.
+    TODO: Will remove this later and replace by a more general version.
+
+    """
+
+    def __init__(self,
+                 units,
+                 activation="linear",
+                 use_bias=True,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        """Initialize layer same as tf.keras.Multiply."""
+        super(LinearEquivariant, self).__init__(**kwargs)
+        self._kgcnn_wrapper_args = ["units", "activation", "use_bias", "kernel_initializer", "bias_initializer",
+                                    "kernel_regularizer", "bias_regularizer", "activity_regularizer",
+                                    "kernel_constraint", "bias_constraint"]
+        self._kgcnn_wrapper_layer = ks.layers.Dense(units=units, activation=activation,
+                                                    use_bias=use_bias, kernel_initializer=kernel_initializer,
+                                                    bias_initializer=bias_initializer,
+                                                    kernel_regularizer=kernel_regularizer,
+                                                    bias_regularizer=bias_regularizer,
+                                                    activity_regularizer=activity_regularizer,
+                                                    kernel_constraint=kernel_constraint,
+                                                    bias_constraint=bias_constraint)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: equivariant
+
+                - equivariant (tf.RaggedTensor): Equivariant embedding of shape (batch, [N], F, D)
+
+        Returns:
+           tf.RaggedTensor: Multiplication of shape (batch, [N], F', D)
+        """
+        assert isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1
+        vals = inputs.values
+        vals = tf.transpose(vals, perm=[0,2,1])
+        vals = self._kgcnn_wrapper_layer(vals)
+        vals = tf.transpose(vals, perm=[0,2,1])
+        out = tf.RaggedTensor.from_row_splits(vals, inputs.row_splits, validate=self.ragged_validate)
+        return out
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNUpdate')
+class PAiNNUpdate(GraphBaseLayer):
+    """Continuous filter convolution of PAiNN.
+
+    Args:
+        units (int): Units for Dense layer.
+        conv_pool (str): Pooling method. Default is 'sum'.
+        use_bias (bool): Use bias. Default is True.
+        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
+    """
+
+    def __init__(self, units,
+                 use_bias=True,
+                 activation='swish',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 **kwargs):
+        """Initialize Layer."""
+        super(PAiNNUpdate, self).__init__(**kwargs)
+        self.units = units
+        self.use_bias = use_bias
+
+        kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
+                       "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
+                       "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
+                       "bias_initializer": bias_initializer}
+        # Layer
+        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args,
+                                **self._kgcnn_info)
+        self.lay_lin_u = LinearEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+                                           **self._kgcnn_info)
+        self.lay_lin_v = LinearEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+                                           **self._kgcnn_info)
+        self.lay_a = Dense(units=self.units*3, activation='linear', use_bias=self.use_bias, **kernel_args,
+                                **self._kgcnn_info)
+
+        self.lay_scalar_prod = ScalarProduct()
+        self.lay_norm = EuclideanNorm()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_split = SplitEmbedding(3, axis=-1)
+
+        self.lay_mult = Multiply(**self._kgcnn_info)
+        self.lay_mult_vv = MultiplyEquivariant(**self._kgcnn_info)
+        self.lay_add = Add(**self._kgcnn_info)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PAiNNUpdate, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass: Calculate edge update.
+
+        Args:
+            inputs: [nodes, equivariant]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - equivariant (tf.RaggedTensor): Equivariant node embedding of shape (batch, [N], F, 3)
+
+        Returns:
+            tuple: [ds, dv]
+
+                - ds (tf.RaggedTensor) Updated node features of shape (batch, [N], F)
+                - dv (tf.RaggedTensor) Updated equivariant features of shape (batch, [N], F, 3)
+        """
+        node, equivariant = inputs
+        v_v = self.lay_lin_v(equivariant)
+        v_u = self.lay_lin_u(equivariant)
+        v_prod = self.lay_scalar_prod([v_u, v_v])
+        v_norm = self.lay_norm(v_v)
+        a = self.lay_concat([node, v_norm])
+        a = self.lay_dense1(a)
+        a = self.lay_a(a)
+        a_vv, a_sv, a_ss = self.lay_split(a)
+        dv = self.lay_mult_vv([a_vv, v_u])
+        ds = self.lay_mult([v_prod, a_sv])
+        ds = self.lay_add([ds, a_ss])
+        return ds, dv
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PAiNNUpdate, self).get_config()
+        config.update({"units": self.units})
+        config_dense = self.lay_dense1.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
+            config.update({x: config_dense[x]})
+        return config
+

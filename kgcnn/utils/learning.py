@@ -1,6 +1,24 @@
 import numpy as np
 import tensorflow as tf
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
+class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
+    """Callback for linear change of the learning rate."""
+
+    def __init__(self, decay_rate, verbose=0):
+        self.decay_rate = decay_rate
+        super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_implement,
+                                                                           verbose=verbose)
+
+    def schedule_implement(self, epoch, lr):
+        out = self.decay_rate*lr
+        return float(out)
+
+    def get_config(self):
+        config = super(LinearWarmupExponentialLearningRateScheduler, self).get_config()
+        config.update({})
+        return config
+
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearLearningRateScheduler')
 class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):

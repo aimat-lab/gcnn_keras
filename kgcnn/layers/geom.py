@@ -27,10 +27,10 @@ class NodeDistance(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, tensor_index]
+            inputs (list): [position, edge_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
@@ -59,6 +59,143 @@ class NodeDistance(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScalarProduct')
+class ScalarProduct(GraphBaseLayer):
+    """Compute geometric scalar product for edges.
+
+    A distance based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(ScalarProduct, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(ScalarProduct, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [vec1, vec1]
+
+                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
+                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
+
+        Returns:
+            tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
+        """
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs]):
+            v1 = inputs[0].values
+            v2 = inputs[1].values
+            out = tf.reduce_sum(v1*v2, axis=-1)
+            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+        else:
+            out = tf.reduce_sum(inputs[0]*inputs[1], axis=-1)
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(ScalarProduct, self).get_config()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
+class EuclideanNorm(GraphBaseLayer):
+    """Compute geometric norm for edges or nodes.
+
+    A distance based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(EuclideanNorm, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(EuclideanNorm, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): coord
+
+                - coord (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
+
+        Returns:
+            tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
+        """
+        if isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1:
+            v = inputs.values
+            out = tf.reduce_sum(tf.square(v), axis=-1)
+            out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
+        else:  # Try general tensor approach
+            out = tf.reduce_sum(tf.square(inputs), axis=-1)
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(EuclideanNorm, self).get_config()
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
+class EdgeDirectionNormalized(GraphBaseLayer):
+    r"""Compute the normalized geometric edge direction similar to edges.
+    Will return :math:`\frac{r_{ij}}{||{r_ij}||} `.
+
+    A distance based edge is defined by edge or bond index in index list of shape (batch, [N], 2) with last dimension
+    of ingoing and outgoing.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(EdgeDirectionNormalized, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(EdgeDirectionNormalized, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [position, edge_index]
+
+                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+
+        Returns:
+            tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 3)
+        """
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs])
+        dyn_inputs = inputs
+        # We cast to values here
+        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
+        edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
+
+        indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
+                                           partition_type_index="row_length", to_indexing='batch',
+                                           from_indexing=self.node_indexing)
+        # For ragged tensor we can now also try:
+        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
+        xi = tf.gather(node, indexlist[:, 0], axis=0)
+        xj = tf.gather(node, indexlist[:, 1], axis=0)
+
+        xij = xi - xj
+        out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xij), axis=-1))), axis=-1)
+        out = xij/out
+        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(EdgeDirectionNormalized, self).get_config()
+        return config
+
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeAngle')
 class NodeAngle(GraphBaseLayer):
     """Compute geometric node angles.
@@ -78,7 +215,7 @@ class NodeAngle(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, tensor_index]
+            inputs (list): [position, node_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
                 - node_index (tf.RaggedTensor): Node indices of shape (batch, [M], 3) referring to nodes
@@ -135,10 +272,10 @@ class EdgeAngle(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, tensor_index]
+            inputs (list): [position, edge_index, angle_index]
 
                 - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - tensor_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
+                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
                 - angle_index (tf.RaggedTensor): Angle indices of shape (batch, [K], 2) referring to edges.
 
         Returns:
@@ -248,8 +385,7 @@ class BesselBasisLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SphericalBasisLayer')
 class SphericalBasisLayer(GraphBaseLayer):
-    r"""
-    Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
+    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
 
     Args:
         num_spherical (int): Number of spherical basis functions
