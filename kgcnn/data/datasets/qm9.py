@@ -1,6 +1,7 @@
 import os
 import pickle
 import numpy as np
+import json
 # import shutil
 
 from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
@@ -11,6 +12,8 @@ from kgcnn.data.base import GraphDatasetBase
 
 class QM9Dataset(GraphDatasetBase):
     """Store and process QM9 dataset."""
+    # https://ndownloader.figshare.com/files/3195398
+    # https://ndownloader.figshare.com/files/3195389
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "qm9"
@@ -48,14 +51,15 @@ class QM9Dataset(GraphDatasetBase):
         datasetsize = 133885
         qm9 = []
 
-        if os.path.exists(os.path.join(path, "qm9.pickle")) and not overwrite:
+        if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
+                os.path.join(path, "qm9.json"))) and not overwrite:
             if verbose > 0:
                 print("INFO: Single molecules already pickled... done")
             return qm9
 
         if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
             if verbose > 0:
-                print("ERROR: Can not find extracted dsgdb9nsd.xyz directory")
+                print("ERROR: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
             return qm9
 
         # Read individual files
@@ -70,7 +74,7 @@ class QM9Dataset(GraphDatasetBase):
             labels = lines[1].strip().split(' ')[1].split('\t')
             if int(labels[0]) != i:
                 print("Warning: Index not matching xyz-file.")
-            labels = [int(labels[0])] + [float(x) for x in labels[1:]]
+            labels = [lines[1].strip().split(' ')[0].strip()] + [int(labels[0])] + [float(x) for x in labels[1:]]
             mol.append(labels)
             cords = []
             for j in range(int(lines[0])):
@@ -91,11 +95,17 @@ class QM9Dataset(GraphDatasetBase):
 
         # Save pickle data
         if verbose > 0:
-            print("INFO: Saving qm9.pickle ...", end='', flush=True)
-        with open(os.path.join(path, "qm9.pickle"), 'wb') as f:
-            pickle.dump(qm9, f)
+            print("INFO: Saving qm9.json ...", end='', flush=True)
+        with open(os.path.join(path, "qm9.json"), 'w') as f:
+            json.dump(qm9, f)
         if verbose > 0:
             print('done')
+        # if verbose > 0:
+        #     print("INFO: Saving qm9.pickle ...", end='', flush=True)
+        # with open(os.path.join(path, "qm9.pickle"), 'wb') as f:
+        #     pickle.dump(qm9, f)
+        # if verbose > 0:
+        #     print('done')
 
         # Remove file after reading
         if verbose > 0:
@@ -119,12 +129,18 @@ class QM9Dataset(GraphDatasetBase):
 
         if verbose > 0:
             print("INFO: Reading dataset ...", end='', flush=True)
-        with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
-            qm9 = pickle.load(f)
+        if os.path.exists(os.path.join(path, "qm9.pickle")):
+            with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
+                qm9 = pickle.load(f)
+        elif os.path.exists(os.path.join(path, "qm9.json")):
+            with open(os.path.join(path, "qm9.json"), 'rb') as f:
+                qm9 = json.load(f)
+        else:
+            raise FileNotFoundError("Can not find pickled QM9 dataset.")
 
         # labels
-        labels = np.array([x[1] for x in qm9])
-
+        labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag here
+        # print(labels[0])
         # Atoms as nodes
         atoms = [[y[0] for y in x[2]] for x in qm9]
         # nodelens = np.array([len(x) for x in atoms], dtype=np.int)
