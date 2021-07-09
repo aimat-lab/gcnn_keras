@@ -84,9 +84,9 @@ class Add(GraphBaseLayer):
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
-            if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
+            if all([x.ragged_rank == 1 for x in inputs]):
                 out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                 return out
             else:
                 print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
@@ -107,9 +107,9 @@ class Average(GraphBaseLayer):
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
-            if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
+            if all([x.ragged_rank == 1 for x in inputs]):
                 out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                 return out
             else:
                 print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
@@ -130,9 +130,9 @@ class Multiply(GraphBaseLayer):
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
-            if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
+            if all([x.ragged_rank == 1 for x in inputs]):
                 out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=False)
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                 return out
             else:
                 print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
@@ -156,7 +156,7 @@ class Concatenate(GraphBaseLayer):
             # However, partition could be different, so this is only okay if ragged_validate=False
             # For defined inner-dimension and raggd_rank=1 can do sloppy concatenate on values.
             if all([x.ragged_rank == 1 for x in inputs]) and self._kgcnn_wrapper_layer.axis == -1 and all(
-                    [x.shape[-1] is not None for x in inputs]) and not self.ragged_validate:
+                    [x.shape[-1] is not None for x in inputs]):
                 out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
                 out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                 return out

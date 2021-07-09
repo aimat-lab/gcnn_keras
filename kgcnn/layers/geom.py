@@ -127,6 +127,7 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
+        # axis = [i for i in range(len(inputs.shape))][self.axis]
         if isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1:
             v = inputs.values
             out = tf.reduce_sum(tf.square(v), axis=-1)

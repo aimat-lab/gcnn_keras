@@ -207,8 +207,8 @@ class MultiplyEquivariant(GraphBaseLayer):
         return out
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEquivariant')
-class LinearEquivariant(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoEquivariant')
+class TrafoEquivariant(GraphBaseLayer):
     """Linear Combination of equivariant features.
     Used by PAiNN. Require ragged_rank=1 and rank=4.
     TODO: Will remove this later and replace by a more general version.
@@ -228,7 +228,7 @@ class LinearEquivariant(GraphBaseLayer):
                  bias_constraint=None,
                  **kwargs):
         """Initialize layer same as tf.keras.Multiply."""
-        super(LinearEquivariant, self).__init__(**kwargs)
+        super(TrafoEquivariant, self).__init__(**kwargs)
         self._kgcnn_wrapper_args = ["units", "activation", "use_bias", "kernel_initializer", "bias_initializer",
                                     "kernel_regularizer", "bias_regularizer", "activity_regularizer",
                                     "kernel_constraint", "bias_constraint"]
@@ -302,10 +302,10 @@ class PAiNNUpdate(GraphBaseLayer):
         # Layer
         self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args,
                                 **self._kgcnn_info)
-        self.lay_lin_u = LinearEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
-                                           **self._kgcnn_info)
-        self.lay_lin_v = LinearEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
-                                           **self._kgcnn_info)
+        self.lay_lin_u = TrafoEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+                                          **self._kgcnn_info)
+        self.lay_lin_v = TrafoEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+                                          **self._kgcnn_info)
         self.lay_a = Dense(units=self.units*3, activation='linear', use_bias=self.use_bias, **kernel_args,
                                 **self._kgcnn_info)
 
