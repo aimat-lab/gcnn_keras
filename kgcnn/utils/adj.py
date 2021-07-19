@@ -28,10 +28,7 @@ def precompute_adjacency_scaled(adj_matrix, add_identity=True):
         di[np.arange(adj_matrix.shape[0]), np.arange(adj_matrix.shape[0])] = d_ii
         dj[np.arange(adj_matrix.shape[1]), np.arange(adj_matrix.shape[1])] = d_jj
         return np.matmul(di, np.matmul(adj_matrix, dj))
-    elif (isinstance(adj_matrix, sp.bsr.bsr_matrix) or
-          isinstance(adj_matrix, sp.csc.csc_matrix) or
-          isinstance(adj_matrix, sp.coo.coo_matrix) or
-          isinstance(adj_matrix, sp.csr.csr_matrix)):
+    elif isinstance(adj_matrix, (sp.bsr.bsr_matrix, sp.csc.csc_matrix, sp.coo.coo_matrix, sp.csr.csr_matrix)):
         adj = sp.coo_matrix(adj_matrix)
         if add_identity:
             adj = adj + sp.eye(adj.shape[0])
@@ -69,10 +66,7 @@ def convert_scaled_adjacency_to_list(adj_scaled):
         index12 = np.concatenate([np.expand_dims(index1, axis=-1), np.expand_dims(index2, axis=-1)], axis=-1)
         edge_index = index12[a]
         return edge_index, edge_weight
-    elif (isinstance(adj_scaled, sp.bsr.bsr_matrix) or
-          isinstance(adj_scaled, sp.csc.csc_matrix) or
-          isinstance(adj_scaled, sp.coo.coo_matrix) or
-          isinstance(adj_scaled, sp.csr.csr_matrix)):
+    elif isinstance(adj_scaled, (sp.bsr.bsr_matrix, sp.csc.csc_matrix, sp.coo.coo_matrix, sp.csr.csr_matrix)):
         adj_scaled = adj_scaled.tocoo()
         ei1 = np.array(adj_scaled.row.tolist(), dtype=np.int)
         ei2 = np.array(adj_scaled.col.tolist(), dtype=np.int)
@@ -98,10 +92,7 @@ def make_adjacency_undirected_logical_or(adj_mat):
         # Aout = np.logical_or(adj_matrix,at)
         a_out = (at > adj_mat) * at + (adj_mat >= at) * adj_mat
         return a_out
-    elif (isinstance(adj_mat, sp.bsr.bsr_matrix) or
-          isinstance(adj_mat, sp.csc.csc_matrix) or
-          isinstance(adj_mat, sp.coo.coo_matrix) or
-          isinstance(adj_mat, sp.csr.csr_matrix)):
+    elif isinstance(adj_mat, (sp.bsr.bsr_matrix, sp.csc.csc_matrix, sp.coo.coo_matrix, sp.csr.csr_matrix)):
         adj = sp.coo_matrix(adj_mat)
         adj_t = sp.coo_matrix(adj_mat).transpose()
         a_out = (adj_t > adj).multiply(adj_t) + (adj > adj_t).multiply(adj) + adj - (adj != adj_t).multiply(adj)

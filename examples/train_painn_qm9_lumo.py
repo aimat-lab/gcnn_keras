@@ -110,7 +110,7 @@ mae_valid = np.mean(np.abs(pred_test - true_test))
 # Plot loss vs epochs
 plt.figure()
 plt.plot(np.arange(trainloss.shape[0]), trainloss, label='Training Loss', c='blue')
-plt.plot(np.arange(epostep, epo + epostep, epostep), testloss, label='Test Loss', c='red')
+plt.plot(np.arange(1,len(testloss)+1)*epostep, testloss, label='Test Loss', c='red')
 plt.scatter([trainloss.shape[0]], [mae_valid], label="{0:0.4f} ".format(mae_valid) + "[" + data_unit + "]", c='red')
 plt.xlabel('Epochs')
 plt.ylabel('Loss ' + "[" + data_unit + "]")
