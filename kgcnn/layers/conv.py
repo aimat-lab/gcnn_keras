@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
-from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
+from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate, ExpandDims
 from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.update import MultiplyEquivariant
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
@@ -323,8 +323,11 @@ class PAiNNconv(GraphBaseLayer):
         self.gather_v = GatherNodesOutgoing(**self._kgcnn_info)
 
         self.lay_mult = Multiply(**self._kgcnn_info)
-        self.lay_mult_vv = MultiplyEquivariant(**self._kgcnn_info)
-        self.lay_mult_vw = MultiplyEquivariant(**self._kgcnn_info)
+        self.lay_exp_vv = ExpandDims(axis=-1, **self._kgcnn_info)
+        self.lay_exp_vw = ExpandDims(axis=-1, **self._kgcnn_info)
+        self.lay_exp_r = ExpandDims(axis=-2, **self._kgcnn_info)
+        self.lay_mult_vv = Multiply(**self._kgcnn_info)
+        self.lay_mult_vw = Multiply(**self._kgcnn_info)
 
         self.lay_add = Add(**self._kgcnn_info)
 
@@ -360,7 +363,10 @@ class PAiNNconv(GraphBaseLayer):
         sw1, sw2, sw3 = self.lay_split(sw)
         ds = self.lay_sum([node, sw1, indexlist])
         vj = self.gather_v([equivariant, indexlist])
+        sw2 = self.lay_exp_vv(sw2)
         dv1 = self.lay_mult_vv([sw2, vj])
+        sw3 = self.lay_exp_vw(sw3)
+        r_ij = self.lay_exp_r(r_ij)
         dv2 = self.lay_mult_vw([sw3, r_ij])
         dv = self.lay_add([dv1, dv2])
         dv = self.lay_sum_v([node, dv, indexlist])

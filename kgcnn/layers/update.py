@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate
+from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 
 
@@ -315,7 +315,8 @@ class PAiNNUpdate(GraphBaseLayer):
         self.lay_split = SplitEmbedding(3, axis=-1)
 
         self.lay_mult = Multiply(**self._kgcnn_info)
-        self.lay_mult_vv = MultiplyEquivariant(**self._kgcnn_info)
+        self.lay_exp_v = ExpandDims(axis=-1, **self._kgcnn_info)
+        self.lay_mult_vv = Multiply(**self._kgcnn_info)
         self.lay_add = Add(**self._kgcnn_info)
 
     def build(self, input_shape):
@@ -346,6 +347,7 @@ class PAiNNUpdate(GraphBaseLayer):
         a = self.lay_dense1(a)
         a = self.lay_a(a)
         a_vv, a_sv, a_ss = self.lay_split(a)
+        a_vv = self.lay_exp_v(a_vv)
         dv = self.lay_mult_vv([a_vv, v_u])
         ds = self.lay_mult([v_prod, a_sv])
         ds = self.lay_add([ds, a_ss])
