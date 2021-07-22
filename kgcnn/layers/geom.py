@@ -128,13 +128,14 @@ class EuclideanNorm(GraphBaseLayer):
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
         # axis = [i for i in range(len(inputs.shape))][self.axis]
-        if isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1:
-            v = inputs.values
-            out = tf.reduce_sum(tf.square(v), axis=-1)
-            out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        else:  # Try general tensor approach
-            out = tf.reduce_sum(tf.square(inputs), axis=-1)
-        return out
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                v = inputs.values
+                out = tf.reduce_sum(tf.square(v), axis=-1)
+                out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
+                return out
+
+        return tf.reduce_sum(tf.square(inputs), axis=-1)
 
     def get_config(self):
         """Update config."""

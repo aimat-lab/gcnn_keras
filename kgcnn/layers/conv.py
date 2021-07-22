@@ -6,7 +6,6 @@ from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate, ExpandDims
 from kgcnn.layers.mlp import MLP, BatchNormMLP
-from kgcnn.layers.update import MultiplyEquivariant
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 import kgcnn.ops.activ

@@ -6,18 +6,20 @@ import tensorflow as tf
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
-    def __init__(self, lr_start, decay_alpha, epo_warmup=10, verbose=0):
-        self.decay_alpha = decay_alpha
+    def __init__(self, lr_start, decay_gamma, epo_warmup=10, verbose=0):
+        self.decay_gamma = decay_gamma
         self.lr_start = lr_start
-        self.epo_warmup = epo_warmup
+        self.epo_warmup = max(epo_warmup, 0)
         super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr,
                                                                            verbose=verbose)
 
     def schedule_epoch_lr(self, epoch, lr):
-        if epoch <= self.epo_warmup:
+        if epoch < self.epo_warmup:
             new_lr = self.lr_start*epoch/self.epo_warmup
+        elif epoch == self.epo_warmup:
+            new_lr = self.lr_start
         else:
-            new_lr = lr * np.exp(-self.decay_alpha)
+            new_lr = self.lr_start * np.exp(-(epoch-self.epo_warmup)/self.decay_gamma)
         return float(new_lr)
 
     def get_config(self):
@@ -81,7 +83,7 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
 
     def __init__(self, verbose=0):
         super(LearningRateLoggingCallback, self).__init__()
-        self.verbose=verbose
+        self.verbose = verbose
 
     def on_epoch_end(self, epoch, logs=None):
         """Read out the learning rate on epoch end.

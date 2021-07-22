@@ -5,6 +5,7 @@ from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
+from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoMatMulMessages')
@@ -169,54 +170,16 @@ class GRUUpdate(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MultiplyEquivariant')
-class MultiplyEquivariant(GraphBaseLayer):
-    """Multiplication of equivariant and scalar features with pre-defined broadcasting.
-    Used by PAiNN. Require ragged_rank=1 and rank=3 or rank=4.
-
-    """
-
-    def __init__(self, **kwargs):
-        """Initialize layer same as tf.keras.Multiply."""
-        super(MultiplyEquivariant, self).__init__(**kwargs)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (list): [scalar, equivariant]
-
-                - scalar (tf.RaggedTensor): Scalar embeddings of shape (batch, [N], F)
-                    or shape (batch, [N], F, D)
-                - equivariant (tf.RaggedTensor): Geometric embedding (batch, [N], D)
-                    or shape (batch, [N], F, D)
-
-        Returns:
-           tf.RaggedTensor: Multiplication of shape (batch, [N], F, D)
-        """
-        s, v = inputs
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs])
-        sval = s.values
-        vval = v.values
-        if len(s.shape) == 3:
-            sval = tf.expand_dims(sval, axis=-1)
-        if len(v.shape) == 3:
-            vval = tf.expand_dims(vval, axis=-2)
-        out = sval*vval
-        out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-        return out
-
-
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoEquivariant')
 class TrafoEquivariant(GraphBaseLayer):
     """Linear Combination of equivariant features.
-    Used by PAiNN. Require ragged_rank=1 and rank=4.
-    TODO: Will remove this later and replace by a more general version.
+    Used by PAiNN.
 
     """
 
     def __init__(self,
                  units,
+                 axis=-2,
                  activation="linear",
                  use_bias=True,
                  kernel_initializer='glorot_uniform',
@@ -229,6 +192,7 @@ class TrafoEquivariant(GraphBaseLayer):
                  **kwargs):
         """Initialize layer same as tf.keras.Multiply."""
         super(TrafoEquivariant, self).__init__(**kwargs)
+        self.axis = axis
         self._kgcnn_wrapper_args = ["units", "activation", "use_bias", "kernel_initializer", "bias_initializer",
                                     "kernel_regularizer", "bias_regularizer", "activity_regularizer",
                                     "kernel_constraint", "bias_constraint"]
@@ -241,6 +205,18 @@ class TrafoEquivariant(GraphBaseLayer):
                                                     kernel_constraint=kernel_constraint,
                                                     bias_constraint=bias_constraint)
 
+    def build(self, input_shape):
+        super(TrafoEquivariant, self).build(input_shape)
+        self.axis = get_positive_axis(self.axis, len(input_shape))
+        mul_dim = input_shape[self.axis]
+
+        if mul_dim is None:
+            raise ValueError(
+                'The axis %s of the inputs to `TrafoEquivariant` should be defined. Found `None`.' % self.axis)
+
+        if self.axis <= 1:
+            raise ValueError('The axis argument to `TrafoEquivariant` must be >1. Found `%s`.' % self.axis)
+
     def call(self, inputs, **kwargs):
         """Forward pass.
 
@@ -250,14 +226,29 @@ class TrafoEquivariant(GraphBaseLayer):
                 - equivariant (tf.RaggedTensor): Equivariant embedding of shape (batch, [N], F, D)
 
         Returns:
-           tf.RaggedTensor: Multiplication of shape (batch, [N], F', D)
+           tf.RaggedTensor: Linear transformation of shape (batch, [N], F', D)
         """
+        # Require RaggedTensor with ragged_rank=1 as inputs.
+        # tf.transpose with perm argument does not allow ragged input in tf.__version__='2.5.0'.
         assert isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1
-        vals = inputs.values
-        vals = tf.transpose(vals, perm=[0,2,1])
-        vals = self._kgcnn_wrapper_layer(vals)
-        vals = tf.transpose(vals, perm=[0,2,1])
-        out = tf.RaggedTensor.from_row_splits(vals, inputs.row_splits, validate=self.ragged_validate)
+        values = inputs.values
+
+        # Find axis to apply linear transformation.
+        axis = self.axis - 1  # is positive axis from build.
+        if axis == values.shape.rank - 1:
+            values = self._kgcnn_wrapper_layer(values)
+        else:
+            # Permute axis to last dimension for dense.
+            perm_order = [i for i in range(values.shape.rank)]
+            perm_order[axis] = values.shape.rank - 1
+            perm_order[-1] = axis
+
+            values = tf.transpose(values, perm=perm_order)
+            values = self._kgcnn_wrapper_layer(values)
+            # Swap axes back.
+            values = tf.transpose(values, perm=perm_order)
+
+        out = tf.RaggedTensor.from_row_splits(values, inputs.row_splits, validate=self.ragged_validate)
         return out
 
 
@@ -302,12 +293,12 @@ class PAiNNUpdate(GraphBaseLayer):
         # Layer
         self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args,
                                 **self._kgcnn_info)
-        self.lay_lin_u = TrafoEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+        self.lay_lin_u = TrafoEquivariant(self.units, axis=-2, activation='linear', use_bias=False, **kernel_args,
                                           **self._kgcnn_info)
-        self.lay_lin_v = TrafoEquivariant(self.units, activation='linear', use_bias=False, **kernel_args,
+        self.lay_lin_v = TrafoEquivariant(self.units, axis=-2, activation='linear', use_bias=False, **kernel_args,
                                           **self._kgcnn_info)
-        self.lay_a = Dense(units=self.units*3, activation='linear', use_bias=self.use_bias, **kernel_args,
-                                **self._kgcnn_info)
+        self.lay_a = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args,
+                           **self._kgcnn_info)
 
         self.lay_scalar_prod = ScalarProduct()
         self.lay_norm = EuclideanNorm()
@@ -362,4 +353,3 @@ class PAiNNUpdate(GraphBaseLayer):
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
             config.update({x: config_dense[x]})
         return config
-
