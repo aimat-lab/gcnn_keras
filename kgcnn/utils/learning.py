@@ -1,22 +1,28 @@
 import numpy as np
 import tensorflow as tf
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
-    def __init__(self, decay_rate, verbose=0):
-        self.decay_rate = decay_rate
-        super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_implement,
+    def __init__(self, lr_start, decay_alpha, epo_warmup=10, verbose=0):
+        self.decay_alpha = decay_alpha
+        self.lr_start = lr_start
+        self.epo_warmup = epo_warmup
+        super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr,
                                                                            verbose=verbose)
 
-    def schedule_implement(self, epoch, lr):
-        out = self.decay_rate*lr
-        return float(out)
+    def schedule_epoch_lr(self, epoch, lr):
+        if epoch <= self.epo_warmup:
+            new_lr = self.lr_start*epoch/self.epo_warmup
+        else:
+            new_lr = lr * np.exp(-self.decay_alpha)
+        return float(new_lr)
 
     def get_config(self):
         config = super(LinearWarmupExponentialLearningRateScheduler, self).get_config()
-        config.update({})
+        config.update({"decay_alpha": self.decay_alpha, "lr_start": self.lr_start, "epo_warmup": self.epo_warmup})
         return config
 
 
@@ -25,13 +31,13 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
     def __init__(self, learning_rate_start=1e-3, learning_rate_stop=1e-5, epo_min=0, epo=500, verbose=0):
-        super(LinearLearningRateScheduler, self).__init__(schedule=self.schedule_implement, verbose=verbose)
+        super(LinearLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr, verbose=verbose)
         self.learning_rate_start = learning_rate_start
         self.learning_rate_stop = learning_rate_stop
         self.epo = epo
         self.epo_min = epo_min
 
-    def schedule_implement(self, epoch, lr):
+    def schedule_epoch_lr(self, epoch, lr):
         if epoch < self.epo_min:
             out = float(self.learning_rate_start)
         else:
@@ -42,7 +48,7 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     def get_config(self):
         config = super(LinearLearningRateScheduler, self).get_config()
         config.update({"learning_rate_start": self.learning_rate_start,
-                       "learning_rate_stop": self.learning_rate_stop, "epo": self.epo, "epo_min":self.epo_min})
+                       "learning_rate_stop": self.learning_rate_stop, "epo": self.epo, "epo_min": self.epo_min})
         return config
 
 
