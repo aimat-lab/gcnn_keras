@@ -5,6 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
+from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeDistance')
@@ -108,9 +109,10 @@ class EuclideanNorm(GraphBaseLayer):
     A distance based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, axis=-1, **kwargs):
         """Initialize layer."""
         super(EuclideanNorm, self).__init__(**kwargs)
+        self.axis = axis
 
     def build(self, input_shape):
         """Build layer."""
@@ -122,24 +124,25 @@ class EuclideanNorm(GraphBaseLayer):
         Args:
             inputs (list): coord
 
-                - coord (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
+                - coord (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
 
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
-        # axis = [i for i in range(len(inputs.shape))][self.axis]
         if isinstance(inputs, tf.RaggedTensor):
-            if inputs.ragged_rank == 1:
+            axis = get_positive_axis(self.axis, inputs.shape.rank)
+            if inputs.ragged_rank == 1 and axis > 1:
                 v = inputs.values
-                out = tf.reduce_sum(tf.square(v), axis=-1)
+                out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(v), axis=axis-1)))
                 out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
                 return out
 
-        return tf.reduce_sum(tf.square(inputs), axis=-1)
+        return tf.sqrt(tf.reduce_sum(tf.square(inputs), axis=self.axis))
 
     def get_config(self):
         """Update config."""
         config = super(EuclideanNorm, self).get_config()
+        config.update({"axis": self.axis})
         return config
 
 
