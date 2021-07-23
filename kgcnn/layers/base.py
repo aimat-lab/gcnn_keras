@@ -55,6 +55,9 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                             "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
                             "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
 
+        if self.node_indexing != "sample":
+            raise ValueError("Indexing for disjoint representation is not supported as of version 1.0")
+
     def _kgcnn_static_tensor_input_check(self):
 
         if self.input_tensor_type not in self._tensor_input_type_known:

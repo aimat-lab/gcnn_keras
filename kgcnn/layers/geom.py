@@ -490,7 +490,7 @@ class SphericalBasisLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
-    r"""Apply cos cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
+    r"""Apply cos-cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
     :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
 
     Args:
