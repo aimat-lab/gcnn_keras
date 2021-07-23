@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
@@ -19,6 +20,8 @@ class NodeDistance(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(NodeDistance, self).__init__(**kwargs)
+        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
+        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -87,13 +90,16 @@ class ScalarProduct(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs]):
-            v1 = inputs[0].values
-            v2 = inputs[1].values
-            out = tf.reduce_sum(v1*v2, axis=-1)
-            out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-        else:
-            out = tf.reduce_sum(inputs[0]*inputs[1], axis=-1)
+        # Possibly faster
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]):
+                v1 = inputs[0].values
+                v2 = inputs[1].values
+                out = tf.reduce_sum(v1*v2, axis=-1)
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+                return out
+
+        out = tf.reduce_sum(inputs[0]*inputs[1], axis=-1)
         return out
 
     def get_config(self):
@@ -323,8 +329,7 @@ class EdgeAngle(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
-    r"""
-    Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
+    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
 
     Args:
         num_radial (int): Number of radial radial basis functions
@@ -335,6 +340,7 @@ class BesselBasisLayer(GraphBaseLayer):
     def __init__(self, num_radial,
                  cutoff,
                  envelope_exponent=5,
+                 envelope_type="poly",
                  **kwargs):
         super(BesselBasisLayer, self).__init__(**kwargs)
         # Layer variables
@@ -342,6 +348,10 @@ class BesselBasisLayer(GraphBaseLayer):
         self.cutoff = cutoff
         self.inv_cutoff = tf.constant(1 / cutoff, dtype=tf.float32)
         self.envelope_exponent = envelope_exponent
+        self.envelope_type = str(envelope_type)
+
+        if self.envelope_type not in ["poly"]:
+            raise ValueError("Unknown envelope type %s in BesselBasisLayer" % self.envelope_type)
 
         # Initialize frequencies at canonical positions
         def freq_init(shape, dtype):
@@ -384,7 +394,7 @@ class BesselBasisLayer(GraphBaseLayer):
         """Update config."""
         config = super(BesselBasisLayer, self).get_config()
         config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
-                       "envelope_exponent": self.envelope_exponent})
+                       "envelope_exponent": self.envelope_exponent, "envelope_type": self.envelope_type})
         return config
 
 

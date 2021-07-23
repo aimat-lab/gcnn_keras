@@ -98,8 +98,6 @@ class MolecularGraph:
             except ValueError:
                 print("WARNING: Rdkit could not embed molecule with smile", smile)
 
-
-
         self.mol = m
         self.atom_labels = None
         self.atom_features = None

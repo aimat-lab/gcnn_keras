@@ -2,6 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
+from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodes')
@@ -58,7 +59,8 @@ class GatherNodes(GraphBaseLayer):
                 return out
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
-        out = tf.gather(inputs[0], inputs[1], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
+        # Works in tf.__version__>=2.4
+        out = tf.gather(inputs[0], inputs[1], batch_dims=1, axis=self.axis)
         if self.concat_axis is not None:
             out = tf.concat([tf.gather(out, i, axis=self.concat_axis) for i in range(out.shape[self.concat_axis])],
                             axis=self.concat_axis)
@@ -79,10 +81,12 @@ class GatherNodesOutgoing(GraphBaseLayer):
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     """
 
-    def __init__(self, axis=1, **kwargs):
+    def __init__(self, axis=1, axis_indices=2, selection_index=1, **kwargs):
         """Initialize layer."""
         super(GatherNodesOutgoing, self).__init__(**kwargs)
         self.axis = axis
+        self.axis_indices = axis_indices
+        self.selection_index = int(selection_index)
 
     def build(self, input_shape):
         """Build layer."""
@@ -107,7 +111,7 @@ class GatherNodesOutgoing(GraphBaseLayer):
         # The primary case for aggregation of nodes from node feature list. Case from doc-string.
         # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1:
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.axis_indices == 2:
                 # We cast to values here
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
@@ -115,18 +119,20 @@ class GatherNodesOutgoing(GraphBaseLayer):
                                                    partition_type_target="row_splits",
                                                    partition_type_index="row_length",
                                                    to_indexing='batch', from_indexing=self.node_indexing)
-                out = tf.gather(node, indexlist[:, 1], axis=0)
+                out = tf.gather(node, tf.gather(indexlist, self.selection_index, axis=1), axis=0)
                 out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 return out
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
-        out = tf.gather(inputs[0], inputs[1][:, :, 1], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
+        # Works in tf.__version__>=2.4
+        out = tf.gather(inputs[0], tf.gather(inputs[1], self.selection_index, axis=self.axis_indices), batch_dims=1,
+                        axis=self.axis)
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodesOutgoing, self).get_config()
-        config.update({"axis": self.axis})
+        config.update({"axis": self.axis, "axis_indices": self.axis_indices, "selection_index": self.selection_index})
         return config
 
 
@@ -138,10 +144,12 @@ class GatherNodesIngoing(GraphBaseLayer):
     If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     """
 
-    def __init__(self, axis=1, **kwargs):
+    def __init__(self, axis=1, axis_indices=2, selection_index=0, **kwargs):
         """Initialize layer."""
         super(GatherNodesIngoing, self).__init__(**kwargs)
-        self.axis= axis
+        self.axis = axis
+        self.axis_indices = axis_indices
+        self.selection_index = int(selection_index)
 
     def build(self, input_shape):
         """Build layer."""
@@ -166,7 +174,7 @@ class GatherNodesIngoing(GraphBaseLayer):
         # The primary case for aggregation of nodes from node feature list. Case from doc-string.
         # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1:
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.axis_indices == 2:
                 # We cast to values here
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
@@ -175,18 +183,19 @@ class GatherNodesIngoing(GraphBaseLayer):
                                                    partition_type_index="row_length",
                                                    to_indexing='batch',
                                                    from_indexing=self.node_indexing)
-                out = tf.gather(node, indexlist[:, 0], axis=0)
+                out = tf.gather(node, tf.gather(indexlist, self.selection_index, axis=1), axis=0)
                 out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 return out
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
-        out = tf.gather(inputs[0], inputs[1][:, :, 0], batch_dims=1, axis=self.axis)  # Works in tf.__version__>=2.4
+        out = tf.gather(inputs[0], tf.gather(inputs[1], self.selection_index, axis=self.axis_indices), batch_dims=1,
+                        axis=self.axis)  # Works in tf.__version__>=2.4
         return out
 
     def get_config(self):
         """Update config."""
         config = super(GatherNodesIngoing, self).get_config()
-        config.update({"axis": self.axis})
+        config.update({"axis": self.axis, "axis_indices": self.axis_indices, "selection_index": self.selection_index})
         return config
 
 

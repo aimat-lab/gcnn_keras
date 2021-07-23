@@ -8,7 +8,6 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-            For disjoint representation 'batch' is default.
         partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
             This is used for input_tensor_type="values_partition".
         input_tensor_type (str): Tensor input type. Default is "RaggedTensor".
