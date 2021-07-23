@@ -486,3 +486,48 @@ class SphericalBasisLayer(GraphBaseLayer):
         config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
                        "envelope_exponent": self.envelope_exponent, "num_spherical": self.num_spherical})
         return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
+class CosCutOff(GraphBaseLayer):
+    r"""Apply cos cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
+    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
+
+    Args:
+        cutoff (float): Cutoff distance Rc
+    """
+
+    def __init__(self,
+                 cutoff,
+                 **kwargs):
+        super(CosCutOff, self).__init__(**kwargs)
+        self.cutoff = float(np.abs(cutoff))
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: distance
+
+                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], D)
+
+        Returns:
+            tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
+        """
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                values = inputs.values
+                out = (tf.math.cos(values * np.pi / self.cutoff)+1)*0.5
+                out = tf.where(out < self.cutoff, out, tf.zeros_like(out))
+                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
+
+        # Try tf.cos directly with tf.where
+        out = (tf.math.cos(inputs*np.pi/self.cutoff)+1)*0.5
+        out = tf.where(out < self.cutoff, out, tf.zeros_like(out))
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(CosCutOff, self).get_config()
+        config.update({"cutoff": self.cutoff})
+        return config
