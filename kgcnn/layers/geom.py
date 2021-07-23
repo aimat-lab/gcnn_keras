@@ -38,34 +38,32 @@ class NodeDistance(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-
-        indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
-                                           partition_type_index="row_length", to_indexing='batch',
-                                           from_indexing=self.node_indexing)
-        # For ragged tensor we can now also try:
-        # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
-        xi = tf.gather(node, indexlist[:, 0], axis=0)
-        xj = tf.gather(node, indexlist[:, 1], axis=0)
-
-        out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
-
-        out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-
-        # if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-        #   if all([x.ragged_rank == 1 for x in inputs]):
-        #       rxi, rxj = self.lay_gather(inputs)
-        #       xi = rxi.values
-        #       xj = rxj.values
-        #       out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
-        #       out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-        #       return out
-        # # Default
-        # xi, xj = self.lay_gather(inputs)
+        # dyn_inputs = inputs
+        # # We cast to values here
+        # node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
+        # edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
+        #
+        # indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
+        #                                    partition_type_index="row_length", to_indexing='batch',
+        #                                    from_indexing=self.node_indexing)
+        # xi = tf.gather(node, indexlist[:, 0], axis=0)
+        # xj = tf.gather(node, indexlist[:, 1], axis=0)
+        #
         # out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
+        #
+        # out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        # Possibly faster
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]):
+                rxi, rxj = self.lay_gather(inputs)
+                xi = rxi.values
+                xj = rxj.values
+                out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
+                out = tf.RaggedTensor.from_row_splits(out, rxi.row_splits, validate=self.ragged_validate)
+                return out
+        # Default
+        xi, xj = self.lay_gather(inputs)
+        out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
         return out
 
     def get_config(self):
