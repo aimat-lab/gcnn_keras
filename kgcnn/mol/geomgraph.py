@@ -4,12 +4,15 @@ import numpy as np
 class GeometricMolGraph:
     """Geometric graph of a molecule, e.g. no chemical information just geometric definition."""
 
+    atomic_number = {}
+
     def __init__(self, atom_labels=None, coordinates=None):
 
         self.atom_labels = atom_labels
         self.coordinates = coordinates
         self.atom_number = None
         self.edge_indices = None
+        self.angle_indices = None
 
         if self.atom_labels is not None:
             self.atom_number = [x for x in self.atom_labels]
@@ -18,6 +21,9 @@ class GeometricMolGraph:
         pass
 
     def define_graph(self):
+        pass
+
+    def define_angle_indices(self):
         pass
 
     def to_networkx_graph(self):

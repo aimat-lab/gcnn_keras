@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
+from kgcnn.layers.gather import GatherNodesTuple
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
@@ -20,8 +20,7 @@ class NodeDistance(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(NodeDistance, self).__init__(**kwargs)
-        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
-        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
+        self.lay_gather = GatherNodesTuple([0, 1], **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -55,6 +54,18 @@ class NodeDistance(GraphBaseLayer):
         out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
 
         out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+
+        # if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        #   if all([x.ragged_rank == 1 for x in inputs]):
+        #       rxi, rxj = self.lay_gather(inputs)
+        #       xi = rxi.values
+        #       xj = rxj.values
+        #       out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
+        #       out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+        #       return out
+        # # Default
+        # xi, xj = self.lay_gather(inputs)
+        # out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
         return out
 
     def get_config(self):
@@ -70,9 +81,10 @@ class ScalarProduct(GraphBaseLayer):
     A distance based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, axis=-1, **kwargs):
         """Initialize layer."""
         super(ScalarProduct, self).__init__(**kwargs)
+        self.axis = axis
 
     def build(self, input_shape):
         """Build layer."""
@@ -84,27 +96,31 @@ class ScalarProduct(GraphBaseLayer):
         Args:
             inputs (list): [vec1, vec1]
 
-                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
-                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D)
+                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
+                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
 
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
         # Possibly faster
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            if all([x.ragged_rank == 1 for x in inputs]):
+            axis = get_positive_axis(self.axis, inputs[0].shape.rank)
+            axis2 = get_positive_axis(self.axis, inputs[1].shape.rank)
+            assert axis2 == axis
+            if all([x.ragged_rank == 1 for x in inputs]) and axis > 1:
                 v1 = inputs[0].values
                 v2 = inputs[1].values
-                out = tf.reduce_sum(v1*v2, axis=-1)
+                out = tf.reduce_sum(v1*v2, axis=axis-1)
                 out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
                 return out
-
-        out = tf.reduce_sum(inputs[0]*inputs[1], axis=-1)
+        # Default
+        out = tf.reduce_sum(inputs[0]*inputs[1], axis=self.axis)
         return out
 
     def get_config(self):
         """Update config."""
         config = super(ScalarProduct, self).get_config()
+        config.update({"axis": self.axis})
         return config
 
 
@@ -142,7 +158,7 @@ class EuclideanNorm(GraphBaseLayer):
                 out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(v), axis=axis-1)))
                 out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
                 return out
-
+        # Default
         return tf.sqrt(tf.reduce_sum(tf.square(inputs), axis=self.axis))
 
     def get_config(self):

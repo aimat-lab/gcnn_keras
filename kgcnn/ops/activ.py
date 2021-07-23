@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import numpy as np
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')
 def shifted_softplus(x):
     """Shifted softplus activation function.
