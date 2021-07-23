@@ -89,7 +89,8 @@ class LipopDataset(GraphDatasetBase):
         labels = []
 
         for i, sm in enumerate(smiles):
-            mg = MolecularGraph(sm, add_Hs=False, sanitize=True)
+            mg = MolecularGraph()
+            mg.mol_from_smiles(sm, add_Hs=False, sanitize=True)
             mg.make_features(nodes=nf, edges=ef, state=sf, encoder=encoder)
             atom_info, bond_info, bond_idx, mol_info = mg.atom_features, mg.bond_features, mg.bond_indices, mg.molecule_features
 

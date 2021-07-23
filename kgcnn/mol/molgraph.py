@@ -7,8 +7,10 @@ import rdkit.Chem.Descriptors
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
 # or check https://pypi.org/project/rdkit-pypi/
+# or try `conda install -c rdkit rdkit`
 
 class OneHotEncoder:
+    """Simple One-Hot-Encoding for python list. Pre-defined values for one-hot."""
 
     def __init__(self, onehot_values, add_others=True):
         self.onehot_values = onehot_values
@@ -28,6 +30,7 @@ class OneHotEncoder:
 
 
 class MolecularGraph:
+    """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
 
     atom_fun_dict = {
         "AtomicNum": rdkit.Chem.rdchem.Atom.GetAtomicNum,
@@ -63,7 +66,22 @@ class MolecularGraph:
         "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
     }
 
-    def __init__(self, smile, add_Hs=True, sanitize=True):
+    def __init__(self, mol=None):
+        """Init MolecularGraph with mol object.
+
+        Args:
+            mol (rdkit.Chem.Mol): Mol object from rdkit. Default is None.
+        """
+
+        self.mol = mol
+        self.atom_labels = None
+        self.atom_features = None
+        self.bond_indices = None
+        self.bond_features = None
+        self.coordinates = None
+        self.molecule_features = None
+
+    def mol_from_smiles(self, smile, add_Hs=True, sanitize=True):
         """Make molecule from smile.
 
         Args:
@@ -99,15 +117,9 @@ class MolecularGraph:
                 print("WARNING: Rdkit could not embed molecule with smile", smile)
 
         self.mol = m
-        self.atom_labels = None
-        self.atom_features = None
-        self.bond_indices = None
-        self.bond_features = None
-        self.coordinates = None
-        self.molecule_features = None
 
     def make_features(self, nodes=None, edges=None, state=None, encoder=None, is_directed=True):
-        """This is a rudiment function for converting a smile string to a graph-like object.
+        """This is a rudiment function for extracting molecular features from rdkit object.
 
         Args:
             nodes (list): Optional list of node properties to extract.
@@ -119,7 +131,8 @@ class MolecularGraph:
         Returns:
             self: MolecularGraph object.
         """
-
+        if self.mol is None:
+            raise ValueError("Mol object has not be set by init or mol_from_smiles for `MolecularGraph`.")
         m = self.mol
 
         # Define the properties to extract
@@ -209,3 +222,6 @@ class MolecularGraph:
         self.bond_features = bond_info
 
         return self
+
+    def to_networkx_graph(self):
+        pass
