@@ -11,6 +11,7 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
         self.lr_start = lr_start
         self.lr_min = lr_min
         self.epo_warmup = max(epo_warmup, 0)
+        self.verbose = verbose
         super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr,
                                                                            verbose=verbose)
 
@@ -25,7 +26,8 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
 
     def get_config(self):
         config = super(LinearWarmupExponentialLearningRateScheduler, self).get_config()
-        config.update({"decay_alpha": self.decay_alpha, "lr_start": self.lr_start, "epo_warmup": self.epo_warmup})
+        config.update({"lr_start": self.lr_start, "decay_gamma": self.decay_gamma, "epo_warmup": self.epo_warmup,
+                       "lr_min": self.lr_min, "verbose": self.verbose})
         return config
 
 
