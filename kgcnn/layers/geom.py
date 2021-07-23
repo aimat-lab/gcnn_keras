@@ -517,13 +517,15 @@ class CosCutOff(GraphBaseLayer):
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
                 values = inputs.values
-                out = (tf.math.cos(values * np.pi / self.cutoff)+1)*0.5
-                out = tf.where(out < self.cutoff, out, tf.zeros_like(out))
+                fc = (tf.math.cos(values * np.pi / self.cutoff)+1)*0.5
+                fc = tf.where(fc < self.cutoff, fc, tf.zeros_like(fc))
+                out = fc*values
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
 
         # Try tf.cos directly with tf.where
-        out = (tf.math.cos(inputs*np.pi/self.cutoff)+1)*0.5
-        out = tf.where(out < self.cutoff, out, tf.zeros_like(out))
+        fc = (tf.math.cos(inputs*np.pi/self.cutoff)+1)*0.5
+        fc = tf.where(fc < self.cutoff, fc, tf.zeros_like(fc))
+        out = fc*inputs
         return out
 
     def get_config(self):

@@ -59,7 +59,9 @@ ytest = labels_test
 # Get Model with matching input and output properties
 model = make_painn(input_node_shape=[None],
                    input_equiv_shape=[None, 128, 3],
-                   input_embedding= {"nodes": {"input_dim": 95, "output_dim": 128}}
+                   input_embedding={"nodes": {"input_dim": 95, "output_dim": 128}},
+                   conv_args={'units': 128, 'cutoff': 5.0},
+                   update_args={'units': 128}
                    )
 
 # Define learning rate and epochs

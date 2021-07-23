@@ -6,6 +6,7 @@ from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate, ExpandDims
 from kgcnn.layers.mlp import MLP, BatchNormMLP
+from kgcnn.layers.geom import CosCutOff
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
     PoolingNodes
 import kgcnn.ops.activ
@@ -287,6 +288,7 @@ class PAiNNconv(GraphBaseLayer):
                  conv_pool='sum',
                  use_bias=True,
                  activation='swish',
+                 cutoff=5.0,
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -300,6 +302,7 @@ class PAiNNconv(GraphBaseLayer):
         self.conv_pool = conv_pool
         self.units = units
         self.use_bias = use_bias
+        self.cutoff = cutoff
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -314,6 +317,7 @@ class PAiNNconv(GraphBaseLayer):
                                 **self._kgcnn_info)
 
         self.lay_split = SplitEmbedding(3, axis=-1)
+        self.lay_cos_cut = CosCutOff(cutoff=self.cutoff, **self._kgcnn_info)
 
         self.lay_sum = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
         self.lay_sum_v = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
@@ -357,7 +361,7 @@ class PAiNNconv(GraphBaseLayer):
         s = self.lay_phi(s)
         s = self.gather_n([s, indexlist])
         w = self.lay_w(rbf)
-        # Cos-cutoff apply here TODO
+        w = self.lay_cos_cut(w)  # Cos-cutoff
         sw = self.lay_mult([s, w])
         sw1, sw2, sw3 = self.lay_split(sw)
         ds = self.lay_sum([node, sw1, indexlist])
@@ -374,7 +378,7 @@ class PAiNNconv(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PAiNNconv, self).get_config()
-        config.update({"conv_pool": self.conv_pool, "units": self.units})
+        config.update({"conv_pool": self.conv_pool, "units": self.units, "cutoff": self.cutoff})
         config_dense = self.lay_dense1.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:

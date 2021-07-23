@@ -70,7 +70,6 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         return config
 
 
-
 class PoolingAdjacencyMatmul(GraphBaseLayer):
     r"""Layer for pooling of node features by multiplying with sparse adjacency matrix. Which gives $A n$.
 

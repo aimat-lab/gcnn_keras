@@ -33,6 +33,8 @@ def make_painn(**kwargs):
                                     "activation": ['swish', 'linear']},
                      'bessel_basis': {'num_radial': 20, 'cutoff': 5.0, 'envelope_exponent': 5},
                      'pooling_args': {'pooling_method': 'sum'},
+                     'conv_args': {'units': 128, 'cutoff': 5.0},
+                     'update_args': {'units': 128},
                      'depth': 3,
                      'verbose': 1
                      }
@@ -50,6 +52,8 @@ def make_painn(**kwargs):
     output_embedding = m['output_embedding']
     pooling_args = m['pooling_args']
     output_mlp = m['output_mlp']
+    conv_args = m['conv_args']
+    update_args = m['update_args']
 
     # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
@@ -69,11 +73,11 @@ def make_painn(**kwargs):
 
     for i in range(depth):
         # Message
-        ds, dv = PAiNNconv(units=128)([z, v, rbf, rij, edi])
+        ds, dv = PAiNNconv(**conv_args)([z, v, rbf, rij, edi])
         z = Add()([z, ds])
         v = Add()([v, dv])
         # Update
-        ds, dv = PAiNNUpdate(units=128)([z, v])
+        ds, dv = PAiNNUpdate(**update_args)([z, v])
         z = Add()([z, ds])
         v = Add()([v, dv])
     n = z
