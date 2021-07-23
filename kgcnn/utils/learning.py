@@ -6,20 +6,21 @@ import tensorflow as tf
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
-    def __init__(self, lr_start, decay_gamma, epo_warmup=10, verbose=0):
+    def __init__(self, lr_start, decay_gamma, epo_warmup=10, lr_min=0.0, verbose=0):
         self.decay_gamma = decay_gamma
         self.lr_start = lr_start
+        self.lr_min = lr_min
         self.epo_warmup = max(epo_warmup, 0)
         super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr,
                                                                            verbose=verbose)
 
     def schedule_epoch_lr(self, epoch, lr):
         if epoch < self.epo_warmup:
-            new_lr = self.lr_start*epoch/self.epo_warmup
+            new_lr = self.lr_start*epoch/self.epo_warmup + self.lr_min
         elif epoch == self.epo_warmup:
-            new_lr = self.lr_start
+            new_lr = max(self.lr_start, self.lr_min)
         else:
-            new_lr = self.lr_start * np.exp(-(epoch-self.epo_warmup)/self.decay_gamma)
+            new_lr = max(self.lr_start * np.exp(-(epoch-self.epo_warmup)/self.decay_gamma), self.lr_min)
         return float(new_lr)
 
     def get_config(self):
