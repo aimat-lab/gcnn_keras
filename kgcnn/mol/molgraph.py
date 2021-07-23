@@ -6,8 +6,8 @@ import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
-# or check https://pypi.org/project/rdkit-pypi/
-# or try `conda install -c rdkit rdkit`
+# or check https://pypi.org/project/rdkit-pypi/ via `pip install rdkit-pypi`
+# or try `conda install -c rdkit rdkit` or `conda install -c conda-forge rdkit`
 
 class OneHotEncoder:
     """Simple One-Hot-Encoding for python list. Pre-defined values for one-hot."""
@@ -70,7 +70,7 @@ class MolecularGraph:
         """Init MolecularGraph with mol object.
 
         Args:
-            mol (rdkit.Chem.Mol): Mol object from rdkit. Default is None.
+            mol (rdkit.Chem.rdchem.Mol): Mol object from rdkit. Default is None.
         """
 
         self.mol = mol
@@ -224,4 +224,7 @@ class MolecularGraph:
         return self
 
     def to_networkx_graph(self):
+        pass
+
+    def to_tensor(self):
         pass
