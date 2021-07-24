@@ -33,7 +33,7 @@ def make_painn(**kwargs):
                                     "activation": ['swish', 'linear']},
                      'bessel_basis': {'num_radial': 20, 'cutoff': 5.0, 'envelope_exponent': 5},
                      'pooling_args': {'pooling_method': 'sum'},
-                     'conv_args': {'units': 128, 'cutoff': 5.0},
+                     'conv_args': {'units': 128, 'cutoff': None},
                      'update_args': {'units': 128},
                      'depth': 3,
                      'verbose': 1

@@ -288,7 +288,7 @@ class PAiNNconv(GraphBaseLayer):
                  conv_pool='sum',
                  use_bias=True,
                  activation='swish',
-                 cutoff=5.0,
+                 cutoff=None,
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,

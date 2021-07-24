@@ -8,7 +8,7 @@ from kgcnn.layers.keras import Dense, Concatenate, Add
 from kgcnn.layers.interaction import DimNetInteractionPPBlock
 from kgcnn.layers.blocks import DimNetOutputBlock
 from kgcnn.layers.pooling import PoolingNodes
-
+from kgcnn.layers.embedding import EmbeddingDimeBlock
 
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
@@ -83,11 +83,11 @@ def make_dimnet_pp(
     angle_index_input = ks.layers.Input(shape=[None, 2], name='angle_index_input', dtype="int64", ragged=True)
 
     # Atom embedding
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    # if len(input_node_shape) == 1:
-    #     n = EmbeddingDimeBlock(**input_embedding['nodes'])(node_input)
-    # else:
-    #     n = node_input
+    # n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
+    if len(input_node_shape) == 1:
+        n = EmbeddingDimeBlock(**input_embedding['nodes'])(node_input)
+    else:
+        n = node_input
 
     x = xyz_input
     edi = bond_index_input
