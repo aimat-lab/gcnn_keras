@@ -154,8 +154,7 @@ class EuclideanNorm(GraphBaseLayer):
             if inputs.ragged_rank == 1 and axis > 1:
                 v = inputs.values
                 out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(v), axis=axis - 1)))
-                out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-                return out
+                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
         # Default
         return tf.sqrt(tf.reduce_sum(tf.square(inputs), axis=self.axis))
 
@@ -222,9 +221,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
                 xij = xi - xj
                 out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xij), axis=-1))), axis=-1)
                 out = xij / out
-                out = tf.RaggedTensor.from_row_splits(out, rxi.row_splits, validate=self.ragged_validate)
-                return out
-
+                return tf.RaggedTensor.from_row_splits(out, rxi.row_splits, validate=self.ragged_validate)
         # Default
         xi, xj = self.lay_gather(inputs)
         xij = xi - xj
@@ -300,9 +297,7 @@ class NodeAngle(GraphBaseLayer):
                 y = tf.norm(y, axis=-1)
                 angle = tf.math.atan2(y, x)
                 angle = tf.expand_dims(angle, axis=-1)
-                out = tf.RaggedTensor.from_row_splits(angle, rxi.row_splits, validate=self.ragged_validate)
-                return out
-
+                return tf.RaggedTensor.from_row_splits(angle, rxi.row_splits, validate=self.ragged_validate)
         # Default
         xi, xj, xk = self.lay_gather(inputs)
         v1 = xi - xj
@@ -390,9 +385,8 @@ class EdgeAngle(GraphBaseLayer):
                 y = tf.norm(y, axis=-1)
                 angle = tf.math.atan2(y, x)
                 angle = tf.expand_dims(angle, axis=-1)
-                out = tf.RaggedTensor.from_row_lengths(angle, rxi.row_splits, validate=self.ragged_validate)
+                out = tf.RaggedTensor.from_row_splits(angle, rv1.row_splits, validate=self.ragged_validate)
                 return out
-
         # Default
         xi, xj = self.lay_gather_x([inputs[0], inputs[1]])
         vs = xi - xj
@@ -464,15 +458,18 @@ class BesselBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
         """
-        assert isinstance(inputs, tf.RaggedTensor)
-        dyn_inputs = [inputs]
-        # We cast to values here
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-
-        d_scaled = node * self.inv_cutoff
+        # Possibly faster RaggedRank==1
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                node, node_part = inputs.values, inputs.row_splits
+                d_scaled = node * self.inv_cutoff
+                d_cutoff = self.envelope(d_scaled)
+                out = d_cutoff * tf.sin(self.frequencies * d_scaled)
+                return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
+        # Default
+        d_scaled = inputs * self.inv_cutoff
         d_cutoff = self.envelope(d_scaled)
         out = d_cutoff * tf.sin(self.frequencies * d_scaled)
-        out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
 
     def get_config(self):
@@ -606,14 +603,14 @@ class CosCutOff(GraphBaseLayer):
             if inputs.ragged_rank == 1:
                 values = inputs.values
                 fc = (tf.math.cos(values * np.pi / self.cutoff) + 1) * 0.5
-                fc = tf.where(fc < self.cutoff, fc, tf.zeros_like(fc))
+                fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
                 out = fc * values
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
 
         # Default
         # Try tf.cos directly with tf.where, works also for ragged
         fc = (tf.math.cos(inputs * np.pi / self.cutoff) + 1) * 0.5
-        fc = tf.where(fc < self.cutoff, fc, tf.zeros_like(fc))
+        fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
         out = fc * inputs
         return out
 
