@@ -38,28 +38,12 @@ class NodeDistance(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 1)
         """
-        # dyn_inputs = inputs
-        # # We cast to values here
-        # node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        # edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        #
-        # indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
-        #                                    partition_type_index="row_length", to_indexing='batch',
-        #                                    from_indexing=self.node_indexing)
-        # xi = tf.gather(node, indexlist[:, 0], axis=0)
-        # xj = tf.gather(node, indexlist[:, 1], axis=0)
-        #
-        # out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
-        #
-        # out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-        # Possibly faster
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]): # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
                 rxi, rxj = self.lay_gather(inputs)
                 xi, xj = rxi.values, rxj.values
                 out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
-                out = tf.RaggedTensor.from_row_splits(out, rxi.row_splits, validate=self.ragged_validate)
-                return out
+                return tf.RaggedTensor.from_row_splits(out, rxi.row_splits, validate=self.ragged_validate)
         # Default
         xi, xj = self.lay_gather(inputs)
         out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xi - xj), axis=-1))), axis=-1)
@@ -99,17 +83,14 @@ class ScalarProduct(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
         """
-        # Possibly faster
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             axis = get_positive_axis(self.axis, inputs[0].shape.rank)
             axis2 = get_positive_axis(self.axis, inputs[1].shape.rank)
             assert axis2 == axis
             if all([x.ragged_rank == 1 for x in inputs]) and axis > 1:
-                v1 = inputs[0].values
-                v2 = inputs[1].values
+                v1, v2 = inputs[0].values, inputs[1].values
                 out = tf.reduce_sum(v1 * v2, axis=axis - 1)
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-                return out
+                return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
         # Default
         out = tf.reduce_sum(inputs[0] * inputs[1], axis=self.axis)
         return out
@@ -152,8 +133,7 @@ class EuclideanNorm(GraphBaseLayer):
         if isinstance(inputs, tf.RaggedTensor):
             axis = get_positive_axis(self.axis, inputs.shape.rank)
             if inputs.ragged_rank == 1 and axis > 1:
-                v = inputs.values
-                out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(v), axis=axis - 1)))
+                out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs.values), axis=axis - 1)))
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
         # Default
         return tf.sqrt(tf.reduce_sum(tf.square(inputs), axis=self.axis))
@@ -195,26 +175,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 3)
         """
-        # assert all([isinstance(x, tf.RaggedTensor) for x in inputs]) and all([x.ragged_rank == 1 for x in inputs])
-        # dyn_inputs = inputs
-        # # We cast to values here
-        # node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        # edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        #
-        # indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
-        #                                    partition_type_index="row_length", to_indexing='batch',
-        #                                    from_indexing=self.node_indexing)
-        # # For ragged tensor we can now also try:
-        # # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
-        # xi = tf.gather(node, indexlist[:, 0], axis=0)
-        # xj = tf.gather(node, indexlist[:, 1], axis=0)
-        #
-        # xij = xi - xj
-        # out = tf.expand_dims(tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.math.square(xij), axis=-1))), axis=-1)
-        # out = xij/out
-        # out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-        # Possibly faster
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
                 rxi, rxj = self.lay_gather(inputs)
                 xi, xj = rxi.values, rxj.values
@@ -263,30 +224,7 @@ class NodeAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
         """
-        # dyn_inputs = inputs
-        # # We cast to values here
-        # node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        # edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        #
-        # indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
-        #                                    partition_type_index="row_length", to_indexing='batch',
-        #                                    from_indexing=self.node_indexing)
-        # # For ragged tensor we can now also try:
-        # # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
-        # xi = tf.gather(node, indexlist[:, 0], axis=0)
-        # xj = tf.gather(node, indexlist[:, 1], axis=0)
-        # xk = tf.gather(node, indexlist[:, 2], axis=0)
-        # v1 = xi - xj
-        # v2 = xj - xk
-        # x = tf.reduce_sum(v1 * v2, axis=-1)
-        # y = tf.linalg.cross(v1, v2)
-        # y = tf.norm(y, axis=-1)
-        # angle = tf.math.atan2(y, x)
-        # angle = tf.expand_dims(angle, axis=-1)
-        #
-        # out = tf.RaggedTensor.from_row_lengths(angle, edge_part, validate=self.ragged_validate)
-        # Possibly faster
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
                 rxi, rxj, rxk = self.lay_gather(inputs)
                 xi, xj, xk = rxi.values, rxj.values, rxk.values
@@ -345,35 +283,7 @@ class EdgeAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
-        # dyn_inputs = inputs
-        # node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        # edge_index, edge_part = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        # angle_index, angle_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
-        #
-        # indexlist = partition_row_indexing(edge_index, node_part, edge_part, partition_type_target="row_splits",
-        #                                    partition_type_index="row_length", to_indexing='batch',
-        #                                    from_indexing=self.node_indexing)
-        #
-        # indexlist2 = partition_row_indexing(angle_index, edge_part, angle_part, partition_type_target="row_splits",
-        #                                     partition_type_index="row_length", to_indexing='batch',
-        #                                     from_indexing=self.node_indexing)
-        #
-        # # For ragged tensor we can now also try:
-        # # out = tf.gather(nod, tensor_index[:, :, 0], batch_dims=1)
-        # xi = tf.gather(node, indexlist[:, 0], axis=0)
-        # xj = tf.gather(node, indexlist[:, 1], axis=0)
-        # vs = xi - xj
-        # v1 = tf.gather(vs, indexlist2[:, 0], axis=0)
-        # v2 = tf.gather(vs, indexlist2[:, 1], axis=0)
-        # x = tf.reduce_sum(v1 * v2, axis=-1)
-        # y = tf.linalg.cross(v1, v2)
-        # y = tf.norm(y, axis=-1)
-        # angle = tf.math.atan2(y, x)
-        # angle = tf.expand_dims(angle, axis=-1)
-        #
-        # out = tf.RaggedTensor.from_row_lengths(angle, angle_part, validate=self.ragged_validate)
-        # Possibly faster
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
                 rxi, rxj = self.lay_gather_x([inputs[0], inputs[1]])
                 vs = tf.RaggedTensor.from_row_splits(rxi.values - rxj.values, rxi.row_splits,
@@ -385,8 +295,7 @@ class EdgeAngle(GraphBaseLayer):
                 y = tf.norm(y, axis=-1)
                 angle = tf.math.atan2(y, x)
                 angle = tf.expand_dims(angle, axis=-1)
-                out = tf.RaggedTensor.from_row_splits(angle, rv1.row_splits, validate=self.ragged_validate)
-                return out
+                return tf.RaggedTensor.from_row_splits(angle, rv1.row_splits, validate=self.ragged_validate)
         # Default
         xi, xj = self.lay_gather_x([inputs[0], inputs[1]])
         vs = xi - xj
@@ -396,8 +305,7 @@ class EdgeAngle(GraphBaseLayer):
         y = tf.norm(y, axis=-1)
         angle = tf.math.atan2(y, x)
         angle = tf.expand_dims(angle, axis=-1)
-        out = angle
-        return out
+        return angle
 
     def get_config(self):
         """Update config."""
@@ -598,15 +506,13 @@ class CosCutOff(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
         """
-        # Possibly faster for ragged_rank == 1
-        if isinstance(inputs, tf.RaggedTensor):
+        if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
             if inputs.ragged_rank == 1:
                 values = inputs.values
                 fc = (tf.math.cos(values * np.pi / self.cutoff) + 1) * 0.5
                 fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
                 out = fc * values
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-
         # Default
         # Try tf.cos directly with tf.where, works also for ragged
         fc = (tf.math.cos(inputs * np.pi / self.cutoff) + 1) * 0.5

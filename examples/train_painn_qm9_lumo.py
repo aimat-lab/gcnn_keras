@@ -60,7 +60,7 @@ ytest = labels_test
 model = make_painn(input_node_shape=[None],
                    input_equiv_shape=[None, 128, 3],
                    input_embedding={"nodes": {"input_dim": 95, "output_dim": 128}},
-                   conv_args={'units': 128, 'cutoff': 5.0},
+                   conv_args={'units': 128, 'cutoff': None},
                    update_args={'units': 128}
                    )
 

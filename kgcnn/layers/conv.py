@@ -317,7 +317,8 @@ class PAiNNconv(GraphBaseLayer):
                                 **self._kgcnn_info)
 
         self.lay_split = SplitEmbedding(3, axis=-1)
-        self.lay_cos_cut = CosCutOff(cutoff=self.cutoff, **self._kgcnn_info)
+        if self.cutoff is not None:
+            self.lay_cos_cut = CosCutOff(cutoff=self.cutoff, **self._kgcnn_info)
 
         self.lay_sum = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
         self.lay_sum_v = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
@@ -361,7 +362,8 @@ class PAiNNconv(GraphBaseLayer):
         s = self.lay_phi(s)
         s = self.gather_n([s, indexlist])
         w = self.lay_w(rbf)
-        w = self.lay_cos_cut(w)  # Cos-cutoff
+        if self.cutoff is not None:
+            w = self.lay_cos_cut(w)  # Cos-cutoff
         sw = self.lay_mult([s, w])
         sw1, sw2, sw3 = self.lay_split(sw)
         ds = self.lay_sum([node, sw1, indexlist])
