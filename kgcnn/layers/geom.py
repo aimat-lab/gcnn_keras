@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesTuple
+from kgcnn.layers.gather import GatherNodesSelection, GatherNodesOutgoing
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
@@ -20,7 +20,7 @@ class NodeDistance(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(NodeDistance, self).__init__(**kwargs)
-        self.lay_gather = GatherNodesTuple([0, 1], **self._kgcnn_info)
+        self.lay_gather = GatherNodesSelection([0, 1], **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -157,7 +157,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
-        self.lay_gather = GatherNodesTuple([0, 1], **self._kgcnn_info)
+        self.lay_gather = GatherNodesSelection([0, 1], **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -206,7 +206,7 @@ class NodeAngle(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(NodeAngle, self).__init__(**kwargs)
-        self.lay_gather = GatherNodesTuple([0, 1, 2], **self._kgcnn_info)
+        self.lay_gather = GatherNodesSelection([0, 1, 2], **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -263,8 +263,8 @@ class EdgeAngle(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(EdgeAngle, self).__init__(**kwargs)
-        self.lay_gather_x = GatherNodesTuple([0, 1], **self._kgcnn_info)
-        self.lay_gather_v = GatherNodesTuple([0, 1], **self._kgcnn_info)
+        self.lay_gather_x = GatherNodesSelection([0, 1], **self._kgcnn_info)
+        self.lay_gather_v = GatherNodesSelection([0, 1], **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -417,7 +417,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         self.bessel_n_zeros = spherical_bessel_jn_zeros(num_spherical, num_radial)
         self.bessel_norm = spherical_bessel_jn_normalization_prefactor(num_spherical, num_radial)
 
-        self.lay_gather = GatherNodesTuple([0, 1], **self._kgcnn_info)
+        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
 
     @tf.function
     def envelope(self, inputs):
@@ -444,15 +444,8 @@ class SphericalBasisLayer(GraphBaseLayer):
         dyn_inputs = inputs
         edge, edge_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
         angles, angle_part = dyn_inputs[1].values, dyn_inputs[1].row_splits
-        angle_index, angle_index_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
-
-        indexlist = partition_row_indexing(angle_index, edge_part, angle_index_part,
-                                           partition_type_target="row_splits", partition_type_index="row_length",
-                                           to_indexing='batch', from_indexing=self.node_indexing)
 
         d = edge
-        id_expand_kj = indexlist
-
         d_scaled = d[:, 0] * self.inv_cutoff
         rbf = []
         for n in range(self.num_spherical):
@@ -462,7 +455,9 @@ class SphericalBasisLayer(GraphBaseLayer):
 
         d_cutoff = self.envelope(d_scaled)
         rbf_env = d_cutoff[:, None] * rbf
-        rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
+        ragged_rbf_env = tf.RaggedTensor.from_row_splits(rbf_env, edge_part, validate=self.ragged_validate)
+        rbf_env = self.lay_gather_out([ragged_rbf_env, inputs[2]]).values
+        # rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
 
         cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
         cbf = tf.stack(cbf, axis=1)
