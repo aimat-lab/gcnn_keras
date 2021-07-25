@@ -9,7 +9,6 @@ from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
-
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
 # Zhaoping Xiong, Dingyan Wang, Xiaohong Liu, Feisheng Zhong, Xiaozhe Wan, Xutong Li, Zhaojun Li, Xiaomin Luo, Kaixian Chen, Hualiang Jiang*, and Mingyue Zheng*
 # Cite this: J. Med. Chem. 2020, 63, 16, 8749–8760
@@ -39,7 +38,7 @@ def make_attentiveFP(**kwargs):
                      'dropout': 0.1
                      }
     m = update_model_args(model_default, model_args)
-    print("INFO: Updated functional make model kwargs:")
+    print("INFO:kgcnn: Updated functional make model kwargs:")
     pprint.pprint(m)
 
     # Local variables for model args

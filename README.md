@@ -99,8 +99,27 @@ g_embedd = PoolingNodes()(n_embedd)
 message_passing = ks.models.Model(inputs=[n, ei], outputs=g_embedd)
 ```
 
+or via sub-classing of the message passing base layer. Where only `message_function` and `update_nodes` must be implemented:
 
+```python
+from kgcnn.layers.conv.message import MessagePassingBase
+from kgcnn.layers.keras import Dense, Add
 
+def MyMessageNN(MessagePassingBase):
+
+    def __init__(self, units, **kwargs):
+        super(MyMessageNN, self).__init__(**kwargs)
+        self.dense = Dense(units)
+        self.add = Add(axis=-1)
+
+    def message_function(self, inputs, **kwargs):
+        n_in, n_out, edges = inputs
+        return self.dense(n_out)
+
+    def update_nodes(self, inputs, **kwargs):
+        nodes, nodes_update = inputs
+        return self.add([nodes, nodes_update])
+```
 
 <a name="literature"></a>
 # Literature

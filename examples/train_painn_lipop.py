@@ -20,10 +20,12 @@ from kgcnn.mol.geomgraph import GeometricMolGraph
 # You need at least 10 GB of RAM to load and process full dataset into memory.
 dataset = LipopDataset()
 data_unit = "logD at pH 7.4"
-labels, _, _, _, _ = dataset.get_graph()
-nodes = dataset.atoms
+labels, nodes_feat, _, _, _ = dataset.get_graph()
+atoms = dataset.atoms
 coord = dataset.coordinates
-equivariant = [np.zeros((len(x), 41, 3)) for x in nodes]
+
+nodes = [GeometricMolGraph(atom_labels=x).atom_number for x in atoms]
+equivariant = [np.zeros((len(x), 128, 3)) for x in nodes]
 edge_indices = [GeometricMolGraph(atom_labels=None, coordinates=x).define_graph(max_distance=3.0)[0] for x in coord]
 
 # Train Test split
@@ -53,21 +55,21 @@ ytrain = labels_train
 ytest = labels_test
 
 # Get Model with matching input and output properties
-model = make_painn(input_node_shape=[None, 41],
-                   input_equiv_shape=[None, 41, 3],
+model = make_painn(input_node_shape=[None],
+                   input_equiv_shape=[None, 128, 3],
                    input_embedding={"nodes": {"input_dim": 95, "output_dim": 128}},
-                   conv_args={'units': 41, 'cutoff': None},
-                   update_args={'units': 41}
+                   conv_args={'units': 128, 'cutoff': None},
+                   update_args={'units': 128}
                    )
 
 # Define learning rate and epochs
 batch_size = 32
 learning_rate = 1e-3
-warmup_steps = 3000*32/batch_size
-decay_steps = 4000000*32/batch_size
+warmup_steps = 300*32/batch_size
+decay_steps = 400000*32/batch_size
 decay_rate = 0.01
 ema_decay = 0.999
-epo = 872
+epo = 400
 epostep = 10
 # max_grad_norm=10.0
 
@@ -114,7 +116,7 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss ' + "[" + data_unit + "]")
 plt.title('Loss')
 plt.legend(loc='upper right', fontsize='x-large')
-plt.savefig('attentiveFP_loss.png')
+plt.savefig('painn_lipop_loss.png')
 plt.show()
 
 # Predicted vs Actual
@@ -125,5 +127,5 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.legend(loc='upper left', fontsize='x-large')
-plt.savefig('attentiveFP_predict.png')
+plt.savefig('painn_lipop_predict.png')
 plt.show()

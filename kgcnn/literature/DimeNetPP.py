@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as ks
+import pprint
 
 from kgcnn.utils.models import update_model_args
 from kgcnn.layers.gather import GatherNodes
@@ -13,67 +14,52 @@ from kgcnn.layers.embedding import EmbeddingDimeBlock
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
 # https://arxiv.org/abs/2011.14115
 
-def make_dimnet_pp(
-        # Input
-        input_node_shape,
-        input_embedding: dict = None,
-        # Output
-        output_embedding: dict = None,
-        # Model specific parameter
-        emb_size=128,
-        out_emb_size=256,
-        int_emb_size=64,
-        basis_emb_size=8,
-        num_blocks=4,
-        num_spherical=7,
-        num_radial=6,
-        cutoff=5.0,
-        envelope_exponent=5,
-        num_before_skip=1,
-        num_after_skip=2,
-        num_dense_output=3,
-        num_targets=12,
-        activation="swish",
-        extensive=True,
-        output_init='zeros',
-):
+
+def make_dimnet_pp(**kwargs):
     """Make DimeNet++ network.
 
     Args:
-        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
-        input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
-            {"nodes": {"input_dim": 95, "output_dim": 128,
-            'embeddings_initializer': {'class_name': 'RandomUniform', 'config': {'minval': -1.7320508075688772,
-            'maxval': 1.7320508075688772}}}
-        output_embedding (dict): Dictionary of embedding parameters of the graph network. Not used.
-        emb_size (int): Embedding size used for the messages. Default is 128.
-        out_emb_size (int): Embedding size used for atoms in the output block. Default is 256.
-        int_emb_size (int): Embedding size used for interaction triplets. Default is 64.
-        basis_emb_size (int): Embedding size used inside the basis transformation. Default is 8.
-        num_blocks (int): Number of building blocks to be stacked. Default is 4.
-        num_spherical (int): Number of spherical harmonics. Default is 7.
-        num_radial (int): Number of radial basis functions. Default is 6.
-        cutoff (float): Cutoff distance for inter-atomic interactions. Default is 5.0.
-        envelope_exponent (int): Shape of the smooth cutoff. Default is 5.
-        num_before_skip (int): Number of residual layers in interaction block before skip connection. Default is 1.
-        num_after_skip (int): Number of residual layers in interaction block after skip connection. Default is 2.
-        num_dense_output (int): Number of dense layers for the output blocks. Default is 3.
-        num_targets (int): Number of targets to predict. Default is 12.
-        activation (int): Activation function. Default is 'swish'.
-        extensive (int): Whether the output should be extensive (proportional to the number of atoms). Default is True.
-        output_init (int): Initialization method for the output layer (last layer in output block). Default is 'zeros'.
+        **kwargs
 
     Returns:
         tf.keras.models.Model: DimeNet++ model.
     """
-    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 128,
+    model_args = kwargs
+    model_default = {'input_node_shape': None,
+                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 128,
                                                    'embeddings_initializer': {'class_name': 'RandomUniform',
                                                    'config': {'minval': -1.7320508075688772,
                                                               'maxval': 1.7320508075688772}}}},
+                     'emb_size': 128, 'out_emb_size': 256, 'int_emb_size': 64, 'basis_emb_size': 8,
+                     'num_blocks': 4, 'num_spherical': 7, 'num_radial': 6,
+                     'cutoff': 5.0, 'envelope_exponent': 5,
+                     'num_before_skip': 1, 'num_after_skip': 2, 'num_dense_output': 3,
+                     'num_targets': 12, 'extensive': True, 'output_init': 'zeros',
+                     'activation': 'swish',
                      }
+    m = update_model_args(model_default, model_args)
+    print("INFO:kgcnn: Updated functional make model kwargs:")
+    pprint.pprint(m)
 
     # Update model parameters
-    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
+    input_node_shape = m['input_node_shape']
+    input_embedding = m['input_embedding']
+    emb_size = m['emb_size']
+    out_emb_size = m['out_emb_size']
+    int_emb_size = m['int_emb_size']
+    basis_emb_size = m['basis_emb_size']
+    num_blocks = m['num_blocks']
+    num_spherical = m['num_spherical']
+    num_radial = m['num_radial']
+    cutoff = m['cutoff']
+    envelope_exponent = m['envelope_exponent']
+    num_before_skip = m['num_before_skip']
+    num_after_skip = m['num_after_skip']
+    num_dense_output = m['num_dense_output']
+    num_targets = m['num_targets']
+    activation = m['activation']
+    extensive = m['extensive']
+    output_init = m['output_init']
 
     # Make input
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)

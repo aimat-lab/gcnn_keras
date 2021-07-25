@@ -35,7 +35,8 @@ class GraphDatasetBase:
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
-        self.data = None
+        # Some datasets do not offer all information.
+        self.data = None  # raw data
         self.nodes = None
         self.nodes_degree = None
         self.edges = None
@@ -45,7 +46,8 @@ class GraphDatasetBase:
         self.edge_indices = None
         self.graph_state = None
         self.graph_adjacency = None
-        self.atoms = None
+        self.atoms = None  # List of atoms as string
+        self.atoms_number = None  # Atomic number for embedding layer
         self.coordinates = None
 
         # Default functions to load a dataset.

@@ -9,8 +9,8 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
-
-# Graph Attention Networks by Veličković et al. (2018)
+# Graph Attention Networks
+# by Veličković et al. (2018)
 # https://arxiv.org/abs/1710.10903
 
 
@@ -39,7 +39,7 @@ def make_gat(**kwargs):
                      }
     m = update_model_args(model_default, model_args)
     if m['verbose'] > 0:
-        print("INFO: Updated functional make model kwargs:")
+        print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)
 
     # Local variables for model args
