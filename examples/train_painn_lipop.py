@@ -65,11 +65,11 @@ model = make_painn(input_node_shape=[None],
 # Define learning rate and epochs
 batch_size = 32
 learning_rate = 1e-3
-warmup_steps = 300*32/batch_size
-decay_steps = 400000*32/batch_size
+warmup_steps = 30*32/batch_size
+decay_steps = 40000*32/batch_size
 decay_rate = 0.01
 ema_decay = 0.999
-epo = 400
+epo = 500
 epostep = 10
 # max_grad_norm=10.0
 
