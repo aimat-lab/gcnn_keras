@@ -9,6 +9,7 @@ import tensorflow as tf
 from kgcnn.mol.methods import get_angle_indices
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle
 
+
 class TestSphericalBasisLayer(unittest.TestCase):
 
     def test_result_original(self):

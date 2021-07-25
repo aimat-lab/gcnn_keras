@@ -8,6 +8,7 @@ from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.keras import Concatenate
 
+
 class TestPoolingLocalEdgesLSTM(unittest.TestCase):
 
     n1 = [[[1.0], [6.0], [1.0], [6.0], [1.0], [1.0], [6.0], [6.0]],
