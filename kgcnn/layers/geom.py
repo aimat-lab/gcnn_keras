@@ -481,7 +481,7 @@ class CosCutOff(GraphBaseLayer):
     :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
 
     Args:
-        cutoff (float): Cutoff distance Rc
+        cutoff (float): Cutoff distance :math:`R_c`.
     """
 
     def __init__(self,
@@ -504,14 +504,16 @@ class CosCutOff(GraphBaseLayer):
         if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
             if inputs.ragged_rank == 1:
                 values = inputs.values
-                fc = (tf.math.cos(values * np.pi / self.cutoff) + 1) * 0.5
-                fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
+                fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
+                fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
+                # fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
                 out = fc * values
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
         # Default
-        # Try tf.cos directly with tf.where, works also for ragged
-        fc = (tf.math.cos(inputs * np.pi / self.cutoff) + 1) * 0.5
-        fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
+        # Try tf.cos directly, works also for ragged
+        fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
+        fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
+        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
         out = fc * inputs
         return out
 
