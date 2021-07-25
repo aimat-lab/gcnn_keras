@@ -9,6 +9,7 @@ import rdkit.Chem.Descriptors
 # or check https://pypi.org/project/rdkit-pypi/ via `pip install rdkit-pypi`
 # or try `conda install -c rdkit rdkit` or `conda install -c conda-forge rdkit`
 
+
 class OneHotEncoder:
     """Simple One-Hot-Encoding for python list. Pre-defined values for one-hot."""
 

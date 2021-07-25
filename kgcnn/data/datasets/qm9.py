@@ -6,7 +6,7 @@ import json
 
 from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance, get_angle_indices
-
+from kgcnn.mol.geomgraph import GeometricMolGraph
 from kgcnn.data.base import GraphDatasetBase
 
 
@@ -199,6 +199,8 @@ class QM9Dataset(GraphDatasetBase):
 
         if gauss_distance is None:
             gauss_distance = {'gbins': 20, 'grange': 4, 'gsigma': 0.4}
+        if not do_gauss_basis_expansion:
+            gauss_distance = None
 
         coord = self.coordinates
         labels = self.labels_graph
@@ -211,29 +213,35 @@ class QM9Dataset(GraphDatasetBase):
 
         for i in range(max_mols):
             xyz = coord[i]
-            dist = coordinates_to_distancematrix(xyz)
-
-            # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
-            cons, _ = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
-                                                     exclusive=True, self_loops=False)
-            index1 = np.tile(np.expand_dims(np.arange(0, dist.shape[0]), axis=1), (1, dist.shape[1]))
-            index2 = np.tile(np.expand_dims(np.arange(0, dist.shape[1]), axis=0), (dist.shape[0], 1))
-            mask = np.array(cons, dtype=np.bool)
-            index12 = np.concatenate([np.expand_dims(index1, axis=-1), np.expand_dims(index2, axis=-1)], axis=-1)
-            edge_idx.append(index12[mask])
-            dist_masked = dist[mask]
-
-            if do_invert_distance:
-                dist_masked = invert_distance(dist_masked)
-            if do_gauss_basis_expansion:
-                dist_masked = distance_to_gaussdistance(dist_masked, gbins=gauss_distance['gbins'],
-                                                        grange=gauss_distance['grange'],
-                                                        gsigma=gauss_distance['gsigma'])
-            # Need at least on feature dimension
-            if len(dist_masked.shape) <= 1:
-                dist_masked = np.expand_dims(dist_masked, axis=-1)
-
+            # dist = coordinates_to_distancematrix(xyz)
+            #
+            # # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
+            # cons, _ = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
+            #                                          exclusive=True, self_loops=False)
+            # index1 = np.tile(np.expand_dims(np.arange(0, dist.shape[0]), axis=1), (1, dist.shape[1]))
+            # index2 = np.tile(np.expand_dims(np.arange(0, dist.shape[1]), axis=0), (dist.shape[0], 1))
+            # mask = np.array(cons, dtype=np.bool)
+            # index12 = np.concatenate([np.expand_dims(index1, axis=-1), np.expand_dims(index2, axis=-1)], axis=-1)
+            # edge_idx.append(index12[mask])
+            # dist_masked = dist[mask]
+            #
+            # if do_invert_distance:
+            #     dist_masked = invert_distance(dist_masked)
+            # if do_gauss_basis_expansion:
+            #     dist_masked = distance_to_gaussdistance(dist_masked, gbins=gauss_distance['gbins'],
+            #                                             grange=gauss_distance['grange'],
+            #                                             gsigma=gauss_distance['gsigma'])
+            # # Need at least on feature dimension
+            # if len(dist_masked.shape) <= 1:
+            #     dist_masked = np.expand_dims(dist_masked, axis=-1)
+            #
+            # edges.append(dist_masked)
+            gmg = GeometricMolGraph(atom_labels=None, coordinates=xyz)
+            index12, dist_masked = gmg.define_graph(max_distance=max_distance, max_neighbours=max_neighbours,
+                                                    do_invert_distance=do_invert_distance, self_loops=False,
+                                                    gauss_distance=gauss_distance, exclusive=True)
             edges.append(dist_masked)
+            edge_idx.append(index12)
 
         # edge_len = np.array([len(x) for x in edge_idx], dtype=np.int)
         # edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]

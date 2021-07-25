@@ -1,5 +1,6 @@
 import numpy as np
-from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance, distance_to_gaussdistance
+from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance, \
+    distance_to_gaussdistance
 
 
 class GeometricMolGraph:
@@ -38,7 +39,8 @@ class GeometricMolGraph:
     def mol_from_xyz(self, xyz: str):
         pass
 
-    def define_graph(self, max_distance, max_neighbours=np.inf, exclusive=True, self_loops=False, do_invert_distance=False,
+    def define_graph(self, max_distance, max_neighbours=np.inf, exclusive=True, self_loops=False,
+                     do_invert_distance=False,
                      gauss_distance=None):
 
         if self.coordinates is None:
@@ -49,7 +51,8 @@ class GeometricMolGraph:
         dist = coordinates_to_distancematrix(xyz)
 
         # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
-        cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours, exclusive=exclusive, self_loops=self_loops)
+        cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
+                                                       exclusive=exclusive, self_loops=self_loops)
         mask = np.array(cons, dtype=np.bool)
         dist_masked = dist[mask]
 
