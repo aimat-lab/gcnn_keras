@@ -127,7 +127,7 @@ class MutagenicityDataset(GraphTUDataset):
 
         # Remove unconnected atoms. not Na Li etc.
         if verbose > 0:
-            print("INFO: Checking database...")
+            print("INFO:kgcnn: Checking database...")
         for i in range(len(nodes)):
             nats = nodes[i]
             cons = np.arange(len(nodes[i]))
@@ -161,7 +161,7 @@ class MutagenicityDataset(GraphTUDataset):
             labels_clean.append(labels[i])
 
         if verbose > 0:
-            print("INFO: Database still has unconnected Na+, Li+, ksb+ etc.")
+            print("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
 
         self.labels_graph = labels_clean
         self.edge_indices = edge_indices_clean

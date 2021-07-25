@@ -54,17 +54,17 @@ class QM9Dataset(GraphDatasetBase):
         if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
                 os.path.join(path, "qm9.json"))) and not overwrite:
             if verbose > 0:
-                print("INFO: Single molecules already pickled... done")
+                print("INFO:kgcnn: Single molecules already pickled... done")
             return qm9
 
         if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
             if verbose > 0:
-                print("ERROR: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
+                print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
             return qm9
 
         # Read individual files
         if verbose > 0:
-            print("INFO: Reading dsgdb9nsd files ...", end='', flush=True)
+            print("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
         for i in range(1, datasetsize + 1):
             mol = []
             file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
@@ -73,7 +73,7 @@ class QM9Dataset(GraphDatasetBase):
             mol.append(int(lines[0]))
             labels = lines[1].strip().split(' ')[1].split('\t')
             if int(labels[0]) != i:
-                print("Warning: Index not matching xyz-file.")
+                print("KGCNN:WARNING: Index for QM9 not matching xyz-file.")
             labels = [lines[1].strip().split(' ')[0].strip()] + [int(labels[0])] + [float(x) for x in labels[1:]]
             mol.append(labels)
             cords = []
@@ -95,7 +95,7 @@ class QM9Dataset(GraphDatasetBase):
 
         # Save pickle data
         if verbose > 0:
-            print("INFO: Saving qm9.json ...", end='', flush=True)
+            print("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
         with open(os.path.join(path, "qm9.json"), 'w') as f:
             json.dump(qm9, f)
         if verbose > 0:
@@ -109,7 +109,7 @@ class QM9Dataset(GraphDatasetBase):
 
         # Remove file after reading
         if verbose > 0:
-            print("INFO: Cleaning up extracted files...", end='', flush=True)
+            print("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
         for i in range(1, datasetsize + 1):
             file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
             file = os.path.join(path, "dsgdb9nsd.xyz", file)
@@ -128,7 +128,7 @@ class QM9Dataset(GraphDatasetBase):
         path = os.path.join(self.data_main_dir, self.data_directory)
 
         if verbose > 0:
-            print("INFO: Reading dataset ...", end='', flush=True)
+            print("INFO:kgcnn: Reading dataset ...", end='', flush=True)
         if os.path.exists(os.path.join(path, "qm9.pickle")):
             with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                 qm9 = pickle.load(f)

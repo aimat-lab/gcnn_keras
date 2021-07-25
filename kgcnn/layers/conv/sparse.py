@@ -71,9 +71,11 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
 
 
 class PoolingAdjacencyMatmul(GraphBaseLayer):
-    r"""Layer for pooling of node features by multiplying with sparse adjacency matrix. Which gives $A n$.
+    r"""Layer for pooling of node features by multiplying with sparse adjacency matrix.
 
-    The node features needs to be flatten for a disjoint representation.
+    Computes
+
+    The node features are flatten for a disjoint representation.
 
     Args:
         pooling_method (str): Not used. Default is "sum".

@@ -55,7 +55,7 @@ class LipopDataset(GraphDatasetBase):
         # labels1 = np.expand_dims(np.array(self.data['ESOL predicted log solubility in mols per litre']), axis=-1)
 
         if verbose > 0:
-            print("INFO: Making graph...", end='', flush=True)
+            print("INFO:kgcnn: Making graph...", end='', flush=True)
         smiles = self.data['smiles'].values
 
         # Choose node feautres:
@@ -87,12 +87,14 @@ class LipopDataset(GraphDatasetBase):
         edges = []
         edge_indices = []
         labels = []
+        coordinates = []
 
         for i, sm in enumerate(smiles):
             mg = MolecularGraph()
             mg.mol_from_smiles(sm, add_Hs=False, sanitize=True)
             mg.make_features(nodes=nf, edges=ef, state=sf, encoder=encoder)
             atom_info, bond_info, bond_idx, mol_info = mg.atom_features, mg.bond_features, mg.bond_indices, mg.molecule_features
+            xyz_info = mg.coordinates
 
             if len(bond_idx) > 0:
                 nodes.append(np.array(atom_info, dtype="float32"))
@@ -100,16 +102,18 @@ class LipopDataset(GraphDatasetBase):
                 edge_indices.append(np.array(bond_idx, dtype="int64"))
                 graph_state.append(np.array(mol_info, dtype="float32"))
                 labels.append(labels2[i])
+                coordinates.append(np.array(xyz_info, dtype="float32"))
 
         # Prepare graph state for all molecules as a single np.array
         graph_state = np.array(graph_state, dtype="float32")
 
         labels = np.array(labels)
+        self.coordinates = coordinates  # safe to property, does not change
 
         if verbose > 0:
             print("done")
             for key, value in encoder.items():
-                print("INFO: OneHotEncoder", key, "found", value.found_values)
+                print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
 
         return labels, nodes, edges, edge_indices, graph_state
 

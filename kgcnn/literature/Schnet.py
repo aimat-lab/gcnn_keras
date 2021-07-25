@@ -1,10 +1,10 @@
 import tensorflow.keras as ks
 import pprint
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.interaction import SchNetInteraction
+from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 

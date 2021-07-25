@@ -8,8 +8,8 @@ except ModuleNotFoundError:
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.keras import Dense, Activation, Concatenate
 from kgcnn.layers.gather import GatherState
-from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.attention import PoolingNodesAttention
+from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.layers.conv.attention import PoolingNodesAttention
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HasteGRUUpdate')

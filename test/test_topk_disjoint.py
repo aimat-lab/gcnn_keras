@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
-from kgcnn.layers.topk import PoolingTopK, UnPoolingTopK
+from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK
 
 
 class TestTopKLayerDisjoint(unittest.TestCase):

@@ -2,10 +2,9 @@ import tensorflow as tf
 # import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
-from kgcnn.layers.keras import Dense, Activation, Concatenate, Multiply, Add
-from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.pooling import PoolingNodesAttention, PoolingLocalEdgesAttention
-import kgcnn.ops.activ
+from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.layers.pool.pooling import PoolingNodesAttention, PoolingLocalEdgesAttention
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')

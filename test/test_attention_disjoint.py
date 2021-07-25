@@ -5,7 +5,7 @@ import tensorflow as tf
 
 
 from kgcnn.layers.casting import ChangeTensorType,ChangeIndexing
-from kgcnn.layers.attention import PoolingLocalEdgesAttention, AttentionHeadGAT
+from kgcnn.layers.conv.attention import PoolingLocalEdgesAttention, AttentionHeadGAT
 
 
 class TestAttentionDisjoint(unittest.TestCase):

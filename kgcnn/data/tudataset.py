@@ -26,7 +26,7 @@ class GraphTUDataset(GraphDatasetBase):
             name_dataset = self.kgcnn_dataset_name
             path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory, name_dataset)
         else:
-            print("WARNING: Dataset with name", self.kgcnn_dataset_name, "not found in TUDatasets list.")
+            print("WARNING:kgcnn: Dataset with name", self.kgcnn_dataset_name, "not found in TUDatasets list.")
             return None
 
         # Define a graph with indices

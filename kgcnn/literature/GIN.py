@@ -4,10 +4,10 @@ import pprint
 from kgcnn.utils.models import update_model_args
 from kgcnn.utils.models import generate_node_embedding
 from kgcnn.layers.keras import Dropout, Activation
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv import GIN
+from kgcnn.layers.conv.gin_conv import GIN
 
 
 # How Powerful are Graph Neural Networks?

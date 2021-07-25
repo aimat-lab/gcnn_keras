@@ -2,10 +2,10 @@ import tensorflow.keras as ks
 import pprint
 
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv import GCN
+from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
+from kgcnn.layers.pool.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 

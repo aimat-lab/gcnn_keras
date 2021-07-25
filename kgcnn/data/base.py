@@ -82,7 +82,7 @@ class GraphDatasetBase:
         """
         os.makedirs(data_main_dir, exist_ok=True)
         if verbose > 0:
-            print("INFO: Dataset directory located at", data_main_dir)
+            print("INFO:kgcnn: Dataset directory located at", data_main_dir)
 
     @classmethod
     def setup_dataset_dir(cls, data_main_dir, data_directory, verbose=1):
@@ -97,7 +97,7 @@ class GraphDatasetBase:
             os.mkdir(os.path.join(data_main_dir, data_directory))
         else:
             if verbose > 0:
-                print("INFO: Dataset directory found... done")
+                print("INFO:kgcnn: Dataset directory found... done")
 
     @classmethod
     def download_database(cls, path, download_url, filename, overwrite=False, verbose=1):
@@ -115,14 +115,14 @@ class GraphDatasetBase:
         """
         if os.path.exists(os.path.join(path, filename)) is False or overwrite:
             if verbose > 0:
-                print("INFO: Downloading dataset... ", end='', flush=True)
+                print("INFO:kgcnn: Downloading dataset... ", end='', flush=True)
             r = requests.get(download_url, allow_redirects=True)
             open(os.path.join(path, filename), 'wb').write(r.content)
             if verbose > 0:
                 print("done")
         else:
             if verbose > 0:
-                print("INFO: Dataset found... done")
+                print("INFO:kgcnn: Dataset found... done")
         return os.path.join(path, filename)
 
     @classmethod
@@ -141,27 +141,27 @@ class GraphDatasetBase:
         """
         if not os.path.exists(os.path.join(path, unpack_directory)):
             if verbose > 0:
-                print("INFO: Creating directory... ", end='', flush=True)
+                print("INFO:kgcnn: Creating directory... ", end='', flush=True)
             os.mkdir(os.path.join(path, unpack_directory))
             if verbose > 0:
                 print("done")
         else:
             if verbose > 0:
-                print("INFO: Directory for extraction exists... done")
+                print("INFO:kgcnn: Directory for extraction exists... done")
             if not overwrite:
                 if verbose > 0:
-                    print("INFO: Not extracting tar File... stopped")
+                    print("INFO:kgcnn: Not extracting tar File... stopped")
                 return os.path.join(path, unpack_directory)  # Stop extracting here
 
         if verbose > 0:
-            print("INFO: Read tar file... ", end='', flush=True)
+            print("INFO:kgcnn: Read tar file... ", end='', flush=True)
         archive = tarfile.open(os.path.join(path, filename), "r")
         # Filelistnames = archive.getnames()
         if verbose > 0:
             print("done")
 
         if verbose > 0:
-            print("INFO: Extracting tar file... ", end='', flush=True)
+            print("INFO:kgcnn: Extracting tar file... ", end='', flush=True)
         archive.extractall(os.path.join(path, unpack_directory))
         if verbose > 0:
             print("done")
@@ -185,21 +185,21 @@ class GraphDatasetBase:
         """
         if os.path.exists(os.path.join(path, unpack_directory)):
             if verbose > 0:
-                print("INFO: Directory for extraction exists... done")
+                print("INFO:kgcnn: Directory for extraction exists... done")
             if not overwrite:
                 if verbose > 0:
-                    print("INFO: Not extracting zip file ... stopped")
+                    print("INFO:kgcnn: Not extracting zip file ... stopped")
                 return os.path.join(path, unpack_directory)
 
         if verbose > 0:
-            print("INFO: Read zip file ... ", end='', flush=True)
+            print("INFO:kgcnn: Read zip file ... ", end='', flush=True)
         archive = zipfile.ZipFile(os.path.join(path, filename), "r")
         # Filelistnames = archive.getnames()
         if verbose > 0:
             print("done")
 
         if verbose > 0:
-            print("INFO: Extracting zip file...", end='', flush=True)
+            print("INFO:kgcnn: Extracting zip file...", end='', flush=True)
         archive.extractall(os.path.join(path, unpack_directory))
         if verbose > 0:
             print("done")

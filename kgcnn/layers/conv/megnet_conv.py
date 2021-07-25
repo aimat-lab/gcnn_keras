@@ -2,13 +2,9 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
-from kgcnn.layers.keras import Dense, Activation, Add, Multiply, Concatenate
-from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingLocalEdges, PoolingWeightedLocalEdges, PoolingGlobalEdges, \
-    PoolingNodes
-import kgcnn.ops.activ
-import kgcnn.ops.initializer
+from kgcnn.layers.keras import Dense, Concatenate
+from kgcnn.layers.gather import GatherNodes, GatherState
+from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
@@ -134,104 +130,3 @@ class MEGnetBlock(GraphBaseLayer):
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
             config.update({x: config_dense[x]})
         return config
-
-
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DimNetOutputBlock')
-class DimNetOutputBlock(GraphBaseLayer):
-    """DimNetOutputBlock.
-
-    Args:
-        emb_size (list): List of node embedding dimension.
-        out_emb_size (list): List of edge embedding dimension.
-        num_dense (list): List of environment embedding dimension.
-        num_targets (int): Number of output target dimension. Defaults to 12.
-        use_bias (bool, optional): Use bias. Defaults to True.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_orthogonal' with fallback 'orthogonal'.
-        output_kernel_initializer: Initializer for last kernel. Default is 'zeros'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
-        activation (str): Activation function. Default is 'kgcnn>swish'.
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        pooling_method (str): Pooling method information for layer. Default is 'mean'.
-    """
-
-    def __init__(self, emb_size,
-                 out_emb_size,
-                 num_dense,
-                 num_targets=12,
-                 use_bias=True,
-                 output_kernel_initializer="zeros", kernel_initializer='kgcnn>glorot_orthogonal',
-                 bias_initializer='zeros',
-                 activation='kgcnn>swish',
-                 kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None,
-                 kernel_constraint=None, bias_constraint=None,
-                 pooling_method="sum",
-                 **kwargs):
-        """Initialize layer."""
-        super(DimNetOutputBlock, self).__init__(**kwargs)
-        self.pooling_method = pooling_method
-        self.emb_size = emb_size
-        self.out_emb_size = out_emb_size
-        self.num_dense = num_dense
-        self.num_targets = num_targets
-        self.use_bias = use_bias
-
-        kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
-                       "kernel_constraint": kernel_constraint, "bias_initializer": bias_initializer,
-                       "bias_regularizer": bias_regularizer, "bias_constraint": bias_constraint, }
-
-        self.dense_rbf = Dense(emb_size, use_bias=False, kernel_initializer=kernel_initializer,
-                               **kernel_args, **self._kgcnn_info)
-        self.up_projection = Dense(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer,
-                                   **kernel_args, **self._kgcnn_info)
-        self.dense_mlp = MLP([out_emb_size] * num_dense, activation=activation, kernel_initializer=kernel_initializer,
-                             use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-        self.dimnet_mult = Multiply(**self._kgcnn_info)
-        self.pool = PoolingLocalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.dense_final = Dense(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
-                                 **kernel_args, **self._kgcnn_info)
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(DimNetOutputBlock, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs: [nodes, edges, tensor_index, state]
-
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - rbf (tf.RaggedTensor): Edge distance basis of shape (batch, [M], F)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
-
-        Returns:
-            tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F_T).
-        """
-        # Calculate edge Update
-        n_atoms, x, rbf, idnb_i = inputs
-        g = self.dense_rbf(rbf)
-        x = self.dimnet_mult([g, x])
-        x = self.pool([n_atoms, x, idnb_i])
-        x = self.up_projection(x)
-        x = self.dense_mlp(x)
-        x = self.dense_final(x)
-        return x
-
-    def get_config(self):
-        config = super(DimNetOutputBlock, self).get_config()
-        conf_mlp = self.dense_mlp.get_config()
-        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
-                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_mlp[x][0]})
-        conf_dense_output = self.dense_final.get_config()
-        config.update({"output_kernel_initializer": conf_dense_output["kernel_initializer"]})
-        config.update({"pooling_method": self.pooling_method, "use_bias": self.use_bias})
-        config.update({"emb_size": self.emb_size, "out_emb_size": self.out_emb_size, "num_dense": self.num_dense,
-                       "num_targets": self.num_targets})
-        return config
-

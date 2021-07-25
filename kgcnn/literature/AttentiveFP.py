@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import pprint
 
-from kgcnn.layers.attention import AttentiveHeadFP, PoolingNodesAttentive
+from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense, Dropout
 from kgcnn.layers.update import GRUUpdate

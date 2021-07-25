@@ -3,9 +3,10 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.pooling import PoolingLocalEdges
+from kgcnn.layers.pool.pooling import PoolingLocalEdges
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MessagePassingBase')
 class MessagePassingBase(GraphBaseLayer):
     """Base Layer for Message passing"""
 
@@ -18,14 +19,14 @@ class MessagePassingBase(GraphBaseLayer):
 
     def message_function(self, inputs, **kwargs):
         n_in, n_out, edges = inputs
-        raise NotImplementedError("A method to generate messages must be implemented in sub-class.")
+        raise NotImplementedError("A method to generate messages must be implemented in sub-class of `MessagePassingBase`.")
 
     def aggregate_message(self, inputs, **kwargs):
         return self.lay_pool_default(inputs)
 
     def update_nodes(self, inputs, **kwargs):
         nodes, nodes_update = inputs
-        raise NotImplementedError("A method to update nodes must be implemented in sub-class.")
+        raise NotImplementedError("A method to update nodes must be implemented in sub-class of `MessagePassingBase`.")
 
     def call(self, inputs, **kwargs):
         nodes, edges, edge_index = inputs

@@ -4,9 +4,9 @@ import tensorflow as tf
 from kgcnn.utils.models import update_model_args, generate_node_embedding
 from kgcnn.layers.keras import Add
 from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized
-from kgcnn.layers.conv import PAiNNconv
-from kgcnn.layers.update import PAiNNUpdate
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.conv.painn_conv import PAiNNconv
+from kgcnn.layers.conv.painn_conv import PAiNNUpdate
+from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.casting import ChangeTensorType
 

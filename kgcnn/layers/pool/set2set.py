@@ -8,15 +8,16 @@ from kgcnn.layers.base import GraphBaseLayer
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='Set2Set')
-class Set2Set(GraphBaseLayer):
-    """Set2Set layer. The Reading to Memory has to be handled seperately.
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingSet2Set')
+class PoolingSet2Set(GraphBaseLayer):
+    """PoolingSet2Set layer. The Reading to Memory has to be handled seperately.
     Uses a keras LSTM layer for the updates.
     
     Args:
         channels (int): Number of channels for the LSTM update.
         T (int): Numer of iterations. Default is T=3.
-        pooling_method : Pooling method for Set2Set. Default is 'mean'.
+        pooling_method : Pooling method for PoolingSet2Set. Default is 'mean'.
         init_qstar: How to generate the first q_star vector. Default is 'mean'.
         activation: Activation function to use.
             Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
@@ -108,7 +109,7 @@ class Set2Set(GraphBaseLayer):
                  unroll=False,
                  **kwargs):
         """Init layer."""
-        super(Set2Set, self).__init__(**kwargs)
+        super(PoolingSet2Set, self).__init__(**kwargs)
         # Number of Channels to use in LSTM
         self.channels = channels
         self.T = T  # Number of Iterations to work on memory
@@ -157,7 +158,7 @@ class Set2Set(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(Set2Set, self).build(input_shape)
+        super(PoolingSet2Set, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -259,7 +260,7 @@ class Set2Set(GraphBaseLayer):
 
     def get_config(self):
         """Make config for layer."""
-        config = super(Set2Set, self).get_config()
+        config = super(PoolingSet2Set, self).get_config()
         config.update({"channels": self.channels, "T": self.T, "pooling_method": self.pooling_method,
                        "init_qstar": self.init_qstar})
         lstm_conf = self.lay_lstm.get_config()

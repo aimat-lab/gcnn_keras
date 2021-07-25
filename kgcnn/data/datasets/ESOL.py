@@ -55,7 +55,7 @@ class ESOLDataset(GraphDatasetBase):
         # labels1 = np.expand_dims(np.array(self.data['ESOL predicted log solubility in mols per litre']), axis=-1)
 
         if verbose > 0:
-            print("INFO: Making graph...", end='', flush=True)
+            print("INFO:kgcnn: Making graph...", end='', flush=True)
         smiles = self.data['smiles'].values
 
         # Choose node feautres:
@@ -109,7 +109,7 @@ class ESOLDataset(GraphDatasetBase):
         if verbose > 0:
             print("done")
             for key, value in encoder.items():
-                print("INFO: OneHotEncoder", key, "found", value.found_values)
+                print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
 
         return labels, nodes, edges, edge_indices, graph_state
 

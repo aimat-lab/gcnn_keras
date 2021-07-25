@@ -4,8 +4,8 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
-from kgcnn.layers.set2set import Set2Set
+from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.layers.update import GRUUpdate, TrafoMatMulMessages
 from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
@@ -84,7 +84,7 @@ def make_nmpn(**kwargs):
         if use_set2set:
             # output
             outss = Dense(set2set_args['channels'], activation="linear")(n)
-            out = Set2Set(**set2set_args)(outss)
+            out = PoolingSet2Set(**set2set_args)(outss)
         else:
             out = PoolingNodes(**pooling_args)(n)
 

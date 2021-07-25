@@ -2,11 +2,11 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import pprint
 
-from kgcnn.layers.attention import AttentionHeadGATV2
+from kgcnn.layers.conv.attention import AttentionHeadGATV2
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
 
