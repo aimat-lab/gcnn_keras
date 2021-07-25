@@ -10,7 +10,6 @@ from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.casting import ChangeTensorType
 
-# First Version not (fully tested and a few things will be changed)
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
 # https://arxiv.org/pdf/2102.03150.pdf

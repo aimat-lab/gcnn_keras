@@ -72,9 +72,7 @@ A major issue for graphs is their flexible size and shape, when using mini-batch
 
 ### Input
 
-In order to input batched tensors of variable length with keras, either zero-padding plus masking or ragged and sparse tensors can be used. Morover for more flexibility, a dataloader from `tf.keras.utils.Sequence` is often used to input disjoint graph representations. Tools for converting numpy or scipy arrays are found in [utils](kgcnn/utils).
-
-Here, for ragged tensors, the nodelist of shape `(batch, None, F)` and edgelist of shape `(batch, None, Fe)` have one ragged dimension `(None, )`.
+Here, for ragged tensors, the nodelist of shape `(batch, None, F)` and edgelist of shape `(batch, None, F')` have one ragged dimension `(None, )`.
 The graph structure is represented by an index-list of shape `(batch, None, 2)` with index of incoming `i` and outgoing `j` node as `(i,j)`. 
 The first index of incoming node `i` is usually expected to be sorted for faster pooling operations, but can also be unsorted (see layer arguments). Furthermore, the graph is directed, so an additional edge with `(j,i)` is required for undirected graphs. A ragged constant can be directly obtained from a list of numpy arrays: `tf.ragged.constant(indices,ragged_rank=1,inner_shape=(2,))` which yields shape `(batch, None, 2)`.
 
@@ -130,7 +128,7 @@ In [data](kgcnn/data) there are simple data handling tools that are used for exa
 <a name="examples"></a>
 # Examples
 
-A set of example training can be found in [example](examples)
+A set of example training can be found in [example](examples).
 
 # Issues
 

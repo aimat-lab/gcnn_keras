@@ -17,12 +17,14 @@ class MessagePassingBase(GraphBaseLayer):
         self.lay_pool_default = PoolingLocalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
 
     def message_function(self, inputs, **kwargs):
+        n_in, n_out, edges = inputs
         raise NotImplementedError("A method to generate messages must be implemented in sub-class.")
 
     def aggregate_message(self, inputs, **kwargs):
         return self.lay_pool_default(inputs)
 
     def update_nodes(self, inputs, **kwargs):
+        nodes, nodes_update = inputs
         raise NotImplementedError("A method to update nodes must be implemented in sub-class.")
 
     def call(self, inputs, **kwargs):
