@@ -12,6 +12,14 @@ kgcnn.ops.activ module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.ops.axis module
+---------------------
+
+.. automodule:: kgcnn.ops.axis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.ops.casting module
 ------------------------
 
@@ -24,14 +32,6 @@ kgcnn.ops.initializer module
 ----------------------------
 
 .. automodule:: kgcnn.ops.initializer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.ops.models module
------------------------
-
-.. automodule:: kgcnn.ops.models
    :members:
    :undoc-members:
    :show-inheritance:

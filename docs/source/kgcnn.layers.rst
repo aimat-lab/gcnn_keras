@@ -1,29 +1,22 @@
 kgcnn.layers package
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   kgcnn.layers.conv
+   kgcnn.layers.pool
+
 Submodules
 ----------
-
-kgcnn.layers.attention module
------------------------------
-
-.. automodule:: kgcnn.layers.attention
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 kgcnn.layers.base module
 ------------------------
 
 .. automodule:: kgcnn.layers.base
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.blocks module
---------------------------
-
-.. automodule:: kgcnn.layers.blocks
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,10 +37,10 @@ kgcnn.layers.connect module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.conv module
-------------------------
+kgcnn.layers.embedding module
+-----------------------------
 
-.. automodule:: kgcnn.layers.conv
+.. automodule:: kgcnn.layers.embedding
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,10 +61,10 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.interaction module
--------------------------------
+kgcnn.layers.haste module
+-------------------------
 
-.. automodule:: kgcnn.layers.interaction
+.. automodule:: kgcnn.layers.haste
    :members:
    :undoc-members:
    :show-inheritance:
@@ -88,38 +81,6 @@ kgcnn.layers.mlp module
 -----------------------
 
 .. automodule:: kgcnn.layers.mlp
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.pooling module
----------------------------
-
-.. automodule:: kgcnn.layers.pooling
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.set2set module
----------------------------
-
-.. automodule:: kgcnn.layers.set2set
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.sparse module
---------------------------
-
-.. automodule:: kgcnn.layers.sparse
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.topk module
-------------------------
-
-.. automodule:: kgcnn.layers.topk
    :members:
    :undoc-members:
    :show-inheritance:

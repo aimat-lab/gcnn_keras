@@ -44,6 +44,14 @@ kgcnn.utils.loss module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.utils.models module
+-------------------------
+
+.. automodule:: kgcnn.utils.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

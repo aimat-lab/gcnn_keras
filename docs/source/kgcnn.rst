@@ -10,6 +10,7 @@ Subpackages
    kgcnn.data
    kgcnn.layers
    kgcnn.literature
+   kgcnn.mol
    kgcnn.ops
    kgcnn.utils
 

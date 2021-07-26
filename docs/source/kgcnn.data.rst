@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    kgcnn.data.datasets
-   kgcnn.data.mol
 
 Submodules
 ----------
@@ -17,6 +16,14 @@ kgcnn.data.base module
 ----------------------
 
 .. automodule:: kgcnn.data.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.tudataset module
+---------------------------
+
+.. automodule:: kgcnn.data.tudataset
    :members:
    :undoc-members:
    :show-inheritance:

@@ -28,10 +28,26 @@ kgcnn.literature.GAT module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.literature.GATv2 module
+-----------------------------
+
+.. automodule:: kgcnn.literature.GATv2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.GCN module
 ---------------------------
 
 .. automodule:: kgcnn.literature.GCN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.GIN module
+---------------------------
+
+.. automodule:: kgcnn.literature.GIN
    :members:
    :undoc-members:
    :show-inheritance:
@@ -72,6 +88,14 @@ kgcnn.literature.NMPN module
 ----------------------------
 
 .. automodule:: kgcnn.literature.NMPN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.PAiNN module
+-----------------------------
+
+.. automodule:: kgcnn.literature.PAiNN
    :members:
    :undoc-members:
    :show-inheritance:

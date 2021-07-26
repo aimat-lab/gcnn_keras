@@ -12,6 +12,14 @@ kgcnn.data.datasets.ESOL module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.PROTEINS module
+-----------------------------------
+
+.. automodule:: kgcnn.data.datasets.PROTEINS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.cora module
 -------------------------------
 
@@ -24,6 +32,14 @@ kgcnn.data.datasets.cora\_lu module
 -----------------------------------
 
 .. automodule:: kgcnn.data.datasets.cora_lu
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.lipop module
+--------------------------------
+
+.. automodule:: kgcnn.data.datasets.lipop
    :members:
    :undoc-members:
    :show-inheritance:
