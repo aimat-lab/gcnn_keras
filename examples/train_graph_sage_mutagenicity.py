@@ -43,9 +43,9 @@ model = make_graph_sage(
     # Output
     output_embedding={"output_mode": 'graph', "output_type": 'padded'},
     output_mlp={"use_bias": [True, True, False], "units": [64, 32, 1], "activation": ['relu', 'relu', 'sigmoid']},
-    node_mlp_args= {"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
-    edge_mlp_args= {"units": 64, "use_bias": True, "activation": 'relu'},
-    pooling_args = {'is_sorted': False, 'has_unconnected': True, 'pooling_method': "lstm", "units": 64},
+    node_mlp_args={"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
+    edge_mlp_args={"units": 64, "use_bias": True, "activation": 'relu'},
+    pooling_args ={'is_sorted': False, 'has_unconnected': True, 'pooling_method': "lstm", "units": 64},
     # model specs
     depth=3,
     use_edge_features=True

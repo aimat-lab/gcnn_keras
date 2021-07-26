@@ -44,7 +44,7 @@ def make_inorp(**kwargs):
                      }
     m = update_model_args(model_default, model_args)
     if m['verbose'] > 0:
-        print("INFO: Updated functional make model kwargs:")
+        print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)
 
     # local updated default values

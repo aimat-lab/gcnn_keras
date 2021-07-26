@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as ks
+import pprint
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
@@ -13,49 +14,18 @@ from kgcnn.utils.models import generate_node_embedding, update_model_args, gener
 # William L. Hamilton and Rex Ying and Jure Leskovec
 # http://arxiv.org/abs/1706.02216
 
-def make_graph_sage(  # Input
-        input_node_shape,
-        input_edge_shape,
-        input_embedding: dict = None,
-        # Output
-        output_embedding: dict = None,
-        output_mlp: dict = None,
-        # Model specific parameter
-        depth=3,
-        use_edge_features=False,
-        node_mlp_args: dict = None,
-        edge_mlp_args: dict = None,
-        pooling_args: dict = None
-):
+def make_graph_sage(**kwargs):
     """Generate GraphSAGE network.
 
     Args:
-        input_node_shape (list): Shape of node features. If shape is (None,) embedding layer is used.
-        input_edge_shape (list): Shape of edge features. If shape is (None,) embedding layer is used.
-        input_embedding (dict): Dictionary of embedding parameters used if input shape is None. Default is
-            {"nodes": {"input_dim": 95, "output_dim": 64},
-            "edges": {"input_dim": 5, "output_dim": 64},
-            "state": {"input_dim": 100, "output_dim": 64}}.
-        output_embedding (dict): Dictionary of embedding parameters of the graph network. Default is
-            {"output_mode": 'graph', "output_tensor_type": 'padded'}.
-        output_mlp (dict): Dictionary of arguments for final MLP regression or classification layer. Default is
-            {"use_bias": [True, True, False], "units": [25, 10, 1],
-            "activation": ['relu', 'relu', 'sigmoid']}.
-        depth (int): Number of convolution layers. Default is 3.
-        use_edge_features (bool): Whether to concatenate edges with nodes in aggregate. Default is False.
-        node_mlp_args (dict): Dictionary of arguments for MLP for node update. Default is
-            {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]}
-        edge_mlp_args (dict): Dictionary of arguments for MLP for interaction update. Default is
-            {"units": [100, 100, 100, 100, 50],
-            "activation": ['relu', 'relu', 'relu', 'relu', "linear"]}
-        pooling_args (dict): Dictionary for message pooling arguments. Default is
-            {'pooling_method': "segment_mean"}
+        **kwargs
 
     Returns:
         tf.keras.models.Model: GraphSAGE model.
     """
-    # default values
-    model_default = {'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
+    model_args = kwargs
+    model_default = {'input_node_shape': None, 'input_edge_shape': None,
+                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
                                          "edges": {"input_dim": 5, "output_dim": 64},
                                          "state": {"input_dim": 100, "output_dim": 64}},
                      'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
@@ -63,19 +33,29 @@ def make_graph_sage(  # Input
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                      'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                     'pooling_args': {'pooling_method': "segment_mean"}
+                     'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {}, 'concat_args': {"axis": -1},
+                     'use_edge_features': True, 'pooling_nodes_args':{'pooling_method': "mean"},
+                     'depth': 3, 'verbose': 1
                      }
+    m = update_model_args(model_default, model_args)
+    if m['verbose'] > 0:
+        print("INFO:kgcnn: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
     # Update default values
-    input_embedding = update_model_args(model_default['input_embedding'], input_embedding)
-    output_embedding = update_model_args(model_default['output_embedding'], output_embedding)
-    output_mlp = update_model_args(model_default['output_mlp'], output_mlp)
-    node_mlp_args = update_model_args(model_default['node_mlp_args'], node_mlp_args)
-    edge_mlp_args = update_model_args(model_default['edge_mlp_args'], edge_mlp_args)
-    pooling_args = update_model_args(model_default['pooling_args'], pooling_args)
-    pooling_nodes_args = {'pooling_method': "mean"}
-    gather_args = {}
-    concat_args = {"axis": -1}
+    input_node_shape = m['input_node_shape']
+    input_edge_shape = m['input_edge_shape']
+    input_embedding = m['input_embedding']
+    output_embedding = m['output_embedding']
+    output_mlp = m['output_mlp']
+    node_mlp_args = m['node_mlp_args']
+    edge_mlp_args = m['edge_mlp_args']
+    pooling_args = m['pooling_args']
+    pooling_nodes_args = m['pooling_nodes_args']
+    gather_args = m['gather_args']
+    concat_args = m['concat_args']
+    use_edge_features = m['use_edge_features']
+    depth = m['depth']
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)

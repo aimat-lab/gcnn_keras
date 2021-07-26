@@ -35,11 +35,12 @@ def make_dimnet_pp(**kwargs):
                      'cutoff': 5.0, 'envelope_exponent': 5,
                      'num_before_skip': 1, 'num_after_skip': 2, 'num_dense_output': 3,
                      'num_targets': 12, 'extensive': True, 'output_init': 'zeros',
-                     'activation': 'swish',
+                     'activation': 'swish', 'verbose': 1,
                      }
     m = update_model_args(model_default, model_args)
-    print("INFO:kgcnn: Updated functional make model kwargs:")
-    pprint.pprint(m)
+    if m['verbose'] > 0:
+        print("INFO:kgcnn: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
     # Update model parameters
     input_node_shape = m['input_node_shape']

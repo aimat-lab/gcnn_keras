@@ -35,11 +35,13 @@ def make_attentiveFP(**kwargs):
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'attention_args': {"units": 32},
                      'depth': 3,
-                     'dropout': 0.1
+                     'dropout': 0.1,
+                     'verbose': 1
                      }
     m = update_model_args(model_default, model_args)
-    print("INFO:kgcnn: Updated functional make model kwargs:")
-    pprint.pprint(m)
+    if m['verbose'] > 0:
+        print("INFO:kgcnn: Updated functional make model kwargs:")
+        pprint.pprint(m)
 
     # Local variables for model args
     input_node_shape= m['input_node_shape']

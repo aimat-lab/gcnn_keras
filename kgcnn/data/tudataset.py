@@ -75,7 +75,7 @@ class GraphTUDataset(GraphDatasetBase):
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
             if verbose > 0:
-                print("INFO: Shift index of graph id to zero for", name_dataset, "to match python indexing.")
+                print("INFO:kgcnn: Shift index of graph id to zero for", name_dataset, "to match python indexing.")
             g_a = g_a - 1
             g_n_id = g_n_id - 1
 
