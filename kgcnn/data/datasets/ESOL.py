@@ -87,12 +87,17 @@ class ESOLDataset(GraphDatasetBase):
         edges = []
         edge_indices = []
         labels = []
+        atoms_labels = []
+        coordinates = []
 
         for i, sm in enumerate(smiles):
             mg = MolecularGraph()
-            mg.mol_from_smiles(sm, add_Hs=False)
+            mg.mol_from_smiles(sm, add_Hs=False, sanitize=True)
             mg.make_features(nodes=nf, edges=ef, state=sf, encoder=encoder)
             atom_info, bond_info, bond_idx, mol_info = mg.atom_features, mg.bond_features, mg.bond_indices, mg.molecule_features
+            xyz_info = mg.coordinates
+            atom_list = mg.atom_labels
+
 
             if len(bond_idx) > 0:
                 nodes.append(np.array(atom_info, dtype="float32"))
@@ -100,11 +105,17 @@ class ESOLDataset(GraphDatasetBase):
                 edge_indices.append(np.array(bond_idx, dtype="int64"))
                 graph_state.append(np.array(mol_info, dtype="float32"))
                 labels.append(labels2[i])
+                
+                atoms_labels.append(atom_list)
+                coordinates.append(np.array(xyz_info, dtype="float32"))
 
         # Prepare graph state for all molecules as a single np.array
         graph_state = np.array(graph_state, dtype="float32")
 
         labels = np.array(labels)
+        
+        self.coordinates = coordinates  # safe to property, does not change
+        self.atoms = atoms_labels
 
         if verbose > 0:
             print("done")
