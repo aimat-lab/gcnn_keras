@@ -37,7 +37,7 @@ class GIN(GraphBaseLayer):
         self.lay_add = Add(**self._kgcnn_info)
 
         # Epsilon with trainable as optional and default zeros initialized.
-        self.eps_k = self.add_weight(None, trainable=self.epsilon_learnable,
+        self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,
                                      initializer="zeros", dtype=self.dtype)
 
     def build(self, input_shape):

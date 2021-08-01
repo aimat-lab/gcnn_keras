@@ -1,32 +1,34 @@
 import numpy as np
 import os
 
-from kgcnn.data.base import GraphDatasetBase
+from kgcnn.data.base import DownloadDatasetBase, MemoryGraphDatasetBase
 
 
-class GraphTUDataset(GraphDatasetBase):
+class GraphTUDataset(DownloadDatasetBase, MemoryGraphDatasetBase):
 
     all_tudataset_identifier = ["PROTEINS", "MUTAG", "Mutagenicity"]
 
-    def __init__(self, tudataset_name=None, reload=False, verbose=1):
-        if isinstance(tudataset_name, str) and tudataset_name in self.all_tudataset_identifier:
-            self.data_directory = tudataset_name
-            self.download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/"+tudataset_name+".zip"
-            self.file_name = tudataset_name+".zip"
-            self.unpack_zip = True
-            self.unpack_directory = tudataset_name
-            self.fits_in_memory = True
-            self.kgcnn_dataset_name = tudataset_name
+    def __init__(self, dataset_name=None, reload=False, verbose=1):
 
-        super(GraphTUDataset, self).__init__(reload=reload, verbose=verbose)
+        if isinstance(dataset_name, str) and dataset_name in self.all_tudataset_identifier:
+            self.data_directory = dataset_name
+            self.download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/" + dataset_name + ".zip"
+            self.file_name = dataset_name + ".zip"
+            self.unpack_zip = True
+            self.unpack_directory = dataset_name
+            self.fits_in_memory = True
+            self.dataset_name = dataset_name
+
+        DownloadDatasetBase.__init__(self, reload=reload, verbose=verbose)
+        MemoryGraphDatasetBase.__init__(self, reload=reload, verbose=verbose)
 
     def read_in_memory(self, verbose=1):
 
-        if self.file_name is not None and self.kgcnn_dataset_name in self.all_tudataset_identifier:
-            name_dataset = self.kgcnn_dataset_name
+        if self.file_name is not None and self.dataset_name in self.all_tudataset_identifier:
+            name_dataset = self.dataset_name
             path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory, name_dataset)
         else:
-            print("WARNING:kgcnn: Dataset with name", self.kgcnn_dataset_name, "not found in TUDatasets list.")
+            print("WARNING:kgcnn: Dataset with name", self.dataset_name, "not found in TUDatasets list.")
             return None
 
         # Define a graph with indices
@@ -117,7 +119,7 @@ class GraphTUDataset(GraphDatasetBase):
         all_cons = np.array(all_cons)
 
         if verbose > 0:
-            print("INFO: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+            print("INFO:kgcnn: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
                   all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         node_degree = [np.zeros(x, dtype="int") for x in graphlen]
@@ -125,19 +127,14 @@ class GraphTUDataset(GraphDatasetBase):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts
 
-        self.nodes_degree = node_degree
-        self.nodes = n_attr
-        self.edges = e_attr
-        self.graph_state = g_attr
+        self.node_degree = node_degree
+        self.node_attributes = n_attr
+        self.edge_attributes = e_attr
+        self.graph_attributes = g_attr
         self.edge_indices = edge_indices
-        self.labels_node = n_labels
-        self.labels_edge = e_labels
-        self.labels_graph = g_labels
+        self.node_labels = n_labels
+        self.edge_labels = e_labels
+        self.graph_labels = g_labels
+        self.graph_adjacency = None  # @TODO
+        self.data_length = len(g_labels)
 
-    def get_graph(self):
-        """Make vanilla graph tensor objects.
-
-        Returns:
-            tuple: labels, nodes, edge_indices, edges
-        """
-        return self.labels_graph, self.nodes, self.edge_indices, self.edges

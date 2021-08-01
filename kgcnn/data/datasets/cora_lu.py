@@ -1,10 +1,10 @@
 import os
 import numpy as np
 
-from kgcnn.data.base import GraphDatasetBase
+from kgcnn.data.base import DownloadDatasetBase
 
 
-class CoraLUDataset(GraphDatasetBase):
+class CoraLUDataset(DownloadDatasetBase):
     """Store and process Cora dataset after Lu et al. 2003."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")

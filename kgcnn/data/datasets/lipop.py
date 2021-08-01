@@ -2,13 +2,13 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.base import GraphDatasetBase
+from kgcnn.data.base import DownloadDatasetBase
 from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
 
 import rdkit.Chem as Chem
 
 
-class LipopDataset(GraphDatasetBase):
+class LipopDataset(DownloadDatasetBase):
     """Store and process full ESOL dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")

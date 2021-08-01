@@ -24,11 +24,13 @@ def make_graph_sage(**kwargs):
         tf.keras.models.Model: GraphSAGE model.
     """
     model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
+    model_default = {'name': "GraphSAGE",
+                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
+                                         "edge_attributes": {"input_dim": 5, "output_dim": 64}},
+                     'output_embedding': 'graph',
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
@@ -43,8 +45,7 @@ def make_graph_sage(**kwargs):
         pprint.pprint(m)
 
     # Update default values
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
+    inputs = m['inputs']
     input_embedding = m['input_embedding']
     output_embedding = m['output_embedding']
     output_mlp = m['output_mlp']
@@ -58,11 +59,11 @@ def make_graph_sage(**kwargs):
     depth = m['depth']
 
     # Make input embedding, if no feature dimension
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
+    node_input = ks.layers.Input(**inputs[0])
+    edge_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
+    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
+    ed = generate_edge_embedding(edge_input, inputs[1]['shape'], input_embedding[inputs[1]['name']])
     edi = edge_index_input
 
     for i in range(0, depth):
@@ -84,14 +85,15 @@ def make_graph_sage(**kwargs):
         n = LayerNormalization(axis=-1)(n)  # Normalize
 
     # Regression layer on output
-    if output_embedding["output_mode"] == 'graph':
+    if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be tensor
-    else:  # node embedding
+    elif output_embedding == 'node':
         out = MLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+    else:
+        raise ValueError("Unsupported graph embedding for mode `GraphSAGE`")
 
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
-
     return model

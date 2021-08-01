@@ -5,7 +5,7 @@ import pprint
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense, Dropout
-from kgcnn.layers.update import GRUUpdate
+from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
@@ -89,7 +89,7 @@ def make_attentiveFP(**kwargs):
 
 try:
     # Haste version of AttentiveFP
-    from kgcnn.layers.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
+    from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
 
     def make_haste_attentiveFP(**kwargs):
         """Make AttentiveFP network.

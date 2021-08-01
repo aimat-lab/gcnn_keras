@@ -1,54 +1,80 @@
-import numpy as np
 import os
 import requests
-# import scipy.sparse as sp
-# import pickle
-# import shutil
 import tarfile
 import zipfile
 
 
-class GraphDatasetBase:
+class MemoryGraphDatasetBase:
+
+    fits_in_memory = True
+    dataset_name = None
+
+    def __init__(self, verbose=1, **kwargs):
+
+        self.data_full = None  # if un-formatted data is in memory
+        self.data_length = None
+        self.data_info = None
+
+        self.node_attributes = None
+        self.node_labels = None
+        self.node_coordinates = None
+        self.node_degree = None
+
+        self.edge_indices = None
+        self.edge_attributes = None
+        self.edge_labels = None
+
+        self.graph_labels = None
+        self.graph_attributes = None
+        self.graph_adjacency = None
+
+        self.range_indices = None
+        self.range_attributes = None
+        self.range_labels = None
+
+        self.angle_indices = None
+        self.angle_labels = None
+        self.angle_attributes = None
+
+        if verbose > 1:
+            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+
+        if self.fits_in_memory:
+            self.read_in_memory(verbose=verbose)
+
+    def read_in_memory(self, verbose=1):
+        pass
+
+
+class DownloadDatasetBase:
     """Base layer for datasets. Provides functions for download and unzip of the data.
-    Dataset-specific functions like prepare_data() or read_in_memory() must be implemented in subclasses.
+    Dataset-specific functions like prepare_data() must be implemented in subclasses.
     Information about the dataset can be set with class properties.
-    Each dataset should implement a get_graph() method which actually makes the graph with specific settings.
 
     """
-
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    kgcnn_dataset_name = None
-    data_directory = None
-    download_url = None
+    dataset_name = None
     file_name = None
+    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
+    data_directory = None
+    unpack_directory = None
+    download_url = None
     unpack_tar = False
     unpack_zip = False
-    unpack_directory = None
     fits_in_memory = False
     process_dataset = False
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload=False, verbose=1, **kwargs):
         """Base initialization function for downloading and extracting the data.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
+
         # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
         # Some datasets do not offer all information.
-        self.data = None  # raw data
-        self.nodes = None
-        self.nodes_degree = None
-        self.edges = None
-        self.labels_graph = None
-        self.labels_node = None
-        self.labels_edge = None
-        self.edge_indices = None
-        self.graph_state = None
-        self.graph_adjacency = None
-        self.atoms = None  # List of atoms as string
-        self.atoms_number = None  # Atomic number for embedding layer
-        self.coordinates = None
+        if verbose > 1:
+            print("INFO:kgcnn: Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
 
         # Default functions to load a dataset.
         if self.data_directory is not None:
@@ -68,11 +94,8 @@ class GraphDatasetBase:
                                  self.unpack_directory, overwrite=reload, verbose=verbose)
 
         if self.process_dataset:
-            # Used if a standard processing of the data has to be done.
+            # Used if a standard processing of the data has to be done and save e.g. a pickled version for example.
             self.prepare_data(overwrite=reload, verbose=verbose)
-
-        if self.fits_in_memory:
-            self.read_in_memory()
 
     @classmethod
     def setup_dataset_main(cls, data_main_dir, verbose=1):
@@ -230,13 +253,5 @@ class GraphDatasetBase:
         open_file.close()
         return out
 
-    def read_in_memory(self, verbose=1):
-        pass
-
-    def get_graph(self):
-        pass
-
     def prepare_data(self, overwrite=False, verbose=1):
         pass
-
-

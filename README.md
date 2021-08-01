@@ -141,7 +141,35 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 <a name="datasets"></a>
 # Datasets
 
-In [data](kgcnn/data) there are simple data handling tools that are used for examples, which includes loading [datasets](kgcnn/data/datasets).
+In [data.datasets](kgcnn/data/datasets) there are graph learning datasets. They can be downloaded from e.g. 
+TUDatasets, MoleculeNet-Datasets or defined freely using class definitions in [data](kgcnn/data). 
+For the simple case that the dataset fits in memeory the base class is:
+```python
+class MemoryGraphDatasetBase:
+    
+    def __init__(self):
+        self.node_attributes = None
+        self.node_labels = None
+        self.node_coordinates = None
+        self.node_degree = None
+
+        self.edge_indices = None
+        self.edge_attributes = None
+        self.edge_labels = None
+
+        self.graph_labels = None
+        self.graph_attributes = None
+        self.graph_adjacency = None
+
+        self.range_indices = None
+        self.range_attributes = None
+        self.range_labels = None
+        
+        self.angle_indices = None
+        self.angle_labels = None
+        self.angle_attributes = None
+```
+with iteratable properties from which the model input can be generated.
 
 <a name="examples"></a>
 # Examples

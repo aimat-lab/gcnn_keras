@@ -7,10 +7,10 @@ import json
 from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance, get_angle_indices
 from kgcnn.mol.geomgraph import GeometricMolGraph
-from kgcnn.data.base import GraphDatasetBase
+from kgcnn.data.base import DownloadDatasetBase
 
 
-class QM9Dataset(GraphDatasetBase):
+class QM9Dataset(DownloadDatasetBase):
     """Store and process QM9 dataset."""
     # https://ndownloader.figshare.com/files/3195398
     # https://ndownloader.figshare.com/files/3195389

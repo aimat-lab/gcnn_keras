@@ -7,16 +7,6 @@ from kgcnn.data.tudataset import GraphTUDataset
 class MutagenicityDataset(GraphTUDataset):
     """Store and process Mutagenicity dataset."""
 
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory = "Mutagenicity"
-    download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/Mutagenicity.zip"
-    file_name = 'Mutagenicity.zip'
-    unpack_tar = False
-    unpack_zip = True
-    unpack_directory = "Mutagenicity"
-    fits_in_memory = True
-    kgcnn_dataset_name = "Mutagenicity"
-
     def __init__(self, reload=False, verbose=1):
         """Initialize Mutagenicity dataset.
 
@@ -25,7 +15,7 @@ class MutagenicityDataset(GraphTUDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Use default base class init()
-        super(MutagenicityDataset, self).__init__(None, reload=reload, verbose=verbose)
+        super(MutagenicityDataset, self).__init__("Mutagenicity", reload=reload, verbose=verbose)
 
     def read_in_memory(self, verbose=1):
         """Load Mutagenicity data into memory and already split into items.
@@ -35,66 +25,6 @@ class MutagenicityDataset(GraphTUDataset):
         """
         super(MutagenicityDataset, self).read_in_memory(verbose=verbose)
 
-        # path = os.path.split(os.path.realpath(__file__))[0]
-        # path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory)
-        # adj_matrix
-        # mutag_a = []
-        # open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_A.txt"), "r")
-        # for lines in open_file.readlines():
-        #     idxs = lines.strip().split(',')
-        #     idxs = [int(x) for x in idxs]
-        #     mutag_a.append(idxs)
-        # open_file.close()
-        # mutag_a = np.array(mutag_a)
-        # # edge_labels
-        # mutag_e = []
-        # open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_edge_labels.txt"), "r")
-        # for lines in open_file.readlines():
-        #     idxs = int(lines.strip())
-        #     mutag_e.append(idxs)
-        # open_file.close()
-        # # graph indicator
-        # mutag_gi = []
-        # open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_graph_indicator.txt"), "r")
-        # for lines in open_file.readlines():
-        #     idxs = int(lines.strip())
-        #     mutag_gi.append(idxs)
-        # open_file.close()
-        # # graph labels
-        # mutag_gl = []
-        # open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_graph_labels.txt"), "r")
-        # for lines in open_file.readlines():
-        #     idxs = int(lines.strip())
-        #     mutag_gl.append(idxs)
-        # open_file.close()
-        # # node labels
-        # mutag_n = []
-        # open_file = open(os.path.join(path, "Mutagenicity", "Mutagenicity_node_labels.txt"), "r")
-        # for lines in open_file.readlines():
-        #     idxs = int(lines.strip())
-        #     mutag_n.append(idxs)
-        # open_file.close()
-
-        # cast to numpy
-        # mutag_a = np.array(mutag_a, dtype=np.int)
-        # mutag_e = np.array(mutag_e, dtype=np.int)
-        # mutag_gi = np.array(mutag_gi, dtype=np.int)
-        # mutag_gl = np.array(mutag_gl, dtype=np.int)
-        # mutag_n = np.array(mutag_n, dtype=np.int)
-
-        # labels
-        # labels = np.array(mutag_gl, dtype=np.int)
-        # n_data = len(labels)
-
-        # shift index
-        # mutag_a = mutag_a - 1
-        # mutag_gi = mutag_gi - 1
-
-        # split into sperate graphs
-        # graph_id, counts = np.unique(mutag_gi, return_counts=True)
-        # graphlen = np.zeros(n_data, dtype=np.int)
-        # graphlen[graph_id] = counts
-        # nodes0123 = np.split(mutag_n, np.cumsum(graphlen)[:-1])
         node_translate = np.array([6, 8, 17, 1, 7, 9, 35, 16, 15, 53, 11, 19, 3, 20], dtype=np.int)
         atoms_translate = ['C', 'O', 'Cl', 'H', 'N', 'F', 'Br', 'S', 'P', 'I', 'Na', 'ksb', 'Li', 'Ca']
         z_translate = {node_translate[i]: atoms_translate[i] for i in range(len(node_translate))}
@@ -113,10 +43,10 @@ class MutagenicityDataset(GraphTUDataset):
         # edge_indices = node_index[mutag_a]
         # edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
         edge_indices = self.edge_indices
-        nodes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.labels_node]
-        atoms = [[atoms_translate[int(y[0])] for y in x] for x in self.labels_node]
-        edges = [x[:, 0]+1 for x in self.labels_edge]
-        labels = self.labels_graph
+        nodes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
+        atoms = [[atoms_translate[int(y[0])] for y in x] for x in self.node_labels]
+        edges = [x[:, 0]+1 for x in self.edge_labels]
+        labels = self.graph_labels
 
         # Require cleaning steps
         labels_clean = []
@@ -163,24 +93,17 @@ class MutagenicityDataset(GraphTUDataset):
         if verbose > 0:
             print("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
 
-        self.labels_graph = labels_clean
+        self.graph_labels = labels_clean
         self.edge_indices = edge_indices_clean
-        self.nodes = nodes_clean
-        self.edges = edges_clean
-        self.labels_node = nodes_clean
-        self.labels_edge = edges_clean
-        self.atoms = atoms_clean
+        self.node_attributes = nodes_clean
+        self.edge_attributes = edges_clean
+        self.node_labels = nodes_clean
+        self.edge_labels = edges_clean
+
+        self.atom_symbols = atoms_clean
 
         # return labels,nodes,edge_indices,edges,atoms
-        return self.labels_graph, self.nodes, self.edge_indices, self.edges, self.atoms
-
-    def get_graph(self):
-        """Make graph tensor objects for Mutagenicity.
-
-        Returns:
-            tuple: labels, nodes, edge_indices, edges, atoms
-        """
-        return self.labels_graph, self.nodes, self.edge_indices, self.edges, self.atoms
+        return self
 
 
 # labels,nodes,edge_indices,edges,atoms = mutagenicity_graph()
@@ -246,3 +169,5 @@ class MutagenicityDataset(GraphTUDataset):
 #     bonds = np.concatenate([edge_indices[rd_idx],np.expand_dims(edges[rd_idx],axis=-1)],axis=-1).tolist()
 #     mol = rdkit_mol_from_atoms_bonds(atoms[rd_idx],bonds)
 #     mol_list.append(mol)
+
+# test = MutagenicityDataset(verbose=2)

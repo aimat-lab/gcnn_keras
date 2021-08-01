@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.layers.update import GRUUpdate, TrafoMatMulMessages
+from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
 from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
 
 
