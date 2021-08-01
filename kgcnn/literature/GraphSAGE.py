@@ -9,12 +9,12 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
 
-
 # 'Inductive Representation Learning on Large Graphs'
 # William L. Hamilton and Rex Ying and Jure Leskovec
 # http://arxiv.org/abs/1706.02216
 
-def make_graph_sage(**kwargs):
+
+def make_model(**kwargs):
     """Generate GraphSAGE network.
 
     Args:

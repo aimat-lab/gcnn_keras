@@ -6,33 +6,37 @@ import os
 
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
-from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
+from kgcnn.data.datasets.mutag import MUTAGDataset
 from kgcnn.io.loader import NumpyTensorList
 
 # Hyper
-from kgcnn.literature.GraphSAGE import make_model
+from kgcnn.literature.INorp import make_model
 hyper = {'model': {'name': "GraphSAGE",
                    'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
                               {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                   'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                       "edge_attributes": {"input_dim": 5, "output_dim": 16}},
+                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                              {'shape': [], 'name': "graph_size", 'dtype': 'float32', 'ragged': False}],
+                   'input_embedding': {"node_attributes": {"input_dim": 60, "output_dim": 16},
+                                       "edge_attributes": {"input_dim": 4, "output_dim": 8},
+                                       "graph_size": {"input_dim": 30, "output_dim": 16}},
                    'output_embedding': 'graph',
-                   'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
+                   'output_mlp': {"use_bias": [True, True, False], "units": [16, 8, 1],
                                   "activation": ['relu', 'relu', 'sigmoid']},
-                   'node_mlp_args': {"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
-                   'edge_mlp_args': {"units": 64, "use_bias": True, "activation": 'relu'},
-                   'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {}, 'concat_args': {"axis": -1},
-                   'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
-                   'depth': 3, 'verbose': 1
+                   'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean",
+                                    "init_qstar": "mean"},
+                   'node_mlp_args': {"units": [16, 16], "use_bias": True, "activation": ['relu', "linear"]},
+                   'edge_mlp_args': {"units": [16, 16], "activation": ['relu', "linear"]},
+                   'pooling_args': {'pooling_method': "segment_mean"},
+                   'depth': 3, 'use_set2set': False, 'verbose': 1,
+                   'gather_args': {}
                    },
-         'training': {'batch_size': 32, "learning_rate_start": 1e-3, 'learning_rate_stop': 1e-4,
-                      'epo': 70, 'epomin': 100, 'epostep': 10
+         'training': {'batch_size': 32, "learning_rate_start": 5e-3, 'learning_rate_stop': 1e-5,
+                      'epo': 500, 'epomin': 400, 'epostep': 10
                       }
          }
 
 # Loading PROTEINS Dataset
-dataset = MutagenicityDataset()
+dataset = MUTAGDataset()
 data_name = dataset.dataset_name
 data_length = dataset.data_length
 

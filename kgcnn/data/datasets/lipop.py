@@ -2,15 +2,17 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.base import DownloadDatasetBase
+from kgcnn.data.moleculenet import MuleculeNetDataset
 from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
+from kgcnn.utils.data import save_json_file
 
 import rdkit.Chem as Chem
 
 
-class LipopDataset(DownloadDatasetBase):
+class LipopDataset(MuleculeNetDataset):
     """Store and process full ESOL dataset."""
 
+    dataset_name = "Lipop"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "Lipop"
     download_url = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv"
@@ -19,6 +21,8 @@ class LipopDataset(DownloadDatasetBase):
     unpack_zip = False
     unpack_directory = None
     fits_in_memory = True
+    process_dataset = True
+
 
     def __init__(self, reload=False, verbose=1):
         """Initialize ESOL dataset.
@@ -27,20 +31,25 @@ class LipopDataset(DownloadDatasetBase):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        self.data_keys = None
-        # Use default base class init()
         super(LipopDataset, self).__init__(reload=reload, verbose=verbose)
 
-    def read_in_memory(self, verbose=1):
-        """Load ESOL data into memory and already split into items.
-
-        Args:
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
-        """
-        filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
-        data = pd.read_csv(filepath)
-        self.data = data
-        self.data_keys = data.columns
+    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
+        mol_filename = self.mol_filename
+        if os.path.exists(os.path.join(self.data_main_dir, self.data_directory, mol_filename)) and not overwrite:
+            if verbose > 0:
+                print("INFO:kcnn: Found rdkit mol.json of pre-computed structures.")
+        else:
+            filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
+            data = pd.read_csv(filepath)
+            smiles = data['smiles'].values
+            if len(smiles) == 0:
+                print("Error:kgcnn: Can not translate smiles, received empty list for %s." % self.dataset_name)
+            if verbose > 0:
+                print("INFO:kcnn: Generating molecules and saving mol-file...", end='', flush=True)
+            mb = self._smiles_to_mol_list(smiles, add_Hs=False, sanitize=True, embed_molecule=True)
+            save_json_file(mb, os.path.join(self.data_main_dir, self.data_directory, mol_filename))
+            if verbose > 0:
+                print("done")
 
     def get_graph(self, verbose=1):
         """Make graph tensor objects for ESOL from smiles. Requires rdkit installed.
@@ -121,5 +130,5 @@ class LipopDataset(DownloadDatasetBase):
 
         return labels, nodes, edges, edge_indices, graph_state
 
-# ld = LipopDataset()
+ld = LipopDataset()
 # labels, nodes, edges, edge_indices, graph_state = ld.get_graph()

@@ -20,7 +20,7 @@ class GraphTUDataset(DownloadDatasetBase, MemoryGraphDatasetBase):
             self.dataset_name = dataset_name
 
         DownloadDatasetBase.__init__(self, reload=reload, verbose=verbose)
-        MemoryGraphDatasetBase.__init__(self, reload=reload, verbose=verbose)
+        MemoryGraphDatasetBase.__init__(self, verbose=verbose)
 
     def read_in_memory(self, verbose=1):
 

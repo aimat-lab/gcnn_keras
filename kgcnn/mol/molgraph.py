@@ -75,6 +75,7 @@ class MolecularGraph:
         """
 
         self.mol = mol
+
         self.atom_labels = None
         self.atom_features = None
         self.bond_indices = None
@@ -82,7 +83,7 @@ class MolecularGraph:
         self.coordinates = None
         self.molecule_features = None
 
-    def mol_from_smiles(self, smile, add_Hs=True, sanitize=True):
+    def mol_from_smiles(self, smile, add_Hs=True, sanitize=True, embed_molecule=True):
         """Make molecule from smile.
 
         Args:
@@ -99,7 +100,7 @@ class MolecularGraph:
 
         try:
             # rdkit.Chem.FindPotentialStereo(m)  # Assign Stereochemistry new method
-            rdkit.Chem.AssignStereochemistry(m)
+            # rdkit.Chem.AssignStereochemistry(m)
             rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
             rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
             # rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
@@ -117,7 +118,19 @@ class MolecularGraph:
             except ValueError:
                 print("WARNING: Rdkit could not embed molecule with smile", smile)
 
+        m.SetProp("_Name", smile)
         self.mol = m
+        return self
+
+    def mol_from_molblock(self, mb, removeHs=False, sanitize=False):
+        self.mol = rdkit.Chem.MolFromMolBlock(mb, removeHs=removeHs, sanitize=sanitize)
+        return self
+
+    def get_atom_symbols(self):
+        return [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in self.mol.GetAtoms()]
+
+    def get_atom_positions(self):
+        return self.mol.GetConformers()[0].GetPositions()
 
     def make_features(self, nodes=None, edges=None, state=None, encoder=None, is_directed=True):
         """This is a rudiment function for extracting molecular features from rdkit object.

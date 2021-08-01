@@ -88,8 +88,8 @@ for train_index, test_index in split_indices:
     acc_valid = np.mean(val_acc[-10:])
     acc_5fold.append(acc_valid)
 
-os.makedirs("PROTEINS", exist_ok=True)
-filepath = os.path.join("PROTEINS", hyper['model']['name'])
+os.makedirs(data_name, exist_ok=True)
+filepath = os.path.join(data_name, hyper['model']['name'])
 os.makedirs(filepath, exist_ok=True)
 
 # Plot loss vs epochs
@@ -103,7 +103,7 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('PROTEINS Loss')
 plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath,'gin_proteins.png'))
+plt.savefig(os.path.join(filepath,'acc_proteins.png'))
 plt.show()
 
 # Save model

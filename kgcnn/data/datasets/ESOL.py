@@ -2,13 +2,13 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.base import DownloadDatasetBase
+from kgcnn.data.moleculenet import MuleculeNetDataset
 from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
 
 import rdkit.Chem as Chem
 
 
-class ESOLDataset(DownloadDatasetBase):
+class ESOLDataset(MuleculeNetDataset):
     """Store and process full ESOL dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")

@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from kgcnn.data.tudataset import GraphTUDataset
@@ -29,17 +28,18 @@ class MUTAGDataset(GraphTUDataset):
         # graph_id, counts = np.unique(mutag_gi, return_counts=True)
         # graphlen = np.zeros(n_data, dtype=np.int)
         # graphlen[graph_id] = counts
-        #nodes0123 = np.split(mutag_n, np.cumsum(graphlen)[:-1])
+        # nodes0123 = np.split(mutag_n, np.cumsum(graphlen)[:-1])
         node_translate = np.array([6, 7, 8, 9, 53, 17, 35], dtype=np.int)
         atoms_translate = ['C', 'N', 'O', 'F', 'I', 'Cl', 'Br']
         self.node_attributes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
         # nodes = [node_translate[x] for x in nodes0123]
-        atoms = [[atoms_translate[y] for y in x] for x in self.node_labels]
+        atoms = [[atoms_translate[int(y)] for y in x] for x in self.node_labels]
 
         self.edge_attributes = [x[:, 0] for x in self.edge_labels]
-        self.atom_symbols = atoms
+        self.node_symbol = atoms
+        self.node_number = self.node_attributes
+        self.graph_labels[self.graph_labels < 0] = 0
+        self.graph_attributes = None  # We make a better graph attributes here
+        self.graph_size = [len(x) for x in self.node_attributes]
 
-        return self.graph_labels, self.node_attributes, self.edge_indices, self.edge_attributes
-
-
-
+        return self

@@ -93,6 +93,7 @@ class MutagenicityDataset(GraphTUDataset):
         if verbose > 0:
             print("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
 
+        # Since no attributes in graph dataset, we use labels as attributes
         self.graph_labels = labels_clean
         self.edge_indices = edge_indices_clean
         self.node_attributes = nodes_clean
@@ -100,7 +101,10 @@ class MutagenicityDataset(GraphTUDataset):
         self.node_labels = nodes_clean
         self.edge_labels = edges_clean
 
-        self.atom_symbols = atoms_clean
+        self.node_symbol = atoms_clean
+        self.node_number = nodes_clean
+        self.graph_attributes = None  # make better graph attribute here
+        self.graph_size = [len(x) for x in self.node_attributes]
 
         # return labels,nodes,edge_indices,edges,atoms
         return self

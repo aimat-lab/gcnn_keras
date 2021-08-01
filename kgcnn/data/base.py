@@ -14,11 +14,14 @@ class MemoryGraphDatasetBase:
         self.data_full = None  # if un-formatted data is in memory
         self.data_length = None
         self.data_info = None
+        self.data_keys = None
 
         self.node_attributes = None
         self.node_labels = None
         self.node_coordinates = None
         self.node_degree = None
+        self.node_symbol = None
+        self.node_number = None
 
         self.edge_indices = None
         self.edge_attributes = None
@@ -27,6 +30,7 @@ class MemoryGraphDatasetBase:
         self.graph_labels = None
         self.graph_attributes = None
         self.graph_adjacency = None
+        self.graph_size = None
 
         self.range_indices = None
         self.range_attributes = None
@@ -253,5 +257,5 @@ class DownloadDatasetBase:
         open_file.close()
         return out
 
-    def prepare_data(self, overwrite=False, verbose=1):
+    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
         pass

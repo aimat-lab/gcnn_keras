@@ -1,35 +1,42 @@
 import pickle
 import tensorflow as tf
 import numpy as np
+import yaml
+import json
 # import os
 
 
 def save_pickle_file(outlist, fname):
-    """Save a pickled list to file.
-
-    Args:
-        outlist (list): List of eg. np.arrays.
-        fname (str): Filepath to save.
-
-    Returns:
-        None.
-    """
     with open(fname, 'wb') as f:
         pickle.dump(outlist, f)
 
 
 def load_pickle_file(fname):
-    """Load a pickled list from file.
-
-    Args:
-        fname (str): Filepath to load.
-
-    Returns:
-        pickle: Pickled object.
-    """
     with open(fname, 'rb') as f:
         outlist = pickle.load(f)
     return outlist
+
+
+def save_json_file(outlist, fname):
+    with open(fname, 'w') as json_file:
+        json.dump(outlist, json_file)
+
+
+def load_json_file(fname):
+    with open(fname, 'r') as json_file:
+        file_read = json.load(json_file)
+    return file_read
+
+
+def load_yaml_file(fname):
+    with open(fname, 'r') as stream:
+        outlist = yaml.safe_load(stream)
+    return outlist
+
+
+def save_yaml_file(outlist, fname):
+    with open(fname, 'w') as yaml_file:
+        yaml.dump(outlist, yaml_file, default_flow_style=False)
 
 
 def ragged_tensor_from_nested_numpy(numpy_list):
