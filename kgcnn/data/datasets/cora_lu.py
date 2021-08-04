@@ -1,10 +1,10 @@
 import os
 import numpy as np
 
-from kgcnn.data.base import DownloadDatasetBase
+from kgcnn.data.base import DownloadDataset
 
 
-class CoraLUDataset(DownloadDatasetBase):
+class CoraLUDataset(DownloadDataset):
     """Store and process Cora dataset after Lu et al. 2003."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
@@ -71,12 +71,4 @@ class CoraLUDataset(DownloadDatasetBase):
         self.labels_node = label_id
         self.class_label_mapping = class_label_mapping
 
-        return self.nodes, self.edge_indices, self.labels_node, self.class_label_mapping
-
-    def get_graph(self):
-        """Make graph tensor objects for Cora dataset after Lu et al. 2003.
-
-        Returns:
-            tuple: nodes, indices, labels, class_label_mapping
-        """
         return self.nodes, self.edge_indices, self.labels_node, self.class_label_mapping

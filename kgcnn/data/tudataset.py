@@ -1,14 +1,16 @@
 import numpy as np
 import os
 
-from kgcnn.data.base import DownloadDatasetBase, MemoryGraphDatasetBase
+from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
 
-class GraphTUDataset(DownloadDatasetBase, MemoryGraphDatasetBase):
+class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
 
     all_tudataset_identifier = ["PROTEINS", "MUTAG", "Mutagenicity"]
 
     def __init__(self, dataset_name=None, reload=False, verbose=1):
+
+        self.data_length = None
 
         if isinstance(dataset_name, str) and dataset_name in self.all_tudataset_identifier:
             self.data_directory = dataset_name
@@ -19,8 +21,13 @@ class GraphTUDataset(DownloadDatasetBase, MemoryGraphDatasetBase):
             self.fits_in_memory = True
             self.dataset_name = dataset_name
 
-        DownloadDatasetBase.__init__(self, reload=reload, verbose=verbose)
-        MemoryGraphDatasetBase.__init__(self, verbose=verbose)
+        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        MemoryGraphDataset.__init__(self, verbose=verbose)
+        if verbose > 1:
+            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+
+        if self.fits_in_memory:
+            self.read_in_memory(verbose=verbose)
 
     def read_in_memory(self, verbose=1):
 

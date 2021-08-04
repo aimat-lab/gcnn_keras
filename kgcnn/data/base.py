@@ -4,17 +4,12 @@ import tarfile
 import zipfile
 
 
-class MemoryGraphDatasetBase:
+class MemoryGraphDataset:
 
     fits_in_memory = True
     dataset_name = None
 
-    def __init__(self, verbose=1, **kwargs):
-
-        self.data_full = None  # if un-formatted data is in memory
-        self.data_length = None
-        self.data_info = None
-        self.data_keys = None
+    def __init__(self, **kwargs):
 
         self.node_attributes = None
         self.node_labels = None
@@ -40,17 +35,8 @@ class MemoryGraphDatasetBase:
         self.angle_labels = None
         self.angle_attributes = None
 
-        if verbose > 1:
-            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
 
-        if self.fits_in_memory:
-            self.read_in_memory(verbose=verbose)
-
-    def read_in_memory(self, verbose=1):
-        pass
-
-
-class DownloadDatasetBase:
+class DownloadDataset:
     """Base layer for datasets. Provides functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
     Information about the dataset can be set with class properties.
@@ -65,7 +51,7 @@ class DownloadDatasetBase:
     unpack_tar = False
     unpack_zip = False
     fits_in_memory = False
-    process_dataset = False
+    require_prepare_data = False
 
     def __init__(self, reload=False, verbose=1, **kwargs):
         """Base initialization function for downloading and extracting the data.
@@ -97,7 +83,7 @@ class DownloadDatasetBase:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
                                  self.unpack_directory, overwrite=reload, verbose=verbose)
 
-        if self.process_dataset:
+        if self.require_prepare_data:
             # Used if a standard processing of the data has to be done and save e.g. a pickled version for example.
             self.prepare_data(overwrite=reload, verbose=verbose)
 

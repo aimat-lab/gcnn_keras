@@ -7,10 +7,10 @@ import json
 from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance, get_angle_indices
 from kgcnn.mol.geomgraph import GeometricMolGraph
-from kgcnn.data.base import DownloadDatasetBase
+from kgcnn.data.base import DownloadDataset
 
 
-class QM9Dataset(DownloadDatasetBase):
+class QM9Dataset(DownloadDataset):
     """Store and process QM9 dataset."""
     # https://ndownloader.figshare.com/files/3195398
     # https://ndownloader.figshare.com/files/3195389
@@ -23,7 +23,7 @@ class QM9Dataset(DownloadDatasetBase):
     unpack_zip = False
     unpack_directory = 'dsgdb9nsd.xyz'
     fits_in_memory = True
-    process_dataset = True
+    require_prepare_data = True
 
     def __init__(self, reload=False, verbose=1):
         """Initialize QM9 dataset.

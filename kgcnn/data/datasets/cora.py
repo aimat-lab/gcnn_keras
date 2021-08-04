@@ -3,10 +3,10 @@ import os
 import numpy as np
 import scipy.sparse as sp
 
-from kgcnn.data.base import DownloadDatasetBase
+from kgcnn.data.base import DownloadDataset
 
 
-class CoraDataset(DownloadDatasetBase):
+class CoraDataset(DownloadDataset):
     """Store and process full Cora dataset."""
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")

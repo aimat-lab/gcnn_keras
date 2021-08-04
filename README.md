@@ -145,7 +145,7 @@ In [data.datasets](kgcnn/data/datasets) there are graph learning datasets. They 
 TUDatasets, MoleculeNet-Datasets or defined freely using class definitions in [data](kgcnn/data). 
 For the simple case that the dataset fits in memeory the base class is:
 ```python
-class MemoryGraphDatasetBase:
+class MemoryGraphDataset:
     
     def __init__(self):
         self.node_attributes = None
