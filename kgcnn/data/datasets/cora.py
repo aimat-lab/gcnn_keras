@@ -3,12 +3,14 @@ import os
 import numpy as np
 import scipy.sparse as sp
 
-from kgcnn.data.base import DownloadDataset
+from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
+from kgcnn.utils.adj import convert_scaled_adjacency_to_list, add_edges_reverse_indices, precompute_adjacency_scaled, make_adjacency_undirected_logical_or
 
 
-class CoraDataset(DownloadDataset):
+class CoraDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process full Cora dataset."""
 
+    dataset_name = "Cora"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "cora"
     download_url = "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz"
@@ -26,7 +28,14 @@ class CoraDataset(DownloadDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Use default base class init()
-        super(CoraDataset, self).__init__(reload=reload, verbose=verbose)
+        self.data_keys = None
+        self.length = 1
+
+        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        MemoryGraphDataset.__init__(self, verbose=verbose)
+
+        if self.fits_in_memory:
+            self.read_in_memory(verbose=verbose)
 
     def read_in_memory(self, verbose=1):
         """Load full Cora data into memory and already split into items.
@@ -41,50 +50,46 @@ class CoraDataset(DownloadDataset):
         a = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
                            loader['adj_indptr']), shape=loader['adj_shape'])
 
-        # adj_data = loader['adj_data']
-        # adj_ind = loader['adj_indices']
-        # adj_indptr = loader['adj_indptr']
-        # adj_shape = loader['adj_shape']
-        # adj_idx_list = []
-        # adj_val_list = []
-        # for i in range(adj_shape[0]):
-        #     cols = np.expand_dims(adj_ind[adj_indptr[i]:adj_indptr[i+1]],axis=-1)
-        #     rows = np.zeros_like(cols,dtype=np.int)
-        #     rows[:,:] = i
-        #     idxs = np.concatenate([rows,cols],axis=-1)
-        #     adj_val_list.append(adj_data[adj_indptr[i]:adj_indptr[i+1]])
-        #     adj_idx_list.append(idxs)
-        # adj_idx_list = np.concatenate(adj_idx_list,axis=0)
-        # adj_val_list = np.concatenate(adj_val_list,axis=0)
-
         x = sp.csr_matrix((loader['attr_data'], loader['attr_indices'],
                            loader['attr_indptr']), shape=loader['attr_shape'])
 
-        # attr_data = loader['attr_data']
-        # attr_ind = loader['attr_indices']
-        # attr_indptr = loader['attr_indptr']
-        # attr_shape = loader['attr_shape']
-        # attr_idx_list = []
-        # attr_val_list = []
-        # for i in range(attr_shape[0]):
-        #     cols = np.expand_dims(attr_ind[attr_indptr[i]:attr_indptr[i+1]],axis=0)
-        #     colval = attr_data[attr_indptr[i]:attr_indptr[i+1]]
-        #     colval_padded = np.zeros(attr_shape[1])
-        #     colval_padded[cols] = colval
-        #     attr_val_list.append(colval_padded)
-        #     attr_idx_list.append(cols)
-        # attr_val_list = np.array(attr_val_list)
-
-        self.labels_node = loader.get('labels')
+        # Original adjacency matrix
         self.graph_adjacency = a
-        self.nodes = x
 
-        return self.graph_adjacency, self.nodes, self.labels_node
+        # Compute labels
+        labels = loader.get('labels')
+        labels = np.expand_dims(labels, axis=-1)
+        labels = np.array(labels == np.arange(70), dtype=np.float)
+        self.node_labels = [labels]  # One graph
 
-    def get_graph(self):
-        """Make graph tensor objects for Cora dataset.
+        # Node attributes
+        self.node_attributes = [x.toarray()]
 
-        Returns:
-            tuple: A, X, labels
-        """
-        return self.graph_adjacency, self.nodes, self.labels_node
+        # Set edges and indices.
+        edi, ed = convert_scaled_adjacency_to_list(a)
+        self.edge_indices = [edi]
+        self.edge_attributes = [np.expand_dims(ed,axis=-1)]
+
+        # Information
+        self.data_keys = loader.get('idx_to_class')
+
+        return self
+
+    def make_undirected_edges(self):
+        """Make edges undirected, however leave the original adjacency matrix as-is!!"""
+        self.graph_adjacency = make_adjacency_undirected_logical_or(self.graph_adjacency)
+        edi, ed = add_edges_reverse_indices(self.edge_indices[0], self.edge_attributes[0])
+        self.edge_indices = [edi]
+        self.edge_attributes = [ed]
+        return self
+
+    def scale_adjacency(self):
+        self.graph_adjacency = precompute_adjacency_scaled(self.graph_adjacency)
+        edi, ed = convert_scaled_adjacency_to_list(self.graph_adjacency)
+        self.edge_indices = [edi]
+        self.edge_attributes = [np.expand_dims(ed, axis=-1)]
+        return self
+
+
+
+# ds = CoraDataset()

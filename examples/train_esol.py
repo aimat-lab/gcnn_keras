@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow_addons.optimizers import AdamW
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
-from kgcnn.data.datasets.lipop import LipopDataset
+from kgcnn.data.datasets.ESOL import ESOLDataset
 from kgcnn.io.loader import NumpyTensorList
 
 # Hyper
@@ -34,17 +34,21 @@ hyper = {'model': {'name': "AttentiveFP",
          }
 
 # Loading PROTEINS Dataset
-dataset = LipopDataset().set_attributes()
+dataset = ESOLDataset().set_attributes()
 data_name = dataset.dataset_name
-data_unit = "logD at pH 7.4"
+data_unit = "mol/L"
 data_length = dataset.length
+
+dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
+labels = np.array(dataset.graph_labels)
+# We remove methane from dataset as it could have 0 edges
+labels = np.delete(labels, 934, axis=0)
+dataloader.pop(934)
+
 
 # Data-set split
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
-split_indices = kf.split(X=np.arange(data_length)[:, None])
-
-dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
-labels = dataset.graph_labels
+split_indices = kf.split(X=np.arange(data_length-1)[:, None])
 
 # Set learning rate and epochs
 hyper_train = hyper['training']
@@ -115,9 +119,9 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)) + data_unit, c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('Lipop Loss')
+plt.title('ESOL Loss')
 plt.legend(loc='upper right', fontsize='medium')
-plt.savefig(os.path.join(filepath, 'mae_lipop.png'))
+plt.savefig(os.path.join(filepath, 'mae_esol.png'))
 plt.show()
 
 # Predicted vs Actual
@@ -130,7 +134,7 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.legend(loc='upper left', fontsize='x-large')
-plt.savefig(os.path.join(filepath, 'predict_lipop.png'))
+plt.savefig(os.path.join(filepath, 'predict_esol.png'))
 plt.show()
 
 # Save model

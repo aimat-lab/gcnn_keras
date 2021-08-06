@@ -15,7 +15,7 @@ from kgcnn.utils.models import generate_node_embedding, update_model_args, gener
 # https://github.com/tkipf/gcn
 
 
-def make_gcn(**kwargs):
+def make_model(**kwargs):
     """Make GCN model.
 
     Args:
@@ -25,11 +25,13 @@ def make_gcn(**kwargs):
         tf.keras.models.Model: Un-compiled GCN model.
     """
     model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 10, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'masked'},
+    model_default = {'name': "GCN",
+                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
+                                         "edge_attributes": {"input_dim": 10, "output_dim": 64}},
+                     'output_embedding': 'graph',
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
@@ -42,12 +44,13 @@ def make_gcn(**kwargs):
         pprint.pprint(m)
 
     # Update model parameter
+    inputs = m['inputs']
     input_embedding = m['input_embedding']
     output_embedding = m['output_embedding']
     output_mlp = m['output_mlp']
     depth = m['depth']
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
+    input_node_shape = inputs[0]['shape']
+    input_edge_shape = inputs[1]['shape']
     gcn_args = m['gcn_args']
 
     if input_edge_shape[-1] != 1:
@@ -55,13 +58,13 @@ def make_gcn(**kwargs):
                          must be shape (batch, None, 1), but got (without batch-dimension): ", input_edge_shape)
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    node_input = ks.layers.Input(**inputs[0])
+    edge_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
 
     # Embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding[inputs[0]['name']])
+    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding[inputs[1]['name']])
     edi = edge_index_input
 
     # Model
@@ -70,20 +73,22 @@ def make_gcn(**kwargs):
         n = GCN(**gcn_args)([n, ed, edi])
 
     # Output embedding choice
-    if output_embedding["output_mode"] == "graph":
+    if output_embedding == "graph":
         out = PoolingNodes()(n)  # will return tensor
         out = MLP(**output_mlp)(out)
-    else:  # Node labeling
+    elif output_embedding == "node":
         out = n
         out = MLP(**output_mlp)(out)
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
             out)  # no ragged for distribution supported atm
+    else:
+        raise ValueError("Unsupported graph embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model
 
 
-def make_gcn_node_weights(**kwargs):
+def make_model_node_weights(**kwargs):
     """Make GCN model.
 
     Args:
@@ -93,11 +98,14 @@ def make_gcn_node_weights(**kwargs):
         tf.keras.models.Model: Un-compiled GCN model.
     """
     model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 10, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'masked'},
+    model_default = {'name': "GCN_weighted",
+                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                                {'shape': (None, 1), 'name': "node_weights", 'dtype': 'float32', 'ragged': True}],
+                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
+                                         "edge_attributes": {"input_dim": 10, "output_dim": 64}},
+                     'output_embedding': 'graph',
                      'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                     "activation": ['relu', 'relu', 'sigmoid']},
                      'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum'},
@@ -109,12 +117,13 @@ def make_gcn_node_weights(**kwargs):
         pprint.pprint(m)
 
     # Local variables for model args
+    inputs = m['inputs']
     input_embedding = m['input_embedding']
     output_embedding = m['output_embedding']
     output_mlp = m['output_mlp']
     depth = m['depth']
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
+    input_node_shape = inputs[0]['shape']
+    input_edge_shape = inputs[1]['shape']
     gcn_args = m['gcn_args']
 
     if input_edge_shape[-1] != 1:
@@ -122,14 +131,14 @@ def make_gcn_node_weights(**kwargs):
                          must be shape (batch, None, 1), but got (without batch-dimension): ", input_edge_shape)
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    node_weights_input = ks.layers.Input(shape=(None, 1), name='node_weights', dtype="float32", ragged=True)
+    node_input = ks.layers.Input(**inputs[0])
+    edge_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
+    node_weights_input = ks.layers.Input(**inputs[3])
 
     # Embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
+    n = generate_node_embedding(node_input, input_node_shape, input_embedding[inputs[0]['name']])
+    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding[inputs[1]['name']])
     edi = edge_index_input
     nw = node_weights_input
 
@@ -139,14 +148,16 @@ def make_gcn_node_weights(**kwargs):
         n = GCN(**gcn_args)([n, ed, edi])
 
     # Output embedding choice
-    if output_embedding["output_mode"] == "graph":
+    if output_embedding == "graph":
         out = PoolingWeightedNodes()([n, nw])  # will return tensor
         out = MLP(**output_mlp)(out)
-    else:  # Node labeling
+    elif output_embedding == "node":
         out = n
         out = MLP(**output_mlp)(out)
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
             out)  # no ragged for distribution supported atm
+    else:
+        raise ValueError("Unsupported graph embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, node_weights_input], outputs=out)
     return model

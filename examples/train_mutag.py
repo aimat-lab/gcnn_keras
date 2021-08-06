@@ -38,7 +38,7 @@ hyper = {'model': {'name': "GraphSAGE",
 # Loading PROTEINS Dataset
 dataset = MUTAGDataset()
 data_name = dataset.dataset_name
-data_length = dataset.data_length
+data_length = dataset.length
 
 # Data-set split
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
@@ -107,9 +107,9 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('mutagenicity Loss')
+plt.title('MUTAG Loss')
 plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath, 'acc_mutagenicity.png'))
+plt.savefig(os.path.join(filepath, 'acc_mutag.png'))
 plt.show()
 
 # Save model

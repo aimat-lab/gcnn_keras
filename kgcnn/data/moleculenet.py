@@ -4,21 +4,19 @@ import rdkit
 import rdkit.Chem
 import rdkit.Chem as Chem
 
-from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
+from kgcnn.data.base import DownloadDataset, MemoryGeometricGraphDataset
 from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
 from kgcnn.utils.data import load_json_file
 
 
-class MuleculeNetDataset(DownloadDataset, MemoryGraphDataset):
+class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
 
     mol_filename = "mol.json"
 
     def __init__(self, reload=False, verbose=1):
 
-        self.data_length = None
-
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
-        MemoryGraphDataset.__init__(self, verbose=verbose)
+        MemoryGeometricGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
@@ -66,13 +64,13 @@ class MuleculeNetDataset(DownloadDataset, MemoryGraphDataset):
 
         return self
 
-    def define_attributes(self,
-                          nodes=None,
-                          edges=None,
-                          graph=None,
-                          encoder=None,
-                          removeHs=True,
-                          verbose=1):
+    def set_attributes(self,
+                       nodes=None,
+                       edges=None,
+                       graph=None,
+                       encoder=None,
+                       removeHs=True,
+                       verbose=1):
 
         # We have to reload the dataset here to start fresh
         self.read_in_memory(verbose=verbose)
@@ -125,7 +123,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGraphDataset):
 
         for i, sm in enumerate(mols):
             mg = MolecularGraph().MolFromMolBlock(sm, removeHs=removeHs, sanitize=True)
-            mg.define_attributes(nodes=nodes, edges=edges, graph=graph, encoder=encoder)
+            mg.set_attributes(nodes=nodes, edges=edges, graph=graph, encoder=encoder)
             node_attributes.append(np.array(mg.node_attributes, dtype="float32"))
             edge_attributes.append(np.array(mg.edge_attributes, dtype="float32"))
             edge_indices.append(np.array(mg.edge_indices, dtype="int64"))
@@ -149,11 +147,3 @@ class MuleculeNetDataset(DownloadDataset, MemoryGraphDataset):
                 print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
 
         return self
-
-    def remove_zero_edges(self, verbose=1):
-        remove_indices = [i for i, x in enumerate(self.edge_indices) if len(x)==0]
-        if verbose>0:
-            print("INFO:kgcnn: Remove zero edge graphs from %s" % self.dataset_name, remove_indices)
-        for rmi in reversed(remove_indices):
-            for x in []:
-                getattr(self, x).pop(rmi)

@@ -6,7 +6,7 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 class NumpyTensorList:
 
     def __init__(self, *args):
-        self._tensor_list = args
+        self._tensor_list = [x for x in args]
         self._data_length = None
         # check that all
 
@@ -31,5 +31,13 @@ class NumpyTensorList:
             else:
                 out_list.append(ragged_tensor_from_nested_numpy(x))
         return out_list
+
+    def pop(self, index):
+        for i, x in enumerate(self._tensor_list):
+            if isinstance(x, list):
+                x.pop(index)
+            else:
+                self._tensor_list[i] = [x[j] for j in range(len(x)) if j != index]
+
 
 # test = NumpyTensorList([np.array([1, 2])], [np.array([1, 2])])

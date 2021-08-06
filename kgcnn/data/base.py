@@ -1,19 +1,22 @@
 import os
+import numpy as np
 import requests
 import tarfile
 import zipfile
 
+from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance, \
+    get_angle_indices
+
 
 class MemoryGraphDataset:
-
     fits_in_memory = True
     dataset_name = None
 
     def __init__(self, **kwargs):
+        self.length = None
 
         self.node_attributes = None
         self.node_labels = None
-        self.node_coordinates = None
         self.node_degree = None
         self.node_symbol = None
         self.node_number = None
@@ -24,8 +27,17 @@ class MemoryGraphDataset:
 
         self.graph_labels = None
         self.graph_attributes = None
-        self.graph_adjacency = None
         self.graph_size = None
+
+        self.graph_adjacency = None
+
+
+class MemoryGeometricGraphDataset(MemoryGraphDataset):
+
+    def __init__(self, **kwargs):
+        super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
+
+        self.node_coordinates = None
 
         self.range_indices = None
         self.range_attributes = None
@@ -34,6 +46,53 @@ class MemoryGraphDataset:
         self.angle_indices = None
         self.angle_labels = None
         self.angle_attributes = None
+
+    def set_range(self, max_distance=4, max_neighbours=15, do_invert_distance=False, self_loops=False, exclusive=True):
+        """Define range in euclidean space. Requires node coordinates."""
+
+        coord = self.node_coordinates
+        if self.node_coordinates is None:
+            print("WARNING:kgcnn: Coordinates are not set for `GeometricGraph`. Can not make graph.")
+            return self
+
+        edge_idx = []
+        edges = []
+        for i in range(len(coord)):
+            xyz = coord[i]
+            dist = coordinates_to_distancematrix(xyz)
+            # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
+            cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
+                                                           max_neighbours=max_neighbours,
+                                                           exclusive=exclusive, self_loops=self_loops)
+            mask = np.array(cons, dtype=np.bool)
+            dist_masked = dist[mask]
+
+            if do_invert_distance:
+                dist_masked = invert_distance(dist_masked)
+
+            # Need at least on feature dimension
+            if len(dist_masked.shape) <= 1:
+                dist_masked = np.expand_dims(dist_masked, axis=-1)
+            edges.append(dist_masked)
+            edge_idx.append(indices)
+
+        self.range_attributes = edges
+        self.range_indices = edge_idx
+        return self
+
+    def set_angle(self, is_sorted=False):
+        indices = self.edge_indices
+        ei = []
+        nijk = []
+        ai = []
+        for x in indices:
+            temp = get_angle_indices(x, is_sorted=is_sorted)
+            ei.append(temp[0])
+            nijk.append(temp[1])
+            ai.append(temp[2])
+        self.angle_indices = ai
+        self.range_indices = ei
+        return self
 
 
 class DownloadDataset:

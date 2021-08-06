@@ -10,8 +10,6 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
 
     def __init__(self, dataset_name=None, reload=False, verbose=1):
 
-        self.data_length = None
-
         if isinstance(dataset_name, str) and dataset_name in self.all_tudataset_identifier:
             self.data_directory = dataset_name
             self.download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/" + dataset_name + ".zip"
@@ -143,5 +141,5 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         self.edge_labels = e_labels
         self.graph_labels = g_labels
         self.graph_adjacency = None  # @TODO
-        self.data_length = len(g_labels)
+        self.length = len(g_labels)
 

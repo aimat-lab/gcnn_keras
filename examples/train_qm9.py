@@ -12,21 +12,11 @@ from kgcnn.data.datasets.lipop import LipopDataset
 from kgcnn.io.loader import NumpyTensorList
 
 # Hyper
-from kgcnn.literature.AttentiveFP import make_model
+from kgcnn.literature.Schnet import make_model
 
-hyper = {'model': {'name': "AttentiveFP",
-                   'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 15), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                   'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                       "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-                   'output_embedding': 'graph',
-                   'output_mlp': {"use_bias": [True, True], "units": [200, 1],
-                                  "activation": ['kgcnn>leaky_relu', 'linear']},
-                   'attention_args': {"units": 200},
-                   'depth': 2,
-                   'dropout': 0.2,
-                   'verbose': 1
+hyper = {'model': {
+
+
                    },
          'training': {'batch_size': 200, "learning_rate_start": 10**-2.5,
                       'epo': 200, 'epomin': 400, 'epostep': 10, "weight_decay": 10 ** -5
@@ -36,7 +26,7 @@ hyper = {'model': {'name': "AttentiveFP",
 # Loading PROTEINS Dataset
 dataset = LipopDataset().set_attributes()
 data_name = dataset.dataset_name
-data_unit = "logD at pH 7.4"
+data_unit = "eV"
 data_length = dataset.length
 
 # Data-set split

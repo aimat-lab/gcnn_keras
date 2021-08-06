@@ -47,9 +47,9 @@ class LipopDataset(MuleculeNetDataset):
         labels2 = np.expand_dims(np.array(data['exp']), axis=-1)
         # labels1 = np.expand_dims(np.array(data['ESOL predicted log solubility in mols per litre']), axis=-1)
         self.graph_labels = labels2
-        self.data_length = len(labels2)
+        self.length = len(labels2)
         super(LipopDataset, self).read_in_memory(verbose=verbose)
 
-# ld = LipopDataset(reload=False)
+ld = LipopDataset(reload=False)
 # ld.define_attributes()
 # labels, nodes, edges, edge_indices, graph_state = ld.get_graph()

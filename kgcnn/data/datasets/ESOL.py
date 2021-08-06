@@ -57,7 +57,7 @@ class ESOLDataset(MuleculeNetDataset):
         # self.data_full = data
         self.data_keys = data.columns
         self.graph_labels = np.expand_dims(np.array(data['measured log solubility in mols per litre']), axis=-1)
-        self.data_length = len(self.graph_labels)
+        self.length = len(self.graph_labels)
         super(ESOLDataset, self).read_in_memory(verbose=verbose)
 
 

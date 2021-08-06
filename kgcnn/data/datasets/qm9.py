@@ -7,14 +7,15 @@ import json
 from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
     define_adjacency_from_distance, get_angle_indices
 from kgcnn.mol.geomgraph import GeometricMolGraph
-from kgcnn.data.base import DownloadDataset
+from kgcnn.data.qm import QMDataset
 
 
-class QM9Dataset(DownloadDataset):
+class QM9Dataset(QMDataset):
     """Store and process QM9 dataset."""
     # https://ndownloader.figshare.com/files/3195398
     # https://ndownloader.figshare.com/files/3195389
 
+    dataset_name = "QM9"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
     data_directory = "qm9"
     download_url = "https://ndownloader.figshare.com/files/3195389"
@@ -34,8 +35,10 @@ class QM9Dataset(DownloadDataset):
         """
         # Run base class default init()
         super(QM9Dataset, self).__init__(reload=reload, verbose=verbose)
+        if self.fits_in_memory:
+            self.read_in_memory(verbose=verbose)
 
-    def prepare_data(self, overwrite=False, verbose=1):
+    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
         """Process data by loading all single xyz-files and store all pickled information to file.
         The single files are deleted afterwards, requires to re-extract the tar-file for overwrite.
 
@@ -158,116 +161,17 @@ class QM9Dataset(DownloadDataset):
         massdict = {'H': 1.0079, 'C': 12.0107, 'N': 14.0067, 'O': 15.9994, 'F': 18.9984}
         mass = [[massdict[y] for y in x] for x in atoms]
         mmw = np.expand_dims(np.array([np.mean(x) for x in mass]), axis=-1)
+        man = np.expand_dims(np.array([len(x) for x in mass]), axis=-1)
 
         # Coordinates
         coord = [[[y[1], y[2], y[3]] for y in x[2]] for x in qm9]
         coord = [np.array(x) for x in coord]
 
-        self.coordinates = coord
-        self.labels_graph = labels
-        self.atoms = atoms
-        self.nodes = nodes
-        self.graph_state = mmw
+        self.node_coordinates = coord
+        self.graph_labels = labels
+        self.node_symbol = atoms
+        self.node_number = nodes
+        self.graph_attributes = np.concatenate([mmw, man], axis=-1)
 
         if verbose > 0:
             print('done')
-
-    def get_graph(self, max_distance=4, max_neighbours=15,
-                  do_invert_distance=False, do_gauss_basis_expansion=True,
-                  gauss_distance=None, max_mols=133885):
-        """Make graph tensor from QM9 dataset. Does require large amount of memory ~GBs depending on the settings.
-        The geometric distance is taken as edge features and the atomic number for node embedding.
-        The edges are generated on distance considerations only (purely geometric).
-
-        Args:
-            max_distance (int): Maximum distance between atoms to consider edges. Default is 4.
-            max_neighbours (int): Maximum number of neighbours of an atom to consider edges. Default is 15.
-            do_invert_distance (bool): Invert the distance value of edges. Default is False.
-            do_gauss_basis_expansion (bool): Expand the distance as gauss distance (similar one-hot). Default is True.
-            gauss_distance (dict): Settings for gauss distance. Default is {'gbins': 20, 'grange': 4, 'gsigma': 0.4}.
-            max_mols (int): Maximum number of molecules to take from QM9. Default is 133885.
-
-        Returns:
-            tuple: labels, nodes, edges, edge_idx, gstates
-
-            - labels (list): All molecular labels of the QM9 dataset.
-            - nodes (list): List of atomic numbers for embedding layer.
-            - edges (list): Edge features as distance (either inverse distance and/or gauss distance).
-            - edge_idx (list): Edge indices referring to nodes defining an edge i<-j of shape per molecule (N, 2)
-            - gstates (list): Graph states, mean molecular weight - 7 g/mol
-        """
-
-        if gauss_distance is None:
-            gauss_distance = {'gbins': 20, 'grange': 4, 'gsigma': 0.4}
-        if not do_gauss_basis_expansion:
-            gauss_distance = None
-
-        coord = self.coordinates
-        labels = self.labels_graph
-        nodes = self.nodes
-        gstates = self.graph_state
-        gstates = gstates - 7.0  # center at 0
-
-        edge_idx = []
-        edges = []
-
-        for i in range(max_mols):
-            xyz = coord[i]
-            # dist = coordinates_to_distancematrix(xyz)
-            #
-            # # cons = get_connectivity_from_inversedistancematrix(invdist,ats)
-            # cons, _ = define_adjacency_from_distance(dist, max_distance=max_distance, max_neighbours=max_neighbours,
-            #                                          exclusive=True, self_loops=False)
-            # index1 = np.tile(np.expand_dims(np.arange(0, dist.shape[0]), axis=1), (1, dist.shape[1]))
-            # index2 = np.tile(np.expand_dims(np.arange(0, dist.shape[1]), axis=0), (dist.shape[0], 1))
-            # mask = np.array(cons, dtype=np.bool)
-            # index12 = np.concatenate([np.expand_dims(index1, axis=-1), np.expand_dims(index2, axis=-1)], axis=-1)
-            # edge_idx.append(index12[mask])
-            # dist_masked = dist[mask]
-            #
-            # if do_invert_distance:
-            #     dist_masked = invert_distance(dist_masked)
-            # if do_gauss_basis_expansion:
-            #     dist_masked = distance_to_gaussdistance(dist_masked, gbins=gauss_distance['gbins'],
-            #                                             grange=gauss_distance['grange'],
-            #                                             gsigma=gauss_distance['gsigma'])
-            # # Need at least on feature dimension
-            # if len(dist_masked.shape) <= 1:
-            #     dist_masked = np.expand_dims(dist_masked, axis=-1)
-            #
-            # edges.append(dist_masked)
-            gmg = GeometricMolGraph(atom_labels=None, coordinates=xyz)
-            index12, dist_masked = gmg.define_graph(max_distance=max_distance, max_neighbours=max_neighbours,
-                                                    do_invert_distance=do_invert_distance, self_loops=False,
-                                                    gauss_distance=gauss_distance, exclusive=True)
-            edges.append(dist_masked)
-            edge_idx.append(index12)
-
-        # edge_len = np.array([len(x) for x in edge_idx], dtype=np.int)
-        # edges = [np.concatenate([edges_inv[i],edges[i]],axis=-1) for i in range(len(edge_idx))]
-        # edges = [edges[i] for i in range(len(edge_idx))]
-        # self.tensor_index = edge_idx[:max_mols]
-
-        return labels[:max_mols], nodes[:max_mols], edges[:max_mols], edge_idx[:max_mols], gstates[:max_mols]
-
-    @classmethod
-    def get_angle_index(cls, idx, is_sorted=False):
-        """Compute the angle between bonds for a given index list.
-
-        Args:
-            idx: Possibly sorted edge indices referring to nodes of shape (N, 2)
-            is_sorted: If edge indices are sorted, otherwise they will be sorted. Default is False.
-
-        Returns:
-            tuple: ei, nijk, ai
-        """
-        ei = []
-        nijk = []
-        ai = []
-        for x in idx:
-            temp = get_angle_indices(x, is_sorted=is_sorted)
-            ei.append(temp[0])
-            nijk.append(temp[1])
-            ai.append(temp[2])
-
-        return ei, nijk, ai

@@ -13,3 +13,5 @@ kgcnn.egg-info
 /examples/PROTEINS/
 /examples/Mutagenicity/
 /examples/Lipop/
+/examples/MUTAG/
+/examples/Cora/
