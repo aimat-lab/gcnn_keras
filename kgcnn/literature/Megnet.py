@@ -1,6 +1,6 @@
 import tensorflow.keras as ks
 import pprint
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding, \
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding, \
     generate_state_embedding
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.keras import Dense, Add, Dropout
@@ -41,7 +41,7 @@ def make_megnet(**kwargs):
                      'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
                      'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

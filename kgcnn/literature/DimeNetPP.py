@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import pprint
 
-from kgcnn.utils.models import update_model_args
+from kgcnn.utils.models import update_model_kwargs_logic
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add
@@ -37,7 +37,7 @@ def make_dimnet_pp(**kwargs):
                      'num_targets': 12, 'extensive': True, 'output_init': 'zeros',
                      'activation': 'swish', 'verbose': 1,
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

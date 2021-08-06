@@ -350,12 +350,12 @@ class GaussBasisLayer(GraphBaseLayer):
             if inputs.ragged_rank == 1:
                 edge, ege_part = inputs.values, inputs.row_splits
                 out = edge - self.offset
-                out = np.square(out - gbs) * self.gamma
+                out = tf.square(out - gbs) * self.gamma
                 out = tf.exp(out)
                 return tf.RaggedTensor.from_row_splits(out, ege_part, validate=self.ragged_validate)
         # Default
         out = inputs - self.offset
-        out = np.square(out - gbs) * self.gamma
+        out = tf.square(out - gbs) * self.gamma
         out = tf.exp(out)
         return out
 

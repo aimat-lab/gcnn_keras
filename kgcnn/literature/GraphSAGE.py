@@ -7,7 +7,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
 
 # 'Inductive Representation Learning on Large Graphs'
 # William L. Hamilton and Rex Ying and Jure Leskovec
@@ -39,7 +39,7 @@ def make_model(**kwargs):
                      'use_edge_features': True, 'pooling_nodes_args':{'pooling_method': "mean"},
                      'depth': 3, 'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

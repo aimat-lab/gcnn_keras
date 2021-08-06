@@ -7,7 +7,7 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
-from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import generate_edge_embedding, update_model_kwargs_logic, generate_node_embedding
 
 
 # Neural Message Passing for Quantum Chemistry
@@ -39,7 +39,7 @@ def make_nmpn(**kwargs):
                      'use_set2set': True, 'depth': 3, 'node_dim': 128,
                      'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

@@ -39,5 +39,8 @@ class NumpyTensorList:
             else:
                 self._tensor_list[i] = [x[j] for j in range(len(x)) if j != index]
 
+    def __len__(self):
+        return len(self._tensor_list[0])
+
 
 # test = NumpyTensorList([np.array([1, 2])], [np.array([1, 2])])

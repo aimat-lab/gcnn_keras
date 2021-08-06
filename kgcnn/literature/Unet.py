@@ -7,7 +7,7 @@ from kgcnn.layers.keras import Dense, Activation, Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK
-from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import generate_edge_embedding, update_model_kwargs_logic, generate_node_embedding
 
 
 # Graph U-Nets
@@ -42,7 +42,7 @@ def make_model(**kwargs):
                      'gather_args': {"node_indexing": 'sample'},
                      'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

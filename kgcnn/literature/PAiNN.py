@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 import pprint
 import tensorflow as tf
-from kgcnn.utils.models import update_model_args, generate_node_embedding
+from kgcnn.utils.models import update_model_kwargs_logic, generate_node_embedding
 from kgcnn.layers.keras import Add
 from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized
 from kgcnn.layers.conv.painn_conv import PAiNNconv
@@ -37,7 +37,7 @@ def make_painn(**kwargs):
                      'depth': 3,
                      'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

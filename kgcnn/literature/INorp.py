@@ -6,7 +6,7 @@ from kgcnn.layers.keras import Concatenate, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_state_embedding, \
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_state_embedding, \
     generate_edge_embedding
 
 # 'Interaction Networks for Learning about Objects,Relations and Physics'
@@ -45,7 +45,7 @@ def make_model(**kwargs):
                      'depth': 3, 'use_set2set': False, 'verbose': 1,
                      'gather_args': {}
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

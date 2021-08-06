@@ -7,7 +7,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
 
 # Graph Attention Networks
 # by Veličković et al. (2018)
@@ -39,7 +39,7 @@ def make_model(**kwargs):
                      'depth': 3, 'attention_heads_num': 5,
                      'attention_heads_concat': False, 'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)

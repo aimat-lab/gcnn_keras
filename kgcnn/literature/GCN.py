@@ -6,7 +6,7 @@ from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
 
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
@@ -38,7 +38,7 @@ def make_model(**kwargs):
                                   "is_sorted": False, "has_unconnected": True},
                      'depth': 3, 'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)
@@ -111,7 +111,7 @@ def make_model_node_weights(**kwargs):
                      'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum'},
                      'depth': 3, 'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO: Updated functional make model kwargs:")
         pprint.pprint(m)

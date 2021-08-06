@@ -7,7 +7,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.keras import Dense, Dropout
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.mlp import MLP
-from kgcnn.utils.models import generate_node_embedding, update_model_args, generate_edge_embedding
+from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
 import kgcnn.ops.activ
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -41,7 +41,7 @@ def make_model(**kwargs):
                      'dropout': 0.1,
                      'verbose': 1
                      }
-    m = update_model_args(model_default, model_args)
+    m = update_model_kwargs_logic(model_default, model_args)
     if m['verbose'] > 0:
         print("INFO:kgcnn: Updated functional make model kwargs:")
         pprint.pprint(m)
@@ -116,7 +116,7 @@ try:
                          'attention_args': {"units": 32},
                          'depth': 3, 'dropout': 0.1, 'verbose': 1
                          }
-        m = update_model_args(model_default, model_args)
+        m = update_model_kwargs_logic(model_default, model_args)
         if m['verbose'] > 0:
             print("INFO: Updated functional make model kwargs:")
             pprint.pprint(m)

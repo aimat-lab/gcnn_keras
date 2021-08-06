@@ -4,9 +4,6 @@ import numpy as np
 import json
 # import shutil
 
-from kgcnn.mol.methods import coordinates_to_distancematrix, invert_distance, distance_to_gaussdistance, \
-    define_adjacency_from_distance, get_angle_indices
-from kgcnn.mol.geomgraph import GeometricMolGraph
 from kgcnn.data.qm import QMDataset
 
 
@@ -34,6 +31,8 @@ class QM9Dataset(QMDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Run base class default init()
+        self.target_names = ['index', 'A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
+                             'G', 'Cv']
         super(QM9Dataset, self).__init__(reload=reload, verbose=verbose)
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
@@ -142,6 +141,7 @@ class QM9Dataset(QMDataset):
             raise FileNotFoundError("Can not find pickled QM9 dataset.")
 
         # labels
+        self.length = 133885
         labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag here
         # print(labels[0])
         # Atoms as nodes
@@ -160,8 +160,7 @@ class QM9Dataset(QMDataset):
         # Mean molecular weight mmw
         massdict = {'H': 1.0079, 'C': 12.0107, 'N': 14.0067, 'O': 15.9994, 'F': 18.9984}
         mass = [[massdict[y] for y in x] for x in atoms]
-        mmw = np.expand_dims(np.array([np.mean(x) for x in mass]), axis=-1)
-        man = np.expand_dims(np.array([len(x) for x in mass]), axis=-1)
+        mmw = np.array([[np.mean(x), len(x)] for x in mass])
 
         # Coordinates
         coord = [[[y[1], y[2], y[3]] for y in x[2]] for x in qm9]
@@ -171,7 +170,7 @@ class QM9Dataset(QMDataset):
         self.graph_labels = labels
         self.node_symbol = atoms
         self.node_number = nodes
-        self.graph_attributes = np.concatenate([mmw, man], axis=-1)
+        self.graph_attributes = mmw
 
         if verbose > 0:
             print('done')
