@@ -177,7 +177,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.angle_labels = None
         self.angle_attributes = None
 ```
-Each property holds an iterable object (e.g. list, array) of the length of the dataset. 
+Each property holds an iterable object (e.g. list, array) with the length of the dataset. 
 
 <a name="examples"></a>
 # Examples
