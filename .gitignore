@@ -9,10 +9,10 @@ dist
 kgcnn.egg-info
 /legacy/
 /training/.ipynb_checkpoints/
-/training/old/kt_test/
+/training/old_traing/kt_test/
 /training/PROTEINS/
 /training/Mutagenicity/
 /training/Lipop/
 /training/MUTAG/
 /training/Cora/
-/training/old/
+/training/old_traing/
