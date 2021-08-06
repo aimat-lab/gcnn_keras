@@ -141,17 +141,15 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 <a name="datasets"></a>
 # Datasets
 
-In [data.datasets](kgcnn/data/datasets) there are graph learning datasets. They can be downloaded from e.g. 
-TUDatasets, MoleculeNet-Datasets or defined freely using class definitions in [data](kgcnn/data). 
-For the simple case that the dataset fits in memeory the base class is:
+In [data.datasets](kgcnn/data/datasets) there are graph learning datasets. They are being downloaded from e.g. 
+TUDatasets, MoleculeNet or defined freely using class definitions in [data](kgcnn/data). 
+For the simple case that the dataset fits in memory the base class is defined as:
 ```python
 class MemoryGraphDataset:
     
     def __init__(self):
         self.node_attributes = None
         self.node_labels = None
-        self.node_coordinates = None
-        self.node_degree = None
 
         self.edge_indices = None
         self.edge_attributes = None
@@ -159,22 +157,31 @@ class MemoryGraphDataset:
 
         self.graph_labels = None
         self.graph_attributes = None
-        self.graph_adjacency = None
+```
+or the extension to geometric information addition to the graph's structure.
+```python
+from kgcnn.data.base import MemoryGraphDataset
+
+class MemoryGeometricGraphDataset(MemoryGraphDataset):
+    
+    def __init__(self, **kwargs):
+        super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
+        self.node_coordinates = None
 
         self.range_indices = None
         self.range_attributes = None
         self.range_labels = None
-        
+
         self.angle_indices = None
         self.angle_labels = None
         self.angle_attributes = None
 ```
-with iteratable properties from which the model input can be generated.
+Each property holds an iterable object (e.g. list, array) of the length of the dataset. 
 
 <a name="examples"></a>
 # Examples
 
-A set of example training can be found in [example](training).
+A set of example training can be found in [training](training).
 
 # Issues
 
