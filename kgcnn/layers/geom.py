@@ -313,6 +313,59 @@ class EdgeAngle(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
+class GaussBasisLayer(GraphBaseLayer):
+    r"""Expand a distance into a Gauss Basis with :math:`\sgima`, according to Schuett et al.
+
+    Args:
+
+    """
+
+    def __init__(self, bins=20, range=4.0, sigma=0.4, offset=0.0,
+                 **kwargs):
+        super(GaussBasisLayer, self).__init__(**kwargs)
+        # Layer variables
+        self.bins = int(bins)
+        self.range = float(range)
+        self.offset = float(offset)
+        self.sigma = float(sigma)
+        self.gamma = 1 / sigma / sigma * (-1) / 2
+
+        # Note: For arbitrary axis the code must be adapted.
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: distance
+
+                - distance (tf.RaggedTensor): Edge distance of shape (batch, [K], 1)
+
+        Returns:
+            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
+        """
+        gbs = tf.range(0, self.bins, 1, dtype=self.dtype) / float(self.bins) * self.range
+        # Possibly faster RaggedRank==1
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                edge, ege_part = inputs.values, inputs.row_splits
+                out = edge - self.offset
+                out = np.square(out - gbs) * self.gamma
+                out = tf.exp(out)
+                return tf.RaggedTensor.from_row_splits(out, ege_part, validate=self.ragged_validate)
+        # Default
+        out = inputs - self.offset
+        out = np.square(out - gbs) * self.gamma
+        out = tf.exp(out)
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(GaussBasisLayer, self).get_config()
+        config.update({"bins": self.bins, "range": self.range, "offset": self.offset, "sigma": self.sigma})
+        return config
+
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020

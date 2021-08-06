@@ -14,9 +14,22 @@ from kgcnn.io.loader import NumpyTensorList
 # Hyper
 from kgcnn.literature.Schnet import make_model
 
-hyper = {'model': {
-
-
+hyper = {'model': {'name': "SchNet",
+                   'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                              {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                   'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64}},
+                   'output_embedding': 'graph',
+                   'interaction_args': {"units": 128, "use_bias": True,
+                                        "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum',
+                                        "is_sorted": False, "has_unconnected": True},
+                   'output_mlp': {"use_bias": [True, True], "units": [128, 64],
+                                  "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                   'output_dense': {"units": 3, "activation": 'linear', "use_bias": True},
+                   'node_pooling_args': {"pooling_method": "sum"},
+                   'depth': 4, 'out_scale_pos': 0,
+                   'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
+                   'verbose': 1
                    },
          'training': {'batch_size': 200, "learning_rate_start": 10**-2.5,
                       'epo': 200, 'epomin': 400, 'epostep': 10, "weight_decay": 10 ** -5

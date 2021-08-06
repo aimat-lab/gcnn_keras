@@ -4,8 +4,9 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
+from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
 from kgcnn.layers.pool.pooling import PoolingNodes
-from kgcnn.utils.models import generate_edge_embedding, update_model_args, generate_node_embedding
+from kgcnn.utils.models import update_model_args, generate_node_embedding
 
 
 # Model Schnet as defined
@@ -15,7 +16,7 @@ from kgcnn.utils.models import generate_edge_embedding, update_model_args, gener
 # https://aip.scitation.org/doi/pdf/10.1063/1.5019779
 
 
-def make_schnet(**kwargs):
+def make_model(**kwargs):
     """Make un-compiled SchNet model.
 
     Args:
@@ -25,11 +26,12 @@ def make_schnet(**kwargs):
         tf.keras.models.Model: SchNet.
     """
     model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
+    model_default = {'name': "SchNet",
+                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64}},
+                     'output_embedding': 'graph',
                      'interaction_args': {"units": 128, "use_bias": True,
                                           "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum',
                                           "is_sorted": False, "has_unconnected": True},
@@ -38,6 +40,7 @@ def make_schnet(**kwargs):
                      'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
                      'node_pooling_args': {"pooling_method": "sum"},
                      'depth': 4, 'out_scale_pos': 0,
+                     'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
                      'verbose': 1
                      }
     m = update_model_args(model_default, model_args)
@@ -46,8 +49,7 @@ def make_schnet(**kwargs):
         pprint.pprint(m)
 
     # Update args
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
+    inputs = m['inputs']
     input_embedding = m['input_embedding']
     interaction_args = m['interaction_args']
     output_mlp = m['output_mlp']
@@ -56,16 +58,19 @@ def make_schnet(**kwargs):
     node_pooling_args = m['node_pooling_args']
     depth = m['depth']
     out_scale_pos = m['out_scale_pos']
+    gauss_ags = m['gauss_ags']
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    node_input = ks.layers.Input(**inputs[0])
+    xyz_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
 
     # embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
+    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
     edi = edge_index_input
+    x = xyz_input
+    ed = NodeDistance()([x, edi])
+    ed = GaussBasisLayer(**gauss_ags)(ed)
 
     # Model
     n = Dense(interaction_args["units"], activation='linear')(n)
@@ -87,5 +92,5 @@ def make_schnet(**kwargs):
         out = mlp_last(n)
         main_output = ChangeTensorType(input_tensor_type="values_partition", output_tensor_type="tensor")(out)  # no ragged for distribution atm
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=main_output)
     return model

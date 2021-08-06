@@ -174,7 +174,7 @@ with iteratable properties from which the model input can be generated.
 <a name="examples"></a>
 # Examples
 
-A set of example training can be found in [example](examples).
+A set of example training can be found in [example](training).
 
 # Issues
 
