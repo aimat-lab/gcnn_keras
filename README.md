@@ -64,10 +64,10 @@ Graphs can be represented by an index list of connections plus feature informati
 
 * `nodes`: Node-list of shape `(batch, N, F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * `edges`: Edge-list of shape `(batch, M, F)` where `M` is the number of edges and `F` is the edge feature dimension.
-* `indices`: Connection-list of shape `(batch, M, 2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i,j)`.
+* `indices`: Connection-list of shape `(batch, M, 2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i, j)`.
 * `state`: Graph state information of shape `(batch, F)` where `F` denotes the feature dimension.
  
-A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`.
+A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`s.
 
 
 ### Input
@@ -133,6 +133,7 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 * **[GNNExplainer](kgcnn/literature/GNNExplain.py)**: [GNNExplainer: Generating Explanations for Graph Neural Networks](https://arxiv.org/abs/1903.03894) by Ying et al. (2019)
 * **[GraphSAGE](kgcnn/literature/GraphSAGE.py)**: [Inductive Representation Learning on Large Graphs](http://arxiv.org/abs/1706.02216) by Hamilton et al. (2017)
 * **[GAT](kgcnn/literature/GAT.py)**: [Graph Attention Networks](https://arxiv.org/abs/1710.10903) by Veličković et al. (2018)
+* **[GATv2](kgcnn/literature/GATv2.py)**: [How Attentive are Graph Attention Networks?](https://arxiv.org/abs/2105.14491) by Brody et al. (2021)
 * **[DimeNetPP](kgcnn/literature/DimeNetPP.py)**: [Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://arxiv.org/abs/2011.14115) by Klicpera et al. (2020)
 * **[AttentiveFP](kgcnn/literature/AttentiveFP.py)**: [Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism](https://pubs.acs.org/doi/10.1021/acs.jmedchem.9b00959) by Xiong et al. (2019)
 * **[GIN](kgcnn/literature/GIN.py)**: [How Powerful are Graph Neural Networks?](https://arxiv.org/abs/1810.00826) by Xu et al. (2019)
@@ -158,7 +159,7 @@ class MemoryGraphDataset:
         self.graph_labels = None
         self.graph_attributes = None
 ```
-or the extension to geometric information addition to the graph's structure.
+or the extension to geometric information in addition to the graph's structure.
 ```python
 from kgcnn.data.base import MemoryGraphDataset
 
