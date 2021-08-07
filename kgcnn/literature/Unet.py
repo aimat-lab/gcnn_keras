@@ -7,58 +7,44 @@ from kgcnn.layers.keras import Dense, Activation, Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK
-from kgcnn.utils.models import generate_edge_embedding, update_model_kwargs_logic, generate_node_embedding
-
+from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Graph U-Nets
 # by Hongyang Gao, Shuiwang Ji
 # https://arxiv.org/pdf/1905.05178.pdf
 
+hyper_model_default = {'name': "Unet",
+                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                           "edge": {"input_dim": 5, "output_dim": 64}},
+                       'output_embedding': 'graph',
+                       'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
+                       'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
+                       'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
+                       'activation': 'relu',
+                       'use_reconnect': True,
+                       'depth': 4,
+                       'pooling_args': {"pooling_method": 'segment_mean'},
+                       'gather_args': {"node_indexing": 'sample'},
+                       'verbose': 1
+                       }
 
-def make_model(**kwargs):
-    """Make Graph U-Net.
 
-    Args:
-        **kwargs
-
-    Returns:
-        tf.keras.models.Model: Unet model.
-    """
-    model_args = kwargs
-    model_default = {'name': "UNet",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
-                     'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
-                     'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
-                     'activation': 'relu',
-                     'use_reconnect': True,
-                     'depth': 4,
-                     'pooling_args': {"pooling_method": 'segment_mean'},
-                     'gather_args': {"node_indexing": 'sample'},
-                     'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # Update model args
-    inputs = m['inputs']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    pooling_args = m["pooling_args"]
-    gather_args = m['gather_args']
-    top_k_args = m['top_k_args']
-    depth = m['depth']
-    use_reconnect = m['use_reconnect']
-    hidden_dim = m['hidden_dim']
-    activation = m['activation']
+@update_model_kwargs(hyper_model_default)
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               pooling_args=None,
+               gather_args=None,
+               top_k_args=None,
+               depth=None,
+               use_reconnect=None,
+               hidden_dim=None,
+               activation=None, **kwargs):
+    """Make Graph U-Net."""
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -66,8 +52,8 @@ def make_model(**kwargs):
     edge_index_input = ks.layers.Input(**inputs[2])
 
     # embedding, if no feature dimension
-    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
-    ed = generate_edge_embedding(edge_input, inputs[1]['shape'], input_embedding[inputs[1]['name']])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
     edi = edge_index_input
 
     # Model
@@ -128,3 +114,33 @@ def make_model(**kwargs):
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
+
+
+hyper_model_dataset = {"MUTAG": {'model': {
+    'name': "Unet",
+    'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None, 1), 'name': "edge_labels", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+    'input_embedding': {"node": {"input_dim": 60, "output_dim": 128},
+                        "edge": {"input_dim": 5, "output_dim": 5}},
+    'output_embedding': 'graph',
+    'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
+    'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
+    'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
+    'activation': 'relu',
+    'use_reconnect': True,
+    'depth': 4,
+    'pooling_args': {"pooling_method": 'segment_mean'},
+    'gather_args': {"node_indexing": 'sample'},
+    'verbose': 1
+},
+    'training': {
+        'fit': {'batch_size': 32, 'epochs': 500, 'validation_freq': 2, 'verbose': 2},
+        'optimizer': {'class_name': 'Adam', "config": {'lr': 5e-4}},
+        'callbacks': [{'class_name': 'kgcnn>LinearLearningRateScheduler',
+                       "config": {'learning_rate_start': 0.5e-3,
+                                  'learning_rate_stop': 1e-5,
+                                  'epo_min': 400, 'epo': 500, 'verbose': 0}}]
+    }
+}
+}

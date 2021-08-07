@@ -1,67 +1,54 @@
 import tensorflow.keras as ks
-import pprint
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_state_embedding, \
-    generate_edge_embedding
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # 'Interaction Networks for Learning about Objects,Relations and Physics'
 # by Peter W. Battaglia, Razvan Pascanu, Matthew Lai, Danilo Rezende, Koray Kavukcuoglu
 # http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics
 # https://github.com/higgsfield/interaction_network_pytorch
 
+hyper_model_default = {'name': "INorp",
+                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                                  {'shape': [], 'name': "graph_attributes", 'dtype': 'float32', 'ragged': False}],
+                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                           "edge": {"input_dim": 5, "output_dim": 64},
+                                           "graph": {"input_dim": 100, "output_dim": 64}},
+                       'output_embedding': 'graph',
+                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                      "activation": ['relu', 'relu', 'sigmoid']},
+                       'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean",
+                                        "init_qstar": "mean"},
+                       'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+                       'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
+                                         "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
+                       'pooling_args': {'pooling_method': "segment_mean"},
+                       'depth': 3, 'use_set2set': False, 'verbose': 1,
+                       'gather_args': {}
+                       }
 
-def make_model(**kwargs):
-    """Generate Interaction network.
 
-    Args:
-        **kwargs
-
-    Returns:
-        tf.keras.models.Model: Interaction model.
-    """
-    model_args = kwargs
-    model_default = {'name': "GraphSAGE",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-                                {'shape': [], 'name': "graph_attributes", 'dtype': 'float32', 'ragged': False}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 5, "output_dim": 64},
-                                         "graph_attributes": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['relu', 'relu', 'sigmoid']},
-                     'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean",
-                                      "init_qstar": "mean"},
-                     'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                     'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
-                                       "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
-                     'pooling_args': {'pooling_method': "segment_mean"},
-                     'depth': 3, 'use_set2set': False, 'verbose': 1,
-                     'gather_args': {}
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # local updated default values
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    depth = m['depth']
-    inputs = m['inputs']
-    gather_args = m['gather_args']
-    edge_mlp_args = m['edge_mlp_args']
-    node_mlp_args = m['node_mlp_args']
-    set2set_args = m['set2set_args']
-    pooling_args = m['pooling_args']
-    use_set2set = m['use_set2set']
+@update_model_kwargs(hyper_model_default)
+def make_model(input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               depth=None,
+               inputs=None,
+               gather_args=None,
+               edge_mlp_args=None,
+               node_mlp_args=None,
+               set2set_args=None,
+               pooling_args=None,
+               use_set2set=None,
+               **kwargs
+               ):
+    """Generate Interaction network."""
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -70,9 +57,9 @@ def make_model(**kwargs):
     env_input = ks.Input(**inputs[3])
 
     # embedding, if no feature dimension
-    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
-    ed = generate_edge_embedding(edge_input, inputs[1]['shape'], input_embedding[inputs[1]['name']])
-    uenv = generate_state_embedding(env_input, inputs[3]['shape'], input_embedding[inputs[3]['name']])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+    uenv = generate_embedding(env_input, inputs[3]['shape'], input_embedding['graph'], embedding_rank=0)
     edi = edge_index_input
 
     # Model
@@ -113,3 +100,34 @@ def make_model(**kwargs):
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
     return model
+
+
+hyper_model_dataset = {"MUTAG": {
+    'model': {'name': "INrop",
+              'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                         {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                         {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                         {'shape': [], 'name': "graph_size", 'dtype': 'float32', 'ragged': False}],
+              'input_embedding': {"node": {"input_dim": 60, "output_dim": 16},
+                                  "edge": {"input_dim": 4, "output_dim": 8},
+                                  "graph": {"input_dim": 30, "output_dim": 16}},
+              'output_embedding': 'graph',
+              'output_mlp': {"use_bias": [True, True, False], "units": [16, 8, 1],
+                             "activation": ['relu', 'relu', 'sigmoid']},
+              'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"},
+              'node_mlp_args': {"units": [16, 16], "use_bias": True, "activation": ['relu', "linear"]},
+              'edge_mlp_args': {"units": [16, 16], "activation": ['relu', "linear"]},
+              'pooling_args': {'pooling_method': "segment_mean"},
+              'depth': 3, 'use_set2set': False, 'verbose': 1,
+              'gather_args': {}
+              },
+    'training': {
+        'fit': {'batch_size': 32, 'epochs': 500, 'validation_freq': 10, 'verbose': 2},
+        'optimizer': {'class_name': 'Adam', "config": {'lr': 5e-3}},
+        'callbacks': [{'class_name': 'kgcnn>LinearLearningRateScheduler',
+                       "config": {'learning_rate_start': 0.5e-3,
+                                  'learning_rate_stop': 1e-5,
+                                  'epo_min': 400, 'epo': 500, 'verbose': 0}}]
+    }
+}
+}

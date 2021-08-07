@@ -91,8 +91,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             for i, ips in enumerate(input_shape):
                 if isinstance(ips, tf.TensorShape):
                     if ips[-1] is None:
-                        print("WARNING: Layer", self.name, "has undefined inner dimension", ips, "for input", i)
+                        print("WARNING:kgcnn: Layer", self.name, "has undefined inner dimension", ips, "for input", i)
         if isinstance(input_shape, tf.TensorShape):
             if input_shape[-1] is None:
-                print("WARNING: Layer", self.name, "has undefined inner dimension for input", input_shape)
+                print("WARNING:kgcnn: Layer", self.name, "has undefined inner dimension for input", input_shape)
 

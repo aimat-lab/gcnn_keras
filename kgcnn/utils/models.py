@@ -137,26 +137,25 @@ def update_model_kwargs(model_default):
 
 class ModelSelection:
 
-    model_implemented = []
-    datasets_implemented = []
-
-    @staticmethod
-    def make_model(model_id):
+    @classmethod
+    def make_model(cls, model_id, dataset_name=None):
         if model_id == "Schnet":
-            from kgcnn.literature.Schnet import make_model
-            return make_model
+            from kgcnn.literature.Schnet import make_model, hyper_model_dataset
+        elif model_id == "GraphSAGE":
+            from kgcnn.literature.GraphSAGE import make_model, hyper_model_dataset
+        elif model_id == "INorp":
+            from kgcnn.literature.INorp import make_model, hyper_model_dataset
+        elif model_id == "Unet":
+            from kgcnn.literature.Unet import make_model, hyper_model_dataset
         else:
-            print("ERROR:kgcnn: Unknown model identifier %s" % model_id)
+            raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
 
-    def get_model_hyper(self, model_id, dataset_name):
-        if model_id == "Schnet":
-            from kgcnn.literature.Schnet import hyper_model_dataset
-            return self._check_hyper_dict(dataset_name, hyper_model_dataset, model_id)
-        else:
-            print("ERROR:kgcnn: Unknown model identifier %s" % model_id)
+        return make_model, cls._check_hyper_dict(dataset_name, hyper_model_dataset, model_id)
 
     @classmethod
     def _check_hyper_dict(cls, dataset_name, hyper_dicts, model_name=None):
+        if dataset_name is None:
+            return None
         if dataset_name in hyper_dicts:
             return hyper_dicts[dataset_name]
         else:

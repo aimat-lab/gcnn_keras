@@ -8,40 +8,39 @@ import kgcnn.utils.learning
 from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
+from sklearn.utils import shuffle
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
+from kgcnn.utils.data import save_json_file
 
 # Hyper and model
 ms = ModelSelection()
-make_model = ms.make_model("Schnet")
-hyper = ms.get_model_hyper("Schnet", "QM9")
+make_model, hyper = ms.make_model("Schnet", "QM9")
 
 # Loading PROTEINS Dataset
-dataset = QM9Dataset().set_range(max_distance=4, max_neighbours=15, do_invert_distance=False)
+dataset = QM9Dataset().set_range(max_distance=4, max_neighbours=25, do_invert_distance=False)
 data_name = dataset.dataset_name
 data_unit = "eV"
 data_length = dataset.length
 target_names = dataset.target_names
 
-data_points_to_use = 10000
-dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])[:data_points_to_use]
-labels = dataset.graph_labels[:data_points_to_use, 6:9] * 27.2114  # Train on HOMO, LUMO, Eg
+data_points_to_use = 10000  # Only for testing
+data_selection = shuffle(np.arange(data_length))[:10000]
+dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])[data_selection]
+labels = dataset.graph_labels[data_selection][:, 6:9] * 27.2114  # Train on HOMO, LUMO, Eg
 target_names = target_names[6:9]
 
 # Data-set split
 execute_splits = 2  # All splits may be too expensive for qm9
 kf = KFold(n_splits=10, random_state=None, shuffle=True)
-split_indices = kf.split(X=np.arange(len(dataloader))[:, None])
+split_indices = kf.split(X=np.arange(len(labels))[:, None])
 
 # Set learning rate and epochs
 hyper_train = hyper['training']
-epo = hyper_train['epochs']
-epostep = hyper_train['validation_freq']
-batch_size = hyper_train['batch_size']
-
-learning_rate = hyper_train['learning_rate']
-
+epo = hyper_train['fit']['epochs']
+epostep = hyper_train['fit']['validation_freq']
+batch_size = hyper_train['fit']['batch_size']
 
 train_loss = []
 test_loss = []
@@ -61,8 +60,7 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
-    optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
-
+    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 3))
     rms_metric = ScaledRootMeanSquaredError((1, 3))
@@ -77,12 +75,9 @@ for train_index, test_index in split_indices:
     # Start and time training
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
-                     epochs=epo,
-                     batch_size=batch_size,
                      callbacks=cbks,
-                     validation_freq=epostep,
                      validation_data=(xtest, ytest),
-                     verbose=2
+                     **hyper_train['fit']
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -133,11 +128,14 @@ plt.legend(loc='upper left', fontsize='x-small')
 plt.savefig(os.path.join(filepath, 'predict_qm9.png'))
 plt.show()
 
+# Save hyper
+save_json_file(hyper, os.path.join(filepath, "hyper.json"))
+
 # Save model
 model.save(os.path.join(filepath, "model"))
 
 # save splits
 all_test_index = []
 for train_index, test_index in split_indices:
-    all_test_index.append([train_index, test_index])
+    all_test_index.append([data_selection[train_index], data_selection[test_index]])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)

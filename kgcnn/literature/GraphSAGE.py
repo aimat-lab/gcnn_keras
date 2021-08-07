@@ -7,63 +7,53 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
-from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # 'Inductive Representation Learning on Large Graphs'
 # William L. Hamilton and Rex Ying and Jure Leskovec
 # http://arxiv.org/abs/1706.02216
 
 
-def make_model(**kwargs):
-    """Generate GraphSAGE network.
+hyper_model_default = {'name': "GraphSAGE",
+                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                           "edge": {"input_dim": 5, "output_dim": 64}},
+                       'output_embedding': 'graph',
+                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                      "activation": ['relu', 'relu', 'sigmoid']},
+                       'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+                       'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+                       'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
+                       'concat_args': {"axis": -1},
+                       'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
+                       'depth': 3, 'verbose': 1
+                       }
 
-    Args:
-        **kwargs
 
-    Returns:
-        tf.keras.models.Model: GraphSAGE model.
-    """
-    model_args = kwargs
-    model_default = {'name': "GraphSAGE",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['relu', 'relu', 'sigmoid']},
-                     'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                     'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                     'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {}, 'concat_args': {"axis": -1},
-                     'use_edge_features': True, 'pooling_nodes_args':{'pooling_method': "mean"},
-                     'depth': 3, 'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # Update default values
-    inputs = m['inputs']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    node_mlp_args = m['node_mlp_args']
-    edge_mlp_args = m['edge_mlp_args']
-    pooling_args = m['pooling_args']
-    pooling_nodes_args = m['pooling_nodes_args']
-    gather_args = m['gather_args']
-    concat_args = m['concat_args']
-    use_edge_features = m['use_edge_features']
-    depth = m['depth']
+@update_model_kwargs(hyper_model_default)
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               node_mlp_args=None,
+               edge_mlp_args=None,
+               pooling_args=None,
+               pooling_nodes_args=None,
+               gather_args=None,
+               concat_args=None,
+               use_edge_features=None,
+               depth=None, **kwargs
+               ):
+    """Generate GraphSAGE network."""
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
-    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
-    ed = generate_edge_embedding(edge_input, inputs[1]['shape'], input_embedding[inputs[1]['name']])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
     edi = edge_index_input
 
     for i in range(0, depth):
@@ -97,3 +87,35 @@ def make_model(**kwargs):
 
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
+
+
+hyper_model_dataset = {"Mutagenicity": {
+    'model':
+        {'name': "GraphSAGE",
+         'inputs': [
+             {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32','ragged': True},
+             {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32','ragged': True},
+             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64','ragged': True}],
+         'input_embedding': {
+             "node_": {"input_dim": 95, "output_dim": 64},
+             "edge": {"input_dim": 5, "output_dim": 16}},
+         'output_embedding': 'graph',
+         'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
+                        "activation": ['relu', 'relu', 'sigmoid']},
+         'node_mlp_args': {"units": [64, 32], "use_bias": True, "activation": ['relu', "linear"]},
+         'edge_mlp_args': {"units": 64, "use_bias": True, "activation": 'relu'},
+         'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
+         'concat_args': {"axis": -1},
+         'use_edge_features': True,
+         'pooling_nodes_args': {'pooling_method': "mean"},
+         'depth': 3, 'verbose': 1
+         },
+    'training': {
+        'fit': {'batch_size': 32, 'epochs': 500, 'validation_freq': 10, 'verbose': 2},
+        'optimizer': {'class_name': 'Adam', "config": {'lr': 5e-3}},
+        'callbacks': [{'class_name': 'kgcnn>LinearLearningRateScheduler',
+                       "config": {'learning_rate_start': 0.5e-3, 'learning_rate_stop': 1e-5, 'epo_min': 400, 'epo': 500,
+                                  'verbose': 0}}]
+    }
+}
+}
