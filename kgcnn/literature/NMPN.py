@@ -7,64 +7,51 @@ from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
-from kgcnn.utils.models import generate_edge_embedding, update_model_kwargs_logic, generate_node_embedding
-
+from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Neural Message Passing for Quantum Chemistry
 # by Justin Gilmer, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, George E. Dahl
 # http://arxiv.org/abs/1704.01212    
 
+model_default = {'name': "NMPN",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                     "edge": {"input_dim": 5, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['selu', 'selu', 'sigmoid']},
+                 'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
+                                  "init_qstar": "0"},
+                 'pooling_args': {'pooling_method': "segment_mean"},
+                 'edge_dense': {'use_bias': True, 'activation': 'selu'},
+                 'use_set2set': True, 'depth': 3, 'node_dim': 128,
+                 'verbose': 1
+                 }
 
-def make_nmpn(**kwargs):
-    """Get Message passing model.
 
-    Args:
-        **kwargs
-
-    Returns:
-        tf.keras.models.Model: Message Passing model.
-    """
-    model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['selu', 'selu', 'sigmoid']},
-                     'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
-                                      "init_qstar": "0"},
-                     'pooling_args': {'pooling_method': "segment_mean"},
-                     'edge_dense': {'use_bias': True, 'activation': 'selu'},
-                     'use_set2set': True, 'depth': 3, 'node_dim': 128,
-                     'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # local updated model args
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    set2set_args = m['set2set_args']
-    pooling_args = m['pooling_args']
-    edge_dense = m['edge_dense']
-    use_set2set = m['use_set2set']
-    node_dim = m['node_dim']
-    depth = m['depth']
+@update_model_kwargs(model_default)
+def make_nmpn(inputs=None,
+              input_embedding=None,
+              output_embedding=None,
+              output_mlp=None,
+              set2set_args=None,
+              pooling_args=None,
+              edge_dense=None,
+              use_set2set=None,
+              node_dim=None,
+              depth=None, **kwargs):
+    """Get Message passing model."""
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
+    node_input = ks.layers.Input(**inputs[0])
+    edge_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
 
     # embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
     edi = edge_index_input
 
     # Model
@@ -80,7 +67,7 @@ def make_nmpn(**kwargs):
         n = gru([n, eu])
 
     # Output embedding choice
-    if output_embedding["output_mode"] == 'graph':
+    if output_embedding == 'graph':
         if use_set2set:
             # output
             outss = Dense(set2set_args['channels'], activation="linear")(n)
@@ -90,11 +77,13 @@ def make_nmpn(**kwargs):
 
         # final dense layers
         main_output = MLP(**output_mlp)(out)
-    else:  # Node labeling
+    elif output_embedding == 'node':
         out = n
         main_output = MLP(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
         # no ragged for distribution supported atm
+    else:
+        raise ValueError("Unsupported graph embedding for mode `NMPN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model

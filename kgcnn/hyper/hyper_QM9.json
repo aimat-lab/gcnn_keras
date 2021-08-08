@@ -1,0 +1,81 @@
+{
+    "Schnet": {
+        "model": {
+            "name": "Schnet",
+            "inputs": [
+                {"shape": [null], "name": "node_number", "dtype": "float32", "ragged": true},
+                {"shape": [null, 3], "name": "node_coordinates", "dtype": "float32", "ragged": true},
+                {"shape": [null, 2], "name": "range_indices", "dtype": "int64", "ragged": true}
+            ],
+            "input_embedding": {
+                "node": {"input_dim": 95, "output_dim": 64}
+            },
+            "output_embedding": "graph",
+            "interaction_args": {
+                "units": 128, "use_bias": true, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+            },
+            "output_mlp": {
+                "use_bias": [true, true], "units": [128, 64],
+                "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]
+            },
+            "output_dense": {"units": 3, "activation": "linear", "use_bias": true},
+            "node_pooling_args": {"pooling_method": "sum"},
+            "depth": 4,
+            "out_scale_pos": 0,
+            "gauss_ags": {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2},
+            "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+            "callbacks": [
+                {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                    "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 600, "verbose": 0
+                    }
+                }
+            ]
+        },
+        "data": {
+            "range": {"max_distance": 5, "max_neighbours": 30},
+            "data_points_to_use": 133885
+        }
+    },
+    "PAiNN": {
+        "model": {
+            "name": "PAiNN",
+            "inputs": [
+                {"shape": [null], "name": "node_number", "dtype": "float32", "ragged": true},
+                {"shape": [null, 3], "name": "node_coordinates", "dtype": "float32", "ragged": true},
+                {"shape": [null, 2], "name": "range_indices", "dtype": "int64", "ragged": true}
+            ],
+            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [true, true], "units": [128, 1], "activation": ["swish", "linear"]},
+            "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+            "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": null},
+            "update_args": {"units": 128}, "depth": 3, "verbose": 1
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2},
+            "callbacks": [],
+            "optimizer": {
+                "class_name": "Addons>MovingAverage", "config": {
+                    "optimizer": {
+                        "class_name": "Adam", "config": {
+                            "learning_rate": {
+                                "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                    "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                    "decay_rate": 0.01
+                                }
+                            }, "amsgrad": true
+                        }
+                    },
+                    "average_decay": 0.999
+                }
+            }
+        },
+        "data": {
+            "range": {"max_distance": 5, "max_neighbours": 30},
+            "data_points_to_use": 133885
+        }
+    }
+}

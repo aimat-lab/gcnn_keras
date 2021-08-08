@@ -1,12 +1,12 @@
 import tensorflow.keras as ks
-import pprint
-from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding, \
-    generate_state_embedding
+from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
+from kgcnn.utils.models import generate_embedding, update_model_kwargs
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.keras import Dense, Add, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
+
 # from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
@@ -14,66 +14,62 @@ from kgcnn.layers.pool.set2set import PoolingSet2Set
 # https://github.com/materialsvirtuallab/megnet
 
 
-def make_megnet(**kwargs):
-    """Get Megnet model.
+model_default = {'name': "Megnet",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                            {'shape': [], 'name': "graph_attributes", 'dtype': 'float32', 'ragged': False}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                     "graph": {"input_dim": 100, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
+                                "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
+                 'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
+                 'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
+                                    'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
+                 'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
+                 'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                 'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                 'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2",
+                                   "input_tensor_type": "tensor"},
+                 'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
+                 'verbose': 1
+                 }
 
-    Args:
-        **kwargs
 
-    Returns:
-       tf.keras.models.Model: MEGnet model.
-    """
-    model_args = kwargs
-    model_default = {'input_node_shape': None, 'input_edge_shape': None, 'input_state_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 64},
-                                         "edges": {"input_dim": 5, "output_dim": 64},
-                                         "state": {"input_dim": 100, "output_dim": 64}},
-                     'output_embedding': {"output_mode": 'graph', "output_tensor_type": 'padded'},
-                     'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                                    "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
-                     'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                                        'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
-                     'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-                     'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                     'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                     'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2",
-                                       "input_tensor_type": "tensor"},
-                     'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                     'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # local update default arguments
-    input_node_shape = m['input_node_shape']
-    input_edge_shape = m['input_edge_shape']
-    input_state_shape = m['input_state_shape']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    meg_block_args = m['meg_block_args']
-    set2set_args = m['set2set_args']
-    node_ff_args = m['node_ff_args']
-    edge_ff_args = m['edge_ff_args']
-    state_ff_args = m['state_ff_args']
-    use_set2set = m['use_set2set']
-    nblocks = m['nblocks']
-    has_ff = m['has_ff']
-    dropout = m['dropout']
+@update_model_kwargs(model_default)
+def make_megnet(inputs=None,
+                input_embedding=None,
+                output_embedding=None,
+                output_mlp=None,
+                gauss_ags=None,
+                meg_block_args=None,
+                set2set_args=None,
+                node_ff_args=None,
+                edge_ff_args=None,
+                state_ff_args=None,
+                use_set2set=None,
+                nblocks=None,
+                has_ff=None,
+                dropout=None,
+                ):
+    """Get Megnet model."""
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    edge_input = ks.layers.Input(shape=input_edge_shape, name='edge_input', dtype="float32", ragged=True)
-    edge_index_input = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
-    env_input = ks.Input(shape=input_state_shape, dtype='float32', name='state_input')
+    node_input = ks.layers.Input(**inputs[0])
+    xyz_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
+    env_input = ks.Input(**inputs[3])
 
     # embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding['edges'])
-    uenv = generate_state_embedding(env_input, input_state_shape, input_embedding['state'])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    uenv = generate_embedding(env_input, inputs[3]['shape'], input_embedding['graph'], embedding_rank=0)
     edi = edge_index_input
+
+    # Edge distance as Gauss-Basis
+    x = xyz_input
+    ed = NodeDistance()([x, edi])
+    ed = GaussBasisLayer(**gauss_ags)(ed)
 
     # Model
     vp = n
@@ -121,8 +117,10 @@ def make_megnet(**kwargs):
     if dropout is not None:
         final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec)
 
+    if output_embedding != "graph":
+        raise ValueError("Unsupported graph embedding for mode `Megnet")
     # final dense layers
     # Only graph embedding for MEGNET
     main_output = MLP(**output_mlp, input_tensor_type="tensor")(final_vec)
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, env_input], outputs=main_output)
     return model

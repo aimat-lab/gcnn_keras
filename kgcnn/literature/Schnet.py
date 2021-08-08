@@ -15,25 +15,25 @@ from kgcnn.utils.models import update_model_kwargs, generate_embedding
 # https://aip.scitation.org/doi/pdf/10.1063/1.5019779
 
 
-hyper_model_default = {'name': "Schnet",
-                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-                       'output_embedding': 'graph',
-                       'interaction_args': {"units": 128, "use_bias": True,
-                                            "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
-                       'output_mlp': {"use_bias": [True, True], "units": [128, 64],
-                                      "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-                       'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
-                       'node_pooling_args': {"pooling_method": "sum"},
-                       'depth': 4, 'out_scale_pos': 0,
-                       'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
-                       'verbose': 1
-                       }
+model_default = {'name': "Schnet",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'interaction_args': {"units": 128, "use_bias": True,
+                                      "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
+                 'output_mlp': {"use_bias": [True, True], "units": [128, 64],
+                                "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                 'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
+                 'node_pooling_args': {"pooling_method": "sum"},
+                 'depth': 4, 'out_scale_pos': 0,
+                 'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
+                 'verbose': 1
+                 }
 
 
-@update_model_kwargs(hyper_model_default)
+@update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
                interaction_args=None,
@@ -82,36 +82,3 @@ def make_model(inputs=None,
 
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=main_output)
     return model
-
-
-hyper_model_dataset = {"QM9": {'model': {
-    'name': "Schnet",
-    'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32',
-                'ragged': True},
-               {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32',
-                'ragged': True},
-               {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64',
-                'ragged': True}],
-    'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-    'output_embedding': 'graph',
-    'interaction_args': {"units": 128, "use_bias": True,
-                         "activation": 'kgcnn>shifted_softplus',
-                         "cfconv_pool": 'sum'},
-    'output_mlp': {"use_bias": [True, True], "units": [128, 64],
-                   "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-    'output_dense': {"units": 3, "activation": 'linear', "use_bias": True},
-    'node_pooling_args': {"pooling_method": "sum"},
-    'depth': 4, 'out_scale_pos': 0,
-    'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
-    'verbose': 1
-},
-    'training': {
-        'fit': {'batch_size': 32, 'epochs': 500, 'validation_freq': 10, 'verbose': 2},
-        'optimizer': {'class_name': 'Adam', "config": {'lr': 0.5e-3}},
-        'callbacks': [{'class_name': 'kgcnn>LinearLearningRateScheduler',
-                       "config": {'learning_rate_start': 0.5e-3,
-                                  'learning_rate_stop': 1e-5,
-                                  'epo_min': 200, 'epo': 600, 'verbose': 0}}]
-    }
-}
-}

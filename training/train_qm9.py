@@ -4,6 +4,7 @@ import numpy as np
 import time
 import os
 import kgcnn.utils.learning
+from tensorflow_addons import optimizers
 
 from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
@@ -13,20 +14,28 @@ from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.utils.data import save_json_file
+from kgcnn.hyper.datasets import DatasetHyperSelection
+
+model_name = "Schnet"
 
 # Hyper and model
 ms = ModelSelection()
-make_model, hyper = ms.make_model("Schnet", "QM9")
+make_model = ms.make_model(model_name)
+
+# Info about data preparation
+hs = DatasetHyperSelection()
+hyper = hs.get_hyper("QM9")[model_name]
+hyper_data = hyper['data']
 
 # Loading PROTEINS Dataset
-dataset = QM9Dataset().set_range(max_distance=4, max_neighbours=25, do_invert_distance=False)
+dataset = QM9Dataset().set_range(**hyper_data['range'])
 data_name = dataset.dataset_name
 data_unit = "eV"
 data_length = dataset.length
 target_names = dataset.target_names
 
-data_points_to_use = 10000  # Only for testing
-data_selection = shuffle(np.arange(data_length))[:10000]
+data_points_to_use = hyper_data['data_points_to_use']  # Only for testing
+data_selection = shuffle(np.arange(data_length))[:data_points_to_use]
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])[data_selection]
 labels = dataset.graph_labels[data_selection][:, 6:9] * 27.2114  # Train on HOMO, LUMO, Eg
 target_names = target_names[6:9]

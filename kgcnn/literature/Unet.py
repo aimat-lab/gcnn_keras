@@ -13,26 +13,26 @@ from kgcnn.utils.models import generate_embedding, update_model_kwargs
 # by Hongyang Gao, Shuiwang Ji
 # https://arxiv.org/pdf/1905.05178.pdf
 
-hyper_model_default = {'name': "Unet",
-                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
-                                           "edge": {"input_dim": 5, "output_dim": 64}},
-                       'output_embedding': 'graph',
-                       'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
-                       'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
-                       'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
-                       'activation': 'relu',
-                       'use_reconnect': True,
-                       'depth': 4,
-                       'pooling_args': {"pooling_method": 'segment_mean'},
-                       'gather_args': {"node_indexing": 'sample'},
-                       'verbose': 1
-                       }
+model_default = {'name': "Unet",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                     "edge": {"input_dim": 5, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
+                 'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
+                 'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
+                 'activation': 'relu',
+                 'use_reconnect': True,
+                 'depth': 4,
+                 'pooling_args': {"pooling_method": 'segment_mean'},
+                 'gather_args': {"node_indexing": 'sample'},
+                 'verbose': 1
+                 }
 
 
-@update_model_kwargs(hyper_model_default)
+@update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
                output_embedding=None,

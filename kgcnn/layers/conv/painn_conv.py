@@ -316,3 +316,45 @@ class PAiNNUpdate(GraphBaseLayer):
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
             config.update({x: config_dense[x]})
         return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EquivariantInitialize')
+class EquivariantInitialize(GraphBaseLayer):
+    """Zero equivariant initializer.
+
+    Args:
+        dim (int): Dimension of equivariant features. Default is 3.
+    """
+
+    def __init__(self, dim=3, **kwargs):
+        """Initialize Layer."""
+        super(EquivariantInitialize, self).__init__(**kwargs)
+        self.dim = dim
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(EquivariantInitialize, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass: Calculate edge update.
+
+        Args:
+            inputs: nodes
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Zero equivariant tensor of shape (batch, [N], F, dim)
+        """
+        if isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                values, part = inputs.values, inputs.row_splits
+                equiv = tf.expand_dims(tf.zeros_like(values), axis=-1)*tf.zeros([1]*(inputs.shape.rank-1)+[self.dim])
+                return tf.RaggedTensor.from_row_splits(equiv, part, validate=self.ragged_validate)
+        return tf.expand_dims(tf.zeros_like(inputs), axis=-1)*tf.zeros([1]*inputs.shape.rank+[self.dim])
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(EquivariantInitialize, self).get_config()
+        config.update({"dim": self.dim})
+        return config

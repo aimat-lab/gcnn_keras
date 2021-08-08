@@ -63,8 +63,8 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
 
     def __init__(self, learning_rate, warmup_steps, decay_steps, decay_rate):
         super().__init__()
-        self._input_config_settings = {"learning_rate": float(learning_rate), "warmup_steps": int(warmup_steps),
-                                       "decay_steps": int(decay_steps), "decay_rate": int(decay_rate)}
+        self._input_config_settings = {"learning_rate": learning_rate, "warmup_steps": warmup_steps,
+                                       "decay_steps": decay_steps, "decay_rate": decay_rate}
         self.warmup = tf.optimizers.schedules.PolynomialDecay(
             1 / warmup_steps, warmup_steps, end_learning_rate=1)
         self.decay = tf.optimizers.schedules.ExponentialDecay(
