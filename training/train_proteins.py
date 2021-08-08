@@ -7,25 +7,21 @@ import os
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.PROTEINS import PROTEINSDatset
 from kgcnn.io.loader import NumpyTensorList
+from kgcnn.utils.models import ModelSelection
+from kgcnn.utils.data import save_json_file
+from kgcnn.hyper.datasets import DatasetHyperSelection
 
 # Hyper
-from kgcnn.literature.GIN import make_model
-hyper = {'model': {'name': "GIN",
-                   'inputs': [{'shape': (None, 3), 'name': "node_labels", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                   'input_embedding': {"node_labels": {"input_dim": 800, "output_dim": 64}},
-                   # Output
-                   'output_embedding': 'graph',
-                   'output_mlp': {"use_bias": [True], "units": [2], "activation": ['linear']},
-                   'output_activation': "softmax",
-                   # model specs
-                   'depth': 5,
-                   'dropout': 0.5,
-                   'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'relu']},
-                   },
-         'training': {'batch_size': 32, "learning_rate": 1e-2, 'epo': 150
-                      }
-         }
+model_name = "GIN"
+
+# Hyper and model
+ms = ModelSelection()
+make_model = ms.make_model(model_name)
+
+# Info about data preparation
+hs = DatasetHyperSelection()
+hyper = hs.get_hyper("PROTEINS")[model_name]
+hyper_data = hyper['data']
 
 # Loading PROTEINS Dataset
 dataset = PROTEINSDatset()
@@ -40,12 +36,10 @@ dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model
 labels = dataset.graph_labels
 
 # Set learning rate and epochs
-batch_size = hyper['training']['batch_size']
-learning_rate_start = hyper['training']['learning_rate']
-decay_steps = 50 * batch_size
-decay_rate = 0.5
-epo = hyper['training']['epo']
-epostep = 1
+hyper_train = hyper['training']
+epo = hyper_train['fit']['epochs']
+epostep = hyper_train['fit']['validation_freq']
+batch_size = hyper_train['fit']['batch_size']
 
 train_loss = []
 test_loss = []
@@ -59,10 +53,8 @@ for train_index, test_index in split_indices:
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
     # Compile model with optimizer and loss
-    r_schedule = tf.keras.optimizers.schedules.ExponentialDecay(learning_rate_start, decay_steps, decay_rate,
-                                                                staircase=False)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=r_schedule)
-    cbks = []
+    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
                   weighted_metrics=['categorical_accuracy'])
@@ -71,12 +63,9 @@ for train_index, test_index in split_indices:
     # Start and time training
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
-                     epochs=epo,
-                     batch_size=batch_size,
-                     callbacks=cbks,
-                     validation_freq=epostep,
                      validation_data=(xtest, ytest),
-                     verbose=2
+                     callbacks=cbks,
+                     **hyper_train['fit']
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -114,3 +103,6 @@ all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+
+# Save hyper
+save_json_file(hyper, os.path.join(filepath, "hyper.json"))

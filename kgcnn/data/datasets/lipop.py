@@ -50,6 +50,6 @@ class LipopDataset(MuleculeNetDataset):
         self.length = len(labels2)
         super(LipopDataset, self).read_in_memory(verbose=verbose)
 
-ld = LipopDataset(reload=False)
+# ld = LipopDataset(reload=False)
 # ld.define_attributes()
 # labels, nodes, edges, edge_indices, graph_state = ld.get_graph()

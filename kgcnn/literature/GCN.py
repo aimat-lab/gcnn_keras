@@ -6,52 +6,40 @@ from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.utils.models import generate_node_embedding, update_model_kwargs_logic, generate_edge_embedding
-
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # 'Semi-Supervised Classification with Graph Convolutional Networks'
 # by Thomas N. Kipf, Max Welling
 # https://arxiv.org/abs/1609.02907
 # https://github.com/tkipf/gcn
 
+model_default = {'name': "GCN",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                     "edge": {"input_dim": 10, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['relu', 'relu', 'sigmoid']},
+                 'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
+                              "is_sorted": False, "has_unconnected": True},
+                 'depth': 3, 'verbose': 1
+                 }
 
-def make_model(**kwargs):
-    """Make GCN model.
 
-    Args:
-        **kwargs
+@update_model_kwargs(model_default)
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               depth=None,
+               gcn_args=None,
+               **kwargs):
+    """Make GCN model."""
 
-    Returns:
-        tf.keras.models.Model: Un-compiled GCN model.
-    """
-    model_args = kwargs
-    model_default = {'name': "GCN",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 10, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['relu', 'relu', 'sigmoid']},
-                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
-                                  "is_sorted": False, "has_unconnected": True},
-                     'depth': 3, 'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # Update model parameter
-    inputs = m['inputs']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    depth = m['depth']
     input_node_shape = inputs[0]['shape']
     input_edge_shape = inputs[1]['shape']
-    gcn_args = m['gcn_args']
 
     if input_edge_shape[-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
@@ -63,8 +51,8 @@ def make_model(**kwargs):
     edge_index_input = ks.layers.Input(**inputs[2])
 
     # Embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding[inputs[0]['name']])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding[inputs[1]['name']])
+    n = generate_embedding(node_input, input_node_shape, input_embedding['node'])
+    ed = generate_embedding(edge_input, input_edge_shape, input_embedding['edge'])
     edi = edge_index_input
 
     # Model
@@ -88,43 +76,33 @@ def make_model(**kwargs):
     return model
 
 
-def make_model_node_weights(**kwargs):
-    """Make GCN model.
+model_default_weighted = {'name': "GCN_weighted",
+                          'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                                     {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                                     {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                                     {'shape': (None, 1), 'name': "node_weights", 'dtype': 'float32', 'ragged': True}],
+                          'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                              "edge": {"input_dim": 10, "output_dim": 64}},
+                          'output_embedding': 'graph',
+                          'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                         "activation": ['relu', 'relu', 'sigmoid']},
+                          'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum'},
+                          'depth': 3, 'verbose': 1
+                          }
 
-    Args:
-        **kwargs
 
-    Returns:
-        tf.keras.models.Model: Un-compiled GCN model.
-    """
-    model_args = kwargs
-    model_default = {'name': "GCN_weighted",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-                                {'shape': (None, 1), 'name': "node_weights", 'dtype': 'float32', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 10, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['relu', 'relu', 'sigmoid']},
-                     'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum'},
-                     'depth': 3, 'verbose': 1
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO: Updated functional make model kwargs:")
-        pprint.pprint(m)
+@update_model_kwargs(model_default_weighted)
+def make_model_weighted(inputs=None,
+                        input_embedding=None,
+                        output_embedding=None,
+                        output_mlp=None,
+                        depth=None,
+                        gcn_args=None,
+                        **kwargs):
+    """Make GCN model."""
 
-    # Local variables for model args
-    inputs = m['inputs']
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    depth = m['depth']
     input_node_shape = inputs[0]['shape']
     input_edge_shape = inputs[1]['shape']
-    gcn_args = m['gcn_args']
 
     if input_edge_shape[-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
@@ -137,8 +115,8 @@ def make_model_node_weights(**kwargs):
     node_weights_input = ks.layers.Input(**inputs[3])
 
     # Embedding, if no feature dimension
-    n = generate_node_embedding(node_input, input_node_shape, input_embedding[inputs[0]['name']])
-    ed = generate_edge_embedding(edge_input, input_edge_shape, input_embedding[inputs[1]['name']])
+    n = generate_embedding(node_input, input_node_shape, input_embedding['node'])
+    ed = generate_embedding(edge_input, input_edge_shape, input_embedding['edge'])
     edi = edge_index_input
     nw = node_weights_input
 

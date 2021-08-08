@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 import pprint
 
-from kgcnn.utils.models import update_model_kwargs_logic
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 from kgcnn.utils.models import generate_node_embedding
 from kgcnn.layers.keras import Dropout, Activation, Dense
 from kgcnn.layers.pool.pooling import PoolingNodes
@@ -9,46 +9,32 @@ from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
 
-
 # How Powerful are Graph Neural Networks?
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
 # https://arxiv.org/abs/1810.00826
 
+model_default = {'name': "GIN",
+                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['relu', 'relu', 'linear']},
+                 'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear']},
+                 'depth': 3, "output_activation": "softmax", "dropout": 0.0, 'verbose': 1,
+                 }
 
-def make_model(**kwargs):
-    """Make GCN model.
 
-    Args:
-        **kwargs
-
-    Returns:
-        tf.keras.models.Model: Un-compiled GCN model.
-    """
-    model_args = kwargs
-    model_default = {'name': "GIN",
-                     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64}},
-                     'output_embedding': 'graph',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                    "activation": ['relu', 'relu', 'linear']},
-                     'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear']},
-                     'depth': 3, "output_activation": "softmax", "dropout": 0.0, 'verbose': 1,
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # Model parameter
-    input_embedding = m['input_embedding']
-    output_embedding = m['output_embedding']
-    output_mlp = m['output_mlp']
-    depth = m['depth']
-    inputs = m['inputs']
-    gin_args = m['gin_args']
-    output_activation = m['output_activation']
-    dropout = m['dropout']
+@update_model_kwargs(model_default)
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               depth=None,
+               gin_args=None,
+               output_activation=None,
+               dropout=None, **kwargs):
+    """Make GCN model."""
 
     # Make input
     assert len(inputs) == 2
@@ -56,7 +42,7 @@ def make_model(**kwargs):
     edge_index_input = ks.layers.Input(**inputs[1])
 
     # Embedding, if no feature dimension
-    n = generate_node_embedding(node_input, inputs[0]['shape'], input_embedding[inputs[0]['name']])
+    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
     edi = edge_index_input
 
     # Model

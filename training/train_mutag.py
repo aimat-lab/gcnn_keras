@@ -4,16 +4,25 @@ import numpy as np
 import time
 import os
 
+from kgcnn.utils.data import save_json_file
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.mutag import MUTAGDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
+from kgcnn.hyper.datasets import DatasetHyperSelection
 
+# Hyper
+model_name = "INorp"
 
 # Hyper and model
 ms = ModelSelection()
-make_model, hyper = ms.make_model("Unet", "MUTAG")
+make_model = ms.make_model(model_name)
+
+# Info about data preparation
+hs = DatasetHyperSelection()
+hyper = hs.get_hyper("MUTAG")[model_name]
+hyper_data = hyper['data']
 
 # Loading PROTEINS Dataset
 dataset = MUTAGDataset()
@@ -95,3 +104,6 @@ all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+
+# Save hyper
+save_json_file(hyper, os.path.join(filepath, "hyper.json"))

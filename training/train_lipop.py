@@ -10,28 +10,21 @@ from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.lipop import LipopDataset
 from kgcnn.io.loader import NumpyTensorList
+from kgcnn.utils.models import ModelSelection
+from kgcnn.hyper.datasets import DatasetHyperSelection
+from kgcnn.utils.data import save_json_file
 
 # Hyper
-from kgcnn.literature.AttentiveFP import make_model
+model_name = "AttentiveFP"
 
-hyper = {'model': {'name': "AttentiveFP",
-                   'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 15), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                              {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                   'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                       "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-                   'output_embedding': 'graph',
-                   'output_mlp': {"use_bias": [True, True], "units": [200, 1],
-                                  "activation": ['kgcnn>leaky_relu', 'linear']},
-                   'attention_args': {"units": 200},
-                   'depth': 2,
-                   'dropout': 0.2,
-                   'verbose': 1
-                   },
-         'training': {'batch_size': 200, "learning_rate_start": 10**-2.5,
-                      'epo': 200, 'epomin': 400, 'epostep': 10, "weight_decay": 10 ** -5
-                      }
-         }
+# Hyper and model
+ms = ModelSelection()
+make_model = ms.make_model(model_name)
+
+# Info about data preparation
+hs = DatasetHyperSelection()
+hyper = hs.get_hyper("Lipop")[model_name]
+hyper_data = hyper['data']
 
 # Loading PROTEINS Dataset
 dataset = LipopDataset().set_attributes()
@@ -48,12 +41,9 @@ labels = dataset.graph_labels
 
 # Set learning rate and epochs
 hyper_train = hyper['training']
-learning_rate_start = hyper_train['learning_rate_start']
-epo = hyper_train['epo']
-epomin = hyper_train['epomin']
-epostep = hyper_train['epostep']
-batch_size = hyper_train['batch_size']
-weight_decay = hyper_train['weight_decay']
+epo = hyper_train['fit']['epochs']
+epostep = hyper_train['fit']['validation_freq']
+batch_size = hyper_train['fit']['batch_size']
 
 train_loss = []
 test_loss = []
@@ -69,7 +59,8 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
-    optimizer = AdamW(lr=learning_rate_start, weight_decay=weight_decay)
+    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 1))
     rms_metric = ScaledRootMeanSquaredError((1, 1))
     if scaler.scale_ is not None:
@@ -83,12 +74,9 @@ for train_index, test_index in split_indices:
     # Start and time training
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
-                     epochs=epo,
-                     batch_size=batch_size,
-                     callbacks=[],
-                     validation_freq=epostep,
+                     callbacks=cbks,
                      validation_data=(xtest, ytest),
-                     verbose=2
+                     **hyper_train['fit']
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -141,3 +129,6 @@ all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+
+# Save hyper
+save_json_file(hyper, os.path.join(filepath, "hyper.json"))

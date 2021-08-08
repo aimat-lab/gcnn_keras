@@ -8,28 +8,21 @@ from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.cora_lu import CoraLUDataset
 from kgcnn.io.loader import NumpyTensorList
+from kgcnn.utils.models import ModelSelection
+from kgcnn.hyper.datasets import DatasetHyperSelection
+from kgcnn.utils.data import save_json_file
 
 # Hyper
-from kgcnn.literature.GAT import make_model
-hyper = {'model': {'name': "GCN",
-                     'inputs': [{'shape': (None, 1433), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 1), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                     'input_embedding': {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                         "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-                     'output_embedding': 'node',
-                     'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 7],
-                                    "activation": ['relu', 'relu', 'softmax']},
-                     'attention_args': {"units": 32, "use_bias": True, "use_edge_features": True,
-                                        "use_final_activation": False, "has_self_loops": True},
-                     'pooling_nodes_args': {'pooling_method': 'mean'},
-                     'depth': 3, 'attention_heads_num': 10,
-                     'attention_heads_concat': False, 'verbose': 1
-                   },
-         'training': {'batch_size': 1, "learning_rate_start": 1e-3, 'learning_rate_stop': 1e-4,
-                      'epo': 250, 'epomin': 200, 'epostep': 10
-                      }
-         }
+model_name = "GAT"
+
+# Hyper and model
+ms = ModelSelection()
+make_model = ms.make_model(model_name)
+
+# Info about data preparation
+hs = DatasetHyperSelection()
+hyper = hs.get_hyper("cora_lu")[model_name]
+hyper_data = hyper['data']
 
 # Loading PROTEINS Dataset
 dataset = CoraLUDataset().make_undirected().scale_adjacency()
@@ -46,14 +39,11 @@ is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
 xtrain = dataloader.tensor(ragged=is_ragged)
 ytrain = np.array(labels)
 
-
 # Set learning rate and epochs
-learning_rate_start = hyper['training']['learning_rate_start']
-learning_rate_stop = hyper['training']['learning_rate_stop']
-epo = hyper['training']['epo']
-epomin = hyper['training']['epomin']
-epostep = hyper['training']['epostep']
-# batch_size = hyper['training']['batch_size']
+hyper_train = hyper['training']
+epo = hyper_train['fit']['epochs']
+epostep = hyper_train['fit']['validation_freq']
+# batch_size = hyper_train['fit']['batch_size']
 
 train_loss = []
 test_loss = []
@@ -69,8 +59,8 @@ for train_index, test_index in split_indices:
     train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
     # Compile model with optimizer and loss
-    optimizer = tf.keras.optimizers.Adam(lr=learning_rate_start)
-    cbks = LinearLearningRateScheduler(learning_rate_start, learning_rate_stop, epomin, epo)
+    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
                   weighted_metrics=['categorical_accuracy'])
@@ -130,3 +120,6 @@ all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+
+# Save hyper
+save_json_file(hyper, os.path.join(filepath, "hyper.json"))

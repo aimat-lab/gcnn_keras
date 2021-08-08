@@ -151,6 +151,16 @@ class ModelSelection:
             from kgcnn.literature.PAiNN import make_model
         elif model_id == "Megnet":
             from kgcnn.literature.Megnet import make_model
+        elif model_id == "GIN":
+            from kgcnn.literature.GIN import make_model
+        elif model_id == "GraphSAGE":
+            from kgcnn.literature.GraphSAGE import make_model
+        elif model_id == "AttentiveFP":
+            from kgcnn.literature.AttentiveFP import make_model
+        elif model_id == "GCN":
+            from kgcnn.literature.GCN import make_model
+        elif model_id == "GAT":
+            from kgcnn.literature.GAT import make_model
         else:
             raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
 

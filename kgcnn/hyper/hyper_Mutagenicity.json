@@ -1,0 +1,32 @@
+{
+    "GraphSAGE": {
+        "model": {
+            "name": "GrapSAGE",
+            "inputs": [
+                {"shape": [null], "name": "node_attributes", "dtype": "float32","ragged": true},
+                {"shape": [null], "name": "edge_attributes", "dtype": "float32","ragged": true},
+                {"shape": [null, 2], "name": "edge_indices", "dtype": "int64","ragged": true}],
+            "input_embedding": {
+                "node": {"input_dim": 95, "output_dim": 64},
+                "edge": {"input_dim": 5, "output_dim": 16}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 1],
+                "activation": ["relu", "relu", "sigmoid"]},
+            "node_mlp_args": {"units": [64, 32], "use_bias": true, "activation": ["relu", "linear"]},
+            "edge_mlp_args": {"units": 64, "use_bias": true, "activation": "relu"},
+            "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {},
+            "concat_args": {"axis": -1},
+            "use_edge_features": true,
+            "pooling_nodes_args": {"pooling_method": "mean"},
+            "depth": 3, "verbose": 1
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2},
+            "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
+            "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
+                           "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
+                               "epo_min": 400, "epo": 500, "verbose": 0}}]
+            },
+        "data": {}
+    }
+}

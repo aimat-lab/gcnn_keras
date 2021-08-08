@@ -1,0 +1,36 @@
+{
+    "GAT": {
+        "model": {
+            "name": "GAT",
+            "inputs": [
+                    {"shape": [null, 1433], "name": "node_attributes", "dtype": "float32", "ragged": true},
+                    {"shape": [null, 1], "name": "edge_attributes", "dtype": "float32", "ragged": true},
+                    {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}],
+            "input_embedding": {
+                "node": {"input_dim": 95, "output_dim": 64},
+                "edge": {"input_dim": 5, "output_dim": 64}},
+            "output_embedding": "node",
+            "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 7],
+                        "activation": ["relu", "relu", "softmax"]},
+            "attention_args": {"units": 32, "use_bias": true, "use_edge_features": true,
+                            "use_final_activation": false, "has_self_loops": true},
+            "pooling_nodes_args": {"pooling_method": "mean"},
+            "depth": 3, "attention_heads_num": 10,
+            "attention_heads_concat": false, "verbose": 1
+        },
+        "training": {
+            "fit": {"batch_size": 1, "epochs": 250, "validation_freq": 10, "verbose": 2},
+            "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}
+            },
+            "callbacks": [
+                {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                    "learning_rate_start": 1e-03, "learning_rate_stop": 1e-04, "epo_min": 200, "epo": 250, "verbose": 0
+                    }
+                }
+            ]
+        },
+        "data": {
+            "range": {}
+        }
+    }
+}

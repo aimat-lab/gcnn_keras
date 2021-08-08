@@ -143,7 +143,7 @@ class MolecularGraph:
     def GetPositions(self):
         return np.array(self.mol.GetConformers()[0].GetPositions())
 
-    def define_attributes(self, nodes=None, edges=None, graph=None, encoder=None, is_directed=True):
+    def set_attributes(self, nodes=None, edges=None, graph=None, encoder=None, is_directed=True):
         """This is a rudiment function for extracting molecular features from rdkit object.
 
         Args:

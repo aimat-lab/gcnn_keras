@@ -100,34 +100,3 @@ def make_model(input_embedding=None,
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
     return model
-
-
-hyper_model_dataset = {"MUTAG": {
-    'model': {'name': "INrop",
-              'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                         {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                         {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-                         {'shape': [], 'name': "graph_size", 'dtype': 'float32', 'ragged': False}],
-              'input_embedding': {"node": {"input_dim": 60, "output_dim": 16},
-                                  "edge": {"input_dim": 4, "output_dim": 8},
-                                  "graph": {"input_dim": 30, "output_dim": 16}},
-              'output_embedding': 'graph',
-              'output_mlp': {"use_bias": [True, True, False], "units": [16, 8, 1],
-                             "activation": ['relu', 'relu', 'sigmoid']},
-              'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "mean", "init_qstar": "mean"},
-              'node_mlp_args': {"units": [16, 16], "use_bias": True, "activation": ['relu', "linear"]},
-              'edge_mlp_args': {"units": [16, 16], "activation": ['relu', "linear"]},
-              'pooling_args': {'pooling_method': "segment_mean"},
-              'depth': 3, 'use_set2set': False, 'verbose': 1,
-              'gather_args': {}
-              },
-    'training': {
-        'fit': {'batch_size': 32, 'epochs': 500, 'validation_freq': 10, 'verbose': 2},
-        'optimizer': {'class_name': 'Adam', "config": {'lr': 5e-3}},
-        'callbacks': [{'class_name': 'kgcnn>LinearLearningRateScheduler',
-                       "config": {'learning_rate_start': 0.5e-3,
-                                  'learning_rate_stop': 1e-5,
-                                  'epo_min': 400, 'epo': 500, 'verbose': 0}}]
-    }
-}
-}

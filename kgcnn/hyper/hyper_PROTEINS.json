@@ -1,0 +1,32 @@
+{
+    "GIN": {
+        "model": {
+            "name": "GIN",
+            "inputs": [{"shape": [null, 3], "name": "node_labels", "dtype": "float32", "ragged": true},
+                      {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}],
+            "input_embedding": {"node_labels": {"input_dim": 800, "output_dim": 64}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [true], "units": [2], "activation": ["linear"]},
+            "output_activation": "softmax",
+            "depth": 5,
+            "dropout": 0.5,
+            "gin_args": {"units": [64, 64], "use_bias": true, "activation": ["relu", "relu"]}
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 150, "validation_freq": 1, "verbose": 2},
+            "optimizer": {"class_name": "Adam",
+                "config": {"lr": {
+                    "class_name": "ExponentialDecay",
+                    "config": {"initial_learning_rate": 0.0005,
+                               "decay_steps": 1600,
+                               "decay_rate": 0.5, "staircase":  false}
+                    }
+                }
+            },
+            "callbacks": []
+        },
+        "data": {
+            "range": {"max_distance": 4, "max_neighbours": 30}
+        }
+    }
+}
