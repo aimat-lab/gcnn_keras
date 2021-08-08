@@ -38,21 +38,22 @@ model_default = {'name': "Megnet",
 
 
 @update_model_kwargs(model_default)
-def make_megnet(inputs=None,
-                input_embedding=None,
-                output_embedding=None,
-                output_mlp=None,
-                gauss_ags=None,
-                meg_block_args=None,
-                set2set_args=None,
-                node_ff_args=None,
-                edge_ff_args=None,
-                state_ff_args=None,
-                use_set2set=None,
-                nblocks=None,
-                has_ff=None,
-                dropout=None,
-                ):
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               gauss_ags=None,
+               meg_block_args=None,
+               set2set_args=None,
+               node_ff_args=None,
+               edge_ff_args=None,
+               state_ff_args=None,
+               use_set2set=None,
+               nblocks=None,
+               has_ff=None,
+               dropout=None,
+               **kwargs
+               ):
     """Get Megnet model."""
 
     # Make input
@@ -118,7 +119,7 @@ def make_megnet(inputs=None,
         final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec)
 
     if output_embedding != "graph":
-        raise ValueError("Unsupported graph embedding for mode `Megnet")
+        raise ValueError("Unsupported graph embedding for mode `Megnet`.")
     # final dense layers
     # Only graph embedding for MEGNET
     main_output = MLP(**output_mlp, input_tensor_type="tensor")(final_vec)

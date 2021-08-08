@@ -149,6 +149,8 @@ class ModelSelection:
             from kgcnn.literature.Unet import make_model
         elif model_id == "PAiNN":
             from kgcnn.literature.PAiNN import make_model
+        elif model_id == "Megnet":
+            from kgcnn.literature.Megnet import make_model
         else:
             raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
 

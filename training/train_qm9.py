@@ -16,7 +16,7 @@ from kgcnn.utils.models import ModelSelection
 from kgcnn.utils.data import save_json_file
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
-model_name = "Schnet"
+model_name = "Megnet"
 
 # Hyper and model
 ms = ModelSelection()

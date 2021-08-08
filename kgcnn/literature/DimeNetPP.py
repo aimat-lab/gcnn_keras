@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 import pprint
 
-from kgcnn.utils.models import update_model_kwargs_logic
+from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add
@@ -14,64 +14,58 @@ from kgcnn.layers.embedding import EmbeddingDimeBlock
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
 # https://arxiv.org/abs/2011.14115
 
+model_default = {"name": "DimeNetPP",
+                 "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                            {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                            {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
+                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
+                                               "embeddings_initializer": {"class_name": "RandomUniform",
+                                                                          "config": {"minval": -1.7320508075688772,
+                                                                                     "maxval": 1.7320508075688772}}}},
+                 "output_embedding": "graph",
+                 "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
+                 "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
+                 "cutoff": 5.0, "envelope_exponent": 5,
+                 "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
+                 "num_targets": 12, "extensive": True, "output_init": "zeros",
+                 "activation": "swish", "verbose": 1,
+                 }
 
-def make_dimnet_pp(**kwargs):
-    """Make DimeNet++ network.
 
-    Args:
-        **kwargs
-
-    Returns:
-        tf.keras.models.Model: DimeNet++ model.
-    """
-    model_args = kwargs
-    model_default = {'input_node_shape': None,
-                     'input_embedding': {"nodes": {"input_dim": 95, "output_dim": 128,
-                                                   'embeddings_initializer': {'class_name': 'RandomUniform',
-                                                   'config': {'minval': -1.7320508075688772,
-                                                              'maxval': 1.7320508075688772}}}},
-                     'emb_size': 128, 'out_emb_size': 256, 'int_emb_size': 64, 'basis_emb_size': 8,
-                     'num_blocks': 4, 'num_spherical': 7, 'num_radial': 6,
-                     'cutoff': 5.0, 'envelope_exponent': 5,
-                     'num_before_skip': 1, 'num_after_skip': 2, 'num_dense_output': 3,
-                     'num_targets': 12, 'extensive': True, 'output_init': 'zeros',
-                     'activation': 'swish', 'verbose': 1,
-                     }
-    m = update_model_kwargs_logic(model_default, model_args)
-    if m['verbose'] > 0:
-        print("INFO:kgcnn: Updated functional make model kwargs:")
-        pprint.pprint(m)
-
-    # Update model parameters
-    input_node_shape = m['input_node_shape']
-    input_embedding = m['input_embedding']
-    emb_size = m['emb_size']
-    out_emb_size = m['out_emb_size']
-    int_emb_size = m['int_emb_size']
-    basis_emb_size = m['basis_emb_size']
-    num_blocks = m['num_blocks']
-    num_spherical = m['num_spherical']
-    num_radial = m['num_radial']
-    cutoff = m['cutoff']
-    envelope_exponent = m['envelope_exponent']
-    num_before_skip = m['num_before_skip']
-    num_after_skip = m['num_after_skip']
-    num_dense_output = m['num_dense_output']
-    num_targets = m['num_targets']
-    activation = m['activation']
-    extensive = m['extensive']
-    output_init = m['output_init']
+@update_model_kwargs(model_default)
+def make_dimnet_pp(inputs=None,
+                   input_embedding=None,
+                   output_embedding=None,
+                   emb_size=None,
+                   out_emb_size=None,
+                   int_emb_size=None,
+                   basis_emb_size=None,
+                   num_blocks=None,
+                   num_spherical=None,
+                   num_radial=None,
+                   cutoff=None,
+                   envelope_exponent=None,
+                   num_before_skip=None,
+                   num_after_skip=None,
+                   num_dense_output=None,
+                   num_targets=None,
+                   activation=None,
+                   extensive=None,
+                   output_init=None,
+                   **kwargs):
+    """Make DimeNet++ network."""
 
     # Make input
-    node_input = ks.layers.Input(shape=input_node_shape, name='node_input', dtype="float32", ragged=True)
-    xyz_input = ks.layers.Input(shape=[None, 3], name='xyz_input', dtype="float32", ragged=True)
-    bond_index_input = ks.layers.Input(shape=[None, 2], name='bond_index_input', dtype="int64", ragged=True)
-    angle_index_input = ks.layers.Input(shape=[None, 2], name='angle_index_input', dtype="int64", ragged=True)
+    node_input = ks.layers.Input(**inputs[0])
+    xyz_input = ks.layers.Input(**inputs[1])
+    bond_index_input = ks.layers.Input(**inputs[2])
+    angle_index_input = ks.layers.Input(**inputs[3])
 
     # Atom embedding
-    # n = generate_node_embedding(node_input, input_node_shape, input_embedding['nodes'])
-    if len(input_node_shape) == 1:
-        n = EmbeddingDimeBlock(**input_embedding['nodes'])(node_input)
+    # n = generate_node_embedding(node_input, input_node_shape, input_embedding["nodes"])
+    if len(inputs[0]["shape"]) == 1:
+        n = EmbeddingDimeBlock(**input_embedding["node"])(node_input)
     else:
         n = node_input
 
@@ -109,6 +103,9 @@ def make_dimnet_pp(**kwargs):
         main_output = PoolingNodes(pooling_method="sum")(ps)
     else:
         main_output = PoolingNodes(pooling_method="mean")(ps)
+
+    if output_embedding != "graph":
+        raise ValueError("Unsupported graph embedding for mode `DimeNetPP`.")
 
     model = tf.keras.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
                                   outputs=main_output)
