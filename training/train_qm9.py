@@ -34,7 +34,10 @@ make_model = ms.make_model(model_name)
 if args["filepath"] is None:
     # Default hyper-parameter
     hs = DatasetHyperSelection()
-    hyper = hs.get_hyper("QM9")[model_name]
+    hyper = hs.get_hyper("QM9")
+    if model_name not in hyper:
+        raise NotImplementedError("No default hyper-parameter for %s" % model_name)
+    hyper = hyper[model_name]
 else:
     hyper = load_json_file(args["filepath"])
 
