@@ -4,8 +4,9 @@ import numpy as np
 import time
 import os
 import kgcnn.utils.learning
-from tensorflow_addons import optimizers
+import argparse
 
+from tensorflow_addons import optimizers
 from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
@@ -13,21 +14,32 @@ from sklearn.utils import shuffle
 from kgcnn.data.datasets.qm9 import QM9Dataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.utils.data import save_json_file
+from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
-model_name = "Megnet"
+parser = argparse.ArgumentParser(description='Train a graph network on QM9 dataset.')
+
+parser.add_argument("-m", "--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("-f", "--filepath", required=False, help="Filepath to hyper-parameter.", default=None)
+
+args = vars(parser.parse_args())
+print("Input of argpars:", args)
 
 # Hyper and model
+model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Info about data preparation
-hs = DatasetHyperSelection()
-hyper = hs.get_hyper("QM9")[model_name]
-hyper_data = hyper['data']
+if args["filepath"] is None:
+    # Default hyper-parameter
+    hs = DatasetHyperSelection()
+    hyper = hs.get_hyper("QM9")[model_name]
+else:
+    hyper = load_json_file(args["filepath"])
 
 # Loading PROTEINS Dataset
+hyper_data = hyper['data']
 dataset = QM9Dataset().set_range(**hyper_data['range'])
 data_name = dataset.dataset_name
 data_unit = "eV"

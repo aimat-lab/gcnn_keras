@@ -6,7 +6,7 @@ with open("README.md", "r", encoding = "utf8") as fh:
 
 setup(
     name="kgcnn",
-    version="1.0.2",
+    version="1.1.0",
     author="Patrick Reiser",
     author_email="patrick.reiser@kit.edu",
     description="General Base Layers for Graph Convolutions with tensorflow.keras",
@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=['numpy', "scikit-learn", "pandas", "scipy", "requests", "matplotlib", "networkx", "sympy",
-                      "requests", "tensorflow-addons", "keras-tuner", "haste_tf", "yaml"],
+                      "requests", "tensorflow-addons", "keras-tuner", "haste_tf", "yaml", "pyyaml"],
     extras_require={
         "tf": ["tensorflow>=2.4.0"],
         "tf_gpu": ["tensorflow-gpu>=2.4.0"],

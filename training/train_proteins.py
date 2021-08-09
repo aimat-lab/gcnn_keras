@@ -4,6 +4,7 @@ import numpy as np
 import time
 import os
 
+from copy import deepcopy
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.PROTEINS import PROTEINSDatset
 from kgcnn.io.loader import NumpyTensorList
@@ -53,7 +54,7 @@ for train_index, test_index in split_indices:
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
     # Compile model with optimizer and loss
-    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
