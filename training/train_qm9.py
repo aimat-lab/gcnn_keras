@@ -6,6 +6,7 @@ import os
 import kgcnn.utils.learning
 import argparse
 
+from copy import deepcopy
 from tensorflow_addons import optimizers
 from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
@@ -19,27 +20,24 @@ from kgcnn.hyper.datasets import DatasetHyperSelection
 
 parser = argparse.ArgumentParser(description='Train a graph network on QM9 dataset.')
 
-parser.add_argument("-m", "--model", required=False, help="Graph model to train.", default="Schnet")
-parser.add_argument("-f", "--filepath", required=False, help="Filepath to hyper-parameter.", default=None)
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 
 args = vars(parser.parse_args())
-print("Input of argpars:", args)
+print("Input of argparse:", args)
 
-# Hyper and model
+# Model
 model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Info about data preparation
-if args["filepath"] is None:
+# Hyper
+if args["hyper"] is None:
     # Default hyper-parameter
     hs = DatasetHyperSelection()
-    hyper = hs.get_hyper("QM9")
-    if model_name not in hyper:
-        raise NotImplementedError("No default hyper-parameter for %s" % model_name)
-    hyper = hyper[model_name]
+    hyper = hs.get_hyper("QM9", model_name)
 else:
-    hyper = load_json_file(args["filepath"])
+    hyper = load_json_file(args["hyper"])
 
 # Loading PROTEINS Dataset
 hyper_data = hyper['data']
@@ -84,7 +82,7 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
-    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 3))
     rms_metric = ScaledRootMeanSquaredError((1, 3))

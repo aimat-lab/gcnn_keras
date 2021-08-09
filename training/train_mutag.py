@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
+import argparse
 
-from kgcnn.utils.data import save_json_file
+from copy import deepcopy
+from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.mutag import MUTAGDataset
@@ -12,19 +14,30 @@ from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
-# Hyper
-model_name = "INorp"
+parser = argparse.ArgumentParser(description='Train a graph network on Mutagenicity dataset.')
 
-# Hyper and model
+parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
+
+args = vars(parser.parse_args())
+print("Input of argparse:", args)
+
+# Model
+model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Info about data preparation
-hs = DatasetHyperSelection()
-hyper = hs.get_hyper("MUTAG")[model_name]
-hyper_data = hyper['data']
+# Hyper
+if args["hyper"] is None:
+    # Default hyper-parameter
+    hs = DatasetHyperSelection()
+    hyper = hs.get_hyper("MUTAG", model_name)
+else:
+    hyper = load_json_file(args["hyper"])
+
 
 # Loading PROTEINS Dataset
+hyper_data = hyper['data']
 dataset = MUTAGDataset()
 data_name = dataset.dataset_name
 data_length = dataset.length
@@ -53,7 +66,7 @@ for train_index, test_index in split_indices:
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
     # Compile model with optimizer and loss
-    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     model.compile(loss='binary_crossentropy',
                   optimizer=optimizer,

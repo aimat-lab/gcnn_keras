@@ -24,12 +24,12 @@ class MemoryGraphDataset:
         self.edge_indices = None
         self.edge_attributes = None
         self.edge_labels = None
+        self.edge_number = None
 
         self.graph_labels = None
         self.graph_attributes = None
         self.graph_size = None
-
-        self.graph_adjacency = None
+        self.graph_adjacency = None  # Only for one-graph datasets like citation networks
 
 
 class MemoryGeometricGraphDataset(MemoryGraphDataset):
@@ -81,7 +81,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         return self
 
     def set_angle(self, is_sorted=False):
-        indices = self.edge_indices
+        indices = self.range_indices
         ei = []
         nijk = []
         ai = []

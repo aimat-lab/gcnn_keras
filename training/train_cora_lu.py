@@ -11,6 +11,7 @@ from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 from kgcnn.utils.data import save_json_file
+import argparse
 
 # Hyper
 model_name = "GAT"

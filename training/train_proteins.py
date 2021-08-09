@@ -3,28 +3,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
+import argparse
 
 from copy import deepcopy
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.PROTEINS import PROTEINSDatset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.utils.data import save_json_file
+from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
-# Hyper
-model_name = "GIN"
+parser = argparse.ArgumentParser(description='Train a graph network on PROTEINS dataset.')
 
-# Hyper and model
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
+
+args = vars(parser.parse_args())
+print("Input of argparse:", args)
+
+# Model
+model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Info about data preparation
-hs = DatasetHyperSelection()
-hyper = hs.get_hyper("PROTEINS")[model_name]
-hyper_data = hyper['data']
+# Hyper
+if args["hyper"] is None:
+    # Default hyper-parameter
+    hs = DatasetHyperSelection()
+    hyper = hs.get_hyper("PROTEINS", model_name)
+else:
+    hyper = load_json_file(args["hyper"])
 
 # Loading PROTEINS Dataset
+hyper_data = hyper['data']
 dataset = PROTEINSDatset()
 data_name = dataset.dataset_name
 data_length = dataset.data_length
