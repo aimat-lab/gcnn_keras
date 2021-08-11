@@ -4,6 +4,7 @@ import tensorflow.keras as ks
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='glorot_orthogonal')
 class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
+    """Combining Glorot and Orthogonal initializer."""
 
     def __init__(self, gain=1.0, seed=None, scale=1.0, mode='fan_avg'):
         super(GlorotOrthogonal, self).__init__(gain=gain, seed=seed)
@@ -26,6 +27,7 @@ class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
 
     def _compute_fans(self, shape):
         """Computes the number of input and output units for a weight shape.
+        Taken from tf-original implementation and copied here for static reference.
 
         Args:
             shape: Integer shape tuple or TF tensor shape.

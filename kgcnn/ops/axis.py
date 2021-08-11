@@ -1,4 +1,3 @@
-
 # Found in ops/array_ops and copied here for static reference
 def get_positive_axis(axis, ndims, axis_name="axis", ndims_name="ndims"):
     """Validate an `axis` parameter, and normalize it to be positive.

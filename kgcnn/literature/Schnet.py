@@ -45,6 +45,7 @@ def make_model(inputs=None,
                out_scale_pos=None,
                gauss_ags=None,
                **kwargs):
+    """Make SchNet graph model."""
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
