@@ -15,3 +15,4 @@ kgcnn.egg-info
 /training/Cora/GCN/model/
 /training/QM9/Schnet/model/
 /training/PROTEINS/GIN/model/
+/training/Lipop/PAiNN/model/

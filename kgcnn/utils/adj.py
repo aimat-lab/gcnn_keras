@@ -4,7 +4,7 @@ import scipy.sparse as sp
 
 def precompute_adjacency_scaled(adj_matrix, add_identity=True):
     r"""Precompute the scaled adjacency matrix :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
-    after Thomas N. Kipf and Max Welling.
+    after Thomas N. Kipf and Max Welling (2016). Where :math:`I` denotes the diagonal unity matrix.
 
     Args:
         adj_matrix (np.array, scipy.sparse): Adjacency matrix of shape (N, N).
@@ -42,7 +42,7 @@ def precompute_adjacency_scaled(adj_matrix, add_identity=True):
         dj = sp.diags(d_jj, format='coo')
         return di.dot(adj).dot(dj).tocoo()
     else:
-        raise TypeError("Matrix format not supported:", type(adj_matrix))
+        raise TypeError("Matrix format not supported: %s" % type(adj_matrix))
 
 
 def convert_scaled_adjacency_to_list(adj_scaled):
