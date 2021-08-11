@@ -6,7 +6,16 @@ import tensorflow as tf
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
-    def __init__(self, lr_start, decay_gamma, epo_warmup=10, lr_min=0.0, verbose=0):
+    def __init__(self, lr_start: float, decay_gamma: float, epo_warmup: int = 10, lr_min: float = 0.0, verbose=0):
+        """Set the parameters for the learning rate scheduler.
+
+        Args:
+            lr_start (float): Learning rate at the start of the exp. decay.
+            decay_gamma (float): Gamma parameter in the exponential.
+            epo_warmup (int): Number of warm-up steps. Default is 10.
+            lr_min: Minimum learning rate allowed during the decay. Default is 0.0.
+            verbose (int): Verbosity. Default is 0.
+        """
         self.decay_gamma = decay_gamma
         self.lr_start = lr_start
         self.lr_min = lr_min
@@ -16,6 +25,7 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
                                                                            verbose=verbose)
 
     def schedule_epoch_lr(self, epoch, lr):
+        """Reduce the learning rate."""
         if epoch < self.epo_warmup:
             new_lr = self.lr_start*epoch/self.epo_warmup + self.lr_min
         elif epoch == self.epo_warmup:
@@ -36,6 +46,15 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     """Callback for linear change of the learning rate."""
 
     def __init__(self, learning_rate_start=1e-3, learning_rate_stop=1e-5, epo_min=0, epo=500, verbose=0):
+        """Set the parameters for the learning rate scheduler.
+
+        Args:
+            learning_rate_start (float): Initial learning rate. Default is 1e-3.
+            learning_rate_stop (float): End learning rate. Default is 1e-5.
+            epo_min (int): Minimum number of epochs to keep the learning-rate constant before decrease. Default is 0.
+            epo (int): Total number of epochs. Default is 500.
+            verbose (int): Verbosity. Default is 0.
+        """
         super(LinearLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr, verbose=verbose)
         self.learning_rate_start = learning_rate_start
         self.learning_rate_stop = learning_rate_stop
@@ -82,7 +101,8 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
-    """Callback logging the learning rate."""
+    """Callback logging the learning rate. This does not work universally yet.
+    Will be improved in the future."""
 
     def __init__(self, verbose=0):
         super(LearningRateLoggingCallback, self).__init__()

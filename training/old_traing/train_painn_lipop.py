@@ -78,6 +78,7 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=learn_dec, amsgrad=True)
 optimizer_ma = tfa.optimizers.MovingAverage(optimizer, average_decay=ema_decay)
 cbks = []
 mae_metric = ScaledMeanAbsoluteError((1, 1))
+
 if scaler.scale_ is not None:
     mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
 model.compile(loss='mean_absolute_error',

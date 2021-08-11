@@ -3,17 +3,20 @@ import functools
 import pprint
 
 
-def generate_embedding(inputs, input_shape, embedding_args, embedding_rank=1, **kwargs):
-    """Optional node embedding for tensor input.
+def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
+    """Optional embedding for tensor input.
 
     Args:
-        node_input (tf.Tensor): Input tensor to make embedding for.
-        input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
+        inputs (tf.Tensor): Input tensor to make embedding for.
+        input_shape (list, tuple): Shape of input without batch dimension. Either (None, F) or (None, ).
         embedding_args (dict): Arguments for embedding layer.
+        embedding_rank (int): The rank of the input which requires embedding. Default is 1.
 
     Returns:
         tf.Tensor: Tensor output.
     """
+    print("WARNING:kgcnn: Unknown embedding kwargs {0}. Not supported yet.".format(kwargs))
+
     if len(input_shape) == embedding_rank:
         n = ks.layers.Embedding(**embedding_args)(inputs)
     else:
@@ -21,62 +24,8 @@ def generate_embedding(inputs, input_shape, embedding_args, embedding_rank=1, **
     return n
 
 
-def generate_node_embedding(node_input, input_node_shape, embedding_args, **kwargs):
-    """Optional node embedding for tensor input.
-
-    Args:
-        node_input (tf.Tensor): Input tensor to make embedding for.
-        input_node_shape (list): Shape of node input without batch dimension. Either (None, F) or (None, )
-        embedding_args (dict): Arguments for embedding layer.
-
-    Returns:
-        tf.Tensor: Tensor output.
-    """
-    if len(input_node_shape) == 1:
-        n = ks.layers.Embedding(**embedding_args)(node_input)
-    else:
-        n = node_input
-    return n
-
-
-def generate_edge_embedding(edge_input, input_edge_shape, embedding_args, **kwargs):
-    """Optional edge embedding for tensor input.
-
-    Args:
-        edge_input (tf.Tensor): Input tensor to make embedding for.
-        input_edge_shape (list): Shape of edge input without batch dimension. Either (None, F) or (None, )
-        embedding_args (dict): Arguments for embedding layer.
-
-    Returns:
-        tf.Tensor: Tensor output.
-    """
-    if len(input_edge_shape) == 1:
-        ed = ks.layers.Embedding(**embedding_args)(edge_input)
-    else:
-        ed = edge_input
-    return ed
-
-
-def generate_state_embedding(env_input, input_state_shape, embedding_args, **kwargs):
-    """Optional state embedding for tensor input.
-
-    Args:
-        env_input (tf.Tensor): Input tensor to make embedding for.
-        input_state_shape: Shape of state input without batch dimension. Either (F, ) or (, )
-        embedding_args (dict): Arguments for embedding layer.
-
-    Returns:
-        tf.Tensor: Tensor output.
-    """
-    if len(input_state_shape) == 0:
-        uenv = ks.layers.Embedding(**embedding_args)(env_input)
-    else:
-        uenv = env_input
-    return uenv
-
-
-def update_model_kwargs_logic(default_kwargs=None, user_kwargs=None):
-    """Make model parameter dictionary with updated default values.
+def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None):
+    """Make model parameter dictionary with updated default values. This is a nested version of update() for dicts.
 
     Args:
         default_kwargs (dict): Dictionary of default values.
@@ -121,7 +70,9 @@ def update_model_kwargs_logic(default_kwargs=None, user_kwargs=None):
 
 
 def update_model_kwargs(model_default):
+    """Decorating function for a kwargs input to be updated."""
     def model_update_decorator(func):
+        """Decorate function."""
         @functools.wraps(func)
         def update_wrapper(*args, **kwargs):
             updated_kwargs = update_model_kwargs_logic(model_default, kwargs)
@@ -136,9 +87,19 @@ def update_model_kwargs(model_default):
 
 
 class ModelSelection:
+    """Select a model by string identifier. Since most models are created by the functional API, we do not register
+    them but have an import by identifier here."""
 
     @classmethod
-    def make_model(cls, model_id, dataset_name=None):
+    def make_model(cls, model_id: str):
+        """Return a make_model function that generates model instances.
+
+        Args:
+            model_id (str): Name of the model.
+
+        Returns:
+            func: Function to make model instances.
+        """
         if model_id == "Schnet":
             from kgcnn.literature.Schnet import make_model
         elif model_id == "GraphSAGE":

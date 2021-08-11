@@ -4,6 +4,7 @@ import tensorflow.keras as ks
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
 class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
+    """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets (only as metric)."""
 
     def __init__(self, scaling_shape=(), name='mean_absolute_error', **kwargs):
         super(ScaledMeanAbsoluteError, self).__init__(name=name, **kwargs)
@@ -13,15 +14,16 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         self.scaling_shape = scaling_shape
 
     def reset_state(self):
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
+        # Or set them explicitly.
         # ks.backend.set_value(self.total, 0)
         # ks.backend.set_value(self.count, 0)
-        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
-
 
     def reset_states(self):
+        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
+        # Or set them explicitly.
         # ks.backend.set_value(self.total, 0)
         # ks.backend.set_value(self.count, 0)
-        ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_mae' not in v.name])
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = self.scale * y_true
@@ -35,11 +37,14 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         return mae_conf
 
     def set_scale(self, scale):
+        """Set the scale from numpy array. Usually used with broadcasting."""
         ks.backend.set_value(self.scale, scale)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
 class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
+    """Metric for a scaled root mean squared error (RMSE), which can undo a pre-scaling of the targets
+    (only as metric)."""
 
     def __init__(self, scaling_shape=(), name='root_mean_squared_error', **kwargs):
         super(ScaledRootMeanSquaredError, self).__init__(name=name, **kwargs)
@@ -50,11 +55,13 @@ class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
 
     def reset_state(self):
         ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_rmse' not in v.name])
+        # Or set them explicitly.
         # ks.backend.set_value(self.total, 0)
         # ks.backend.set_value(self.count, 0)
 
     def reset_states(self):
         ks.backend.batch_set_value([(v, 0) for v in self.variables if 'kgcnn_scale_rmse' not in v.name])
+        # Or set them explicitly.
         # ks.backend.set_value(self.total, 0)
         # ks.backend.set_value(self.count, 0)
 
@@ -70,4 +77,5 @@ class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
         return mae_conf
 
     def set_scale(self, scale):
+        """Set the scale from numpy array. Usually used with broadcasting."""
         ks.backend.set_value(self.scale, scale)

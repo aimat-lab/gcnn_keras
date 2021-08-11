@@ -40,6 +40,8 @@ else:
 # Loading ESOL Dataset
 hyper_data = hyper['data']
 dataset = ESOLDataset().set_attributes()
+if "range" in hyper_data:
+    dataset.set_range(**hyper_data['range'])
 data_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length

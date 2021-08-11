@@ -7,7 +7,8 @@ import argparse
 
 from copy import deepcopy
 from sklearn.preprocessing import StandardScaler
-from tensorflow_addons.optimizers import AdamW
+from kgcnn.utils import learning
+from tensorflow_addons import optimizers
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.lipop import LipopDataset
@@ -19,7 +20,7 @@ from kgcnn.hyper.datasets import DatasetHyperSelection
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Lipop dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
@@ -82,12 +83,13 @@ for train_index, test_index in split_indices:
     # Get optimizer from serialized hyper-parameter.
     optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
+    loss = tf.keras.losses.get(hyper_train["loss"]) if "loss" in hyper_train else 'mean_squared_error'
     mae_metric = ScaledMeanAbsoluteError((1, 1))
     rms_metric = ScaledRootMeanSquaredError((1, 1))
     if scaler.scale_ is not None:
         mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
         rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-    model.compile(loss='mean_squared_error',
+    model.compile(loss=loss,
                   optimizer=optimizer,
                   metrics=[mae_metric, rms_metric])
     print(model.summary())
