@@ -128,8 +128,8 @@ for y in test_loss:
 plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)) + data_unit, c='blue')
 plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.title('ESOL Loss')
+plt.ylabel('Loss')
+plt.title('ESOL training')
 plt.legend(loc='upper right', fontsize='medium')
 plt.savefig(os.path.join(filepath, 'mae_esol.png'))
 plt.show()
