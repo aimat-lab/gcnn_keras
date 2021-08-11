@@ -60,8 +60,10 @@ train_loss = []
 test_loss = []
 acc_5fold = []
 for train_index, test_index in split_indices:
+    # Make mode for current split.
     model = make_model(**hyper['model'])
 
+    # Make training/validation mask to hide test labels from training.
     val_mask = np.zeros_like(labels[0][:,0])
     train_mask = np.zeros_like(labels[0][:,0])
     val_mask[test_index] = 1
@@ -108,7 +110,7 @@ os.makedirs(data_name, exist_ok=True)
 filepath = os.path.join(data_name, hyper['model']['name'])
 os.makedirs(filepath, exist_ok=True)
 
-# Plot loss vs epochs
+# Plot training- and test-loss vs epochs for all splits.
 plt.figure()
 for x in train_loss:
     plt.plot(np.arange(x.shape[0]), x, c='red', alpha=0.85)
@@ -123,14 +125,14 @@ plt.legend(loc='upper right', fontsize='large')
 plt.savefig(os.path.join(filepath, 'acc_coraLu.png'))
 plt.show()
 
-# Save model
+# Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
-# save splits
+# Save original data indices of the splits.
 all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
 
-# Save hyper
+# Save hyper-parameter again, which were used for this fit.
 save_json_file(hyper, os.path.join(filepath, "hyper.json"))

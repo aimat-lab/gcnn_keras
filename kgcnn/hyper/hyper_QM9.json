@@ -212,7 +212,8 @@
             "target_indices": [6,7,8],
             "target_unit_conversion": [[27.2114]],
             "target_unit": ["eV", "eV", "eV"],
-            "execute_splits": 1
+            "execute_splits": 1,
+            "requires_angles": true
         }
     }
 }

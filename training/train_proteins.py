@@ -13,22 +13,23 @@ from kgcnn.utils.models import ModelSelection
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
-parser = argparse.ArgumentParser(description='Train a graph network on PROTEINS dataset.')
 
+# Input arguments from command line.
+# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
+parser = argparse.ArgumentParser(description='Train a graph network on PROTEINS dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
-
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Model
+# Model identification
 model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Hyper
+# Hyper-parameter identification
 if args["hyper"] is None:
-    # Default hyper-parameter
+    # Default hyper-parameter from DatasetHyperSelection if available
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("PROTEINS", model_name)
 else:
@@ -44,6 +45,7 @@ data_length = dataset.data_length
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
 split_indices = kf.split(X=np.arange(data_length)[:, None])
 
+# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = dataset.graph_labels
 
@@ -58,8 +60,10 @@ test_loss = []
 acc_5fold = []
 for train_index, test_index in split_indices:
 
+    # Make the model for current split.
     model = make_model(**hyper['model'])
 
+    # Select train and test data.
     is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
     xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
@@ -89,11 +93,12 @@ for train_index, test_index in split_indices:
     acc_valid = np.mean(val_acc[-10:])
     acc_5fold.append(acc_valid)
 
+# Make output directories
 os.makedirs(data_name, exist_ok=True)
 filepath = os.path.join(data_name, hyper['model']['name'])
 os.makedirs(filepath, exist_ok=True)
 
-# Plot loss vs epochs
+# Plot training- and test-loss vs epochs for all splits.
 plt.figure()
 for x in train_loss:
     plt.plot(np.arange(x.shape[0]), x, c='red', alpha=0.85)
@@ -107,14 +112,14 @@ plt.legend(loc='upper right', fontsize='large')
 plt.savefig(os.path.join(filepath,'acc_proteins.png'))
 plt.show()
 
-# Save model
+# Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
-# save splits
+# Save original data indices of the splits.
 all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
 
-# Save hyper
+# Save hyper-parameter again, which were used for this fit.
 save_json_file(hyper, os.path.join(filepath, "hyper.json"))

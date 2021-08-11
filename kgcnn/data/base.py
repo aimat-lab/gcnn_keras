@@ -86,7 +86,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         nijk = []
         ai = []
         for x in indices:
-            temp = get_angle_indices(x, is_sorted=is_sorted)
+            temp = get_angle_indices(x, is_sorted=True)
             ei.append(temp[0])
             nijk.append(temp[1])
             ai.append(temp[2])

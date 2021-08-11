@@ -161,6 +161,8 @@ class ModelSelection:
             from kgcnn.literature.GCN import make_model
         elif model_id == "GAT":
             from kgcnn.literature.GAT import make_model
+        elif model_id == "DimeNetPP":
+            from kgcnn.literature.DimeNetPP import make_model
         else:
             raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
 

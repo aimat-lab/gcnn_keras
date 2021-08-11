@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-with open("README.md", "r", encoding = "utf8") as fh:
+with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 setup(
@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=['numpy', "scikit-learn", "pandas", "scipy", "requests", "matplotlib", "networkx", "sympy",
-                      "requests", "tensorflow-addons", "keras-tuner", "haste_tf", "yaml", "pyyaml"],
+                      "requests", "tensorflow-addons", "keras-tuner", "haste_tf", "pyyaml"],
     extras_require={
         "tf": ["tensorflow>=2.4.0"],
         "tf_gpu": ["tensorflow-gpu>=2.4.0"],

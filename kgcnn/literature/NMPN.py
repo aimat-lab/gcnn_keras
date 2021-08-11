@@ -32,16 +32,16 @@ model_default = {'name': "NMPN",
 
 
 @update_model_kwargs(model_default)
-def make_nmpn(inputs=None,
-              input_embedding=None,
-              output_embedding=None,
-              output_mlp=None,
-              set2set_args=None,
-              pooling_args=None,
-              edge_dense=None,
-              use_set2set=None,
-              node_dim=None,
-              depth=None, **kwargs):
+def make_model(inputs=None,
+               input_embedding=None,
+               output_embedding=None,
+               output_mlp=None,
+               set2set_args=None,
+               pooling_args=None,
+               edge_dense=None,
+               use_set2set=None,
+               node_dim=None,
+               depth=None, **kwargs):
     """Get Message passing model."""
 
     # Make input

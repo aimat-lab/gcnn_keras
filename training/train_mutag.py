@@ -108,14 +108,14 @@ plt.legend(loc='upper right', fontsize='large')
 plt.savefig(os.path.join(filepath, 'acc_mutag.png'))
 plt.show()
 
-# Save model
+# Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
-# save splits
+# Save original data indices of the splits.
 all_test_index = []
 for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
 
-# Save hyper
+# Save hyper-parameter again, which were used for this fit.
 save_json_file(hyper, os.path.join(filepath, "hyper.json"))
