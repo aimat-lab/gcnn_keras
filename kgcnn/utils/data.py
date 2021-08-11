@@ -40,7 +40,7 @@ def save_yaml_file(outlist, fname):
 
 
 def ragged_tensor_from_nested_numpy(numpy_list):
-    """Make ragged tensor from a list of numpy arrays. Ragged dimension only as first axis.
+    """Make ragged tensor from a list of numpy arrays. Ragged dimension only as first axis (ragged_rank=1).
 
     Args:
         numpy_list (list): List of numpy arrays. Example [np.array, np.array, ...]
