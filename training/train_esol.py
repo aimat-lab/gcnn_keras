@@ -16,19 +16,20 @@ from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 from kgcnn.utils.data import save_json_file, load_json_file
 
+# Input arguments from command line.
+# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
-
 parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Model
+# Model identification
 model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Hyper
+# Hyper-parameter.
 if args["hyper"] is None:
     # Default hyper-parameter
     hs = DatasetHyperSelection()
@@ -36,19 +37,19 @@ if args["hyper"] is None:
 else:
     hyper = load_json_file(args["hyper"])
 
-# Loading PROTEINS Dataset
+# Loading ESOL Dataset
 hyper_data = hyper['data']
 dataset = ESOLDataset().set_attributes()
 data_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length
 
+# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)
-# We remove methane from dataset as it could have 0 edges
+# We remove methane from dataset as it could have 0 edges.
 labels = np.delete(labels, 934, axis=0)
 dataloader.pop(934)
-
 
 # Data-set split
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
@@ -63,6 +64,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 mae_5fold = []
+model, scaler, xtest, ytest, mae_valid = None, None, None, None, None
 for train_index, test_index in split_indices:
 
     # Make model.
@@ -78,6 +80,7 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
+    # Get optimizer from serialized hyper-parameter.
     optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 1))

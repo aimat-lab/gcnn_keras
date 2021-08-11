@@ -13,27 +13,28 @@ from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 from kgcnn.utils.data import save_json_file, load_json_file
 
+# Input arguments from command line.
+# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Cora dataset.')
-
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Model
+# Model identification.
 model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Hyper
+# Hyper-parameter identification.
 if args["hyper"] is None:
-    # Default hyper-parameter
+    # Default hyper-parameter if available.
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("Cora", model_name)
 else:
     hyper = load_json_file(args["hyper"])
 
-# Loading PROTEINS Dataset
+# Loading Cora Dataset
 hyper_data = hyper['data']
 dataset = CoraDataset().make_undirected_edges()
 data_name = dataset.dataset_name
@@ -44,12 +45,13 @@ labels = dataset.node_labels
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
 split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
 
+# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
 xtrain = dataloader.tensor(ragged=is_ragged)
 ytrain = np.array(labels)
 
-# Set learning rate and epochs
+# Set learning rate and epochs.
 hyper_train = hyper['training']
 epo = hyper_train['fit']['epochs']
 epostep = hyper_train['fit']['validation_freq']
@@ -58,19 +60,21 @@ epostep = hyper_train['fit']['validation_freq']
 train_loss = []
 test_loss = []
 acc_5fold = []
+model = None
 for train_index, test_index in split_indices:
     # Make mode for current split.
     model = make_model(**hyper['model'])
 
     # Make training/validation mask to hide test labels from training.
-    val_mask = np.zeros_like(labels[0][:,0])
-    train_mask = np.zeros_like(labels[0][:,0])
+    val_mask = np.zeros_like(labels[0][:, 0])
+    train_mask = np.zeros_like(labels[0][:, 0])
     val_mask[test_index] = 1
     train_mask[train_index] = 1
     val_mask = np.expand_dims(val_mask, axis=0)  # One graph in batch
     train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
-    # Compile model with optimizer and loss
+    # Compile model with optimizer and loss.
+    # Get optimizer from serialized hyper-parameter.
     optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     model.compile(loss='categorical_crossentropy',
@@ -97,14 +101,15 @@ for train_index, test_index in split_indices:
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
 
-    # Get loss from history
+    # Get loss from history.
     train_acc = np.concatenate([x['categorical_accuracy'] for x in trainloss_steps])
     train_loss.append(train_acc)
-    val_acc = np.array(testloss_step)[:,1]
+    val_acc = np.array(testloss_step)[:, 1]
     test_loss.append(val_acc)
     acc_valid = np.mean(val_acc[-5:])
     acc_5fold.append(acc_valid)
 
+# Make output directories.
 os.makedirs(data_name, exist_ok=True)
 filepath = os.path.join(data_name, hyper['model']['name'])
 os.makedirs(filepath, exist_ok=True)

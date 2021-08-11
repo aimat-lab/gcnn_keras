@@ -16,8 +16,9 @@ from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
+# Input arguments from command line.
+# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Lipop dataset.')
-
 parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
@@ -36,7 +37,7 @@ if args["hyper"] is None:
 else:
     hyper = load_json_file(args["hyper"])
 
-# Loading PROTEINS Dataset
+# Loading Lipop Dataset
 hyper_data = hyper['data']
 dataset = LipopDataset().set_attributes()
 if "range" in hyper_data:
@@ -49,6 +50,7 @@ data_length = dataset.length
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
 split_indices = kf.split(X=np.arange(data_length)[:, None])
 
+# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = dataset.graph_labels
 
@@ -61,9 +63,10 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 mae_5fold = []
+model, scaler, xtest, ytest, mae_valid = None, None, None, None, None
 for train_index, test_index in split_indices:
 
-    # Make model-
+    # Make model.
     model = make_model(**hyper['model'])
 
     # Select train and test data.
@@ -76,6 +79,7 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
+    # Get optimizer from serialized hyper-parameter.
     optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 1))
@@ -106,6 +110,7 @@ for train_index, test_index in split_indices:
     mae_valid = np.mean(val_mae[-5:])
     mae_5fold.append(mae_valid)
 
+# Make output directories.
 os.makedirs(data_name, exist_ok=True)
 filepath = os.path.join(data_name, hyper['model']['name'])
 os.makedirs(filepath, exist_ok=True)

@@ -80,11 +80,12 @@ train_loss = []
 test_loss = []
 mae_5fold = []
 splits_done = 0
+model, scaler, xtest, ytest, mae_valid = None, None, None, None, None
 for train_index, test_index in split_indices:
     # Only do execute_splits out of the 10-folds
     if splits_done >= execute_splits:
         break
-
+    # Make model.
     model = make_model(**hyper['model'])
 
     # Select train and test data.

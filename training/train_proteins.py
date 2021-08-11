@@ -58,6 +58,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 acc_5fold = []
+model = None
 for train_index, test_index in split_indices:
 
     # Make the model for current split.
@@ -104,12 +105,13 @@ for x in train_loss:
     plt.plot(np.arange(x.shape[0]), x, c='red', alpha=0.85)
 for y in test_loss:
     plt.plot((np.arange(len(y)) + 1) * epostep, y, c='blue', alpha=0.85)
-plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)], label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
+plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)],
+            label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('PROTEINS Loss')
 plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath,'acc_proteins.png'))
+plt.savefig(os.path.join(filepath, 'acc_proteins.png'))
 plt.show()
 
 # Save keras-model to output-folder.

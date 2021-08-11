@@ -14,22 +14,22 @@ from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
+# Input arguments from command line.
+# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Mutagenicity dataset.')
-
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GraphSAGE")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
-
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Model
+# Model identification.
 model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Hyper
+# Hyper-parameter identification.
 if args["hyper"] is None:
-    # Default hyper-parameter
+    # Default hyper-parameter for model if available.
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("Mutagenicity", model_name)
 else:
@@ -57,6 +57,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 acc_5fold = []
+model = None
 for train_index, test_index in split_indices:
 
     # Make model.
