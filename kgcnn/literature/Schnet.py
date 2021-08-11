@@ -28,7 +28,7 @@ model_default = {'name': "Schnet",
                  'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4, 'out_scale_pos': 0,
-                 'gauss_ags': {"bins": 20, "range": 4, "offset": 0.0, "sigma": 0.4},
+                 'gauss_ags': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'verbose': 1
                  }
 

@@ -43,18 +43,21 @@ else:
 hyper_data = hyper['data']
 dataset = QM9Dataset().set_range(**hyper_data['range'])
 data_name = dataset.dataset_name
-data_unit = "eV"
 data_length = dataset.length
 target_names = dataset.target_names
 
-data_points_to_use = hyper_data['data_points_to_use']  # Only for testing
+data_points_to_use = hyper_data['data_points_to_use'] if "data_points_to_use" in hyper_data else 133885
+target_indices = np.array(hyper_data['target_indices'], dtype="int")
+target_unit_conversion = np.array(hyper_data['target_unit_conversion'])
+data_unit = hyper_data["target_unit"]
 data_selection = shuffle(np.arange(data_length))[:data_points_to_use]
+
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])[data_selection]
-labels = dataset.graph_labels[data_selection][:, 6:9] * 27.2114  # Train on HOMO, LUMO, Eg
-target_names = target_names[6:9]
+labels = dataset.graph_labels[data_selection][:, target_indices] * target_unit_conversion
+target_names = [target_names[x] for x in target_indices]
 
 # Data-set split
-execute_splits = 2  # All splits may be too expensive for qm9
+execute_splits = hyper_data['execute_splits']  # All splits may be too expensive for qm9
 kf = KFold(n_splits=10, random_state=None, shuffle=True)
 split_indices = kf.split(X=np.arange(len(labels))[:, None])
 
@@ -126,7 +129,7 @@ for x in train_loss:
 for y in test_loss:
     plt.plot((np.arange(len(y)) + 1) * epostep, y, c='blue', alpha=0.85)
 plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
-            label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)) + data_unit, c='blue')
+            label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.title('QM9 Loss')
@@ -141,7 +144,7 @@ mae_last = np.mean(np.abs(true_test - pred_test), axis=0)
 plt.figure()
 for i in range(true_test.shape[-1]):
     plt.scatter(pred_test[:, i], true_test[:, i], alpha=0.3,
-                label=target_names[i] + " MAE: {0:0.4f} ".format(mae_last[i]) + "[" + data_unit + "]")
+                label=target_names[i] + " MAE: {0:0.4f} ".format(mae_last[i]) + "[" + data_unit[i] + "]")
 plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
          np.arange(np.amin(true_test), np.amax(true_test), 0.05), color='red')
 plt.xlabel('Predicted Last Split')

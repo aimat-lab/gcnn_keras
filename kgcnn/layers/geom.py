@@ -321,12 +321,12 @@ class GaussBasisLayer(GraphBaseLayer):
 
     """
 
-    def __init__(self, bins=20, range=4.0, sigma=0.4, offset=0.0,
+    def __init__(self, bins=20, distance=4.0, sigma=0.4, offset=0.0,
                  **kwargs):
         super(GaussBasisLayer, self).__init__(**kwargs)
         # Layer variables
         self.bins = int(bins)
-        self.range = float(range)
+        self.distance = float(distance)
         self.offset = float(offset)
         self.sigma = float(sigma)
         self.gamma = 1 / sigma / sigma * (-1) / 2
@@ -344,7 +344,7 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
         """
-        gbs = tf.range(0, self.bins, 1, dtype=self.dtype) / float(self.bins) * self.range
+        gbs = tf.range(0, self.bins, 1, dtype=self.dtype) / float(self.bins) * self.distance
         # Possibly faster RaggedRank==1
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
@@ -362,7 +362,7 @@ class GaussBasisLayer(GraphBaseLayer):
     def get_config(self):
         """Update config."""
         config = super(GaussBasisLayer, self).get_config()
-        config.update({"bins": self.bins, "range": self.range, "offset": self.offset, "sigma": self.sigma})
+        config.update({"bins": self.bins, "distance": self.distance, "offset": self.offset, "sigma": self.sigma})
         return config
 
 

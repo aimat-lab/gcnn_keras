@@ -5,27 +5,36 @@ import time
 import os
 import argparse
 
+from copy import deepcopy
 from sklearn.preprocessing import StandardScaler
 from tensorflow_addons.optimizers import AdamW
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.lipop import LipopDataset
 from kgcnn.io.loader import NumpyTensorList
+from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
-from kgcnn.utils.data import save_json_file
 
-# Hyper
-model_name = "AttentiveFP"
+parser = argparse.ArgumentParser(description='Train a graph network on Lipop dataset.')
 
-# Hyper and model
+parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
+args = vars(parser.parse_args())
+print("Input of argparse:", args)
+
+# Model
+model_name = args["model"]
 ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
-# Info about data preparation
-hs = DatasetHyperSelection()
-hyper = hs.get_hyper("Lipop")[model_name]
-
+# Hyper
+if args["hyper"] is None:
+    # Default hyper-parameter
+    hs = DatasetHyperSelection()
+    hyper = hs.get_hyper("Lipop", model_name)
+else:
+    hyper = load_json_file(args["hyper"])
 
 # Loading PROTEINS Dataset
 hyper_data = hyper['data']
@@ -63,7 +72,7 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
-    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
     cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
     mae_metric = ScaledMeanAbsoluteError((1, 1))
     rms_metric = ScaledRootMeanSquaredError((1, 1))

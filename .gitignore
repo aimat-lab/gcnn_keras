@@ -2,7 +2,6 @@
 *.mat
 *.txt
 *.zip
-*.png
 /develop/
 build
 dist
@@ -10,3 +9,8 @@ kgcnn.egg-info
 /legacy/
 /training/.ipynb_checkpoints/
 /training/old_traing/
+/training/Mutagenicity/GraphSAGE/model/
+/training/MUTAG/INorp/model/
+/training/MUTAG/Unet/model/
+/training/Cora/GCN/model/
+/training/QM9/Schnet/model/
