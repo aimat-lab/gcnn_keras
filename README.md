@@ -37,6 +37,7 @@ Any comments, suggestions or help are very welcome!
 For kgcnn, usually the latest version of tensorflow is required, but is listed as extra requirements in the `setup.py` for simplicity. 
 Additional python packages are placed in the `setup.py` requirements and are installed automatically.
 * tensorflow>=2.4.1
+* rdkit>=??.?.?
 
 <a name="installation"></a>
 # Installation

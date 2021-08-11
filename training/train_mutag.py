@@ -35,7 +35,6 @@ if args["hyper"] is None:
 else:
     hyper = load_json_file(args["hyper"])
 
-
 # Loading PROTEINS Dataset
 hyper_data = hyper['data']
 dataset = MUTAGDataset()

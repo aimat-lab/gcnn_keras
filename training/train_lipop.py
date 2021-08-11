@@ -25,10 +25,13 @@ make_model = ms.make_model(model_name)
 # Info about data preparation
 hs = DatasetHyperSelection()
 hyper = hs.get_hyper("Lipop")[model_name]
-hyper_data = hyper['data']
+
 
 # Loading PROTEINS Dataset
+hyper_data = hyper['data']
 dataset = LipopDataset().set_attributes()
+if "range" in hyper_data:
+    dataset.set_range(**hyper_data["range"])
 data_name = dataset.dataset_name
 data_unit = "logD at pH 7.4"
 data_length = dataset.length
