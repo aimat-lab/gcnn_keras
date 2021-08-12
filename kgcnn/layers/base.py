@@ -2,6 +2,7 @@ import tensorflow as tf
 
 import kgcnn.ops.activ
 
+
 class GraphBaseLayer(tf.keras.layers.Layer):
     """Base layer for graph layers used in kgcnn that holds some additional information about the graph, which can
     improve performance, if set differently.

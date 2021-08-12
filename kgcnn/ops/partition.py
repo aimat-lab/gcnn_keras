@@ -139,7 +139,7 @@ def partition_row_indexing(tensor_index, part_target, part_index,
     elif to_indexing == 'sample' and from_indexing == 'batch':
         indexlist = tensor_index - tf.cast(shift_index, dtype=tensor_index.dtype)
     else:
-        raise TypeError("Error: Unknown index change, use: 'sample', 'batch', ...")
+        raise TypeError("ERROR:kgcnn: Unknown index change, use: 'sample', 'batch', ...")
 
     out = indexlist
     return out

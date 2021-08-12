@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='glorot_orthogonal')
@@ -25,7 +24,8 @@ class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
         W *= stddev
         return W
 
-    def _compute_fans(self, shape):
+    @staticmethod
+    def _compute_fans(shape):
         """Computes the number of input and output units for a weight shape.
         Taken from tf-original implementation and copied here for static reference.
 

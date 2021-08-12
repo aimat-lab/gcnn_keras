@@ -140,6 +140,6 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         self.node_labels = n_labels
         self.edge_labels = e_labels
         self.graph_labels = g_labels
-        self.graph_adjacency = None  # @TODO
+        self.graph_adjacency = None  # @TODO: For single graph networks
         self.length = len(g_labels)
 
