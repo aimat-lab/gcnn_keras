@@ -1,12 +1,12 @@
 import tensorflow.keras as ks
-import pprint
+
 from kgcnn.layers.casting import ChangeTensorType
+from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Neural Message Passing for Quantum Chemistry

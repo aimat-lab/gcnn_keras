@@ -1,5 +1,4 @@
 import tensorflow.keras as ks
-import pprint
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN

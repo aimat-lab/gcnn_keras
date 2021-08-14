@@ -1,9 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-import pprint
 
-from kgcnn.layers.conv.attention import AttentionHeadGAT
 from kgcnn.layers.casting import ChangeTensorType
+from kgcnn.layers.conv.attention import AttentionHeadGAT
 from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes

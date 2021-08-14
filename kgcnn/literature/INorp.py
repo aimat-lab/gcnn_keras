@@ -1,4 +1,5 @@
 import tensorflow.keras as ks
+
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, Dense
