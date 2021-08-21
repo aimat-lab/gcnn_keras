@@ -200,6 +200,7 @@ def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=
 
 def sort_edge_indices(edge_indices, edge_values=None):
     """Sort edge index list of np.ndarray for the first index and then for the second index.
+    Edge values are rearranged accordingly if passed to the function call.
 
     Args:
         edge_indices (np.array): Edge indices referring to nodes of shape (N, 2).
