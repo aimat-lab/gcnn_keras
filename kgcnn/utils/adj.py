@@ -203,8 +203,8 @@ def sort_edge_indices(edge_indices, edge_values=None):
     Edge values are rearranged accordingly if passed to the function call.
 
     Args:
-        edge_indices (np.array): Edge indices referring to nodes of shape (N, 2).
-        edge_values (np.array): Edge values of shape (N, M).
+        edge_indices (np.array): Edge indices referring to nodes of shape `(N, 2)`.
+        edge_values (np.array): Edge values of shape `(N, M)`.
 
     Returns:
         list: [edge_indices, edge_values] or edge_indices
