@@ -3,7 +3,7 @@ import tensorflow as tf
 
 @tf.function
 def segment_softmax(data, segment_ids, normalize=True):
-    """Segment softmax similar to segment_max but with a softmax.
+    """Segment softmax similar to segment_max but with a softmax function.
 
     Args:
         data (tf.Tensor): Data tensor that has sorted segments.
@@ -25,7 +25,7 @@ def segment_softmax(data, segment_ids, normalize=True):
 
 
 @tf.function
-def segment_ops_by_name(segment_name, data, segment_ids):
+def segment_ops_by_name(segment_name: str, data, segment_ids):
     """Segment operation chosen by string identifier.
 
     Args:
