@@ -27,7 +27,7 @@ class GlorotOrthogonal(tf.keras.initializers.Orthogonal):
     @staticmethod
     def _compute_fans(shape):
         """Computes the number of input and output units for a weight shape.
-        Taken from tf-original implementation and copied here for static reference.
+        Taken from original TensorFlow implementation and copied here for static reference.
 
         Args:
             shape: Integer shape tuple or TF tensor shape.
