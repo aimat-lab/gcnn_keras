@@ -46,13 +46,18 @@ def save_yaml_file(outlist, fname):
 
 
 def ragged_tensor_from_nested_numpy(numpy_list):
-    """Make ragged tensor from a list of numpy arrays. Ragged dimension only as first axis (ragged_rank=1).
+    """Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
+    with exception of the first dimension.
+    This will result in a ragged tensor with ragged dimension only at first axis (ragged_rank=1), like
+    shape `(batch, None, ...)`. This way a tensor can be generated faster than tf.ragged.constant().
+
+    Warning: The data will be copied for this operation.
 
     Example:
-        [np.ndarray, np.ndarray, ...].
+        ragged_tensor_from_nested_numpy([np.ndarray, np.ndarray, ...])
 
     Args:
-        numpy_list (list): List of numpy arrays.
+        numpy_list (list): List of numpy arrays of different length but else identical shape.
 
     Returns:
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
