@@ -4,16 +4,18 @@ import tensorflow as tf
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
-    """Callback for linear change of the learning rate."""
+    """Callback for linear change of the learning rate. This class inherits from
+    tf.keras.callbacks.LearningRateScheduler."""
 
-    def __init__(self, lr_start: float, decay_gamma: float, epo_warmup: int = 10, lr_min: float = 0.0, verbose=0):
+    def __init__(self, lr_start: float, decay_gamma: float, epo_warmup: int = 10, lr_min: float = 0.0,
+                 verbose: int = 0):
         """Set the parameters for the learning rate scheduler.
 
         Args:
             lr_start (float): Learning rate at the start of the exp. decay.
             decay_gamma (float): Gamma parameter in the exponential.
             epo_warmup (int): Number of warm-up steps. Default is 10.
-            lr_min: Minimum learning rate allowed during the decay. Default is 0.0.
+            lr_min (float): Minimum learning rate allowed during the decay. Default is 0.0.
             verbose (int): Verbosity. Default is 0.
         """
         self.decay_gamma = decay_gamma
@@ -27,11 +29,11 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
     def schedule_epoch_lr(self, epoch, lr):
         """Reduce the learning rate."""
         if epoch < self.epo_warmup:
-            new_lr = self.lr_start*epoch/self.epo_warmup + self.lr_min
+            new_lr = self.lr_start * epoch / self.epo_warmup + self.lr_min
         elif epoch == self.epo_warmup:
             new_lr = max(self.lr_start, self.lr_min)
         else:
-            new_lr = max(self.lr_start * np.exp(-(epoch-self.epo_warmup)/self.decay_gamma), self.lr_min)
+            new_lr = max(self.lr_start * np.exp(-(epoch - self.epo_warmup) / self.decay_gamma), self.lr_min)
         return float(new_lr)
 
     def get_config(self):
@@ -43,9 +45,11 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearLearningRateScheduler')
 class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
-    """Callback for linear change of the learning rate."""
+    """Callback for linear change of the learning rate. This class inherits from
+    tf.keras.callbacks.LearningRateScheduler."""
 
-    def __init__(self, learning_rate_start=1e-3, learning_rate_stop=1e-5, epo_min=0, epo=500, verbose=0):
+    def __init__(self, learning_rate_start: float = 1e-3, learning_rate_stop: float = 1e-5, epo_min: int = 0,
+                 epo: int = 500, verbose: int = 0):
         """Set the parameters for the learning rate scheduler.
 
         Args:
@@ -66,7 +70,7 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
             out = float(self.learning_rate_start)
         else:
             out = float(self.learning_rate_start - (self.learning_rate_start - self.learning_rate_stop) / (
-                        self.epo - self.epo_min) * (epoch - self.epo_min))
+                    self.epo - self.epo_min) * (epoch - self.epo_min))
         return float(out)
 
     def get_config(self):
@@ -112,7 +116,7 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         """Read out the learning rate on epoch end.
 
         Args:
-            epoch (int, float): Number of current epoch ended.
+            epoch (int): Number of current epoch ended.
             logs (dict): Dictionary of the logs.
 
         Returns:

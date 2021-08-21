@@ -2,16 +2,17 @@ import numpy as np
 import scipy.sparse as sp
 
 
-def precompute_adjacency_scaled(adj_matrix, add_identity=True):
-    r"""Precompute the scaled adjacency matrix :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
+def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
+    r"""Precompute the scaled adjacency matrix :math:`A_{s} = D^{-0.5} (A + I) D^{-0.5}`
     after Thomas N. Kipf and Max Welling (2016). Where :math:`I` denotes the diagonal unity matrix.
+    The node degree matrix is defined as :math:`D_{ii} = \sum_{j} (A + I)_{ij}`.
 
     Args:
-        adj_matrix (np.array, scipy.sparse): Adjacency matrix of shape (N, N).
-        add_identity (bool, optional): Whether to add identity. Defaults to True.
+        adj_matrix (np.ndarray, scipy.sparse): Adjacency matrix :math:`A` of shape `(N, N)`.
+        add_identity (bool, optional): Whether to add identity :math:`I` in :math:`(A + I)`. Defaults to True.
 
     Returns:
-        np.array: :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
+        array-like: Scaled adjacency matrix after :math:`A_{s} = D^{-0.5} (A + I) D^{-0.5}`.
     """
     if isinstance(adj_matrix, np.ndarray):
         adj_matrix = np.array(adj_matrix, dtype=np.float)
@@ -46,17 +47,17 @@ def precompute_adjacency_scaled(adj_matrix, add_identity=True):
 
 
 def convert_scaled_adjacency_to_list(adj_scaled):
-    r"""Map adjacency matrix to index list plus edge weights.
+    r"""Map adjacency matrix to index list plus edge weights. In case of a standard adjacency matrix the edge weights
+    will be one. For a pre-scaled adjacency matrix they become the entries of :math:`A_{s}`.
 
     Args:
-        adj_scaled (np.array, sp.sparse): Normal or scaled adjacency matrix of shape (N, N).
-            Scaled adjacency after :math:`A_{scaled} = D^{-0.5} (A + I) D^{-0.5}`
+        adj_scaled (np.ndarray, scipy.sparse): Normal or scaled adjacency matrix :math:`A` of shape `(N, N)`.
 
     Returns:
         list: [tensor_index, edge_weight]
         
-            - tensor_index (np.array): Index-list referring to nodes of shape (N, 2)
-            - edge_weight (np.array): Entries of Adjacency matrix of shape (N, N)
+            - tensor_index (np.ndarray): Index-list referring to nodes of shape `(N, 2)`.
+            - edge_weight (np.ndarray): Entries of Adjacency matrix of shape `(N, )`.
     """
     if isinstance(adj_scaled, np.ndarray):
         a = np.array(adj_scaled > 0, dtype=np.bool)
@@ -74,18 +75,19 @@ def convert_scaled_adjacency_to_list(adj_scaled):
         edge_weight = np.array(adj_scaled.data)
         return edge_index, edge_weight
     else:
-        raise TypeError("Matrix format not supported:", type(adj_scaled))
+        raise TypeError("Matrix format not supported: %s." % type(adj_scaled))
 
 
 def make_adjacency_undirected_logical_or(adj_mat):
     r"""Make adjacency matrix undirected. This adds edges to make adj_matrix symmetric, only if is is not symmetric.
-    This is not equivalent to :math:`(A+A^T)/2` but to :math:`A \lor A^T` .
+    This is not equivalent to :math:`(A+A^T)/2` but to :math:`A \lor A^T`. This requires the entries of :math:`A` to
+    be :math:`\in {0, 1}`.
 
     Args:
-        adj_mat (np.array, sp.sparse): Adjacency matrix of shape (N, N)
+        adj_mat (np.ndarray, scipy.sparse): Adjacency matrix :math:`A` of shape `(N, N)`.
 
     Returns:
-        np.array, sp.sparse: Undirected Adjacency matrix. This has :math:`A=A^T`
+        array-like: Undirected Adjacency matrix. This has :math:`A=A^T`.
     """
     if isinstance(adj_mat, np.ndarray):
         at = np.transpose(adj_mat)
@@ -100,17 +102,19 @@ def make_adjacency_undirected_logical_or(adj_mat):
 
 
 def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
-    """Add self-loops to edge index list, i.e. [[0,0],[1,1]...]. Edge values are filled up with ones.
-    Default is to remove duplicates in the added list. Edge indices are sorted by default.
+    """Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
+    Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
+    first index at position `index[:, 0]`.
 
     Args:
-        edge_indices (np.array): Index-list for edges referring to nodes of shape (N, 2).
-        edge_values (np.array): Edge values of shape (N, M) matching the edge_indices.
+        edge_indices (np.ndarray): Index-list for edges referring to nodes of shape `(N, 2)`.
+        edge_values (np.ndarray): Edge values of shape `(N, M)` matching the edge_indices.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
     Returns:
-        edge_indices: Sorted index list with self-loops. Optionally (edge_indices, edge_values).
+        edge_indices: Sorted index list with self-loops. Optionally (edge_indices, edge_values) if edge_values are not
+            None.
     """
     clean_edge = None
     max_ind = np.max(edge_indices)
@@ -149,17 +153,17 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
 
 
 def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
-    """Add the edges for (i,j) as (j,i) with the same edge values. If they do already exist, no edge is added.
-    By default, all indices are sorted.
+    """Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
+    no edge is added. By default, all indices are sorted. Sorting is done for the first index at position `index[:, 0]`.
 
     Args:
-        edge_indices (np.array): Index-list of edges referring to nodes of shape (N, 2).
-        edge_values (np.array): Edge values of shape (N, M) matching the edge_indices
+        edge_indices (np.ndarray): Index-list of edges referring to nodes of shape `(N, 2)`.
+        edge_values (np.ndarray): Edge values of shape `(N, M)` matching the edge_indices.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
     Returns:
-        np.array: edge_indices or [edge_indices, edge_values]
+        np.ndarray: edge_indices or [edge_indices, edge_values] if edge_values is not None.
     """
     clean_edge = None
     edge_index_flip = np.concatenate([edge_indices[:, 1:2], edge_indices[:, 0:1]], axis=-1)
@@ -195,7 +199,7 @@ def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=
 
 
 def sort_edge_indices(edge_indices, edge_values=None):
-    """Sort index list.
+    """Sort edge index list of np.ndarray for the first index and then for the second index.
 
     Args:
         edge_indices (np.array): Edge indices referring to nodes of shape (N, 2).
@@ -223,14 +227,14 @@ def sort_edge_indices(edge_indices, edge_values=None):
 
 
 def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
-    """Make adjacency sparse matrix from edge_indices and possible values.
+    """Make adjacency as sparse matrix from a list or np.ndarray of edge_indices and possible values.
 
     Args:
-        edge_indices (np.array): List of edge indices of shape (N, 2)
-        edge_values (np.array): List of possible edge values of shape (N, )
+        edge_indices (np.ndarray): List of edge indices of shape `(N, 2)`
+        edge_values (np.ndarray): List of possible edge values of shape `(N, )`
 
     Returns:
-        sp.sparse.coo_matrix: Sparse adjacency matrix.
+        scipy.coo.coo_matrix: Sparse adjacency matrix.
     """
     if edge_values is None:
         edge_values = np.ones(edge_indices.shape[0])
