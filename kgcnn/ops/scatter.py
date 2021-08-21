@@ -3,7 +3,7 @@ import tensorflow as tf
 
 @tf.function
 def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=None):
-    """Scatter operation chosen by name that can replace segment-operations.
+    """Scatter operation chosen by name that pick tensor_scatter_nd functions.
 
     Args:
         segment_name (str): Operation to update scattered updates. Either 'sum' or 'min' etc.
