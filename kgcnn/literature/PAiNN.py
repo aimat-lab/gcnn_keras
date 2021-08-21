@@ -1,14 +1,14 @@
-import tensorflow.keras as ks
-import pprint
 import tensorflow as tf
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
-from kgcnn.layers.keras import Add
-from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized
-from kgcnn.layers.conv.painn_conv import PAiNNconv
-from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
-from kgcnn.layers.pool.pooling import PoolingNodes
-from kgcnn.layers.mlp import MLP
+import tensorflow.keras as ks
+
 from kgcnn.layers.casting import ChangeTensorType
+from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
+from kgcnn.layers.conv.painn_conv import PAiNNconv
+from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized
+from kgcnn.layers.keras import Add
+from kgcnn.layers.mlp import MLP
+from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger

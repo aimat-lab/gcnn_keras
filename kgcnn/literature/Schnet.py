@@ -1,10 +1,10 @@
 import tensorflow.keras as ks
-import pprint
+
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
+from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
 from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -29,6 +29,7 @@ model_default = {'name': "Schnet",
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4, 'out_scale_pos': 0,
                  'gauss_ags': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                 'expand_distance': True,
                  'verbose': 1
                  }
 
@@ -44,6 +45,7 @@ def make_model(inputs=None,
                depth=None,
                out_scale_pos=None,
                gauss_ags=None,
+               expand_distance=None,
                **kwargs):
     """Make SchNet graph model."""
     # Make input
@@ -54,9 +56,11 @@ def make_model(inputs=None,
     # embedding, if no feature dimension
     n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
     edi = edge_index_input
-    x = xyz_input
-    ed = NodeDistance()([x, edi])
-    ed = GaussBasisLayer(**gauss_ags)(ed)
+
+    ed = xyz_input
+    if expand_distance:
+        ed = NodeDistance()([xyz_input, edi])
+        ed = GaussBasisLayer(**gauss_ags)(ed)
 
     # Model
     n = Dense(interaction_args["units"], activation='linear')(n)

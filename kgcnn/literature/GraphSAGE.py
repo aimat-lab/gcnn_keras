@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tensorflow.keras as ks
-import pprint
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing

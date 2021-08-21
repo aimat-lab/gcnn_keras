@@ -1,13 +1,11 @@
 import tensorflow.keras as ks
-import pprint
 
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
-from kgcnn.utils.models import generate_node_embedding
-from kgcnn.layers.keras import Dropout, Activation, Dense
-from kgcnn.layers.pool.pooling import PoolingNodes
-from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
+from kgcnn.layers.keras import Dropout, Activation, Dense
+from kgcnn.layers.mlp import MLP, BatchNormMLP
+from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # How Powerful are Graph Neural Networks?
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka

@@ -1,5 +1,5 @@
 import tensorflow.keras as ks
-import pprint
+
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.connect import AdjacencyPower
 from kgcnn.layers.gather import GatherNodesOutgoing
