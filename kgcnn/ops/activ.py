@@ -11,7 +11,7 @@ def shifted_softplus(x):
         x (tf.Tensor): Single values to apply activation with tf.keras functions.
     
     Returns:
-        tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`.
+        tf.Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
     """
     return ks.activations.softplus(x) - ks.backend.log(2.0)
 
@@ -25,7 +25,7 @@ def softplus2(x):
         x (tf.Tensor): Single values to apply activation with tf.keras functions.
     
     Returns:
-         tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`.
+         tf.Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
     """
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
@@ -58,7 +58,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
-    r"""Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`."""
+    r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)`."""
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -85,7 +85,7 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    r"""Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
+    r"""Swish activation function. Computes :math:`x \text{sig}(\beta x)`, with :math:`\text{sig}(x) = 1/(1+e^{-x})`."""
 
     def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
         """Initialize with optionally learnable parameter.

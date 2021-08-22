@@ -126,6 +126,8 @@ class ModelSelection:
             from kgcnn.literature.INorp import make_model
         elif model_id == "Megnet":
             from kgcnn.literature.Megnet import make_model
+        elif model_id == "NMPN":
+            from kgcnn.literature.NMPN import make_model
         elif model_id == "PAiNN":
             from kgcnn.literature.PAiNN import make_model
         elif model_id == "Schnet":
