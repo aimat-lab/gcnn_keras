@@ -109,6 +109,16 @@ def partition_row_indexing(tensor_index, part_target, part_index,
     .. code-block:: python
 
         import tensorflow as tf
+        values = tf.RaggedTensor.from_row_lengths([10, 20, 30, 40], [2, 2])
+        indices = tf.RaggedTensor.from_row_lengths([0, 0, 1, 1], [3, 1])
+        print(tf.gather(values, indices, batch_dims=1))
+        # <tf.RaggedTensor [[10, 10, 20], [40]]>
+        indices_batch = partition_row_indexing(tf.constant([0, 0, 1, 1]), tf.constant([2, 2]),
+            tf.constant([3, 2]), 'row_lengths', 'row_lengths')
+        # <tf.Tensor: shape=(4,), dtype=int32, numpy=array([0, 0, 1, 3])>
+        print(tf.gather(tf.constant([10, 20, 30, 40]), indices_batch))
+        # <tf.Tensor: shape=(4,), dtype=int32, numpy=array([10, 10, 20, 40])>
+        # Same result as gather with batch_dims=1 from above
 
     Args:
         tensor_index (tf.Tensor): Tensor containing indices for row-values of shape `(None, ...)`.
