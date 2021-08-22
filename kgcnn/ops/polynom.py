@@ -11,10 +11,13 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
     TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
     of :math:`n`'s is possible.
     The spherical bessel functions and there properties can be looked up at
-    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions.
     For this implementation the explicit expression from https://dlmf.nist.gov/10.49 has been used.
     The definition is:
-    :math:`a_{k}(n+\tfrac{1}{2})=\begin{cases}\dfrac{(n+k)!}{2^{k}k!(n-k)!},&k=0,1,\dotsc,n\\ 0,&k=n+1,n+2,\dotsc\end{cases}`
+
+    :math:`a_{k}(n+\tfrac{1}{2})=\begin{cases}\dfrac{(n+k)!}{2^{k}k!(n-k)!},&k=0,1,\dotsc,n\\
+    0,&k=n+1,n+2,\dotsc\end{cases}`
+
     :math:`\mathsf{j}_{n}\left(z\right)=\sin\left(z-\tfrac{1}{2}n\pi\right)\sum_{k=0}^{\left\lfloor n/2\right\rfloor}
     (-1)^{k}\frac{a_{2k}(n+\tfrac{1}{2})}{z^{2k+1}}+\cos\left(z-\tfrac{1}{2}n\pi\right)
     \sum_{k=0}^{\left\lfloor(n-1)/2\right\rfloor}(-1)^{k}\frac{a_{2k+1}(n+\tfrac{1}{2})}{z^{2k+2}}.`
@@ -46,6 +49,17 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
 @tf.function
 def tf_spherical_bessel_jn(x, n=0):
     r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer :math:`n` via recursion.
+    TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
+    of :math:`n` is possible.
+    The spherical bessel functions and there properties can be looked up at
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions.
+    The recursive rule is constructed from https://dlmf.nist.gov/10.51. The recursive definition is:
+
+    :math:`j_{n+1}(z)=((2n+1)/z)j_{n}(z)-j_{n-1}(z)`
+
+    :math:`j_{0}(x)=\frac{\sin x}{x}`
+    :math:`j_{1}(x)=\frac{1}{x}\frac{\sin x}{x} - \frac{\cos x}{x}`
+    :math:`j_{2}(x)=\left(\frac{3}{x^{2}} - 1\right)\frac{\sin x}{x} - \frac{3}{x}\frac{\cos x}{x}`
 
     Args:
         x (tf.Tensor): Values to compute :math:`j_n(x)` for.
@@ -74,7 +88,12 @@ def tf_spherical_bessel_jn(x, n=0):
 def tf_legendre_polynomial_pn(x, n=0):
     r"""Compute the (non-associated) Legendre polynomial :math:`P_n(x)` for constant positive integer :math:`n`
     via explicit formula.
-    Closed form: https://en.wikipedia.org/wiki/Legendre_polynomials
+    TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
+    of :math:`n` is possible.
+    Closed form can be viewd at
+    https://en.wikipedia.org/wiki/Legendre_polynomials#Rodrigues'_formula_and_other_explicit_formulas.
+
+    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \ }{(n-k)! \ (n-2k)! \ k! \ 2^n} x^{n-2k} `
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_n(x)` for.
@@ -96,6 +115,15 @@ def tf_legendre_polynomial_pn(x, n=0):
 @tf.function
 def tf_spherical_harmonics_yl(theta, l=0):
     r"""Compute the spherical harmonics :math:`Y_{ml}(\cos\theta)` for :math:`m=0` and constant non-integer :math:`l`.
+    TensorFlow has to cache the function for each :math:`l`. No gradient through :math:`l` or very large number
+    of :math:`n` is possible. Uses a simplified formula with :math:`m=0` from:
+
+    :math:`Y_{\ell }^{m}(\theta ,\varphi)={\sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}}\,
+    P_{\ell}^{m}(\cos{\theta})\,e^{im\varphi}}`
+
+    where the associated Legendre polynomial simplifies to :math:`P_l(x)` for :math:`m=0`:
+
+    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \ }{(n-k)! \ (n-2k)! \ k! \ 2^n} x^{n-2k} `
 
     Args:
         theta (tf.Tensor): Values to compute :math:`Y_l(\cos\theta)` for.
@@ -118,9 +146,12 @@ def tf_spherical_harmonics_yl(theta, l=0):
 
 @tf.function
 def tf_associated_legendre_polynomial(x, l=0, m=0):
-    """Compute the associated Legendre polynomial :math:`P_{l}^{m}(x)` for :math:`m` and constant positive
+    r"""Compute the associated Legendre polynomial :math:`P_{l}^{m}(x)` for :math:`m` and constant positive
     integer :math:`l` via explicit formula.
-    Closed Form from: https://en.wikipedia.org/wiki/Associated_Legendre_polynomials
+    Closed Form from taken from https://en.wikipedia.org/wiki/Associated_Legendre_polynomials.
+
+    :math:`P_{l}^{m}(x)=(-1)^{m}\cdot 2^{l}\cdot (1-x^{2})^{m/2}\cdot\sum _{k=m}^{l}{\frac {k!}{(k-m)!}}\cdot x^{k-m}
+    \cdot {\binom {l}{k}}{\binom {\frac {l+k-1}{2}}{l}}}`.
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_{l}^{m}(x)` for.
@@ -151,6 +182,8 @@ def tf_associated_legendre_polynomial(x, l=0, m=0):
 
 def spherical_bessel_jn(r, n):
     r"""Compute spherical Bessel function :math:`j_n(r)` via scipy.
+    The spherical bessel functions and there properties can be looked up at
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions .
 
     Args:
         r (np.ndarray): Argument
@@ -165,7 +198,7 @@ def spherical_bessel_jn(r, n):
 def spherical_bessel_jn_zeros(n, k):
     r"""Compute the first :math:`k` zeros of the spherical bessel functions :math:`j_n(r)` up to
     order :math:`n` (excluded).
-    Taken from https://github.com/klicperajo/dimenet.
+    Taken from the original implementation of DimeNet at https://github.com/klicperajo/dimenet.
 
     Args:
         n: Order.
@@ -191,7 +224,7 @@ def spherical_bessel_jn_zeros(n, k):
 def spherical_bessel_jn_normalization_prefactor(n, k):
     r"""Compute the normalization or rescaling pre-factor for the spherical bessel functions :math:`j_n(r)` up to
     order :math:`n` (excluded) and maximum frequency :math:`k` (excluded).
-    Taken from https://github.com/klicperajo/dimenet.
+    Taken from the original implementation of DimeNet at https://github.com/klicperajo/dimenet.
 
     Args:
         n: Order.
