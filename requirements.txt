@@ -6,4 +6,3 @@ pandas
 scikit-learn
 requests
 pyyaml
-haste_tf

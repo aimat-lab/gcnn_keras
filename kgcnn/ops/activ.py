@@ -32,9 +32,7 @@ def softplus2(x):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_softplus')
 class leaky_softplus(tf.keras.layers.Layer):
-    """Leaky softplus activation function similar to leakyRELU but smooth.
-
-    """
+    """Leaky softplus activation function similar to leakyRELU but smooth. """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -48,6 +46,7 @@ class leaky_softplus(tf.keras.layers.Layer):
         self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
+        """Compute leaky_softplus activation from inputs."""
         x = inputs
         return ks.activations.softplus(x) * (1 - self.alpha) + self.alpha * x
 
@@ -59,9 +58,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
-    """Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`.
-
-    """
+    """Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`."""
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -75,6 +72,7 @@ class leaky_relu(tf.keras.layers.Layer):
         self.set_weights([np.array(alpha)])
 
     def call(self, inputs, **kwargs):
+        """Compute leaky_relu activation from inputs."""
         x = inputs
         # return tf.nn.leaky_relu(x, alpha=self.alpha)
         return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
@@ -87,9 +85,7 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`.
-
-    """
+    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
 
     def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -103,6 +99,7 @@ class swish(tf.keras.layers.Layer):
         self.set_weights([np.array(beta)])
 
     def call(self, inputs, **kwargs):
+        """Compute swish activation from inputs."""
         x = inputs
         return x * tf.sigmoid(self.beta*x)
 
