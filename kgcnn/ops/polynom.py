@@ -120,8 +120,8 @@ def tf_spherical_harmonics_yl(theta, l=0):
     of :math:`n` is possible. Uses a simplified formula with :math:`m=0` from
     https://en.wikipedia.org/wiki/Spherical_harmonics:
 
-    :math:`Y_{l}^{m}(\theta ,\phi)=\sqrt{{\frac{(2l+1)}{4\pi}}{\frac{(l -m)!}{(l +m)!}}}}\,
-    P_{l}^{m}(\cos{\theta })\,e^{i m \phi }`
+    :math:`Y_{l}^{m}(\theta ,\phi)=\sqrt{\frac{(2l+1)}{4\pi} \frac{(l -m)!}{(l +m)!}} \, P_{l}^{m}(\cos{\theta }) \,
+    e^{i m \phi}`
 
     where the associated Legendre polynomial simplifies to :math:`P_l(x)` for :math:`m=0`:
 
@@ -152,8 +152,8 @@ def tf_associated_legendre_polynomial(x, l=0, m=0):
     integer :math:`l` via explicit formula.
     Closed Form from taken from https://en.wikipedia.org/wiki/Associated_Legendre_polynomials.
 
-    :math:`P_{l}^{m}(x)=(-1)^{m}\cdot 2^{l}\cdot (1-x^{2})^{m/2}\cdot\sum_{k=m}^{l}{\frac{k!}{(k-m)!}}\cdot x^{k-m}
-    \cdot {\binom{l}{k}}{\binom{\frac{l+k-1}{2}}{l}}}`.
+    :math:`P_{l}^{m}(x)=(-1)^{m}\cdot 2^{l}\cdot (1-x^{2})^{m/2}\cdot \sum_{k=m}^{l}\frac{k!}{(k-m)!}\cdot x^{k-m}
+    \cdot \binom{l}{k}\binom{\frac{l+k-1}{2}}{l}}`.
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_{l}^{m}(x)` for.
