@@ -10,7 +10,11 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
     r"""Compute spherical bessel functions :math:`j_n(x)` for constant positive integer :math:`n` explicitly.
     TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
     of :math:`n`'s is possible.
-    Source: https://dlmf.nist.gov/10.49
+    The spherical bessel functions and there properties can be looked up at
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions
+    For this implementation the explicit expression from https://dlmf.nist.gov/10.49 has been used.
+    The definition is:
+    :math:`a_{k}(n+\tfrac{1}{2})=\begin{cases}\dfrac{(n+k)!}{2^{k}k!(n-k)!},&k=0,1,\dotsc,n\\ 0,&k=n+1,n+2,\dotsc\end{cases}`
 
     Args:
         x (tf.Tensor): Values to compute :math:`j_n(x)` for.
