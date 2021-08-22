@@ -7,3 +7,4 @@ matplotlib
 pandas
 scikit-learn
 rdkit-pypi
+pyyaml

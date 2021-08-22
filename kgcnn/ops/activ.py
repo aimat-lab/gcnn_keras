@@ -12,6 +12,7 @@ def shifted_softplus(x):
     
     Returns:
         tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`
+
     """
     return ks.activations.softplus(x) - ks.backend.log(2.0)
 
@@ -26,6 +27,7 @@ def softplus2(x):
     
     Returns:
          tf.Tensor: Output tensor computed as log(exp(x)+1) - log(2)
+
     """
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
@@ -36,6 +38,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
     Args:
         alpha (float, optional): Leaking slope. The default is 0.3.
+
     """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
@@ -59,6 +62,7 @@ class leaky_relu(tf.keras.layers.Layer):
 
     Args:
         alpha (float, optional): leak alpha = 0.2
+
     """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
@@ -83,6 +87,7 @@ class swish(tf.keras.layers.Layer):
 
     Args:
         alpha (float, optional): leak alpha = 0.2
+
     """
 
     def __init__(self, beta=1.0, trainable=False, **kwargs):
