@@ -53,8 +53,15 @@ def ragged_tensor_from_nested_numpy(numpy_list):
 
     Warning: The data will be copied for this operation.
 
-    Example:
-        ragged_tensor_from_nested_numpy([np.ndarray, np.ndarray, ...])
+    .. code-block:: python
+
+        import tensorflow as tf
+        import numpy as np
+        ragged_tensor = ragged_tensor_from_nested_numpy([np.array([[0]]), np.array([[1], [2], [3]])])
+        print(ragged_tensor)
+        # <tf.RaggedTensor [[[0]], [[1], [2], [3]]]>
+        print(ragged_tensor.shape)
+        # (2, None, 1)
 
     Args:
         numpy_list (list): List of numpy arrays of different length but else identical shape.

@@ -94,6 +94,7 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
             learning_rate, decay_steps, decay_rate)
 
     def __call__(self, step):
+        """Decay lr for step."""
         return self.warmup(step) * self.decay(step)
 
     def get_config(self):
