@@ -102,7 +102,7 @@ def make_adjacency_undirected_logical_or(adj_mat):
 
 
 def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
-    """Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
+    r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
     Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
     first index at position `index[:, 0]`.
 
@@ -153,7 +153,7 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
 
 
 def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
-    """Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
+    r"""Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
     no edge is added. By default, all indices are sorted. Sorting is done for the first index at position `index[:, 0]`.
 
     Args:
@@ -199,7 +199,7 @@ def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=
 
 
 def sort_edge_indices(edge_indices, edge_values=None):
-    """Sort edge index list of np.ndarray for the first index and then for the second index.
+    r"""Sort edge index list of np.ndarray for the first index and then for the second index.
     Edge values are rearranged accordingly if passed to the function call.
 
     Args:
@@ -228,7 +228,7 @@ def sort_edge_indices(edge_indices, edge_values=None):
 
 
 def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
-    """Make adjacency as sparse matrix from a list or np.ndarray of edge_indices and possible values.
+    r"""Make adjacency as sparse matrix from a list or np.ndarray of edge_indices and possible values.
 
     Args:
         edge_indices (np.ndarray): List of edge indices of shape `(N, 2)`
