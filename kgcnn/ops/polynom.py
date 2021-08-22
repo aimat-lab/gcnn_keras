@@ -15,7 +15,9 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
     For this implementation the explicit expression from https://dlmf.nist.gov/10.49 has been used.
     The definition is:
     :math:`a_{k}(n+\tfrac{1}{2})=\begin{cases}\dfrac{(n+k)!}{2^{k}k!(n-k)!},&k=0,1,\dotsc,n\\ 0,&k=n+1,n+2,\dotsc\end{cases}`
-
+    :math:`\mathsf{j}_{n}\left(z\right)=\sin\left(z-\tfrac{1}{2}n\pi\right)\sum_{k=0}^{\left\lfloor n/2\right\rfloor}
+    (-1)^{k}\frac{a_{2k}(n+\tfrac{1}{2})}{z^{2k+1}}+\cos\left(z-\tfrac{1}{2}n\pi\right)
+    \sum_{k=0}^{\left\lfloor(n-1)/2\right\rfloor}(-1)^{k}\frac{a_{2k+1}(n+\tfrac{1}{2})}{z^{2k+2}}.`
     Args:
         x (tf.Tensor): Values to compute :math:`j_n(x)` for.
         n (int): Positive integer for the bessel order :math:`n`.
