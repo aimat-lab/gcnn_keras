@@ -58,7 +58,9 @@ def tf_spherical_bessel_jn(x, n=0):
     :math:`j_{n+1}(z)=((2n+1)/z)j_{n}(z)-j_{n-1}(z)`
 
     :math:`j_{0}(x)=\frac{\sin x}{x}`
+
     :math:`j_{1}(x)=\frac{1}{x}\frac{\sin x}{x} - \frac{\cos x}{x}`
+
     :math:`j_{2}(x)=\left(\frac{3}{x^{2}} - 1\right)\frac{\sin x}{x} - \frac{3}{x}\frac{\cos x}{x}`
 
     Args:
@@ -118,8 +120,8 @@ def tf_spherical_harmonics_yl(theta, l=0):
     TensorFlow has to cache the function for each :math:`l`. No gradient through :math:`l` or very large number
     of :math:`n` is possible. Uses a simplified formula with :math:`m=0` from:
 
-    :math:`Y_{\ell }^{m}(\theta ,\varphi)={\sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}}\,
-    P_{\ell}^{m}(\cos{\theta})\,e^{im\varphi}}`
+    :math:`Y_{\ell }^{m}(\theta ,\varphi)={\sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell -m)!}{(\ell +m)!}}}}\,
+    P_{\ell }^{m}(\cos{\theta })\,e^{im \varphi }}`
 
     where the associated Legendre polynomial simplifies to :math:`P_l(x)` for :math:`m=0`:
 
