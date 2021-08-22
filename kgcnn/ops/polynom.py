@@ -153,7 +153,7 @@ def tf_associated_legendre_polynomial(x, l=0, m=0):
     Closed Form from taken from https://en.wikipedia.org/wiki/Associated_Legendre_polynomials.
 
     :math:`P_{l}^{m}(x)=(-1)^{m}\cdot 2^{l}\cdot (1-x^{2})^{m/2}\cdot \sum_{k=m}^{l}\frac{k!}{(k-m)!}\cdot x^{k-m}
-    \cdot \binom{l}{k}\binom{\frac{l+k-1}{2}}{l}}`.
+    \cdot \binom{l}{k}\binom{\frac{l+k-1}{2}}{l}`.
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_{l}^{m}(x)` for.
