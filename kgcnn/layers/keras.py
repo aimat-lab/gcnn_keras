@@ -39,6 +39,7 @@ class Dense(GraphBaseLayer):
                                                     bias_constraint=bias_constraint)
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Call on a single Tensor
         if isinstance(inputs, tf.RaggedTensor):
             return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
@@ -60,6 +61,7 @@ class Activation(GraphBaseLayer):
                                                                activity_regularizer=activity_regularizer)
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor
@@ -81,6 +83,7 @@ class Add(GraphBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Add()
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
@@ -104,6 +107,7 @@ class Average(GraphBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Average()
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
@@ -127,6 +131,7 @@ class Multiply(GraphBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Multiply()
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
@@ -151,6 +156,7 @@ class Concatenate(GraphBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Concatenate(axis=axis)
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             # However, partition could be different, so this is only okay if ragged_validate=False
@@ -180,6 +186,7 @@ class Dropout(GraphBaseLayer):
         self._kgcnn_wrapper_layer = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
@@ -218,6 +225,7 @@ class LayerNormalization(GraphBaseLayer):
             print("WARNING: This implementation only supports axis=-1 for RaggedTensors for now.")
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         if isinstance(inputs, tf.RaggedTensor):
             if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor
@@ -264,6 +272,7 @@ class BatchNormalization(GraphBaseLayer):
             print("WARNING: This implementation only supports axis=-1 for RaggedTensors for now.")
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         if isinstance(inputs, tf.RaggedTensor):
             if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor
@@ -291,6 +300,7 @@ class ExpandDims(GraphBaseLayer):
         self.axis = axis  # We do not change the axis here
 
     def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
         if isinstance(inputs, tf.RaggedTensor):
             axis = get_positive_axis(self.axis, inputs.shape.rank + 1)
             if axis > 1 and inputs.ragged_rank == 1:

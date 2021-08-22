@@ -34,6 +34,7 @@ class EmbeddingDimeBlock(tf.keras.layers.Layer):
                                           trainable=True)
 
     def call(self, inputs, **kwargs):
+        """Embedding of inputs. Forward pass."""
         out = tf.gather(self.embeddings, tf.cast(inputs, dtype=tf.int32))
         return out
 
@@ -61,6 +62,7 @@ class SplitEmbedding(GraphBaseLayer):
         self.out_num = num
 
     def call(self, inputs, **kwargs):
+        """Split embeddings across feature dimension e.g. `axis=-1`."""
         if isinstance(inputs, tf.RaggedTensor):
             if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor

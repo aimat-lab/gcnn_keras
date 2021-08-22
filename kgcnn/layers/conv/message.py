@@ -31,6 +31,7 @@ class MessagePassingBase(GraphBaseLayer):
         raise NotImplementedError("A method to update nodes must be implemented in sub-class of `MessagePassingBase`.")
 
     def call(self, inputs, **kwargs):
+        """Standard message passing scheme using `update_nodes`, `aggregate_message` and `message_function`."""
         nodes, edges, edge_index = inputs
         n_in = self.lay_gather_in([nodes, edge_index])
         n_out = self.lay_gather_out([nodes, edge_index])

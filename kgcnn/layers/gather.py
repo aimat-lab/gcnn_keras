@@ -134,7 +134,6 @@ class GatherNodesSelection(GraphBaseLayer):
         return out
 
     def get_config(self):
-        """Update config."""
         config = super(GatherNodesSelection, self).get_config()
         config.update({"axis": self.axis, "axis_indices": self.axis_indices, "selection_index": self.selection_index})
         return config
@@ -208,6 +207,5 @@ class GatherState(GraphBaseLayer):
         return out
 
     def get_config(self):
-        """Update config."""
         config = super(GatherState, self).get_config()
         return config

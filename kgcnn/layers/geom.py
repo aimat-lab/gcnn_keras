@@ -148,9 +148,9 @@ class EuclideanNorm(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric edge direction similar to edges.
-    Will return :math:`\frac{r_{ij}}{||{r_ij}||} `.
 
-    A distance based edge is defined by edge or bond index in index list of shape (batch, [N], 2) with last dimension
+    Will return :math:`\frac{r_{ij}}{||{r_ij}||} `.
+    A distance based edge is defined by edge or bond index in index list of shape `(batch, N, 2)` with last dimension
     of ingoing and outgoing.
     """
 
@@ -160,7 +160,6 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         self.lay_gather = GatherNodesSelection([0, 1], **self._kgcnn_info)
 
     def build(self, input_shape):
-        """Build layer."""
         super(EdgeDirectionNormalized, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
@@ -173,7 +172,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
                 - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 3)
+            tf.RaggedTensor: Gathered node distances as edges that match the number of indices of shape (batch, [M], 3).
         """
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
@@ -191,7 +190,6 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         return out
 
     def get_config(self):
-        """Update config."""
         config = super(EdgeDirectionNormalized, self).get_config()
         return config
 
