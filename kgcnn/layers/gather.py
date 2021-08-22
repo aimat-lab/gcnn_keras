@@ -23,7 +23,6 @@ class GatherNodes(GraphBaseLayer):
         self.axis = axis
 
     def build(self, input_shape):
-        """Build layer."""
         super(GatherNodes, self).build(input_shape)
         if len(input_shape) != 2:
             print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
@@ -67,7 +66,6 @@ class GatherNodes(GraphBaseLayer):
         return out
 
     def get_config(self):
-        """Update config."""
         config = super(GatherNodes, self).get_config()
         config.update({"concat_axis": self.concat_axis, "axis": self.axis})
         return config

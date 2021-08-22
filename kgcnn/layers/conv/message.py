@@ -8,7 +8,9 @@ from kgcnn.layers.pool.pooling import PoolingLocalEdges
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MessagePassingBase')
 class MessagePassingBase(GraphBaseLayer):
-    """Base Layer for Message passing"""
+    """Base Layer for Message passing.
+
+    """
 
     def __init__(self, pooling_method="sum", **kwargs):
         super(MessagePassingBase, self).__init__(**kwargs)

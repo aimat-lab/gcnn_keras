@@ -34,8 +34,6 @@ def softplus2(x):
 class leaky_softplus(tf.keras.layers.Layer):
     """Leaky softplus activation function similar to leakyRELU but smooth.
 
-    Args:
-        alpha (float, optional): Leaking slope. The default is 0.3.
     """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
@@ -44,7 +42,6 @@ class leaky_softplus(tf.keras.layers.Layer):
         Args:
             alpha (float, optional): Leak parameter alpha. Default is 0.05.
             trainable (bool, optional): Flag to set trainable. Default is False.
-            **kwargs:
         """
         super(leaky_softplus, self).__init__(trainable=trainable, **kwargs)
         self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
@@ -62,7 +59,9 @@ class leaky_softplus(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
-    """Leaky relu function. Equivalent to tf.nn.leaky_relu(x,alpha)"""
+    """Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`.
+
+    """
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -70,7 +69,6 @@ class leaky_relu(tf.keras.layers.Layer):
         Args:
             alpha (float, optional): Leak parameter alpha. Default is 0.05.
             trainable (bool, optional): Flag to set trainable. Default is False.
-            **kwargs:
         """
         super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
         self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
@@ -89,7 +87,9 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
+    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`.
+
+    """
 
     def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -97,7 +97,6 @@ class swish(tf.keras.layers.Layer):
         Args:
             beta (float, optional): Parameter beta in sigmoid. Default is 1.0.
             trainable (bool, optional): Flag to set trainable. Default is False.
-            **kwargs:
         """
         super(swish, self).__init__(trainable=trainable, **kwargs)
         self.beta = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)

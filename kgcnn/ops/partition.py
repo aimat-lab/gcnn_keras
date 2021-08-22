@@ -106,8 +106,9 @@ def partition_row_indexing(tensor_index, part_target, part_index,
     nodes in each graph or in case of batch-assignment, this is equivalent to the so-called disjoint representation.
     To change indices, the row partition of index and target tensor must be known.
 
-    Example:
-        pass
+    .. code-block:: python
+
+        import tensorflow as tf
 
     Args:
         tensor_index (tf.Tensor): Tensor containing indices for row-values of shape `(None, ...)`.
