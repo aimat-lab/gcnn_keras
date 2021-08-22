@@ -54,12 +54,12 @@ def make_model(inputs=None,
 
     # Model
     nk = Dense(units=attention_args['units'])(n)
-    Ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
-    nk = GRUUpdate(units=attention_args['units'])([nk, Ck])
+    ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
+    nk = GRUUpdate(units=attention_args['units'])([nk, ck])
 
     for i in range(1, depth):
-        Ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
-        nk = GRUUpdate(units=attention_args['units'])([nk, Ck])
+        ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
+        nk = GRUUpdate(units=attention_args['units'])([nk, ck])
         nk = Dropout(rate=dropout)(nk)
     n = nk
 
@@ -81,7 +81,6 @@ def make_model(inputs=None,
 try:
     # Haste version of AttentiveFP
     from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
-
 
     @update_model_kwargs(model_default)
     def make_model(inputs=None,
@@ -106,12 +105,12 @@ try:
 
         # Model
         nk = Dense(units=attention_args['units'])(n)
-        Ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
-        nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, Ck])
+        ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
+        nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, ck])
 
         for i in range(1, depth):
-            Ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
-            nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, Ck])
+            ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
+            nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, ck])
         n = nk
 
         # Output embedding choice

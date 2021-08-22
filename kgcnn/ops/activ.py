@@ -5,7 +5,7 @@ import numpy as np
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')
 def shifted_softplus(x):
-    """Shifted softplus activation function.
+    r"""Shifted softplus activation function.
     
     Args:
         x (tf.Tensor): Single values to apply activation with tf.keras functions.
@@ -18,7 +18,7 @@ def shifted_softplus(x):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='softplus2')
 def softplus2(x):
-    """Softplus function that is :math:`0` at :math:`x=0`, the implementation aims at avoiding overflow
+    r"""Softplus function that is :math:`0` at :math:`x=0`, the implementation aims at avoiding overflow
     :math:`log(exp(x)+1) - log(2)`.
     
     Args:
@@ -32,7 +32,7 @@ def softplus2(x):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_softplus')
 class leaky_softplus(tf.keras.layers.Layer):
-    """Leaky softplus activation function similar to leakyRELU but smooth. """
+    """Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -58,7 +58,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
-    """Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`."""
+    r"""Leaky relu function. Equivalent to `tf.nn.leaky_relu(x,alpha)`."""
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
@@ -85,7 +85,7 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
+    r"""Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
 
     def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
