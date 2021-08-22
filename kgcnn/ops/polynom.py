@@ -92,10 +92,9 @@ def tf_legendre_polynomial_pn(x, n=0):
     via explicit formula.
     TensorFlow has to cache the function for each :math:`n`. No gradient through :math:`n` or very large number
     of :math:`n` is possible.
-    Closed form can be viewd at
-    https://en.wikipedia.org/wiki/Legendre_polynomials#Rodrigues'_formula_and_other_explicit_formulas.
+    Closed form can be viewed at https://en.wikipedia.org/wiki/Legendre_polynomials.
 
-    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \ }{(n-k)! \ (n-2k)! \ k! \ 2^n} x^{n-2k} `
+    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \, }{(n-k)! \, (n-2k)! \, k! \, 2^n} x^{n-2k}`
 
     Args:
         x (tf.Tensor): Values to compute :math:`P_n(x)` for.
@@ -125,7 +124,7 @@ def tf_spherical_harmonics_yl(theta, l=0):
 
     where the associated Legendre polynomial simplifies to :math:`P_l(x)` for :math:`m=0`:
 
-    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \ }{(n-k)! \ (n-2k)! \ k! \ 2^n} x^{n-2k} `
+    :math:`P_n(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k \frac{(2n - 2k)! \, }{(n-k)! \, (n-2k)! \, k! \, 2^n} x^{n-2k}`
 
     Args:
         theta (tf.Tensor): Values to compute :math:`Y_l(\cos\theta)` for.
