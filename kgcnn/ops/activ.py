@@ -11,23 +11,21 @@ def shifted_softplus(x):
         x (tf.Tensor): Single values to apply activation with tf.keras functions.
     
     Returns:
-        tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`
-
+        tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`.
     """
     return ks.activations.softplus(x) - ks.backend.log(2.0)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='softplus2')
 def softplus2(x):
-    """softplus function that is 0 at x=0, the implementation aims at avoiding overflow
-    out = log(exp(x)+1) - log(2)
+    """Softplus function that is :math:`0` at :math:`x=0`, the implementation aims at avoiding overflow
+    :math:`log(exp(x)+1) - log(2)`.
     
     Args:
-        x (tf.Tensor): input tensor
+        x (tf.Tensor): Single values to apply activation with tf.keras functions.
     
     Returns:
-         tf.Tensor: Output tensor computed as log(exp(x)+1) - log(2)
-
+         tf.Tensor: Output tensor computed as :math:`log(exp(x)+1) - log(2)`.
     """
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
@@ -38,10 +36,16 @@ class leaky_softplus(tf.keras.layers.Layer):
 
     Args:
         alpha (float, optional): Leaking slope. The default is 0.3.
-
     """
 
     def __init__(self, alpha=0.05, trainable=False, **kwargs):
+        """Initialize with optionally learnable parameter.
+
+        Args:
+            alpha (float, optional): Leak parameter alpha. Default is 0.05.
+            trainable (bool, optional): Flag to set trainable. Default is False.
+            **kwargs:
+        """
         super(leaky_softplus, self).__init__(trainable=trainable, **kwargs)
         self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
         self.set_weights([np.array(alpha)])
@@ -58,14 +62,16 @@ class leaky_softplus(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class leaky_relu(tf.keras.layers.Layer):
-    """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
+    """Leaky relu function. Equivalent to tf.nn.leaky_relu(x,alpha)"""
 
-    Args:
-        alpha (float, optional): leak alpha = 0.2
+    def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
+        """Initialize with optionally learnable parameter.
 
-    """
-
-    def __init__(self, alpha=0.05, trainable=False, **kwargs):
+        Args:
+            alpha (float, optional): Leak parameter alpha. Default is 0.05.
+            trainable (bool, optional): Flag to set trainable. Default is False.
+            **kwargs:
+        """
         super(leaky_relu, self).__init__(trainable=trainable, **kwargs)
         self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
         self.set_weights([np.array(alpha)])
@@ -83,14 +89,16 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    """Leaky relu function: lambda of tf.nn.leaky_relu(x,alpha)
+    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`"""
 
-    Args:
-        alpha (float, optional): leak alpha = 0.2
+    def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
+        """Initialize with optionally learnable parameter.
 
-    """
-
-    def __init__(self, beta=1.0, trainable=False, **kwargs):
+        Args:
+            beta (float, optional): Parameter beta in sigmoid. Default is 0.2.
+            trainable (bool, optional): Flag to set trainable. Default is False.
+            **kwargs:
+        """
         super(swish, self).__init__(trainable=trainable, **kwargs)
         self.beta = self.add_weight(shape=None, dtype=self.dtype, trainable=trainable)
         self.set_weights([np.array(beta)])
