@@ -53,7 +53,7 @@ def tf_spherical_bessel_jn(x, n=0):
     of :math:`n` is possible.
     The spherical bessel functions and there properties can be looked up at
     https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions.
-    The recursive rule is constructed from https://dlmf.nist.gov/10.51. The recursive definition is :
+    The recursive rule is constructed from https://dlmf.nist.gov/10.51. The recursive definition is:
 
     :math:`j_{n+1}(z)=((2n+1)/z)j_{n}(z)-j_{n-1}(z)`
 
