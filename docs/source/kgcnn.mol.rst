@@ -4,14 +4,6 @@ kgcnn.mol package
 Submodules
 ----------
 
-kgcnn.mol.geomgraph module
---------------------------
-
-.. automodule:: kgcnn.mol.geomgraph
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.mol.methods module
 ------------------------
 

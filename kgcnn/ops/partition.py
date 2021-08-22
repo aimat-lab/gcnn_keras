@@ -2,9 +2,9 @@ import tensorflow as tf
 
 
 @tf.function
-def change_partition_by_name(in_partition, in_partition_type, out_partition_type):
-    """Switch between partition types. Only for 1-D partition tensors. Similar to RaggedTensor partition scheme.
-    Not all partition schemes are fully complete.
+def change_partition_by_name(in_partition, in_partition_type: str, out_partition_type: str):
+    """Switch between partition types. Only for 1-D partition tensors. Uses RaggedTensor partition scheme naming.
+    Not all partition schemes are fully complete or can be converted into each other.
 
     Args:
         in_partition (tf.Tensor): Row partition tensor of shape (N, ).
@@ -97,23 +97,29 @@ def change_partition_by_name(in_partition, in_partition_type, out_partition_type
 def partition_row_indexing(tensor_index, part_target, part_index,
                            partition_type_target,
                            partition_type_index,
-                           from_indexing='sample',
-                           to_indexing='batch'):
-    """Change the index tensor indexing to reference within row partition. This can be between e.g. per graph and per
-    batch assignment. Batch assignment is equivalent to disjoint representation.
+                           from_indexing: str = 'sample',
+                           to_indexing: str = 'batch'):
+    """Change the indices in an index-tensor to reference within row partition. Assuming the indices refer to the rows
+    of a values tensor, introducing a row-partition for value and index tensor requires the indices to be shifted
+    accordingly. Provided the the first dimension is the batch-dimension, the change of indices would then change from
+    a sample to a batch assignment or vice versa. For graph networks this can be between e.g. edge-indices referring to
+    nodes in each graph or in case of batch-assignment, this is equivalent to the so-called disjoint representation.
     To change indices, the row partition of index and target tensor must be known.
 
+    Example:
+        pass
+
     Args:
-        tensor_index (tf.Tensor): Indices of shape (None, ...)
-        part_target (tf.Tensor): Target partition tensor.
-        part_index (tf.Tensor): Index partition tensor.
-        partition_type_target (str:) Target partition, can be either 'row_splits', 'row_length', 'value_rowids'
-        partition_type_index (str): Index partition, can be either 'row_splits', 'row_length', 'value_rowids'
-        from_indexing (str): Source index scheme
-        to_indexing (str): Target index scheme
+        tensor_index (tf.Tensor): Tensor containing indices for row-values of shape `(None, ...)`.
+        part_target (tf.Tensor): Partition tensor of the values tensor. The value tensor itself is not required.
+        part_index (tf.Tensor): Partition tensor of the index (input) tensor.
+        partition_type_target (str:) Partition scheme of target value tensor, e.g. 'row_splits', etc.
+        partition_type_index (str): Partition scheme of index tensor, e.g. 'row_splits', etc.
+        from_indexing (str): Indexing reference of the input. Can either be 'sample' or 'batch'.
+        to_indexing (str): Indexing reference of the output. Can either be 'sample' or 'batch'.
 
     Returns:
-        tf.Tensor: Index tensor of shifted indices.
+        tf.Tensor: Index tensor with shifted indices.
     """
     if to_indexing == from_indexing:
         # Nothing to do here

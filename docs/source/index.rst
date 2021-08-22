@@ -24,7 +24,14 @@ Package Content
    :maxdepth: 3
    :caption: Reference:
 
-   modules
+   kgcnn.data
+   kgcnn.hyper
+   kgcnn.io
+   kgcnn.layers
+   kgcnn.literature
+   kgcnn.mol
+   kgcnn.ops
+   kgcnn.utils
 
 
 Indices and tables

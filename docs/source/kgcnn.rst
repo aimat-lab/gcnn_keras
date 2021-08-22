@@ -8,6 +8,8 @@ Subpackages
    :maxdepth: 4
 
    kgcnn.data
+   kgcnn.hyper
+   kgcnn.io
    kgcnn.layers
    kgcnn.literature
    kgcnn.mol

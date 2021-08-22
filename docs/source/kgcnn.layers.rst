@@ -61,14 +61,6 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.haste module
--------------------------
-
-.. automodule:: kgcnn.layers.haste
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.layers.keras module
 -------------------------
 
@@ -81,14 +73,6 @@ kgcnn.layers.mlp module
 -----------------------
 
 .. automodule:: kgcnn.layers.mlp
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.update module
---------------------------
-
-.. automodule:: kgcnn.layers.update
    :members:
    :undoc-members:
    :show-inheritance:

@@ -28,14 +28,6 @@ kgcnn.utils.learning module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.utils.loader module
--------------------------
-
-.. automodule:: kgcnn.utils.loader
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.utils.loss module
 -----------------------
 

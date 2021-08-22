@@ -36,6 +36,14 @@ kgcnn.layers.conv.gin\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.haste module
+------------------------------
+
+.. automodule:: kgcnn.layers.conv.haste
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.megnet\_conv module
 -------------------------------------
 
@@ -48,6 +56,14 @@ kgcnn.layers.conv.message module
 --------------------------------
 
 .. automodule:: kgcnn.layers.conv.message
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv.mpnn\_conv module
+-----------------------------------
+
+.. automodule:: kgcnn.layers.conv.mpnn_conv
    :members:
    :undoc-members:
    :show-inheritance:
