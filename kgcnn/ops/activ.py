@@ -89,13 +89,13 @@ class leaky_relu(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class swish(tf.keras.layers.Layer):
-    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`"""
+    """Swish activation function. Computes :math:`x \text(sig)(\beta x)`, with :math:`\text(sig)(x) = 1/(1+e^{-x})`."""
 
     def __init__(self, beta: float = 1.0, trainable:bool = False, **kwargs):
         """Initialize with optionally learnable parameter.
 
         Args:
-            beta (float, optional): Parameter beta in sigmoid. Default is 0.2.
+            beta (float, optional): Parameter beta in sigmoid. Default is 1.0.
             trainable (bool, optional): Flag to set trainable. Default is False.
             **kwargs:
         """
