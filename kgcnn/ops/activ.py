@@ -52,7 +52,7 @@ class leaky_softplus(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(leaky_softplus, self).get_config()
-        config.update({"alpha": float(self.alpha)})
+        config.update({"alpha": self.alpha})
         return config
 
 
@@ -77,7 +77,7 @@ class leaky_relu(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(leaky_relu, self).get_config()
-        config.update({"alpha": float(self.alpha)})
+        config.update({"alpha": self.alpha})
         return config
 
 
@@ -104,5 +104,5 @@ class swish(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(swish, self).get_config()
-        config.update({"beta": float(self.beta)})
+        config.update({"beta": self.beta})
         return config
