@@ -164,7 +164,7 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates=True, sort_
         sort_indices (bool): Sort final edge indices. Default is True.
 
     Returns:
-        np.ndarray: edge_indices or [edge_indices, *args].
+        np.ndarray: edge_indices or [edge_indices, args].
     """
     clean_edge = [x for x in args]
     edge_index_flip = np.concatenate([edge_indices[:, 1:2], edge_indices[:, 0:1]], axis=-1)
@@ -208,7 +208,7 @@ def sort_edge_indices(edge_indices, *args):
         args (np.ndarray): Edge related value arrays to be sorted accordingly of shape `(N, ...)`.
 
     Returns:
-        list: [edge_indices, **args] or edge_indices
+        list: [edge_indices, args] or edge_indices
         
             - edge_indices (np.ndarray): Sorted indices of shape `(N, 2)`.
             - args (np.ndarray): Edge related arrays to be sorted accordingly of shape `(N, ...)`.
