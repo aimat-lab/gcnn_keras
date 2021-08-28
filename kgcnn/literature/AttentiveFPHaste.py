@@ -2,11 +2,11 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
-from kgcnn.layers.conv.mpnn_conv import GRUUpdate
-from kgcnn.layers.keras import Dense, Dropout
+from kgcnn.layers.conv.attention import AttentiveHeadFP
+from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
 # Zhaoping Xiong, Dingyan Wang, Xiaohong Liu, Feisheng Zhong, Xiaozhe Wan, Xutong Li, Zhaojun Li,
@@ -32,17 +32,17 @@ model_default = {'name': "AttentiveFP",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               depth=None,
-               dropout=None,
-               input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
-               attention_args=None,
-               **kwargs):
-    """Make AttentiveFP network."""
+def make_model_haste(inputs=None,
+                     depth=None,
+                     dropout=None,
+                     input_embedding=None,
+                     output_embedding=None,
+                     output_mlp=None,
+                     attention_args=None,
+                     **kwargs):
+    """Make AttentiveFP network with haste GRUs."""
 
-    # Make input
+    #  Make input
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
@@ -55,17 +55,17 @@ def make_model(inputs=None,
     # Model
     nk = Dense(units=attention_args['units'])(n)
     ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
-    nk = GRUUpdate(units=attention_args['units'])([nk, ck])
+    nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, ck])
 
     for i in range(1, depth):
         ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
-        nk = GRUUpdate(units=attention_args['units'])([nk, ck])
-        nk = Dropout(rate=dropout)(nk)
+        nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, ck])
     n = nk
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodesAttentive(units=attention_args['units'])(n)
+        out = HastePoolingNodesAttentiveLayerNorm(units=attention_args['units'], dropout=dropout)(n)
+        output_mlp.update({"input_tensor_type": "tensor"})
         out = MLP(**output_mlp)(out)
         main_output = ks.layers.Flatten()(out)  # will be dense
     elif output_embedding == 'node':  # node embedding

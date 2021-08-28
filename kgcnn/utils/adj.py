@@ -101,14 +101,14 @@ def make_adjacency_undirected_logical_or(adj_mat):
         return a_out.tocoo()
 
 
-def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
+def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates=True, sort_indices=True):
     r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
     Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
     first index at position `index[:, 0]`.
 
     Args:
         edge_indices (np.ndarray): Index-list for edges referring to nodes of shape `(N, 2)`.
-        edge_values (np.ndarray): Edge values of shape `(N, M)` matching the edge_indices.
+        *args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
@@ -116,17 +116,17 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         edge_indices: Sorted index list with self-loops. Optionally (edge_indices, edge_values) if edge_values are not
             None.
     """
-    clean_edge = None
+    clean_edge = [x for x in args]
     max_ind = np.max(edge_indices)
     self_loops = np.arange(max_ind + 1, dtype=np.int)
     self_loops = np.concatenate([np.expand_dims(self_loops, axis=-1), np.expand_dims(self_loops, axis=-1)], axis=-1)
     added_loops = np.concatenate([edge_indices, self_loops], axis=0)
     clean_index = added_loops
-    if edge_values is not None:
-        edge_loops_shape = [self_loops.shape[0]] + list(edge_values.shape[1:]) if len(edge_values.shape) > 1 else [
+    for i, x in enumerate(clean_edge):
+        edge_loops_shape = [self_loops.shape[0]] + list(x.shape[1:]) if len(x.shape) > 1 else [
             self_loops.shape[0]]
         edge_loops = np.ones(edge_loops_shape)
-        clean_edge = np.concatenate([edge_values, edge_loops], axis=0)
+        clean_edge[i] = np.concatenate([x, edge_loops], axis=0)
     if remove_duplicates:
         un, unis = np.unique(clean_index, return_index=True, axis=0)
         mask_all = np.zeros(clean_index.shape[0], dtype=np.bool)
@@ -134,44 +134,45 @@ def add_self_loops_to_edge_indices(edge_indices, edge_values=None, remove_duplic
         mask_all[:edge_indices.shape[0]] = True  # keep old indices untouched
         # clean_index = clean_index[unis]
         clean_index = clean_index[mask_all]
-        if edge_values is not None:
+        for i, x in enumerate(clean_edge):
             # clean_edge = clean_edge[unis]
-            clean_edge = clean_edge[mask_all]
+            clean_edge[i] = x[mask_all]
+    # Sort indices
     if sort_indices:
         order1 = np.argsort(clean_index[:, 1], axis=0, kind='mergesort')  # stable!
         ind1 = clean_index[order1]
-        if edge_values is not None:
-            clean_edge = clean_edge[order1]
+        for i, x in enumerate(clean_edge):
+            clean_edge[i] = x[order1]
         order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
         clean_index = ind1[order2]
-        if edge_values is not None:
-            clean_edge = clean_edge[order2]
-    if edge_values is not None:
-        return clean_index, clean_edge
+        for i, x in enumerate(clean_edge):
+            clean_edge[i] = x[order2]
+    if len(clean_edge) > 0:
+        return [clean_index] + clean_edge
     else:
         return clean_index
 
 
-def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=True, sort_indices=True):
+def add_edges_reverse_indices(edge_indices, *args, remove_duplicates=True, sort_indices=True):
     r"""Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
     no edge is added. By default, all indices are sorted. Sorting is done for the first index at position `index[:, 0]`.
 
     Args:
         edge_indices (np.ndarray): Index-list of edges referring to nodes of shape `(N, 2)`.
-        edge_values (np.ndarray): Edge values of shape `(N, M)` matching the edge_indices.
+        *args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
     Returns:
-        np.ndarray: edge_indices or [edge_indices, edge_values] if edge_values is not None.
+        np.ndarray: edge_indices or [edge_indices, *args].
     """
-    clean_edge = None
+    clean_edge = [x for x in args]
     edge_index_flip = np.concatenate([edge_indices[:, 1:2], edge_indices[:, 0:1]], axis=-1)
     edge_index_flip_ij = edge_index_flip[edge_index_flip[:, 1] != edge_index_flip[:, 0]]  # Do not flip self loops
     clean_index = np.concatenate([edge_indices, edge_index_flip_ij], axis=0)
-    if edge_values is not None:
-        edge_to_add = edge_values[edge_index_flip[:, 1] != edge_index_flip[:, 0]]
-        clean_edge = np.concatenate([edge_values, edge_to_add], axis=0)
+    for i, x in enumerate(clean_edge):
+        edge_to_add = x[edge_index_flip[:, 1] != edge_index_flip[:, 0]]
+        clean_edge[i] = np.concatenate([x, edge_to_add], axis=0)
 
     if remove_duplicates:
         un, unis = np.unique(clean_index, return_index=True, axis=0)
@@ -179,56 +180,54 @@ def add_edges_reverse_indices(edge_indices, edge_values=None, remove_duplicates=
         mask_all[unis] = True
         mask_all[:edge_indices.shape[0]] = True  # keep old indices untouched
         clean_index = clean_index[mask_all]
-        if edge_values is not None:
+        for i, x in enumerate(clean_edge):
             # clean_edge = clean_edge[unis]
-            clean_edge = clean_edge[mask_all]
+            clean_edge[i] = x[mask_all]
 
     if sort_indices:
         order1 = np.argsort(clean_index[:, 1], axis=0, kind='mergesort')  # stable!
         ind1 = clean_index[order1]
-        if edge_values is not None:
-            clean_edge = clean_edge[order1]
+        for i, x in enumerate(clean_edge):
+            clean_edge[i] = x[order1]
         order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
         clean_index = ind1[order2]
-        if edge_values is not None:
-            clean_edge = clean_edge[order2]
-    if edge_values is not None:
-        return clean_index, clean_edge
+        for i, x in enumerate(clean_edge):
+            clean_edge[i] = x[order2]
+    if len(clean_edge) > 0:
+        return [clean_index] + clean_edge
     else:
         return clean_index
 
 
-def sort_edge_indices(edge_indices, edge_values=None):
-    r"""Sort edge index list of np.ndarray for the first index and then for the second index.
+def sort_edge_indices(edge_indices, *args):
+    r"""Sort edge index list of ``np.ndarray`` for the first index and then for the second index.
     Edge values are rearranged accordingly if passed to the function call.
 
     Args:
-        edge_indices (np.array): Edge indices referring to nodes of shape `(N, 2)`.
-        edge_values (np.array): Edge values of shape `(N, M)`.
+        edge_indices (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
+        *args (np.ndarray): Edge related value arrays to be sorted accordingly of shape `(N, ...)`.
 
     Returns:
-        list: [edge_indices, edge_values] or edge_indices
+        list: [edge_indices, **args] or edge_indices
         
-            - edge_indices (np.array): Sorted indices.
-            - edge_values (np.array): Edge values matching sorted indices.
+            - edge_indices (np.ndarray): Sorted indices of shape `(N, 2)`.
+            - *args (np.ndarray): Edge related arrays to be sorted accordingly of shape `(N, ...)`.
     """
-    val1 = None
     order1 = np.argsort(edge_indices[:, 1], axis=0, kind='mergesort')  # stable!
     ind1 = edge_indices[order1]
-    if edge_values is not None:
-        val1 = edge_values[order1]
+    args1 = [x[order1] for x in args]
     order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
     ind2 = ind1[order2]
-    if edge_values is not None:
-        val1 = val1[order2]
-    if edge_values is not None:
-        return ind2, val1
+    args2 = [x[order2] for x in args1]
+    if len(args2) > 0:
+        return [ind2] + args2
     else:
         return ind2
 
 
 def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
-    r"""Make adjacency as sparse matrix from a list or np.ndarray of edge_indices and possible values.
+    r"""Make adjacency as sparse matrix from a list or ``np.ndarray`` of edge_indices and possible values.
+    No for batches, only for single instance.
 
     Args:
         edge_indices (np.ndarray): List of edge indices of shape `(N, 2)`
@@ -246,3 +245,51 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
     data = edge_values
     out_adj = sp.coo_matrix((data, (row, col)), shape=(index_max + 1, index_max + 1))
     return out_adj
+
+
+def get_angle_indices(idx, check_sorted: bool = True):
+    """Compute index list for edge-pairs forming an angle. Requires sorted indices.
+    No for batches, only for single instance.
+
+    Args:
+        idx (np.ndarray): List of edge indices referring to nodes of shape (N, 2)
+        check_sorted (bool): Whether to check inf indices are sorted. Default is True.
+
+    Returns:
+        tuple: idx, idx_ijk, idx_ijk_ij
+
+        - idx (np.ndarray): Possibly sorted edge indices referring to nodes of shape (N, 2)
+        - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape (M, 3)
+        - idx_ijk_ij (np.ndarray): Indices for an angle referring to edges of shape (M, 2)
+    """
+    # Verify sorted
+    if check_sorted:
+        order1 = np.argsort(idx[:, 1], axis=0, kind='mergesort')  # stable!
+        ind1 = idx[order1]
+        order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
+        ind2 = ind1[order2]
+        if not np.array_equal(idx, ind2):
+            raise ValueError("ERROR:kgcnn: Indices need to be sorted to compute angles from.")
+
+    pair_label = np.arange(len(idx))
+    idx_i = idx[:, 0]
+    idx_j = idx[:, 1]
+    uni_i, cnts_i = np.unique(idx_i, return_counts=True)
+    reps = cnts_i[idx_j]
+    idx_ijk_i = np.repeat(idx_i, reps)
+    idx_ijk_j = np.repeat(idx_j, reps)
+    idx_ijk_label_i = np.repeat(pair_label, reps)
+    idx_j_tagged = np.concatenate([np.expand_dims(idx_j, axis=-1), np.expand_dims(pair_label, axis=-1)], axis=-1)
+    idx_ijk_k_tagged = np.concatenate([idx_j_tagged[idx_i == x] for x in idx_j])  # This is not fully vectorized
+    idx_ijk_k = idx_ijk_k_tagged[:, 0]
+    idx_ijk_label_j = idx_ijk_k_tagged[:, 1]
+    back_and_forth = idx_ijk_i != idx_ijk_k
+    idx_ijk = np.concatenate([np.expand_dims(idx_ijk_i, axis=-1),
+                              np.expand_dims(idx_ijk_j, axis=-1),
+                              np.expand_dims(idx_ijk_k, axis=-1)], axis=-1)
+    idx_ijk = idx_ijk[back_and_forth]
+    idx_ijk_ij = np.concatenate([np.expand_dims(idx_ijk_label_i, axis=-1),
+                                 np.expand_dims(idx_ijk_label_j, axis=-1)], axis=-1)
+    idx_ijk_ij = idx_ijk_ij[back_and_forth]
+
+    return idx, idx_ijk, idx_ijk_ij

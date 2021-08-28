@@ -1,6 +1,7 @@
 import tensorflow.keras as ks
 import functools
 import pprint
+import importlib
 
 
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
@@ -18,7 +19,8 @@ def generate_embedding(inputs, input_shape: list, embedding_args: dict, embeddin
     Returns:
         tf.Tensor: Tensor embedding dependent on the input shape.
     """
-    print("WARNING:kgcnn: Unknown embedding kwargs {0}. Will be reserved for future versions.".format(kwargs))
+    if len(kwargs) > 0:
+        print("WARNING:kgcnn: Unknown embedding kwargs {0}. Will be reserved for future versions.".format(kwargs))
 
     if len(input_shape) == embedding_rank:
         n = ks.layers.Embedding(**embedding_args)(inputs)
@@ -108,33 +110,10 @@ class ModelSelection:
         Returns:
             func: Function to make model instances of tf.keras.Model.
         """
-        if model_id == "AttentiveFP":
-            from kgcnn.literature.AttentiveFP import make_model
-        elif model_id == "DimeNetPP":
-            from kgcnn.literature.DimeNetPP import make_model
-        elif model_id == "GAT":
-            from kgcnn.literature.GAT import make_model
-        elif model_id == "GATv2":
-            from kgcnn.literature.GATv2 import make_model
-        elif model_id == "GCN":
-            from kgcnn.literature.GCN import make_model
-        elif model_id == "GIN":
-            from kgcnn.literature.GIN import make_model
-        elif model_id == "GraphSAGE":
-            from kgcnn.literature.GraphSAGE import make_model
-        elif model_id == "INorp":
-            from kgcnn.literature.INorp import make_model
-        elif model_id == "Megnet":
-            from kgcnn.literature.Megnet import make_model
-        elif model_id == "NMPN":
-            from kgcnn.literature.NMPN import make_model
-        elif model_id == "PAiNN":
-            from kgcnn.literature.PAiNN import make_model
-        elif model_id == "Schnet":
-            from kgcnn.literature.Schnet import make_model
-        elif model_id == "Unet":
-            from kgcnn.literature.Unet import make_model
-        else:
+        try:
+            make_model = getattr(importlib.import_module("kgcnn.literature.%s" % model_id), "make_model")
+
+        except ModuleNotFoundError:
             raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
 
         return make_model

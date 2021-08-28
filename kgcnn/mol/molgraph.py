@@ -11,9 +11,18 @@ import rdkit.Chem.Descriptors
 
 
 class OneHotEncoder:
-    """Simple One-Hot-Encoding for python list. Pre-defined values for one-hot."""
+    """Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
+    value. The translated values must support ``__eq__()`` operator. The list of possible values must be set beforehand.
+    Is used as a basic encoder example for ``MolecularGraph``.
+    """
 
-    def __init__(self, one_hot_values, add_others=True):
+    def __init__(self, one_hot_values: list, add_others: bool = True):
+        """Initialize the encoder beforehand with a set of all possible values to encounter.
+
+        Args:
+            one_hot_values (list): List of possible values, matching the one-hot encoding.
+            add_others (bool): Whether to add a unknown bit. Default is True.
+        """
         self.one_hot_values = one_hot_values
         self.found_values = []
         self.add_others = add_others
@@ -91,7 +100,7 @@ class MolecularGraph:
 
         Args:
             smile (str): Smile string for the molecule.
-            add_Hs (bool): Whether to add hydrogen after creating the smile mol object. Default is True.
+            addHs (bool): Whether to add hydrogen after creating the smile mol object. Default is True.
         """
 
         # Make molecule from smile via rdkit

@@ -4,8 +4,8 @@ import requests
 import tarfile
 import zipfile
 
-from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance, \
-    get_angle_indices
+from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance
+from kgcnn.utils.adj import get_angle_indices
 
 
 class MemoryGraphDataset:
@@ -86,7 +86,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         nijk = []
         ai = []
         for x in indices:
-            temp = get_angle_indices(x, is_sorted=is_sorted)
+            temp = get_angle_indices(x)
             ei.append(temp[0])
             nijk.append(temp[1])
             ai.append(temp[2])
@@ -303,4 +303,5 @@ class DownloadDataset:
         return out
 
     def prepare_data(self, overwrite=False, verbose=1, **kwargs):
+        """Optional function for child classes to prepare the data, like compress etc."""
         pass
