@@ -10,7 +10,7 @@ class DatasetHyperSelection:
     """
 
     @classmethod
-    def get_hyper(cls, dataset_nafme: str, model_name: str = None):
+    def get_hyper(cls, dataset_name: str, model_name: str = None):
         r"""Load the default hyper-parameter rom a packaged json-file for a dataset and check for model entry.
 
         Args:
