@@ -3,7 +3,9 @@ import tensorflow as tf
 
 from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
+
 class NumpyTensorList:
+
 
     def __init__(self, *args):
         self._tensor_list = [x for x in args]

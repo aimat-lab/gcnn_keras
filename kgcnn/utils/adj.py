@@ -108,7 +108,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates=True, 
 
     Args:
         edge_indices (np.ndarray): Index-list for edges referring to nodes of shape `(N, 2)`.
-        *args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
+        args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
@@ -159,7 +159,7 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates=True, sort_
 
     Args:
         edge_indices (np.ndarray): Index-list of edges referring to nodes of shape `(N, 2)`.
-        *args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
+        args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
 
@@ -200,18 +200,18 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates=True, sort_
 
 
 def sort_edge_indices(edge_indices, *args):
-    r"""Sort edge index list of ``np.ndarray`` for the first index and then for the second index.
+    r"""Sort edge index list of `np.ndarray` for the first index and then for the second index.
     Edge values are rearranged accordingly if passed to the function call.
 
     Args:
         edge_indices (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
-        *args (np.ndarray): Edge related value arrays to be sorted accordingly of shape `(N, ...)`.
+        args (np.ndarray): Edge related value arrays to be sorted accordingly of shape `(N, ...)`.
 
     Returns:
         list: [edge_indices, **args] or edge_indices
         
             - edge_indices (np.ndarray): Sorted indices of shape `(N, 2)`.
-            - *args (np.ndarray): Edge related arrays to be sorted accordingly of shape `(N, ...)`.
+            - args (np.ndarray): Edge related arrays to be sorted accordingly of shape `(N, ...)`.
     """
     order1 = np.argsort(edge_indices[:, 1], axis=0, kind='mergesort')  # stable!
     ind1 = edge_indices[order1]
@@ -248,19 +248,19 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
 
 
 def get_angle_indices(idx, check_sorted: bool = True):
-    """Compute index list for edge-pairs forming an angle. Requires sorted indices.
+    r"""Compute index list for edge-pairs forming an angle. Requires sorted indices.
     Not for batches, only for single instance.
 
     Args:
-        idx (np.ndarray): List of edge indices referring to nodes of shape (N, 2)
+        idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
         check_sorted (bool): Whether to check inf indices are sorted. Default is True.
 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
 
-        - idx (np.ndarray): Possibly sorted edge indices referring to nodes of shape (N, 2)
-        - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape (M, 3)
-        - idx_ijk_ij (np.ndarray): Indices for an angle referring to edges of shape (M, 2)
+        - idx (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
+        - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
+        - idx_ijk_ij (np.ndarray): Indices for an angle referring to edges of shape `(M, 2)`.
     """
     # Verify sorted
     if check_sorted:
@@ -295,7 +295,7 @@ def get_angle_indices(idx, check_sorted: bool = True):
     return idx, idx_ijk, idx_ijk_ij
 
 
-def get_indexmatrix(shape, flatten=False):
+def get_index_matrix(shape, flatten=False):
     r"""Matrix of indices with :math:`A_{ijk\dots} = [i,j,k,\dots]` and shape `(N, M, ..., len(shape))`
     with indices being listed in the last dimension.
 
@@ -349,7 +349,7 @@ def invert_distance(d, nan=0, pos_inf=0, neg_inf=0):
 
     Returns:
         np.array: Inverted distance array as np.array of identical shape and
-            replaces np.nan and np.inf with e.g. 0.0
+            replaces `np.nan` and `np.inf` with e.g. 0.0.
     """
     with np.errstate(divide='ignore', invalid='ignore'):
         c = np.true_divide(1, d)
@@ -371,7 +371,7 @@ def distance_to_gauss_basis(inputs, bins: int = 20, distance: float = 4.0, sigma
         offset (float): Possible offset to center Gaussian. Default is 0.0.
 
     Returns:
-        np.ndarray: Array of Gaussian distance with expanded last axis (..., #bins)
+        np.ndarray: Array of Gaussian distance with expanded last axis `(..., #bins)`
     """
     gamma = 1 / sigma / sigma * (-1) / 2
     d_shape = inputs.shape
@@ -391,16 +391,16 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
 
     Args:
         distance_matrix (np.array): Distance Matrix of shape `(..., N, N)`
-        max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to ``np.inf``.
-        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to ``np.inf``.
+        max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to `np.inf`.
+        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to `np.inf`.
         exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
         self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
 
     Returns:
         tuple: graph_adjacency, graph_indices
 
-        - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type ``np.bool``.
-        - graph_indices (np.array): Flatten indices from former array that have ``True`` as entry in the
+        - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type `np.bool`.
+        - graph_indices (np.array): Flatten indices from former array that have `True` as entry in the
             returned adjacency matrix.
     """
     distance_matrix = np.array(distance_matrix)
