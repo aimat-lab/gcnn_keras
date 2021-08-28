@@ -1,29 +1,31 @@
 import numpy as np
 
 
-def get_connectivity_from_inversedistancematrix(invdistmat, protons, radii_dict=None, k1=16.0, k2=4.0 / 3.0,
-                                                cutoff=0.85, force_bonds=True):
-    """Get connectivity table from inverse distance matrix defined at last dimensions (..., N, N) and
-    corresponding bond-radii. Keeps shape with (..., N, N).
+def get_connectivity_from_inverse_distance_matrix(inv_dist_mat, protons, radii_dict=None, k1=16.0, k2=4.0 / 3.0,
+                                                  cutoff=0.85, force_bonds=True):
+    r"""Get connectivity table from inverse distance matrix defined at last dimensions `(..., N, N)` and
+    corresponding bond-radii. Keeps shape with `(..., N, N)`.
     Covalent radii, from Pyykko and Atsumi, Chem. Eur. J. 15, 2009, 188-197. 
     Values for metals decreased by 10% according to Robert Paton's Sterimol implementation. 
     Partially based on code from Robert Paton's Sterimol script, which based this part on Grimme's D3 code.
+    Vectorized version of the original code for numpy arrays that take atomic numbers as input.
     
     Args:
-        invdistmat (numpy array): Inverse distance matrix defined at last dimensions (..., N, N)
-            distances must be in Angstroem not in Bohr
-        protons (numpy array): An array of atomic numbers matching the invdistmat (..., N),
+        inv_dist_mat (np.ndarray): Inverse distance matrix defined at last dimensions `(..., N, N)`
+            distances must be in Angstrom not in Bohr.
+        protons (np.ndarray): An array of atomic numbers matching the inv_dist_mat `(..., N)`,
             for which the radii are to be computed.
-        radii_dict (numpy array): Covalent radii for each element. If default=None, stored values are used.
-            Otherwise array with covalent bonding radii. Example: np.array([0, 0.34, 0.46, 1.2, ...]) from
-            {'H': 0.34, 'He': 0.46, 'Li': 1.2, ...}.
-        k1 (value): K1-value. Defaults to 16
-        k2 (value): K2-value. Defaults to 4.0/3.0
-        cutoff (value): Cutoff value to set values to Zero (no bond). Defaults to 0.85
-        force_bonds (value): Whether to force at least one bond in the bond table per atom (default = True).
+        radii_dict (np.ndarray): Covalent radii for each element. If ``None``, stored values are used.
+            Otherwise expected numpy array with covalent bonding radii.
+            Example: ``np.array([0, 0.34, 0.46, 1.2, ...])`` for atomic number ``np.array([0, 1, 2, ...])``
+            that would match ``[None, 'H', 'He', 'Li', ...]``.
+        k1 (float): K1-value. Defaults to 16
+        k2 (float): K2-value. Defaults to 4.0/3.0
+        cutoff (float): Cutoff value to set values to Zero (no bond). Defaults to 0.85.
+        force_bonds (bool): Whether to force at least one bond in the bond table per atom. Default is True.
         
     Returns:
-        np.array: Connectivity table with 1 for chemical bond and zero otherwise of shape (..., N, N) -> (..., N, N)
+        np.ndarray: Connectivity table with 1 for chemical bond and zero otherwise of shape `(..., N, N)`.
     """
     # Dictionary of bond radii
     proton_raddi_dict = np.array(
@@ -44,7 +46,7 @@ def get_connectivity_from_inversedistancematrix(invdistmat, protons, radii_dict=
     r2 = np.expand_dims(radii, axis=len(shape_rad))
     rmat = r1 + r2
     rmat = k2 * rmat
-    rr = rmat * invdistmat
+    rr = rmat * inv_dist_mat
     damp = (1.0 + np.exp(-k1 * (rr - 1.0)))
     damp = 1.0 / damp
     if force_bonds:  # Have at least one bond
