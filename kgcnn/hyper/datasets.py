@@ -1,13 +1,25 @@
 import os
-# import json
 
 from kgcnn.utils.data import load_json_file
 
 
 class DatasetHyperSelection:
+    """A simple class to choose a default set of hyper-parameters for a specific dataset and model.
+
+    Note: Not all datasets and/or models have a matching default hyper-parameter entry yet.
+    """
 
     @classmethod
-    def get_hyper(cls, dataset_name: str, model_name: str = None):
+    def get_hyper(cls, dataset_nafme: str, model_name: str = None):
+        r"""Load the default hyper-parameter rom a packaged json-file for a dataset and check for model entry.
+
+        Args:
+            dataset_name (str): A dataset that is implemented in ``kgcnn``.
+            model_name (str): A model name to get default hyper-parameters for. Default is None.
+
+        Returns:
+            dict: Dictionary of hyper-parameters for the requested dataset, if available.
+        """
         if dataset_name is None:
             return None
         try:

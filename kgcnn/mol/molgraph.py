@@ -28,6 +28,15 @@ class OneHotEncoder:
         self.add_others = add_others
 
     def __call__(self, value, **kwargs):
+        r"""Encode a single value mapping it to a one-hot python list. E.g. `[0, 0, 1, 0]`
+
+        Args:
+            value: Any object that can be compared to items in ``self.one_hot_values``.
+            **kwargs: Additional kwargs. Not used atm.
+
+        Returns:
+            list: Python list with 1 at value match. E.g. `[0, 0, 1, 0]`
+        """
         encoded_list = [1 if x == value else 0 for x in self.one_hot_values]
         if self.add_others:
             if value not in self.one_hot_values:
@@ -40,7 +49,8 @@ class OneHotEncoder:
 
 
 class MolecularGraph:
-    """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
+    """A graph object representing a strict molecular graph, e.g. only chemical bonds.
+    Note: We will maybe change the interface for better integration in the future."""
 
     atom_fun_dict = {
         "AtomicNum": rdkit.Chem.rdchem.Atom.GetAtomicNum,
