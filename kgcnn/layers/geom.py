@@ -313,11 +313,7 @@ class EdgeAngle(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
 class GaussBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Gauss Basis with :math:`\sgima`, according to Schuett et al.
-
-    Args:
-
-    """
+    r"""Expand a distance into a Gauss Basis with :math:`\sgima`, according to Schuett et al."""
 
     def __init__(self, bins=20, distance=4.0, sigma=0.4, offset=0.0,
                  **kwargs):
@@ -340,7 +336,7 @@ class GaussBasisLayer(GraphBaseLayer):
                 - distance (tf.RaggedTensor): Edge distance of shape (batch, [K], 1)
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
+            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #bins)
         """
         gbs = tf.range(0, self.bins, 1, dtype=self.dtype) / float(self.bins) * self.distance
         # Possibly faster RaggedRank==1

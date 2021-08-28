@@ -4,8 +4,8 @@ import requests
 import tarfile
 import zipfile
 
-from kgcnn.mol.methods import coordinates_to_distancematrix, define_adjacency_from_distance, invert_distance
-from kgcnn.utils.adj import get_angle_indices
+from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
+    define_adjacency_from_distance
 
 
 class MemoryGraphDataset:

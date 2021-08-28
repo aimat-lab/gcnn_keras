@@ -227,7 +227,7 @@ def sort_edge_indices(edge_indices, *args):
 
 def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
     r"""Make adjacency as sparse matrix from a list or ``np.ndarray`` of edge_indices and possible values.
-    No for batches, only for single instance.
+    Not for batches, only for single instance.
 
     Args:
         edge_indices (np.ndarray): List of edge indices of shape `(N, 2)`
@@ -249,7 +249,7 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
 
 def get_angle_indices(idx, check_sorted: bool = True):
     """Compute index list for edge-pairs forming an angle. Requires sorted indices.
-    No for batches, only for single instance.
+    Not for batches, only for single instance.
 
     Args:
         idx (np.ndarray): List of edge indices referring to nodes of shape (N, 2)
@@ -293,3 +293,151 @@ def get_angle_indices(idx, check_sorted: bool = True):
     idx_ijk_ij = idx_ijk_ij[back_and_forth]
 
     return idx, idx_ijk, idx_ijk_ij
+
+
+def get_indexmatrix(shape, flatten=False):
+    r"""Matrix of indices with :math:`A_{ijk\dots} = [i,j,k,\dots]` and shape `(N, M, ..., len(shape))`
+    with indices being listed in the last dimension.
+
+    Note: Numpy indexing does not work this way but as indices per dimension.
+
+    Args:
+        shape (list, int): List of target shape, e.g. (2, 2).
+        flatten (bool): Whether to flatten the output or keep input-shape. Default is False.
+
+    Returns:
+        np.ndarray: Index array of shape `(N, M, ..., len(shape))`,
+            e.g. `[[[0, 0], [0, 1]], [[1, 0], [1, 1]]]` for (2, 2)
+    """
+    ind_array = np.indices(shape)
+    re_order = np.append(np.arange(1, len(shape) + 1), 0)
+    ind_array = ind_array.transpose(re_order)
+    if flatten:
+        ind_array = np.reshape(ind_array, (np.prod(shape), len(shape)))
+    return ind_array
+
+
+def coordinates_to_distancematrix(coord3d):
+    r"""Transform coordinates to distance matrix. Will apply transformation on last dimension.
+    Changing of shape from `(..., N, 3)` to `(..., N, N)`. This also works for more than 3 coordinates.
+    Note: We could extend this to other metrics.
+
+    Arg:
+        coord3d (np.ndarray): Coordinates of shape `(..., N, 3)` for cartesian coordinates `(x, y, z)`
+            and `N` the number of nodes or points. Coordinates are stored in the last dimension.
+
+    Returns:
+        np.ndarray: Distance matrix as numpy array with shape `(..., N, N)` where N is the number of nodes.
+    """
+    shape_3d = len(coord3d.shape)
+    a = np.expand_dims(coord3d, axis=shape_3d - 2)
+    b = np.expand_dims(coord3d, axis=shape_3d - 1)
+    c = b - a
+    d = np.sqrt(np.sum(np.square(c), axis=shape_3d))
+    return d
+
+
+def invert_distance(d, nan=0, pos_inf=0, neg_inf=0):
+    r"""Invert distance array, e.g. distance matrix. Inversion is done for all entries.
+    Keeps the shape of input distance array, since operation is done element-wise.
+
+    Args:
+        d (np.ndarray): Array of distance values of arbitrary shape.
+        nan (float): Replacement for np.nan after division. Default is 0.
+        pos_inf (float): Replacement for np.inf after division. Default is 0.
+        neg_inf (float): Replacement for -np.inf after division. Default is 0.
+
+    Returns:
+        np.array: Inverted distance array as np.array of identical shape and
+            replaces np.nan and np.inf with e.g. 0.0
+    """
+    with np.errstate(divide='ignore', invalid='ignore'):
+        c = np.true_divide(1, d)
+        # c[c == np.inf] = 0
+        c = np.nan_to_num(c, nan=nan, posinf=pos_inf, neginf=neg_inf)
+    return c
+
+
+def distance_to_gauss_basis(inputs, bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0):
+    r"""Convert distance array to smooth one-hot representation using Gaussian functions.
+    Changes shape for Gaussian distance expansion from `(..., )` to (..., #bins).
+    Note: The default values match realistic units in Angstrom for atoms or molecules.
+
+    Args:
+        inputs (np.ndarray): Array of distances of shape `(..., )`.
+        bins (int): Number of bins to sample distance from. Default is 20.
+        distance (value): Maximum distance to be captured by bins. Default is 4.0.
+        sigma (value): Sigma of the Gaussian function, determining the width/sharpness. Default is 0.4.
+        offset (float): Possible offset to center Gaussian. Default is 0.0.
+
+    Returns:
+        np.ndarray: Array of Gaussian distance with expanded last axis (..., #bins)
+    """
+    gamma = 1 / sigma / sigma * (-1) / 2
+    d_shape = inputs.shape
+    edge_dist_grid = np.expand_dims(inputs, axis=-1)
+    edge_gauss_bin = np.arange(0, bins, 1) / bins * distance
+    edge_gauss_bin = np.broadcast_to(edge_gauss_bin, np.append(np.ones(len(d_shape), dtype=np.int32),
+                                                               edge_gauss_bin.shape))  # shape (1,1,...,GBins)
+    edge_gauss_bin = np.square(edge_dist_grid - edge_gauss_bin - offset) * gamma  # (N,M,...,1) - (1,1,...,GBins)
+    edge_gauss_bin = np.exp(edge_gauss_bin)
+    return edge_gauss_bin
+
+
+def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_neighbours=np.inf, exclusive=True,
+                                   self_loops=False):
+    r"""Construct adjacency matrix from a distance matrix by distance and number of neighbours.
+    Operates on last axis. Tries to connect nearest neighbours.
+
+    Args:
+        distance_matrix (np.array): Distance Matrix of shape `(..., N, N)`
+        max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to ``np.inf``.
+        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to ``np.inf``.
+        exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
+        self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
+
+    Returns:
+        tuple: graph_adjacency, graph_indices
+
+        - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type ``np.bool``.
+        - graph_indices (np.array): Flatten indices from former array that have ``True`` as entry in the
+            returned adjacency matrix.
+    """
+    distance_matrix = np.array(distance_matrix)
+    num_atoms = distance_matrix.shape[-1]
+    if exclusive:
+        graph_adjacency = np.ones_like(distance_matrix, dtype=np.bool)
+    else:
+        graph_adjacency = np.zeros_like(distance_matrix, dtype=np.bool)
+    inddiag = np.arange(num_atoms)
+    # Make Indix Matrix
+    indarr = np.indices(distance_matrix.shape)
+    re_order = np.append(np.arange(1, len(distance_matrix.shape) + 1), 0)
+    graph_indices = indarr.transpose(re_order)
+    # print(graph_indices.shape)
+    # Add Max Radius
+    if max_distance is not None:
+        temp = distance_matrix < max_distance
+        # temp[...,inddiag,inddiag] = False
+        if exclusive:
+            graph_adjacency = np.logical_and(graph_adjacency, temp)
+        else:
+            graph_adjacency = np.logical_or(graph_adjacency, temp)
+    # Add #Nieghbours
+    if max_neighbours is not None:
+        max_neighbours = min(max_neighbours, num_atoms)
+        sorting_index = np.argsort(distance_matrix, axis=-1)
+        # SortedDistance = np.take_along_axis(self.distance_matrix, sorting_index, axis=-1)
+        ind_sorted_red = sorting_index[..., :max_neighbours + 1]
+        temp = np.zeros_like(distance_matrix, dtype=np.bool)
+        np.put_along_axis(temp, ind_sorted_red, True, axis=-1)
+        if exclusive:
+            graph_adjacency = np.logical_and(graph_adjacency, temp)
+        else:
+            graph_adjacency = np.logical_or(graph_adjacency, temp)
+    # Allow self-loops
+    if not self_loops:
+        graph_adjacency[..., inddiag, inddiag] = False
+
+    graph_indices = graph_indices[graph_adjacency]
+    return graph_adjacency, graph_indices

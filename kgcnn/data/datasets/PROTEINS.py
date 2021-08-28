@@ -36,7 +36,7 @@ class PROTEINSDatset(GraphTUDataset):
         self.node_labels = [np.array([ohe2(int(y)) for y in x]) for x in self.node_labels]
         ohe3 = OneHotEncoder([i for i in range(0, 17)], add_others=False)
         self.node_degree = [np.array([ohe3(int(y)) for y in x]) for x in self.node_degree]
-        self.data_length = len(self.graph_labels)
+        self.length = len(self.graph_labels)
         self.graph_attributes = None
         self.graph_size = [len(x) for x in self.node_attributes]
 

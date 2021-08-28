@@ -39,7 +39,7 @@ else:
 hyper_data = hyper['data']
 dataset = PROTEINSDatset()
 data_name = dataset.dataset_name
-data_length = dataset.data_length
+data_length = dataset.length
 
 # Data-set split
 kf = KFold(n_splits=5, random_state=None, shuffle=True)
