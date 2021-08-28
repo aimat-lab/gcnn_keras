@@ -46,6 +46,17 @@ class NumpyTensorList:
             raise ValueError("ERROR:kgcnn: Can not iterate over input of getitem() for `NumpyTensorList`: ", item)
 
     def tensor(self, ragged=None):
+        """Return list of numpy arrays as tf.Tensor or tf.RaggedTensor objects.
+
+        Note: A copy of the data may be generated for ragged tensors!
+
+        Args:
+            ragged (list): Information whether a output tensor for corresponding list is ragged. Default is None.
+
+        Returns:
+            list: A list of tf.Tensor or tf.RaggedTensor objects.
+        """
+        # We can check if tf.RaggedTensor is actually necessary, without relying on ragged-argument.
         if ragged is None:
             ragged = [False] * len(self._tensor_list)
         assert len(ragged) == len(self._tensor_list)
