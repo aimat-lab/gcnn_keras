@@ -5,7 +5,7 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
 
 class NumpyTensorList:
-    """An utility class to keep lists of numpy arrays. Multiple lists are handled in parallel and therefore should
+    r"""An utility class to keep lists of numpy arrays. Multiple lists are handled in parallel and therefore should
     have the same size. The behavior should be similar to :obj:`train_test_split` from scikit-learn.
     The length of each list should match the length of the dataset and
     each list-item be a numpy-tensor for a data-point. The lists could be X, y or different graph attributes.
@@ -28,7 +28,7 @@ class NumpyTensorList:
                 print("WARNING:kgcnn: Length of list input to `NumpyTensorList` are different.")
 
     def __getitem__(self, item):
-        """Indexing or getitem method to apply to each list and return a new :obj:`NumpyTensorList`.
+        r"""Indexing or getitem method to apply to each list and return a new :obj:`NumpyTensorList`.
 
         Args:
             item (list, int, np.ndarray): Index or list of indices to collect from each list in self.
@@ -58,7 +58,7 @@ class NumpyTensorList:
         return out_list
 
     def pop(self, index: int):
-        """Remove a single item at index from each list referenced by self.
+        r"""Remove a single item at index from each list referenced by self.
 
         Args:
             index (int): Index of item to remove.
