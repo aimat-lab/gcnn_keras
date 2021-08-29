@@ -80,7 +80,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.range_indices = edge_idx
         return self
 
-    def set_angle(self, is_sorted=False):
+    def set_angle(self):
         # We need to sort indices
         for i, x in enumerate(self.range_indices):
             order = np.arange(len(x))

@@ -2,7 +2,7 @@ import numpy as np
 import unittest
 
 from kgcnn.utils.adj import add_edges_reverse_indices, add_self_loops_to_edge_indices
-from kgcnn.utils.adj import get_angle_indices, get_angle
+from kgcnn.utils.adj import get_angle_indices, get_angle, get_angle_between_edges
 
 
 class ReverseEdges(unittest.TestCase):
@@ -75,6 +75,18 @@ class TestAngleCompute(unittest.TestCase):
         indices = np.array([[1, 0, 2], [2, 0, 1]])
         result = get_angle(coord, indices)/2/np.pi*360
         expected_result = np.array([[90], [90]])
+        # print(result)
+        self.assertTrue(np.max(np.abs(result - expected_result)) < 1e-6)
+
+
+class TestAngleEdge(unittest.TestCase):
+
+    def test_get_angle(self):
+        coord = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]])
+        edge_idx = np.array([[0, 1], [0, 2]])
+        angle_idx = np.array([[0, 1]])
+        result = get_angle_between_edges(coord, edge_idx, angle_idx)/2/np.pi*360
+        expected_result = np.array([[90]])
         # print(result)
         self.assertTrue(np.max(np.abs(result - expected_result)) < 1e-6)
 

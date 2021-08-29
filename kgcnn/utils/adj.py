@@ -319,6 +319,32 @@ def get_angle(coord, indices):
     return angle
 
 
+def get_angle_between_edges(coord, edge_indices, angle_indices):
+    r"""Compute angle between two edges that do not necessarily need to be connected by a node.
+    However, with the correct choice of angle_indices this can be assured. Node coordinates must be provided.
+    The geometric direction of an edge with indices :math:`(i, j)` is given by :math:`\vec{x}_i - \vec{x}_j`.
+
+    Args:
+        coord (np.ndarray): List of coordinates of shape `(N, 3)`.
+        edge_indices (np.ndarray): List of edge indices referring to node coordinates of shape `(M, 2)`.
+        angle_indices (np.ndarray): List of angle indices referring edges of shape `(K, 2)`.
+
+    Returns:
+        np.ndarray: List of angles matching angle indices of shape `(K, 1)`.
+    """
+    xi = coord[edge_indices[:, 0]]
+    xj = coord[edge_indices[:, 1]]
+    v = xi - xj
+    v1 = v[angle_indices[:, 0]]
+    v2 = v[angle_indices[:, 1]]
+    x = np.sum(v1 * v2, axis=-1)
+    y = np.cross(v1, v2)
+    y = np.linalg.norm(y, axis=-1)
+    angle = np.arctan2(y, x)
+    angle = np.expand_dims(angle, axis=-1)
+    return angle
+
+
 def get_index_matrix(shape, flatten=False):
     r"""Matrix of indices with :math:`A_{ijk\dots} = [i,j,k,\dots]` and shape `(N, M, ..., len(shape))`
     with indices being listed in the last dimension.
