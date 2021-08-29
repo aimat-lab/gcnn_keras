@@ -296,8 +296,10 @@ def get_angle_indices(idx, check_sorted: bool = True):
 
 
 def get_angle(coord, indices):
-    r"""Compute angle for coordinates and index of nodes to compute angle from. The indices are between points i, j, k
-    with the definition of vector directions i,j < j,k.
+    r"""Compute angle between three points defined by the indices for points i, j, k. Requires mode coordinates.
+    With the definition of vector directions :math:`\vec{x}_{ij} = \vec{x}_{i}-\vec{x}_{j}` and
+    :math:`\vec{x}_{jk} = \vec{x}_{j}-\vec{x}_{k}`, the angle between for :math:`\vec{x}_{ij}`, :math:`\vec{x}_{jk}`
+    is calculated.
 
     Args:
         coord (np.ndarray): List of coordinates of shape `(N, 3)`.
