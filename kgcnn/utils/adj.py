@@ -308,7 +308,7 @@ def get_angle(coord, indices):
     Returns:
         np.ndarray: List of angles matching indices `(M, 1)`.
     """
-    xi = coord[indices[:,0]]
+    xi = coord[indices[:, 0]]
     xj = coord[indices[:, 1]]
     xk = coord[indices[:, 2]]
     v1 = xi - xj
