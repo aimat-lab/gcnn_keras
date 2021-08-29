@@ -94,11 +94,11 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
 
         ai = []
         a_angle = []
-        for x in self.range_indices:
+        for i, x in enumerate(self.range_indices):
             temp = get_angle_indices(x)
             ai.append(temp[2])
             if self.node_coordinates is not None:
-                a_angle.append(get_angle(self.node_coordinates, temp[1]))
+                a_angle.append(get_angle(self.node_coordinates[i], temp[1]))
         self.angle_indices = ai
         self.angle_attributes = a_angle
         return self
