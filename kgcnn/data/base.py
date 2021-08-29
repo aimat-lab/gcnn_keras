@@ -5,7 +5,7 @@ import tarfile
 import zipfile
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
-    define_adjacency_from_distance
+    define_adjacency_from_distance, sort_edge_indices, get_angle
 
 
 class MemoryGraphDataset:
@@ -48,7 +48,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.angle_attributes = None
 
     def set_range(self, max_distance=4, max_neighbours=15, do_invert_distance=False, self_loops=False, exclusive=True):
-        """Define range in euclidean space. Requires node coordinates."""
+        """Define range in euclidean space for interaction or edge-like connections. Requires node coordinates."""
 
         coord = self.node_coordinates
         if self.node_coordinates is None:
@@ -81,17 +81,26 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         return self
 
     def set_angle(self, is_sorted=False):
-        indices = self.range_indices
-        ei = []
-        nijk = []
+        # We need to sort indices
+        for i, x in enumerate(self.range_indices):
+            order = np.arange(len(x))
+            x_sorted, reorder = sort_edge_indices(x, order)
+            self.range_indices[i] = x_sorted
+            # Must sort attributes accordingly!
+            if self.range_attributes is not None:
+                self.range_attributes[i] = self.range_attributes[i][reorder]
+            if self.range_labels is not None:
+                self.range_labels[i] = self.range_labels[i][reorder]
+
         ai = []
-        for x in indices:
+        a_angle = []
+        for x in self.range_indices:
             temp = get_angle_indices(x)
-            ei.append(temp[0])
-            nijk.append(temp[1])
             ai.append(temp[2])
+            if self.node_coordinates is not None:
+                a_angle.append(get_angle(self.node_coordinates, temp[1]))
         self.angle_indices = ai
-        self.range_indices = ei
+        self.angle_attributes = a_angle
         return self
 
 

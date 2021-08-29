@@ -295,6 +295,30 @@ def get_angle_indices(idx, check_sorted: bool = True):
     return idx, idx_ijk, idx_ijk_ij
 
 
+def get_angle(coord, indices):
+    r"""Compute angle for coordinates and index of nodes to compute angle from. The indices are between points i, j, k
+    with the definition of vector directions i,j < j,k.
+
+    Args:
+        coord (np.ndarray): List of coordinates of shape `(N, 3)`.
+        indices (np.ndarray): List of indices of shape `(M, 3)`.
+
+    Returns:
+        np.ndarray: List of angles matching indices `(M, 1)`.
+    """
+    xi = coord[indices[:,0]]
+    xj = coord[indices[:, 1]]
+    xk = coord[indices[:, 2]]
+    v1 = xi - xj
+    v2 = xj - xk
+    x = np.sum(v1 * v2, axis=-1)
+    y = np.cross(v1, v2)
+    y = np.linalg.norm(y, axis=-1)
+    angle = np.arctan2(y, x)
+    angle = np.expand_dims(angle, axis=-1)
+    return angle
+
+
 def get_index_matrix(shape, flatten=False):
     r"""Matrix of indices with :math:`A_{ijk\dots} = [i,j,k,\dots]` and shape `(N, M, ..., len(shape))`
     with indices being listed in the last dimension.

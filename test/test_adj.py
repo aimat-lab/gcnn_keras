@@ -2,7 +2,7 @@ import numpy as np
 import unittest
 
 from kgcnn.utils.adj import add_edges_reverse_indices, add_self_loops_to_edge_indices
-from kgcnn.utils.adj import get_angle_indices
+from kgcnn.utils.adj import get_angle_indices, get_angle
 
 
 class ReverseEdges(unittest.TestCase):
@@ -37,7 +37,7 @@ class SelfLoops(unittest.TestCase):
         edge1 = np.array([1, 2, 3])
         edge2 = np.array([[11], [22], [33]])
         result, result1, result2 = add_self_loops_to_edge_indices(indices, edge1, edge2)
-        print(result, result1, result2)
+        # print(result, result1, result2)
         expected_result1 = np.array([1, 3, 1, 2, 1])
         self.assertTrue(np.max(np.abs(result1 - expected_result1)) < 1e-6)
 
@@ -66,6 +66,17 @@ class TestFindAnglePairs(unittest.TestCase):
         self.assertTrue(np.all(edi_new[ind_nm[:, 0]][:, 1] == edi_new[ind_nm[:, 1]][:, 0]))
         self.assertTrue(
             np.all(np.concatenate([edi_new[ind_nm[:, 0]][:, :2], edi_new[ind_nm[:, 1]][:, 1:]], axis=-1) == ind_ijk))
+
+
+class TestAngleCompute(unittest.TestCase):
+
+    def test_get_angle(self):
+        coord = np.array([[0, 0, 0], [0, 0 , 1], [0, 1, 0]])
+        indices = np.array([[1, 0, 2], [2, 0, 1]])
+        result = get_angle(coord, indices)/2/np.pi*360
+        expected_result = np.array([[90], [90]])
+        # print(result)
+        self.assertTrue(np.max(np.abs(result - expected_result)) < 1e-6)
 
 
 if __name__ == '__main__':

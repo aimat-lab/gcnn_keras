@@ -31,7 +31,7 @@ class NumpyTensorList:
         r"""Indexing or getitem method to apply to each list and return a new :obj:`NumpyTensorList`.
 
         Args:
-            item (list, int, np.ndarray): Index or list of indices to collect from each list in self.
+            item (list, int, slice, np.ndarray): Index or list of indices to collect from each list in self.
 
         Returns:
             NumpyTensorList: New :obj:`NumpyTensorList` with only `items` in each list.
@@ -46,7 +46,7 @@ class NumpyTensorList:
             raise ValueError("ERROR:kgcnn: Can not iterate over input of getitem() for `NumpyTensorList`: ", item)
 
     def tensor(self, ragged=None):
-        """Return list of numpy arrays as tf.Tensor or tf.RaggedTensor objects.
+        """Cast list of numpy arrays to tf.Tensor or tf.RaggedTensor objects.
 
         Note: A copy of the data may be generated for ragged tensors!
 
@@ -85,6 +85,10 @@ class NumpyTensorList:
 
     def __len__(self):
         """Get length of each list."""
-        return len(self._tensor_list[0])
+        if self._data_length is not None:
+            return self._data_length
+        else:
+            print("WARNING:kgcnn: No uniform length of lists of `NumpyTensorList`.")
+            return len(self._tensor_list[0])
 
 # test = NumpyTensorList([np.array([1, 2])], [np.array([1, 2])])
