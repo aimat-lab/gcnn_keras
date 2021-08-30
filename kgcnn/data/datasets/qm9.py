@@ -174,3 +174,35 @@ class QM9Dataset(QMDataset):
 
         if verbose > 0:
             print('done')
+
+
+class QM9Scaler:
+
+    def __init__(self, node_coordinates, node_number, graph_labels):
+        self.node_coordinates = node_coordinates
+        self.graph_labels = graph_labels
+        self.node_number = node_number
+
+        self.intensive_scaler = None
+        self.extensive_scaler = None
+
+    def fit_transform(self, training_indices):
+        self.fit(training_indices)
+
+    def transform(self, labels):
+        pass
+
+    def fit(self, training_indices):
+        """Fit scaling of labels using indices."""
+        # Pick Training selection.
+        label_selection = self.graph_labels[training_indices]
+
+        # Note: Rotational Constants and r2 as well as dipole moment and polarizability
+        # should be treated separately.
+        intensive_labels = label_selection[:, :8]
+        extensive_labels = label_selection[:, 8:]
+
+
+    def inverse_transform(self, labels):
+        pass
+
