@@ -99,9 +99,9 @@ for train_index, test_index in split_indices:
     labels_test = labels[test_index]
 
     # Normalize training and test targets.
-    scaler = QM9GraphLabelScaler()
-    ytrain = scaler.fit_transform(atoms_train, labels_train, np.arange(labels.shape[-1]))[:, target_indices]
-    ytest = scaler.transform(atoms_test, labels_test, np.arange(labels.shape[-1]))[:, target_indices]
+    scaler = QM9GraphLabelScaler().fit(atoms_train, labels_train)
+    ytrain = scaler.fit_transform(atoms_train, labels_train)[:, target_indices]
+    ytest = scaler.transform(atoms_test, labels_test)[:, target_indices]
 
     # Set optimizer from serialized hyper-dict.
     optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
@@ -161,8 +161,8 @@ plt.savefig(os.path.join(filepath, "mae_qm9" + fit_postfix + ".png"))
 plt.show()
 
 # Plot predicted targets vs actual targets for last split. This will be adapted for all targets in the future.
-true_test = scaler.inverse_transform(atoms_test, ytest, target_indices)
-pred_test = scaler.inverse_transform(atoms_test, model.predict(xtest), target_indices)
+true_test = scaler.inverse_transform(atoms_test, scaler.padd(ytest, target_indices))[:, target_indices]
+pred_test = scaler.inverse_transform(atoms_test, scaler.padd(model.predict(xtest), target_indices))[:, target_indices]
 mae_last = np.mean(np.abs(true_test - pred_test), axis=0)
 plt.figure()
 for i, ti in enumerate(target_indices):
