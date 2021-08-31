@@ -28,6 +28,7 @@ class MemoryGraphDataset:
 
         self.graph_labels = None
         self.graph_attributes = None
+        self.graph_number = None
         self.graph_size = None
         self.graph_adjacency = None  # Only for one-graph datasets like citation networks
 

@@ -84,7 +84,7 @@ class ExtensiveMolecularScaler:
         self._fit_atom_selection = None
         self._fit_coef = None
         self._fit_intercept = None
-        self._fit_std = None
+        self.scale_ = None
 
     def fit(self, atomic_number, molecular_property, sample_weight=None):
         """Fit atomic number to the molecular properties.
@@ -120,7 +120,7 @@ class ExtensiveMolecularScaler:
         self._fit_coef = self.ridge.coef_
         self._fit_intercept = self.ridge.intercept_
         diff = molecular_property-self.ridge.predict(total_number)
-        self._fit_std = np.std(diff, axis=0, keepdims=True)
+        self.scale_ = np.std(diff, axis=0, keepdims=True)
         return self
 
     def predict(self, atomic_number):
@@ -176,7 +176,7 @@ class ExtensiveMolecularScaler:
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        return (molecular_property-self.predict(atomic_number))/self._fit_std
+        return (molecular_property-self.predict(atomic_number))/self.scale_
 
     def fit_transform(self, atomic_number, molecular_property, sample_weight=None):
         """Combine fit and transform methods in one call.
@@ -202,4 +202,4 @@ class ExtensiveMolecularScaler:
         Returns:
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
         """
-        return molecular_property*self._fit_std+self.predict(atomic_number)
+        return molecular_property*self.scale_+self.predict(atomic_number)

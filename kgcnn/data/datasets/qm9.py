@@ -4,7 +4,9 @@ import numpy as np
 import json
 # import shutil
 
+from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
+from kgcnn.mol.methods import ExtensiveMolecularScaler
 
 
 class QM9Dataset(QMDataset):
@@ -31,7 +33,7 @@ class QM9Dataset(QMDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Run base class default init()
-        self.target_names = ['index', 'A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
+        self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
         super(QM9Dataset, self).__init__(reload=reload, verbose=verbose)
         if self.fits_in_memory:
@@ -166,8 +168,9 @@ class QM9Dataset(QMDataset):
         coord = [[[y[1], y[2], y[3]] for y in x[2]] for x in qm9]
         coord = [np.array(x) for x in coord]
 
+        self.graph_number = labels[:, 0]
         self.node_coordinates = coord
-        self.graph_labels = labels
+        self.graph_labels = labels[:, 1:]
         self.node_symbol = atoms
         self.node_number = nodes
         self.graph_attributes = mmw
@@ -176,33 +179,80 @@ class QM9Dataset(QMDataset):
             print('done')
 
 
-class QM9Scaler:
+class QM9GraphLabelScaler:
 
-    def __init__(self, node_coordinates, node_number, graph_labels):
-        self.node_coordinates = node_coordinates
-        self.graph_labels = graph_labels
-        self.node_number = node_number
+    def __init__(self, intensice_scaler=None, extensive_scaler=None):
+        if intensice_scaler is None:
+            intensice_scaler = {}
+        if extensive_scaler is None:
+            extensive_scaler = {}
 
-        self.intensive_scaler = None
-        self.extensive_scaler = None
+        self.intensive_scaler = StandardScaler(**intensice_scaler)
+        self.extensive_scaler = ExtensiveMolecularScaler(**extensive_scaler)
 
-    def fit_transform(self, training_indices):
-        self.fit(training_indices)
+        self.scale_ = None
 
-    def transform(self, labels):
-        pass
+    def fit_transform(self,  node_number, graph_labels, target_indices):
+        self.fit(node_number, graph_labels, target_indices)
+        return self.transform(node_number, graph_labels, target_indices)
 
-    def fit(self, training_indices):
+    def transform(self, node_number, graph_labels, target_indices):
+        self._check_input(node_number, graph_labels, target_indices)
+
+        labels = np.zeros((len(graph_labels), 15))
+        labels[:, target_indices] = graph_labels
+
+        intensive_labels = labels[:, :9]
+        extensive_labels = labels[:, 9:]
+
+        trafo_intensive = self.intensive_scaler.transform(intensive_labels)
+        trafo_extensive = self.extensive_scaler.transform(node_number, extensive_labels)
+
+        out_labels = np.concatenate([trafo_intensive, trafo_extensive], axis=-1)
+        return out_labels[:, target_indices]
+
+    def fit(self, node_number, graph_labels, target_indices):
         """Fit scaling of labels using indices."""
-        # Pick Training selection.
-        label_selection = self.graph_labels[training_indices]
+        self._check_input(node_number, graph_labels, target_indices)
+
+        labels = np.zeros((len(graph_labels), 15))
+        print(labels.shape, target_indices, graph_labels.shape)
+        labels[:, target_indices] = graph_labels
 
         # Note: Rotational Constants and r2 as well as dipole moment and polarizability
         # should be treated separately.
-        intensive_labels = label_selection[:, :8]
-        extensive_labels = label_selection[:, 8:]
+        intensive_labels = labels[:, :9]
+        extensive_labels = labels[:, 9:]
+
+        self.intensive_scaler.fit(intensive_labels)
+        self.extensive_scaler.fit(node_number, extensive_labels)
+        # print(self.intensive_scaler.scale_, self.extensive_scaler.scale_)
+        self.scale_ = np.concatenate([self.intensive_scaler.scale_, self.extensive_scaler.scale_[0]], axis=0)
+        return self
+
+    def inverse_transform(self, node_number, graph_labels, target_indices):
+        self._check_input(node_number, graph_labels, target_indices)
+
+        labels = np.zeros((len(graph_labels), 15))
+        labels[:, target_indices] = graph_labels
+
+        intensive_labels = labels[:, :9]
+        extensive_labels = labels[:, 9:]
+
+        inverse_trafo_intensive = self.intensive_scaler.inverse_transform(intensive_labels)
+        inverse_trafo_extensive = self.extensive_scaler.inverse_transform(node_number, extensive_labels)
+
+        out_labels = np.concatenate([inverse_trafo_intensive, inverse_trafo_extensive], axis=-1)
+        return out_labels[:, target_indices]
+
+    @staticmethod
+    def _check_input(node_number, graph_labels, target_indices):
+        assert len(node_number) == len(graph_labels), "ERROR:kgcnn: Lists need to be same length."
+        assert graph_labels.shape[-1] == len(target_indices), "ERROR:kgcnn: `QM9GraphLabelScaler` got wrong targets."
 
 
-    def inverse_transform(self, labels):
-        pass
-
+# dataset = QM9Dataset()
+# scaler = QM9GraphLabelScaler()
+# tafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels[:, np.array([5,12])], np.array([5,12]))
+# rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels, np.array([5,12]))
+# print(np.amax(np.abs(dataset.graph_labels[:, np.array([5,12])]-rev_labels)))
