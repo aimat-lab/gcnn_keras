@@ -37,7 +37,7 @@
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
-            "data_points_to_use": 1338,
+            "data_points_to_use": 133885,
             "target_indices": [5,6,7],
             "execute_splits": 1
         }
@@ -75,14 +75,13 @@
                     "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800, "verbose": 0
                     }
                 }
-            ]
+            ],
+            "postfix": "_homo_lumo_gap"
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
-            "target_indices": [6,7,8],
-            "target_unit_conversion": [[27.2114]],
-            "target_unit": ["eV", "eV", "eV"],
+            "target_indices": [5,6,7],
             "execute_splits": 1
         }
     },
@@ -113,14 +112,13 @@
                     "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800, "verbose": 0
                     }
                 }
-            ]
+            ],
+            "postfix": "_homo_lumo_gap"
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
-            "target_indices": [6,7,8],
-            "target_unit_conversion": [[27.2114]],
-            "target_unit": ["eV", "eV", "eV"],
+            "target_indices": [5,6,7],
             "execute_splits": 1
         }
     },
@@ -156,14 +154,13 @@
                     },
                     "average_decay": 0.999
                 }
-            }
+            },
+            "postfix": "_homo_lumo_gap"
         },
         "data": {
             "range": {"max_distance": 5, "max_neighbours": 10000},
             "data_points_to_use": 133885,
-            "target_indices": [6,7,8],
-            "target_unit_conversion": [[27.2114]],
-            "target_unit": ["eV", "eV", "eV"],
+            "target_indices": [5,6,7],
             "execute_splits": 1
         }
     },
@@ -203,14 +200,13 @@
                     },
                     "average_decay": 0.999
                 }
-            }
+            },
+            "postfix": "_homo_lumo_gap"
         },
         "data": {
             "range": {"max_distance": 5, "max_neighbours": 10000},
             "data_points_to_use": 133885,
-            "target_indices": [6,7,8],
-            "target_unit_conversion": [[27.2114]],
-            "target_unit": ["eV", "eV", "eV"],
+            "target_indices": [5,6,7],
             "execute_splits": 1,
             "requires_angles": true
         }
