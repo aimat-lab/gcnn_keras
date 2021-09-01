@@ -13,6 +13,17 @@ class NumpyTensorList:
     """
 
     def __init__(self, *args):
+        """Make a new `NumpyTensorList` object with list of matching data like features and labels of a dataset.
+
+        .. code-block:: python
+
+            import numpy as np
+            data = NumpyTensorList([np.array([0,0,0]), np.array([0])], [np.array([1]), np.array([1,1])])
+            print(data[0].tensor())
+
+        Args:
+            args: Multiple lists of np.ndarrays.
+        """
         self._tensor_list = [x for x in args]
         if len(self._tensor_list) <= 0:
             print("WARNING:kgcnn: Received empty list input for `NumpyTensorList`. \
@@ -93,4 +104,3 @@ class NumpyTensorList:
         self._length_test()
         return len(self._tensor_list[0])
 
-# test = NumpyTensorList([np.array([1, 2])], [np.array([1, 2])])
