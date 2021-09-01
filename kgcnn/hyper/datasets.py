@@ -11,10 +11,10 @@ class DatasetHyperSelection:
 
     @classmethod
     def get_hyper(cls, dataset_name: str, model_name: str = None):
-        r"""Load the default hyper-parameter rom a packaged json-file for a dataset and check for model entry.
+        r"""Load the default hyper-parameter from a packaged json-file for a dataset and check for model entry.
 
         Args:
-            dataset_name (str): A dataset that is implemented in ``kgcnn``.
+            dataset_name (str): A dataset that is implemented in :obj:``kgcnn``.
             model_name (str): A model name to get default hyper-parameters for. Default is None.
 
         Returns:
