@@ -57,6 +57,7 @@ class NumpyTensorList:
             list: A list of tf.Tensor or tf.RaggedTensor objects.
         """
         # We can check if tf.RaggedTensor is actually necessary, without relying on ragged-argument.
+        # Also need to improve casting, e.g. memory usage
         if ragged is None:
             ragged = [False] * len(self._tensor_list)
         assert len(ragged) == len(self._tensor_list)
@@ -69,19 +70,23 @@ class NumpyTensorList:
         return out_list
 
     def pop(self, index: int):
-        r"""Remove a single item at index from each list referenced by self.
+        r"""Remove a single item at index from each list within `NumpyTensorList`.
 
         Args:
             index (int): Index of item to remove.
 
         Returns:
-            NumpyTensorList: New :obj:`NumpyTensorList` with item at `index` removed in each list.
+            list: A list of removed items. Number of lists stored by `NumpyTensorList`.
         """
+        removed_items = []
         for i, x in enumerate(self._tensor_list):
             if isinstance(x, list):
-                x.pop(index)
+                temp = x.pop(index)
+                removed_items.append(temp)
             else:
+                removed_items.append(x[index])
                 self._tensor_list[i] = [x[j] for j in range(len(x)) if j != index]
+        return removed_items
 
     def __len__(self):
         """Get length of each list."""
