@@ -47,7 +47,26 @@ def make_model(inputs=None,
                gauss_ags=None,
                expand_distance=None,
                **kwargs):
-    """Make SchNet graph model."""
+    r"""Make Schnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        depth (int): Number of layers.
+        interaction_args (dict): Dictionary of layer arguments unpacked in final `SchNetInteraction` layers.
+        output_dense (dict): Dictionary of layer arguments unpacked in final `Dense` layer.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
+        out_scale_pos (int): Position of final `output_dense` layer.
+        gauss_ags (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
+        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
+            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_ags`.
+
+    Returns:
+        tf.keras.models.Model
+    """
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])

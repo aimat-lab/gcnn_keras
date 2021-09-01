@@ -9,7 +9,8 @@ import kgcnn.ops.activ
 # import tensorflow.keras.backend as ksb
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(GraphBaseLayer):
-    """Multilayer perceptron that consist of N dense keras layers.
+    """Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
+    If not list, then the argument is used for each layer. The number of layers is given by units, which should be list.
         
     Args:
         units: Positive integer, dimensionality of the output space.
@@ -136,7 +137,9 @@ class MLP(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BatchNormMLP')
 class BatchNormMLP(GraphBaseLayer):
-    """Multilayer perceptron that consist of N dense keras layers.
+    """Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
+    If not list, then the argument is used for each layer. The number of layers is given by units, which should be list.
+    Additionally a batch-normalization is applied.
 
     Args:
         units: Positive integer, dimensionality of the output space.
@@ -154,6 +157,24 @@ class BatchNormMLP(GraphBaseLayer):
         kernel_constraint: Constraint function applied to
             the `kernel` weights matrix.
         bias_constraint: Constraint function applied to the bias vector.
+        axis: Integer, the axis that should be normalized (typically the features
+            axis). For instance, after a `Conv2D` layer with
+            `data_format="channels_first"`, set `axis=1` in `BatchNormalization`.
+        momentum: Momentum for the moving average.
+        epsilon: Small float added to variance to avoid dividing by zero.
+        center: If True, add offset of `beta` to normalized tensor. If False, `beta`
+            is ignored.
+        scale: If True, multiply by `gamma`. If False, `gamma` is not used. When the
+            next layer is linear (also e.g. `nn.relu`), this can be disabled since the
+            scaling will be done by the next layer.
+        beta_initializer: Initializer for the beta weight.
+        gamma_initializer: Initializer for the gamma weight.
+        moving_mean_initializer: Initializer for the moving mean.
+        moving_variance_initializer: Initializer for the moving variance.
+        beta_regularizer: Optional regularizer for the beta weight.
+        gamma_regularizer: Optional regularizer for the gamma weight.
+        beta_constraint: Optional constraint for the beta weight.
+        gamma_constraint: Optional constraint for the gamma weight.
     """
 
     def __init__(self,

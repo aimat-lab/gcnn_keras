@@ -41,7 +41,23 @@ def make_model(inputs=None,
                output_mlp=None,
                conv_args=None,
                update_args=None, **kwargs):
-    """Get PAiNN model."""
+    """Make PAiNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        bessel_basis (dict): Dictionary of layer arguments unpacked in final `BesselBasisLayer` layer.
+        depth (int): Number layers or depth of the network.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        conv_args (dict): Dictionary of layer arguments unpacked in `PAiNNconv` layer.
+        update_args (dict): Dictionary of layer arguments unpacked in `PAiNNUpdate` layer.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])

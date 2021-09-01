@@ -70,7 +70,7 @@ class ExtensiveMolecularScaler:
     max_atomic_number = 95
 
     def __init__(self, alpha: float = 1e-9, fit_intercept: bool = False, **kwargs):
-        r"""Initialize standard scaler with parameters directly passed to scikit-learns :obj:`Ridge()`.
+        r"""Initialize scaler with parameters directly passed to scikit-learns :obj:`Ridge()`.
 
         Args:
             alpha (float): Regularization parameter for regression.
@@ -193,7 +193,7 @@ class ExtensiveMolecularScaler:
         return self.transform(atomic_number, molecular_property)
 
     def inverse_transform(self, atomic_number, molecular_property):
-        """Reverse the transfrom method to original properties without offset and scaled to original units.
+        """Reverse the transform method to original properties without offset and scaled to original units.
 
         Args:
             atomic_number (list): List of array of atomic numbers. Shape is `(n_samples, <#atoms>)`.
