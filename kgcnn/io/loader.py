@@ -19,12 +19,12 @@ class NumpyTensorList:
                 Expected one or more list of numpy arrays.")
 
         # check that all have same length
-        self._data_length = None
+        self._length_test()
+
+    def _length_test(self):
         length_test = np.array([len(x) for x in self._tensor_list], dtype="int")
         if len(length_test) > 0:
-            if np.all(length_test == length_test[0]):
-                self._data_length = length_test[0]
-            else:
+            if not np.all(length_test == length_test[0]):
                 print("WARNING:kgcnn: Length of list input to `NumpyTensorList` are different.")
 
     def __getitem__(self, item):
@@ -90,10 +90,7 @@ class NumpyTensorList:
 
     def __len__(self):
         """Get length of each list."""
-        if self._data_length is not None:
-            return self._data_length
-        else:
-            print("WARNING:kgcnn: No uniform length of lists of `NumpyTensorList`.")
-            return len(self._tensor_list[0])
+        self._length_test()
+        return len(self._tensor_list[0])
 
 # test = NumpyTensorList([np.array([1, 2])], [np.array([1, 2])])
