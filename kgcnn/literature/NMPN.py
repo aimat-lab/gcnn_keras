@@ -42,7 +42,24 @@ def make_model(inputs=None,
                use_set2set=None,
                node_dim=None,
                depth=None, **kwargs):
-    """Get Message passing model."""
+    """Make NMPN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
+        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
+        edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge matrix.
+        use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+        node_dim (int): Dimension of hidden node embedding.
+        depth (int): Number of graph embedding units or depth of the network.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])

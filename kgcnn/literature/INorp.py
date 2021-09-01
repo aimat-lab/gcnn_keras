@@ -36,11 +36,11 @@ hyper_model_default = {'name': "INorp",
 
 
 @update_model_kwargs(hyper_model_default)
-def make_model(input_embedding=None,
+def make_model(inputs=None,
+               input_embedding=None,
                output_embedding=None,
                output_mlp=None,
                depth=None,
-               inputs=None,
                gather_args=None,
                edge_mlp_args=None,
                node_mlp_args=None,
@@ -49,7 +49,25 @@ def make_model(input_embedding=None,
                use_set2set=None,
                **kwargs
                ):
-    """Generate Interaction network."""
+    """Make INorp graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        depth (int): Number of graph embedding units or depth of the network.
+        gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
+        edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
+        node_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for node updates.
+        set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
+        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges`, `PoolingNodes` layer.
+        use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])

@@ -35,7 +35,20 @@ def make_model(inputs=None,
                depth=None,
                gcn_args=None,
                **kwargs):
-    """Make GCN model."""
+    """Make GCN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        depth (int): Number of graph embedding units or depth of the network.
+        gcn_args (dict): Dictionary of layer arguments unpacked in `GCN` convolutional layer.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     input_node_shape = inputs[0]['shape']
     input_edge_shape = inputs[1]['shape']

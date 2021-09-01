@@ -55,7 +55,28 @@ def make_model(inputs=None,
                dropout=None,
                **kwargs
                ):
-    """Get Megnet model."""
+    """Make Megnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        gauss_ags (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
+        meg_block_args (dict): Dictionary of layer arguments unpacked in `MEGnetBlock` layer.
+        set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
+        node_ff_args (dict): Dictionary of layer arguments unpacked in `MLP` feed-forward layer.
+        edge_ff_args (dict): Dictionary of layer arguments unpacked in `MLP` feed-forward layer.
+        state_ff_args (dict): Dictionary of layer arguments unpacked in `MLP` feed-forward layer.
+        use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+        nblocks (int): Number of graph embedding blocks or depth of the network.
+        has_ff (bool): Use feed-forward MLP in each block.
+        dropout (int): Dropout to use. Default is None.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -122,7 +143,7 @@ def make_model(inputs=None,
     if output_embedding != "graph":
         raise ValueError("Unsupported graph embedding for mode `Megnet`.")
     # final dense layers
-    # Only graph embedding for MEGNET
+    # Only graph embedding for Megnet
     main_output = MLP(**output_mlp, input_tensor_type="tensor")(final_vec)
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, env_input], outputs=main_output)
     return model

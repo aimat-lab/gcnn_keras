@@ -47,7 +47,7 @@ def make_model(inputs=None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final `BesselBasisLayer` layer.
-        depth (int): Number layers or depth of the network.
+        depth (int): Number of graph embedding units or depth of the network.
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.

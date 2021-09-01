@@ -53,7 +53,32 @@ def make_model(inputs=None,
                extensive=None,
                output_init=None,
                **kwargs):
-    """Make DimeNet++ network."""
+    """Make DimeNetPP graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        emb_size (int):
+        out_emb_size (int):
+        int_emb_size (int):
+        basis_emb_size (int):
+        num_blocks (int): Number of graph embedding blocks or depth of the network.
+        num_spherical (int):
+        num_radial (int):
+        cutoff (float):
+        envelope_exponent (int):
+        num_before_skip (int):
+        num_after_skip (int):
+        num_dense_output (int): Number of dense units in output block..
+        num_targets (int): Number of targets or output embedding dimension.
+        activation (str, dict): Activation to use.
+        extensive (bool): Graph output for extensive target to apply sum for pooling or mean otherwise.
+        output_init (str, dict): Output initializer for kernel.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])

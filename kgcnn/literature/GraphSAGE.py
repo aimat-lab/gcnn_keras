@@ -45,7 +45,26 @@ def make_model(inputs=None,
                use_edge_features=None,
                depth=None, **kwargs
                ):
-    """Generate GraphSAGE network."""
+    """Make GraphSAGE graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        node_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for node updates.
+        edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
+        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalMessages` layer.
+        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
+        gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
+        concat_args (dict): Dictionary of layer arguments unpacked in `Concatenate` layer.
+        use_edge_features (bool): Whether to add edge features in message step.
+        depth (int): Number of graph embedding units or depth of the network.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(**inputs[0])

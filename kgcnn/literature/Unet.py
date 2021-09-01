@@ -52,7 +52,7 @@ def make_model(inputs=None,
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
             Defines number of model outputs and activation.
-        depth (int): Number of layers.
+        depth (int): Number of graph embedding units or depth of the network.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges` layers.
         gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodesOutgoing` layers.
         top_k_args (dict): Dictionary of layer arguments unpacked in `PoolingTopK` layers.

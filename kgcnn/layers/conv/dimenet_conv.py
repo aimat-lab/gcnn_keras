@@ -237,7 +237,7 @@ class DimNetOutputBlock(GraphBaseLayer):
     Args:
         emb_size (list): List of node embedding dimension.
         out_emb_size (list): List of edge embedding dimension.
-        num_dense (list): List of environment embedding dimension.
+        num_dense (list): Number of dense layer for MLP.
         num_targets (int): Number of output target dimension. Defaults to 12.
         use_bias (bool, optional): Use bias. Defaults to True.
         kernel_initializer: Initializer for kernels. Default is 'glorot_orthogonal' with fallback 'orthogonal'.

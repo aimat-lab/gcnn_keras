@@ -32,7 +32,22 @@ def make_model(inputs=None,
                gin_args=None,
                output_activation=None,
                dropout=None, **kwargs):
-    """Make GCN model."""
+    """Make GIN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        depth (int): Number of graph embedding units or depth of the network.
+        gin_args (dict): Dictionary of layer arguments unpacked in `GIN` convolutional layer.
+        output_activation (str, dict): Activation for final output layer.
+        dropout (float): Dropout to use.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     assert len(inputs) == 2
