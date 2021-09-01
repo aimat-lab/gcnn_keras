@@ -43,3 +43,4 @@ class MUTAGDataset(GraphTUDataset):
         self.graph_size = [len(x) for x in self.node_attributes]
 
         return self
+# data = MUTAGDataset()

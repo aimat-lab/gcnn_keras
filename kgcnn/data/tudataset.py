@@ -3,12 +3,27 @@ import os
 
 from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
+# TUDataset: A collection of benchmark datasets for learning with graphs
+# by Christopher Morris and Nils M. Kriege and Franka Bause and Kristian Kersting and Petra Mutzel and Marion Neumann
+# http://graphlearning.io
+
 
 class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
+    r"""Base class for loading graph datasets published by `TU Dortmund University
+    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs.
+    """
 
+    # List of tested datasets. Can be expanded.
     all_tudataset_identifier = ["PROTEINS", "MUTAG", "Mutagenicity"]
 
     def __init__(self, dataset_name=None, reload=False, verbose=1):
+        """Initialize a `GraphTUDataset` instance from string identifier.
+
+        Args:
+            dataset_name (str): Name of a dataset.
+            reload (bool): Download the dataset again and prepare data on disk.
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+        """
 
         if isinstance(dataset_name, str) and dataset_name in self.all_tudataset_identifier:
             self.data_directory = dataset_name
@@ -18,6 +33,8 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
             self.unpack_directory = dataset_name
             self.fits_in_memory = True
             self.dataset_name = dataset_name
+        else:
+            print("WARNING:kgcnn: Can not resolve %s as a TUDataset." % dataset_name)
 
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
@@ -28,6 +45,15 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
             self.read_in_memory(verbose=verbose)
 
     def read_in_memory(self, verbose=1):
+        r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
+        to a list of separate graph properties for `MemoryGraphDataset`.
+
+        Args:
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+
+        Returns:
+            self
+        """
 
         if self.file_name is not None and self.dataset_name in self.all_tudataset_identifier:
             name_dataset = self.dataset_name
@@ -77,7 +103,11 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
             g_attr = None
 
         # labels
-        num_graphs = len(g_labels)
+        num_graphs = np.amax(g_n_id)
+        if g_labels is not None:
+            if len(g_labels) != num_graphs:
+                print("ERROR:kgcnn: Wrong number of graphs, not matching graph labels, {0}, {1}".format(len(g_labels),
+                                                                                                        num_graphs))
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
@@ -110,7 +140,7 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         # edge_indices
         node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
         edge_indices = node_index[g_a]
-        edge_indices = np.concatenate([edge_indices[:,1:], edge_indices[:,:1]],axis=-1)  # switch indices
+        edge_indices = np.concatenate([edge_indices[:, 1:], edge_indices[:, :1]], axis=-1)  # switch indices
         edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
 
         # Check if unconnected
@@ -143,3 +173,4 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         self.graph_adjacency = None  # @TODO: For single graph networks
         self.length = len(g_labels)
 
+        return self
