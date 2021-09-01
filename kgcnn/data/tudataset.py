@@ -23,7 +23,7 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     # List of tested datasets.
     all_tudataset_identifier = ["PROTEINS", "MUTAG", "Mutagenicity"]
 
-    def __init__(self, dataset_name=None, reload=False, verbose=1):
+    def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
         """Initialize a `GraphTUDataset` instance from string identifier.
 
         Args:
@@ -34,7 +34,8 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
 
         if isinstance(dataset_name, str) and dataset_name in self.all_tudataset_identifier:
             self.data_directory = dataset_name
-            self.download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/" + dataset_name + ".zip"
+            self.download_url = "https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets/"
+            self.download_url = self.download_url + dataset_name + ".zip"
             self.file_name = dataset_name + ".zip"
             self.unpack_zip = True
             self.unpack_directory = dataset_name
@@ -51,7 +52,7 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
-    def read_in_memory(self, verbose=1):
+    def read_in_memory(self, verbose: int = 1):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
         to a list of separate graph properties for `MemoryGraphDataset`.
 

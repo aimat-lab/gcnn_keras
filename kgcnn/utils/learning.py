@@ -109,7 +109,7 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
     """Callback logging the learning rate. This does not work universally yet.
     Will be improved in the future."""
 
-    def __init__(self, verbose=0):
+    def __init__(self, verbose: int = 0):
         super(LearningRateLoggingCallback, self).__init__()
         self.verbose = verbose
 

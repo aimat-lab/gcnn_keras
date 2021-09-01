@@ -45,7 +45,7 @@ def save_yaml_file(outlist, fname):
         yaml.dump(outlist, yaml_file, default_flow_style=False)
 
 
-def ragged_tensor_from_nested_numpy(numpy_list):
+def ragged_tensor_from_nested_numpy(numpy_list: list):
     """Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
     with exception of the first dimension.
     This will result in a ragged tensor with ragged dimension only at first axis (ragged_rank=1), like

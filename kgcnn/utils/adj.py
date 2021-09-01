@@ -101,7 +101,7 @@ def make_adjacency_undirected_logical_or(adj_mat):
         return a_out.tocoo()
 
 
-def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates=True, sort_indices=True):
+def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True):
     r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
     Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
     first index at position `index[:, 0]`.
@@ -153,7 +153,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates=True, 
         return clean_index
 
 
-def add_edges_reverse_indices(edge_indices, *args, remove_duplicates=True, sort_indices=True):
+def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True):
     r"""Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
     no edge is added. By default, all indices are sorted. Sorting is done for the first index at position `index[:, 0]`.
 

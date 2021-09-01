@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 @tf.function
-def segment_softmax(data, segment_ids, normalize=True):
+def segment_softmax(data, segment_ids, normalize: bool = True):
     """Segment softmax similar to segment_max but with a softmax function.
 
     Args:
