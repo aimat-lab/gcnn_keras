@@ -3,6 +3,7 @@ import os
 
 from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
+
 # TUDataset: A collection of benchmark datasets for learning with graphs
 # by Christopher Morris and Nils M. Kriege and Franka Bause and Kristian Kersting and Petra Mutzel and Marion Neumann
 # http://graphlearning.io
@@ -10,7 +11,8 @@ from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
 class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs.
+    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs. Note that there are sub-classes
+    of `GraphTUDataset` in :obj:``kgcnn.data.datasets``, if the need more refined post-precessing.
     """
 
     # List of tested datasets. Can be expanded.
