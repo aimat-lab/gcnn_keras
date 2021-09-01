@@ -11,8 +11,14 @@ from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
 class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs. Note that there are sub-classes
-    of `GraphTUDataset` in :obj:``kgcnn.data.datasets``, if the need more refined post-precessing.
+    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs.
+
+    .. note::
+        Note that there are sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets``,
+        if the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
+        properties like edge_attributes etc.
+
+
     """
 
     # List of tested datasets. Can be expanded.
