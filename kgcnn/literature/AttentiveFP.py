@@ -40,7 +40,22 @@ def make_model(inputs=None,
                output_mlp=None,
                attention_args=None,
                **kwargs):
-    """Make AttentiveFP network."""
+    """Make AttentiveFP graph network via functional API. Default parameters can be found in :obj:`model_default`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        depth (int): Number of graph embedding units or depth of the network.
+        dropout (float): Dropout to use.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
+        attention_args (dict): Dictionary of layer arguments unpacked in `AttentiveHeadFP` layer. Units parameter
+            is also used in GRU-update and `PoolingNodesAttentive`.
+
+    Returns:
+        tf.keras.models.Model
+    """
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
