@@ -64,8 +64,8 @@ def make_model(inputs=None,
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         emb_size (int): Overall embedding size used for the messages.
         out_emb_size (int): Embedding size for output of `DimNetOutputBlock`.
-        int_emb_size (int):
-        basis_emb_size (int):
+        int_emb_size (int): Embedding size used for interaction triplets.
+        basis_emb_size (int): Embedding size used inside the basis transformation.
         num_blocks (int): Number of graph embedding blocks or depth of the network.
         num_spherical (int): Number of spherical components in `SphericalBasisLayer`.
         num_radial (int): Number of radial components in basis layer.
