@@ -9,6 +9,7 @@ class NumpyTensorList:
     have the same size. The behavior should be similar to :obj:`train_test_split` from scikit-learn.
     The length of each list should match the length of the dataset and
     each list-item be a numpy-tensor for a data-point. The lists could be X, y or different graph attributes.
+    This class is intentionally kept simple but can be built on in the future.
 
     """
 
