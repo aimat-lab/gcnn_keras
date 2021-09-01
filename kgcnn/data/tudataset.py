@@ -16,12 +16,11 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     .. note::
         Note that there are sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets``,
         if the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
-        properties like edge_attributes etc.
-
+        properties like `edge_attributes` etc.
 
     """
 
-    # List of tested datasets. Can be expanded.
+    # List of tested datasets.
     all_tudataset_identifier = ["PROTEINS", "MUTAG", "Mutagenicity"]
 
     def __init__(self, dataset_name=None, reload=False, verbose=1):
