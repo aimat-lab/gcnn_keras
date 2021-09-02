@@ -11,7 +11,8 @@ from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
 class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs.
+    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs. This general base class has
+    functionality to load TUDatasets in a generic way.
 
     .. note::
         Note that there are sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets``,
@@ -42,7 +43,7 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
             self.fits_in_memory = True
             self.dataset_name = dataset_name
         else:
-            print("WARNING:kgcnn: Can not resolve %s as a TUDataset." % dataset_name)
+            print("ERROR:kgcnn: Can not resolve %s as a TUDataset." % dataset_name)
 
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
