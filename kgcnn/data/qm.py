@@ -2,6 +2,9 @@ from kgcnn.data.base import DownloadDataset, MemoryGeometricGraphDataset
 
 
 class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
+    """This is a base class for QM datasets. The base class does only hold some general properties and methods but is
+    not capable of loading datasets. The class inherits from DownloadDataset and MemoryGeometricGraphDataset.
+    """
 
     global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
                           'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20,
@@ -19,7 +22,13 @@ class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
                           'Og': 118, 'Uue': 119}
     inverse_global_proton_dict = {value: key for key, value in global_proton_dict.items()}
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload: bool = False, verbose: int = 1):
+        """Default initialization. Must be called from sub-class.
+
+        Args:
+            reload (bool): Download the dataset again and prepare data on disk.
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+        """
 
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
         MemoryGeometricGraphDataset.__init__(self, verbose=verbose)
