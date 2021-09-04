@@ -121,16 +121,21 @@ class MolGraphInterface:
 
     @property
     def edge_indices(self):
-        """Return a list of atomic coordinates of the molecule."""
+        """Return a list of edge indices of the molecule."""
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def edge_attributes(self):
+    @property
+    def edge_number(self):
+        """Return a list of edge number that represents the bond order."""
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def node_attributes(self):
+    def edge_attributes(self, properties: list, encoder: dict):
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def graph_attributes(self):
+    def node_attributes(self, properties: list, encoder: dict):
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def graph_attributes(self, properties: list, encoder: dict):
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
 
