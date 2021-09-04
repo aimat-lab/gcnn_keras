@@ -15,9 +15,9 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     functionality to load TUDatasets in a generic way.
 
     .. note::
-        Note that there are sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets``,
+        Note that sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets`` should still be made,
         since the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
-        properties like `edge_attributes` etc.
+        properties like `edge_attributes` etc. Moreover, setting class labels should be done in sub-class.
 
     """
 
