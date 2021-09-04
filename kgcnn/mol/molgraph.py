@@ -51,7 +51,8 @@ class OneHotEncoder:
 class MolGraphInterface:
     r"""The MolGraphInterface defines the base class interface to handle a molecular graph. The method implementation
     to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
-    of a chemical informatics package like `rdkit` is treated via composition.
+    of a chemical informatics package like `rdkit` is treated via composition. The interface is designed to
+    extract a graph from a mol instance not to make a mol object from a graph.
 
     """
 
@@ -131,6 +132,7 @@ class MolGraphInterface:
 
     def graph_attributes(self):
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
 
 class MolecularGraph:
     """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
