@@ -102,6 +102,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
                        add_hydrogen: bool = False,
                        verbose: int = 1):
         """Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
+        Reset edges and nodes with new attributes and edge indices.
 
         Args:
             nodes (list): A list of node attributes
