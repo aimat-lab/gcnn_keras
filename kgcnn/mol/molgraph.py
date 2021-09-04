@@ -48,9 +48,92 @@ class OneHotEncoder:
         return encoded_list
 
 
+class MolGraphInterface:
+    r"""The MolGraphInterface defines the base class interface to handle a molecular graph. The method implementation
+    to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
+    of a chemical informatics package like `rdkit` is treated via composition.
+
+    """
+
+    def __init__(self, mol=None, add_hydrogen: bool = False):
+        """Set the mol attribute for composition. This mol instances will be the backends molecule class.
+
+        Args:
+            mol: Instance of a molecule from chemical informatics package.
+            add_hydrogen (bool): Whether to add or ignore hydrogen in the molecule.
+        """
+        self.mol = mol
+        self._add_hydrogen = add_hydrogen
+
+    def from_smiles(self, smile: str):
+        """Main method to generate a molecule from smiles string representation.
+
+        Args:
+            smile (str): Smile string representation of a molecule.
+
+        Returns:
+            self
+        """
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def to_smiles(self):
+        """Return a smile string representation of the mol instance.
+
+        Returns:
+            smile (str): Smile string.
+        """
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def from_mol_block(self, mol_block: str):
+        """Set mol-instance from a more extensive string representation containing coordinates and bond information.
+
+        Args:
+            mol_block (str): Mol-block representation of a molecule.
+
+        Returns:
+            self
+        """
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def to_mol_block(self):
+        """Make a more extensive string representation containing coordinates and bond information from self.
+
+        Returns:
+            mol_block (str): Mol-block representation of a molecule.
+        """
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    @property
+    def node_number(self):
+        """Return list of node numbers which is the atomic number of atoms in the molecule"""
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    @property
+    def node_symbol(self):
+        """Return a list of atomic symbols of the molecule."""
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    @property
+    def node_coordinates(self):
+        """Return a list of atomic coordinates of the molecule."""
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    @property
+    def edge_indices(self):
+        """Return a list of atomic coordinates of the molecule."""
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def edge_attributes(self):
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def node_attributes(self):
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def graph_attributes(self):
+        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+
 class MolecularGraph:
-    """A graph object representing a strict molecular graph, e.g. only chemical bonds.
-    Note: We will maybe change the interface for better integration in the future."""
+    """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
 
     atom_fun_dict = {
         "AtomicNum": rdkit.Chem.rdchem.Atom.GetAtomicNum,
@@ -268,5 +351,3 @@ class MolecularGraph:
 
         return self
 
-    def to_networkx(self):
-        pass

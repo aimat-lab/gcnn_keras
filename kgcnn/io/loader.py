@@ -68,8 +68,9 @@ class NumpyTensorList:
         Returns:
             list: A list of tf.Tensor or tf.RaggedTensor objects.
         """
-        # We can check if tf.RaggedTensor is actually necessary, without relying on ragged-argument.
-        # Also need to improve casting, e.g. memory usage
+        # TODO: We can check if tf.RaggedTensor is actually necessary, without relying on ragged-argument.
+        # TODO: Also need to improve casting, e.g. memory usage
+        # TODO: Also ragged_tensor_from_nested_numpy will fail for arbitrary ragged shape
         if ragged is None:
             ragged = [False] * len(self._tensor_list)
         assert len(ragged) == len(self._tensor_list)

@@ -65,7 +65,11 @@ def get_connectivity_from_inverse_distance_matrix(inv_dist_mat, protons, radii_d
 
 class ExtensiveMolecularScaler:
     """Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
-    contributions. Interface is designed after scikit-learn standard scaler. Internally Ridge regression ist used."""
+    contributions. Interface is designed after scikit-learn standard scaler. Internally Ridge regression ist used.
+    Only the atomic number is used as extensive scaler. This could be further improved by also taking bonds and
+    interactions into account, e.g. as energy contribution.
+
+    """
 
     max_atomic_number = 95
 
