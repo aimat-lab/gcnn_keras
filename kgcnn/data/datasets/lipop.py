@@ -38,17 +38,17 @@ class LipopDataset(MuleculeNetDataset):
         filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
         smiles = data['smiles'].values
-        mb = self._smiles_to_mol_list(smiles, addHs=True, sanitize=True, embed_molecule=True, verbose=verbose)
+        mb = self._smiles_to_mol_list(smiles, add_hydrogen=True, sanitize=True, make_conformers=True, verbose=verbose)
         save_json_file(mb, os.path.join(self.data_main_dir, self.data_directory, mol_filename))
 
-    def read_in_memory(self, verbose=1):
+    def read_in_memory(self, has_conformers=True, verbose=1):
         filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
         labels2 = np.expand_dims(np.array(data['exp']), axis=-1)
         # labels1 = np.expand_dims(np.array(data['ESOL predicted log solubility in mols per litre']), axis=-1)
         self.graph_labels = labels2
         self.length = len(labels2)
-        super(LipopDataset, self).read_in_memory(verbose=verbose)
+        super(LipopDataset, self).read_in_memory(has_conformers=has_conformers, verbose=verbose)
 
 # ld = LipopDataset(reload=False)
 # ld.define_attributes()

@@ -3,7 +3,7 @@
         "model": {
             "name": "AttentiveFP",
             "inputs": [{"shape": [null, 41], "name": "node_attributes", "dtype": "float32", "ragged": true},
-                      {"shape": [null, 15], "name": "edge_attributes", "dtype": "float32", "ragged": true},
+                      {"shape": [null, 11], "name": "edge_attributes", "dtype": "float32", "ragged": true},
                       {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}],
             "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
                                "edge_attributes": {"input_dim": 5, "output_dim": 64}},

@@ -11,13 +11,13 @@ from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 
 class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. They contain non-isomorphic graphs. This general base class has
+    <https://chrsmrrs.github.io/datasets>`_. Datasets contain non-isomorphic graphs. This general base class has
     functionality to load TUDatasets in a generic way.
 
     .. note::
         Note that sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets`` should still be made,
-        since the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
-        properties like `edge_attributes` etc. Moreover, setting class labels should be done in sub-class.
+        if the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
+        properties like `edge_attributes` etc.
 
     """
 
@@ -222,3 +222,4 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
                 if line[:3] == "|**":
                     line_ids.append(line.split("**")[1])
         return line_ids
+

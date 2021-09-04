@@ -13,7 +13,7 @@ import rdkit.Chem.Descriptors
 class OneHotEncoder:
     """Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
     value. The translated values must support ``__eq__()`` operator. The list of possible values must be set beforehand.
-    Is used as a basic encoder example for ``MolecularGraph``.
+    Is used as a basic encoder example for ``MolecularGraphRDKit``.
     """
 
     def __init__(self, one_hot_values: list, add_others: bool = True):
@@ -49,10 +49,10 @@ class OneHotEncoder:
 
 
 class MolGraphInterface:
-    r"""The MolGraphInterface defines the base class interface to handle a molecular graph. The method implementation
+    r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph. The method implementation
     to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
     of a chemical informatics package like `rdkit` is treated via composition. The interface is designed to
-    extract a graph from a mol instance not to make a mol object from a graph.
+    extract a graph from a mol instance not to make a mol object from a graph, but could be extended that way.
 
     """
 
@@ -66,7 +66,7 @@ class MolGraphInterface:
         self.mol = mol
         self._add_hydrogen = add_hydrogen
 
-    def from_smiles(self, smile: str):
+    def from_smiles(self, smile: str, **kwargs):
         """Main method to generate a molecule from smiles string representation.
 
         Args:
@@ -130,16 +130,87 @@ class MolGraphInterface:
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def edge_attributes(self, properties: list, encoder: dict):
+        """Make edge attributes.
+
+        Args:
+            properties (list): List of string identifier for a molecular property. Must match backend features.
+            encoder (dict): A dictionary of callable encoder function or class for each string identifier.
+
+        Returns:
+            list: List of attributes after processed by the encoder.
+        """
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def node_attributes(self, properties: list, encoder: dict):
+        """Make node attributes.
+
+        Args:
+            properties (list): List of string identifier for a molecular property. Must match backend features.
+            encoder (dict): A dictionary of callable encoder function or class for each string identifier.
+
+        Returns:
+            list: List of attributes after processed by the encoder.
+        """
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def graph_attributes(self, properties: list, encoder: dict):
+        """Make graph attributes.
+
+        Args:
+            properties (list): List of string identifier for a molecular property. Must match backend features.
+            encoder (dict): A dictionary of callable encoder function or class for each string identifier.
+
+        Returns:
+            list: List of attributes after processed by the encoder.
+        """
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
 
+    @staticmethod
+    def _check_encoder(encoder: dict, possible_keys: list):
+        """Verify and check if encoder dictionary inputs is within possible properties. If a key has to be removed,
+        a warning is issued.
 
-class MolecularGraph:
+        Args:
+            encoder (dict): Dictionary of callable encoder function or class. Key matches properties.
+            possible_keys (list): List of allowed keys for encoder.
+
+        Returns:
+            dict: Cleaned encoder dictionary.
+        """
+        if encoder is None:
+            encoder = {}
+        else:
+            encoder_unknown = [x for x in encoder if x not in possible_keys]
+            if len(encoder_unknown) > 0:
+                print("WARNING: Encoder property not known", encoder_unknown)
+            encoder = {key: value for key, value in encoder.items() if key not in encoder_unknown}
+        return encoder
+
+    @staticmethod
+    def _check_properties_list(properties: list, possible_properties: list, attribute_name: str):
+        """Verify and check if list of string identifier match expected properties. If an identifier has to be removed,
+        a warning is issued.
+
+        Args:
+            properties (list): List of requested string identifier. Key matches properties.
+            possible_properties (list): List of allowed string identifier for properties.
+            attribute_name(str): A name for the properties.
+
+        Returns:
+            dict: Cleaned encoder dictionary.
+        """
+        if properties is None:
+            props = [x for x in possible_properties]
+        else:
+            props_unknown = [x for x in properties if x not in possible_properties]
+            if len(props_unknown) > 0:
+                print("WARNING:kgcnn: %s property is not defined, ignore following keys:" % attribute_name,
+                      props_unknown)
+            props = [x for x in properties if x in possible_properties]
+        return props
+
+
+class MolecularGraphRDKit(MolGraphInterface):
     """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
 
     atom_fun_dict = {
@@ -176,52 +247,46 @@ class MolecularGraph:
         "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
     }
 
-    def __init__(self, mol=None):
-        """Init MolecularGraph with mol object.
+    def __init__(self, mol=None, add_hydrogen: bool = True, is_directed: bool = False):
+        """Initialize MolecularGraphRDKit with mol object.
 
         Args:
             mol (rdkit.Chem.rdchem.Mol): Mol object from rdkit. Default is None.
+            add_hydrogen (bool): Whether to add hydrogen. Default is True.
+            is_directed (bool): Whether the edges are directed. Default is False.
         """
-
+        super().__init__(mol=mol, add_hydrogen=add_hydrogen)
         self.mol = mol
+        self._add_hydrogen = add_hydrogen
+        self.is_directed = is_directed
 
-        self.node_symbol = None
-        self.node_attributes = None
-        self.node_coordinates = None
-        self.node_number = None
-
-        self.edge_indices = None
-        self.edge_attributes = None
-
-        self.graph_attributes = None
-
-    def MolFromSmiles(self, smile, addHs=True, sanitize=True):
+    def from_smiles(self, smile, sanitize: bool = True):
         """Make molecule from smile.
 
         Args:
             smile (str): Smile string for the molecule.
-            addHs (bool): Whether to add hydrogen after creating the smile mol object. Default is True.
+            sanitize (bool): Whether to sanitize molecule.
         """
-
         # Make molecule from smile via rdkit
         m = rdkit.Chem.MolFromSmiles(smile)
         if sanitize:
             rdkit.Chem.SanitizeMol(m)
-        if addHs:
+        if self._add_hydrogen:
             m = rdkit.Chem.AddHs(m)  # add H's to the molecule
 
         m.SetProp("_Name", smile)
         self.mol = m
         return self
 
-    def EmbedMolecule(self):
+    @property
+    def node_coordinates(self):
         m = self.mol
+        if len(m.GetConformers()) > 0:
+            return np.array(self.mol.GetConformers()[0].GetPositions())
         try:
-            # rdkit.Chem.FindPotentialStereo(m)  # Assign Stereochemistry new method
-            # rdkit.Chem.AssignStereochemistry(m)
             rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
             rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-            # rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
             rdkit.Chem.AssignStereochemistryFrom3D(m)
             rdkit.Chem.AssignStereochemistry(m)
             self.mol = m
@@ -231,104 +296,67 @@ class MolecularGraph:
                 rdkit.Chem.AssignStereochemistry(m)
                 rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
                 rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-                # rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
                 rdkit.Chem.AssignStereochemistryFrom3D(m)
                 rdkit.Chem.AssignStereochemistry(m)
                 self.mol = m
             except ValueError:
                 print("WARNING:kgcnn: Rdkit could not embed molecule with smile",  m.GetProp("_Name"))
-        return self
+                return []
 
-    def MolFromMolBlock(self, mb, removeHs=False, sanitize=False):
-        self.mol = rdkit.Chem.MolFromMolBlock(mb, removeHs=removeHs, sanitize=sanitize)
-        return self
-
-    def GetSymbol(self):
-        return [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in self.mol.GetAtoms()]
-
-    def GetAtomicNum(self):
-        return np.array([rdkit.Chem.rdchem.Atom.GetAtomicNum(x) for x in self.mol.GetAtoms()])
-
-    def GetPositions(self):
         return np.array(self.mol.GetConformers()[0].GetPositions())
 
-    def set_attributes(self, nodes=None, edges=None, graph=None, encoder=None, is_directed=True):
-        """This is a rudiment function for extracting molecular features from rdkit object.
+    def from_mol_block(self, mb, sanitize=False):
+        self.mol = rdkit.Chem.MolFromMolBlock(mb, removeHs=(not self._add_hydrogen), sanitize=sanitize)
+        return self
 
-        Args:
-            nodes (list): Optional list of node properties to extract.
-            edges (list): Optional list of edge properties to extract.
-            graph (list): Optional list of molecule properties to extract.
-            is_directed (bool): Whether to add a bond for a directed graph. Default is True.
-            encoder (dict): Callable object for property to return list. Example: OneHotEncoder. Default is None.
+    def to_mol_block(self):
+        return rdkit.Chem.MolToMolBlock(self.mol)
 
-        Returns:
-            self: MolecularGraph object.
-        """
-        if self.mol is None:
-            raise ValueError("Mol object has not be set by init or mol_from_smiles for `MolecularGraph`.")
+    @property
+    def node_symbol(self):
+        return [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in self.mol.GetAtoms()]
+
+    @property
+    def node_number(self):
+        return np.array([rdkit.Chem.rdchem.Atom.GetAtomicNum(x) for x in self.mol.GetAtoms()])
+
+    @property
+    def edge_indices(self):
         m = self.mol
-
-        # Define the properties to extract
-        if nodes is None:
-            nodes = sorted(self.atom_fun_dict.keys())
-        else:
-            nodes_unknown = [x for x in nodes if x not in sorted(self.atom_fun_dict.keys())]
-            if len(nodes_unknown) > 0:
-                print("WARNING:kgcnn: Atom property is not defined, ignore following keys:", nodes_unknown)
-            nodes = [x for x in nodes if x in sorted(self.atom_fun_dict.keys())]
-        if edges is None:
-            edges = sorted(self.bond_fun_dict.keys())
-        else:
-            edges_unknown = [x for x in edges if x not in sorted(self.bond_fun_dict.keys())]
-            if len(edges_unknown) > 0:
-                print("WARNING:kgcnn: Bond property is not defined, ignore following keys:", edges_unknown)
-            edges = [x for x in edges if x in sorted(self.bond_fun_dict.keys())]
-        if graph is None:
-            graph = sorted(self.mol_fun_dict.keys())
-        else:
-            state_unknown = [x for x in graph if x not in sorted(self.mol_fun_dict.keys())]
-            if len(state_unknown) > 0:
-                print("WARNING:kgcnn: Molecule property is not defined, ignore following keys:", state_unknown)
-            state = [x for x in graph if x in sorted(self.mol_fun_dict.keys())]
-
-        # Encoder
-        if encoder is None:
-            encoder = {}
-        else:
-            encoder_unknown = [x for x in encoder if x not in sorted(self.atom_fun_dict.keys()) and x not in sorted(
-                self.bond_fun_dict.keys()) and x not in sorted(self.mol_fun_dict.keys())]
-            if len(encoder_unknown) > 0:
-                print("WARNING: Encoder property not known", encoder_unknown)
-            encoder = {key: value for key, value in encoder.items() if key not in encoder_unknown}
-
-        # Features to fill
-        atom_info = []
         bond_idx = []
-        bond_info = []
-        mol_info = []
+        for i, x in enumerate(m.GetBonds()):
+            bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
+            if not self.is_directed:
+                # Add a bond with opposite direction but same properties
+                bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
+        # Sort directed bonds
+        bond_idx = np.array(bond_idx, dtype="int64")
+        if len(bond_idx) > 0:
+            order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
+            ind1 = bond_idx[order1]
+            order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
+            ind2 = ind1[order2]
+            # Take the sorted bonds
+            bond_idx = ind2
+        return bond_idx
 
-        # Mol info
-        for k in graph:
-            mol_info += encoder[k](self.mol_fun_dict[k](m)) if k in encoder else [self.mol_fun_dict[k](m)]
-
-        # Collect info about atoms
-        for i, atm in enumerate(m.GetAtoms()):
-            attr = []
-            for k in nodes:
-                attr += encoder[k](self.atom_fun_dict[k](atm)) if k in encoder else [self.atom_fun_dict[k](atm)]
-            atom_info.append(attr)
+    def edge_attributes(self, properties: list, encoder: dict):
+        m = self.mol
+        edges = self._check_properties_list(properties, sorted(self.bond_fun_dict.keys()), "Bond")
+        encoder = self._check_encoder(encoder, sorted(self.bond_fun_dict.keys()))
 
         # Collect info about bonds
+        bond_info = []
+        bond_idx = []
         for i, x in enumerate(m.GetBonds()):
             attr = []
             for k in edges:
                 attr += encoder[k](self.bond_fun_dict[k](x)) if k in encoder else [self.bond_fun_dict[k](x)]
             bond_info.append(attr)
-            bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
-
+            bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
             # Add a bond with opposite direction but same properties
-            if is_directed:
+            if not self.is_directed:
                 bond_info.append(attr)
                 bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
 
@@ -344,17 +372,27 @@ class MolecularGraph:
             # Take the sorted bonds
             bond_idx = ind2
             bond_info = val2
+        return bond_idx, bond_info
 
-        self.node_attributes = atom_info
-        self.graph_attributes = mol_info
-        self.edge_indices = bond_idx
-        self.edge_attributes = bond_info
+    def node_attributes(self, properties: list, encoder: dict):
+        m = self.mol
+        nodes = self._check_properties_list(properties, sorted(self.atom_fun_dict.keys()), "Atom")
+        encoder = self._check_encoder(encoder, sorted(self.atom_fun_dict.keys()))
+        # Collect info about atoms
+        atom_info = []
+        for i, atm in enumerate(m.GetAtoms()):
+            attr = []
+            for k in nodes:
+                attr += encoder[k](self.atom_fun_dict[k](atm)) if k in encoder else [self.atom_fun_dict[k](atm)]
+            atom_info.append(attr)
+        return atom_info
 
-        # List of information and properties
-        self.node_symbol = [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in m.GetAtoms()]
-        if len(m.GetConformers()) > 0:
-            self.node_coordinates = m.GetConformers()[0].GetPositions()
-        self.node_number = [rdkit.Chem.rdchem.Atom.GetAtomicNum(x) for x in self.mol.GetAtoms()]
-
-        return self
-
+    def graph_attributes(self, properties: list, encoder: dict):
+        graph = self._check_properties_list(properties, sorted(self.mol_fun_dict.keys()), "Molecule")
+        m = self.mol
+        encoder = self._check_encoder(encoder, sorted(self.mol_fun_dict.keys()))
+        # Mol info
+        mol_info = []
+        for k in graph:
+            mol_info += encoder[k](self.mol_fun_dict[k](m)) if k in encoder else [self.mol_fun_dict[k](m)]
+        return mol_info

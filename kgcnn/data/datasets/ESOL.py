@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from kgcnn.data.moleculenet import MuleculeNetDataset
-from kgcnn.mol.molgraph import MolecularGraph, OneHotEncoder
+from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
 from kgcnn.utils.data import save_json_file
 
 import rdkit.Chem as Chem
@@ -43,13 +43,14 @@ class ESOLDataset(MuleculeNetDataset):
         filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
         smiles = data['smiles'].values
-        mb = self._smiles_to_mol_list(smiles, addHs=True, sanitize=True, embed_molecule=True, verbose=verbose)
+        mb = self._smiles_to_mol_list(smiles, add_hydrogen=True, sanitize=True, make_conformers=True, verbose=verbose)
         save_json_file(mb, os.path.join(self.data_main_dir, self.data_directory, mol_filename))
 
-    def read_in_memory(self, verbose=1):
+    def read_in_memory(self, has_conformers: bool = True, verbose: int = 1):
         """Load ESOL data into memory and already split into items.
 
         Args:
+            has_conformers (bool): If molecules have 3D coordinates pre-computed.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)
@@ -58,7 +59,7 @@ class ESOLDataset(MuleculeNetDataset):
         self.data_keys = data.columns
         self.graph_labels = np.expand_dims(np.array(data['measured log solubility in mols per litre']), axis=-1)
         self.length = len(self.graph_labels)
-        super(ESOLDataset, self).read_in_memory(verbose=verbose)
+        super(ESOLDataset, self).read_in_memory(has_conformers=has_conformers, verbose=verbose)
 
 
 # ed = ESOLDataset()
