@@ -34,7 +34,13 @@ class ESOLDataset(MuleculeNetDataset):
         # Use default base class init()
         super(ESOLDataset, self).__init__(reload=reload, verbose=verbose)
 
-    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
+    def prepare_data(self, overwrite: bool = False, verbose: int = 1, **kwargs):
+        """Pre-computation of molecular structure.
+
+        Args:
+            overwrite (bool): Overwrite existing database mol-json file. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
         mol_filename = self.mol_filename
         if os.path.exists(os.path.join(self.data_main_dir, self.data_directory, mol_filename)) and not overwrite:
             if verbose > 0:
@@ -46,11 +52,12 @@ class ESOLDataset(MuleculeNetDataset):
         mb = self._smiles_to_mol_list(smiles, add_hydrogen=True, sanitize=True, make_conformers=True, verbose=verbose)
         save_json_file(mb, os.path.join(self.data_main_dir, self.data_directory, mol_filename))
 
-    def read_in_memory(self, has_conformers: bool = True, verbose: int = 1):
-        """Load ESOL data into memory and already split into items.
+    def read_in_memory(self, has_conformers: bool = True, add_hydrogen: bool = True, verbose: int = 1):
+        r"""Load ESOL data into memory and split into items. Calls :obj:`read_in_memory` of base class.
 
         Args:
             has_conformers (bool): If molecules have 3D coordinates pre-computed.
+            add_hydrogen (bool): Whether to add H after smile translation.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         filepath = os.path.join(self.data_main_dir, self.data_directory, self.file_name)

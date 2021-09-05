@@ -71,7 +71,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
             if do_invert_distance:
                 dist_masked = invert_distance(dist_masked)
 
-            # Need at least on feature dimension
+            # Need at least one feature dimension
             if len(dist_masked.shape) <= 1:
                 dist_masked = np.expand_dims(dist_masked, axis=-1)
             edges.append(dist_masked)

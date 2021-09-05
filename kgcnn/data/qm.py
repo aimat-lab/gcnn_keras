@@ -2,8 +2,9 @@ from kgcnn.data.base import DownloadDataset, MemoryGeometricGraphDataset
 
 
 class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
-    """This is a base class for QM datasets. The base class does only hold some general properties and methods but is
-    not capable of loading datasets. The class inherits from DownloadDataset and MemoryGeometricGraphDataset.
+    r"""This is a base class for QM datasets. The base class does only hold some general properties and methods but is
+    not capable of loading datasets. The class inherits from :obj:`DownloadDataset` and
+    :obj:`MemoryGeometricGraphDataset`.
     """
 
     global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
