@@ -58,12 +58,13 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
             print("done")
         return molecule_list
 
-    def read_in_memory(self, has_conformers: bool = True, verbose: int = 1):
+    def read_in_memory(self, has_conformers: bool = True, add_hydrogen: bool = True, verbose: int = 1):
         """Load list of molecules from json-file named in :obj:`MuleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
         Args:
             has_conformers (bool): If molecules have 3D coordinates pre-computed.
+            add_hydrogen (bool): Whether to add H after smile translation.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
@@ -79,7 +80,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
         number = []
         edgind = []
         for x in mols:
-            mg = MolecularGraphRDKit(add_hydrogen=True).from_mol_block(x, sanitize=True)
+            mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(x, sanitize=True)
             atoms.append(mg.node_symbol)
             if has_conformers:
                 coords.append(mg.node_coordinates)
