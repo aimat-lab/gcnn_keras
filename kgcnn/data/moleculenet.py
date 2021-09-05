@@ -31,7 +31,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
     @classmethod
     def _smiles_to_mol_list(cls, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
                             make_conformers: bool = True, verbose: int = 1):
-        """Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
+        r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
 
         Args:
             smiles (list): A list of smiles for each molecule in dataset.
@@ -59,7 +59,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
         return molecule_list
 
     def read_in_memory(self, has_conformers: bool = True, add_hydrogen: bool = True, verbose: int = 1):
-        """Load list of molecules from json-file named in :obj:`MuleculeNetDataset.mol_filename` into memory. And
+        r"""Load list of molecules from json-file named in :obj:`MuleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
         Args:
@@ -102,7 +102,7 @@ class MuleculeNetDataset(DownloadDataset, MemoryGeometricGraphDataset):
                        encoder_graph=None,
                        add_hydrogen: bool = False,
                        verbose: int = 1):
-        """Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
+        r"""Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
         Reset edges and nodes with new attributes and edge indices. Default values are features that has been used
         by `Luo et al (2019)<https://doi.org/10.1021/acs.jmedchem.9b00959>`_.
 

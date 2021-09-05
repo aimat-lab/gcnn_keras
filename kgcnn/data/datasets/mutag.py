@@ -7,7 +7,7 @@ class MUTAGDataset(GraphTUDataset):
     """Store and process MUTAG dataset."""
 
     def __init__(self, reload=False, verbose=1):
-        """Initialize MUTAG dataset.
+        r"""Initialize MUTAG dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
@@ -17,7 +17,7 @@ class MUTAGDataset(GraphTUDataset):
         super(MUTAGDataset, self).__init__("MUTAG", reload=reload, verbose=verbose)
 
     def read_in_memory(self, verbose=1):
-        """Load MUTAG data into memory and already split into items.
+        r"""Load MUTAG data into memory and already split into items.
 
         Args:
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.

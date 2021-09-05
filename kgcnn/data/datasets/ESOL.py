@@ -35,7 +35,7 @@ class ESOLDataset(MuleculeNetDataset):
         super(ESOLDataset, self).__init__(reload=reload, verbose=verbose)
 
     def prepare_data(self, overwrite: bool = False, verbose: int = 1, **kwargs):
-        """Pre-computation of molecular structure.
+        r"""Pre-computation of molecular structure.
 
         Args:
             overwrite (bool): Overwrite existing database mol-json file. Default is False.

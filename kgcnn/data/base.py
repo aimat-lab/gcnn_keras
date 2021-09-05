@@ -93,7 +93,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
             if self.range_labels is not None:
                 self.range_labels[i] = self.range_labels[i][reorder]
 
-        # Conpute angles
+        # Compute angles
         a_indices = []
         a_angle = []
         for i, x in enumerate(self.range_indices):
