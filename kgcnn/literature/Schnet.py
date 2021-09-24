@@ -28,7 +28,7 @@ model_default = {'name': "Schnet",
                  'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4, 'out_scale_pos': 0,
-                 'gauss_ags': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'expand_distance': True,
                  'verbose': 1
                  }
@@ -44,7 +44,7 @@ def make_model(inputs=None,
                node_pooling_args=None,
                depth=None,
                out_scale_pos=None,
-               gauss_ags=None,
+               gauss_args=None,
                expand_distance=None,
                **kwargs):
     r"""Make Schnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
@@ -60,9 +60,9 @@ def make_model(inputs=None,
         output_dense (dict): Dictionary of layer arguments unpacked in final `Dense` layer.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
         out_scale_pos (int): Position of final `output_dense` layer.
-        gauss_ags (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
+        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
-            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_ags`.
+            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
 
     Returns:
         tf.keras.models.Model
@@ -79,7 +79,7 @@ def make_model(inputs=None,
     ed = xyz_input
     if expand_distance:
         ed = NodeDistance()([xyz_input, edi])
-        ed = GaussBasisLayer(**gauss_ags)(ed)
+        ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
     n = Dense(interaction_args["units"], activation='linear')(n)

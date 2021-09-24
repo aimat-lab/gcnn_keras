@@ -25,7 +25,7 @@ model_default = {'name': "Megnet",
                  'output_embedding': 'graph',
                  'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
                                 "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
-                 'gauss_ags': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
                                     'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
                  'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
@@ -43,7 +43,7 @@ def make_model(inputs=None,
                input_embedding=None,
                output_embedding=None,
                output_mlp=None,
-               gauss_ags=None,
+               gauss_args=None,
                meg_block_args=None,
                set2set_args=None,
                node_ff_args=None,
@@ -63,7 +63,7 @@ def make_model(inputs=None,
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
             Defines number of model outputs and activation.
-        gauss_ags (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
+        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         meg_block_args (dict): Dictionary of layer arguments unpacked in `MEGnetBlock` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
         node_ff_args (dict): Dictionary of layer arguments unpacked in `MLP` feed-forward layer.
@@ -92,7 +92,7 @@ def make_model(inputs=None,
     # Edge distance as Gauss-Basis
     x = xyz_input
     ed = NodeDistance()([x, edi])
-    ed = GaussBasisLayer(**gauss_ags)(ed)
+    ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
     vp = n
