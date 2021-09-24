@@ -99,7 +99,7 @@ def make_model(inputs=None,
         main_output = ks.layers.Flatten()(out)  # will be dense
     elif output_embedding == 'node':
         out = mlp_last(n)
-        main_output = ChangeTensorType(input_tensor_type="values_partition", output_tensor_type="tensor")(
+        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(
             out)  # no ragged for distribution atm
     else:
         raise ValueError("Unsupported graph embedding for mode `SchNet`")
