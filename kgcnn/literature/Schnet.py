@@ -27,7 +27,7 @@ model_default = {'name': "Schnet",
                                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                  'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
                  'node_pooling_args': {"pooling_method": "sum"},
-                 'depth': 4, 'out_scale_pos': 0,
+                 'depth': 4, 'out_scale_pos': 1,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'expand_distance': True,
                  'verbose': 1

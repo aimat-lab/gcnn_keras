@@ -80,6 +80,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 mae_5fold = []
+all_test_index = []
 splits_done = 0
 model, scaler, xtest, ytest, mae_valid, atoms_test = None, None, None, None, None, None
 for train_index, test_index in split_indices:
@@ -136,7 +137,7 @@ for train_index, test_index in split_indices:
     test_loss.append(val_mae)
     mae_valid = np.mean(val_mae[-5:], axis=0)
     mae_5fold.append(mae_valid)
-
+    all_test_index.append([data_selection[train_index], data_selection[test_index]])
     splits_done += 1
 
 # Make output directories
@@ -183,7 +184,4 @@ save_json_file(hyper, os.path.join(filepath, "hyper" + fit_postfix + ".json"))
 model.save(os.path.join(filepath, "model" + fit_postfix))
 
 # Save original data indices of the splits.
-all_test_index = []
-for train_index, test_index in split_indices:
-    all_test_index.append([data_selection[train_index], data_selection[test_index]])
 np.savez(os.path.join(filepath, "kfold_splits" + fit_postfix + ".npz"), all_test_index)
