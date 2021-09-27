@@ -67,6 +67,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 mae_5fold = []
+all_test_index = []
 model, scaler, xtest, ytest, mae_valid = None, None, None, None, None
 for train_index, test_index in split_indices:
 
@@ -114,6 +115,7 @@ for train_index, test_index in split_indices:
     test_loss.append(val_mae)
     mae_valid = np.mean(val_mae[-5:])
     mae_5fold.append(mae_valid)
+    all_test_index.append([train_index, test_index])
 
 os.makedirs(data_name, exist_ok=True)
 filepath = os.path.join(data_name, hyper['model']['name'])
@@ -151,9 +153,6 @@ plt.show()
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-all_test_index = []
-for train_index, test_index in split_indices:
-    all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
 
 # Save hyper-parameter again, which were used for this fit.

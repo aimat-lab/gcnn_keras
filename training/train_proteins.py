@@ -58,6 +58,7 @@ batch_size = hyper_train['fit']['batch_size']
 train_loss = []
 test_loss = []
 acc_5fold = []
+all_test_index = []
 model = None
 for train_index, test_index in split_indices:
 
@@ -93,6 +94,7 @@ for train_index, test_index in split_indices:
     test_loss.append(val_acc)
     acc_valid = np.mean(val_acc[-10:])
     acc_5fold.append(acc_valid)
+    all_test_index.append([train_index, test_index])
 
 # Make output directories
 os.makedirs(data_name, exist_ok=True)
@@ -118,9 +120,6 @@ plt.show()
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-all_test_index = []
-for train_index, test_index in split_indices:
-    all_test_index.append([train_index, test_index])
 np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
 
 # Save hyper-parameter again, which were used for this fit.
