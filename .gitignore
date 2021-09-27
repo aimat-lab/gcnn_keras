@@ -2,6 +2,7 @@
 *.mat
 *.txt
 *.zip
+*.npz
 /develop/
 build
 dist
@@ -18,6 +19,7 @@ kgcnn.egg-info
 /training/Lipop/PAiNN/model*/
 /training/ESOL/PAiNN/model*/
 /training/QM9/PAiNN/model*/
+/training/QM9/DimeNetPP/model*/
 /training/QM9/Megnet/model*/
 /training/ESOL/AttentiveFP/model*/
 /training/Lipop/AttentiveFP/model*/
