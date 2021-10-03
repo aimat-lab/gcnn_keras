@@ -1,5 +1,7 @@
 from kgcnn.data.base import DownloadDataset, MemoryGeometricGraphDataset
 
+from kgcnn.mol.convert import convert_xyz_to_mol_ob, convert_list_to_xyz_str
+
 
 class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
     r"""This is a base class for QM datasets. The base class does only hold some general properties and methods but is
@@ -7,6 +9,7 @@ class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
     :obj:`MemoryGeometricGraphDataset`.
     """
 
+    mol_filename = "mol.json"
     global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
                           'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20,
                           'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29,
@@ -33,3 +36,22 @@ class QMDataset(DownloadDataset, MemoryGeometricGraphDataset):
 
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
         MemoryGeometricGraphDataset.__init__(self, verbose=verbose)
+
+    @classmethod
+    def _make_mol_list(cls, atoms_coordinates_xyz: list):
+        """Make mol-blocks from list of multiple molecules.
+
+        Args:
+            atoms_coordinates_xyz (list): Nested list of xyz information for each molecule such as
+                `[[['H', 0.0, 0.0, 0.0], ['C', 1.0, 1.0, 1.0], ...], ... ]`
+
+        Returns:
+            list: A list of mol-blocks as string.
+        """
+        mol_list = []
+        for x in atoms_coordinates_xyz:
+            xyz_str = convert_list_to_xyz_str(x)
+            mol_str = convert_xyz_to_mol_ob(xyz_str)
+            mol_list.append(mol_str)
+        return mol_list
+

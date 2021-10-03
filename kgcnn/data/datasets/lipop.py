@@ -2,11 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.moleculenet import MuleculeNetDataset
+from kgcnn.data.moleculenet import MoleculeNetDataset
 from kgcnn.utils.data import save_json_file
 
 
-class LipopDataset(MuleculeNetDataset):
+class LipopDataset(MoleculeNetDataset):
     """Store and process full ESOL dataset."""
 
     dataset_name = "Lipop"

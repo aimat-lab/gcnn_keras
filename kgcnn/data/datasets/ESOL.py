@@ -2,14 +2,14 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.moleculenet import MuleculeNetDataset
+from kgcnn.data.moleculenet import MoleculeNetDataset
 from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
 from kgcnn.utils.data import save_json_file
 
 import rdkit.Chem as Chem
 
 
-class ESOLDataset(MuleculeNetDataset):
+class ESOLDataset(MoleculeNetDataset):
     """Store and process full ESOL dataset."""
 
     dataset_name = "ESOL"

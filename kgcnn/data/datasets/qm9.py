@@ -7,7 +7,8 @@ import json
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
 from kgcnn.mol.methods import ExtensiveMolecularScaler
-
+from kgcnn.mol.convert import parse_mol_str
+from kgcnn.utils.adj import add_edges_reverse_indices
 
 class QM9Dataset(QMDataset):
     """Store and process QM9 dataset."""
@@ -25,7 +26,7 @@ class QM9Dataset(QMDataset):
     fits_in_memory = True
     require_prepare_data = True
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload: bool = False, verbose: int = 1):
         """Initialize QM9 dataset.
 
         Args:
@@ -39,89 +40,130 @@ class QM9Dataset(QMDataset):
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
-    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
+    def prepare_data(self, overwrite: bool = False, verbose: int = 1, **kwargs):
         """Process data by loading all single xyz-files and store all pickled information to file.
         The single files are deleted afterwards, requires to re-extract the tar-file for overwrite.
 
         Args:
             overwrite (bool): Whether to redo the processing, requires un-zip of the data again. Defaults to False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
-
-        Returns:
-            pickle: Pickled QM9 data as python list.
         """
         path = os.path.join(self.data_main_dir, self.data_directory)
 
         datasetsize = 133885
-        qm9 = []
 
+        exist_pickle_dataset = False
         if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
                 os.path.join(path, "qm9.json"))) and not overwrite:
             if verbose > 0:
                 print("INFO:kgcnn: Single molecules already pickled... done")
-            return qm9
+            exist_pickle_dataset = True
 
-        if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
+        qm9 = []
+        if not exist_pickle_dataset:
+            if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
+                if verbose > 0:
+                    print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
+                return
+
+            # Read individual files
             if verbose > 0:
-                print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
-            return qm9
+                print("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
+            for i in range(1, datasetsize + 1):
+                mol = []
+                file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
+                open_file = open(os.path.join(path, "dsgdb9nsd.xyz", file), "r")
+                lines = open_file.readlines()
+                mol.append(int(lines[0]))
+                labels = lines[1].strip().split(' ')[1].split('\t')
+                if int(labels[0]) != i:
+                    print("KGCNN:WARNING: Index for QM9 not matching xyz-file.")
+                labels = [lines[1].strip().split(' ')[0].strip()] + [int(labels[0])] + [float(x) for x in labels[1:]]
+                mol.append(labels)
+                cords = []
+                for j in range(int(lines[0])):
+                    atom_info = lines[2 + j].strip().split('\t')
+                    cords.append([atom_info[0]] + [float(x.replace('*^', 'e')) for x in atom_info[1:]])
+                mol.append(cords)
+                freqs = lines[int(lines[0]) + 2].strip().split('\t')
+                freqs = [float(x) for x in freqs]
+                mol.append(freqs)
+                smiles = lines[int(lines[0]) + 3].strip().split('\t')
+                mol.append(smiles)
+                inchis = lines[int(lines[0]) + 4].strip().split('\t')
+                mol.append(inchis)
+                open_file.close()
+                qm9.append(mol)
+            if verbose > 0:
+                print('done')
 
-        # Read individual files
-        if verbose > 0:
-            print("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
-        for i in range(1, datasetsize + 1):
-            mol = []
-            file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
-            open_file = open(os.path.join(path, "dsgdb9nsd.xyz", file), "r")
-            lines = open_file.readlines()
-            mol.append(int(lines[0]))
-            labels = lines[1].strip().split(' ')[1].split('\t')
-            if int(labels[0]) != i:
-                print("KGCNN:WARNING: Index for QM9 not matching xyz-file.")
-            labels = [lines[1].strip().split(' ')[0].strip()] + [int(labels[0])] + [float(x) for x in labels[1:]]
-            mol.append(labels)
-            cords = []
-            for j in range(int(lines[0])):
-                atom_info = lines[2 + j].strip().split('\t')
-                cords.append([atom_info[0]] + [float(x.replace('*^', 'e')) for x in atom_info[1:]])
-            mol.append(cords)
-            freqs = lines[int(lines[0]) + 2].strip().split('\t')
-            freqs = [float(x) for x in freqs]
-            mol.append(freqs)
-            smiles = lines[int(lines[0]) + 3].strip().split('\t')
-            mol.append(smiles)
-            inchis = lines[int(lines[0]) + 4].strip().split('\t')
-            mol.append(inchis)
-            open_file.close()
-            qm9.append(mol)
-        if verbose > 0:
-            print('done')
+            # Save pickle data
+            if verbose > 0:
+                print("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
+            with open(os.path.join(path, "qm9.json"), 'w') as f:
+                json.dump(qm9, f)
+            if verbose > 0:
+                print('done')
 
-        # Save pickle data
-        if verbose > 0:
-            print("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
-        with open(os.path.join(path, "qm9.json"), 'w') as f:
-            json.dump(qm9, f)
-        if verbose > 0:
-            print('done')
-        # if verbose > 0:
-        #     print("INFO: Saving qm9.pickle ...", end='', flush=True)
-        # with open(os.path.join(path, "qm9.pickle"), 'wb') as f:
-        #     pickle.dump(qm9, f)
-        # if verbose > 0:
-        #     print('done')
+            # Remove file after reading
+            if verbose > 0:
+                print("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
+            for i in range(1, datasetsize + 1):
+                file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
+                file = os.path.join(path, "dsgdb9nsd.xyz", file)
+                os.remove(file)
+            if verbose > 0:
+                print('done')
 
-        # Remove file after reading
-        if verbose > 0:
-            print("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
-        for i in range(1, datasetsize + 1):
-            file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
-            file = os.path.join(path, "dsgdb9nsd.xyz", file)
-            os.remove(file)
-        if verbose > 0:
-            print('done')
+    def prepare_data_mol(self, overwrite: bool = False, verbose: int = 1, **kwargs):
+        """Process data by making mol-objects. Does not work for all molecules. Also for around 10k molecules the
+        string in the database does not match the mol-object generated from coordinates.
 
-        return qm9
+        Args:
+            overwrite (bool): Whether to redo the processing, requires un-zip of the data again. Defaults to False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+        """
+        # Check if we can import openbabel
+        path = os.path.join(self.data_main_dir, self.data_directory)
+        try:
+            from openbabel import openbabel
+            has_open_babel = True
+        except ImportError:
+            print("WARNING:kgcnn: Can not make mol-objects. Please install openbabel...", end='', flush=True)
+            has_open_babel = False
+
+        exist_mol_file = False
+        if os.path.exists(os.path.join(path, self.mol_filename)) and not overwrite:
+            if verbose > 0:
+                print("INFO:kgcnn: Mol-object for molecules already created... done")
+            exist_mol_file = True
+
+        if not exist_mol_file and has_open_babel:
+            if verbose > 0:
+                print("INFO:kgcnn: Reading dataset...", end='', flush=True)
+            if os.path.exists(os.path.join(path, "qm9.pickle")):
+                with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
+                    qm9 = pickle.load(f)
+            elif os.path.exists(os.path.join(path, "qm9.json")):
+                with open(os.path.join(path, "qm9.json"), 'rb') as f:
+                    qm9 = json.load(f)
+            else:
+                raise FileNotFoundError("Can not find pickled QM9 dataset.")
+            if verbose > 0:
+                print('done')
+
+            # Try extract bond-info and save mol-file.
+            if verbose > 0:
+                print("INFO:kgcnn: Preparing bond information...", end='', flush=True)
+
+            atoms = [x[2] for x in qm9]
+            mol_list = self._make_mol_list(atoms)
+
+            with open(os.path.join(path, self.mol_filename), 'w') as f:
+                json.dump(mol_list, f)
+
+            if verbose > 0:
+                print('done')
 
     def read_in_memory(self, verbose=1):
         """Load the pickled QM9 data into memory and already split into items.
@@ -145,18 +187,12 @@ class QM9Dataset(QMDataset):
         # labels
         self.length = 133885
         labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag here
-        # print(labels[0])
+
         # Atoms as nodes
         atoms = [[y[0] for y in x[2]] for x in qm9]
-        # nodelens = np.array([len(x) for x in atoms], dtype=np.int)
         atom_dict = {'H': 1, 'C': 6, 'N': 7, 'O': 8, 'F': 9}
-        # atom_1hot = {'H': [1, 0, 0, 0, 0], 'C': [0, 1, 0, 0, 0], 'N': [0, 0, 1, 0, 0], 'O': [0, 0, 0, 1, 0],
-        #              'F': [0, 0, 0, 0, 1]}
         zval = [[atom_dict[y] for y in x] for x in atoms]
         outzval = [np.array(x, dtype=np.int) for x in zval]
-        # outatoms = np.concatenate(outatom,axis=0)
-        # a1hot = [[atom_1hot[y] for y in x] for x in atoms]
-        # outa1hot = [np.array(x, dtype=np.float32) for x in a1hot]
         nodes = outzval
 
         # Mean molecular weight mmw
@@ -177,6 +213,32 @@ class QM9Dataset(QMDataset):
 
         if verbose > 0:
             print('done')
+
+        mol_list = None
+        if os.path.exists(os.path.join(path, self.mol_filename)):
+            if verbose > 0:
+                print("INFO:kgcnn: Reading mol information ...", end='', flush=True)
+            with open(os.path.join(path, self.mol_filename), 'rb') as f:
+                mol_list =  json.load(f)
+            print("done")
+        else:
+            print("WARNING:kgcnn: No mol information... done", flush=True)
+        self.mol_list = mol_list
+        if mol_list is not None:
+            if verbose > 0:
+                print("INFO:kgcnn: Parsing mol information ...", end='', flush=True)
+            bond_info = []
+            for x in mol_list:
+                bond_info.append(np.array(parse_mol_str(x)[5], dtype="int"))
+            edge_index = []
+            edge_attr = []
+            for x in bond_info:
+                temp = add_edges_reverse_indices(np.array(x[:, :2]), np.array(x[:, 2:]))
+                edge_index.append(temp[0])
+                edge_attr.append(np.array(temp[1], dtype="float"))
+            self.edge_indices = edge_index
+            self.edge_attributes = edge_attr
+            print("done")
 
 
 class QM9GraphLabelScaler:
@@ -292,7 +354,6 @@ class QM9GraphLabelScaler:
     def _check_input(node_number, graph_labels):
         assert len(node_number) == len(graph_labels), "ERROR:kgcnn: `QM9GraphLabelScaler` needs same length input."
         assert graph_labels.shape[-1] == 15, "ERROR:kgcnn: `QM9GraphLabelScaler` got wrong targets."
-
 
 # dataset = QM9Dataset()
 # scaler = QM9GraphLabelScaler()
