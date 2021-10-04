@@ -3,6 +3,7 @@ import numpy as np
 import requests
 import tarfile
 import zipfile
+import shutil
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle
@@ -105,7 +106,6 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.angle_attributes = a_angle
         return self
 
-
 class DownloadDataset:
     """Base layer for datasets. Provides functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
@@ -118,6 +118,7 @@ class DownloadDataset:
     data_directory = None
     unpack_directory = None
     download_url = None
+    local_full_path = None
     unpack_tar = False
     unpack_zip = False
     fits_in_memory = False
@@ -143,6 +144,9 @@ class DownloadDataset:
 
         if self.download_url is not None:
             self.download_database(os.path.join(self.data_main_dir, self.data_directory), self.download_url,
+                                   self.file_name, overwrite=reload, verbose=verbose)
+        if self.local_full_path is not None:
+            self.local_database(os.path.join(self.data_main_dir, self.data_directory), self.local_full_path,
                                    self.file_name, overwrite=reload, verbose=verbose)
 
         if self.unpack_tar:
@@ -209,6 +213,33 @@ class DownloadDataset:
             if verbose > 0:
                 print("INFO:kgcnn: Dataset found... done")
         return os.path.join(path, filename)
+
+    @classmethod
+    def local_database(cls, path, local_full_path, filename, overwrite=False, verbose=1):
+        """Download dataset file.
+
+        Args:
+            path (str): Target filepath to store file (without filename).
+            local_path (str): String of the local_path to move database file.
+            filename (str): Name the dataset is downloaded to.
+            overwrite (bool): Overwrite existing database. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+
+        Returns:
+            os.path: Filepath of downloaded file.
+        """
+        if os.path.exists(os.path.join(path, filename)) is False or overwrite:  
+            if os.path.exists(local_full_path):
+                if verbose > 0:
+                    print("INFO:kgcnn: copy dataset... ", end='', flush=True)
+                shutil.copy(local_full_path, os.path.join(path, filename))
+                if verbose > 0:
+                    print("done")
+        else:
+            if verbose > 0:
+                print("INFO:kgcnn: Dataset found... done")
+        return os.path.join(path, filename)
+
 
     @classmethod
     def unpack_tar_file(cls, path, filename, unpack_directory, overwrite=False, verbose=1):
