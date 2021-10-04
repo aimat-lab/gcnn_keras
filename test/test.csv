@@ -1,0 +1,5 @@
+smiles,Values1,Values2
+CCC, 1, 0.1
+CCCO, 2, 0.3
+CCCN, 3, 0.2
+CCCC=O, 4, 0.4
