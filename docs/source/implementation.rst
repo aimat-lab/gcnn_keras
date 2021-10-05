@@ -68,4 +68,3 @@ or via sub-classing of the message passing base layer. Where only ``message_func
             nodes, nodes_update = inputs
             return self.add([nodes, nodes_update])
 
-
