@@ -35,10 +35,10 @@ class QM9Dataset(QMDataset, DownloadDataset):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        super(QM9Dataset, self).__init__(verbose=verbose)
+        QMDataset.__init__(self, verbose=verbose)
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
-
+        self.dataset_name = "QM9"
         DownloadDataset.__init__(self, reload=reload, verbose=verbose)
 
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
