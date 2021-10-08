@@ -87,6 +87,6 @@ class LipopDataset(MoleculeNetDataset, DownloadDataset):
                                                         label_column_name=label_column_name, add_hydrogen=add_hydrogen,
                                                         verbose=verbose)
 
-ld = LipopDataset(reload=True)
+# ld = LipopDataset(reload=False)
 # ld.define_attributes()
 # labels, nodes, edges, edge_indices, graph_state = ld.get_graph()
