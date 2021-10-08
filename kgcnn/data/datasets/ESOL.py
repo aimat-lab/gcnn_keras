@@ -38,6 +38,7 @@ class ESOLDataset(MoleculeNetDataset, DownloadDataset):
 
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
         self.file_name = self.download_file_name
+        self.dataset_name = "ESOL"
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload, verbose=verbose)
