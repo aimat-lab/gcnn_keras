@@ -6,23 +6,25 @@ import json
 
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
+from kgcnn.data.base import DownloadDataset
 from kgcnn.mol.methods import ExtensiveMolecularScaler
 from kgcnn.mol.convert import parse_mol_str
 from kgcnn.utils.adj import add_edges_reverse_indices
 
-class QM9Dataset(QMDataset):
+
+class QM9Dataset(QMDataset, DownloadDataset):
     """Store and process QM9 dataset."""
     # https://ndownloader.figshare.com/files/3195398
     # https://ndownloader.figshare.com/files/3195389
 
     dataset_name = "QM9"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory = "qm9"
+    data_directory_name = "qm9"
     download_url = "https://ndownloader.figshare.com/files/3195389"
-    file_name = 'dsgdb9nsd.xyz.tar.bz2'
+    download_file_name = 'dsgdb9nsd.xyz.tar.bz2'
     unpack_tar = True
     unpack_zip = False
-    unpack_directory = 'dsgdb9nsd.xyz'
+    unpack_directory_name = 'dsgdb9nsd.xyz'
     fits_in_memory = True
     require_prepare_data = True
 
@@ -33,22 +35,37 @@ class QM9Dataset(QMDataset):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        # Run base class default init()
+        super(QM9Dataset, self).__init__(verbose=verbose)
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
-        super(QM9Dataset, self).__init__(reload=reload, verbose=verbose)
+
+        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+
+        self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
+
+        if self.require_prepare_data:
+            self.prepare_data(overwrite=reload, verbose=verbose)
+            # self.prepare_data_mol(overwrite=reload, verbose=verbose)
+
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
-    def prepare_data(self, overwrite: bool = False, verbose: int = 1, **kwargs):
+    def prepare_data(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
+                     overwrite: bool = False, verbose: int = 1, **kwargs):
         """Process data by loading all single xyz-files and store all pickled information to file.
         The single files are deleted afterwards, requires to re-extract the tar-file for overwrite.
 
         Args:
             overwrite (bool): Whether to redo the processing, requires un-zip of the data again. Defaults to False.
+            file_name (str): Filename for reading into memory. Not used for for now. Default is None.
+            data_directory (str): Full path to directory containing all xyz-files. Default is None.
+            dataset_name (str): Name of the dataset. Default is None.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        path = os.path.join(self.data_main_dir, self.data_directory)
+        if data_directory is not None:
+            self.data_directory = data_directory
+
+        path = self.data_directory
 
         datasetsize = 133885
 
@@ -63,7 +80,7 @@ class QM9Dataset(QMDataset):
         if not exist_pickle_dataset:
             if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
                 if verbose > 0:
-                    print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run extract dataset again.")
+                    print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run reload dataset again.")
                 return
 
             # Read individual files
@@ -115,6 +132,8 @@ class QM9Dataset(QMDataset):
             if verbose > 0:
                 print('done')
 
+        return self
+
     def prepare_data_mol(self, overwrite: bool = False, verbose: int = 1, **kwargs):
         """Process data by making mol-objects. Does not work for all molecules. Also for around 10k molecules the
         string in the database does not match the mol-object generated from coordinates.
@@ -124,7 +143,7 @@ class QM9Dataset(QMDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         # Check if we can import openbabel
-        path = os.path.join(self.data_main_dir, self.data_directory)
+        path = os.path.join(self.data_main_dir, self.data_directory_name)
         try:
             from openbabel import openbabel
             has_open_babel = True
@@ -165,13 +184,23 @@ class QM9Dataset(QMDataset):
             if verbose > 0:
                 print('done')
 
-    def read_in_memory(self, verbose=1):
+        return self
+
+    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
+                       verbose: int = 1):
         """Load the pickled QM9 data into memory and already split into items.
 
         Args:
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            file_name (str): Filename for reading into memory. Not used for QM9. Default is None.
+                Fix names are used. Such as 'qm9.json'.
+            data_directory (str): Full path to directory containing all files. Default is None.
+            dataset_name (str): Name of the dataset. Not used for reading. Default is None.
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        path = os.path.join(self.data_main_dir, self.data_directory)
+        if data_directory is not None:
+            self.data_directory = data_directory
+
+        path = self.data_directory
 
         if verbose > 0:
             print("INFO:kgcnn: Reading dataset ...", end='', flush=True)
@@ -223,7 +252,7 @@ class QM9Dataset(QMDataset):
             print("done")
         else:
             print("WARNING:kgcnn: No mol information... done", flush=True)
-        self.mol_list = mol_list
+        # self.mol_list = mol_list
         if mol_list is not None:
             if verbose > 0:
                 print("INFO:kgcnn: Parsing mol information ...", end='', flush=True)
@@ -240,6 +269,7 @@ class QM9Dataset(QMDataset):
             self.edge_attributes = edge_attr
             print("done")
 
+        return self
 
 class QM9GraphLabelScaler:
     """A standard scaler that scales all QM9 targets. For now, the main difference is that intensive and extensive

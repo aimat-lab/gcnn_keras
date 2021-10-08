@@ -11,13 +11,13 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
 
     dataset_name = "cora_lu"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory = "cora_lu"
+    data_directory_name = "cora_lu"
     download_url = "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz"
     # download_url = "https://linqs-data.soe.ucsc.edu/public/arxiv-mrdm05/arxiv.tar.gz"
-    file_name = 'cora.tgz'
+    download_file_name = 'cora.tgz'
     unpack_tar = True
     unpack_zip = False
-    unpack_directory = "cora_lu"
+    unpack_directory_name = "cora_lu"
     fits_in_memory = True
 
     # Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.

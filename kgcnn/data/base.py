@@ -9,8 +9,8 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 
 
 class MemoryGraphDataset:
+
     fits_in_memory = True
-    dataset_name = None
 
     def __init__(self, **kwargs):
         self.length = None
@@ -31,6 +31,27 @@ class MemoryGraphDataset:
         self.graph_number = None
         self.graph_size = None
         self.graph_adjacency = None  # Only for one-graph datasets like citation networks
+
+    @classmethod
+    def read_csv_simple(cls, filepath, delimiter=",", dtype=float):
+        """Very simple python-only function to read in a csv-file from file.
+
+        Args:
+            filepath (str): Full filepath of csv-file to read in.
+            delimiter (str): Delimiter character for separation. Default is ",".
+            dtype: Callable type conversion from string. Default is float.
+
+        Returns:
+            list: Python list of values. Length of the list equals the number of lines.
+        """
+        out = []
+        open_file = open(filepath, "r")
+        for lines in open_file.readlines():
+            string_list = lines.strip().split(delimiter)
+            values_list = [dtype(x.strip()) for x in string_list]
+            out.append(values_list)
+        open_file.close()
+        return out
 
 
 class MemoryGeometricGraphDataset(MemoryGraphDataset):
@@ -113,15 +134,14 @@ class DownloadDataset:
 
     """
     dataset_name = None
-    file_name = None
+    download_file_name = None
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory = None
-    unpack_directory = None
+    data_directory_name = None
+    unpack_directory_name = None
     download_url = None
     unpack_tar = False
     unpack_zip = False
     fits_in_memory = False
-    require_prepare_data = False
 
     def __init__(self, reload=False, verbose=1, **kwargs):
         """Base initialization function for downloading and extracting the data.
@@ -137,25 +157,21 @@ class DownloadDataset:
             print("INFO:kgcnn: Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
 
         # Default functions to load a dataset.
-        if self.data_directory is not None:
+        if self.data_directory_name is not None:
             self.setup_dataset_main(self.data_main_dir, verbose=verbose)
-            self.setup_dataset_dir(self.data_main_dir, self.data_directory, verbose=verbose)
+            self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, verbose=verbose)
 
         if self.download_url is not None:
-            self.download_database(os.path.join(self.data_main_dir, self.data_directory), self.download_url,
-                                   self.file_name, overwrite=reload, verbose=verbose)
+            self.download_database(os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
+                                   self.download_file_name, overwrite=reload, verbose=verbose)
 
         if self.unpack_tar:
-            self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.unpack_directory, overwrite=reload, verbose=verbose)
+            self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                                 self.unpack_directory_name, overwrite=reload, verbose=verbose)
 
         if self.unpack_zip:
-            self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory), self.file_name,
-                                 self.unpack_directory, overwrite=reload, verbose=verbose)
-
-        if self.require_prepare_data:
-            # Used if a standard processing of the data has to be done and save e.g. a pickled version for example.
-            self.prepare_data(overwrite=reload, verbose=verbose)
+            self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                                 self.unpack_directory_name, overwrite=reload, verbose=verbose)
 
     @classmethod
     def setup_dataset_main(cls, data_main_dir, verbose=1):
@@ -291,28 +307,3 @@ class DownloadDataset:
         archive.close()
 
         return os.path.join(path, unpack_directory)
-
-    @classmethod
-    def read_csv_simple(cls, filepath, delimiter=",", dtype=float):
-        """Very simple python-only function to read in a csv-file from file.
-
-        Args:
-            filepath (str): Full filepath of csv-file to read in.
-            delimiter (str): Delimiter character for separation. Default is ",".
-            dtype: Callable type conversion from string. Default is float.
-
-        Returns:
-            list: Python list of values. Length of the list equals the number of lines.
-        """
-        out = []
-        open_file = open(filepath, "r")
-        for lines in open_file.readlines():
-            string_list = lines.strip().split(delimiter)
-            values_list = [dtype(x.strip()) for x in string_list]
-            out.append(values_list)
-        open_file.close()
-        return out
-
-    def prepare_data(self, overwrite=False, verbose=1, **kwargs):
-        """Optional function for child classes to prepare the data, like compress etc."""
-        pass

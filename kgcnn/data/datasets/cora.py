@@ -12,12 +12,12 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
 
     dataset_name = "Cora"
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory = "cora"
+    data_directory_name = "cora"
     download_url = "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz"
-    file_name = 'cora.npz'
+    download_file_name = 'cora.npz'
     unpack_tar = False
     unpack_zip = False
-    unpack_directory = None
+    unpack_directory_name = None
     fits_in_memory = True
 
     def __init__(self, reload=False, verbose=1):

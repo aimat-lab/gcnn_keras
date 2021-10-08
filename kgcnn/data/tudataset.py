@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
+from kgcnn.data.base import MemoryGraphDataset
 
 
 # TUDataset: A collection of benchmark datasets for learning with graphs
@@ -9,97 +9,57 @@ from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
 # http://graphlearning.io
 
 
-class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
+class GraphTUDataset(MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
     <https://chrsmrrs.github.io/datasets>`_. Datasets contain non-isomorphic graphs. This general base class has
     functionality to load TUDatasets in a generic way.
 
     .. note::
-        Note that sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets`` should still be made,
-        if the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
-        properties like `edge_attributes` etc.
+        Note that sub-classes of `GraphTUDataset2020` in :obj:``kgcnn.data.datasets`` downloads datasets,
+        There are also further TU-datasets in :obj:``kgcnn.data.datasets``, if further processing is used in literature.
+        Not all datasets can provide all types of graph properties like `edge_attributes` etc.
 
     """
 
-    # List of datasets in TUDatasets.
-    tudataset_ids = [
-        # Molecules
-        "AIDS", "alchemy_full", "aspirin", "benzene", "BZR", "BZR_MD", "COX2", "COX2_MD", "DHFR", "DHFR_MD", "ER_MD",
-        "ethanol", "FRANKENSTEIN", "malonaldehyde", "MCF-7", "MCF-7H", "MOLT-4", "MOLT-4H", "Mutagenicity", "MUTAG",
-        "naphthalene", "NCI1", "NCI109", "NCI-H23", "NCI-H23H", "OVCAR-8", "OVCAR-8H", "P388", "P388H", "PC-3", "PC-3H",
-        "PTC_FM", "PTC_FR", "PTC_MM", "PTC_MR", "QM9", "salicylic_acid", "SF-295", "SF-295H", "SN12C", "SN12CH",
-        "SW-620", "SW-620H", "toluene", "Tox21_AhR_training", "Tox21_AhR_testing", "Tox21_AhR_evaluation",
-        "Tox21_AR_training", "Tox21_AR_testing", "Tox21_AR_evaluation", "Tox21_AR-LBD_training", "Tox21_AR-LBD_testing",
-        "Tox21_AR-LBD_evaluation", "Tox21_ARE_training", "Tox21_ARE_testing", "Tox21_ARE_evaluation",
-        "Tox21_aromatase_training", "Tox21_aromatase_testing", "Tox21_aromatase_evaluation", "Tox21_ATAD5_training",
-        "Tox21_ATAD5_testing", "Tox21_ATAD5_evaluation", "Tox21_ER_training", "Tox21_ER_testing", "Tox21_ER_evaluation",
-        "Tox21_ER-LBD_training", "Tox21_ER-LBD_testing", "Tox21_ER-LBD_evaluation", "Tox21_HSE_training",
-        "Tox21_HSE_testing", "Tox21_HSE_evaluation", "Tox21_MMP_training", "Tox21_MMP_testing", "Tox21_MMP_evaluation",
-        "Tox21_p53_training", "Tox21_p53_testing", "Tox21_p53_evaluation", "Tox21_PPAR-gamma_training",
-        "Tox21_PPAR-gamma_testing", "Tox21_PPAR-gamma_evaluation", "UACC257", "UACC257H", "uracil", "Yeast", "YeastH",
-        "ZINC_full", "ZINC_test", "ZINC_train", "ZINC_val",
-        # Bioinformatics
-        "DD", "ENZYMES", "KKI", "OHSU", "Peking_1", "PROTEINS", "PROTEINS_full",
-        # Computer vision
-        "COIL-DEL", "COIL-RAG", "Cuneiform", "Fingerprint", "FIRSTMM_DB", "Letter-high", "Letter-low", "Letter-med",
-        "MSRC_9", "MSRC_21", "MSRC_21C",
-        # Social networks
-        "COLLAB", "dblp_ct1", "dblp_ct2", "DBLP_v1", "deezer_ego_nets", "facebook_ct1", "facebook_ct2",
-        "github_stargazers", "highschool_ct1", "highschool_ct2", "IMDB-BINARY", "IMDB-MULTI", "infectious_ct1",
-        "infectious_ct2", "mit_ct1", "mit_ct2", "REDDIT-BINARY", "REDDIT-MULTI-5K", "REDDIT-MULTI-12K",
-        "reddit_threads", "tumblr_ct1", "tumblr_ct2", "twitch_egos", "TWITTER-Real-Graph-Partial",
-        # Synthetic
-        "COLORS-3", "SYNTHETIC", "SYNTHETICnew", "Synthie", "TRIANGLES"
-    ]
-
-    def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
+    def __init__(self, verbose: int = 1):
         """Initialize a `GraphTUDataset` instance from string identifier.
 
         Args:
-            dataset_name (str): Name of a dataset.
-            reload (bool): Download the dataset again and prepare data on disk.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        if not isinstance(dataset_name, str):
-            raise ValueError("ERROR:kgcnn: Please provide string identifier for TUDataset.")
+        self.file_name = None
+        self.data_directory = None
+        self.dataset_name = None
 
-        if dataset_name in self.tudataset_ids:
-            self.data_directory = dataset_name
-            self.download_url = "https://www.chrsmrrs.com/graphkerneldatasets/"
-            self.download_url = self.download_url + dataset_name + ".zip"
-            self.file_name = dataset_name + ".zip"
-            self.unpack_zip = True
-            self.unpack_directory = dataset_name
-            self.fits_in_memory = True
-            self.dataset_name = dataset_name
-        else:
-            print("ERROR:kgcnn: Can not resolve %s as a TUDataset." % dataset_name,
-                  "Add to `all_tudataset_identifier` list manually.")
-
-        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
-        if verbose > 1:
-            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
 
-        if self.fits_in_memory:
-            self.read_in_memory(verbose=verbose)
-
-    def read_in_memory(self, verbose: int = 1):
+    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
+                       verbose: int = 1):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
         to a list of separate graph properties for `MemoryGraphDataset`.
 
         Args:
+            file_name (str): Filename for reading into memory. Not used for general TUDataset, since there are multiple
+                files with a prefix and pre-defined suffix. Default is None.
+            data_directory (str): Full path to directory containing all txt-files. Default is None.
+            dataset_name (str): Name of the dataset. Important for base-name naming of files. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
 
         Returns:
             self
         """
+        if file_name is not None:
+            self.file_name = file_name
+        if data_directory is not None:
+            self.data_directory = data_directory
+        if self.dataset_name is None:
+            self.dataset_name = dataset_name
 
-        if self.file_name is not None and self.dataset_name in self.tudataset_ids:
+        if self.dataset_name is not None and self.data_directory is not None:
+            path = os.path.realpath(self.data_directory)
             name_dataset = self.dataset_name
-            path = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory, name_dataset)
         else:
-            print("WARNING:kgcnn: Dataset with name %s not found in TUDatasets list." % self.dataset_name)
+            print("WARNING:kgcnn: Dataset requires name %s and path." % self.dataset_name)
             return None
 
         # Define a graph with indices
@@ -213,13 +173,3 @@ class GraphTUDataset(DownloadDataset, MemoryGraphDataset):
         self.length = num_graphs
 
         return self
-
-    @staticmethod
-    def _debug_read_list():
-        line_ids = []
-        with open("datasets.md", 'r') as f:
-            for line in f.readlines():
-                if line[:3] == "|**":
-                    line_ids.append(line.split("**")[1])
-        return line_ids
-

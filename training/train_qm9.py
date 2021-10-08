@@ -156,7 +156,7 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('QM9 Loss')
+plt.title(model_name + ' QM9 Loss')
 plt.legend(loc='upper right', fontsize='medium')
 plt.savefig(os.path.join(filepath, "mae_qm9" + fit_postfix + ".png"))
 plt.show()
@@ -174,6 +174,7 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
 plt.xlabel('Predicted Last Split')
 plt.ylabel('Actual')
 plt.legend(loc='upper left', fontsize='x-small')
+plt.title(str(model_name))
 plt.savefig(os.path.join(filepath, "predict_qm9" + fit_postfix + ".png"))
 plt.show()
 
