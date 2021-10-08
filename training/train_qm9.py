@@ -174,7 +174,7 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
 plt.xlabel('Predicted Last Split')
 plt.ylabel('Actual')
 plt.legend(loc='upper left', fontsize='x-small')
-plt.title(str(model_name))
+plt.title(str(model_name)+ " Prediction Test")
 plt.savefig(os.path.join(filepath, "predict_qm9" + fit_postfix + ".png"))
 plt.show()
 
