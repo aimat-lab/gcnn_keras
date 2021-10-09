@@ -9,73 +9,66 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
     """
     datsets_download_info = {
-        "Lipop": {
-            "dataset_name": "Lipop",
-            "data_directory_name": "Lipop",
-            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv",
-            "download_file_name": 'Lipophilicity.csv'
-        },
-        "ESOL": {
-            "dataset_name": "ESOL",
-            "data_directory_name": "ESOL",
-            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv",
-            "download_file_name": 'delaney-processed.csv'
-        },
-        "FreeSolv": {
-            "dataset_name": "FreeSolv",
-            "data_directory_name": "FreeSolv",
-            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/SAMPL.csv",
-            "download_file_name": 'SAMPL.csv'
-        },
-        "PCBA": {
-            "dataset_name": "PCBA",
-            "data_directory_name": "PCBA",
-            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/pcba.csv.gz",
-            "download_file_name": 'pcba.csv.gz',
-            "extract_gz": True,
-            "extract_file_name": 'pcba.csv'
-        }
-
+        "ESOL": {"dataset_name": "ESOL", "download_file_name": 'delaney-processed.csv', "data_directory_name": "ESOL",
+                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv"},
+        "FreeSolv": {"dataset_name": "FreeSolv", "data_directory_name": "FreeSolv", "download_file_name": 'SAMPL.csv',
+                     "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/SAMPL.csv"},
+        "Lipop": {"dataset_name": "Lipop", "data_directory_name": "Lipop", "download_file_name": 'Lipophilicity.csv',
+                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv"},
+        "PCBA": {"dataset_name": "PCBA", "data_directory_name": "PCBA", "download_file_name": 'pcba.csv.gz',
+                 "extract_gz": True, "extract_file_name": 'pcba.csv',
+                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/pcba.csv.gz"},
+        "MUV": {"dataset_name": "MUV", "data_directory_name": "MUV", "download_file_name": 'muv.csv.gz',
+                 "extract_gz": True, "extract_file_name": 'muv.csv',
+                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/muv.csv.gz"},
+        "HIV": {"dataset_name": "HIV", "data_directory_name": "HIV", "download_file_name": 'HIV.csv',
+                "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/HIV.csv"},
+        "BACE": {"dataset_name": "BACE", "data_directory_name": "BACE", "download_file_name": 'bace.csv',
+                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/bace.csv"},
+        "BBBP": {"dataset_name": "BBBP", "data_directory_name": "BBBP", "download_file_name": 'BBBP.csv',
+                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/BBBP.csv"},
+        "Tox21": {"dataset_name": "Tox21", "data_directory_name": "Tox21", "download_file_name": 'tox21.csv.gz',
+                  "extract_gz": True, "extract_file_name": 'tox21.csv',
+                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/tox21.csv.gz"},
+        "ToxCast": {"dataset_name": "ToxCast", "data_directory_name": "ToxCast",
+                    "download_file_name": 'toxcast_data.csv.gz', "extract_gz": True,
+                    "extract_file_name": 'toxcast_data.csv',
+                    "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/toxcast_data.csv.gz"},
+        "SIDER": {"dataset_name": "SIDER", "data_directory_name": "SIDER", "download_file_name": 'sider.csv.gz',
+                  "extract_gz": True, "extract_file_name": 'sider.csv',
+                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/sider.csv.gz"},
+        "ClinTox": {"dataset_name": "ClinTox", "data_directory_name": "ClinTox", "download_file_name": 'clintox.csv.gz',
+                    "extract_gz": True, "extract_file_name": 'clintox.csv',
+                    "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clintox.csv.gz"},
     }
-    datasets_prepare_data_info= {
-        "Lipop": {
-            "make_conformers": True,
-            "add_hydrogen": True
-        },
-        "ESOL": {
-            "make_conformers": True,
-            "add_hydrogen": True
-        },
-        "FreeSolv": {
-            "make_conformers": True,
-            "add_hydrogen": True
-        },
-        "PCBA": {
-            "make_conformers": False,
-            "add_hydrogen": False
-        }
+    datasets_prepare_data_info = {
+        "ESOL": {"make_conformers": True, "add_hydrogen": True},
+        "FreeSolv": {"make_conformers": True, "add_hydrogen": True},
+        "Lipop": {"make_conformers": True, "add_hydrogen": True},
+        "PCBA": {"make_conformers": False, "add_hydrogen": False},
+        "MUV": {"make_conformers": False, "add_hydrogen": False},
+        "HIV": {"make_conformers": False, "add_hydrogen": False},
+        "BACE": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "mol"},
+        "BBBP": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
+        "Tox21": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
+        "ToxCast": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
+        "SIDER": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
+        "ClinTox": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"}
     }
     datasets_read_in_memory_info = {
-        "Lipop": {
-            "label_column_name": "exp",
-            "add_hydrogen": False,
-            "has_conformers": True
-        },
-        "ESOL": {
-            "label_column_name": "measured log solubility in mols per litre",
-            "add_hydrogen": False,
-            "has_conformers": True
-        },
-        "FreeSolv": {
-            "label_column_name": "expt",
-            "add_hydrogen": False,
-            "has_conformers": True
-        },
-        "PCBA": {
-            "label_column_name": slice(0, 128),
-            "add_hydrogen": False,
-            "has_conformers": False
-        }
+        "ESOL": {"add_hydrogen": False, "has_conformers": True,
+                 "label_column_name": "measured log solubility in mols per litre"},
+        "FreeSolv": {"has_conformers": True, "add_hydrogen": False, "label_column_name": "expt"},
+        "Lipop": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "exp"},
+        "PCBA": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 128)},
+        "MUV": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 17)},
+        "HIV": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "HIV_active"},
+        "BACE": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "Class"},
+        "BBBP": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "p_np"},
+        "Tox21": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 12)},
+        "ToxCast": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 618)},
+        "SIDER": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 28)},
+        "ClinTox": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 3)}
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
@@ -101,7 +94,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
-        self.file_name = self.download_file_name
+        self.file_name = self.download_file_name if self.extract_file_name is None else self.extract_file_name
         self.dataset_name = dataset_name
         self.require_prepare_data = True
 
@@ -175,4 +168,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
 
-# data = MoleculeNetDataset2018("ESOL")
+# data = MoleculeNetDataset2018("MUV")

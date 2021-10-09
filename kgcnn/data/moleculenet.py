@@ -130,6 +130,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             self.dataset_name = dataset_name
 
         data = pd.read_csv(os.path.join(self.data_directory, self.file_name))
+        # print(data.columns)
         self.data_keys = data.columns
         if isinstance(label_column_name, str):
             self.graph_labels = np.expand_dims(np.array(data[label_column_name]), axis=-1)
@@ -137,7 +138,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             self.graph_labels = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
                                                axis=-1)
         elif isinstance(label_column_name, slice):
-            self.graph_labels = np.array(data[label_column_name])
+            self.graph_labels = np.array(data.iloc[:, label_column_name])
         else:
             raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
         self.length = len(self.graph_labels)
