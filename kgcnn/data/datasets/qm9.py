@@ -45,7 +45,6 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload, verbose=verbose)
-            # self.prepare_data_mol(overwrite=reload, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
@@ -132,18 +131,6 @@ class QM9Dataset(QMDataset, DownloadDataset):
             if verbose > 0:
                 print('done')
 
-        return self
-
-    def prepare_data_mol(self, overwrite: bool = False, verbose: int = 1, **kwargs):
-        """Process data by making mol-objects. Does not work for all molecules. Also for around 10k molecules the
-        string in the database does not match the mol-object generated from coordinates.
-
-        Args:
-            overwrite (bool): Whether to redo the processing, requires un-zip of the data again. Defaults to False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
-        """
-        # Check if we can import openbabel
-        path = os.path.join(self.data_main_dir, self.data_directory_name)
         try:
             from openbabel import openbabel
             has_open_babel = True
@@ -183,6 +170,10 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
             if verbose > 0:
                 print('done')
+
+        if not exist_mol_file and not has_open_babel:
+            if verbose > 0:
+                print('WARNING:kgcnn: No openbabel installed. Can not extract mol-info from xyz.')
 
         return self
 
@@ -385,7 +376,7 @@ class QM9GraphLabelScaler:
         assert len(node_number) == len(graph_labels), "ERROR:kgcnn: `QM9GraphLabelScaler` needs same length input."
         assert graph_labels.shape[-1] == 15, "ERROR:kgcnn: `QM9GraphLabelScaler` got wrong targets."
 
-# dataset = QM9Dataset()
+dataset = QM9Dataset()
 # scaler = QM9GraphLabelScaler()
 # tafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels)
 # rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
