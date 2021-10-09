@@ -62,23 +62,22 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
 
         # Prepare download
         if dataset_name in self.tudataset_ids:
-            self.data_directory_name = dataset_name
-            self.download_url = "https://www.chrsmrrs.com/graphkerneldatasets/"
-            self.download_url = self.download_url + dataset_name + ".zip"
-            self.download_file_name = dataset_name + ".zip"
-            self.unpack_zip = True
-            self.unpack_directory_name = dataset_name
-            self.fits_in_memory = True
-            self.dataset_name = dataset_name
+            self.download_info = {
+                "data_directory_name": dataset_name,
+                "download_url": "https://www.chrsmrrs.com/graphkerneldatasets/" + dataset_name + ".zip",
+                "download_file_name": dataset_name + ".zip",
+                "unpack_zip": True,
+                "unpack_directory_name": dataset_name,
+                "dataset_name": dataset_name
+            }
         else:
-            print("ERROR:kgcnn: Can not resolve %s as a TUDataset." % dataset_name,
-                  "Add to `all_tudataset_identifier` list manually.")
+            raise ValueError("ERROR:kgcnn: Can not resolve %s as a TUDataset." % dataset_name,
+                             "Add to `all_tudataset_identifier` list manually.")
 
-        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name,
                                            dataset_name)
-        if verbose > 1:
-            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+        self.fits_in_memory = True
 
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)

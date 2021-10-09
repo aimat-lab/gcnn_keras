@@ -3,13 +3,14 @@ import numpy as np
 import requests
 import tarfile
 import zipfile
+import gzip
+import shutil
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle
 
 
 class MemoryGraphDataset:
-
     fits_in_memory = True
 
     def __init__(self, **kwargs):
@@ -133,23 +134,48 @@ class DownloadDataset:
     Information about the dataset can be set with class properties.
 
     """
-    dataset_name = None
-    download_file_name = None
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory_name = None
-    unpack_directory_name = None
-    download_url = None
-    unpack_tar = False
-    unpack_zip = False
-    fits_in_memory = False
 
-    def __init__(self, reload=False, verbose=1, **kwargs):
-        """Base initialization function for downloading and extracting the data.
+    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
+
+    def __init__(self,
+                 dataset_name: str = None,
+                 download_file_name: str = None,
+                 data_directory_name: str = None,
+                 unpack_directory_name: str = None,
+                 extract_file_name: str = None,
+                 download_url: str = None,
+                 unpack_tar: bool = False,
+                 unpack_zip: bool = False,
+                 extract_gz: bool = False,
+                 reload: bool = False,
+                 verbose: int = 1,
+                 **kwargs):
+        r"""Base initialization function for downloading and extracting the data.
 
         Args:
+            dataset_name (str): None.
+            download_file_name=None (str): None.
+            data_directory_name (str): None.
+            unpack_directory_name (str): None.
+            extract_file_name (str): None.
+            download_url (str): None.
+            unpack_tar (bool): False.
+            unpack_zip (bool): False.
+            extract_gz (bool): False.
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
+        self.dataset_name = dataset_name
+        self.download_file_name = download_file_name
+        self.data_directory_name = data_directory_name
+        self.unpack_directory_name = unpack_directory_name
+        self.extract_file_name = extract_file_name
+        self.download_url = download_url
+        self.unpack_tar = unpack_tar
+        self.unpack_zip = unpack_zip
+        self.extract_gz = extract_gz
+        # self.reload = reload
+        # self.verbose = 1
 
         # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
         # Some datasets do not offer all information.
@@ -172,6 +198,10 @@ class DownloadDataset:
         if self.unpack_zip:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
                                  self.unpack_directory_name, overwrite=reload, verbose=verbose)
+
+        if self.extract_gz:
+            self.extract_gz_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                                 self.extract_file_name, overwrite=reload, verbose=verbose)
 
     @classmethod
     def setup_dataset_main(cls, data_main_dir, verbose=1):
@@ -307,3 +337,41 @@ class DownloadDataset:
         archive.close()
 
         return os.path.join(path, unpack_directory)
+
+    @classmethod
+    def extract_gz_file(cls, path: str, filename: str, out_filename: str = None,
+                        overwrite: bool = False, verbose: int = 1):
+        """Extract gz-file.
+
+        Args:
+            path (str): Filepath where the gz-file to extract is located.
+            filename (str): Name of the gz-file to extract.
+            out_filename (str): Name of the extracted file.
+            overwrite (bool): Overwrite existing database. Default is False.
+            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+
+        Returns:
+            os.path: Filepath of the extracted file.
+        """
+        if out_filename is None:
+            out_filename = filename.replace(".gz", "")
+
+        if os.path.exists(os.path.join(path, out_filename)):
+            if verbose > 0:
+                print("INFO:kgcnn: Extracted file exists... done")
+            if not overwrite:
+                if verbose > 0:
+                    print("INFO:kgcnn: Not extracting gz-file ... stopped")
+                return os.path.join(path, out_filename)
+
+        if verbose > 0:
+            print("INFO:kgcnn: Extract zgz file ... ", end='', flush=True)
+
+        with gzip.open(os.path.join(path, filename), 'rb') as f_in:
+            with open(os.path.join(path, out_filename), 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        if verbose > 0:
+            print("done")
+
+        return os.path.join(path, out_filename)

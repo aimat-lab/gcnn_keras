@@ -9,16 +9,17 @@ from kgcnn.utils.adj import add_edges_reverse_indices, make_adjacency_undirected
 class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process Cora dataset after Lu et al. 2003."""
 
-    dataset_name = "cora_lu"
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory_name = "cora_lu"
-    download_url = "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz"
-    # download_url = "https://linqs-data.soe.ucsc.edu/public/arxiv-mrdm05/arxiv.tar.gz"
-    download_file_name = 'cora.tgz'
-    unpack_tar = True
-    unpack_zip = False
-    unpack_directory_name = "cora_lu"
-    fits_in_memory = True
+    download_info = {
+        "dataset_name" : "cora_lu",
+        "data_directory_name" : "cora_lu",
+        "download_url" : "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz",
+        # download_url = "https://linqs-data.soe.ucsc.edu/public/arxiv-mrdm05/arxiv.tar.gz"
+        "download_file_name" : 'cora.tgz',
+        "unpack_tar" : True,
+        "unpack_zip" : False,
+        "unpack_directory_name" : "cora_lu",
+        "fits_in_memory" : True,
+    }
 
     # Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.
     # https://www.aaai.org/Papers/ICML/2003/ICML03-066.pdf
@@ -34,7 +35,7 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         # Use default base class init()
         self.length = 1
 
-        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        DownloadDataset.__init__(self, **download_info,reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
@@ -46,7 +47,7 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         Args:
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        filepath = os.path.join(self.data_main_dir, self.data_directory, self.unpack_directory, "cora")
+        filepath = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name, "cora")
 
         ids = np.loadtxt(os.path.join(filepath, "cora.cites"))
         ids = np.array(ids, np.int)

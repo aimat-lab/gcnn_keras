@@ -62,6 +62,9 @@ class GraphTUDataset(MemoryGraphDataset):
             print("WARNING:kgcnn: Dataset requires name %s and path." % self.dataset_name)
             return None
 
+        if verbose > 1:
+            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+
         # Define a graph with indices
         # They must be defined
         g_a = np.array(self.read_csv_simple(os.path.join(path, name_dataset + "_A.txt"), dtype=int), dtype="int")

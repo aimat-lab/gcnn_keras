@@ -49,6 +49,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if verbose > 0:
             print("INFO:kcnn: Generating molecules and store %s to disk..." % self.mol_filename, end='', flush=True)
         molecule_list = []
+        max_number = len(smiles)
         for i, sm in enumerate(smiles):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen)
             mg.from_smiles(sm, sanitize=sanitize)
@@ -88,10 +89,11 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         mol_filename = self.mol_filename
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
             if verbose > 0:
-                print("INFO:kcnn: Found rdkit mol.json of pre-computed structures.")
+                print("INFO:kgcnn: Found rdkit mol.json of pre-computed structures.")
             return self
         filepath = os.path.join(self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
+        # print(data)
         smiles = data[smiles_column_name].values
         mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True, make_conformers=make_conformers,
                                       verbose=verbose)
@@ -126,7 +128,13 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
         data = pd.read_csv(os.path.join(self.data_directory, self.file_name))
         self.data_keys = data.columns
-        self.graph_labels = np.expand_dims(np.array(data[label_column_name]), axis=-1)
+        if isinstance(label_column_name, str):
+            self.graph_labels = np.expand_dims(np.array(data[label_column_name]), axis=-1)
+        elif isinstance(label_column_name, list):
+            self.graph_labels = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
+                                               axis=-1)
+        else:
+            raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
         self.length = len(self.graph_labels)
 
         mol_path = os.path.join(self.data_directory, self.mol_filename)
@@ -161,6 +169,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
                        encoder_edges=None,
                        encoder_graph=None,
                        add_hydrogen: bool = False,
+                       has_conformers: bool = True,
                        verbose: int = 1):
         r"""Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
         Reset edges and nodes with new attributes and edge indices. Default values are features that has been used
@@ -174,6 +183,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to remove hydrogen.
+            has_conformers (bool): If molecules have 3D coordinates pre-computed.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
@@ -238,7 +248,8 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             edge_indices.append(np.array(mg.edge_indices, dtype="int64"))
             graph_attributes.append(np.array(mg.graph_attributes(graph, encoder_graph), dtype="float32"))
             node_symbol.append(mg.node_symbol)
-            node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
+            if has_conformers:
+                node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
             node_number.append(mg.node_number)
 
         self.graph_size = [len(x) for x in node_attributes]

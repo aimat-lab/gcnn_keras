@@ -17,16 +17,15 @@ class QM9Dataset(QMDataset, DownloadDataset):
     # https://ndownloader.figshare.com/files/3195398
     # https://ndownloader.figshare.com/files/3195389
 
-    dataset_name = "QM9"
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory_name = "qm9"
-    download_url = "https://ndownloader.figshare.com/files/3195389"
-    download_file_name = 'dsgdb9nsd.xyz.tar.bz2'
-    unpack_tar = True
-    unpack_zip = False
-    unpack_directory_name = 'dsgdb9nsd.xyz'
-    fits_in_memory = True
-    require_prepare_data = True
+    download_info = {
+        "dataset_name": "QM9",
+        "data_directory_name": "qm9",
+        "download_url": "https://ndownloader.figshare.com/files/3195389",
+        "download_file_name": 'dsgdb9nsd.xyz.tar.bz2',
+        "unpack_tar": True,
+        "unpack_zip": False,
+        "unpack_directory_name": 'dsgdb9nsd.xyz',
+    }
 
     def __init__(self, reload: bool = False, verbose: int = 1):
         """Initialize QM9 dataset.
@@ -39,7 +38,10 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
         self.dataset_name = "QM9"
-        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
+
+        self.require_prepare_data = True
+        self.fits_in_memory = True
 
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
 

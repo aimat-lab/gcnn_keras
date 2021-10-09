@@ -10,15 +10,16 @@ from kgcnn.utils.adj import convert_scaled_adjacency_to_list, add_edges_reverse_
 class CoraDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process full Cora dataset."""
 
-    dataset_name = "Cora"
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-    data_directory_name = "cora"
-    download_url = "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz"
-    download_file_name = 'cora.npz'
-    unpack_tar = False
-    unpack_zip = False
-    unpack_directory_name = None
-    fits_in_memory = True
+    download_info = {
+        "dataset_name": "Cora",
+        "data_directory_name": "cora",
+        "download_url": "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz",
+        "download_file_name": 'cora.npz',
+        "unpack_tar": False,
+        "unpack_zip": False,
+        "unpack_directory_name": None,
+        "fits_in_memory": True,
+    }
 
     def __init__(self, reload=False, verbose=1):
         """Initialize full Cora dataset.
@@ -31,7 +32,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         self.data_keys = None
         self.length = 1
 
-        DownloadDataset.__init__(self, reload=reload, verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
@@ -43,7 +44,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         Args:
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        filepath = os.path.join(self.data_main_dir, self.data_directory, "cora.npz")
+        filepath = os.path.join(self.data_main_dir, self.data_directory_name, "cora.npz")
         loader = np.load(filepath, allow_pickle=True)
         loader = dict(loader)
 
