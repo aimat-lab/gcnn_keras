@@ -175,4 +175,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
 
-data = MoleculeNetDataset2018("PCBA")
+# data = MoleculeNetDataset2018("ESOL")

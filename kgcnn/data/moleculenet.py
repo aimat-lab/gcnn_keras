@@ -146,6 +146,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
+        if verbose > 0:
+            print("INFO:kgcnn: Read mol-blocks from mol.json of pre-computed structures.")
+
         mols = load_json_file(mol_path)
         atoms = []
         coords = []
