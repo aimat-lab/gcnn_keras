@@ -47,7 +47,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if len(smiles) == 0:
             print("Error:kgcnn: Can not translate smiles, received empty list for %s." % self.dataset_name)
         if verbose > 0:
-            print("INFO:kcnn: Generating molecules and store %s to disk..." % self.mol_filename, end='', flush=True)
+            print("INFO:kgcnn: Generating molecules and store %s to disk..." % self.mol_filename)
         molecule_list = []
         max_number = len(smiles)
         for i, sm in enumerate(smiles):
@@ -56,6 +56,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             if make_conformers:
                 _ = mg.node_coordinates  # Force to generate 3D coordinates
             molecule_list.append(mg.to_mol_block())
+            if i % 500 == 0:
+                if verbose > 0:
+                    print(" ... converted molecules {0} from {1}".format(i, max_number))
         if verbose > 0:
             print("done")
         return molecule_list
