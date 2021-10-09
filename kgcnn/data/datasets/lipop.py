@@ -18,7 +18,5 @@ class LipopDataset(MoleculeNetDataset2018):
         super(LipopDataset, self).__init__("Lipop", reload=reload, verbose=verbose)
 
 
-data = LipopDataset()
-
-# ld.define_attributes()
-# labels, nodes, edges, edge_indices, graph_state = ld.get_graph()
+# data = LipopDataset()
+# data.define_attributes()

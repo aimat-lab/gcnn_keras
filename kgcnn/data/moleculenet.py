@@ -136,6 +136,8 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         elif isinstance(label_column_name, list):
             self.graph_labels = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
                                                axis=-1)
+        elif isinstance(label_column_name, slice):
+            self.graph_labels = np.array(data[label_column_name])
         else:
             raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
         self.length = len(self.graph_labels)

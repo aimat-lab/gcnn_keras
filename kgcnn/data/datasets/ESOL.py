@@ -17,4 +17,4 @@ class ESOLDataset(MoleculeNetDataset2018):
         super(ESOLDataset, self).__init__("ESOL", reload=reload, verbose=verbose)
 
 
-data = ESOLDataset()
+# data = ESOLDataset()

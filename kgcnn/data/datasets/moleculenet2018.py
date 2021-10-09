@@ -20,15 +20,61 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             "data_directory_name": "ESOL",
             "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv",
             "download_file_name": 'delaney-processed.csv'
+        },
+        "FreeSolv": {
+            "dataset_name": "FreeSolv",
+            "data_directory_name": "FreeSolv",
+            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/SAMPL.csv",
+            "download_file_name": 'SAMPL.csv'
+        },
+        "PCBA": {
+            "dataset_name": "PCBA",
+            "data_directory_name": "PCBA",
+            "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/pcba.csv.gz",
+            "download_file_name": 'pcba.csv.gz',
+            "extract_gz": True,
+            "extract_file_name": 'pcba.csv'
         }
 
     }
-    datasets_read_in_memory_info = {
+    datasets_prepare_data_info= {
         "Lipop": {
-            "label_column_name": 'exp'
+            "make_conformers": True,
+            "add_hydrogen": True
         },
         "ESOL": {
-            "label_column_name": 'measured log solubility in mols per litre'
+            "make_conformers": True,
+            "add_hydrogen": True
+        },
+        "FreeSolv": {
+            "make_conformers": True,
+            "add_hydrogen": True
+        },
+        "PCBA": {
+            "make_conformers": False,
+            "add_hydrogen": False
+        }
+    }
+    datasets_read_in_memory_info = {
+        "Lipop": {
+            "label_column_name": "exp",
+            "add_hydrogen": False,
+            "has_conformers": True
+        },
+        "ESOL": {
+            "label_column_name": "measured log solubility in mols per litre",
+            "add_hydrogen": False,
+            "has_conformers": True
+        },
+        "FreeSolv": {
+            "label_column_name": "expt",
+            "add_hydrogen": False,
+            "has_conformers": True
+        },
+        "PCBA": {
+            "label_column_name": slice(0, 128),
+            "add_hydrogen": False,
+            "has_conformers": False
         }
     }
 
@@ -66,7 +112,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
     def prepare_data(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
                      overwrite: bool = False, verbose: int = 1, smiles_column_name: str = "smiles",
-                     make_conformers: bool = True, add_hydrogen: bool = True, **kwargs):
+                     make_conformers: bool = None, add_hydrogen: bool = None, **kwargs):
         r"""Pre-computation of molecular structure.
 
         Args:
@@ -84,13 +130,20 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         """
         prepare_info = {"file_name": file_name, "data_directory": data_directory, "dataset_name": dataset_name,
                         "overwrite": overwrite, "verbose": verbose, "smiles_column_name": smiles_column_name,
-                        "make_conformers": make_conformers, "add_hydrogen": add_hydrogen
+                        "add_hydrogen": add_hydrogen, "make_conformers": make_conformers
                         }
+        prepare_info.update(self.datasets_prepare_data_info[self.dataset_name])
+
+        if add_hydrogen is not None:
+            prepare_info["add_hydrogen"] = add_hydrogen
+        if make_conformers is not None:
+            make_conformers["make_conformers"] = make_conformers
+
         return super(MoleculeNetDataset2018, self).prepare_data(**prepare_info)
 
     def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       has_conformers: bool = True, label_column_name: str = None,
-                       add_hydrogen: bool = True, verbose: int = 1):
+                       has_conformers: bool = None, label_column_name: str = None,
+                       add_hydrogen: bool = None, verbose: int = 1):
         r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
@@ -108,8 +161,18 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         """
         read_in_memory_info = {"file_name": file_name, "data_directory": data_directory, "dataset_name": dataset_name,
                                "verbose": verbose, "label_column_name": label_column_name,
-                               "has_conformers": has_conformers, "add_hydrogen": add_hydrogen
+                               "add_hydrogen": add_hydrogen, "has_conformers": has_conformers
                                }
-        if label_column_name is None:
-            read_in_memory_info.update(self.datasets_read_in_memory_info[self.dataset_name])
+        read_in_memory_info.update(self.datasets_read_in_memory_info[self.dataset_name])
+
+        if add_hydrogen is not None:
+            read_in_memory_info["add_hydrogen"] = add_hydrogen
+        if has_conformers is not None:
+            read_in_memory_info["has_conformers"] = has_conformers
+        if label_column_name is not None:
+            read_in_memory_info["label_column_name"] = label_column_name
+
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
+
+
+data = MoleculeNetDataset2018("PCBA")
