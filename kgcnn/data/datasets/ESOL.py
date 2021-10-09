@@ -92,4 +92,4 @@ class ESOLDataset(MoleculeNetDataset, DownloadDataset):
                                                        verbose=verbose)
 
 
-ed = ESOLDataset()
+# ed = ESOLDataset()

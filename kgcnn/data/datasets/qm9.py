@@ -376,7 +376,7 @@ class QM9GraphLabelScaler:
         assert len(node_number) == len(graph_labels), "ERROR:kgcnn: `QM9GraphLabelScaler` needs same length input."
         assert graph_labels.shape[-1] == 15, "ERROR:kgcnn: `QM9GraphLabelScaler` got wrong targets."
 
-dataset = QM9Dataset()
+# dataset = QM9Dataset()
 # scaler = QM9GraphLabelScaler()
 # tafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels)
 # rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
