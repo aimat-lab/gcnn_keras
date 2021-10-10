@@ -269,6 +269,10 @@ class MolecularGraphRDKit(MolGraphInterface):
         """
         # Make molecule from smile via rdkit
         m = rdkit.Chem.MolFromSmiles(smile)
+        if m is None:
+            print("ERROR:kgcnn: Rdkit can not convert smile %s" % smile)
+            return self
+
         if sanitize:
             rdkit.Chem.SanitizeMol(m)
         if self._add_hydrogen:
@@ -307,10 +311,14 @@ class MolecularGraphRDKit(MolGraphInterface):
         return np.array(self.mol.GetConformers()[0].GetPositions())
 
     def from_mol_block(self, mb, sanitize=False):
+        if mb is None or len(mb) == 0:
+            return self
         self.mol = rdkit.Chem.MolFromMolBlock(mb, removeHs=(not self._add_hydrogen), sanitize=sanitize)
         return self
 
     def to_mol_block(self):
+        if self.mol is None:
+            return None
         return rdkit.Chem.MolToMolBlock(self.mol)
 
     @property

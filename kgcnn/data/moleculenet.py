@@ -133,40 +133,57 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         # print(data.columns)
         self.data_keys = data.columns
         if isinstance(label_column_name, str):
-            self.graph_labels = np.expand_dims(np.array(data[label_column_name]), axis=-1)
+            graph_labels_all = np.expand_dims(np.array(data[label_column_name]), axis=-1)
         elif isinstance(label_column_name, list):
-            self.graph_labels = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
+            graph_labels_all = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
                                                axis=-1)
         elif isinstance(label_column_name, slice):
-            self.graph_labels = np.array(data.iloc[:, label_column_name])
+            graph_labels_all = np.array(data.iloc[:, label_column_name])
         else:
             raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
-        self.length = len(self.graph_labels)
+
 
         mol_path = os.path.join(self.data_directory, self.mol_filename)
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
         if verbose > 0:
-            print("INFO:kgcnn: Read mol-blocks from mol.json of pre-computed structures.")
-
+            print("INFO:kgcnn: Read mol-blocks from mol.json of pre-computed structures...")
         mols = load_json_file(mol_path)
+
+        # Main loop to read molecules from mol-block
         atoms = []
         coords = []
         number = []
         edgind = []
-        for x in mols:
+        num_mols = len(mols)
+        graph_labels = []
+        counter_iter = 0
+        for i, x in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(x, sanitize=True)
+            if mg.mol is None:
+                print(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                continue
             atoms.append(mg.node_symbol)
             if has_conformers:
                 coords.append(mg.node_coordinates)
             number.append(mg.node_number)
             edgind.append(mg.edge_indices)
+            counter_iter += 1
+            graph_labels.append(graph_labels_all[i])
+            if i % 1000 == 0:
+                if verbose > 0:
+                    print(" ... reading molecules {0} from {1}".format(i, num_mols))
         self.node_symbol = atoms
         self.node_coordinates = coords if has_conformers else None
         self.node_number = number
         self.graph_size = [len(x) for x in atoms]
         self.edge_indices = edgind
+        self.length = counter_iter
+        self.graph_labels = graph_labels
+
+        if verbose > 0:
+            print("done")
 
         return self
 

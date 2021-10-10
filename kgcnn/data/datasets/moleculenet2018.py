@@ -78,8 +78,9 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             self.download_info.update({"download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/" +
                                                        self.download_info["download_file_name"]})
         else:
-            raise ValueError("ERROR:kgcnn: Can not resolve %s as a Molecule." % dataset_name,
-                             "Add to `datset_download_info` list manually.")
+            raise ValueError("ERROR:kgcnn: Can not resolve %s as a Molecule. Pick " % dataset_name,
+                             self.datsets_download_info.keys(),
+                             "For new dataset, add to `datsets_download_info` list manually.")
 
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
@@ -157,4 +158,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-# data = MoleculeNetDataset2018("MUV")
+data = MoleculeNetDataset2018("Tox21", reload=False)
