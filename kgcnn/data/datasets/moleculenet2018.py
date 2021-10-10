@@ -9,37 +9,25 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
     """
     datsets_download_info = {
-        "ESOL": {"dataset_name": "ESOL", "download_file_name": 'delaney-processed.csv', "data_directory_name": "ESOL",
-                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv"},
-        "FreeSolv": {"dataset_name": "FreeSolv", "data_directory_name": "FreeSolv", "download_file_name": 'SAMPL.csv',
-                     "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/SAMPL.csv"},
-        "Lipop": {"dataset_name": "Lipop", "data_directory_name": "Lipop", "download_file_name": 'Lipophilicity.csv',
-                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/Lipophilicity.csv"},
+        "ESOL": {"dataset_name": "ESOL", "download_file_name": 'delaney-processed.csv', "data_directory_name": "ESOL"},
+        "FreeSolv": {"dataset_name": "FreeSolv", "data_directory_name": "FreeSolv", "download_file_name": 'SAMPL.csv'},
+        "Lipop": {"dataset_name": "Lipop", "data_directory_name": "Lipop", "download_file_name": 'Lipophilicity.csv'},
         "PCBA": {"dataset_name": "PCBA", "data_directory_name": "PCBA", "download_file_name": 'pcba.csv.gz',
-                 "extract_gz": True, "extract_file_name": 'pcba.csv',
-                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/pcba.csv.gz"},
+                 "extract_gz": True, "extract_file_name": 'pcba.csv'},
         "MUV": {"dataset_name": "MUV", "data_directory_name": "MUV", "download_file_name": 'muv.csv.gz',
-                 "extract_gz": True, "extract_file_name": 'muv.csv',
-                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/muv.csv.gz"},
-        "HIV": {"dataset_name": "HIV", "data_directory_name": "HIV", "download_file_name": 'HIV.csv',
-                "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/HIV.csv"},
-        "BACE": {"dataset_name": "BACE", "data_directory_name": "BACE", "download_file_name": 'bace.csv',
-                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/bace.csv"},
-        "BBBP": {"dataset_name": "BBBP", "data_directory_name": "BBBP", "download_file_name": 'BBBP.csv',
-                 "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/BBBP.csv"},
+                "extract_gz": True, "extract_file_name": 'muv.csv'},
+        "HIV": {"dataset_name": "HIV", "data_directory_name": "HIV", "download_file_name": 'HIV.csv'},
+        "BACE": {"dataset_name": "BACE", "data_directory_name": "BACE", "download_file_name": 'bace.csv'},
+        "BBBP": {"dataset_name": "BBBP", "data_directory_name": "BBBP", "download_file_name": 'BBBP.csv'},
         "Tox21": {"dataset_name": "Tox21", "data_directory_name": "Tox21", "download_file_name": 'tox21.csv.gz',
-                  "extract_gz": True, "extract_file_name": 'tox21.csv',
-                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/tox21.csv.gz"},
+                  "extract_gz": True, "extract_file_name": 'tox21.csv'},
         "ToxCast": {"dataset_name": "ToxCast", "data_directory_name": "ToxCast",
                     "download_file_name": 'toxcast_data.csv.gz', "extract_gz": True,
-                    "extract_file_name": 'toxcast_data.csv',
-                    "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/toxcast_data.csv.gz"},
+                    "extract_file_name": 'toxcast_data.csv'},
         "SIDER": {"dataset_name": "SIDER", "data_directory_name": "SIDER", "download_file_name": 'sider.csv.gz',
-                  "extract_gz": True, "extract_file_name": 'sider.csv',
-                  "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/sider.csv.gz"},
+                  "extract_gz": True, "extract_file_name": 'sider.csv'},
         "ClinTox": {"dataset_name": "ClinTox", "data_directory_name": "ClinTox", "download_file_name": 'clintox.csv.gz',
-                    "extract_gz": True, "extract_file_name": 'clintox.csv',
-                    "download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clintox.csv.gz"},
+                    "extract_gz": True, "extract_file_name": 'clintox.csv'},
     }
     datasets_prepare_data_info = {
         "ESOL": {"make_conformers": True, "add_hydrogen": True},
@@ -87,6 +75,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         # Prepare download
         if dataset_name in self.datsets_download_info:
             self.download_info = self.datsets_download_info[dataset_name]
+            self.download_info.update({"download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/" +
+                                                       self.download_info["download_file_name"]})
         else:
             raise ValueError("ERROR:kgcnn: Can not resolve %s as a Molecule." % dataset_name,
                              "Add to `datset_download_info` list manually.")
@@ -167,5 +157,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-
-# data = MoleculeNetDataset2018("MUV")
+data = MoleculeNetDataset2018("MUV")

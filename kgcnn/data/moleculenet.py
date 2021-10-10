@@ -56,7 +56,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             if make_conformers:
                 _ = mg.node_coordinates  # Force to generate 3D coordinates
             molecule_list.append(mg.to_mol_block())
-            if i % 500 == 0:
+            if i % 1000 == 0:
                 if verbose > 0:
                     print(" ... converted molecules {0} from {1}".format(i, max_number))
         if verbose > 0:
