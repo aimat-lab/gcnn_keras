@@ -220,7 +220,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
         if verbose > 0:
-            print("INFO:kgcnn: Making attributes...", end='', flush=True)
+            print("INFO:kgcnn: Making attributes...")
 
         mols = load_json_file(mol_path)
 
@@ -266,7 +266,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         node_coordinates = []
         node_symbol = []
         node_number = []
-
+        num_mols = len(mols)
         for i, sm in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
             if mg.mol is None:
@@ -280,6 +280,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             if has_conformers:
                 node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
             node_number.append(mg.node_number)
+            if i % 1000 == 0:
+                if verbose > 0:
+                    print(" ... reading molecules {0} from {1}".format(i, num_mols))
 
         self.graph_size = [len(x) for x in node_attributes]
         self.graph_attributes = graph_attributes
