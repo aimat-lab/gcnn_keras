@@ -142,7 +142,6 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         else:
             raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
 
-
         mol_path = os.path.join(self.data_directory, self.mol_filename)
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
@@ -173,7 +172,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             graph_labels.append(graph_labels_all[i])
             if i % 1000 == 0:
                 if verbose > 0:
-                    print(" ... reading molecules {0} from {1}".format(i, num_mols))
+                    print(" ... read molecules {0} from {1}".format(i, num_mols))
         self.node_symbol = atoms
         self.node_coordinates = coords if has_conformers else None
         self.node_number = number
@@ -282,7 +281,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             node_number.append(mg.node_number)
             if i % 1000 == 0:
                 if verbose > 0:
-                    print(" ... reading molecules {0} from {1}".format(i, num_mols))
+                    print(" ... read molecules {0} from {1}".format(i, num_mols))
 
         self.graph_size = [len(x) for x in node_attributes]
         self.graph_attributes = graph_attributes

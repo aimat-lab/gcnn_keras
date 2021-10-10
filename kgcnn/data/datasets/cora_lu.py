@@ -35,7 +35,7 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         # Use default base class init()
         self.length = 1
 
-        DownloadDataset.__init__(self, **download_info,reload=reload, verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info,reload=reload, verbose=verbose)
         MemoryGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
