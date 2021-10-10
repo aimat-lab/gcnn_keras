@@ -24,3 +24,8 @@ kgcnn.egg-info
 /training/ESOL/AttentiveFP/model*/
 /training/Lipop/AttentiveFP/model*/
 /training/cora_lu/GAT/model*/
+/notebooks/ExampleMol/
+/notebooks/ExampleMol/*
+/notebooks/gcn_explain_*.png
+/notebooks/.ipynb_checkpoints
+/notebooks/.ipynb_checkpoints/*
