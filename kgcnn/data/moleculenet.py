@@ -269,6 +269,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
         for i, sm in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
+            if mg.mol is None:
+                print(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                continue
             node_attributes.append(np.array(mg.node_attributes(nodes, encoder_nodes), dtype="float32"))
             edge_attributes.append(np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype="float32"))
             edge_indices.append(np.array(mg.edge_indices, dtype="int64"))
