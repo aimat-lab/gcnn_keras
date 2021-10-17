@@ -16,15 +16,23 @@
             "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2},
-            "optimizer": {"class_name": "Addons>AdamW",
-                "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
+            "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []
+            },
+            "compile": {
+                "optimizer": {"class_name": "Addons>AdamW",
+                    "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
+                    }
                 }
             },
-            "callbacks": []
+            "KFold" : {"n_splits": 5, "random_state": null, "shuffle": true},
+            "execute_folds": null
         },
         "data": {
             "range": {}
+        },
+        "info": {
+            "postfix" : "",
+            "kgcnn_version": "1.1.0"
         }
     },
     "PAiNN": {
@@ -43,27 +51,36 @@
             "update_args": {"units": 128}, "depth": 3, "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 250, "validation_freq": 10, "verbose": 2},
-            "callbacks": [],
-            "optimizer": {
-                "class_name": "Addons>MovingAverage", "config": {
-                    "optimizer": {
-                        "class_name": "Adam", "config": {
-                            "learning_rate": {
-                                "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                    "learning_rate": 0.001, "warmup_steps": 30.0, "decay_steps": 40000.0,
-                                    "decay_rate": 0.01
-                                }
-                            }, "amsgrad": true
-                        }
-                    },
-                    "average_decay": 0.999
-                }
+            "fit": {"batch_size": 32, "epochs": 250, "validation_freq": 10, "verbose": 2,
+                "callbacks": []
             },
-            "loss": "mean_absolute_error"
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 30.0, "decay_steps": 40000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": true
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            },
+            "KFold" : {"n_splits": 5, "random_state": null, "shuffle": true},
+            "execute_folds": null
         },
         "data": {
             "range": {"max_distance": 3, "max_neighbours": 10000}
+        },
+        "info": {
+            "postfix" : "",
+            "kgcnn_version": "1.1.0"
         }
     }
 }

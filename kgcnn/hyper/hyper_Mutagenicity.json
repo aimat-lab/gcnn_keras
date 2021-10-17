@@ -1,7 +1,7 @@
 {
     "GraphSAGE": {
         "model": {
-            "name": "GrapSAGE",
+            "name": "GraphSAGE",
             "inputs": [
                 {"shape": [null], "name": "node_attributes", "dtype": "float32","ragged": true},
                 {"shape": [null], "name": "edge_attributes", "dtype": "float32","ragged": true},
@@ -21,12 +21,23 @@
             "depth": 3, "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2},
-            "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-            "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
-                           "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
-                               "epo_min": 400, "epo": 500, "verbose": 0}}]
+            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
+                "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
+                               "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
+                                   "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
-        "data": {}
+            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
+                "loss": "binary_crossentropy"
+            },
+            "KFold" : {"n_splits": 5, "random_state": null, "shuffle": true},
+            "execute_folds": null
+        },
+        "data": {
+            "range": {}
+        },
+        "info": {
+            "postfix" : "",
+            "kgcnn_version": "1.1.0"
+        }
     }
 }

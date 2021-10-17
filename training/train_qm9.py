@@ -45,9 +45,8 @@ dataset = QM9Dataset()
 # Modifications to set range and angle indices.
 if "range" in hyper_data:
     dataset.set_range(**hyper_data['range'])
-if "requires_angles" in hyper_data:
-    if hyper_data["requires_angles"]:
-        dataset.set_angle()
+if "angle" in hyper_data or "requires_angles" in hyper_data:
+    dataset.set_angle()
 data_name = dataset.dataset_name
 data_length = dataset.length
 target_names = dataset.target_names
@@ -66,16 +65,25 @@ labels = dataset.graph_labels[data_selection] * target_unit_conversion
 atoms = [dataset.node_number[i] for i in data_selection]
 
 # Data-set split
-execute_splits = hyper_data['execute_splits']  # All splits may be too expensive for QM9
+k_fold_info = hyper["training"]["KFold"]
+execute_splits = hyper["training"]['execute_folds']  # All splits may be too expensive for QM9
 # For validation, use a KFold() split.
-kf = KFold(n_splits=10, random_state=None, shuffle=True)
+kf = KFold(**k_fold_info)
 split_indices = kf.split(X=np.arange(len(labels))[:, None])
 
 # Set learning rate and epochs
-hyper_train = hyper['training']
-epo = hyper_train['fit']['epochs']
-epostep = hyper_train['fit']['validation_freq']
-batch_size = hyper_train['fit']['batch_size']
+hyper_train = deepcopy(hyper['training'])
+hyper_fit = deepcopy(hyper_train["fit"])
+hyper_compile = deepcopy(hyper_train["compile"])
+reserved_fit_arguments = ["callbacks", "validation_data"]
+hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
+reserved_compile_arguments = ["loss", "optimizer", "metrics"]
+hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
+                            key not in reserved_compile_arguments}
+
+epo = hyper_fit['epochs']
+epostep = hyper_fit['validation_freq']
+batch_size = hyper_fit['batch_size']
 
 train_loss = []
 test_loss = []
@@ -104,28 +112,31 @@ for train_index, test_index in split_indices:
     ytrain = scaler.fit_transform(atoms_train, labels_train)[:, target_indices]
     ytest = scaler.transform(atoms_test, labels_test)[:, target_indices]
 
-    # Set optimizer from serialized hyper-dict.
-    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
-
     # Compile Metrics and loss. Use a scaled metric to logg the unscaled targets in fit().
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_compile['optimizer']))
+    loss = tf.keras.losses.get(hyper_compile["loss"]) if "loss" in hyper_compile else 'mean_absolute_error'
+    metrics = [x for x in hyper_compile["metrics"]] if "metrics" in hyper_compile else []
     std_scale = np.expand_dims(scaler.scale_[target_indices], axis=0)
     mae_metric = ScaledMeanAbsoluteError(std_scale.shape)
     rms_metric = ScaledRootMeanSquaredError(std_scale.shape)
     if scaler.scale_ is not None:
         mae_metric.set_scale(std_scale)
         rms_metric.set_scale(std_scale)
-    model.compile(loss='mean_absolute_error',
+    metrics = metrics + [mae_metric, rms_metric]
+    model.compile(loss=loss,
                   optimizer=optimizer,
-                  metrics=[mae_metric, rms_metric])
+                  metrics=metrics,
+                  **hyper_compile_additional
+                  )
     print(model.summary())
 
     # Start and time training
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_fit['callbacks']]
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
                      callbacks=cbks,
                      validation_data=(xtest, ytest),
-                     **hyper_train['fit']
+                     **hyper_fit_additional
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -141,10 +152,12 @@ for train_index, test_index in split_indices:
     splits_done += 1
 
 # Make output directories
+hyper_info = deepcopy(hyper["info"])
+post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
+post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'])
+filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
-fit_postfix = str(hyper_train['postfix']) if 'postfix' in hyper_train else ""
 
 # Plot training- and test-loss vs epochs for all splits.
 plt.figure()
@@ -156,9 +169,9 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title(model_name + ' QM9 Loss')
+plt.title('QM9 Loss' + model_name)
 plt.legend(loc='upper right', fontsize='medium')
-plt.savefig(os.path.join(filepath, "mae_qm9" + fit_postfix + ".png"))
+plt.savefig(os.path.join(filepath, model_name + "_mae_qm9" + post_fix_file + ".png"))
 plt.show()
 
 # Plot predicted targets vs actual targets for last split. This will be adapted for all targets in the future.
@@ -174,15 +187,15 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
 plt.xlabel('Predicted Last Split')
 plt.ylabel('Actual')
 plt.legend(loc='upper left', fontsize='x-small')
-plt.title(str(model_name)+ " Prediction Test")
-plt.savefig(os.path.join(filepath, "predict_qm9" + fit_postfix + ".png"))
+plt.title("Prediction Test for " + str(model_name))
+plt.savefig(os.path.join(filepath, model_name + "_predict_qm9" + post_fix_file + ".png"))
 plt.show()
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, "hyper" + fit_postfix + ".json"))
+save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))
 
 # Save keras-model to output-folder.
-model.save(os.path.join(filepath, "model" + fit_postfix))
+model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, "kfold_splits" + fit_postfix + ".npz"), all_test_index)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), all_test_index)

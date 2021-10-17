@@ -25,21 +25,31 @@
             "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2},
-            "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-            "callbacks": [
-                {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800, "verbose": 0
+            "KFold": {"n_splits": 10, "random_state": null, "shuffle": true},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0}
                     }
-                }
-            ],
-            "postfix": "_homo_lumo_gap"
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            }
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
-            "target_indices": [5,6,7],
-            "execute_splits": 1
+            "target_indices": [5,6,7]
+        },
+        "info": {
+            "postfix" : "",
+            "postfix_file": "_homo_lumo_gap",
+            "kgcnn_version": "1.1.0"
         }
     },
     "Megnet": {
@@ -68,21 +78,32 @@
             "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2},
-            "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-            "callbacks": [
-                {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800, "verbose": 0
+            "KFold": {"n_splits": 10, "random_state": null, "shuffle": true},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0
+                        }
                     }
-                }
-            ],
-            "postfix": "_homo_lumo_gap"
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            }
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
-            "target_indices": [5,6,7],
-            "execute_splits": 1
+            "target_indices": [5,6,7]
+        },
+        "info": {
+            "postfix" : "",
+            "postfix_file": "_homo_lumo_gap",
+            "kgcnn_version": "1.1.0"
         }
     },
     "NMPN": {
@@ -105,21 +126,31 @@
             "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2},
-            "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-            "callbacks": [
-                {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800, "verbose": 0
+            "KFold": {"n_splits": 10, "random_state": null, "shuffle": true},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0
+                        }
                     }
-                }
-            ],
-            "postfix": "_homo_lumo_gap"
+                ]
+            },
+            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            }
         },
         "data": {
             "range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
-            "target_indices": [5,6,7],
-            "execute_splits": 1
+            "target_indices": [5,6,7]
+        },
+        "info": {
+            "postfix" : "",
+            "postfix_file": "_homo_lumo_gap",
+            "kgcnn_version": "1.1.0"
         }
     },
     "PAiNN": {
@@ -138,30 +169,39 @@
             "update_args": {"units": 128}, "depth": 3, "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2},
-            "callbacks": [],
-            "optimizer": {
-                "class_name": "Addons>MovingAverage", "config": {
-                    "optimizer": {
-                        "class_name": "Adam", "config": {
-                            "learning_rate": {
-                                "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                    "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
-                                    "decay_rate": 0.01
-                                }
-                            }, "amsgrad": true
-                        }
-                    },
-                    "average_decay": 0.999
-                }
+            "KFold": {"n_splits": 10, "random_state": null, "shuffle": true},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
-            "postfix": "_homo_lumo_gap"
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": true
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            }
         },
         "data": {
             "range": {"max_distance": 5, "max_neighbours": 10000},
             "data_points_to_use": 133885,
-            "target_indices": [5,6,7],
-            "execute_splits": 1
+            "target_indices": [5,6,7]
+        },
+        "info": {
+            "postfix" : "",
+            "postfix_file": "_homo_lumo_gap",
+            "kgcnn_version": "1.1.0"
         }
     },
     "DimeNetPP": {
@@ -184,31 +224,40 @@
                  "activation": "swish", "verbose": 1
         },
         "training": {
-            "fit": {"batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2},
-            "callbacks": [],
-            "optimizer": {
-                "class_name": "Addons>MovingAverage", "config": {
-                    "optimizer": {
-                        "class_name": "Adam", "config": {
-                            "learning_rate": {
-                                "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                    "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
-                                    "decay_rate": 0.01
-                                }
-                            }, "amsgrad": true
-                        }
-                    },
-                    "average_decay": 0.999
-                }
+            "KFold": {"n_splits": 10, "random_state": null, "shuffle": true},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
-            "postfix": "_homo_lumo_gap"
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": true
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            }
         },
         "data": {
             "range": {"max_distance": 5, "max_neighbours": 10000},
+            "angle": {},
             "data_points_to_use": 133885,
-            "target_indices": [5,6,7],
-            "execute_splits": 1,
-            "requires_angles": true
+            "target_indices": [5,6,7]
+        },
+        "info": {
+            "postfix" : "",
+            "postfix_file": "_homo_lumo_gap",
+            "kgcnn_version": "1.1.0"
         }
     }
 }

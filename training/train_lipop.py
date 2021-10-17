@@ -20,7 +20,7 @@ from kgcnn.hyper.datasets import DatasetHyperSelection
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Lipop dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")  # AttentiveFP
+parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
@@ -46,28 +46,34 @@ if "range" in hyper_data:
 data_name = dataset.dataset_name
 data_unit = "logD at pH 7.4"
 data_length = dataset.length
+k_fold_info = hyper["training"]["KFold"]
 
 # Data-set split
-kf = KFold(n_splits=5, random_state=None, shuffle=True)
+kf = KFold(**k_fold_info)
 split_indices = kf.split(X=np.arange(data_length)[:, None])
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
-labels = dataset.graph_labels
+labels = np.array(dataset.graph_labels)
 
 # Set learning rate and epochs
-hyper_train = hyper['training']
-epo = hyper_train['fit']['epochs']
-epostep = hyper_train['fit']['validation_freq']
-batch_size = hyper_train['fit']['batch_size']
+hyper_train = deepcopy(hyper['training'])
+hyper_fit = deepcopy(hyper_train["fit"])
+hyper_compile = deepcopy(hyper_train["compile"])
+reserved_fit_arguments = ["callbacks", "validation_data"]
+hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
+reserved_compile_arguments = ["loss", "optimizer", "metrics"]
+hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
+                            key not in reserved_compile_arguments}
 
+epo = hyper_fit['epochs']
+epostep = hyper_fit['validation_freq']
 train_loss = []
 test_loss = []
 mae_5fold = []
 all_test_index = []
 model, scaler, xtest, ytest, mae_valid = None, None, None, None, None
 for train_index, test_index in split_indices:
-
     # Make model.
     model = make_model(**hyper['model'])
 
@@ -82,25 +88,29 @@ for train_index, test_index in split_indices:
     ytest = scaler.transform(ytest)
 
     # Get optimizer from serialized hyper-parameter.
-    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
-    loss = tf.keras.losses.get(hyper_train["loss"]) if "loss" in hyper_train else 'mean_squared_error'
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_compile['optimizer']))
+    loss = tf.keras.losses.get(hyper_compile["loss"]) if "loss" in hyper_compile else 'mean_squared_error'
     mae_metric = ScaledMeanAbsoluteError((1, 1))
     rms_metric = ScaledRootMeanSquaredError((1, 1))
+    metrics = [x for x in hyper_compile["metrics"]] if "metrics" in hyper_compile else []
     if scaler.scale_ is not None:
         mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
         rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
+    metrics = metrics + [mae_metric, rms_metric]
     model.compile(loss=loss,
                   optimizer=optimizer,
-                  metrics=[mae_metric, rms_metric])
+                  metrics=metrics,
+                  **hyper_compile_additional)
     print(model.summary())
 
     # Start and time training
+    batch_size = hyper_fit['batch_size']
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_fit['callbacks']]
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
                      callbacks=cbks,
                      validation_data=(xtest, ytest),
-                     **hyper_train['fit']
+                     **hyper_fit_additional
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -115,8 +125,11 @@ for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 
 # Make output directories.
+hyper_info = deepcopy(hyper["info"])
+post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
+post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'])
+filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
 
 # Plot training- and test-loss vs epochs for all splits.
@@ -129,9 +142,9 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)) + data_unit, c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.title('Lipop training')
+plt.title('Lipop training with '+ model_name)
 plt.legend(loc='upper right', fontsize='medium')
-plt.savefig(os.path.join(filepath, 'mae_lipop.png'))
+plt.savefig(os.path.join(filepath, model_name + "_mae_lipop" + post_fix_file + ".png"))
 plt.show()
 
 # Plot predicted targets vs actual targets for last split.
@@ -143,15 +156,16 @@ plt.plot(np.arange(np.amin(true_test), np.amax(true_test), 0.05),
          np.arange(np.amin(true_test), np.amax(true_test), 0.05), color='red')
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
+plt.title("Prediction Lipop with " + model_name)
 plt.legend(loc='upper left', fontsize='x-large')
-plt.savefig(os.path.join(filepath, 'predict_lipop.png'))
+plt.savefig(os.path.join(filepath, model_name + "_predict_lipop" + post_fix_file + ".png"))
 plt.show()
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), all_test_index)
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, "hyper.json"))
+save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))

@@ -1,0 +1,18 @@
+{
+    "model": {
+        "name": "AttentiveFP", "inputs": [
+            {"shape": [null, 41], "name": "node_attributes", "dtype": "float32", "ragged": true},
+            {"shape": [null, 11], "name": "edge_attributes", "dtype": "float32", "ragged": true},
+            {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}
+        ], "input_embedding": {
+            "node_attributes": {"input_dim": 95, "output_dim": 64},
+            "edge_attributes": {"input_dim": 5, "output_dim": 64}
+        }, "output_embedding": "graph",
+        "output_mlp": {"use_bias": [true, true], "units": [200, 1], "activation": ["kgcnn>leaky_relu", "linear"]},
+        "attention_args": {"units": 200}, "depth": 2, "dropout": 0.2, "verbose": 1
+    }, "training": {
+    "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []}, "compile": {
+        "optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05}}
+    }, "KFold": {"n_splits": 5, "random_state": null, "shuffle": true}, "execute_folds": null
+}, "data": {"range": {}}, "info": {"postfix": "", "kgcnn_version": "1.1.0"}
+}

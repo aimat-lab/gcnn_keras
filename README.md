@@ -37,9 +37,12 @@ Any comments, suggestions or help are very welcome!
 # Requirements
 
 For kgcnn, usually the latest version of tensorflow is required, but is listed as extra requirements in the `setup.py` for simplicity. 
-Additional python packages are placed in the `setup.py` requirements and are installed automatically.
+Additional python packages are placed in the `setup.py` requirements and are installed automatically. 
+Packages which must be installed manually for full functionality:
+
 * tensorflow>=2.4.1
 * rdkit>=2020.03.4
+* openbabel>=3.0.1 (optional for QM)
 
 <a name="installation"></a>
 # Installation
@@ -67,7 +70,7 @@ Graphs can be represented by an index list of connections plus feature informati
 
 * `nodes`: Node-list of shape `(batch, N, F)` where `N` is the number of nodes and `F` is the node feature dimension.
 * `edges`: Edge-list of shape `(batch, M, F)` where `M` is the number of edges and `F` is the edge feature dimension.
-* `indices`: Connection-list of shape `(batch, M, 2)` where `M` is the number of edges. The indices denote a connection of incoming i and outgoing j node as `(i, j)`.
+* `indices`: Connection-list of shape `(batch, M, 2)` where `M` is the number of edges. The indices denote a connection of incoming or receiving node `i` and outgoing or sending node `j` as `(i, j)`.
 * `state`: Graph state information of shape `(batch, F)` where `F` denotes the feature dimension.
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`s.
@@ -76,7 +79,7 @@ A major issue for graphs is their flexible size and shape, when using mini-batch
 ### Input
 
 Here, for ragged tensors, the nodelist of shape `(batch, None, F)` and edgelist of shape `(batch, None, F')` have one ragged dimension `(None, )`.
-The graph structure is represented by an index-list of shape `(batch, None, 2)` with index of incoming `i` and outgoing `j` node as `(i, j)`. 
+The graph structure is represented by an index-list of shape `(batch, None, 2)` with index of incoming or receiving node `i` and outgoing or sending node `j` as `(i, j)`. 
 The first index of incoming node `i` is usually expected to be sorted for faster pooling operations, but can also be unsorted (see layer arguments). 
 Furthermore, the graph is directed, so an additional edge with `(j, i)` is required for undirected graphs. 
 A ragged constant can be directly obtained from a list of numpy arrays: `tf.ragged.constant(indices, ragged_rank=1, inner_shape=(2, ))` which yields shape `(batch, None, 2)`.

@@ -17,7 +17,7 @@ from kgcnn.hyper.datasets import DatasetHyperSelection
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Mutagenicity dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")  # INorp
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
@@ -40,9 +40,10 @@ hyper_data = hyper['data']
 dataset = MUTAGDataset()
 data_name = dataset.dataset_name
 data_length = dataset.length
+k_fold_info = hyper["training"]["KFold"]
 
 # Data-set split
-kf = KFold(n_splits=5, random_state=None, shuffle=True)
+kf = KFold(**k_fold_info)
 split_indices = kf.split(X=np.arange(data_length)[:, None])
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
@@ -50,11 +51,19 @@ dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model
 labels = np.expand_dims(dataset.graph_labels, axis=-1)
 
 # Set learning rate and epochs
-hyper_train = hyper['training']
-epo = hyper_train['fit']['epochs']
-epostep = hyper_train['fit']['validation_freq']
-batch_size = hyper_train['fit']['batch_size']
+hyper_train = deepcopy(hyper['training'])
+hyper_fit = deepcopy(hyper_train["fit"])
+hyper_compile = deepcopy(hyper_train["compile"])
+reserved_fit_arguments = ["callbacks", "validation_data"]
+hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
+reserved_compile_arguments = ["loss", "optimizer", "metrics"]
+hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
+                            key not in reserved_compile_arguments}
 
+
+epo = hyper_fit['epochs']
+epostep = hyper_fit['validation_freq']
+batch_size = hyper_fit['batch_size']
 train_loss = []
 test_loss = []
 acc_5fold = []
@@ -70,20 +79,23 @@ for train_index, test_index in split_indices:
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
     # Compile model with optimizer and loss.
-    # Get optimizer from serialized hyper-parameter.
-    optimizer = tf.keras.optimizers.get(deepcopy(hyper_train['optimizer']))
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
-    model.compile(loss='binary_crossentropy',
+    optimizer = tf.keras.optimizers.get(deepcopy(hyper_compile['optimizer']))
+    loss = tf.keras.losses.get(hyper_compile["loss"]) if "loss" in hyper_compile else 'binary_crossentropy'
+    metrics = [x for x in hyper_compile["metrics"]] if "metrics" in hyper_compile else []
+    metrics = metrics + ['accuracy']
+    model.compile(loss=loss,
                   optimizer=optimizer,
-                  weighted_metrics=['accuracy'])
+                  weighted_metrics=metrics,
+                  **hyper_compile_additional)
     print(model.summary())
 
     # Start and time training
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_fit['callbacks']]
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
                      validation_data=(xtest, ytest),
                      callbacks=[cbks],
-                     **hyper_train['fit'],
+                     **hyper_fit_additional,
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
@@ -97,8 +109,11 @@ for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 
 # Make output directories.
+hyper_info = deepcopy(hyper["info"])
+post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
+post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'])
+filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
 
 # Plot loss vs epochs
@@ -111,16 +126,16 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('MUTAG Loss')
+plt.title('MUTAG Loss for ' + model_name)
 plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath, 'acc_mutag.png'))
+plt.savefig(os.path.join(filepath, model_name + "_acc_mutag" + post_fix_file + ".png"))
 plt.show()
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), all_test_index)
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, "hyper.json"))
+save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))

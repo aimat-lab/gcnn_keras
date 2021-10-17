@@ -5,6 +5,7 @@ import time
 import os
 import argparse
 
+from copy import deepcopy
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.cora import CoraDataset
@@ -40,9 +41,10 @@ dataset = CoraDataset().make_undirected_edges()
 data_name = dataset.dataset_name
 data_length = dataset.length
 labels = dataset.node_labels
+k_fold_dict = hyper['training']["KFold"]
 
 # Data-set split
-kf = KFold(n_splits=5, random_state=None, shuffle=True)
+kf = KFold(**k_fold_dict)
 split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
@@ -52,15 +54,20 @@ xtrain = dataloader.tensor(ragged=is_ragged)
 ytrain = np.array(labels)
 
 # Set learning rate and epochs.
-hyper_train = hyper['training']
-epo = hyper_train['fit']['epochs']
-epostep = hyper_train['fit']['validation_freq']
-# batch_size = hyper_train['fit']['batch_size']
+hyper_train = deepcopy(hyper['training'])
+hyper_fit = deepcopy(hyper_train["fit"])
+hyper_compile = deepcopy(hyper_train["compile"])
+reserved_fit_arguments = ["epochs", "initial_epoch", "batch_size", "callbacks", "sample_weight", "validation_freq"]
+hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
+reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics"]
+hyper_compile_additional = {key: value for key, value in hyper_compile.items() if key not in reserved_compile_arguments}
 
 train_loss = []
 test_loss = []
 acc_5fold = []
 all_test_index = []
+epo = hyper_fit['epochs'] if "epochs" in hyper_fit else 100
+epostep = hyper_fit['validation_freq'] if "validation_freq" in hyper_fit else 10
 model = None
 for train_index, test_index in split_indices:
     # Make mode for current split.
@@ -75,26 +82,32 @@ for train_index, test_index in split_indices:
     train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
     # Compile model with optimizer and loss.
-    # Get optimizer from serialized hyper-parameter.
-    optimizer = tf.keras.optimizers.get(hyper_train['optimizer'])
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_train['callbacks']]
-    model.compile(loss='categorical_crossentropy',
+    optimizer = tf.keras.optimizers.get(hyper_compile['optimizer'])
+    loss = hyper_compile["loss"] if "loss" in hyper_compile else 'categorical_crossentropy'
+    weighted_metrics = [x for x in hyper_compile["weighted_metrics"]] if "weighted_metrics" in hyper_compile else []
+    weighted_metrics = weighted_metrics + ['categorical_accuracy']
+    model.compile(loss=loss,
                   optimizer=optimizer,
-                  weighted_metrics=['categorical_accuracy'])
+                  weighted_metrics=weighted_metrics,
+                  **hyper_compile_additional
+                  )
     print(model.summary())
 
     # Training loop
     trainloss_steps = []
     testloss_step = []
     start = time.process_time()
+    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in
+            hyper_fit['callbacks']] if "callbacks" in hyper_fit else []
+    # batch_size = hyper_train['fit']['batch_size']
     for iepoch in range(0, epo, epostep):
         hist = model.fit(xtrain, ytrain,
                          epochs=iepoch + epostep,
                          initial_epoch=iepoch,
                          batch_size=1,
                          callbacks=[cbks],
-                         verbose=1,
-                         sample_weight=train_mask  # Important!!!
+                         sample_weight=train_mask,  # Important!!!
+                         **hyper_fit_additional
                          )
 
         trainloss_steps.append(hist.history)
@@ -112,8 +125,11 @@ for train_index, test_index in split_indices:
     all_test_index.append([train_index, test_index])
 
 # Make output directories.
+hyper_info = deepcopy(hyper["info"])
+post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
+post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'])
+filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
 
 # Plot training- and test-loss vs epochs for all splits.
@@ -126,16 +142,16 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-plt.title('Cora Full 70 class Loss')
+plt.title('Cora full 70 class loss for ' + model_name)
 plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath, 'acc_cora.png'))
+plt.savefig(os.path.join(filepath, model_name + "_acc_cora" + post_fix_file + ".png"))
 plt.show()
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, "kfold_splits.npz"), all_test_index)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), all_test_index)
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, "hyper.json"))
+save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))
