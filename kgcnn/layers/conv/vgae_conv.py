@@ -5,12 +5,8 @@ from kgcnn.layers.base import GraphBaseLayer
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='VGAEZerosLike')
 class VGAEZerosLike(GraphBaseLayer):
-    """Apply message by edge matrix multiplication.
+    """Make a zero-like graph tensor.
 
-    The message dimension must be suitable for matrix multiplication.
-
-    Args:
-        target_shape (int): Target dimension. Message dimension must match target_dim*node_dim.
     """
 
     def __init__(self, **kwargs):
