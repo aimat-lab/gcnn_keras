@@ -5,9 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='VGAEZerosLike')
 class VGAEZerosLike(GraphBaseLayer):
-    """Make a zero-like graph tensor.
-
-    """
+    """Make a zero-like graph tensor. Calls tf.zeros_like()."""
 
     def __init__(self, **kwargs):
         """Initialize layer."""
