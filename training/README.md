@@ -13,7 +13,7 @@ If no config file is provided a default for each model is used.
 However, note that not all models can be trained on all datasets and that not all models have proper default hyper parameters.
 You can check previous runs in the result folders named after each dataset and their hyper parameters and output files.
 
-There is a ``make_config.ipynb`` jupyter notebook to demonstrate how the `.json` config file can be set up and provide further information
+There is a [``make_config_training.ipynb``](notebooks/make_config_training.ipynb) jupyter [notebook](notebooks) to demonstrate how the `.json` config file can be set up and provide further information
 on how it is structured. In short the config file contains a python dictionary of the form:
 
 ```python3
