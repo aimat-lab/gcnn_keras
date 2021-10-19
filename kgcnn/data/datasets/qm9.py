@@ -256,7 +256,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             edge_attr = []
             for x in bond_info:
                 temp = add_edges_reverse_indices(np.array(x[:, :2]), np.array(x[:, 2:]))
-                edge_index.append(temp[0])
+                edge_index.append(temp[0] - 1)
                 edge_attr.append(np.array(temp[1], dtype="float"))
             self.edge_indices = edge_index
             self.edge_attributes = edge_attr
