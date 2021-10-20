@@ -94,7 +94,7 @@ def make_model(inputs=None,
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
     mv = Concatenate(axis=-1)([mv, n])
-    hv = Dense(**node_dense)()
+    hv = Dense(**node_dense)(mv)
 
     # Output embedding choice
     n = hv
