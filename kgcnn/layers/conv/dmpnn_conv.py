@@ -33,11 +33,11 @@ class DMPNNGatherEdgesPairs(GraphBaseLayer):
         """
         edges, pair_index = inputs
         index_corrected = tf.RaggedTensor.from_row_splits(
-            tf.where(pair_index.values[:, 0] > 0, pair_index.values, tf.zeros_like(pair_index.values)),
+            tf.where(pair_index.values >= 0, pair_index.values, tf.zeros_like(pair_index.values)),
             pair_index.row_splits, validate=self.ragged_validate)
         edges_paired = self.gather_layer([edges, index_corrected])
         edges_corrected = tf.RaggedTensor.from_row_splits(
-            tf.where(pair_index.values[:, 0] > 0, edges_paired.values, tf.zeros_like(edges_paired.values)),
+            tf.where(pair_index.values >= 0, edges_paired.values, tf.zeros_like(edges_paired.values)),
             edges_paired.row_splits, validate=self.ragged_validate)
         return edges_corrected
 

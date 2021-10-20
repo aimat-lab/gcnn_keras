@@ -57,7 +57,7 @@ class MemoryGraphDataset:
         return out
 
     def set_edge_indices_reverse_pairs(self):
-        """Computes the index map of the reverse edge for each of the edges."""
+        """Computes the index map of the reverse edge for each of the edges if available."""
         all_index_map = []
         # This must be done in mini-batches graphs are too large
         for edge_idx in self.edge_indices:
