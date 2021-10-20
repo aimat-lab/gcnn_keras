@@ -97,6 +97,30 @@ class Add(GraphBaseLayer):
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Subtract')
+class Subtract(GraphBaseLayer):
+
+    def __init__(self, **kwargs):
+        """Initialize layer same as tf.keras.Add."""
+        super(Subtract, self).__init__(**kwargs)
+        self._kgcnn_wrapper_args = []
+        self._kgcnn_wrapper_layer = ks.layers.Subtract()
+
+    def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras layer."""
+        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            # However, partition could be different, so this is only okay if ragged_validate=False
+            if all([x.ragged_rank == 1 for x in inputs]):
+                out = self._kgcnn_wrapper_layer([x.values for x in inputs], **kwargs)  # will be all Tensor
+                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+                return out
+            else:
+                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
+        # Try normal keras call
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
+
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Average')
 class Average(GraphBaseLayer):
 
