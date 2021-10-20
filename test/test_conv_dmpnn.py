@@ -20,10 +20,9 @@ class TestReverseEdges(unittest.TestCase):
         ds.set_edge_indices_reverse_pairs()
         edge_pair = tf.RaggedTensor.from_row_lengths(np.concatenate(ds.edge_indices_reverse_pairs, axis=0), [len(x) for x in ds.edge_indices_reverse_pairs])
         edges_gather = DMPNNGatherEdgesPairs()([edge, edge_pair])
+        result = edges_gather
 
-        print(edge_pair)
-        print(edges_gather)
-        # self.assertTrue(np.abs(result[0] - 100.0 * 1/(np.exp(1)+1) ) < 1e-4)
+        self.assertTrue(np.amax(np.abs(np.array(result[0]) - np.array([[1.0, 1.0], [0.0, 0.0], [3.0, 3.0], [2.0, 2.0]]))) < 1e-4)
 
         # layer.get_config()
 
