@@ -82,23 +82,22 @@ def make_model(inputs=None,
     h0 = Dense(**edge_initialize)(h0)
 
     # One Dense layer for all message steps
-    edge_dense_all = Dense(**edge_dense)
-    edge_add_all = Add()
-    edge_activation_all = Activation(**edge_activation)
+    edge_dense_all = Dense(**edge_dense)  # Should be linear activation
 
     # Model Loop
     h = h0
     for i in range(depth):
         m_vw = DMPNNPPoolingEdgesDirected()([n, h, edi, ed_pairs])
         h = edge_dense_all(m_vw)
-        h = edge_add_all([h, h0])
-        h = edge_activation_all(h)
+        h = Add()([h, h0])
+        h = Activation(**edge_activation)(h)
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
     mv = Concatenate(axis=-1)([mv, n])
     hv = Dense(**node_dense)()
 
     # Output embedding choice
+    n = hv
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_args)(n)
         # final dense layers
