@@ -110,5 +110,5 @@ def make_model(inputs=None,
     else:
         raise ValueError("Unsupported graph embedding for mode `DMPNN`")
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, edge_pair_input], outputs=main_output)
     return model
