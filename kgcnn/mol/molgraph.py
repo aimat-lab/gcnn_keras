@@ -337,7 +337,7 @@ class MolecularGraphRDKit(MolGraphInterface):
             bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
             if not self.is_directed:
                 # Add a bond with opposite direction but same properties
-                bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
+                bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
         # Sort directed bonds
         bond_idx = np.array(bond_idx, dtype="int64")
         if len(bond_idx) > 0:
@@ -366,7 +366,7 @@ class MolecularGraphRDKit(MolGraphInterface):
             # Add a bond with opposite direction but same properties
             if not self.is_directed:
                 bond_info.append(attr)
-                bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
+                bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
 
         # Sort directed bonds
         bond_idx = np.array(bond_idx, dtype="int64")
