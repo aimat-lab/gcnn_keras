@@ -35,7 +35,8 @@ model_default = {'name': "DMPNN",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
+def make_model(name=None,
+               inputs=None,
                input_embedding=None,
                output_embedding=None,
                output_mlp=None,
@@ -45,11 +46,13 @@ def make_model(inputs=None,
                edge_activation=None,
                node_dense=None,
                dropout=None,
-               depth=None
+               depth=None,
+               verbose=None,
                ):
     """Make DMPNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
+        name (str): Name of the model. Should be "DMPNN".
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
@@ -62,6 +65,7 @@ def make_model(inputs=None,
         node_dense (dict): Dense kwargs for node embedding layer.
         depth (int): Number of graph embedding units or depth of the network.
         dropout (dict): Dictionary of layer arguments unpacked in `Dropout`.
+        verbose (int): Level for print information.
 
     Returns:
         tf.keras.models.Model
