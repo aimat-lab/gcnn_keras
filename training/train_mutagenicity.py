@@ -6,7 +6,7 @@ import os
 import argparse
 
 from copy import deepcopy
-from kgcnn.utils.data import save_json_file, load_json_file
+from kgcnn.utils.data import save_json_file, load_hyper_file
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
@@ -33,7 +33,7 @@ if args["hyper"] is None:
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("Mutagenicity", model_name)
 else:
-    hyper = load_json_file(args["hyper"])
+    hyper = load_hyper_file(args["hyper"])
 
 # Loading Mutagenicity Dataset
 hyper_data = hyper['data']

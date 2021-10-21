@@ -15,7 +15,7 @@ from kgcnn.data.datasets.ESOL import ESOLDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperSelection
-from kgcnn.utils.data import save_json_file, load_json_file
+from kgcnn.utils.data import save_json_file, load_hyper_file
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
@@ -36,7 +36,7 @@ if args["hyper"] is None:
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("ESOL", model_name)
 else:
-    hyper = load_json_file(args["hyper"])
+    hyper = load_hyper_file(args["hyper"])
 
 # Loading ESOL Dataset
 hyper_data = hyper['data']

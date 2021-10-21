@@ -10,7 +10,7 @@ from sklearn.model_selection import KFold
 from kgcnn.data.datasets.PROTEINS import PROTEINSDatset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.utils.data import save_json_file, load_json_file
+from kgcnn.utils.data import save_json_file, load_hyper_file
 from kgcnn.hyper.datasets import DatasetHyperSelection
 
 
@@ -33,7 +33,7 @@ if args["hyper"] is None:
     hs = DatasetHyperSelection()
     hyper = hs.get_hyper("PROTEINS", model_name)
 else:
-    hyper = load_json_file(args["hyper"])
+    hyper = load_hyper_file(args["hyper"])
 
 # Loading PROTEINS Dataset
 hyper_data = hyper['data']

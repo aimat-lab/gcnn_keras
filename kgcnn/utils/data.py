@@ -3,7 +3,8 @@ import tensorflow as tf
 import numpy as np
 import yaml
 import json
-# import os
+import os
+from importlib.machinery import SourceFileLoader
 
 
 def save_pickle_file(outlist, filepath):
@@ -45,6 +46,35 @@ def save_yaml_file(outlist, fname):
         yaml.dump(outlist, yaml_file, default_flow_style=False)
 
 
+def load_hyper_file(file_name):
+    """Load hyper-parameters from file. File type can be '.yaml', '.json', '.pickle' or '.py'
+
+    Args:
+        file_name (str): Path or name of the file containing hyper-parameter.
+
+    Returns:
+        hyper (dict): Dictionary of hyper-parameters.
+    """
+    if "." not in file_name:
+        print("ERROR:kgcnn: Can not determine file-type.")
+        return {}
+    type_ending = file_name.split(".")[-1]
+    if type_ending == "json":
+        return load_json_file(file_name)
+    elif type_ending == "yaml":
+        return load_yaml_file(file_name)
+    elif type_ending == "pickle":
+        return load_pickle_file(file_name)
+    elif type_ending == "py":
+        path = os.path.realpath(file_name)
+        hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(
+            fullname=os.path.basename(path).replace(".py", "")), "hyper")
+        return hyper
+    else:
+        print("ERROR:kgcnn: Unsupported file type %s" % type_ending)
+    return {}
+
+
 def ragged_tensor_from_nested_numpy(numpy_list: list):
     """Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
     with exception of the first dimension.
@@ -70,4 +100,4 @@ def ragged_tensor_from_nested_numpy(numpy_list: list):
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
     """
     return tf.RaggedTensor.from_row_lengths(np.concatenate(numpy_list, axis=0), np.array([len(x) for x in numpy_list],
-                                                                                         dtype=np.int))
+                                                                                         dtype="int"))
