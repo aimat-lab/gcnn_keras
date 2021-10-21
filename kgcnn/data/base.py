@@ -61,6 +61,9 @@ class MemoryGraphDataset:
         all_index_map = []
         # This must be done in mini-batches graphs are too large
         for edge_idx in self.edge_indices:
+            if len(edge_idx) == 0:
+                all_index_map.append(np.array([], dtype="int"))
+                continue
             edge_idx_rev = np.flip(edge_idx, axis=-1)
             edge_pos, rev_pos = np.where(
                 np.all(np.expand_dims(edge_idx, axis=1) == np.expand_dims(edge_idx_rev, axis=0), axis=-1))

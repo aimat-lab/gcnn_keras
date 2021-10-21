@@ -13,7 +13,7 @@ class DMPNNGatherEdgesPairs(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(DMPNNGatherEdgesPairs, self).__init__(**kwargs)
-        self.gather_layer = GatherNodesIngoing()
+        self.gather_layer = GatherNodesIngoing(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -49,10 +49,10 @@ class DMPNNPPoolingEdgesDirected(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(DMPNNPPoolingEdgesDirected, self).__init__(**kwargs)
-        self.pool_edge_1 = PoolingLocalEdges(pooling_method="sum")
-        self.gather_edges = GatherNodesOutgoing()
-        self.gather_pairs = DMPNNGatherEdgesPairs()
-        self.subtract_layer = Subtract()
+        self.pool_edge_1 = PoolingLocalEdges(pooling_method="sum", **self._kgcnn_info)
+        self.gather_edges = GatherNodesOutgoing(**self._kgcnn_info)
+        self.gather_pairs = DMPNNGatherEdgesPairs(**self._kgcnn_info)
+        self.subtract_layer = Subtract(**self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""

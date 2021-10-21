@@ -23,5 +23,5 @@
         ]
     }, "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 0.001}}},
     "KFold": {"n_splits": 5, "random_state": null, "shuffle": true}, "execute_folds": null
-}, "data": {"range": {}}, "info": {"postfix": "", "kgcnn_version": "1.1.0"}
+}, "data": {}, "info": {"postfix": "", "kgcnn_version": "1.1.0"}
 }
