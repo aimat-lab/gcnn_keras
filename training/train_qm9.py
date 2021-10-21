@@ -43,9 +43,9 @@ else:
 hyper_data = hyper['data']
 dataset = QM9Dataset()
 # Modifications to set range and angle indices.
-if "range" in hyper_data:
+if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['range'])
-if "angle" in hyper_data or "requires_angles" in hyper_data:
+if "set_angle" in hyper_data or "requires_angles" in hyper_data:
     dataset.set_angle()
 data_name = dataset.dataset_name
 data_length = dataset.length

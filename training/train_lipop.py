@@ -41,9 +41,9 @@ else:
 # Loading Lipop Dataset
 hyper_data = hyper['data']
 dataset = LipopDataset().set_attributes()
-if "range" in hyper_data:
+if "set_range" in hyper_data:
     dataset.set_range(**hyper_data["range"])
-if "edge_indices_reverse_pairs" in hyper_data:
+if "set_edge_indices_reverse_pairs" in hyper_data:
     dataset.set_edge_indices_reverse_pairs()
 data_name = dataset.dataset_name
 data_unit = "logD at pH 7.4"

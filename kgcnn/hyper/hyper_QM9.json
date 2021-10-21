@@ -42,7 +42,7 @@
             }
         },
         "data": {
-            "range": {"max_distance": 4, "max_neighbours": 30},
+            "set_range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
             "target_indices": [5,6,7]
         },
@@ -96,7 +96,7 @@
             }
         },
         "data": {
-            "range": {"max_distance": 4, "max_neighbours": 30},
+            "set_range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
             "target_indices": [5,6,7]
         },
@@ -143,7 +143,7 @@
             }
         },
         "data": {
-            "range": {"max_distance": 4, "max_neighbours": 30},
+            "set_range": {"max_distance": 4, "max_neighbours": 30},
             "data_points_to_use": 133885,
             "target_indices": [5,6,7]
         },
@@ -194,7 +194,7 @@
             }
         },
         "data": {
-            "range": {"max_distance": 5, "max_neighbours": 10000},
+            "set_range": {"max_distance": 5, "max_neighbours": 10000},
             "data_points_to_use": 133885,
             "target_indices": [5,6,7]
         },
@@ -249,7 +249,7 @@
             }
         },
         "data": {
-            "range": {"max_distance": 5, "max_neighbours": 10000},
+            "set_range": {"max_distance": 5, "max_neighbours": 10000},
             "angle": {},
             "data_points_to_use": 133885,
             "target_indices": [5,6,7]

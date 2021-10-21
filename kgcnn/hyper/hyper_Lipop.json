@@ -44,7 +44,7 @@
             "execute_folds": null
         },
         "data": {
-            "edge_indices_reverse_pairs": {}
+            "set_edge_indices_reverse_pairs": {}
         },
         "info": {
             "postfix" : "",
@@ -127,7 +127,7 @@
             "execute_folds": null
         },
         "data": {
-            "range": {"max_distance": 3, "max_neighbours": 10000}
+            "set_range": {"max_distance": 3, "max_neighbours": 10000}
         },
         "info": {
             "postfix" : "",

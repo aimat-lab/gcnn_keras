@@ -31,7 +31,7 @@
             "execute_folds": null
         },
         "data": {
-            "range": {"max_distance": 4, "max_neighbours": 30}
+            "set_range": {"max_distance": 4, "max_neighbours": 30}
         },
         "info": {
             "postfix" : "",
