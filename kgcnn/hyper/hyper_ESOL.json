@@ -22,7 +22,8 @@
             "edge_dense": {"units": 128, "use_bias": true, "activation": "linear"},
             "edge_activation": {"activation": "relu"},
             "node_dense": {"units": 128, "use_bias": true, "activation": "relu"},
-            "verbose": 1, "depth": 5
+            "verbose": 1, "depth": 5,
+            "dropout": {"rate": 0.1}
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []

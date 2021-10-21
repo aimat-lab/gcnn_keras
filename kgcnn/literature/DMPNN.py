@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.keras import Dense, Concatenate, Activation, Add
+from kgcnn.layers.keras import Dense, Concatenate, Activation, Add, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
@@ -30,7 +30,7 @@ model_default = {'name': "DMPNN",
                  'edge_dense': {"units": 128, 'use_bias': True, 'activation': 'linear'},
                  "edge_activation": {"activation": "relu"},
                  "node_dense": {"units": 128, 'use_bias': True, 'activation': 'relu'},
-                 'verbose': 1, "depth": 5
+                 'verbose': 1, "depth": 5, "dropout": {"rate": 0.1}
                  }
 
 
@@ -44,8 +44,10 @@ def make_model(inputs=None,
                edge_dense=None,
                edge_activation=None,
                node_dense=None,
-               depth=None, **kwargs):
-    """Make NMPN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+               dropout=None,
+               depth=None
+               ):
+    """Make DMPNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -54,11 +56,12 @@ def make_model(inputs=None,
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
             Defines number of model outputs and activation.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
-        edge_initialize (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge matrix.
-        edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge matrix.
+        edge_initialize (dict): Dictionary of layer arguments unpacked in `Dense` layer for first edge embedding.
+        edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge embedding.
         edge_activation (dict): Edge Activation after skip connection.
         node_dense (dict): Dense kwargs for node embedding layer.
         depth (int): Number of graph embedding units or depth of the network.
+        dropout (dict): Dictionary of layer arguments unpacked in `Dropout`.
 
     Returns:
         tf.keras.models.Model
@@ -77,8 +80,8 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Make first edge hidden h0
-    n_receive = GatherNodesIngoing()([n, edi])
-    h0 = Concatenate(axis=-1)([n_receive, ed])
+    h_n0 = GatherNodesOutgoing()([n, edi])
+    h0 = Concatenate(axis=-1)([h_n0, ed])
     h0 = Dense(**edge_initialize)(h0)
 
     # One Dense layer for all message steps
@@ -91,6 +94,8 @@ def make_model(inputs=None,
         h = edge_dense_all(m_vw)
         h = Add()([h, h0])
         h = Activation(**edge_activation)(h)
+        if dropout is not None:
+            h = Dropout(**dropout)(h)
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
     mv = Concatenate(axis=-1)([mv, n])

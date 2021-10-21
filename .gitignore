@@ -23,6 +23,7 @@ kgcnn.egg-info
 /training/QM9/DimeNetPP/model*/
 /training/QM9/Megnet/model*/
 /training/ESOL/AttentiveFP/model*/
+/training/ESOL/DMPNN/model*/
 /training/Lipop/AttentiveFP/model*/
 /training/cora_lu/GAT/model*/
 /notebooks/ExampleMol/
