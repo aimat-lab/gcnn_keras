@@ -20,7 +20,7 @@ from kgcnn.utils.data import save_json_file, load_hyper_file
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="DMPNN")  # AttentiveFP
+parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)

@@ -35,7 +35,7 @@
         }
     },
     "data": {
-        "range": {"max_distance": 5, "max_neighbours": 10000},
+        "set_range": {"max_distance": 5, "max_neighbours": 10000},
         "data_points_to_use": 133885,
         "target_indices": [10, 11, 12, 13]
     },

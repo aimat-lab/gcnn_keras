@@ -38,11 +38,11 @@ class PROTEINSDatset(GraphTUDataset2020):
         ohe = OneHotEncoder(
             [-538, -345, -344, -134, -125, -96, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
              21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 47, 61, 63, 73, 74, 75,
-             82, 104, 353, 355, 360, 558, 797, 798], add_others=False)
+             82, 104, 353, 355, 360, 558, 797, 798], add_unknown=False)
         self.node_attributes = [np.array([ohe(int(y)) for y in x]) for x in self.node_attributes]
-        ohe2 = OneHotEncoder([0, 1, 2], add_others=False)
+        ohe2 = OneHotEncoder([0, 1, 2], add_unknown=False)
         self.node_labels = [np.array([ohe2(int(y)) for y in x]) for x in self.node_labels]
-        ohe3 = OneHotEncoder([i for i in range(0, 17)], add_others=False)
+        ohe3 = OneHotEncoder([i for i in range(0, 17)], add_unknown=False)
         self.node_degree = [np.array([ohe3(int(y)) for y in x]) for x in self.node_degree]
         self.length = len(self.graph_labels)
         self.graph_attributes = None

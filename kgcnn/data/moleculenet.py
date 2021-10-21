@@ -1,9 +1,6 @@
 import os
 import numpy as np
-import rdkit
-import rdkit.Chem
 import pandas as pd
-import rdkit.Chem as Chem
 
 from kgcnn.data.base import MemoryGeometricGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
@@ -105,7 +102,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         return self
 
     def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       has_conformers: bool = True,  label_column_name: str = None,
+                       has_conformers: bool = True, label_column_name: str = None,
                        add_hydrogen: bool = True, verbose: int = 1):
         r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
@@ -136,7 +133,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             graph_labels_all = np.expand_dims(np.array(data[label_column_name]), axis=-1)
         elif isinstance(label_column_name, list):
             graph_labels_all = np.concatenate([np.expand_dims(np.array(data[x]), axis=-1) for x in label_column_name],
-                                               axis=-1)
+                                              axis=-1)
         elif isinstance(label_column_name, slice):
             graph_labels_all = np.array(data.iloc[:, label_column_name])
         else:
@@ -233,29 +230,27 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             graph = ['ExactMolWt', 'NumAtoms']
         if encoder_nodes is None:
             encoder_nodes = {
-                "Symbol": OneHotEncoder(['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At']),
-                "Hybridization": OneHotEncoder([Chem.rdchem.HybridizationType.SP,
-                                                Chem.rdchem.HybridizationType.SP2,
-                                                Chem.rdchem.HybridizationType.SP3,
-                                                Chem.rdchem.HybridizationType.SP3D,
-                                                Chem.rdchem.HybridizationType.SP3D2]),
-                "TotalDegree": OneHotEncoder([0, 1, 2, 3, 4, 5], add_others=False),
-                "TotalNumHs": OneHotEncoder([0, 1, 2, 3, 4], add_others=False),
-                "CIPCode": OneHotEncoder(['R', 'S'], add_others=False)
+                "Symbol": OneHotEncoder(
+                    ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'], dtype="str"),
+                "Hybridization": OneHotEncoder([2, 3, 4, 5, 6]),
+                "TotalDegree": OneHotEncoder([0, 1, 2, 3, 4, 5], add_unknown=False),
+                "TotalNumHs": OneHotEncoder([0, 1, 2, 3, 4], add_unknown=False),
+                "CIPCode": OneHotEncoder(['R', 'S'], add_unknown=False, dtype="str")
             }
         if encoder_edges is None:
             encoder_edges = {
-                "BondType": OneHotEncoder([Chem.rdchem.BondType.SINGLE,
-                                           Chem.rdchem.BondType.DOUBLE,
-                                           Chem.rdchem.BondType.TRIPLE,
-                                           Chem.rdchem.BondType.AROMATIC], add_others=False),
-                "Stereo": OneHotEncoder([Chem.rdchem.BondStereo.STEREONONE,
-                                         Chem.rdchem.BondStereo.STEREOANY,
-                                         Chem.rdchem.BondStereo.STEREOZ,
-                                         Chem.rdchem.BondStereo.STEREOE], add_others=False),
+                "BondType": OneHotEncoder([1, 2, 3, 12], add_unknown=False),
+                "Stereo": OneHotEncoder([0, 1, 2, 3], add_unknown=False),
             }
         if encoder_graph is None:
             encoder_graph = {}
+
+        for key, value in encoder_nodes.items():
+            encoder_nodes[key] = self._deserialize_encoder(value)
+        for key, value in encoder_edges.items():
+            encoder_edges[key] = self._deserialize_encoder(value)
+        for key, value in encoder_graph.items():
+            encoder_graph[key] = self._deserialize_encoder(value)
 
         # Reset all attributes
         graph_attributes = []
@@ -302,3 +297,21 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
                 print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
 
         return self
+
+    @staticmethod
+    def _deserialize_encoder(encoder_identifier):
+        """Simple entry point for serialization. Will maybe include keras in the future.
+
+        Args:
+            encoder_identifier: Identifier, class or function of an encoder.
+
+        Returns:
+            obj: Deserialized encoder.
+        """
+        if isinstance(encoder_identifier, dict):
+            if encoder_identifier["class_name"] == "OneHotEncoder":
+                return OneHotEncoder.from_config(encoder_identifier["config"])
+        elif hasattr(encoder_identifier, "__call__"):
+            return encoder_identifier
+        else:
+            raise ValueError("ERROR:kgcnn: Unable to deserialize encoder %s " % encoder_identifier)
