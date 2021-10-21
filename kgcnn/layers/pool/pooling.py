@@ -8,20 +8,21 @@ from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
-    """Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
-    
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
-    Apply e.g. segment_mean for index[0] incoming nodes. 
-    Important: tensor_index[:,0] are sorted for segment-operation.
+    r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
+
+    Apply e.g. segment_mean fo edges with ID's taken from `index_tensor`.
+    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+        pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
     """
 
-    def __init__(self, pooling_method="mean", **kwargs):
+    def __init__(self, pooling_method="mean", pooling_index=0, **kwargs):
         """Initialize layer."""
         super(PoolingLocalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
+        self.pooling_index = pooling_index
 
     def build(self, input_shape):
         """Build layer."""
@@ -52,7 +53,7 @@ class PoolingLocalEdges(GraphBaseLayer):
                                           to_indexing='batch',
                                           from_indexing=self.node_indexing)
 
-        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
+        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
         dens = edge
         if not self.is_sorted:
             # Sort edgeindices
@@ -71,7 +72,7 @@ class PoolingLocalEdges(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
+        config.update({"pooling_method": self.pooling_method, "pooling_index": self.pooling_index})
         return config
 
 
@@ -82,22 +83,24 @@ PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 class PoolingWeightedLocalEdges(GraphBaseLayer):
     """Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
     
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
-    Apply e.g. segment_mean for index[0] incoming nodes. 
-    Important: tensor_index[:,0] could be sorted for segment-operation.
+    Apply e.g. segment_mean fo edges with ID's taken from `index_tensor`.
+    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
+        pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
     """
 
     def __init__(self, pooling_method="mean",
                  normalize_by_weights=False,
+                 pooling_index=0,
                  **kwargs):
         """Initialize layer."""
         super(PoolingWeightedLocalEdges, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.normalize_by_weights = normalize_by_weights
+        self.pooling_index = pooling_index
 
     def build(self, input_shape):
         """Build layer."""
@@ -131,7 +134,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 
         wval = weights
         dens = edge * wval
-        nodind = shiftind[:, 0]
+        nodind = shiftind[:, self.pooling_index]
 
         if not self.is_sorted:
             # Sort edgeindices
@@ -156,7 +159,8 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingWeightedLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method, "normalize_by_weights": self.normalize_by_weights})
+        config.update({"pooling_method": self.pooling_method, "normalize_by_weights": self.normalize_by_weights,
+                       "pooling_index": self.pooling_index})
         return config
 
 
@@ -298,13 +302,13 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
     Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
     Uses LSTM to aggregate Node-features.
 
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
-    Apply e.g. segment_mean for index[0] incoming nodes.
-    Important: tensor_index[:,0] are sorted for segment-operation.
+    Apply e.g. LSTM embedding for edges with ID's taken from `index_tensor`.
+    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
 
     Args:
         units (int): Units for LSTM cell.
         pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
+        pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
         activation: Activation function to use.
             Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
             is applied (ie. "linear" activation: `a(x) = x`).
@@ -366,6 +370,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
     def __init__(self,
                  units,
                  pooling_method="LSTM",
+                 pooling_index=0,
                  activation='tanh', recurrent_activation='sigmoid',
                  use_bias=True, kernel_initializer='glorot_uniform',
                  recurrent_initializer='orthogonal',
@@ -379,6 +384,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         """Initialize layer."""
         super(PoolingLocalEdgesLSTM, self).__init__(**kwargs)
         self.pooling_method = pooling_method
+        self.pooling_index = pooling_index
 
         self.lstm_unit = ks.layers.LSTM(units=units, activation=activation, recurrent_activation=recurrent_activation,
                                         use_bias=use_bias, kernel_initializer=kernel_initializer,
@@ -425,7 +431,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
                                           to_indexing='batch',
                                           from_indexing=self.node_indexing)
 
-        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
+        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
         dens = edge
         if not self.is_sorted:
             # Sort edgeindices
@@ -450,7 +456,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdgesLSTM, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
+        config.update({"pooling_method": self.pooling_method, "pooling_index": self.pooling_index})
         conf_lstm = self.lstm_unit.get_config()
         lstm_param = ["activation", "recurrent_activation", "use_bias", "kernel_initializer", "recurrent_initializer",
                       "bias_initializer", "unit_forget_bias", "kernel_regularizer", "recurrent_regularizer",
@@ -475,14 +481,18 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
     In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
 
-    An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
-    Important: tensor_index[:,0] are sorted for segment-operation for pooling with respect to tensor_index[:,0].
+    An edge is defined by index tuple `(i, j)` with i<-j connection.
+    Important: ID's for segment-operation and for pooling of edges are taken from edge-index-tensor.
+    They are sorted for faster pooling from tensor_index[:, :, pooling_index].
+
+    Args:
+        pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, pooling_index=0, **kwargs):
         """Initialize layer."""
         super(PoolingLocalEdgesAttention, self).__init__(**kwargs)
+        self.pooling_index = pooling_index
 
     def build(self, input_shape):
         """Build layer."""
@@ -514,7 +524,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
                                           partition_type_index="row_length", to_indexing='batch',
                                           from_indexing=self.node_indexing)
 
-        nodind = shiftind[:, 0]  # Pick first index eg. ingoing
+        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
         dens = edge
         ats = attention
         if not self.is_sorted:
@@ -541,6 +551,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingLocalEdgesAttention, self).get_config()
+        config.update({"pooling_index": self.pooling_index})
         return config
 
 

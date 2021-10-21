@@ -17,6 +17,7 @@ kgcnn.egg-info
 /training/QM9/Schnet/model*/
 /training/PROTEINS/GIN/model*/
 /training/Lipop/PAiNN/model*/
+/training/Lipop/DMPNN/model*/
 /training/ESOL/PAiNN/model*/
 /training/ESOL/GIN/model*/
 /training/QM9/PAiNN/model*/
