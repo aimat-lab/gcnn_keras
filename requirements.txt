@@ -1,5 +1,5 @@
 numpy
-tensorflow-cpu
+tensorflow
 scipy
 matplotlib
 pandas
