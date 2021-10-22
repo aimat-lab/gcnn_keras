@@ -228,32 +228,32 @@ class MolecularGraphRDKit(MolGraphInterface):
     """A graph object representing a strict molecular graph, e.g. only chemical bonds."""
 
     atom_fun_dict = {
-        "AtomicNum": rdkit.Chem.rdchem.Atom.GetAtomicNum,
-        "Symbol": rdkit.Chem.rdchem.Atom.GetSymbol,
-        "NumExplicitHs": rdkit.Chem.rdchem.Atom.GetNumExplicitHs,
-        "NumImplicitHs": rdkit.Chem.rdchem.Atom.GetNumImplicitHs,
-        "TotalNumHs": rdkit.Chem.rdchem.Atom.GetTotalNumHs,
-        "IsAromatic": rdkit.Chem.rdchem.Atom.GetIsAromatic,
-        "TotalDegree": rdkit.Chem.rdchem.Atom.GetTotalDegree,
-        "TotalValence": rdkit.Chem.rdchem.Atom.GetTotalValence,
-        "Mass": rdkit.Chem.rdchem.Atom.GetMass,
-        "IsInRing": rdkit.Chem.rdchem.Atom.IsInRing,
-        "Hybridization": rdkit.Chem.rdchem.Atom.GetHybridization,
-        "ChiralTag": rdkit.Chem.rdchem.Atom.GetChiralTag,
-        "FormalCharge": rdkit.Chem.rdchem.Atom.GetFormalCharge,
-        "ImplicitValence": rdkit.Chem.rdchem.Atom.GetImplicitValence,
-        "NumRadicalElectrons": rdkit.Chem.rdchem.Atom.GetNumRadicalElectrons,
-        "Idx": rdkit.Chem.rdchem.Atom.GetIdx,
+        "AtomicNum": lambda atom: atom.GetAtomicNum(),
+        "Symbol": lambda atom: atom.GetSymbol(),
+        "NumExplicitHs": lambda atom: atom.GetNumExplicitHs(),
+        "NumImplicitHs": lambda atom: atom.GetNumImplicitHs(),
+        "TotalNumHs": lambda atom: atom.GetTotalNumHs(),
+        "IsAromatic": lambda atom: atom.GetIsAromatic(),
+        "TotalDegree": lambda atom: atom.GetTotalDegree(),
+        "TotalValence": lambda atom: atom.GetTotalValence(),
+        "Mass": lambda atom: atom.GetMass(),
+        "IsInRing": lambda atom: atom.IsInRing(),
+        "Hybridization": lambda atom: atom.GetHybridization(),
+        "ChiralTag": lambda atom: atom.GetChiralTag(),
+        "FormalCharge": lambda atom: atom.GetFormalCharge(),
+        "ImplicitValence": lambda atom: atom.GetImplicitValence(),
+        "NumRadicalElectrons": lambda atom: atom.GetNumRadicalElectrons(),
+        "Idx": lambda atom: atom.GetIdx(),
         "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else False,
         "ChiralityPossible": lambda atom: atom.HasProp('_ChiralityPossible')
     }
 
     bond_fun_dict = {
-        "BondType": rdkit.Chem.rdchem.Bond.GetBondType,
-        "IsAromatic": rdkit.Chem.rdchem.Bond.GetIsAromatic,
-        "IsConjugated": rdkit.Chem.rdchem.Bond.GetIsConjugated,
-        "IsInRing": rdkit.Chem.rdchem.Bond.IsInRing,
-        "Stereo": rdkit.Chem.rdchem.Bond.GetStereo
+        "BondType": lambda bond: bond.GetBondType(),
+        "IsAromatic": lambda bond: bond.GetIsAromatic(),
+        "IsConjugated": lambda bond: bond.GetIsConjugated(),
+        "IsInRing": lambda bond: bond.IsInRing(),
+        "Stereo": lambda bond: bond.GetStereo()
     }
 
     mol_fun_dict = {
@@ -324,6 +324,11 @@ class MolecularGraphRDKit(MolGraphInterface):
 
         return np.array(self.mol.GetConformers()[0].GetPositions())
 
+    def to_smiles(self):
+        if self.mol is None:
+            return
+        return rdkit.Chem.MolToSmiles(self.mol)
+
     def from_mol_block(self, mb, sanitize=False):
         if mb is None or len(mb) == 0:
             return self
@@ -337,11 +342,15 @@ class MolecularGraphRDKit(MolGraphInterface):
 
     @property
     def node_symbol(self):
-        return [rdkit.Chem.rdchem.Atom.GetSymbol(x) for x in self.mol.GetAtoms()]
+        return [x.GetSymbol() for x in self.mol.GetAtoms()]
 
     @property
     def node_number(self):
-        return np.array([rdkit.Chem.rdchem.Atom.GetAtomicNum(x) for x in self.mol.GetAtoms()])
+        return np.array([x.GetAtomicNum() for x in self.mol.GetAtoms()])
+
+    @property
+    def edge_number(self):
+        return self.edge_attributes(["BondType"], encoder={})
 
     @property
     def edge_indices(self):

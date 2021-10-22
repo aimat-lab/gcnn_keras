@@ -40,6 +40,8 @@ hyper_data = hyper['data']
 dataset = MutagenicityDataset()
 data_name = dataset.dataset_name
 data_length = dataset.length
+if "set_edge_indices_reverse_pairs" in hyper_data:
+    dataset.set_edge_indices_reverse_pairs()
 k_fold_info = hyper["training"]["KFold"]
 
 # Data-set split
