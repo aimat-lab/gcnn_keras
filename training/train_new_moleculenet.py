@@ -38,18 +38,10 @@ hyper = hyper_selection.get_hyper(model_name=model_name)
 # Loading ESOL Dataset
 hyper_data = hyper['data']
 dataset = MoleculeNetDataset(**hyper_data["dataset"])
-if "prepare_data" in hyper_data:
-    dataset.prepare_data(**hyper_data["prepare_data"])
-if "read_in_memory" in hyper_data:
-    dataset.read_in_memory(**hyper_data["read_in_memory"])
-if "set_attributes" in hyper_data:
-    dataset.set_attributes(**hyper_data["set_attributes"])
-if "set_range" in hyper_data:
-    dataset.set_range(**hyper_data['range'])
-if "set_edge_indices_reverse_pairs" in hyper_data:
-    dataset.set_edge_indices_reverse_pairs()
-if "set_angle" in hyper_data:
-    dataset.set_angle()
+for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_edge_indices_reverse_pairs", "set_angle"]:
+    if hasattr(dataset, method_data) and method_data in hyper_data:
+        getattr(dataset, method_data)(**hyper_data[method_data])
+
 data_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length
