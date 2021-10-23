@@ -164,7 +164,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         coords = []
         number = []
         edgind = []
-        edges = []
+        edge_number = []
         num_mols = len(mols)
         graph_labels = []
         counter_iter = 0
@@ -173,15 +173,19 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             if mg.mol is None:
                 print(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
                 continue
-            atoms.append(mg.node_symbol)
+            temp_edge = mg.edge_number
+            if len(temp_edge[0]) == 0:
+                print(" ... skip molecule {0} as it has 0 edges.".format(i))
+                continue
             if has_conformers:
                 coords.append(mg.node_coordinates)
-            number.append(mg.node_number)
-            temp_edge = mg.edge_number
+            # Append all valid tensor quantities
             edgind.append(temp_edge[0])
-            edges.append(np.array(temp_edge[1], dtype="int"))
-            counter_iter += 1
+            edge_number.append(np.array(temp_edge[1], dtype="int"))
+            atoms.append(mg.node_symbol)
+            number.append(mg.node_number)
             graph_labels.append(graph_labels_all[i])
+            counter_iter += 1
             if i % 1000 == 0:
                 if verbose > 0:
                     print(" ... read molecules {0} from {1}".format(i, num_mols))
@@ -192,7 +196,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.edge_indices = edgind
         self.length = counter_iter
         self.graph_labels = graph_labels
-        self.edge_number = edges
+        self.edge_number = edge_number
 
         if verbose > 0:
             print("done")
@@ -272,24 +276,34 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         graph_attributes = []
         node_attributes = []
         edge_attributes = []
+        edge_number = []
         edge_indices = []
         node_coordinates = []
         node_symbol = []
         node_number = []
         num_mols = len(mols)
+        counter_iter = 0
         for i, sm in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
             if mg.mol is None:
                 print(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
                 continue
-            node_attributes.append(np.array(mg.node_attributes(nodes, encoder_nodes), dtype="float32"))
-            edge_attributes.append(np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype="float32"))
-            edge_indices.append(np.array(mg.edge_indices, dtype="int64"))
-            graph_attributes.append(np.array(mg.graph_attributes(graph, encoder_graph), dtype="float32"))
-            node_symbol.append(mg.node_symbol)
+            temp_edge = mg.edge_number
+            if len(temp_edge[0]) == 0:
+                print(" ... skip molecule {0} as it has 0 edges.".format(i))
+                continue
             if has_conformers:
                 node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
+
+            # Append all valid tensor properties
+            edge_indices.append(np.array(temp_edge[0], dtype="int64"))
+            edge_number.append(np.array(temp_edge[1], dtype="int"))
+            node_attributes.append(np.array(mg.node_attributes(nodes, encoder_nodes), dtype="float32"))
+            edge_attributes.append(np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype="float32"))
+            graph_attributes.append(np.array(mg.graph_attributes(graph, encoder_graph), dtype="float32"))
+            node_symbol.append(mg.node_symbol)
             node_number.append(mg.node_number)
+            counter_iter += 1
             if i % 1000 == 0:
                 if verbose > 0:
                     print(" ... read molecules {0} from {1}".format(i, num_mols))
@@ -302,6 +316,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.node_coordinates = node_coordinates
         self.node_symbol = node_symbol
         self.node_number = node_number
+        self.length = counter_iter
 
         if verbose > 0:
             print("done")

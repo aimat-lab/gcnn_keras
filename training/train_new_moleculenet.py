@@ -11,7 +11,7 @@ from tensorflow_addons import optimizers
 from kgcnn.utils import learning
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
-from kgcnn.data.datasets.ESOL import ESOLDataset
+from kgcnn.data.moleculenet import MoleculeNetDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.datasets import DatasetHyperTraining
@@ -20,8 +20,9 @@ from kgcnn.utils.data import save_json_file
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="AttentiveFP")  # AttentiveFP
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper_esol.py")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="DMPNN")  # AttentiveFP
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
+                    default="hyper_new_moleculenet.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -36,11 +37,19 @@ hyper = hyper_selection.get_hyper(model_name=model_name)
 
 # Loading ESOL Dataset
 hyper_data = hyper['data']
-dataset = ESOLDataset().set_attributes()
+dataset = MoleculeNetDataset(**hyper_data["dataset"])
+if "prepare_data" in hyper_data:
+    dataset.prepare_data(**hyper_data["prepare_data"])
+if "read_in_memory" in hyper_data:
+    dataset.read_in_memory(**hyper_data["read_in_memory"])
+if "set_attributes" in hyper_data:
+    dataset.set_attributes(**hyper_data["set_attributes"])
 if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['range'])
 if "set_edge_indices_reverse_pairs" in hyper_data:
     dataset.set_edge_indices_reverse_pairs()
+if "set_angle" in hyper_data:
+    dataset.set_angle()
 data_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length
