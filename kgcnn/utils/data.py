@@ -67,8 +67,8 @@ def load_hyper_file(file_name):
         return load_pickle_file(file_name)
     elif type_ending == "py":
         path = os.path.realpath(file_name)
-        hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(
-            fullname=os.path.basename(path).replace(".py", "")), "hyper")
+        print(path)
+        hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(), "hyper")
         return hyper
     else:
         print("ERROR:kgcnn: Unsupported file type %s" % type_ending)

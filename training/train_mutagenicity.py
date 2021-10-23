@@ -6,19 +6,20 @@ import os
 import argparse
 
 from copy import deepcopy
-from kgcnn.utils.data import save_json_file, load_hyper_file
+from kgcnn.utils.data import save_json_file
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.hyper.datasets import DatasetHyperSelection
+from kgcnn.hyper.datasets import DatasetHyperTraining
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Mutagenicity dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GraphSAGE")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default=None)
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
+                    default="hyper_mutagenicity.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -28,12 +29,8 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter identification.
-if args["hyper"] is None:
-    # Default hyper-parameter for model if available.
-    hs = DatasetHyperSelection()
-    hyper = hs.get_hyper("Mutagenicity", model_name)
-else:
-    hyper = load_hyper_file(args["hyper"])
+hyper_selection = DatasetHyperTraining(args["hyper"])
+hyper = hyper_selection.get_hyper(model_name=model_name)
 
 # Loading Mutagenicity Dataset
 hyper_data = hyper['data']
@@ -61,7 +58,6 @@ reserved_compile_arguments = ["loss", "optimizer", "metrics"]
 hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
                             key not in reserved_compile_arguments}
 
-
 epo = hyper_fit['epochs']
 epostep = hyper_fit['validation_freq']
 batch_size = hyper_fit['batch_size']
@@ -71,7 +67,6 @@ acc_5fold = []
 all_test_index = []
 model = None
 for train_index, test_index in split_indices:
-
     # Make model.
     model = make_model(**hyper['model'])
 

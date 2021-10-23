@@ -1,22 +1,22 @@
-{
+hyper = {
     "GAT": {
         "model": {
             "name": "GAT",
             "inputs": [
-                    {"shape": [null, 1433], "name": "node_attributes", "dtype": "float32", "ragged": true},
-                    {"shape": [null, 1], "name": "edge_attributes", "dtype": "float32", "ragged": true},
-                    {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}],
+                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 1], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 5, "output_dim": 64}},
             "output_embedding": "node",
-            "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 7],
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 7],
                         "activation": ["relu", "relu", "softmax"]},
-            "attention_args": {"units": 32, "use_bias": true, "use_edge_features": true,
-                            "use_final_activation": false, "has_self_loops": true},
+            "attention_args": {"units": 32, "use_bias": True, "use_edge_features": True,
+                            "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "mean"},
             "depth": 3, "attention_heads_num": 10,
-            "attention_heads_concat": false, "verbose": 1
+            "attention_heads_concat": False, "verbose": 1
         },
         "training": {
             "fit": {
@@ -34,8 +34,8 @@
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
             },
-            "KFold" : {"n_splits": 5, "random_state": null, "shuffle": true},
-            "execute_folds": null
+            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": None
         },
         "data": {
         },

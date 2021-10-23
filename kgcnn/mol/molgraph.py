@@ -350,7 +350,7 @@ class MolecularGraphRDKit(MolGraphInterface):
 
     @property
     def edge_number(self):
-        return self.edge_attributes(["BondType"], encoder={})
+        return self.edge_attributes(["BondType"], encoder={"BondType": int})
 
     @property
     def edge_indices(self):
@@ -383,7 +383,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         for i, x in enumerate(m.GetBonds()):
             attr = []
             for k in edges:
-                attr += encoder[k](self.bond_fun_dict[k](x)) if k in encoder else [self.bond_fun_dict[k](x)]
+                temp = encoder[k](self.bond_fun_dict[k](x)) if k in encoder else [self.bond_fun_dict[k](x)]
+                if isinstance(temp, (list, tuple)):
+                    attr += list(temp)
+                else:
+                    attr.append(temp)
             bond_info.append(attr)
             bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
             # Add a bond with opposite direction but same properties
@@ -414,7 +418,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         for i, atm in enumerate(m.GetAtoms()):
             attr = []
             for k in nodes:
-                attr += encoder[k](self.atom_fun_dict[k](atm)) if k in encoder else [self.atom_fun_dict[k](atm)]
+                temp = encoder[k](self.atom_fun_dict[k](atm)) if k in encoder else [self.atom_fun_dict[k](atm)]
+                if isinstance(temp, (list, tuple)):
+                    attr += list(temp)
+                else:
+                    attr.append(temp)
             atom_info.append(attr)
         return atom_info
 
@@ -423,7 +431,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         m = self.mol
         encoder = self._check_encoder(encoder, sorted(self.mol_fun_dict.keys()))
         # Mol info
-        mol_info = []
+        attr = []
         for k in graph:
-            mol_info += encoder[k](self.mol_fun_dict[k](m)) if k in encoder else [self.mol_fun_dict[k](m)]
-        return mol_info
+            temp = encoder[k](self.mol_fun_dict[k](m)) if k in encoder else [self.mol_fun_dict[k](m)]
+            if isinstance(temp, (list, tuple)):
+                attr += list(temp)
+            else:
+                attr.append(temp)
+        return attr
