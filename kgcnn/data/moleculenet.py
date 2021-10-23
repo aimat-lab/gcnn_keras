@@ -18,11 +18,22 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     mol_filename = "mol.json"
 
-    def __init__(self, verbose=1):
+    def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
+                 verbose=1):
+        r"""Initialize a `MoleculeNetDataset` from file.
 
-        self.file_name = None
-        self.data_directory = None
-        self.dataset_name = None
+        Args:
+            file_name (str): Filename for reading into memory. This must be the name of the '.csv' file.
+                Default is None.
+            data_directory (str): Full path to directory containing all dataset files. Default is None.
+            dataset_name (str): Name of the dataset. Important for naming. Default is None.
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+        """
+
+        self.file_name = file_name
+        self.data_directory = data_directory
+        self.dataset_name = dataset_name
+
         self.data_keys = None
 
         MemoryGeometricGraphDataset.__init__(self, verbose=verbose)
@@ -35,7 +46,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             smiles (list): A list of smiles for each molecule in dataset.
             add_hydrogen (bool): Whether to add H after smile translation.
             sanitize (bool): Whether sanitize molecule.
-            make_conformers (bool): Trey to generate 3D coordinates
+            make_conformers (bool): Try to generate 3D coordinates
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
 
         Returns:
@@ -152,6 +163,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         coords = []
         number = []
         edgind = []
+        edges = []
         num_mols = len(mols)
         graph_labels = []
         counter_iter = 0
@@ -165,6 +177,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
                 coords.append(mg.node_coordinates)
             number.append(mg.node_number)
             edgind.append(mg.edge_indices)
+            edges.append(mg.edge_number)
             counter_iter += 1
             graph_labels.append(graph_labels_all[i])
             if i % 1000 == 0:
@@ -177,6 +190,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.edge_indices = edgind
         self.length = counter_iter
         self.graph_labels = graph_labels
+        self.edge_number = edges
 
         if verbose > 0:
             print("done")
@@ -290,11 +304,14 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if verbose > 0:
             print("done")
             for key, value in encoder_nodes.items():
-                print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "found_values"):
+                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
             for key, value in encoder_edges.items():
-                print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "found_values"):
+                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
             for key, value in encoder_graph.items():
-                print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "found_values"):
+                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
 
         return self
 

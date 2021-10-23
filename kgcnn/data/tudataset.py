@@ -21,15 +21,20 @@ class GraphTUDataset(MemoryGraphDataset):
 
     """
 
-    def __init__(self, verbose: int = 1):
-        """Initialize a `GraphTUDataset` instance from string identifier.
+    def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
+                 verbose: int = 1):
+        r"""Initialize a `GraphTUDataset` instance from file.
 
         Args:
+            file_name (str): Filename for reading into memory. Not used for general TUDataset, since there are multiple
+                files with a prefix and pre-defined suffix. Default is None.
+            data_directory (str): Full path to directory containing all txt-files. Default is None.
+            dataset_name (str): Name of the dataset. Important for base-name for naming of files. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        self.file_name = None
-        self.data_directory = None
-        self.dataset_name = None
+        self.file_name = file_name
+        self.data_directory = data_directory
+        self.dataset_name = dataset_name
 
         MemoryGraphDataset.__init__(self, verbose=verbose)
 
@@ -59,7 +64,7 @@ class GraphTUDataset(MemoryGraphDataset):
             path = os.path.realpath(self.data_directory)
             name_dataset = self.dataset_name
         else:
-            print("WARNING:kgcnn: Dataset requires name %s and path." % self.dataset_name)
+            print("ERROR:kgcnn: Dataset needs name {0} and path {1}.".format(self.dataset_name, self.data_directory))
             return None
 
         if verbose > 1:
@@ -121,7 +126,7 @@ class GraphTUDataset(MemoryGraphDataset):
 
         # split into separate graphs
         graph_id, counts = np.unique(g_n_id, return_counts=True)
-        graphlen = np.zeros(num_graphs, dtype=np.int)
+        graphlen = np.zeros(num_graphs, dtype="int")
         graphlen[graph_id] = counts
 
         if n_attr is not None:
@@ -132,7 +137,7 @@ class GraphTUDataset(MemoryGraphDataset):
         # edge_indicator
         graph_id_edge = g_n_id[g_a[:, 0]]  # is the same for adj_matrix[:,1]
         graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
-        edgelen = np.zeros(num_graphs, dtype=np.int)
+        edgelen = np.zeros(num_graphs, dtype="int")
         edgelen[graph_id2] = counts_edge
 
         if e_attr is not None:
@@ -151,7 +156,7 @@ class GraphTUDataset(MemoryGraphDataset):
         for i in range(num_graphs):
             cons = np.arange(graphlen[i])
             test_cons = np.sort(np.unique(cons[edge_indices[i]].flatten()))
-            is_cons = np.zeros_like(cons, dtype=np.bool)
+            is_cons = np.zeros_like(cons, dtype="bool")
             is_cons[test_cons] = True
             all_cons.append(np.sum(is_cons == False))
         all_cons = np.array(all_cons)

@@ -11,6 +11,7 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 
 
 class MemoryGraphDataset:
+
     fits_in_memory = True
 
     def __init__(self, **kwargs):
@@ -82,7 +83,8 @@ class MemoryGraphDataset:
 class MemoryGeometricGraphDataset(MemoryGraphDataset):
     r"""Subclass of :obj:``MemoryGraphDataset``. It expands the graph dataset with range and angle properties.
     The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
-    to have geometric range-connections and topological edges separately.
+    to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
+    edge.
 
     """
 
@@ -181,9 +183,9 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
 
 
 class DownloadDataset:
-    """Base layer for datasets. Provides functions for download and unzip of the data.
+    r"""Base layer for datasets. Provides functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
-    Information about the dataset can be set with class properties.
+    Note that ``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
 
     """
 
