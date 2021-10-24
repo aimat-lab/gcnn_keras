@@ -43,7 +43,7 @@ for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_ran
         getattr(dataset, method_data)(**hyper_data[method_data])
 
 data_name = dataset.dataset_name
-data_unit = "mol/L"
+data_unit = ""
 data_length = dataset.length
 k_fold_info = hyper["training"]["KFold"]
 
