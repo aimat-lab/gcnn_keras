@@ -11,7 +11,7 @@ hyper = {
                 "edge": {"input_dim": 5, "output_dim": 16}},
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                "activation": ["relu", "relu", "sigmoid"]},
+                           "activation": ["relu", "relu", "sigmoid"]},
             "node_mlp_args": {"units": [64, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": 64, "use_bias": True, "activation": "relu"},
             "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {},
@@ -35,7 +35,7 @@ hyper = {
         "data": {
         },
         "info": {
-            "postfix" : "",
+            "postfix": "",
             "kgcnn_version": "1.1.0"
         }
     }

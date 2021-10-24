@@ -11,7 +11,7 @@ from kgcnn.data.datasets.PROTEINS import PROTEINSDatset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.utils.data import save_json_file
-from kgcnn.hyper.datasets import DatasetHyperTraining
+from kgcnn.hyper.selection import HyperSelectionTraining
 
 
 # Input arguments from command line.
@@ -28,7 +28,7 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter identification
-hyper_selection = DatasetHyperTraining(args["hyper"], model_name=model_name)
+hyper_selection = HyperSelectionTraining(args["hyper"], model_name=model_name)
 hyper = hyper_selection.get_hyper()
 
 # Loading PROTEINS Dataset
@@ -49,18 +49,12 @@ dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model
 labels = dataset.graph_labels
 
 # Set learning rate and epochs
-hyper_train = deepcopy(hyper['training'])
-hyper_fit = deepcopy(hyper_train["fit"])
-hyper_compile = deepcopy(hyper_train["compile"])
-reserved_fit_arguments = ["callbacks", "validation_data"]
-hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
-reserved_compile_arguments = ["loss", "optimizer", "metrics"]
-hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
-                            key not in reserved_compile_arguments}
-
+# hyper_fit and epochs
+hyper_fit = hyper_selection.fit()
 epo = hyper_fit['epochs']
 epostep = hyper_fit['validation_freq']
 batch_size = hyper_fit['batch_size']
+
 train_loss = []
 test_loss = []
 acc_5fold = []
@@ -77,23 +71,16 @@ for train_index, test_index in split_indices:
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
     # Compile model with optimizer and loss
-    optimizer = tf.keras.optimizers.get(deepcopy(hyper_compile['optimizer']))
-    loss = tf.keras.losses.get(hyper_compile["loss"]) if "loss" in hyper_compile else 'categorical_crossentropy'
-    metrics = [x for x in hyper_compile["metrics"]] if "metrics" in hyper_compile else []
-    metrics = metrics + ['categorical_accuracy']
-    model.compile(loss=loss,
-                  optimizer=optimizer,
-                  weighted_metrics=metrics,
-                  **hyper_compile_additional)
+    hyper_compile = hyper_selection.compile(loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+    model.compile(**hyper_compile)
     print(model.summary())
 
     # Start and time training
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in hyper_fit['callbacks']]
+    hyper_fit = hyper_selection.fit()
     start = time.process_time()
     hist = model.fit(xtrain, ytrain,
                      validation_data=(xtest, ytest),
-                     callbacks=cbks,
-                     **hyper_fit_additional
+                     **hyper_fit
                      )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)

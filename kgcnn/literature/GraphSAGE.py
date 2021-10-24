@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Concatenate, LayerNormalization
+from kgcnn.layers.keras import Concatenate, LayerNormalization, BatchNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -43,7 +43,9 @@ def make_model(inputs=None,
                gather_args=None,
                concat_args=None,
                use_edge_features=None,
-               depth=None, **kwargs
+               depth=None,
+               name=None,
+               verbose=None
                ):
     """Make GraphSAGE graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -61,6 +63,8 @@ def make_model(inputs=None,
         concat_args (dict): Dictionary of layer arguments unpacked in `Concatenate` layer.
         use_edge_features (bool): Whether to add edge features in message step.
         depth (int): Number of graph embedding units or depth of the network.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
 
     Returns:
         tf.keras.models.Model
@@ -90,7 +94,7 @@ def make_model(inputs=None,
         nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
-        n = LayerNormalization(axis=-1)(n)  # Normalize
+        n = LayerNormalization()(n)  # Normalize
 
     # Regression layer on output
     if output_embedding == 'graph':

@@ -11,7 +11,7 @@ from sklearn.model_selection import KFold
 from kgcnn.data.datasets.cora_lu import CoraLUDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.hyper.datasets import DatasetHyperTraining
+from kgcnn.hyper.selection import HyperSelectionTraining
 from kgcnn.utils.data import save_json_file
 
 # Input arguments from command line.
@@ -28,7 +28,7 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter
-hyper_selection = DatasetHyperTraining(args["hyper"], model_name=model_name)
+hyper_selection = HyperSelectionTraining(args["hyper"], model_name=model_name)
 hyper = hyper_selection.get_hyper()
 
 # Loading Cora_lu Dataset
@@ -49,22 +49,15 @@ is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
 xtrain = dataloader.tensor(ragged=is_ragged)
 ytrain = np.array(labels)
 
-# Set learning rate and epochs
-hyper_train = deepcopy(hyper['training'])
-hyper_fit = deepcopy(hyper_train["fit"])
-hyper_compile = deepcopy(hyper_train["compile"])
-reserved_fit_arguments = ["epochs", "initial_epoch", "batch_size", "callbacks", "sample_weight", "validation_freq"]
-hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
-reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics"]
-hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
-                            key not in reserved_compile_arguments}
+# epochs
+hyper_fit = hyper_selection.fit(epochs=100, validation_freq=10)
+epo = hyper_fit['epochs']
+epostep = hyper_fit['validation_freq']
 
 train_loss = []
 test_loss = []
 acc_5fold = []
 all_test_index = []
-epo = hyper_fit['epochs'] if "epochs" in hyper_fit else 100
-epostep = hyper_fit['validation_freq'] if "validation_freq" in hyper_fit else 10
 model = None
 for train_index, test_index in split_indices:
     # Make mode for current split.
@@ -80,29 +73,22 @@ for train_index, test_index in split_indices:
 
     # Compile model with optimizer and loss.
     # Get optimizer from serialized hyper-parameter.
-    optimizer = tf.keras.optimizers.get(hyper_compile['optimizer'])
-    loss = hyper_compile["loss"] if "loss" in hyper_compile else 'categorical_crossentropy'
-    weighted_metrics = [x for x in hyper_compile["weighted_metrics"]] if "weighted_metrics" in hyper_compile else []
-    weighted_metrics = weighted_metrics + ['categorical_accuracy']
-    model.compile(loss=loss,
-                  optimizer=optimizer,
-                  weighted_metrics=weighted_metrics,
-                  **hyper_compile_additional
-                  )
+    hyper_compile = hyper_selection.compile(loss='categorical_crossentropy', weighted_metrics=["categorical_accuracy"])
+    model.compile(**hyper_compile)
     print(model.summary())
 
     # Training loop
     trainloss_steps = []
     testloss_step = []
-    cbks = [tf.keras.utils.deserialize_keras_object(x) for x in
-            hyper_fit['callbacks']] if "callbacks" in hyper_fit else []
+    hyper_fit_additional = hyper_selection.fit(epochs=100, validation_freq=10)
+    hyper_fit_additional = {key: value for key, value in hyper_fit_additional.items() if key not in ["epochs",
+        "batch_size", "initial_epoch", "sample_weight", "validation_data"]}
     start = time.process_time()
     for iepoch in range(0, epo, epostep):
         hist = model.fit(xtrain, ytrain,
                          epochs=iepoch + epostep,
                          initial_epoch=iepoch,
                          batch_size=1,
-                         callbacks=[cbks],
                          sample_weight=train_mask,  # Important!!!
                          **hyper_fit_additional
                          )

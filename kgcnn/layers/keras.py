@@ -4,6 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
 
+
 # There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers.
 # This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
 # Since all kgcnn layers work with ragged_rank=1 and defined inner dimension. This case can be caught explicitly.
@@ -228,7 +229,7 @@ class LayerNormalization(GraphBaseLayer):
 
     def __init__(self,
                  axis=-1,
-                 epsilon=0.001, center=True, scale=True,
+                 epsilon=1e-3, center=True, scale=True,
                  beta_initializer='zeros', gamma_initializer='ones',
                  beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
                  gamma_constraint=None,
@@ -238,13 +239,14 @@ class LayerNormalization(GraphBaseLayer):
         self.axis = axis  # We do not change the axis here
         self._kgcnn_wrapper_args = ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
                                     "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]
-        self._kgcnn_wrapper_layer = ks.layers.LayerNormalization(axis=axis, epsilon=epsilon, center=center, scale=scale,
+        self._kgcnn_wrapper_layer = ks.layers.LayerNormalization(axis=axis, epsilon=epsilon,
+                                                                 center=center, scale=scale,
                                                                  beta_initializer=beta_initializer,
                                                                  gamma_initializer=gamma_initializer,
                                                                  beta_regularizer=beta_regularizer,
                                                                  gamma_regularizer=gamma_regularizer,
                                                                  beta_constraint=beta_constraint,
-                                                                 gamma_constraint=gamma_constraint)
+                                                                 gamma_constraint=gamma_constraint, dtype="float32")
         if self.axis != -1:
             print("WARNING: This implementation only supports axis=-1 for RaggedTensors for now.")
 
@@ -299,7 +301,7 @@ class BatchNormalization(GraphBaseLayer):
         """Forward pass wrapping tf.keras layer."""
         if isinstance(inputs, tf.RaggedTensor):
             if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
-                value_tensor = inputs.values  # will be Tensor
+                value_tensor = inputs.values # will be Tensor
                 out_tensor = self._kgcnn_wrapper_layer(value_tensor, **kwargs)
                 return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
             else:
@@ -329,7 +331,7 @@ class ExpandDims(GraphBaseLayer):
             axis = get_positive_axis(self.axis, inputs.shape.rank + 1)
             if axis > 1 and inputs.ragged_rank == 1:
                 value_tensor = inputs.values  # will be Tensor
-                out_tensor = tf.expand_dims(value_tensor, axis=axis-1)
+                out_tensor = tf.expand_dims(value_tensor, axis=axis - 1)
                 return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
             else:
                 print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
