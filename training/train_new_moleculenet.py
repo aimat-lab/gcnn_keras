@@ -32,16 +32,16 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter.
-hyper_selection = DatasetHyperTraining(args["hyper"])
-hyper = hyper_selection.get_hyper(model_name=model_name)
+hyper_selection = DatasetHyperTraining(args["hyper"], model_name=model_name)
+hyper = hyper_selection.get_hyper()
 
 # Loading ESOL Dataset
 hyper_data = hyper['data']
 dataset = MoleculeNetDataset(**hyper_data["dataset"])
-for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_edge_indices_reverse_pairs", "set_angle"]:
+for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_edge_indices_reverse_pairs",
+                    "set_angle"]:
     if hasattr(dataset, method_data) and method_data in hyper_data:
         getattr(dataset, method_data)(**hyper_data[method_data])
-
 data_name = dataset.dataset_name
 data_unit = ""
 data_length = dataset.length

@@ -28,8 +28,8 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter identification.
-hyper_selection = DatasetHyperTraining(args["hyper"])
-hyper = hyper_selection.get_hyper(model_name=model_name)
+hyper_selection = DatasetHyperTraining(args["hyper"], model_name=model_name)
+hyper = hyper_selection.get_hyper()
 
 # Loading Cora Dataset
 hyper_data = hyper['data']
@@ -37,9 +37,9 @@ dataset = CoraDataset().make_undirected_edges()
 data_name = dataset.dataset_name
 data_length = dataset.length
 labels = dataset.node_labels
-k_fold_dict = hyper['training']["KFold"]
 
 # Data-set split
+k_fold_dict = hyper['training']["KFold"]
 kf = KFold(**k_fold_dict)
 split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
 

@@ -31,8 +31,8 @@ ms = ModelSelection()
 make_model = ms.make_model(model_name)
 
 # Hyper-parameter.
-hyper_selection = DatasetHyperTraining(args["hyper"])
-hyper = hyper_selection.get_hyper(model_name=model_name)
+hyper_selection = DatasetHyperTraining(args["hyper"], model_name=model_name)
+hyper = hyper_selection.get_hyper()
 
 # Loading Lipop Dataset
 hyper_data = hyper['data']
