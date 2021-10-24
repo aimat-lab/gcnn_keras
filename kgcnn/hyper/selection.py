@@ -21,7 +21,15 @@ class HyperSelectionTraining:
         else:
             raise ValueError("ERROR:kgcnn: Not a valid hyper dictionary. Please provide model_name.")
 
-    def get_hyper(self, section = None):
+    def get_hyper(self, section=None):
+        """Get copy of hyper-dictionary.
+
+        Args:
+            section (str): If specified, return copy of hyper[selection].
+
+        Returns:
+            dict: Hyper-parameters
+        """
         if section is None:
             return deepcopy(self._hyper)
         else:
