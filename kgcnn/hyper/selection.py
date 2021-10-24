@@ -5,7 +5,7 @@ from kgcnn.utils.data import load_json_file, load_hyper_file
 
 
 class HyperSelectionTraining:
-    """A class to choose a hyper-parameters for a specific dataset and model. And also to serialize hyper info,
+    r"""A class to choose a hyper-parameters for a specific dataset and model. And also to serialize hyper info,
     if possible. Will be added soon.
 
     """
@@ -28,6 +28,17 @@ class HyperSelectionTraining:
             return deepcopy(self._hyper[section])
 
     def compile(self, loss=None, optimizer='rmsprop', metrics=None, weighted_metrics=None):
+        """Select compile hyper-parameter.
+
+        Args:
+            loss: Loss for fit.
+            optimizer: Optimizer.
+            metrics (list): List of metrics
+            weighted_metrics (list): List of weighted_metrics
+
+        Returns:
+            dict: de-serialized hyper-parameter
+        """
         hyper_compile = deepcopy(self._hyper["training"]["compile"])
         reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics", "metrics"]
         hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
@@ -53,6 +64,17 @@ class HyperSelectionTraining:
         return out
 
     def fit(self, epochs=1, validation_freq=1, batch_size=None, callbacks=None):
+        """Select fit hyper-parameter.
+
+        Args:
+            epochs (int): Number of epochs.
+            validation_freq (int): Validation frequency.
+            batch_size (int): Batch size.
+            callbacks (list): Callbacks
+
+        Returns:
+            dict: de-serialized hyper-parameters.
+        """
 
         hyper_fit = deepcopy(self._hyper["training"]["fit"])
         reserved_fit_arguments = ["callbacks", "batch_size", "validation_freq", "epochs"]

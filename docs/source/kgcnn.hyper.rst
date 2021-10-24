@@ -7,7 +7,7 @@ Submodules
 kgcnn.hyper.datasets module
 ---------------------------
 
-.. automodule:: kgcnn.hyper.datasets
+.. automodule:: kgcnn.hyper.selection
    :members:
    :undoc-members:
    :show-inheritance:
