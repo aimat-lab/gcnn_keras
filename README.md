@@ -198,6 +198,7 @@ A set of example training can be found in [training](training).
 Some known issues to be aware of, if using and making new models or layers with `kgcnn`.
 * RaggedTensor can not yet be used as a keras model output (https://github.com/tensorflow/tensorflow/issues/42320), which means only padded tensors can be used for batched node embedding tasks.
 * Using `RaggedTensor`'s for arbitrary ragged rank apart from `kgcnn.layers.keras` can cause significant performance decrease.
+* With tensorflow version <2.6 there is a problem with numpy version >1.20 also affect `kgcnn` (https://github.com/tensorflow/tensorflow/issues/47691) 
 
 <a name="citing"></a>
 # Citing
