@@ -138,7 +138,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             has_open_babel = True
         except ImportError:
             print("WARNING:kgcnn: Can not make mol-objects. Please install openbabel...", end='', flush=True)
-            print("done")
+            print("")
             has_open_babel = False
 
         exist_mol_file = False
