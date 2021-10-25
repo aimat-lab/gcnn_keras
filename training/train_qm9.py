@@ -21,7 +21,7 @@ from kgcnn.hyper.selection import HyperSelectionTraining
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on QM9 dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Megnet")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper_qm9.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
@@ -40,7 +40,7 @@ hyper_data = hyper['data']
 dataset = QM9Dataset()
 # Modifications to set range and angle indices.
 if "set_range" in hyper_data:
-    dataset.set_range(**hyper_data['range'])
+    dataset.set_range(**hyper_data['set_range'])
 if "set_angle" in hyper_data or "requires_angles" in hyper_data:
     dataset.set_angle()
 if "set_edge_indices_reverse_pairs" in hyper_data:
@@ -50,7 +50,7 @@ data_length = dataset.length
 target_names = dataset.target_names
 
 # Prepare actual training data.
-data_points_to_use = hyper_data['data_points_to_use'] if "data_points_to_use" in hyper_data else 133885
+data_points_to_use = hyper_data['data_points_to_use'] if "data_points_to_use" in hyper_data else data_length
 target_indices = np.array(hyper_data['target_indices'], dtype="int")
 target_unit_conversion = np.array([[1.0, 1.0, 1.0, 1.0, 1.0, 27.2114, 27.2114, 27.2114, 1.0, 27.2114, 27.2114, 27.2114,
                                     27.2114, 27.2114, 1.0]])  # Pick always same units for training

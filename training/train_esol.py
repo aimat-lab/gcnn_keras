@@ -38,7 +38,7 @@ hyper = hyper_selection.get_hyper()
 hyper_data = hyper['data']
 dataset = ESOLDataset().set_attributes()
 if "set_range" in hyper_data:
-    dataset.set_range(**hyper_data['range'])
+    dataset.set_range(**hyper_data['set_range'])
 if "set_edge_indices_reverse_pairs" in hyper_data:
     dataset.set_edge_indices_reverse_pairs()
 data_name = dataset.dataset_name

@@ -34,7 +34,7 @@ model_default = {'name': "Megnet",
                  'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2",
                                    "input_tensor_type": "tensor"},
                  'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                 'verbose': 1
+                 'verbose': 1, "edge_coordinates": True
                  }
 
 
@@ -53,7 +53,9 @@ def make_model(inputs=None,
                nblocks=None,
                has_ff=None,
                dropout=None,
-               **kwargs
+               name=None,
+               verbose=None,
+               edge_coordinates=None,
                ):
     """Make Megnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -73,6 +75,9 @@ def make_model(inputs=None,
         nblocks (int): Number of graph embedding blocks or depth of the network.
         has_ff (bool): Use feed-forward MLP in each block.
         dropout (int): Dropout to use. Default is None.
+        name (str): Name of the model.
+        verbose (int): Verbosity level of print.
+        edge_coordinates (bool): If the edge input position are coordinates or direct distance.
 
     Returns:
         tf.keras.models.Model
@@ -90,8 +95,11 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Edge distance as Gauss-Basis
-    x = xyz_input
-    ed = NodeDistance()([x, edi])
+    if edge_coordinates:
+        x = xyz_input
+        ed = NodeDistance()([x, edi])
+    else:
+        ed = xyz_input
     ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
