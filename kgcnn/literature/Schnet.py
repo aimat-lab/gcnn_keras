@@ -29,7 +29,7 @@ model_default = {'name': "Schnet",
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4, 'out_scale_pos': 1,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                 "use_distance": False, 'expand_distance': True,
+                 "make_distance": True, 'expand_distance': True,
                  'verbose': 1
                  }
 
@@ -46,7 +46,7 @@ def make_model(inputs=None,
                out_scale_pos=None,
                gauss_args=None,
                expand_distance=None,
-               use_distance=None,
+               make_distance=None,
                **kwargs):
     r"""Make Schnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -62,7 +62,7 @@ def make_model(inputs=None,
         node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
         out_scale_pos (int): Position of final `output_dense` layer.
         gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
-        use_distance (bool): Whether input is distance or coordinates at in place of edges.
+        make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
 
@@ -78,10 +78,12 @@ def make_model(inputs=None,
     n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
     edi = edge_index_input
 
-    if use_distance:
-        ed = xyz_input
+    if make_distance:
+        x = xyz_input
+        ed = NodeDistance()([x, edi])
     else:
-        ed = NodeDistance()([xyz_input, edi])
+        ed = xyz_input
+
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)
 

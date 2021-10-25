@@ -34,7 +34,7 @@ model_default = {'name': "Megnet",
                  'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2",
                                    "input_tensor_type": "tensor"},
                  'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                 'verbose': 1, "use_distance": False, "expand_distance": True
+                 'verbose': 1, "make_distance": True, "expand_distance": True
                  }
 
 
@@ -54,7 +54,7 @@ def make_model(inputs=None,
                has_ff=None,
                dropout=None,
                expand_distance=None,
-               use_distance=None,
+               make_distance=None,
                name=None,
                verbose=None,
                ):
@@ -78,7 +78,7 @@ def make_model(inputs=None,
         dropout (int): Dropout to use. Default is None.
         name (str): Name of the model.
         verbose (int): Verbosity level of print.
-        use_distance (bool): Whether input is distance or coordinates at in place of edges.
+        make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
 
@@ -98,11 +98,12 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Edge distance as Gauss-Basis
-    if use_distance:
-        ed = xyz_input
-    else:
+    if not make_distance:
         x = xyz_input
         ed = NodeDistance()([x, edi])
+    else:
+        ed = xyz_input
+
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)
 
