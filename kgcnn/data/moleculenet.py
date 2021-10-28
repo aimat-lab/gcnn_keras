@@ -103,8 +103,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
         mol_filename = self._get_mol_filename()
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            if verbose > 0:
-                print("INFO:kgcnn: Found rdkit mol.json of pre-computed structures.")
+            self._log("INFO:kgcnn: Found rdkit mol.json of pre-computed structures.")
             return self
         filepath = os.path.join(self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
@@ -182,7 +181,12 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
                 self._log(" ... skip molecule {0} as it has 0 edges.".format(i))
                 continue
             if has_conformers:
-                coords.append(mg.node_coordinates)
+                temp_xyz = mg.node_coordinates
+                if len(temp_xyz) == 0:
+                    self._log(" ... skip molecule {0} as it has no conformer.".format(i))
+                    continue
+                coords.append(np.array(temp_xyz, dtype="float32"))
+
             # Append all valid tensor quantities
             edgind.append(temp_edge[0])
             edge_number.append(np.array(temp_edge[1], dtype="int"))
@@ -192,6 +196,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             counter_iter += 1
             if i % 1000 == 0:
                 self._log(" ... read molecules {0} from {1}".format(i, num_mols))
+
         self.node_symbol = atoms
         self.node_coordinates = coords if has_conformers else None
         self.node_number = number
@@ -295,7 +300,11 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
                 self._log(" ... skip molecule {0} as it has 0 edges.".format(i))
                 continue
             if has_conformers:
-                node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
+                temp_xyz = mg.node_coordinates
+                if len(temp_xyz) == 0:
+                    self._log(" ... skip molecule {0} as it has no conformer.".format(i))
+                    continue
+                node_coordinates.append(np.array(temp_xyz, dtype="float32"))
 
             # Append all valid tensor properties
             edge_indices.append(np.array(temp_edge[0], dtype="int64"))
@@ -335,7 +344,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     @staticmethod
     def _deserialize_encoder(encoder_identifier):
-        """Simple entry point for serialization. Will maybe include keras in the future.
+        """Serialization. Will maybe include keras in the future.
 
         Args:
             encoder_identifier: Identifier, class or function of an encoder.
@@ -352,7 +361,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             raise ValueError("ERROR:kgcnn: Unable to deserialize encoder %s " % encoder_identifier)
 
     def _log(self, *args, **kwargs):
-        """Entry point for logging information."""
+        """Logging information."""
         # Could use logger in the future.
         print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
         verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
