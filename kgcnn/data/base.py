@@ -231,8 +231,7 @@ class DownloadDataset:
         # self.reload = reload
         # self.verbose = 1
 
-        # Properties that could or should be set by read_in_memory() and get_graph() if memory is not an issue.
-        # Some datasets do not offer all information.
+        # Some datasets do not offer all information or require multiple files.
         if verbose > 1:
             print("INFO:kgcnn: Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
 

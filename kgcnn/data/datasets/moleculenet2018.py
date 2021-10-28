@@ -88,10 +88,11 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         self.file_name = self.download_file_name if self.extract_file_name is None else self.extract_file_name
         self.dataset_name = dataset_name
         self.require_prepare_data = True
+        self.fits_in_memory = True
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload, verbose=verbose)
-        if self.mol_filename:
+        if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
     def prepare_data(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
@@ -158,4 +159,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-# data = MoleculeNetDataset2018("ESOL", reload=True).set_attributes()
+data = MoleculeNetDataset2018("Tox21", reload=True).set_attributes()
