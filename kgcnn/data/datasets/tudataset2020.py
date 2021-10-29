@@ -1,7 +1,7 @@
 import os
 
 from kgcnn.data.tudataset import GraphTUDataset
-from kgcnn.data.base import DownloadDataset
+from kgcnn.data.download import DownloadDataset
 
 
 class GraphTUDataset2020(GraphTUDataset, DownloadDataset):

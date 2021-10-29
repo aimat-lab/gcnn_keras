@@ -1,4 +1,5 @@
-from kgcnn.data.base import DownloadDataset, MemoryGeometricGraphDataset
+from kgcnn.data.base import MemoryGeometricGraphDataset
+from kgcnn.data.download import DownloadDataset
 
 from kgcnn.mol.convert import convert_xyz_to_mol_ob, convert_list_to_xyz_str
 

@@ -3,7 +3,8 @@ import os
 import numpy as np
 import scipy.sparse as sp
 
-from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
+from kgcnn.data.base import MemoryGraphDataset
+from kgcnn.data.download import DownloadDataset
 from kgcnn.utils.adj import convert_scaled_adjacency_to_list, add_edges_reverse_indices, precompute_adjacency_scaled, make_adjacency_undirected_logical_or
 
 

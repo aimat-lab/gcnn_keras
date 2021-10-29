@@ -1,11 +1,11 @@
 import os
 
 from kgcnn.data.moleculenet import MoleculeNetDataset
-from kgcnn.data.base import DownloadDataset
+from kgcnn.data.download import DownloadDataset
 
 
 class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
-    """Downloader for MoleculeNetDataset 2018 class.
+    """Downloader for DeepChem MoleculeNetDataset 2018 class.
 
     """
     datsets_download_info = {
@@ -95,15 +95,11 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
-    def prepare_data(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                     overwrite: bool = False, verbose: int = 1, smiles_column_name: str = "smiles",
+    def prepare_data(self, overwrite: bool = False, verbose: int = 1, smiles_column_name: str = "smiles",
                      make_conformers: bool = None, add_hydrogen: bool = None, **kwargs):
         r"""Pre-computation of molecular structure.
 
         Args:
-            file_name (str): Filename for reading into memory. Default is None.
-            data_directory (str): Full path to directory containing all files. Default is None.
-            dataset_name (str): Name of the dataset. Default is None.
             overwrite (bool): Overwrite existing database mol-json file. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
             smiles_column_name (str): Column name where smiles are given in csv-file. Default is "smiles".
@@ -113,10 +109,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         Returns:
             self
         """
-        prepare_info = {"file_name": file_name, "data_directory": data_directory, "dataset_name": dataset_name,
-                        "overwrite": overwrite, "verbose": verbose, "smiles_column_name": smiles_column_name,
-                        "add_hydrogen": add_hydrogen, "make_conformers": make_conformers
-                        }
+        prepare_info = {"overwrite": overwrite, "verbose": verbose, "smiles_column_name": smiles_column_name,
+                        "add_hydrogen": add_hydrogen, "make_conformers": make_conformers}
         prepare_info.update(self.datasets_prepare_data_info[self.dataset_name])
 
         if add_hydrogen is not None:
@@ -126,16 +120,12 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).prepare_data(**prepare_info)
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       has_conformers: bool = None, label_column_name: str = None,
+    def read_in_memory(self,has_conformers: bool = None, label_column_name: str = None,
                        add_hydrogen: bool = None, verbose: int = 1):
         r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
         Args:
-            file_name (str): Filename for reading into memory. Default is None.
-            data_directory (str): Full path to directory containing all files. Default is None.
-            dataset_name (str): Name of the dataset. Default is None.
             has_conformers (bool): If molecules have 3D coordinates pre-computed.
             label_column_name (str): Column name where labels are given in csv-file. Default is None.
             add_hydrogen (bool): Whether to add H after smile translation.
@@ -144,10 +134,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         Returns:
             self
         """
-        read_in_memory_info = {"file_name": file_name, "data_directory": data_directory, "dataset_name": dataset_name,
-                               "verbose": verbose, "label_column_name": label_column_name,
-                               "add_hydrogen": add_hydrogen, "has_conformers": has_conformers
-                               }
+        read_in_memory_info = {"verbose": verbose, "label_column_name": label_column_name,
+                               "add_hydrogen": add_hydrogen, "has_conformers": has_conformers}
         read_in_memory_info.update(self.datasets_read_in_memory_info[self.dataset_name])
 
         if add_hydrogen is not None:
@@ -159,4 +147,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-data = MoleculeNetDataset2018("Tox21", reload=True).set_attributes()
+# data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()

@@ -261,18 +261,46 @@ class MolecularGraphRDKit(MolGraphInterface):
         "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
     }
 
-    def __init__(self, mol=None, add_hydrogen: bool = True, is_directed: bool = False):
+    def __init__(self, mol=None, add_hydrogen: bool = True, is_directed: bool = False,
+                 make_conformers: bool = True):
         """Initialize MolecularGraphRDKit with mol object.
 
         Args:
             mol (rdkit.Chem.rdchem.Mol): Mol object from rdkit. Default is None.
             add_hydrogen (bool): Whether to add hydrogen. Default is True.
             is_directed (bool): Whether the edges are directed. Default is False.
+            make_conformers (bool): Whether to make conformers. Default is True.
         """
         super().__init__(mol=mol, add_hydrogen=add_hydrogen)
         self.mol = mol
         self._add_hydrogen = add_hydrogen
         self.is_directed = is_directed
+        self._make_conformers = make_conformers
+
+    def make_conformers(self):
+        if self.mol is None:
+            return
+        m = self.mol
+        try:
+            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+            rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+            rdkit.Chem.AssignStereochemistryFrom3D(m)
+            rdkit.Chem.AssignStereochemistry(m)
+            self.mol = m
+        except ValueError:
+            try:
+                rdkit.Chem.RemoveStereochemistry(m)
+                rdkit.Chem.AssignStereochemistry(m)
+                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+                rdkit.Chem.AssignStereochemistryFrom3D(m)
+                rdkit.Chem.AssignStereochemistry(m)
+                self.mol = m
+            except ValueError:
+                print("WARNING:kgcnn: Rdkit could not embed molecule with smile", m.GetProp("_Name"))
+                return
 
     def from_smiles(self, smile, sanitize: bool = True):
         """Make molecule from smile.
@@ -294,6 +322,10 @@ class MolecularGraphRDKit(MolGraphInterface):
 
         m.SetProp("_Name", smile)
         self.mol = m
+
+        if self._make_conformers:
+            self.make_conformers()
+
         return self
 
     @property
@@ -301,28 +333,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         m = self.mol
         if len(m.GetConformers()) > 0:
             return np.array(self.mol.GetConformers()[0].GetPositions())
-        try:
-            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-            rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-            rdkit.Chem.AssignStereochemistryFrom3D(m)
-            rdkit.Chem.AssignStereochemistry(m)
-            self.mol = m
-        except ValueError:
-            try:
-                rdkit.Chem.RemoveStereochemistry(m)
-                rdkit.Chem.AssignStereochemistry(m)
-                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-                rdkit.Chem.AssignStereochemistryFrom3D(m)
-                rdkit.Chem.AssignStereochemistry(m)
-                self.mol = m
-            except ValueError:
-                print("WARNING:kgcnn: Rdkit could not embed molecule with smile",  m.GetProp("_Name"))
-                return []
-
-        return np.array(self.mol.GetConformers()[0].GetPositions())
+        return []
 
     def to_smiles(self):
         if self.mol is None:

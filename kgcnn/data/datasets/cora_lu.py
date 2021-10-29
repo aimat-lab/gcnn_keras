@@ -1,7 +1,8 @@
 import os
 import numpy as np
 
-from kgcnn.data.base import DownloadDataset, MemoryGraphDataset
+from kgcnn.data.base import MemoryGraphDataset
+from kgcnn.data.download import DownloadDataset
 from kgcnn.utils.adj import add_edges_reverse_indices, make_adjacency_undirected_logical_or, \
     precompute_adjacency_scaled, make_adjacency_from_edge_indices, convert_scaled_adjacency_to_list
 

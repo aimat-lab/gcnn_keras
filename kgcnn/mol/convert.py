@@ -21,7 +21,7 @@ def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = True):
     The order of atoms in the list should be the same as output. Uses openbabel for conversion.
 
     Args:
-        xyzs (str): Convert the xyz string to mol-string
+        xyz_str (str): Convert the xyz string to mol-string
         stop_logging (bool): Whether to stop logging. Default is True.
     Returns:
         str: Mol-string from xyz-information. Generates structure or bond information.

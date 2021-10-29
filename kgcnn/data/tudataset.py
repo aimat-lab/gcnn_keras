@@ -38,28 +38,16 @@ class GraphTUDataset(MemoryGraphDataset):
 
         MemoryGraphDataset.__init__(self, verbose=verbose)
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       verbose: int = 1):
+    def read_in_memory(self, verbose: int = 1):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
         to a list of separate graph properties for `MemoryGraphDataset`.
 
         Args:
-            file_name (str): Filename for reading into memory. Not used for general TUDataset, since there are multiple
-                files with a prefix and pre-defined suffix. Default is None.
-            data_directory (str): Full path to directory containing all txt-files. Default is None.
-            dataset_name (str): Name of the dataset. Important for base-name naming of files. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
 
         Returns:
             self
         """
-        if file_name is not None:
-            self.file_name = file_name
-        if data_directory is not None:
-            self.data_directory = data_directory
-        if self.dataset_name is None:
-            self.dataset_name = dataset_name
-
         if self.dataset_name is not None and self.data_directory is not None:
             path = os.path.realpath(self.data_directory)
             name_dataset = self.dataset_name
@@ -181,3 +169,24 @@ class GraphTUDataset(MemoryGraphDataset):
         self.length = num_graphs
 
         return self
+
+    @classmethod
+    def read_csv_simple(cls, filepath, delimiter=",", dtype=float):
+        """Very simple python-only function to read in a csv-file from file.
+
+        Args:
+            filepath (str): Full filepath of csv-file to read in.
+            delimiter (str): Delimiter character for separation. Default is ",".
+            dtype: Callable type conversion from string. Default is float.
+
+        Returns:
+            list: Python list of values. Length of the list equals the number of lines.
+        """
+        out = []
+        open_file = open(filepath, "r")
+        for lines in open_file.readlines():
+            string_list = lines.strip().split(delimiter)
+            values_list = [dtype(x.strip()) for x in string_list]
+            out.append(values_list)
+        open_file.close()
+        return out

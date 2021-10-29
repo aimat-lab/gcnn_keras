@@ -6,7 +6,7 @@ import json
 
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
-from kgcnn.data.base import DownloadDataset
+from kgcnn.data.download import DownloadDataset
 from kgcnn.mol.methods import ExtensiveMolecularScaler
 from kgcnn.mol.convert import parse_mol_str
 from kgcnn.utils.adj import add_edges_reverse_indices
@@ -264,6 +264,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             print("done")
 
         return self
+
 
 class QM9GraphLabelScaler:
     """A standard scaler that scales all QM9 targets. For now, the main difference is that intensive and extensive
