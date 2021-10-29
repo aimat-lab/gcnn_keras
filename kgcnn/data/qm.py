@@ -5,9 +5,16 @@ from kgcnn.mol.convert import convert_xyz_to_mol_ob, convert_list_to_xyz_str
 
 
 class QMDataset(MemoryGeometricGraphDataset):
-    r"""This is a base class for QM datasets. The base class does only hold some general properties and methods but is
-    not capable of loading datasets. The class inherits from :obj:`DownloadDataset` and
-    :obj:`MemoryGeometricGraphDataset`.
+    r"""This is a base class for 'quantum mechanical' datasets. It generates graph properties from a xyz-file, which
+    stores atomic coordinates.
+
+    Additionally, it should be possible to generate approximate chemical bonding information via `openbabel`, if this
+    additional package is installed.
+    The class inherits :obj:`MemoryGeometricGraphDataset`.
+
+    At the moment there is no connection to :obj:`MoleculeNetDataset` since usually for geometric data, the usage is
+    related to learning quantum properties like energy, orbitals or forces.
+
     """
 
     mol_filename = "mol.json"

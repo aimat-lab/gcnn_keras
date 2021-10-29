@@ -91,4 +91,4 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
                     line_ids.append(line.split("**")[1])
         return line_ids
 
-# test = GraphTUDataset2020("AIDS")
+# test = GraphTUDataset2020("AIDS", reload=True)

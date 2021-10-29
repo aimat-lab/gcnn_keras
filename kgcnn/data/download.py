@@ -10,8 +10,7 @@ import requests
 class DownloadDataset:
     r"""Base layer for datasets. Provides functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
-    Note that ``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
-
+    Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
     """
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")

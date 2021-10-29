@@ -271,13 +271,13 @@ class QM9GraphLabelScaler:
     properties are scaled differently. In principle, also dipole, polarizability or rotational constants
     could to be standardized differently."""
 
-    def __init__(self, intensice_scaler=None, extensive_scaler=None):
-        if intensice_scaler is None:
-            intensice_scaler = {}
+    def __init__(self, intensive_scaler=None, extensive_scaler=None):
+        if intensive_scaler is None:
+            intensive_scaler = {}
         if extensive_scaler is None:
             extensive_scaler = {}
 
-        self.intensive_scaler = StandardScaler(**intensice_scaler)
+        self.intensive_scaler = StandardScaler(**intensive_scaler)
         self.extensive_scaler = ExtensiveMolecularScaler(**extensive_scaler)
 
         self.scale_ = None

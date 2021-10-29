@@ -96,7 +96,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         data = pd.read_csv(filepath)
         # print(data)
         smiles = data[smiles_column_name].values
-        mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True, make_conformers=make_conformers,
+        # We need to parallelize this.
+        mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True,
+                                      make_conformers=make_conformers,
                                       verbose=verbose)
 
         save_json_file(mb, os.path.join(self.data_directory, mol_filename))
@@ -109,7 +111,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         already extract basic graph information. No further attributes are computed as default.
 
         Args:
-            has_conformers (bool): If molecules have 3D coordinates pre-computed.
+            has_conformers (bool): If molecules need 3D coordinates pre-computed.
             label_column_name (str): Column name where labels are given in csv-file. Default is None.
             add_hydrogen (bool): Whether to add H after smile translation.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
@@ -208,7 +210,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to remove hydrogen.
-            has_conformers (bool): If molecules have 3D coordinates pre-computed.
+            has_conformers (bool): If molecules needs 3D coordinates pre-computed.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
@@ -345,4 +347,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             print(*args, **print_kwargs)
 
     def _get_mol_filename(self):
+        """Try to determine a file name for the mol information to store."""
         return "".join(self.file_name.split(".")[:-1]) + ".json"
+
+    def _flexible_csv_file_name(self):
+        pass
+
