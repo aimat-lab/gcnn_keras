@@ -117,7 +117,8 @@ class MemoryGraphDataset:
 
     def make_undirected_edges(self, remove_duplicates: bool = True, sort_indices: bool = True):
         r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`. With `remove_duplicates`
-        an edge can be added even though there is already and edge at :math:`(j, i)`.
+        an edge can be added even though there is already and edge at :math:`(j, i)`. For other edge tensors, like the
+        attributes or labels, the values of edge :math:`(i, j)` is added in place.
 
         Args:
             remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
