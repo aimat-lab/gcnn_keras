@@ -5,7 +5,7 @@ import scipy.sparse as sp
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.download import DownloadDataset
-from kgcnn.utils.adj import convert_scaled_adjacency_to_list, add_edges_reverse_indices, precompute_adjacency_scaled, make_adjacency_undirected_logical_or
+from kgcnn.utils.adj import convert_scaled_adjacency_to_list
 
 
 class CoraDataset(DownloadDataset, MemoryGraphDataset):
@@ -31,10 +31,9 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         """
         # Use default base class init()
         self.data_keys = None
-        self.length = 1
 
+        MemoryGraphDataset.__init__(self, dataset_name="Cora", length=1, verbose=verbose)
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
-        MemoryGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
@@ -56,7 +55,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
                            loader['attr_indptr']), shape=loader['attr_shape'])
 
         # Original adjacency matrix
-        self.graph_adjacency = a
+        # self.graph_adjacency = a
 
         # Compute labels
         labels = loader.get('labels')
@@ -70,28 +69,12 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         # Set edges and indices.
         edi, ed = convert_scaled_adjacency_to_list(a)
         self.edge_indices = [edi]
-        self.edge_attributes = [np.expand_dims(ed,axis=-1)]
+        self.edge_attributes = [np.expand_dims(ed, axis=-1)]
+        self.edge_weights = [np.expand_dims(ed, axis=-1)]
 
         # Information
         self.data_keys = loader.get('idx_to_class')
 
         return self
-
-    def make_undirected_edges(self):
-        """Make edges undirected, however leave the original adjacency matrix as-is!!"""
-        self.graph_adjacency = make_adjacency_undirected_logical_or(self.graph_adjacency)
-        edi, ed = add_edges_reverse_indices(self.edge_indices[0], self.edge_attributes[0])
-        self.edge_indices = [edi]
-        self.edge_attributes = [ed]
-        return self
-
-    def scale_adjacency(self):
-        self.graph_adjacency = precompute_adjacency_scaled(self.graph_adjacency)
-        edi, ed = convert_scaled_adjacency_to_list(self.graph_adjacency)
-        self.edge_indices = [edi]
-        self.edge_attributes = [np.expand_dims(ed, axis=-1)]
-        return self
-
-
 
 # ds = CoraDataset()

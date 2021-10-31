@@ -36,8 +36,8 @@ hyper_data = hyper['data']
 dataset = MUTAGDataset()
 data_name = dataset.dataset_name
 data_length = dataset.length
-if "set_edge_indices_reverse_pairs" in hyper_data:
-    dataset.set_edge_indices_reverse_pairs()
+if "set_edge_indices_reverse" in hyper_data:
+    dataset.set_edge_indices_reverse()
 k_fold_info = hyper["training"]["KFold"]
 
 # Data-set split

@@ -8,9 +8,10 @@ import requests
 
 
 class DownloadDataset:
-    r"""Base layer for datasets. Provides functions for download and unzip of the data.
+    r"""Base layer for datasets. Provides class-method functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
     Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
+
     """
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
@@ -52,33 +53,33 @@ class DownloadDataset:
         self.unpack_tar = unpack_tar
         self.unpack_zip = unpack_zip
         self.extract_gz = extract_gz
-        # self.reload = reload
-        # self.verbose = 1
+        self.verbose = verbose
+        self.download_reload = reload
 
         # Some datasets do not offer all information or require multiple files.
-        if verbose > 1:
+        if self.verbose > 1:
             print("INFO:kgcnn: Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
 
         # Default functions to load a dataset.
         if self.data_directory_name is not None:
-            self.setup_dataset_main(self.data_main_dir, verbose=verbose)
-            self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, verbose=verbose)
+            self.setup_dataset_main(self.data_main_dir, verbose=self.verbose)
+            self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, verbose=self.verbose)
 
         if self.download_url is not None:
             self.download_database(os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
-                                   self.download_file_name, overwrite=reload, verbose=verbose)
+                                   self.download_file_name, overwrite=self.download_reload, verbose=self.verbose)
 
         if self.unpack_tar:
             self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=reload, verbose=verbose)
+                                 self.unpack_directory_name, overwrite=self.download_reload, verbose=self.verbose)
 
         if self.unpack_zip:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=reload, verbose=verbose)
+                                 self.unpack_directory_name, overwrite=self.download_reload, verbose=self.verbose)
 
         if self.extract_gz:
             self.extract_gz_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.extract_file_name, overwrite=reload, verbose=verbose)
+                                 self.extract_file_name, overwrite=self.download_reload, verbose=self.verbose)
 
     @classmethod
     def setup_dataset_main(cls, data_main_dir, verbose=1):

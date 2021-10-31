@@ -43,8 +43,8 @@ if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['set_range'])
 if "set_angle" in hyper_data or "requires_angles" in hyper_data:
     dataset.set_angle()
-if "set_edge_indices_reverse_pairs" in hyper_data:
-    dataset.set_edge_indices_reverse_pairs()
+if "set_edge_indices_reverse" in hyper_data:
+    dataset.set_edge_indices_reverse()
 data_name = dataset.dataset_name
 data_length = dataset.length
 target_names = dataset.target_names

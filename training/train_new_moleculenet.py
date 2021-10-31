@@ -19,7 +19,7 @@ from kgcnn.utils.data import save_json_file
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
-parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
+parser = argparse.ArgumentParser(description='Train a graph network on Molecule dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="DMPNN")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper_new_moleculenet.py")
@@ -38,7 +38,7 @@ hyper = hyper_selection.get_hyper()
 # Loading ESOL Dataset
 hyper_data = hyper['data']
 dataset = MoleculeNetDataset(**hyper_data["dataset"])
-for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_edge_indices_reverse_pairs",
+for method_data in ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_edge_indices_reverse",
                     "set_angle"]:
     if hasattr(dataset, method_data) and method_data in hyper_data:
         getattr(dataset, method_data)(**hyper_data[method_data])
@@ -129,9 +129,9 @@ plt.scatter([train_loss[-1].shape[0]], [np.mean(mae_5fold)],
             label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mae_5fold), np.std(mae_5fold)) + data_unit, c='blue')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.title('ESOL training curve for ' + model_name)
+plt.title('Training curve for ' + model_name)
 plt.legend(loc='upper right', fontsize='medium')
-plt.savefig(os.path.join(filepath, model_name + "_mae_esol" + post_fix_file + ".png"))
+plt.savefig(os.path.join(filepath, model_name + "_mae_" + post_fix_file + ".png"))
 plt.show()
 
 # Plot predicted targets vs actual targets for last split.
@@ -145,7 +145,7 @@ plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.title("Prediction of " + model_name)
 plt.legend(loc='upper left', fontsize='x-large')
-plt.savefig(os.path.join(filepath, model_name + "_predict_esol" + post_fix_file + ".png"))
+plt.savefig(os.path.join(filepath, model_name + "_predict_" + post_fix_file + ".png"))
 plt.show()
 
 # Save keras-model to output-folder.

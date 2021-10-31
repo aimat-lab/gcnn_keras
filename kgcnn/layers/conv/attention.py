@@ -73,7 +73,8 @@ class AttentionHeadGAT(GraphBaseLayer):
         self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
         self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
-        self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
+        if self.use_final_activation:
+            self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""
@@ -189,7 +190,8 @@ class AttentionHeadGATV2(GraphBaseLayer):
         self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
         self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
         self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
-        self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
+        if self.use_final_activation:
+            self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
 
     def build(self, input_shape):
         """Build layer."""

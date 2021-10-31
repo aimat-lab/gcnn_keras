@@ -34,14 +34,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             dataset_name (str): Name of the dataset. Important for naming. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-
-        self.file_name = file_name
-        self.data_directory = data_directory
-        self.dataset_name = dataset_name
+        MemoryGeometricGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
+                                             file_name=file_name, verbose=verbose)
         self.data_keys = None
-        self.verbose = verbose
-
-        MemoryGeometricGraphDataset.__init__(self, verbose=verbose)
 
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
                             make_conformers: bool = True, verbose: int = 1):
@@ -107,7 +102,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     def read_in_memory(self, has_conformers: bool = True, label_column_name: str = None,
                        add_hydrogen: bool = True, verbose: int = 1):
-        r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
+        r"""Load list of molecules from cached json-file in into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
         Args:
@@ -137,7 +132,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self._log("INFO:kgcnn: Read mol-blocks from mol.json of pre-computed structures...")
+        self._log("INFO:kgcnn: Read mol-blocks from %s of pre-computed structures..." % mol_filename)
         mols = load_json_file(mol_path)
 
         # Main loop to read molecules from mol-block

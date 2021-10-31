@@ -101,8 +101,9 @@ def make_adjacency_undirected_logical_or(adj_mat):
         return a_out.tocoo()
 
 
-def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True):
-    r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones.
+def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True,
+                                   fill_value: int = 0):
+    r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones or zeros.
     Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
     first index at position `index[:, 0]`.
 
@@ -111,6 +112,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
         args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
+        fill_value (int): Value to initialize edge values with.
 
     Returns:
         edge_indices: Sorted index list with self-loops. Optionally (edge_indices, edge_values) if edge_values are not
@@ -125,7 +127,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
     for i, x in enumerate(clean_edge):
         edge_loops_shape = [self_loops.shape[0]] + list(x.shape[1:]) if len(x.shape) > 1 else [
             self_loops.shape[0]]
-        edge_loops = np.ones(edge_loops_shape)
+        edge_loops = np.full(edge_loops_shape, fill_value=fill_value, dtype=x.dtype)
         clean_edge[i] = np.concatenate([x, edge_loops], axis=0)
     if remove_duplicates:
         un, unis = np.unique(clean_index, return_index=True, axis=0)
@@ -225,25 +227,27 @@ def sort_edge_indices(edge_indices, *args):
         return ind2
 
 
-def make_adjacency_from_edge_indices(edge_indices, edge_values=None):
+def make_adjacency_from_edge_indices(edge_indices, edge_values=None, shape=None):
     r"""Make adjacency as sparse matrix from a list or ``np.ndarray`` of edge_indices and possible values.
     Not for batches, only for single instance.
 
     Args:
         edge_indices (np.ndarray): List of edge indices of shape `(N, 2)`
         edge_values (np.ndarray): List of possible edge values of shape `(N, )`
+        shape (tuple): Shape of the sparse matrix. Default is None.
 
     Returns:
         scipy.coo.coo_matrix: Sparse adjacency matrix.
     """
-    if edge_values is None:
-        edge_values = np.ones(edge_indices.shape[0])
-    # index_min = np.min(edge_indices)
-    index_max = np.max(edge_indices)
     row = np.array(edge_indices[:, 0])
     col = np.array(edge_indices[:, 1])
+    if edge_values is None:
+        edge_values = np.ones(edge_indices.shape[0])
+    if shape is None:
+        edi_max = np.max(edge_indices)
+        shape = (edi_max + 1, edi_max + 1)
     data = edge_values
-    out_adj = sp.coo_matrix((data, (row, col)), shape=(index_max + 1, index_max + 1))
+    out_adj = sp.coo_matrix((data, (row, col)), shape=shape)
     return out_adj
 
 

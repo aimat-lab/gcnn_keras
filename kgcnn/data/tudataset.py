@@ -32,11 +32,8 @@ class GraphTUDataset(MemoryGraphDataset):
             dataset_name (str): Name of the dataset. Important for base-name for naming of files. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        self.file_name = file_name
-        self.data_directory = data_directory
-        self.dataset_name = dataset_name
-
-        MemoryGraphDataset.__init__(self, verbose=verbose)
+        MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
+                                    file_name=file_name, verbose=verbose)
 
     def read_in_memory(self, verbose: int = 1):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast

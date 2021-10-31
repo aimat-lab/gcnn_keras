@@ -11,15 +11,15 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process Cora dataset after Lu et al. 2003."""
 
     download_info = {
-        "dataset_name" : "cora_lu",
-        "data_directory_name" : "cora_lu",
-        "download_url" : "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz",
+        "dataset_name": "cora_lu",
+        "data_directory_name": "cora_lu",
+        "download_url": "https://linqs-data.soe.ucsc.edu/public/lbc/cora.tgz",
         # download_url = "https://linqs-data.soe.ucsc.edu/public/arxiv-mrdm05/arxiv.tar.gz"
-        "download_file_name" : 'cora.tgz',
-        "unpack_tar" : True,
-        "unpack_zip" : False,
-        "unpack_directory_name" : "cora_lu",
-        "fits_in_memory" : True,
+        "download_file_name": 'cora.tgz',
+        "unpack_tar": True,
+        "unpack_zip": False,
+        "unpack_directory_name": "cora_lu",
+        "fits_in_memory": True,
     }
 
     # Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.
@@ -34,10 +34,9 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         """
         self.class_label_mapping = None
         # Use default base class init()
-        self.length = 1
 
+        MemoryGraphDataset.__init__(self, dataset_name="cora_lu", length=1, verbose=verbose)
         DownloadDataset.__init__(self, **self.download_info,reload=reload, verbose=verbose)
-        MemoryGraphDataset.__init__(self, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
@@ -86,21 +85,9 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         self.edge_attributes = [np.ones_like(indices)[:, :1]]
         self.node_labels = [labels]
         self.node_number = [label_id]
-        self.graph_adjacency = make_adjacency_from_edge_indices(indices, np.ones_like(indices)[:, 0])
+        self.edge_weights = [np.ones_like(indices)[:, :1]]
+        # self.graph_adjacency = make_adjacency_from_edge_indices(indices, np.ones_like(indices)[:, 0])
 
         return self
 
-    def make_undirected(self):
-        """Make edges undirected"""
-        self.graph_adjacency = make_adjacency_undirected_logical_or(self.graph_adjacency)
-        edi, ed = add_edges_reverse_indices(self.edge_indices[0], self.edge_attributes[0])
-        self.edge_indices = [edi]
-        self.edge_attributes = [ed]
-        return self
-
-    def scale_adjacency(self):
-        self.graph_adjacency = precompute_adjacency_scaled(self.graph_adjacency)
-        edi, ed = convert_scaled_adjacency_to_list(self.graph_adjacency)
-        self.edge_indices = [edi]
-        self.edge_attributes = [np.expand_dims(ed, axis=-1)]
-        return self
+# ds = CoraLUDataset()

@@ -4,7 +4,7 @@ hyper = {
             "name": "GAT",
             "inputs": [
                     {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},

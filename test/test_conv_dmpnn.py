@@ -17,8 +17,8 @@ class TestReverseEdges(unittest.TestCase):
         edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
         ds = MemoryGraphDataset()
         ds.edge_indices = [np.array(self.ei1[0]), np.array(self.ei1[1])]
-        ds.set_edge_indices_reverse_pairs()
-        edge_pair = tf.RaggedTensor.from_row_lengths(np.concatenate(ds.edge_indices_reverse_pairs, axis=0), [len(x) for x in ds.edge_indices_reverse_pairs])
+        ds.set_edge_indices_reverse()
+        edge_pair = tf.RaggedTensor.from_row_lengths(np.concatenate(ds.edge_indices_reverse, axis=0), [len(x) for x in ds.edge_indices_reverse])
         edges_gather = DMPNNGatherEdgesPairs()([edge, edge_pair])
         result = edges_gather
 

@@ -6,7 +6,7 @@ hyper = {
                 {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
                 {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                 {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-                {"shape": [None, 1], "name": "edge_indices_reverse_pairs", "dtype": "int64", "ragged": True}
+                {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
             ],
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
@@ -44,7 +44,7 @@ hyper = {
             "execute_folds": None
         },
         "data": {
-            "set_edge_indices_reverse_pairs": {}
+            "set_edge_indices_reverse": {}
         },
         "info": {
             "postfix" : "",

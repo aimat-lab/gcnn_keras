@@ -39,8 +39,8 @@ hyper_data = hyper['data']
 dataset = ESOLDataset().set_attributes()
 if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['set_range'])
-if "set_edge_indices_reverse_pairs" in hyper_data:
-    dataset.set_edge_indices_reverse_pairs()
+if "set_edge_indices_reverse" in hyper_data:
+    dataset.set_edge_indices_reverse()
 data_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length
