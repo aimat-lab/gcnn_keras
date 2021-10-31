@@ -5,7 +5,7 @@ import scipy.sparse as sp
 def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
     r"""Precompute the scaled adjacency matrix :math:`A_{s} = D^{-0.5} (A + I) D^{-0.5}`
     after Thomas N. Kipf and Max Welling (2016). Where :math:`I` denotes the diagonal unity matrix.
-    The node degree matrix is defined as :math:`D_{ii} = \sum_{j} (A + I)_{ij}`.
+    The node degree matrix is defined as :math:`D_{i,i} = \sum_{j} (A + I)_{i,j}`.
 
     Args:
         adj_matrix (np.ndarray, scipy.sparse): Adjacency matrix :math:`A` of shape `(N, N)`.
@@ -44,6 +44,33 @@ def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
         return di.dot(adj).dot(dj).tocoo()
     else:
         raise TypeError("Matrix format not supported: %s" % type(adj_matrix))
+
+
+def rescale_edge_weights_degree_sym(edge_indices, edge_weights):
+    r"""Normalize edge weights as :math:`\tilde(e)_{i,j} = d_{i,i}^{-0.5} e_{i,j} d_{j,j}^{-0.5}`.
+    The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`.
+
+
+    Args:
+        edge_indices (np.ndarray): Index-list referring to nodes of shape `(N, 2)`
+        edge_weights (np.ndarray): Edge weights matching indices of shape `(N, 1)`
+
+    Returns:
+        edge_weights (np.ndarray):  Rescaled edge weights of shape
+    """
+    row_val, row_cnt = np.unique(edge_indices[:, 0], return_counts=True)
+    col_val, col_cnt = np.unique(edge_indices[:, 1], return_counts=True)
+    d_row = np.zeros(len(edge_weights), dtype=edge_weights.dtype)
+    d_col = np.zeros(len(edge_weights), dtype=edge_weights.dtype)
+    d_row[row_val] = row_cnt
+    d_col[col_val] = col_cnt
+    d_ii = np.power(d_row, -0.5).flatten()
+    d_jj = np.power(d_col, -0.5).flatten()
+    d_ii[np.isinf(d_ii)] = 0.
+    d_jj[np.isinf(d_jj)] = 0.
+    new_weights = np.expand_dims(d_ii[edge_indices[:, 0]], axis=-1) * edge_weights * np.expand_dims(
+        d_jj[edge_indices[:, 1]], axis=-1)
+    return new_weights
 
 
 def convert_scaled_adjacency_to_list(adj_scaled):

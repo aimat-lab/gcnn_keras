@@ -3,8 +3,7 @@ import os
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
-    precompute_adjacency_scaled, make_adjacency_from_edge_indices, convert_scaled_adjacency_to_list, \
-    add_self_loops_to_edge_indices
+    rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices
 
 
 class MemoryGraphDataset:
@@ -136,29 +135,20 @@ class MemoryGraphDataset:
 
         self._operate_on_edges(add_self_loops_to_edge_indices, remove_duplicates=remove_duplicates,
                                sort_indices=sort_indices, fill_value=fill_value)
+        return self
 
-    def normalize_edge_weights_sym(self, add_identity=True):
+    def normalize_edge_weights_sym(self):
 
         if self.edge_indices is None:
             raise ValueError("ERROR:kgcnn: Can scale adjacency matrix, as graph indices are not defined.")
         if self.edge_weights is None:
-            self.edge_weights = [np.ones_like(x[:, 0]) for x in self.edge_indices]
-        self.edge_weights = [np.squeeze(x) if len(x.shape) > 1 else x for x in self.edge_weights]
-
-        if add_identity:
-            self.add_self_loops()
+            self.edge_weights = [np.ones_like(x[:, :1]) for x in self.edge_indices]
 
         new_weights = []
         for idx, edw in zip(self.edge_indices, self.edge_weights):
-            # We cast to a sparse adjacency matrix using weights,
-            adj = make_adjacency_from_edge_indices(idx, edw)
-            adj = precompute_adjacency_scaled(adj, add_identity=add_identity)
-            edi, ed = convert_scaled_adjacency_to_list(adj)
-            new_weights.append(ed)
-            # indices must not change
-            assert len(edi) == len(idx), "ERROR:kgcnn: Edge indices changed when scaling weights."
+            new_weights.append(rescale_edge_weights_degree_sym(idx, edw))
 
-        self.edge_weights = [np.expand_dims(x, axis=-1) if len(x.shape) <= 1 else x for x in self.edge_weights]
+        self.edge_weights = new_weights
         return self
 
     def _print_info(self):

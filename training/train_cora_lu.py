@@ -33,7 +33,7 @@ hyper = hyper_selection.get_hyper()
 
 # Loading Cora_lu Dataset
 hyper_data = hyper['data']
-dataset = CoraLUDataset().make_undirected_edges().normalize_edge_weights_sym()
+dataset = CoraLUDataset().make_undirected_edges().add_self_loops(fill_value=1.0).normalize_edge_weights_sym()
 data_name = dataset.dataset_name
 data_length = dataset.length
 labels = dataset.node_labels
