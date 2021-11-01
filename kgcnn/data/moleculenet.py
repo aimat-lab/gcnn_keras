@@ -275,7 +275,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             if has_conformers:
                 temp_xyz = mg.node_coordinates
                 if len(temp_xyz) == 0:
-                    self._log(" ... skip molecule {0} as it has no conformer.".format(i))
+                    self._log(" ... skip molecule {0} as it has no conformer as requested.".format(i))
                     continue
                 node_coordinates.append(np.array(temp_xyz, dtype="float32"))
 

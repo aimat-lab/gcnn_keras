@@ -18,7 +18,8 @@ from kgcnn.utils.data import save_json_file
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Cora dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper/hyper_cora.py")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
+                    default="hyper/hyper_cora.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -82,7 +83,9 @@ for train_index, test_index in split_indices:
     start = time.process_time()
     hyper_fit_additional = hyper_selection.fit(epochs=100, validation_freq=10)
     hyper_fit_additional = {key: value for key, value in hyper_fit_additional.items() if key not in ["epochs",
-        "batch_size", "initial_epoch", "sample_weight"]}
+                                                                                                     "batch_size",
+                                                                                                     "initial_epoch",
+                                                                                                     "sample_weight"]}
 
     for iepoch in range(0, epo, epostep):
         hist = model.fit(xtrain, ytrain,

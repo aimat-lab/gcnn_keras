@@ -51,21 +51,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
         if self.fits_in_memory:
             self.read_in_memory(verbose=verbose)
 
-    def prepare_data(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                     overwrite: bool = False, verbose: int = 1, **kwargs):
+    def prepare_data(self, overwrite: bool = False, verbose: int = 1):
         """Process data by loading all single xyz-files and store all pickled information to file.
         The single files are deleted afterwards, requires to re-extract the tar-file for overwrite.
 
         Args:
             overwrite (bool): Whether to redo the processing, requires un-zip of the data again. Defaults to False.
-            file_name (str): Filename for reading into memory. Not used for for now. Default is None.
-            data_directory (str): Full path to directory containing all xyz-files. Default is None.
-            dataset_name (str): Name of the dataset. Default is None.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        if data_directory is not None:
-            self.data_directory = data_directory
-
         path = self.data_directory
 
         datasetsize = 133885
@@ -180,20 +173,12 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         return self
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       verbose: int = 1):
+    def read_in_memory(self, verbose: int = 1):
         """Load the pickled QM9 data into memory and already split into items.
 
         Args:
-            file_name (str): Filename for reading into memory. Not used for QM9. Default is None.
-                Fix names are used. Such as 'qm9.json'.
-            data_directory (str): Full path to directory containing all files. Default is None.
-            dataset_name (str): Name of the dataset. Not used for reading. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        if data_directory is not None:
-            self.data_directory = data_directory
-
         path = self.data_directory
 
         if verbose > 0:
@@ -242,7 +227,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             if verbose > 0:
                 print("INFO:kgcnn: Reading mol information ...", end='', flush=True)
             with open(os.path.join(path, self.mol_filename), 'rb') as f:
-                mol_list =  json.load(f)
+                mol_list = json.load(f)
             print("done")
         else:
             print("WARNING:kgcnn: No mol information... done", flush=True)
@@ -360,7 +345,8 @@ class QM9GraphLabelScaler:
         out_labels = np.concatenate([inverse_trafo_intensive, inverse_trafo_extensive], axis=-1)
         return out_labels
 
-    def padd(self, selected_targets, target_indices):
+    @staticmethod
+    def padd(selected_targets, target_indices):
         r"""Padding a set of specific targets defined by `target_indices` to the full QM9 target dimension of 15.
 
         Args:

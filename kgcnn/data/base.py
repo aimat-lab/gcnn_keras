@@ -155,8 +155,8 @@ class MemoryGraphDataset:
     def _print_info(self):
         pass
 
-    def __str__(self):
-        return self._print_info()
+    # def __str__(self):
+    #     return self._print_info()
 
 
 class MemoryGeometricGraphDataset(MemoryGraphDataset):
