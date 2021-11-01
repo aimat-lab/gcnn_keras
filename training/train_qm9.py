@@ -22,7 +22,7 @@ from kgcnn.hyper.selection import HyperSelectionTraining
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on QM9 dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="Megnet")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper_qm9.py")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper/hyper_qm9.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -137,8 +137,9 @@ for train_index, test_index in split_indices:
 hyper_info = deepcopy(hyper["info"])
 post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
 post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
-os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
+os.makedirs("results", exist_ok=True)
+os.makedirs(os.path.join("results", data_name), exist_ok=True)
+filepath = os.path.join("results", data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
 
 # Plot training- and test-loss vs epochs for all splits.

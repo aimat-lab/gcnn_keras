@@ -18,7 +18,8 @@ from kgcnn.utils.data import save_json_file
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on cora_lu dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper_cora_lu.py")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
+                    default="hyper/hyper_cora_lu.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -82,7 +83,10 @@ for train_index, test_index in split_indices:
     testloss_step = []
     hyper_fit_additional = hyper_selection.fit(epochs=100, validation_freq=10)
     hyper_fit_additional = {key: value for key, value in hyper_fit_additional.items() if key not in ["epochs",
-        "batch_size", "initial_epoch", "sample_weight", "validation_data"]}
+                                                                                                     "batch_size",
+                                                                                                     "initial_epoch",
+                                                                                                     "sample_weight",
+                                                                                                     "validation_data"]}
     start = time.process_time()
     for iepoch in range(0, epo, epostep):
         hist = model.fit(xtrain, ytrain,
@@ -111,8 +115,9 @@ for train_index, test_index in split_indices:
 hyper_info = deepcopy(hyper["info"])
 post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
 post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
-os.makedirs(data_name, exist_ok=True)
-filepath = os.path.join(data_name, hyper['model']['name'] + post_fix)
+os.makedirs("results", exist_ok=True)
+os.makedirs(os.path.join("results", data_name), exist_ok=True)
+filepath = os.path.join("results", data_name, hyper['model']['name'] + post_fix)
 os.makedirs(filepath, exist_ok=True)
 
 # Plot training- and test-loss vs epochs for all splits.
