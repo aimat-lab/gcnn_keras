@@ -6,6 +6,26 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices
 
 
+class MemoryGraphList:
+    def __init__(self):
+        self.length = None
+        self._graph_list = {}
+
+    def _set_graph_property(self, prop_name, value: list):
+        pass
+
+    def _get_graph_property(self, prop_name):
+        pass
+
+    @property
+    def node_attributes(self):
+        return self._get_graph_property("node_attributes")
+
+    @node_attributes.setter
+    def node_attributes(self, value: list):
+        self._set_graph_property("node_attributes", value)
+
+
 class MemoryGraphDataset:
     """Dataset class for storing lists of graph tensor properties that can be cast into the tf.RaggedTensor class.
 

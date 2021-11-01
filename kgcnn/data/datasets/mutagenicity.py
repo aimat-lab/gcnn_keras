@@ -17,20 +17,14 @@ class MutagenicityDataset(GraphTUDataset2020):
         # Use default base class init()
         super(MutagenicityDataset, self).__init__("Mutagenicity", reload=reload, verbose=verbose)
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       verbose: int = 1):
+    def read_in_memory(self, verbose: int = 1):
         r"""Load Mutagenicity Dataset into memory and already split into items with further cleaning and
         processing.
 
         Args:
-            file_name (str): Filename for reading into memory. Not used for general TUDataset.
-                Only for download of class `tudataset2020`. Default is None.
-            data_directory (str): Full path to directory containing all txt-files. Default is None.
-            dataset_name (str): Name of the dataset. Not used for reading. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(MutagenicityDataset, self).read_in_memory(file_name=file_name, data_directory=data_directory,
-                                                 dataset_name=dataset_name, verbose=verbose)
+        super(MutagenicityDataset, self).read_in_memory(verbose=verbose)
 
         node_translate = np.array([6, 8, 17, 1, 7, 9, 35, 16, 15, 53, 11, 19, 3, 20], dtype=np.int)
         atoms_translate = ['C', 'O', 'Cl', 'H', 'N', 'F', 'Br', 'S', 'P', 'I', 'Na', 'ksb', 'Li', 'Ca']

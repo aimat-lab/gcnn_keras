@@ -19,20 +19,14 @@ class PROTEINSDatset(GraphTUDataset2020):
         # We set dataset_name to None since all flags are defined by hand in subclass definition.
         super(PROTEINSDatset, self).__init__(dataset_name="PROTEINS", reload=reload, verbose=verbose)
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       verbose: int = 1):
+    def read_in_memory(self, verbose: int = 1):
         r"""Load PROTEINS Dataset into memory and already split into items with further cleaning and
         processing.
 
         Args:
-            file_name (str): Filename for reading into memory. Not used for general TUDataset.
-                Only for download of class `tudataset2020`. Default is None.
-            data_directory (str): Full path to directory containing all txt-files. Default is None.
-            dataset_name (str): Name of the dataset. Not used for reading. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(PROTEINSDatset, self).read_in_memory(file_name=file_name, data_directory=data_directory,
-                                                   dataset_name=dataset_name, verbose=verbose)
+        super(PROTEINSDatset, self).read_in_memory(verbose=verbose)
 
         self.graph_labels = np.array([[0, 1] if int(x) == 2 else [1, 0] for x in self.graph_labels])
         ohe = OneHotEncoder(

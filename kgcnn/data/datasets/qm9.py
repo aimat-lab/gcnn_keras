@@ -35,14 +35,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         QMDataset.__init__(self, verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
+
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
         self.dataset_name = "QM9"
-        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
-
         self.require_prepare_data = True
         self.fits_in_memory = True
-
+        self.verbose = verbose
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
 
         if self.require_prepare_data:

@@ -16,19 +16,13 @@ class MUTAGDataset(GraphTUDataset2020):
         # Use default base class init()
         super(MUTAGDataset, self).__init__("MUTAG", reload=reload, verbose=verbose)
 
-    def read_in_memory(self, file_name: str = None, data_directory: str = None, dataset_name: str = None,
-                       verbose: int = 1):
+    def read_in_memory(self, verbose: int = 1):
         r"""Load MUTAG data into memory and already split into items.
 
         Args:
-            file_name (str): Filename for reading into memory. Not used for general TUDataset.
-                Only for download of class `tudataset2020`. Default is None.
-            data_directory (str): Full path to directory containing all txt-files. Default is None.
-            dataset_name (str): Name of the dataset. Not used for reading. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(MUTAGDataset, self).read_in_memory(file_name=file_name, data_directory=data_directory,
-                                                 dataset_name=dataset_name, verbose=verbose)
+        super(MUTAGDataset, self).read_in_memory(verbose=verbose)
 
         # split into separate graphs
         # graph_id, counts = np.unique(mutag_gi, return_counts=True)
