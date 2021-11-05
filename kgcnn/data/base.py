@@ -7,27 +7,43 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 
 
 class MemoryGraphList:
-    def __init__(self):
-        self.length = None
-        self._graph_list = {}
+    r"""Class to store a list of graphs properties in memory.
+    The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. .
+    They are added in form of a list or array as class attributes to the instance of this class.
+    Graph related properties must have a special prefix to be noted as graph property attribute.
+    Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
 
-    def _set_graph_property(self, prop_name, value: list):
-        pass
 
-    def _get_graph_property(self, prop_name):
-        pass
+    .. code-block:: python
+        data = MemoryGraphList()
+        data.edge_indices = [np.array([[0, 1], [1, 0]])]
+        data.node_labels = [np.array([[0], [1]])]
+        print(data.edge_indices, data.node_labels)
 
-    @property
-    def node_attributes(self):
-        return self._get_graph_property("node_attributes")
+    """
+    def __init__(self, length: int = None):
+        r"""Initialize an empty :obj:`MemoryGraphList` instance.
 
-    @node_attributes.setter
-    def node_attributes(self, value: list):
-        self._set_graph_property("node_attributes", value)
+        Args:
+            length (int): Length of the graph list.
+        """
+        self._length = length
+        self._prefix_graph_prop = ["node_", "edge_", "graph_"]
+
+    def __setattr__(self, key, value):
+        if hasattr(self, "_prefix_graph_prop"):
+            if any([x in key for x in self._prefix_graph_prop]) and value is not None:
+                if self._length is None:
+                    self._length = len(value)
+                else:
+                    if self._length != len(value):
+                        raise ValueError("ERROR:kgcnn: len() of %s does not match len() of graph list." % key)
+
+        super(MemoryGraphList, self).__setattr__(key, value)
 
 
 class MemoryGraphDataset:
-    """Dataset class for storing lists of graph tensor properties that can be cast into the tf.RaggedTensor class.
+    """Dataset class for lists of graph tensor properties that can be cast into the tf.RaggedTensor class.
 
     """
 

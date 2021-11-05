@@ -1,18 +1,39 @@
 import tensorflow as tf
 
 from copy import deepcopy
-from kgcnn.utils.data import load_json_file, load_hyper_file
+from kgcnn.utils.data import load_hyper_file
 
 
-class HyperSelectionTraining:
-    r"""A class to choose a hyper-parameters for a specific dataset and model. And also to serialize hyper info,
-    if possible. Will be added soon.
+class HyperSelection:
+    r"""A class to store hyper-parameters for a specific dataset and model, exposing them for model training scripts.
+    This includes training parameters and a set of general information like a path for output of the training stats
+    or the expected version of `kgcnn`. The class methods will extract and possibly serialize or deserialized the
+    necessary kwargs from the hyper-parameter dictionary with additional default values. Also changes in the
+    hyper-parameter definition can be made without affecting training scripts and made compatible with previous
+    versions.
+
 
     """
 
-    def __init__(self, path: str, model_name: str = None, dataset_name: str = None):
+    def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):
+        """Make a hyper-parameter class instance.
+
+        Args:
+            hyper_info (str, dict): Hyper-parameters dictionary or path to file.
+            model_name (str): Name of the model.
+            dataset_name (str): Name of the dataset.
+        """
+
         self.dataset_name = dataset_name
-        self._hyper_all = load_hyper_file(path)
+        self.model_name = model_name
+
+        if isinstance(hyper_info, str):
+            self._hyper_all = load_hyper_file(hyper_info)
+        elif isinstance(hyper_info, dict):
+            self._hyper_all = hyper_info
+        else:
+            raise ValueError("ERROR:kgcnn: `HyperSelection` requires valid hyper dictionary or path to file.")
+
         self._hyper = None
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
@@ -21,8 +42,8 @@ class HyperSelectionTraining:
         else:
             raise ValueError("ERROR:kgcnn: Not a valid hyper dictionary. Please provide model_name.")
 
-    def get_hyper(self, section=None):
-        """Get copy of hyper-dictionary.
+    def hyper(self, section=None):
+        """Get copy of the hyper-parameter dictionary stored by this class.
 
         Args:
             section (str): If specified, return copy of hyper[selection].
@@ -34,6 +55,10 @@ class HyperSelectionTraining:
             return deepcopy(self._hyper)
         else:
             return deepcopy(self._hyper[section])
+
+    def get_hyper(self, section=None):
+        # Only for backward compatibility.
+        return self.hyper(section)
 
     def compile(self, loss=None, optimizer='rmsprop', metrics=None, weighted_metrics=None):
         """Select compile hyper-parameter.
@@ -107,4 +132,22 @@ class HyperSelectionTraining:
         out.update(hyper_fit_additional)
         return out
 
+    def k_fold(self, n_splits: int = 5, shuffle: bool = None, random_state: int = None):
+        """Select k-fold hyper-parameter.
 
+        Args:
+            n_splits (int): Number of splits
+            shuffle (bool): Shuffle data.
+            random_state (int): Random state for shuffle.
+
+        Returns:
+            dict: Dictionary of kwargs for sklearn KFold() class.
+        """
+        k_fold_info = {"n_splits": n_splits, "shuffle": shuffle, "random_state": random_state}
+        if "KFold" in self._hyper["training"]:
+            k_fold_info.update(self._hyper["training"]["KFold"])
+        return k_fold_info
+
+
+# Only for backward compatibility.
+HyperSelectionTraining = HyperSelection
