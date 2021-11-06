@@ -17,12 +17,8 @@ class MUTAGDataset(GraphTUDataset2020):
         super(MUTAGDataset, self).__init__("MUTAG", reload=reload, verbose=verbose)
 
     def read_in_memory(self, verbose: int = 1):
-        r"""Load MUTAG data into memory and already split into items.
-
-        Args:
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
-        """
-        super(MUTAGDataset, self).read_in_memory(verbose=verbose)
+        r"""Load MUTAG data into memory and already split into items."""
+        super(MUTAGDataset, self).read_in_memory()
 
         # split into separate graphs
         # graph_id, counts = np.unique(mutag_gi, return_counts=True)

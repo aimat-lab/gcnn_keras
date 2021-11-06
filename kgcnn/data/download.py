@@ -11,7 +11,6 @@ class DownloadDataset:
     r"""Base layer for datasets. Provides class-method functions for download and unzip of the data.
     Dataset-specific functions like prepare_data() must be implemented in subclasses.
     Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
-
     """
 
     data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
@@ -55,6 +54,12 @@ class DownloadDataset:
         self.extract_gz = extract_gz
         self.verbose = verbose
         self.download_reload = reload
+
+        # Make the download already in init.
+        self.download_dataset_to_disk()
+
+    def download_dataset_to_disk(self):
+        """Main download function to store and unpack dataset."""
 
         # Some datasets do not offer all information or require multiple files.
         if self.verbose > 1:

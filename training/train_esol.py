@@ -5,7 +5,6 @@ import time
 import os
 import argparse
 
-from copy import deepcopy
 from sklearn.preprocessing import StandardScaler
 from tensorflow_addons import optimizers
 from kgcnn.utils import learning
@@ -15,7 +14,6 @@ from kgcnn.data.datasets.ESOL import ESOLDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.selection import HyperSelection
-from kgcnn.utils.data import save_json_file
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line.
@@ -33,7 +31,7 @@ model_selection = ModelSelection()
 make_model = model_selection.make_model(model_name)
 
 # Hyper-parameter.
-hyper_selection = HyperSelection(args["hyper"], model_name=model_name)
+hyper_selection = HyperSelection(args["hyper"], model_name=model_name, dataset_name="ESOL")
 hyper = hyper_selection.hyper()
 
 # Loading ESOL Dataset
@@ -43,7 +41,7 @@ if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['set_range'])
 if "set_edge_indices_reverse" in hyper_data:
     dataset.set_edge_indices_reverse()
-data_name = dataset.dataset_name
+dataset_name = dataset.dataset_name
 data_unit = "mol/L"
 data_length = dataset.length
 
@@ -53,7 +51,7 @@ labels = np.array(dataset.graph_labels)
 
 # Test Split
 kf = KFold(**hyper_selection.k_fold())
-split_indices = kf.split(X=np.arange(data_length-1)[:, None])
+split_indices = kf.split(X=np.arange(data_length)[:, None])
 
 # Variables
 history_list, test_indices_list = [], []
@@ -61,14 +59,13 @@ model, scaler, xtest, ytest = None, None, None, None
 
 # Training on splits
 for train_index, test_index in split_indices:
-
-    # Make model.
-    model = make_model(**hyper['model'])
-
     # Select train and test data.
     is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
     xtrain, ytrain = data_loader[train_index].tensor(ragged=is_ragged), labels[train_index]
     xtest, ytest = data_loader[test_index].tensor(ragged=is_ragged), labels[test_index]
+
+    # Make model.
+    model = make_model(**hyper_selection.make_model())
 
     # Normalize training and test targets.
     scaler = StandardScaler(with_std=True, with_mean=True, copy=True)
@@ -98,27 +95,23 @@ for train_index, test_index in split_indices:
     test_indices_list.append([train_index, test_index])
 
 # Make output directory
-hyper_info = deepcopy(hyper["info"])
-post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
-post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
-os.makedirs("results", exist_ok=True)
-os.makedirs(os.path.join("results", data_name), exist_ok=True)
-filepath = os.path.join("results", data_name, hyper['model']['name'] + post_fix)
-os.makedirs(filepath, exist_ok=True)
+filepath = hyper_selection.results_file_path()
+postfix_file = hyper_selection.postfix_file()
 
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name="mean_absolute_error", val_loss_name="val_mean_absolute_error",
-                     model_name=model_name, data_unit=data_unit, dataset_name=data_name, filepath=filepath,
-                     file_name="mae_esol" + post_fix_file + ".png")
+                     model_name=model_name, data_unit=data_unit, dataset_name=dataset_name, filepath=filepath,
+                     file_name="mae_esol" + postfix_file + ".png")
 # Plot prediction
 plot_predict_true(scaler.inverse_transform(model.predict(xtest)), scaler.inverse_transform(ytest), filepath=filepath,
-                  model_name=model_name, dataset_name=data_name, file_name="predict_esol" + post_fix_file + ".png")
+                  model_name=model_name, dataset_name=dataset_name, file_name="predict_esol" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), test_indices_list)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))
+hyper_selection.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+

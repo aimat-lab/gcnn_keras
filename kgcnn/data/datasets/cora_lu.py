@@ -39,14 +39,10 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         DownloadDataset.__init__(self, **self.download_info,reload=reload, verbose=verbose)
 
         if self.fits_in_memory:
-            self.read_in_memory(verbose=verbose)
+            self.read_in_memory()
 
-    def read_in_memory(self, verbose=1):
-        """Load Cora data into memory and already split into items.
-
-        Args:
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
-        """
+    def read_in_memory(self):
+        """Load Cora data into memory and already split into items."""
         filepath = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name, "cora")
 
         ids = np.loadtxt(os.path.join(filepath, "cora.cites"))

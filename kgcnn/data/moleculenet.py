@@ -85,7 +85,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         """
         mol_filename = self._get_mol_filename()
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self._log("INFO:kgcnn: Found rdkit mol.json of pre-computed structures.")
+            self._log("INFO:kgcnn: Found rdkit %s of pre-computed structures." % mol_filename)
             return self
         filepath = os.path.join(self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
@@ -101,7 +101,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         return self
 
     def read_in_memory(self, has_conformers: bool = True, label_column_name: str = None,
-                       add_hydrogen: bool = True, verbose: int = 1):
+                       add_hydrogen: bool = True):
         r"""Load list of molecules from cached json-file in into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
@@ -109,7 +109,6 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             has_conformers (bool): If molecules need 3D coordinates pre-computed.
             label_column_name (str): Column name where labels are given in csv-file. Default is None.
             add_hydrogen (bool): Whether to add H after smile translation.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
             self
@@ -332,14 +331,6 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             return encoder_identifier
         else:
             raise ValueError("ERROR:kgcnn: Unable to deserialize encoder %s " % encoder_identifier)
-
-    def _log(self, *args, **kwargs):
-        """Logging information."""
-        # Could use logger in the future.
-        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
-        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
-        if self.verbose > verbosity_level:
-            print(*args, **print_kwargs)
 
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""

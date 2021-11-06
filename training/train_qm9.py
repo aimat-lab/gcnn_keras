@@ -104,7 +104,7 @@ for train_index, test_index in split_indices:
 
     # Compile Metrics and loss. Use a scaled metric to logg the unscaled targets in fit().
     std_scale = np.expand_dims(scaler.scale_[target_indices], axis=0)
-    mae_metric = ScaledMeanAbsoluteError(std_scale.shape)
+    mae_metric = ScaledMeanAbsoluteError(std_scale.shape, name="mean_absolute_error")
     rms_metric = ScaledRootMeanSquaredError(std_scale.shape)
     if scaler.scale_ is not None:
         mae_metric.set_scale(std_scale)

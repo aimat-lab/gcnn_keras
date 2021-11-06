@@ -19,15 +19,11 @@ class PROTEINSDatset(GraphTUDataset2020):
         # We set dataset_name to None since all flags are defined by hand in subclass definition.
         super(PROTEINSDatset, self).__init__(dataset_name="PROTEINS", reload=reload, verbose=verbose)
 
-    def read_in_memory(self, verbose: int = 1):
+    def read_in_memory(self):
         r"""Load PROTEINS Dataset into memory and already split into items with further cleaning and
         processing.
-
-        Args:
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(PROTEINSDatset, self).read_in_memory(verbose=verbose)
-
+        super(PROTEINSDatset, self).read_in_memory()
         self.graph_labels = np.array([[0, 1] if int(x) == 2 else [1, 0] for x in self.graph_labels])
         ohe = OneHotEncoder(
             [-538, -345, -344, -134, -125, -96, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -38,7 +34,6 @@ class PROTEINSDatset(GraphTUDataset2020):
         self.node_labels = [np.array([ohe2(int(y)) for y in x]) for x in self.node_labels]
         ohe3 = OneHotEncoder([i for i in range(0, 17)], add_unknown=False)
         self.node_degree = [np.array([ohe3(int(y)) for y in x]) for x in self.node_degree]
-        self.length = len(self.graph_labels)
         self.graph_attributes = None
         self.graph_size = [len(x) for x in self.node_attributes]
 

@@ -1,7 +1,8 @@
 import tensorflow as tf
+import os
 
 from copy import deepcopy
-from kgcnn.utils.data import load_hyper_file
+from kgcnn.utils.data import load_hyper_file, save_json_file
 
 
 class HyperSelection:
@@ -60,7 +61,7 @@ class HyperSelection:
         # Only for backward compatibility.
         return self.hyper(section)
 
-    def compile(self, loss=None, optimizer='rmsprop', metrics=None, weighted_metrics=None):
+    def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
         """Select compile hyper-parameter.
 
         Args:
@@ -96,7 +97,7 @@ class HyperSelection:
         out.update(hyper_compile_additional)
         return out
 
-    def fit(self, epochs=1, validation_freq=1, batch_size=None, callbacks=None):
+    def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
         """Select fit hyper-parameter.
 
         Args:
@@ -147,6 +148,35 @@ class HyperSelection:
         if "KFold" in self._hyper["training"]:
             k_fold_info.update(self._hyper["training"]["KFold"])
         return k_fold_info
+
+    def results_file_path(self):
+        """Make output folder for results based on hyper-parameter and return path to that folder."""
+        hyper_info = deepcopy(self._hyper["info"])
+        post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
+        os.makedirs("results", exist_ok=True)
+        os.makedirs(os.path.join("results", self.dataset_name), exist_ok=True)
+        model_name = self._hyper['model']['name']
+        filepath = os.path.join("results", self.dataset_name, model_name + post_fix)
+        os.makedirs(filepath, exist_ok=True)
+        return filepath
+
+    def postfix_file(self):
+        """Return a postfix for naming files in the fit results section."""
+        hyper_info = deepcopy(self._hyper["info"])
+        return str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
+
+    def save(self, file_path: str):
+        """Save the hyper-parameter to path.
+
+        Args:
+            file_path (str): Full file path to save hyper-parameters to.
+        """
+        # Must make more refined saving and serialization here.
+        save_json_file(self._hyper, file_path)
+
+    def make_model(self, X_shape=None, y_shape=None):
+        # Add some logic to compare hyper-parameters with data sahpe
+        return deepcopy(self._hyper["model"])
 
 
 # Only for backward compatibility.

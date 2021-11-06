@@ -80,7 +80,7 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
         self.fits_in_memory = True
 
         if self.fits_in_memory:
-            self.read_in_memory(verbose=verbose)
+            self.read_in_memory()
 
     @staticmethod
     def _debug_read_list():

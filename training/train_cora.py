@@ -1,18 +1,15 @@
-import tensorflow as tf
-import matplotlib.pyplot as plt
 import numpy as np
 import time
 import os
 import argparse
 
-from copy import deepcopy
 from kgcnn.utils.learning import LinearLearningRateScheduler
 from sklearn.model_selection import KFold
 from kgcnn.data.datasets.cora import CoraDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
-from kgcnn.hyper.selection import HyperSelectionTraining
-from kgcnn.utils.data import save_json_file
+from kgcnn.hyper.selection import HyperSelection
+from kgcnn.utils.plots import plot_train_test_loss
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
@@ -25,24 +22,19 @@ print("Input of argparse:", args)
 
 # Model identification.
 model_name = args["model"]
-ms = ModelSelection()
-make_model = ms.make_model(model_name)
+model_selection = ModelSelection()
+make_model = model_selection.make_model(model_name)
 
 # Hyper-parameter identification.
-hyper_selection = HyperSelectionTraining(args["hyper"], model_name=model_name)
+hyper_selection = HyperSelection(args["hyper"], model_name=model_name, dataset_name="Cora")
 hyper = hyper_selection.get_hyper()
 
 # Loading Cora Dataset
 hyper_data = hyper['data']
 dataset = CoraDataset().make_undirected_edges()
-data_name = dataset.dataset_name
+dataset_name = dataset.dataset_name
 data_length = dataset.length
 labels = dataset.node_labels
-
-# Data-set split
-k_fold_dict = hyper['training']["KFold"]
-kf = KFold(**k_fold_dict)
-split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
@@ -50,19 +42,18 @@ is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
 xtrain = dataloader.tensor(ragged=is_ragged)
 ytrain = np.array(labels)
 
-# Set epochs.
-hyper_fit = hyper_selection.fit(epochs=100, validation_freq=10)
-epo = hyper_fit['epochs']
-epostep = hyper_fit['validation_freq']
+# Test Split
+kf = KFold(**hyper_selection.k_fold())
+split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
 
-train_loss = []
-test_loss = []
-acc_5fold = []
-all_test_index = []
-model = None
+# Variables
+history_list, test_indices_list = [], []
+model, scaler, xtest, ytest = None, None, None, None
+
+# Training on splits
 for train_index, test_index in split_indices:
     # Make mode for current split.
-    model = make_model(**hyper['model'])
+    model = make_model(**hyper_selection.make_model())
 
     # Make training/validation mask to hide test labels from training.
     val_mask = np.zeros_like(labels[0][:, 0])
@@ -73,72 +64,38 @@ for train_index, test_index in split_indices:
     train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
     # Compile model with optimizer and loss.
-    hyper_compile = hyper_selection.compile(loss='categorical_crossentropy', weighted_metrics=["categorical_accuracy"])
-    model.compile(**hyper_compile)
+    # Important to use weighted_metrics!
+    model.compile(**hyper_selection.compile(loss='categorical_crossentropy', weighted_metrics=["categorical_accuracy"]))
     print(model.summary())
 
     # Training loop
-    trainloss_steps = []
-    testloss_step = []
     start = time.process_time()
-    hyper_fit_additional = hyper_selection.fit(epochs=100, validation_freq=10)
-    hyper_fit_additional = {key: value for key, value in hyper_fit_additional.items() if key not in ["epochs",
-                                                                                                     "batch_size",
-                                                                                                     "initial_epoch",
-                                                                                                     "sample_weight"]}
-
-    for iepoch in range(0, epo, epostep):
-        hist = model.fit(xtrain, ytrain,
-                         epochs=iepoch + epostep,
-                         initial_epoch=iepoch,
-                         batch_size=1,
-                         sample_weight=train_mask,  # Important!!!
-                         **hyper_fit_additional
-                         )
-
-        trainloss_steps.append(hist.history)
-        testloss_step.append(model.evaluate(xtrain, ytrain, sample_weight=val_mask))
+    hist = model.fit(xtrain, ytrain,
+                     validation_data=(xtrain, ytrain, val_mask),
+                     sample_weight=train_mask,  # Hide validation data!
+                     **hyper_selection.fit(epochs=100, validation_freq=10)
+                     )
     stop = time.process_time()
     print("Print Time for taining: ", stop - start)
 
-    # Get loss from history.
-    train_acc = np.concatenate([x['categorical_accuracy'] for x in trainloss_steps])
-    train_loss.append(train_acc)
-    val_acc = np.array(testloss_step)[:, 1]
-    test_loss.append(val_acc)
-    acc_valid = np.mean(val_acc[-5:])
-    acc_5fold.append(acc_valid)
-    all_test_index.append([train_index, test_index])
+    # Get loss from history
+    history_list.append(hist)
+    test_indices_list.append([train_index, test_index])
 
 # Make output directories.
-hyper_info = deepcopy(hyper["info"])
-post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
-post_fix_file = str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
-os.makedirs("results", exist_ok=True)
-os.makedirs(os.path.join("results", data_name), exist_ok=True)
-filepath = os.path.join("results", data_name, hyper['model']['name'] + post_fix)
-os.makedirs(filepath, exist_ok=True)
+filepath = hyper_selection.results_file_path()
+postfix_file = hyper_selection.postfix_file()
 
 # Plot training- and test-loss vs epochs for all splits.
-plt.figure()
-for x in train_loss:
-    plt.plot(np.arange(x.shape[0]), x, c='red', alpha=0.85)
-for y in test_loss:
-    plt.plot((np.arange(len(y)) + 1) * epostep, y, c='blue', alpha=0.85)
-plt.scatter([train_loss[-1].shape[0]], [np.mean(acc_5fold)],
-            label=r"Test: {0:0.4f} $\pm$ {1:0.4f}".format(np.mean(acc_5fold), np.std(acc_5fold)), c='blue')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.title('Cora full 70 class loss for ' + model_name)
-plt.legend(loc='upper right', fontsize='large')
-plt.savefig(os.path.join(filepath, model_name + "_acc_cora" + post_fix_file + ".png"))
-plt.show()
+plot_train_test_loss(history_list, loss_name="categorical_accuracy", val_loss_name="val_categorical_accuracy",
+                     model_name=model_name, data_unit="", dataset_name=dataset_name, filepath=filepath,
+                     file_name="acc_cora" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, model_name + "_kfold_splits" + post_fix_file + ".npz"), all_test_index)
+np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
 # Save hyper-parameter again, which were used for this fit.
-save_json_file(hyper, os.path.join(filepath, model_name + "_hyper" + post_fix_file + ".json"))
+hyper_selection.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))

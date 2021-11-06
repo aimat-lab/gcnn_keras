@@ -17,14 +17,11 @@ class MutagenicityDataset(GraphTUDataset2020):
         # Use default base class init()
         super(MutagenicityDataset, self).__init__("Mutagenicity", reload=reload, verbose=verbose)
 
-    def read_in_memory(self, verbose: int = 1):
+    def read_in_memory(self):
         r"""Load Mutagenicity Dataset into memory and already split into items with further cleaning and
         processing.
-
-        Args:
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(MutagenicityDataset, self).read_in_memory(verbose=verbose)
+        super(MutagenicityDataset, self).read_in_memory()
 
         node_translate = np.array([6, 8, 17, 1, 7, 9, 35, 16, 15, 53, 11, 19, 3, 20], dtype=np.int)
         atoms_translate = ['C', 'O', 'Cl', 'H', 'N', 'F', 'Br', 'S', 'P', 'I', 'Na', 'ksb', 'Li', 'Ca']
@@ -57,8 +54,7 @@ class MutagenicityDataset(GraphTUDataset2020):
         atoms_clean = []
 
         # Remove unconnected atoms. not Na Li etc.
-        if verbose > 0:
-            print("INFO:kgcnn: Checking database...")
+        self._log("INFO:kgcnn: Checking database...")
         for i in range(len(nodes)):
             nats = nodes[i]
             cons = np.arange(len(nodes[i]))
@@ -73,8 +69,7 @@ class MutagenicityDataset(GraphTUDataset2020):
                 info_list = nodes[i][is_cons == False]
                 info_list, info_cnt = np.unique(info_list, return_counts=True)
                 info_list = {z_translate[info_list[j]]: info_cnt[j] for j in range(len(info_list))}
-                if verbose > 0:
-                    print("INFO: Removing unconnected", info_list, "from molecule", i)
+                self._log("INFO: Removing unconnected", info_list, "from molecule", i)
                 nodes_clean.append(nats[is_cons])
                 atoms_clean.append([atoms[i][j] for j in range(len(is_cons)) if is_cons[j] == True])
                 # Need to correct edge_indices
@@ -91,8 +86,7 @@ class MutagenicityDataset(GraphTUDataset2020):
             edges_clean.append(edges[i])
             labels_clean.append(labels[i])
 
-        if verbose > 0:
-            print("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
+        self._log("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
 
         # Since no attributes in graph dataset, we use labels as attributes
         self.graph_labels = labels_clean
@@ -175,4 +169,4 @@ class MutagenicityDataset(GraphTUDataset2020):
 #     mol = rdkit_mol_from_atoms_bonds(atoms[rd_idx],bonds)
 #     mol_list.append(mol)
 
-# test = MutagenicityDataset(verbose=2)
+# test = MutagenicityDataset()

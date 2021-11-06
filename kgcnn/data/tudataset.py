@@ -35,12 +35,9 @@ class GraphTUDataset(MemoryGraphDataset):
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose)
 
-    def read_in_memory(self, verbose: int = 1):
+    def read_in_memory(self):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
         to a list of separate graph properties for `MemoryGraphDataset`.
-
-        Args:
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
 
         Returns:
             self
@@ -52,8 +49,7 @@ class GraphTUDataset(MemoryGraphDataset):
             print("ERROR:kgcnn: Dataset needs name {0} and path {1}.".format(self.dataset_name, self.data_directory))
             return None
 
-        if verbose > 1:
-            print("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+        self._log("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
 
         # Define a graph with indices
         # They must be defined
@@ -99,13 +95,13 @@ class GraphTUDataset(MemoryGraphDataset):
         num_graphs = np.amax(g_n_id)
         if g_labels is not None:
             if len(g_labels) != num_graphs:
-                print("ERROR:kgcnn: Wrong number of graphs, not matching graph labels, {0}, {1}".format(len(g_labels),
-                                                                                                        num_graphs))
+                print(
+                    "ERROR:kgcnn: Wrong number of graphs, not matching graph labels, {0}, {1}".format(len(g_labels),
+                                                                                                      num_graphs))
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
-            if verbose > 0:
-                print("INFO:kgcnn: Shift start of graph id to zero for %s to match python indexing." % name_dataset)
+            self._log("INFO:kgcnn: Shift start of graph id to zero for %s to match python indexing." % name_dataset)
             g_a = g_a - 1
             g_n_id = g_n_id - 1
 
@@ -146,8 +142,7 @@ class GraphTUDataset(MemoryGraphDataset):
             all_cons.append(np.sum(is_cons == False))
         all_cons = np.array(all_cons)
 
-        if verbose > 0:
-            print("INFO:kgcnn: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+        self._log("INFO:kgcnn: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
                   all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         node_degree = [np.zeros(x, dtype="int") for x in graphlen]
@@ -155,6 +150,7 @@ class GraphTUDataset(MemoryGraphDataset):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts
 
+        self.length = num_graphs
         self.node_degree = node_degree
         self.node_attributes = n_attr
         self.edge_attributes = e_attr
@@ -163,7 +159,6 @@ class GraphTUDataset(MemoryGraphDataset):
         self.node_labels = n_labels
         self.edge_labels = e_labels
         self.graph_labels = g_labels
-        self.length = num_graphs
 
         return self
 

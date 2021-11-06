@@ -7,20 +7,19 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 
 
 class MemoryGraphList:
-    r"""Class to store a list of graphs properties in memory.
+    r"""Class to store a list of graph properties in memory.
     The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. .
     They are added in form of a list or array as class attributes to the instance of this class.
-    Graph related properties must have a special prefix to be noted as graph property attribute.
+    Graph related properties must have a special prefix to be noted as graph property.
     Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
-
 
     .. code-block:: python
         data = MemoryGraphList()
         data.edge_indices = [np.array([[0, 1], [1, 0]])]
         data.node_labels = [np.array([[0], [1]])]
         print(data.edge_indices, data.node_labels)
-
     """
+
     def __init__(self, length: int = None):
         r"""Initialize an empty :obj:`MemoryGraphList` instance.
 
@@ -28,11 +27,18 @@ class MemoryGraphList:
             length (int): Length of the graph list.
         """
         self._length = length
-        self._prefix_graph_prop = ["node_", "edge_", "graph_"]
+        self._reserved_graph_property_prefix = ["node_", "edge_", "graph_"]
+
+    def _find_graph_properties(self, prop_prefix):
+        return [x for x in list(self.__dict__.keys()) if prop_prefix == x[:len(prop_prefix)]]
+
+    def _find_all_graph_properties(self):
+        return [x for x in list(self.__dict__.keys()) for prop_prefix in
+                self._reserved_graph_property_prefix if prop_prefix == x[:len(prop_prefix)] ]
 
     def __setattr__(self, key, value):
-        if hasattr(self, "_prefix_graph_prop"):
-            if any([x in key for x in self._prefix_graph_prop]) and value is not None:
+        if hasattr(self, "_reserved_graph_property_prefix"):
+            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]) and value is not None:
                 if self._length is None:
                     self._length = len(value)
                 else:
@@ -41,10 +47,40 @@ class MemoryGraphList:
 
         super(MemoryGraphList, self).__setattr__(key, value)
 
+    @property
+    def length(self):
+        return self._length
 
-class MemoryGraphDataset:
-    """Dataset class for lists of graph tensor properties that can be cast into the tf.RaggedTensor class.
+    @length.setter
+    def length(self, value):
+        # Set all graph properties to none, which not match new length
+        if value is None:
+            self._length = None
+            for x in self._find_all_graph_properties():
+                setattr(self, x, None)
+        else:
+            for x in self._find_all_graph_properties():
+                ax = getattr(self, x)
+                if ax is not None:
+                    if len(ax) != value:
+                        setattr(self, x, None)
+            self._length = int(value)
 
+
+class MemoryGraphDataset(MemoryGraphList):
+    r"""Dataset class for lists of graph tensor properties that can be cast into the tf.RaggedTensor class.
+    The graph list is expected to only store numpy arrays in place of the each node or edge information.
+    The Memory Dataset class inherits from :obj:`MemoryGraphList` had has further information about a location on file,
+    i.e. a file directory and a file name as well as a name of the dataset. Functions to modify graph properties are
+    provided with this class, like for example :obj:`sort_edge_indices`.
+
+    .. code-block:: python
+        dataset = MemoryGraphDataset(data_directory="", dataset_name="Example", length=1)
+        dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
+        dataset.edge_labels = [np.array([[0], [1]])]
+        print(dataset.edge_indices, dataset.edge_labels)
+        dataset.sort_edge_indices()
+        print(dataset.edge_indices, dataset.edge_labels)
     """
 
     fits_in_memory = True
@@ -61,16 +97,17 @@ class MemoryGraphDataset:
             length (int): Length of the dataset, if known beforehand. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-
+        super(MemoryGraphDataset, self).__init__(length=length)
+        self.length = length
         # Dataset information, if available.
         self.verbose = verbose
         self.data_directory = data_directory
         self.file_name = file_name
+        self.dataset_name = dataset_name
         if self.data_directory is None and isinstance(self.file_name, str):
             # Get path information from filename.
             self.data_directory = os.path.dirname(os.path.realpath(self.file_name))
-        self.dataset_name = dataset_name
-        self.length = length
+        # Check if no wrong kwargs passed to init.
         if len(kwargs) > 0:
             print("WARNING:kgcnn: Unknown kwargs for `MemoryGraphDataset` found: {}".format(list(kwargs.keys())))
 
@@ -93,43 +130,29 @@ class MemoryGraphDataset:
         self.graph_number = None
         self.graph_size = None
 
-    def set_edge_indices_reverse(self):
-        """Computes the index map of the reverse edge for each of the edges if available."""
-        all_index_map = []
-        # This must be done in mini-batches graphs are too large
-        for edge_idx in self.edge_indices:
-            if len(edge_idx) == 0:
-                all_index_map.append(np.array([], dtype="int"))
-                continue
-            edge_idx_rev = np.flip(edge_idx, axis=-1)
-            edge_pos, rev_pos = np.where(
-                np.all(np.expand_dims(edge_idx, axis=1) == np.expand_dims(edge_idx_rev, axis=0), axis=-1))
-            # May have duplicates
-            ege_pos_uni, uni_pos = np.unique(edge_pos, return_index=True)
-            rev_pos_uni = rev_pos[uni_pos]
-            edge_map = np.empty(len(edge_idx), dtype="int")
-            edge_map.fill(np.nan)
-            edge_map[ege_pos_uni] = rev_pos_uni
-            all_index_map.append(np.expand_dims(edge_map, axis=-1))
-
-        self.edge_indices_reverse = all_index_map
-        return self
+    def _log(self, *args, **kwargs):
+        """Logging information."""
+        # Could use logger in the future.
+        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
+        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
+        if self.verbose > verbosity_level:
+            print(*args, **print_kwargs)
 
     def _operate_on_edges(self, operation, **kwargs):
-        """Wrapper to run a certain function on all edge related arrays.
+        r"""Wrapper to run a certain function on all edge related properties.
 
         Args:
-              operation (callable): Function to apply to a list of edge arrays.
-              kwargs: Kwargs for fun_operation
+              operation (callable): Function to apply to a list of edge arrays. First entry is assured indices.
+              kwargs: Kwargs for operation function call.
         """
         if self.edge_indices is None:
-            raise ValueError("ERROR:kgcnn: Can not make undirected edges, as graph indices are not defined.")
+            raise ValueError("ERROR:kgcnn: Can not make undirected edges, as edge indices are not defined.")
 
         # Determine all linked edge attributes, that are not None
         # Edge indices is always at first position
-        _edge_linked = ["edge_indices", "edge_attributes", "edge_labels", "edge_number", "edge_symbol",
-                        "edge_weights"]
-        no_nan_edge_prop = [x for x in _edge_linked if getattr(self, x) is not None]
+        edge_linked = self._find_graph_properties("edge_")
+        edge_linked = ["edge_indices"] + [x for x in edge_linked if x != "edge_indices"]
+        no_nan_edge_prop = [x for x in edge_linked if getattr(self, x) is not None]
         non_nan_edge = [getattr(self, x) for x in no_nan_edge_prop]
 
         # If no edge properties
@@ -151,10 +174,39 @@ class MemoryGraphDataset:
             self.set_edge_indices_reverse()
         return self
 
+    def set_edge_indices_reverse(self):
+        r"""Computes the index map of the reverse edge for each of the edges if available. This can be used by a model
+        to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
+        Does not affect other edge-properties.
+
+        Returns:
+            self
+        """
+        all_index_map = []
+        # This must be done in mini-batches graphs are too large
+        for edge_idx in self.edge_indices:
+            if len(edge_idx) == 0:
+                all_index_map.append(np.array([], dtype="int"))
+                continue
+            edge_idx_rev = np.flip(edge_idx, axis=-1)
+            edge_pos, rev_pos = np.where(
+                np.all(np.expand_dims(edge_idx, axis=1) == np.expand_dims(edge_idx_rev, axis=0), axis=-1))
+            # May have duplicates
+            ege_pos_uni, uni_pos = np.unique(edge_pos, return_index=True)
+            rev_pos_uni = rev_pos[uni_pos]
+            edge_map = np.empty(len(edge_idx), dtype="int")
+            edge_map.fill(np.nan)
+            edge_map[ege_pos_uni] = rev_pos_uni
+            all_index_map.append(np.expand_dims(edge_map, axis=-1))
+
+        self.edge_indices_reverse = all_index_map
+        return self
+
     def make_undirected_edges(self, remove_duplicates: bool = True, sort_indices: bool = True):
-        r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`. With `remove_duplicates`
-        an edge can be added even though there is already and edge at :math:`(j, i)`. For other edge tensors, like the
-        attributes or labels, the values of edge :math:`(i, j)` is added in place.
+        r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
+        With :obj:`remove_duplicates` an edge can be added even though there is already and edge at :math:`(j, i)`.
+        For other edge tensors, like the attributes or labels, the values of edge :math:`(i, j)` is added in place.
+        Requires that :obj:`edge_indices` property is assigned.
 
         Args:
             remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
@@ -163,19 +215,45 @@ class MemoryGraphDataset:
         Returns:
             self
         """
-
         self._operate_on_edges(add_edges_reverse_indices, remove_duplicates=remove_duplicates,
                                sort_indices=sort_indices)
         return self
 
     def add_self_loops(self, remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0):
+        r"""Add self loops to the each graph property. The function expects to have the property :obj:`edge_indices`.
+        By default the edges are also sorted after adding the self-loops. All other edge properties are filled with
+        :obj:`fill_value`.
 
+        Args:
+            remove_duplicates (bool): Whether to remove duplicates. Default is True.
+            sort_indices (bool): To sort indices after adding self-loops. Default is True.
+            fill_value (in): The fill_value for all other edge properties.
+
+        Returns:
+            self
+        """
         self._operate_on_edges(add_self_loops_to_edge_indices, remove_duplicates=remove_duplicates,
                                sort_indices=sort_indices, fill_value=fill_value)
         return self
 
-    def normalize_edge_weights_sym(self):
+    def sort_edge_indices(self):
+        r"""Sort edge indices and all edge-related properties.
 
+        Returns:
+            self
+        """
+        self._operate_on_edges(sort_edge_indices)
+        return self
+
+    def normalize_edge_weights_sym(self):
+        r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
+        Normalize edge weights as :math:`\tilde(e)_{i,j} = d_{i,i}^{-0.5} e_{i,j} d_{j,j}^{-0.5}`.
+        The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires property :obj:`edge_indices`.
+        Does not affect other edge-properties.
+
+        Returns:
+            self
+        """
         if self.edge_indices is None:
             raise ValueError("ERROR:kgcnn: Can scale adjacency matrix, as graph indices are not defined.")
         if self.edge_weights is None:
@@ -187,12 +265,6 @@ class MemoryGraphDataset:
 
         self.edge_weights = new_weights
         return self
-
-    def _print_info(self):
-        pass
-
-    # def __str__(self):
-    #     return self._print_info()
 
 
 class MemoryGeometricGraphDataset(MemoryGraphDataset):

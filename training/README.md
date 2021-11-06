@@ -5,10 +5,10 @@ Example training to test the performance of model implementations of ``kgcnn`` p
 ```bash
 python3 train_qm9.py
 python3 train_qm9.py --model Schnet
-python3 train_qm9.py --model Schnet --hpyer my_hyper.json
+python3 train_qm9.py --model Schnet --hpyer config.json
 ```
 
-Where `my_config.json` stores custom hyper-parameters and must be in the same folder or a path to a `.json` file. 
+Where `config.json` stores custom hyper-parameters and must be in the same folder or a path to a `.json` file. 
 Alternatively, also a `.yaml`, `.yaml` or `.py` file can be loaded in place of the `.json` file. 
 The python file must define a ```hyper``` attribute as described below.
 However, note that not all models can be trained on all datasets and that not all models have proper default hyper parameters here.

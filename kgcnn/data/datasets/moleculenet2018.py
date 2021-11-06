@@ -93,7 +93,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload, verbose=verbose)
         if self.fits_in_memory:
-            self.read_in_memory(verbose=verbose)
+            self.read_in_memory()
 
     def prepare_data(self, overwrite: bool = False, verbose: int = 1, smiles_column_name: str = "smiles",
                      make_conformers: bool = None, add_hydrogen: bool = None, **kwargs):
@@ -120,8 +120,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).prepare_data(**prepare_info)
 
-    def read_in_memory(self,has_conformers: bool = None, label_column_name: str = None,
-                       add_hydrogen: bool = None, verbose: int = 1):
+    def read_in_memory(self, has_conformers: bool = None, label_column_name: str = None,
+                       add_hydrogen: bool = None):
         r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
         already extract basic graph information. No further attributes are computed as default.
 
@@ -129,12 +129,11 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             has_conformers (bool): If molecules have 3D coordinates pre-computed.
             label_column_name (str): Column name where labels are given in csv-file. Default is None.
             add_hydrogen (bool): Whether to add H after smile translation.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
             self
         """
-        read_in_memory_info = {"verbose": verbose, "label_column_name": label_column_name,
+        read_in_memory_info = {"label_column_name": label_column_name,
                                "add_hydrogen": add_hydrogen, "has_conformers": has_conformers}
         read_in_memory_info.update(self.datasets_read_in_memory_info[self.dataset_name])
 
