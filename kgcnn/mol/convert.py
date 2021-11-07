@@ -151,17 +151,19 @@ def read_xyz_file(filepath, delimiter: str = " "):
 
 def write_mol_block_list_to_sdf(mol_block_list, filepath):
     with open(filepath, "w+") as file:
-        for mol_block in mol_block_list:
+        for i, mol_block in enumerate(mol_block_list):
             if mol_block is not None:
                 file.write(mol_block)
-                file.write("$$$$\n")
+                if i < len(mol_block_list)-1:
+                    file.write("$$$$\n")
             else:
                 file.write("".join(["\n",
-                                    "     RDKit          2D\n",
+                                    "     FAIL\n",
                                     "\n",
                                     "  0  0  0  0  0  0  0  0  0  0 V2000\n",
                                     "M  END\n"]))
-                file.write("$$$$\n")
+                if i < len(mol_block_list) - 1:
+                    file.write("$$$$\n")
 
 
 def dummy_load_sdf_file(filepath):
