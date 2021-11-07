@@ -172,7 +172,7 @@ class HyperSelection:
         # Must make more refined saving and serialization here.
         save_json_file(self._hyper, file_path)
 
-    def make_model(self, X_shape=None, y_shape=None):
+    def make_model(self):
         # Add some logic to compare hyper-parameters with data sahpe
         return deepcopy(self._hyper["model"])
 

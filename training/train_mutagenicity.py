@@ -1,15 +1,11 @@
 import numpy as np
-import time
-import os
 import argparse
 
-from kgcnn.utils.learning import LinearLearningRateScheduler
-from sklearn.model_selection import KFold
 from kgcnn.data.datasets.mutagenicity import MutagenicityDataset
 from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.selection import HyperSelectionTraining
-from kgcnn.utils.plots import plot_train_test_loss
+from kgcnn.training.graph import train_graph_classification_supervised
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
@@ -41,55 +37,7 @@ if "set_edge_indices_reverse" in hyper_data:
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)
 
-# Test Split
-kf = KFold(**hyper_selection.k_fold())
-split_indices = kf.split(X=np.arange(data_length)[:, None])
-
-# Variables
-history_list, test_indices_list = [], []
-model, scaler, xtest, ytest = None, None, None, None
-
-# Train on splits
-for train_index, test_index in split_indices:
-    # Select train and test data.
-    is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
-    xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
-    xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
-
-    # Make model.
-    model = make_model(**hyper_selection.make_model())
-
-    # Compile model with optimizer and loss
-    model.compile(**hyper_selection.compile(loss='binary_crossentropy', metrics=['accuracy']))
-    print(model.summary())
-
-    # Start and time training
-    start = time.process_time()
-    hist = model.fit(xtrain, ytrain,
-                     validation_data=(xtest, ytest),
-                     **hyper_selection.fit()
-                     )
-    stop = time.process_time()
-    print("Print Time for taining: ", stop - start)
-
-    # Get loss from history
-    history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
-
-# Make output directories.
-filepath = hyper_selection.results_file_path()
-postfix_file = hyper_selection.postfix_file()
-
-# Plot training- and test-loss vs epochs for all splits.
-plot_train_test_loss(history_list, loss_name="accuracy", val_loss_name="val_accuracy",
-                     model_name=model_name, data_unit="", dataset_name=dataset_name, filepath=filepath,
-                     file_name="acc_mutagenicity" + postfix_file + ".png")
-
-# Save keras-model to output-folder.
-model.save(os.path.join(filepath, "model"))
-
-# Save original data indices of the splits.
-np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
-
-# Save hyper-parameter again, which were used for this fit.
-hyper_selection.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+# Use a generic training function for graph classification.
+train_graph_classification_supervised(dataloader, labels,
+                                      make_model=make_model,
+                                      hyper_selection=hyper_selection)

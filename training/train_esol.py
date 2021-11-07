@@ -44,6 +44,7 @@ labels = np.array(dataset.graph_labels)
 # Define Scaler for targets.
 scaler = StandardScaler(with_std=True, with_mean=True, copy=True)
 
+# Use a generic training function for graph regression.
 train_graph_regression_supervised(data_loader, labels,
                                   make_model=make_model,
                                   hyper_selection=hyper_selection,
