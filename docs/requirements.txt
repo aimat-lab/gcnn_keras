@@ -8,3 +8,4 @@ pandas
 scikit-learn
 rdkit-pypi
 pyyaml
+haste_tf
