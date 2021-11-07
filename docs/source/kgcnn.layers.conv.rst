@@ -20,6 +20,14 @@ kgcnn.layers.conv.dimenet\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.dmpnn\_conv module
+------------------------------------
+
+.. automodule:: kgcnn.layers.conv.dmpnn_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.gcn\_conv module
 ----------------------------------
 
@@ -32,6 +40,14 @@ kgcnn.layers.conv.gin\_conv module
 ----------------------------------
 
 .. automodule:: kgcnn.layers.conv.gin_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv.haste module
+------------------------------
+
+.. automodule:: kgcnn.layers.conv.haste
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,6 +84,14 @@ kgcnn.layers.conv.painn\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.sage\_conv module
+-----------------------------------
+
+.. automodule:: kgcnn.layers.conv.sage_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.schnet\_conv module
 -------------------------------------
 
@@ -80,6 +104,14 @@ kgcnn.layers.conv.sparse module
 -------------------------------
 
 .. automodule:: kgcnn.layers.conv.sparse
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv.vgae\_conv module
+-----------------------------------
+
+.. automodule:: kgcnn.layers.conv.vgae_conv
    :members:
    :undoc-members:
    :show-inheritance:

@@ -20,6 +20,14 @@ kgcnn.data.base module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.download module
+--------------------------
+
+.. automodule:: kgcnn.data.download
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.moleculenet module
 -----------------------------
 

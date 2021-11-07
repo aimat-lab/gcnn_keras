@@ -4,8 +4,8 @@ kgcnn.hyper package
 Submodules
 ----------
 
-kgcnn.hyper.datasets module
----------------------------
+kgcnn.hyper.selection module
+----------------------------
 
 .. automodule:: kgcnn.hyper.selection
    :members:

@@ -44,6 +44,14 @@ kgcnn.utils.models module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.utils.plots module
+------------------------
+
+.. automodule:: kgcnn.utils.plots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

@@ -44,6 +44,14 @@ kgcnn.data.datasets.lipop module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.moleculenet2018 module
+------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.moleculenet2018
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.mutag module
 --------------------------------
 
@@ -64,6 +72,14 @@ kgcnn.data.datasets.qm9 module
 ------------------------------
 
 .. automodule:: kgcnn.data.datasets.qm9
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.tudataset2020 module
+----------------------------------------
+
+.. automodule:: kgcnn.data.datasets.tudataset2020
    :members:
    :undoc-members:
    :show-inheritance:

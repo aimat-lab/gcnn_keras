@@ -12,6 +12,22 @@ kgcnn.literature.AttentiveFP module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.literature.AttentiveFPHaste module
+----------------------------------------
+
+.. automodule:: kgcnn.literature.AttentiveFPHaste
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.DMPNN module
+-----------------------------
+
+.. automodule:: kgcnn.literature.DMPNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.DimeNetPP module
 ---------------------------------
 
