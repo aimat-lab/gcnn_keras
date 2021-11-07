@@ -12,8 +12,6 @@ class HyperSelection:
     necessary kwargs from the hyper-parameter dictionary with additional default values. Also changes in the
     hyper-parameter definition can be made without affecting training scripts and made compatible with previous
     versions.
-
-
     """
 
     def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):

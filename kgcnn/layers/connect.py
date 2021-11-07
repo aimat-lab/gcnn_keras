@@ -1,5 +1,5 @@
 import tensorflow as tf
-# import tensorflow.keras.backend as ksb
+
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
 

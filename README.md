@@ -5,12 +5,12 @@
 [![kgcnn_unit_tests](https://github.com/aimat-lab/gcnn_keras/actions/workflows/unittests.yml/badge.svg)](https://github.com/aimat-lab/gcnn_keras/actions/workflows/unittests.yml)
 [![DOI](https://img.shields.io/badge/DOI-10.1016%2Fj.simpa.2021.100095%20-blue)](https://doi.org/10.1016/j.simpa.2021.100095)
 ![GitHub](https://img.shields.io/github/license/aimat-lab/gcnn_keras)
+![GitHub issues](https://img.shields.io/github/issues/aimat-lab/gcnn_keras)
 
 # Keras Graph Convolutions
 
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
-# Table of Contents
 * [General](#general)
 * [Requirements](#requirements)
 * [Installation](#installation)

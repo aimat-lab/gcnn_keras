@@ -37,7 +37,7 @@ def plot_train_test_loss(histories: list, loss_name: str = "loss",
     plt.title(dataset_name + " training curve for " + model_name)
     plt.legend(loc='upper right', fontsize='medium')
     if filepath is not None:
-        plt.savefig(os.path.join(filepath, model_name + "_" + file_name))
+        plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
     plt.show()
 
 
@@ -53,5 +53,5 @@ def plot_predict_true(y_predict, y_true, data_unit: str = "", model_name: str = 
     plt.title("Prediction of " + model_name + " for " + dataset_name)
     plt.legend(loc='upper left', fontsize='x-large')
     if filepath is not None:
-        plt.savefig(os.path.join(filepath, model_name + "_" + file_name))
+        plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
     plt.show()
