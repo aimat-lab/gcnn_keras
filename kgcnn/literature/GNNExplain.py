@@ -351,15 +351,20 @@ class GNNExplainerOptimizer(tf.keras.Model):
         self.node_mask_loss_weight = node_mask_loss_weight
         self.node_mask_norm_ord = node_mask_norm_ord
 
-    def call(self, graph_input, training=False, **kwargs):
+    def call(self, graph_input, training: bool = False, **kwargs):
+        """Call GNN model.
+
+        Args:
+            graph_input: Graph input.
+            training (bool): If training mode. Default is False.
+
+        Returns:
+            tf.tensor: Masked prediction of GNN model.
+        """
         edge_mask = self.get_mask("edge")
         feature_mask = self.get_mask("feature")
         node_mask = self.get_mask("node")
-        return self.gnn_model.masked_predict(graph_input,
-                                             edge_mask,
-                                             feature_mask,
-                                             node_mask,
-                                             training=training)
+        return self.gnn_model.masked_predict(graph_input, edge_mask, feature_mask, node_mask, training=training)
 
     def train_step(self, data):
         """Train step."""
