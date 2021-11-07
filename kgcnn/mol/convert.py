@@ -8,11 +8,24 @@ def convert_list_to_xyz_str(atoms: list):
         str: Information in xyz-string format.
     """
     xyz_str = str(int(len(atoms))) + "\n"
+    xyz_str = xyz_str + "\n"
     for a_iter in atoms:
-        xyz_str = xyz_str + "\n"
-        _line_str = "{:} {:.10f} {:.10f} {:.10f}".format(*a_iter)
+        _line_str = "{:} {:.10f} {:.10f} {:.10f}\n".format(*a_iter)
         xyz_str = xyz_str + _line_str
     return xyz_str
+
+
+def write_list_to_xyz_file(filepath: str, mol_list: list):
+    """Write a list of nested list of atom and coordinates list into xyz-string.
+
+    Args:
+        filepath (str): Full path to file including name.
+        mol_list (list): List of atoms, which are list of type `[['H', 0.0, 0.0, 0.0], ['C', 1.0, 1.0, 1.0], ...]`.
+    """
+    with open(filepath, "w+") as file:
+        for x in mol_list:
+            xyz_str = convert_list_to_xyz_str(x)
+            file.write(xyz_str)
 
 
 def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = True):
@@ -76,6 +89,7 @@ def parse_mol_str(mol_str: str, delimiter: str = " "):
         # atom block
         atoms = []
         for a in lines[4:(na + 4)]:
+            # noinspection PyTypeChecker
             atoms.append([float(x) for x in a[:3]] + a[3:])
         out_list.append(atoms)
         # bond block

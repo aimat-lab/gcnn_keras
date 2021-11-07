@@ -14,6 +14,7 @@ class MemoryGraphList:
     Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
 
     .. code-block:: python
+        from kgcnn.data.base import MemoryGraphList
         data = MemoryGraphList()
         data.edge_indices = [np.array([[0, 1], [1, 0]])]
         data.node_labels = [np.array([[0], [1]])]
@@ -75,6 +76,7 @@ class MemoryGraphDataset(MemoryGraphList):
     provided with this class, like for example :obj:`sort_edge_indices`.
 
     .. code-block:: python
+        from kgcnn.data.base import MemoryGraphDataset
         dataset = MemoryGraphDataset(data_directory="", dataset_name="Example", length=1)
         dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
         dataset.edge_labels = [np.array([[0], [1]])]
@@ -277,6 +279,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
 
     def __init__(self, **kwargs):
         super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
+        self._reserved_graph_property_prefix = self._reserved_graph_property_prefix + ["range_", "angle_"]
 
         self.node_coordinates = None
 

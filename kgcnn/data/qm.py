@@ -68,25 +68,35 @@ class QMDataset(MemoryGeometricGraphDataset):
         return mol_list
 
     def prepare_data(self, overwrite: bool = False):
-        r"""Pre-computation of molecular structure information from xyz-file.
+        r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file.
 
         Args:
-            overwrite (bool): Overwrite existing database mol-json file. Default is False.
+            overwrite (bool): Overwrite existing database SDF file. Default is False.
 
         Returns:
             self
         """
         mol_filename = self._get_mol_filename()
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self._log("INFO:kgcnn: Found rdkit %s of pre-computed structures." % mol_filename)
+            self._log("INFO:kgcnn: Found SDF-file %s of pre-computed structures." % mol_filename)
             return self
+
+        try:
+            from openbabel import openbabel
+        except ImportError:
+            print("WARNING:kgcnn: Can not make mol-objects. Please install openbabel.")
+            return self
+
+        self._log("INFO:kgcnn: Reading single xyz-file ...", end='', flush=True)
         filepath = os.path.join(self.data_directory, self.file_name)
         xyz_list = read_xyz_file(filepath)
+        self._log("done")
 
+        self._log("INFO:kgcnn: Converting xyz to mol information (silent)...", end='', flush=True)
         # We need to parallelize this?
         mb = self._make_mol_list(xyz_list)
-
         write_mol_block_list_to_sdf(mb, os.path.join(self.data_directory, mol_filename))
+        self._log("done")
 
         return self
 
@@ -95,7 +105,8 @@ class QMDataset(MemoryGeometricGraphDataset):
         return "".join(self.file_name.split(".")[:-1]) + ".sdf"
 
     def read_in_memory(self):
-        """Read xyz-file and optionally sdf-file with chemical structure information into memory.
+        """Read xyz-file geometric information into memory.
+        Optionally read
 
         Returns:
             self
@@ -110,10 +121,20 @@ class QMDataset(MemoryGeometricGraphDataset):
         self.node_symbol = symbol
         self.node_number = nodes
 
+        # Try also to read SDF file.
+        self.read_in_memory_sdf()
+        return self
+
+    def read_in_memory_sdf(self):
+        """Read SDF-file with chemical structure information into memory.
+
+        Returns:
+            self
+        """
         mol_filename = self._get_mol_filename()
         mol_path = os.path.join(self.data_directory, mol_filename)
         if not os.path.exists(mol_path):
-            print("WARNING:kgcnn: Can not load sdf-file for dataset %s" % self.dataset_name)
+            print("WARNING:kgcnn: Can not load SDF-file for dataset %s" % self.dataset_name)
             return self
 
         # Load sdf file here.

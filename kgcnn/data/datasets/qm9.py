@@ -2,14 +2,12 @@ import os
 import pickle
 import numpy as np
 import json
-# import shutil
 
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 from kgcnn.mol.methods import ExtensiveMolecularScaler
-from kgcnn.mol.convert import parse_mol_str
-from kgcnn.utils.adj import add_edges_reverse_indices
+from kgcnn.mol.convert import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):
@@ -43,7 +41,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.fits_in_memory = True
         self.verbose = verbose
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
-        self.mol_filename = "qm9_mol.json"
+        self.file_name = "qm9.xyz"
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload)
@@ -60,23 +58,19 @@ class QM9Dataset(QMDataset, DownloadDataset):
         """
         path = self.data_directory
 
-        datasetsize = 133885
+        dataset_size = 133885
 
-        exist_pickle_dataset = False
         if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
                 os.path.join(path, "qm9.json"))) and not overwrite:
             self._log("INFO:kgcnn: Single molecules already pickled... done")
-            exist_pickle_dataset = True
-
-        qm9 = []
-        if not exist_pickle_dataset:
+        else:
             if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
                 print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run reload dataset again.")
                 return
-
+            qm9 = []
             # Read individual files
             self._log("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
-            for i in range(1, datasetsize + 1):
+            for i in range(1, dataset_size + 1):
                 mol = []
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
                 open_file = open(os.path.join(path, "dsgdb9nsd.xyz", file), "r")
@@ -111,26 +105,15 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
             # Remove file after reading
             self._log("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
-            for i in range(1, datasetsize + 1):
+            for i in range(1, dataset_size + 1):
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
                 file = os.path.join(path, "dsgdb9nsd.xyz", file)
                 os.remove(file)
             self._log('done')
 
-        try:
-            from openbabel import openbabel
-            has_open_babel = True
-        except ImportError:
-            print("WARNING:kgcnn: Can not make mol-objects. Please install openbabel...", end='', flush=True)
-            print("")
-            has_open_babel = False
-
-        exist_mol_file = False
-        if os.path.exists(os.path.join(path, self.mol_filename)) and not overwrite:
-            self._log("INFO:kgcnn: Mol-object for molecules already created... done")
-            exist_mol_file = True
-
-        if not exist_mol_file and has_open_babel:
+        if os.path.exists(os.path.join(path, self.file_name)) and not overwrite:
+            self._log("INFO:kgcnn: Single xyz-file %s for molecules already created... done" % self.file_name)
+        else:
             self._log("INFO:kgcnn: Reading dataset...", end='', flush=True)
             if os.path.exists(os.path.join(path, "qm9.pickle")):
                 with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
@@ -143,19 +126,12 @@ class QM9Dataset(QMDataset, DownloadDataset):
             self._log('done')
 
             # Try extract bond-info and save mol-file.
-            self._log("INFO:kgcnn: Preparing bond information...", end='', flush=True)
-
+            self._log("INFO:kgcnn: Writing single xyz-file ...", end='', flush=True)
             atoms = [x[2] for x in qm9]
-            mol_list = self._make_mol_list(atoms)
-
-            with open(os.path.join(path, self.mol_filename), 'w') as f:
-                json.dump(mol_list, f)
-
+            write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms)
             self._log('done')
 
-        if not exist_mol_file and not has_open_babel:
-            self._log('WARNING:kgcnn: No openbabel installed. Can not extract mol-info from xyz.')
-
+        super(QM9Dataset, self).prepare_data(overwrite=overwrite)
         return self
 
     def read_in_memory(self):
@@ -201,30 +177,8 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         self._log('done')
 
-        mol_list = None
-        if os.path.exists(os.path.join(path, self.mol_filename)):
-            self._log("INFO:kgcnn: Reading mol information ...", end='', flush=True)
-            with open(os.path.join(path, self.mol_filename), 'rb') as f:
-                mol_list = json.load(f)
-            print("done")
-        else:
-            print("WARNING:kgcnn: No mol information... done", flush=True)
-        # self.mol_list = mol_list
-        if mol_list is not None:
-            self._log("INFO:kgcnn: Parsing mol information ...", end='', flush=True)
-            bond_info = []
-            for x in mol_list:
-                bond_info.append(np.array(parse_mol_str(x)[5], dtype="int"))
-            edge_index = []
-            edge_attr = []
-            for x in bond_info:
-                temp = add_edges_reverse_indices(np.array(x[:, :2]), np.array(x[:, 2:]))
-                edge_index.append(temp[0] - 1)
-                edge_attr.append(np.array(temp[1], dtype="float"))
-            self.edge_indices = edge_index
-            self.edge_attributes = edge_attr
-            self._log("done")
-
+        # Try to read mol information
+        self.read_in_memory_sdf()
         return self
 
 
@@ -345,6 +299,6 @@ class QM9GraphLabelScaler:
 
 # dataset = QM9Dataset()
 # scaler = QM9GraphLabelScaler()
-# tafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels)
+# trafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels)
 # rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
 # print(np.amax(np.abs(dataset.graph_labels-rev_labels)))
