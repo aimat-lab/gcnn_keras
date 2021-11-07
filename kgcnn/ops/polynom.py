@@ -36,14 +36,14 @@ def tf_spherical_bessel_jn_explicit(x, n=0):
     for k in range(int(np.floor(n / 2)) + 1):
         if 2 * k < n + 1:
             prefactor = float(sp.special.factorial(n + 2 * k) / np.power(2, 2 * k) / sp.special.factorial(
-                        2 * k) / sp.special.factorial(n - 2 * k) * np.power(-1, k))
-            sum_sin += prefactor*tf.pow(x, - (2*k+1))
+                2 * k) / sp.special.factorial(n - 2 * k) * np.power(-1, k))
+            sum_sin += prefactor * tf.pow(x, - (2 * k + 1))
     for k in range(int(np.floor((n - 1) / 2)) + 1):
         if 2 * k + 1 < n + 1:
             prefactor = float(sp.special.factorial(n + 2 * k + 1) / np.power(2, 2 * k + 1) / sp.special.factorial(
-                        2 * k + 1) / sp.special.factorial(n - 2 * k - 1) * np.power(-1, k))
+                2 * k + 1) / sp.special.factorial(n - 2 * k - 1) * np.power(-1, k))
             sum_cos += prefactor * tf.pow(x, - (2 * k + 2))
-    return sum_sin*sin_x + sum_cos*cos_x
+    return sum_sin * sin_x + sum_cos * cos_x
 
 
 @tf.function
@@ -163,23 +163,24 @@ def tf_associated_legendre_polynomial(x, l=0, m=0):
     Returns:
         tf.tensor: Legendre Polynomial of order n.
     """
-    if np.abs(m)>l:
+    if np.abs(m) > l:
         raise ValueError("Error: Legendre polynomial must have -l<= m <= l")
-    if l<0:
+    if l < 0:
         raise ValueError("Error: Legendre polynomial must have l>=0")
     if m < 0:
         m = -m
-        neg_m = float(np.power(-1,m) * sp.special.factorial(l-m)/sp.special.factorial(l+m))
+        neg_m = float(np.power(-1, m) * sp.special.factorial(l - m) / sp.special.factorial(l + m))
     else:
         neg_m = 1
 
-    x_prefactor = tf.pow(1 - tf.square(x), m/2) * float(np.power(-1,m) * np.power(2,l))
+    x_prefactor = tf.pow(1 - tf.square(x), m / 2) * float(np.power(-1, m) * np.power(2, l))
     sum_out = tf.zeros_like(x)
-    for k in range(m, l+1):
-        sum_out += tf.pow(x, k-m) * float(sp.special.factorial(k)/sp.special.factorial(k-m)*sp.special.binom(l,k)*
-                                         sp.special.binom((l+k-1)/2,l))
+    for k in range(m, l + 1):
+        sum_out += tf.pow(x, k - m) * float(
+            sp.special.factorial(k) / sp.special.factorial(k - m) * sp.special.binom(l, k) *
+            sp.special.binom((l + k - 1) / 2, l))
 
-    return sum_out*x_prefactor*neg_m
+    return sum_out * x_prefactor * neg_m
 
 
 def spherical_bessel_jn(r, n):
