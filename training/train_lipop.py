@@ -72,7 +72,6 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
 
-
 # Make output directory
 filepath = hyper_selection.results_file_path()
 postfix_file = hyper_selection.postfix_file()

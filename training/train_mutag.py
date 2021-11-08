@@ -14,7 +14,8 @@ from kgcnn.utils.plots import plot_train_test_loss
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Mutagenicity dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")  # INorp
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper/hyper_mutag.py")
+parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
+                    default="hyper/hyper_mutag.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -52,15 +53,14 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
 
     # Use a generic training function for graph classification.
     model, hist = train_graph_classification_supervised(xtrain, ytrain,
-                                                      validation_data=(xtest, ytest),
-                                                      make_model=make_model,
-                                                      hyper_selection=hyper_selection,
-                                                      metrics=["accuracy"])
+                                                        validation_data=(xtest, ytest),
+                                                        make_model=make_model,
+                                                        hyper_selection=hyper_selection,
+                                                        metrics=["accuracy"])
 
     # Get loss from history
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
-
 
 # Make output directories.
 filepath = hyper_selection.results_file_path()
