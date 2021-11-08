@@ -59,6 +59,10 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
                                                       hyper_selection=hyper_selection,
                                                       metrics=["accuracy"])
 
+    # Get loss from history
+    history_list.append(hist)
+    test_indices_list.append([train_index, test_index])
+
 
 # Make output directories.
 filepath = hyper_selection.results_file_path()
