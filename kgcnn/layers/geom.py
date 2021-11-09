@@ -535,7 +535,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
                  cutoff,
                  **kwargs):
         super(CosCutOffEnvelope, self).__init__(**kwargs)
-        self.cutoff = float(np.abs(cutoff))
+        self.cutoff = float(np.abs(cutoff)) if cutoff is not None else None
 
     def call(self, inputs, **kwargs):
         """Forward pass.
