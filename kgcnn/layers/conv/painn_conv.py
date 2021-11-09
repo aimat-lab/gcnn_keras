@@ -6,7 +6,7 @@ from kgcnn.ops.axis import get_positive_axis
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.pool.pooling import PoolingLocalEdges
 from kgcnn.layers.keras import Add, Multiply, Dense, ExpandDims, Concatenate
-from kgcnn.layers.geom import CosCutOff, EuclideanNorm, ScalarProduct
+from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.embedding import SplitEmbedding
 
@@ -62,8 +62,6 @@ class PAiNNconv(GraphBaseLayer):
                            **self._kgcnn_info)
 
         self.lay_split = SplitEmbedding(3, axis=-1)
-        if self.cutoff is not None:
-            self.lay_cos_cut = CosCutOff(cutoff=self.cutoff, **self._kgcnn_info)
 
         self.lay_sum = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
         self.lay_sum_v = PoolingLocalEdges(pooling_method=conv_pool, **self._kgcnn_info)
@@ -88,11 +86,12 @@ class PAiNNconv(GraphBaseLayer):
         """Forward pass: Calculate edge update.
 
         Args:
-            inputs: [nodes, equivariant, rbf, r_ij, edge_index]
+            inputs: [nodes, equivariant, rbf, envelope, r_ij, edge_index]
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - equivariant (tf.RaggedTensor): Equivariant node embedding of shape (batch, [N], F, 3)
                 - rdf (tf.RaggedTensor): Radial basis expansion pair-wise distance of shape (batch, [M], #Basis)
+                - envelope (tf.RaggedTensor): Distance envelope of shape (batch, [N], 1)
                 - r_ij (tf.RaggedTensor): Normalized pair-wise distance of shape (batch, [M], 3)
                 - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
@@ -102,13 +101,13 @@ class PAiNNconv(GraphBaseLayer):
                 - ds (tf.RaggedTensor) Updated node features of shape (batch, [N], F)
                 - dv (tf.RaggedTensor) Updated equivariant features of shape (batch, [N], F, 3)
         """
-        node, equivariant, rbf, r_ij, indexlist = inputs
+        node, equivariant, rbf, envelope, r_ij, indexlist = inputs
         s = self.lay_dense1(node)
         s = self.lay_phi(s)
         s = self.gather_n([s, indexlist])
         w = self.lay_w(rbf)
         if self.cutoff is not None:
-            w = self.lay_cos_cut(w)  # Cos-cutoff
+            w = self.lay_mult([w, envelope])
         sw = self.lay_mult([s, w])
         sw1, sw2, sw3 = self.lay_split(sw)
         ds = self.lay_sum([node, sw1, indexlist])

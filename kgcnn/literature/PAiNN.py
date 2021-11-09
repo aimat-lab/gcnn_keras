@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
-from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized
+from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope
 from kgcnn.layers.keras import Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes
@@ -76,11 +76,12 @@ def make_model(inputs=None,
 
     rij = EdgeDirectionNormalized()([x, edi])
     d = NodeDistance()([x, edi])
+    env = CosCutOffEnvelope(conv_args["cutoff"])(d)
     rbf = BesselBasisLayer(**bessel_basis)(d)
 
     for i in range(depth):
         # Message
-        ds, dv = PAiNNconv(**conv_args)([z, v, rbf, rij, edi])
+        ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
         z = Add()([z, ds])
         v = Add()([v, dv])
         # Update

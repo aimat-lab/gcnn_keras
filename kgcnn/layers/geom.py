@@ -522,11 +522,63 @@ class SphericalBasisLayer(GraphBaseLayer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
+class CosCutOffEnvelope(GraphBaseLayer):
+    r"""Calculate cos-cutoff evelope according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
+    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
+
+    Args:
+        cutoff (float): Cutoff distance :math:`R_c`.
+    """
+
+    def __init__(self,
+                 cutoff,
+                 **kwargs):
+        super(CosCutOffEnvelope, self).__init__(**kwargs)
+        self.cutoff = float(np.abs(cutoff))
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: distance
+
+                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], 1)
+
+        Returns:
+            tf.RaggedTensor: Cutoff envelope of shape (batch, [M], 1)
+        """
+        if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
+            if inputs.ragged_rank == 1:
+                values = inputs.values
+                if self.cutoff is not None:
+                    fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
+                    fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
+                else:
+                    fc = tf.ones_like(values)
+                # fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
+                return tf.RaggedTensor.from_row_splits(fc, inputs.row_splits, validate=self.ragged_validate)
+        # Default
+        # Try tf.cos directly, works also for ragged
+        if self.cutoff is not None:
+            fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
+            fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
+        else:
+            fc = tf.ones_like(inputs)
+        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
+        return fc
+
+    def get_config(self):
+        """Update config."""
+        config = super(CosCutOffEnvelope, self).get_config()
+        config.update({"cutoff": self.cutoff})
+        return config
+
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
     r"""Apply cos-cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
     :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
-
     Args:
         cutoff (float): Cutoff distance :math:`R_c`.
     """
@@ -539,12 +591,9 @@ class CosCutOff(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
-
         Args:
             inputs: distance
-
                 - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], D)
-
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
         """
