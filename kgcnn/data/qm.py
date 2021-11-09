@@ -36,18 +36,22 @@ class QMDataset(MemoryGeometricGraphDataset):
     inverse_global_proton_dict = {value: key for key, value in global_proton_dict.items()}
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose: int = 1):
-        """Default initialization. Must be called from sub-class.
+                 verbose: int = 1, length: int = None, file_directory: str = None):
+        r"""Default initialization. Must be called from sub-class.
 
         Args:
+            data_directory (str): Full path to directory of the dataset. Default is None.
             file_name (str): Filename for reading into memory. This must be the name of the '.xyz' file.
                 Default is None.
-            data_directory (str): Full path to directory containing all dataset files. Default is None.
-            dataset_name (str): Name of the dataset. Important for naming. Default is None.
+            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
+                '.xyz' files. Only used if :obj:`file_name` is None. Default is None.
+            dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
+            length (int): Length of the dataset, if known beforehand. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
         MemoryGeometricGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
-                                             file_name=file_name, verbose=verbose)
+                                             file_name=file_name, verbose=verbose, length=length,
+                                             file_directory=file_directory)
 
     @classmethod
     def _make_mol_list(cls, atoms_coordinates_xyz: list):

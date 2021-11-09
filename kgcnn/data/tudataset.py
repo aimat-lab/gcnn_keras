@@ -22,18 +22,20 @@ class GraphTUDataset(MemoryGraphDataset):
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose: int = 1):
+                 file_directory: str = None, verbose: int = 1):
         r"""Initialize a `GraphTUDataset` instance from file.
 
         Args:
+            data_directory (str): Full path to directory of the dataset. Default is None.
             file_name (str): Filename for reading into memory. Not used for general TUDataset, since there are multiple
                 files with a prefix and pre-defined suffix. Default is None.
-            data_directory (str): Full path to directory containing all txt-files. Default is None.
+            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
+                files. Default is None.
             dataset_name (str): Name of the dataset. Important for base-name for naming of files. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
-                                    file_name=file_name, verbose=verbose)
+                                    file_name=file_name, verbose=verbose, file_directory=file_directory)
 
     def read_in_memory(self):
         r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
@@ -45,6 +47,8 @@ class GraphTUDataset(MemoryGraphDataset):
         if self.dataset_name is not None and self.data_directory is not None:
             path = os.path.realpath(self.data_directory)
             name_dataset = self.dataset_name
+            if self.file_directory is not None:
+                path = os.path.join(path, self.file_directory)
         else:
             print("ERROR:kgcnn: Dataset needs name {0} and path {1}.".format(self.dataset_name, self.data_directory))
             return None

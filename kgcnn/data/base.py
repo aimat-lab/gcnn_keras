@@ -91,14 +91,20 @@ class MemoryGraphDataset(MemoryGraphList):
 
     fits_in_memory = True
 
-    def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None, length: int = None,
+    def __init__(self,
+                 data_directory: str = None,
+                 dataset_name: str = None,
+                 file_name: str = None,
+                 file_directory: str = None,
+                 length: int = None,
                  verbose: int = 1, **kwargs):
         r"""Initialize a base class of :obj:`MemoryGraphDataset`.
 
         Args:
-            file_name (str): Generic filename for dataset to read into memory.
-                For some datasets this may not be required or a list of files must be provided. Default is None.
-            data_directory (str): Full path to directory containing all dataset related files. Default is None.
+            data_directory (str): Full path to directory of the dataset. Default is None.
+            file_name (str): Generic filename for dataset to read into memory like a 'csv' file. Default is None.
+            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
+                files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
             length (int): Length of the dataset, if known beforehand. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
@@ -109,6 +115,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.verbose = verbose
         self.data_directory = data_directory
         self.file_name = file_name
+        self.file_directory = file_directory
         self.dataset_name = dataset_name
         if self.data_directory is None and isinstance(self.file_name, str):
             # Get path information from filename.

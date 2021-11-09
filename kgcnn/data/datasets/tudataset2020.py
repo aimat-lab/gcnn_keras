@@ -75,8 +75,8 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
                              "Add to `all_tudataset_identifier` list manually.")
 
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
-        self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name,
-                                           dataset_name)
+        self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
+        self.file_directory = os.path.join(self.unpack_directory_name, dataset_name)
         self.fits_in_memory = True
 
         if self.fits_in_memory:
