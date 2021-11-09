@@ -579,6 +579,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
 class CosCutOff(GraphBaseLayer):
     r"""Apply cos-cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
     :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
+
     Args:
         cutoff (float): Cutoff distance :math:`R_c`.
     """
@@ -591,9 +592,11 @@ class CosCutOff(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass.
+
         Args:
             inputs: distance
                 - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], D)
+
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
         """
