@@ -6,3 +6,4 @@ pandas
 scikit-learn
 requests
 pyyaml
+pymatgen

@@ -9,7 +9,7 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 class MemoryGraphList:
     r"""Class to store a list of graph properties in memory.
     The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. .
-    They are added in form of a list or array as class attributes to the instance of this class.
+    They are added in form of a list as class attributes to the instance of this class.
     Graph related properties must have a special prefix to be noted as graph property.
     Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
 
@@ -24,7 +24,8 @@ class MemoryGraphList:
     """
 
     def __init__(self, length: int = None):
-        r"""Initialize an empty :obj:`MemoryGraphList` instance.
+        r"""Initialize an empty :obj:`MemoryGraphList` instance. The expected length can be already provided to
+        throw an error if a graph list does not match the length of the dataset.
 
         Args:
             length (int): Length of the graph list.

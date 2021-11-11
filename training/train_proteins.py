@@ -9,6 +9,7 @@ from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.selection import HyperSelection
 from kgcnn.utils.plots import plot_train_test_loss
+from kgcnn.training.graph import train_graph_classification_supervised
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
@@ -54,21 +55,12 @@ for train_index, test_index in split_indices:
     xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
-    # Make the model for current split.
-    model = make_model(**hyper_selection.make_model())
-
-    # Compile model with optimizer and loss
-    model.compile(**hyper_selection.compile(loss='categorical_crossentropy', metrics=['categorical_accuracy']))
-    print(model.summary())
-
-    # Start and time training
-    start = time.process_time()
-    hist = model.fit(xtrain, ytrain,
-                     validation_data=(xtest, ytest),
-                     **hyper_selection.fit()
-                     )
-    stop = time.process_time()
-    print("Print Time for taining: ", stop - start)
+    # Use a generic training function for graph classification.
+    model, hist = train_graph_classification_supervised(xtrain, ytrain,
+                                                        validation_data=(xtest, ytest),
+                                                        make_model=make_model,
+                                                        hyper_selection=hyper_selection,
+                                                        metrics=["categorical_accuracy"])
 
     # Get loss from history
     history_list.append(hist)

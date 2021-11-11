@@ -179,14 +179,13 @@ The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further ha
 
 ```python
 from kgcnn.data.qm import QMDataset
-dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", file_name="geom.xyz" ,length=1)
+dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", file_name="geom.xyz", length=1)
 dataset.prepare_data()  # Also make .sdf
 dataset.read_in_memory()
 ```
 
 In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
 TUDatasets or MoleculeNet and directly processed and loaded.
-
 
 
 <a name="examples"></a>
