@@ -37,7 +37,7 @@ class MemoryGraphList:
 
     def _find_all_graph_properties(self):
         return [x for x in list(self.__dict__.keys()) for prop_prefix in
-                self._reserved_graph_property_prefix if prop_prefix == x[:len(prop_prefix)] ]
+                self._reserved_graph_property_prefix if prop_prefix == x[:len(prop_prefix)]]
 
     def __setattr__(self, key, value):
         if hasattr(self, "_reserved_graph_property_prefix"):
@@ -68,6 +68,12 @@ class MemoryGraphList:
                     if len(ax) != value:
                         setattr(self, x, None)
             self._length = int(value)
+
+    def save(self):
+        raise NotImplementedError("ERROR:kcnn: Functionality will be added.")
+
+    def load(self):
+        raise NotImplementedError("ERROR:kcnn: Functionality will be added.")
 
 
 class MemoryGraphDataset(MemoryGraphList):
@@ -342,7 +348,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
             cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
                                                            max_neighbours=max_neighbours,
                                                            exclusive=exclusive, self_loops=self_loops)
-            mask = np.array(cons, dtype=np.bool)
+            mask = np.array(cons, dtype="bool")
             dist_masked = dist[mask]
 
             if do_invert_distance:

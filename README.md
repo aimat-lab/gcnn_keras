@@ -151,42 +151,43 @@ A version of the following models are implemented in [literature](kgcnn/literatu
 <a name="datasets"></a>
 # Datasets
 
-In [data.datasets](kgcnn/data/datasets) there are graph learning datasets. They are being downloaded from e.g. 
-TUDatasets, MoleculeNet or defined freely using class definitions in [data](kgcnn/data). 
-For the simple case that the dataset fits in memory the base class is defined as:
-```python
-class MemoryGraphDataset:
-    
-    def __init__(self):
-        self.node_attributes = None
-        self.node_labels = None
+The base class is `MemoryGraphDataset` which holds a lists of graph properties in tensor-like numpy arrays.
+Each property that starts with `node_`, `edge_`, `graph_` holds a list with length of the dataset that fit into memory. 
+Furthermore, file information on disk can be provided in the constructor, that points to a `data_directory` for the dataset.
 
-        self.edge_indices = None
-        self.edge_attributes = None
-        self.edge_labels = None
-
-        self.graph_labels = None
-        self.graph_attributes = None
+```bash
+├── data_directory
+    ├── file_directory
+    │   ├── *.*
+    │   └── ... 
+    ├── file_name
+    └── dataset_name.pickle
 ```
-or the extension to geometric information in addition to the graph's structure.
+Create and store a general dataset via:
+
 ```python
 from kgcnn.data.base import MemoryGraphDataset
-
-class MemoryGeometricGraphDataset(MemoryGraphDataset):
-    
-    def __init__(self, **kwargs):
-        super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
-        self.node_coordinates = None
-
-        self.range_indices = None
-        self.range_attributes = None
-        self.range_labels = None
-
-        self.angle_indices = None
-        self.angle_labels = None
-        self.angle_attributes = None
+import numpy as np
+dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example", length=1)
+dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
+dataset.edge_labels = [np.array([[0], [1]])]
+dataset.save()
+dataset.load()
 ```
-Each property holds an iterable object (e.g. list, array) with the length of the dataset. 
+
+The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset to convert and load files such as ".txt", ".sdf", ".xyz" etc. via `prepare_data()` and `read_in_memory()`.
+
+```python
+from kgcnn.data.qm import QMDataset
+dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", file_name="geom.xyz" ,length=1)
+dataset.prepare_data()  # Also make .sdf
+dataset.read_in_memory()
+```
+
+In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
+TUDatasets or MoleculeNet and directly processed and loaded.
+
+
 
 <a name="examples"></a>
 # Examples
