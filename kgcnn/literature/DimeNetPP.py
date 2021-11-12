@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock
 from kgcnn.layers.embedding import EmbeddingDimeBlock
 from kgcnn.layers.gather import GatherNodes
-from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle, BesselBasisLayer
+from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
 from kgcnn.layers.keras import Dense, Concatenate, Add
 from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
@@ -101,7 +101,8 @@ def make_model(inputs=None,
     adi = angle_index_input
 
     # Calculate distances
-    d = NodeDistance()([x, edi])
+    pos1, pos2 = NodePosition()([x, edi])
+    d = NodeDistanceEuclidean()([pos1, pos2])
     rbf = BesselBasisLayer(num_radial=num_radial, cutoff=cutoff, envelope_exponent=envelope_exponent)(d)
 
     # Calculate angles

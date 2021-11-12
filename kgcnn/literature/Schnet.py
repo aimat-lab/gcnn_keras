@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
-from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
+from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.keras import Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes
@@ -80,7 +80,8 @@ def make_model(inputs=None,
 
     if make_distance:
         x = xyz_input
-        ed = NodeDistance()([x, edi])
+        pos1, pos2 = NodePosition()([x, edi])
+        ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
         ed = xyz_input
 
@@ -105,8 +106,8 @@ def make_model(inputs=None,
         main_output = ks.layers.Flatten()(out)  # will be dense
     elif output_embedding == 'node':
         out = mlp_last(n)
-        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(
-            out)  # no ragged for distribution atm
+        # no ragged for distribution atm
+        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `SchNet`")
 

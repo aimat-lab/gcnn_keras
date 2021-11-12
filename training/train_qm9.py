@@ -21,7 +21,7 @@ from kgcnn.hyper.selection import HyperSelectionTraining
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on QM9 dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="SchNet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper/hyper_qm9.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)

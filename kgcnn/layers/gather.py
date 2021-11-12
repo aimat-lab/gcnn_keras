@@ -96,9 +96,9 @@ class GatherNodesSelection(GraphBaseLayer):
         """Build layer."""
         super(GatherNodesSelection, self).build(input_shape)
         if len(input_shape) != 2:
-            print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
+            print("WARNING:kgcnn: Number of inputs for layer", self.name, "is expected to be 2.")
         if [i for i in range(len(input_shape[0]))][self.axis] == 0:
-            print("WARNING: Shape error for", self.name, ", gather from batch-dimension is not intended.")
+            print("WARNING:kgcnn: Shape error for", self.name, ", gather from batch-dimension is not intended.")
 
     def call(self, inputs, **kwargs):
         """Forward pass.

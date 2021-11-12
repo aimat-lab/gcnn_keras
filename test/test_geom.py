@@ -7,7 +7,7 @@ from scipy import special as sp
 
 import tensorflow as tf
 from kgcnn.utils.adj import get_angle_indices
-from kgcnn.layers.geom import SphericalBasisLayer, NodeDistance, EdgeAngle
+from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, NodePosition
 from kgcnn.layers.geom import BesselBasisLayer
 
 
@@ -272,8 +272,8 @@ class TestSphericalBasisLayer(unittest.TestCase):
 
                 return cbf*rbf_env
 
-
-        dist = NodeDistance()([rag_x, rag_ei])
+        a, b = NodePosition()([rag_x, rag_ei])
+        dist = NodeDistanceEuclidean()([a,b])
         angs = EdgeAngle()([rag_x, rag_ei, rag_a])
         bessel = SphericalBasisLayer(10,10,5.0)([dist, angs, rag_a])
 
@@ -332,7 +332,8 @@ class TestBesselBasisLayer(unittest.TestCase):
 
         rag_x = tf.RaggedTensor.from_row_lengths(np.concatenate([x,x1]), np.array([len(x),len(x1)]))
         rag_ei = tf.RaggedTensor.from_row_lengths(np.concatenate([ei,ei1]), np.array([len(ei),len(ei1)]))
-        dist = NodeDistance()([rag_x, rag_ei])
+        a, b = NodePosition()([rag_x, rag_ei])
+        dist = NodeDistanceEuclidean()([a, b])
         bessel = BesselBasisLayer(10,5.0)(dist)
 
         class Envelope(tf.keras.layers.Layer):

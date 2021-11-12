@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
-from kgcnn.layers.geom import NodeDistance, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope
+from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
 from kgcnn.layers.keras import Add
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingNodes
@@ -74,8 +74,9 @@ def make_model(inputs=None,
     x = xyz_input
     v = equiv_input
 
-    rij = EdgeDirectionNormalized()([x, edi])
-    d = NodeDistance()([x, edi])
+    pos1, pos2 = NodePosition()([x, edi])
+    rij = EdgeDirectionNormalized()([pos1, pos2])
+    d = NodeDistanceEuclidean()([pos1, pos2])
     env = CosCutOffEnvelope(conv_args["cutoff"])(d)
     rbf = BesselBasisLayer(**bessel_basis)(d)
 

@@ -1,7 +1,7 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
-from kgcnn.layers.geom import NodeDistance, GaussBasisLayer
+from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.keras import Dense, Add, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pool.pooling import PoolingGlobalEdges, PoolingNodes
@@ -100,7 +100,8 @@ def make_model(inputs=None,
     # Edge distance as Gauss-Basis
     if not make_distance:
         x = xyz_input
-        ed = NodeDistance()([x, edi])
+        pos1, pos2 = NodePosition()([x, edi])
+        ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
         ed = xyz_input
 
