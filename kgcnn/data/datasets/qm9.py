@@ -36,6 +36,8 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
+        self.target_units = ["GHz", "GHz", "GHz", "D", r"a_0^3", "eV", "eV", "eV", r"a_0^2", "eV", "eV", "eV", "eV",
+                             "eV", r"cal/mol K"]
         self.dataset_name = "QM9"
         self.require_prepare_data = True
         self.fits_in_memory = True

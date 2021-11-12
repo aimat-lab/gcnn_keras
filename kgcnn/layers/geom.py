@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesSelection, GatherNodesOutgoing
+from kgcnn.layers.gather import GatherNodesSelection, GatherNodesOutgoing, GatherState
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.layers.keras import Subtract, Multiply
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
@@ -10,6 +10,7 @@ from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_nor
 from kgcnn.ops.axis import get_positive_axis
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodePosition')
 class NodePosition(GraphBaseLayer):
     """Get node position for edges. Directly calls `GatherNodesSelection` with provided index tensor.
     Returns separate node position tensor for each of the indices. Index selection must be provided
@@ -56,6 +57,44 @@ class NodePosition(GraphBaseLayer):
         config = super(NodePosition, self).get_config()
         config.update({"selection_index": self.selection_index})
         return config
+
+
+class ShiftPeriodicLattice(GraphBaseLayer):
+    """Node position periodic.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(ShiftPeriodicLattice, self).__init__(**kwargs)
+        self.layer_state = GatherState()
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(ShiftPeriodicLattice, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [position, edge_index]
+
+                - position (tf.RaggedTensor): Positions of shape (batch, [M], 3)
+                - edge_image (tf.RaggedTensor): Position in which image to shift of shape (batch, [M], 3)
+                - lattice (tf.tensor): Lattice vector matrix of shape (batch, 3, 3)
+
+        Returns:
+            tf.RaggedTensor: Gathered node position number of indices of shape (batch, [M], 1)
+        """
+        lattice_rep = self.layer_state([inputs[2], inputs[1]])  # Should be (batch, None, 3, 3)
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs[:2]]):  # Possibly faster
+            if all([x.ragged_rank == 1 for x in inputs[:2]]):
+                x = inputs[0]
+                xj = x.values
+                xj = xj + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=xj.dtype) * tf.expand_dims(
+                    tf.cast(inputs[1].values, dtype=xj.dtype), axis=-1), axis=1)
+                return tf.RaggedTensor.from_row_splits(xj, inputs[1].row_splits, validate=self.ragged_validate)
+        else:
+            raise NotImplementedError("ERROR:kgcnn: Not implemented for arbitrary ragged_rank.")
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
@@ -189,10 +228,6 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         diff = self.layer_subtract(inputs)
         return self.layer_euclidean_norm(diff)
 
-    def get_config(self):
-        """Update config for `NodeDistanceEuclidean`."""
-        config = super(NodeDistanceEuclidean, self).get_config()
-        return config
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')

@@ -37,7 +37,7 @@ def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1
         for j, stop_site in enumerate(start_site):
             edge_distance.append(stop_site.nn_distance)
             edge_indices.append([i, stop_site.index])
-            edge_image.append([[0, 0, 0], stop_site.image])
+            edge_image.append(stop_site.image)
 
     edge_indices = np.array(edge_indices, dtype="int")
     edge_image = np.array(edge_image, dtype="int")
