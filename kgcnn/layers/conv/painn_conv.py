@@ -70,6 +70,7 @@ class PAiNNconv(GraphBaseLayer):
         self.gather_v = GatherNodesOutgoing(**self._kgcnn_info)
 
         self.lay_mult = Multiply(**self._kgcnn_info)
+        self.lay_mult_cutoff = Multiply(**self._kgcnn_info)
         self.lay_exp_vv = ExpandDims(axis=-1, **self._kgcnn_info)
         self.lay_exp_vw = ExpandDims(axis=-1, **self._kgcnn_info)
         self.lay_exp_r = ExpandDims(axis=-2, **self._kgcnn_info)
@@ -107,7 +108,7 @@ class PAiNNconv(GraphBaseLayer):
         s = self.gather_n([s, indexlist])
         w = self.lay_w(rbf)
         if self.cutoff is not None:
-            w = self.lay_mult([w, envelope])
+            w = self.lay_mult_cutoff([w, envelope])
         sw = self.lay_mult([s, w])
         sw1, sw2, sw3 = self.lay_split(sw)
         ds = self.lay_sum([node, sw1, indexlist])

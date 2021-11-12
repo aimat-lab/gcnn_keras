@@ -94,12 +94,12 @@ class EuclideanNorm(GraphBaseLayer):
             if inputs.ragged_rank == 1 and axis > 1:
                 out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs.values), axis=axis - 1, keepdims=self.keepdims)))
                 if self.invert_norm:
-                    out = tf.math.divide_no_nan(1, out)
+                    out = tf.math.divide_no_nan(tf.constant(1.0, dtype=out.dtype), out)
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
         # Default
         out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=self.axis, keepdims=self.keepdims)))
         if self.invert_norm:
-            out = tf.math.divide_no_nan(1, out)
+            out = tf.math.divide_no_nan(tf.constant(1.0, dtype=out.dtype), out)
         return out
 
     def get_config(self):
@@ -186,8 +186,7 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Distances as edges that match the number of indices of shape (batch, [M], 1)
         """
-        x1, x2 = inputs
-        diff = self.layer_subtract([x1, x2])
+        diff = self.layer_subtract(inputs)
         return self.layer_euclidean_norm(diff)
 
     def get_config(self):
@@ -579,7 +578,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
                  cutoff,
                  **kwargs):
         super(CosCutOffEnvelope, self).__init__(**kwargs)
-        self.cutoff = float(np.abs(cutoff)) if cutoff is not None else None
+        self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -595,20 +594,13 @@ class CosCutOffEnvelope(GraphBaseLayer):
         if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
             if inputs.ragged_rank == 1:
                 values = inputs.values
-                if self.cutoff is not None:
-                    fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
-                    fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-                else:
-                    fc = tf.ones_like(values)
+                fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
+                fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
                 # fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
                 return tf.RaggedTensor.from_row_splits(fc, inputs.row_splits, validate=self.ragged_validate)
-        # Default
         # Try tf.cos directly, works also for ragged
-        if self.cutoff is not None:
-            fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
-            fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-        else:
-            fc = tf.ones_like(inputs)
+        fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
+        fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
         # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
         return fc
 
@@ -632,7 +624,7 @@ class CosCutOff(GraphBaseLayer):
                  cutoff,
                  **kwargs):
         super(CosCutOff, self).__init__(**kwargs)
-        self.cutoff = float(np.abs(cutoff))
+        self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
     def call(self, inputs, **kwargs):
         """Forward pass.
