@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
 
 from kgcnn.layers.keras import Dense, Activation, BatchNormalization
 from kgcnn.layers.base import GraphBaseLayer
@@ -10,7 +9,8 @@ import kgcnn.ops.activ
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(GraphBaseLayer):
     """Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
-    If not list, then the argument is used for each layer. The number of layers is given by units, which should be list.
+    If not list, then the single argument is used for each layer.
+    The number of layers is given by units, which should be list.
         
     Args:
         units: Positive integer, dimensionality of the output space.
@@ -138,8 +138,9 @@ class MLP(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BatchNormMLP')
 class BatchNormMLP(GraphBaseLayer):
     """Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
-    If not list, then the argument is used for each layer. The number of layers is given by units, which should be list.
-    Additionally a batch-normalization is applied.
+    If not list, then the single argument is used for each layer.
+    The number of layers is given by units, which should be list.
+    Additionally a batch-normalization is applied between kernel and activation.
 
     Args:
         units: Positive integer, dimensionality of the output space.

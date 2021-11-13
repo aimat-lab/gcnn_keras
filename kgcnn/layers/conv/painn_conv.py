@@ -5,7 +5,8 @@ from kgcnn.ops.axis import get_positive_axis
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.pool.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import Add, Multiply, Dense, ExpandDims, Concatenate
+from kgcnn.layers.keras import Add, Multiply, Dense, Concatenate
+from kgcnn.layers.ops import ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.embedding import SplitEmbedding

@@ -3,7 +3,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate, ExpandDims
+from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate
+from kgcnn.layers.ops import ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.ops.axis import get_positive_axis
 
