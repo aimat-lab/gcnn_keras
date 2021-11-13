@@ -3,9 +3,9 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock
 from kgcnn.layers.embedding import EmbeddingDimeBlock
-from kgcnn.layers.gather import GatherNodes
+from kgcnn.layers.gather import GatherNodes, GatherNodesSelection
 from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
-from kgcnn.layers.keras import Dense, Concatenate, Add
+from kgcnn.layers.keras import Dense, Concatenate, Add, Subtract
 from kgcnn.layers.pool.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
 
@@ -106,7 +106,8 @@ def make_model(inputs=None,
     rbf = BesselBasisLayer(num_radial=num_radial, cutoff=cutoff, envelope_exponent=envelope_exponent)(d)
 
     # Calculate angles
-    a = EdgeAngle()([x, edi, adi])
+    v12 = Subtract()([pos1, pos2])
+    a = EdgeAngle()([v12, adi])
     sbf = SphericalBasisLayer(num_spherical=num_spherical, num_radial=num_radial, cutoff=cutoff,
                               envelope_exponent=envelope_exponent)([d, a, adi])
 

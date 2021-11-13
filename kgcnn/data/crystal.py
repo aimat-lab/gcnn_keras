@@ -84,7 +84,6 @@ class CrystalDataset(MemoryGeometricGraphDataset):
 
     def read_in_memory(self):
         structs = self._read_pymatgen_json_in_memory()
-
         self._log("INFO:kgcnn: Making node features ...", end='', flush=True)
         node_number = []
         node_symbol = []

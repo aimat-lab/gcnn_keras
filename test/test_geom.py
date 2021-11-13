@@ -7,8 +7,9 @@ from scipy import special as sp
 
 import tensorflow as tf
 from kgcnn.utils.adj import get_angle_indices
-from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, NodePosition
+from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, NodePosition, EdgeAngle2
 from kgcnn.layers.geom import BesselBasisLayer
+from kgcnn.layers.keras import Subtract
 
 
 class TestSphericalBasisLayer(unittest.TestCase):
@@ -273,8 +274,9 @@ class TestSphericalBasisLayer(unittest.TestCase):
                 return cbf*rbf_env
 
         a, b = NodePosition()([rag_x, rag_ei])
-        dist = NodeDistanceEuclidean()([a,b])
-        angs = EdgeAngle()([rag_x, rag_ei, rag_a])
+        dist = NodeDistanceEuclidean()([a, b])
+        vec = Subtract()([a, b])
+        angs = EdgeAngle()([vec, rag_a])
         bessel = SphericalBasisLayer(10,10,5.0)([dist, angs, rag_a])
 
         test = np.array(SphericalBasisLayerOrginal(10,10,5)([dist[0,:,0], angs[0,:,0], rag_a[0,:,1]]))
@@ -288,7 +290,7 @@ class TestSphericalBasisLayer(unittest.TestCase):
         # print(np.max(valid1))
 
         # For small argument and large order there are some rof errors
-        # So we only have < 0.05 here
+        # So we only have < 0.1 here
         self.assertTrue(np.max(valid) < 0.05)
         self.assertTrue(np.max(valid1) < 0.05)
 

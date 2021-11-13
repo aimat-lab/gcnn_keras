@@ -31,7 +31,7 @@ class NodePosition(GraphBaseLayer):
         if selection_index is None:
             selection_index = [0, 1]
         self.selection_index = selection_index
-        self.layer_gather = GatherNodesSelection(self.selection_index, **self._kgcnn_info)
+        self.layer_gather = GatherNodesSelection(self.selection_index)
 
     def build(self, input_shape):
         """Build layer."""
@@ -99,7 +99,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
 class EuclideanNorm(GraphBaseLayer):
-    """Compute euclidean norm for edges or nodes vectors. This amounts for a  certain dimension to
+    """Compute euclidean norm for edge or node vectors. This amounts for a specific axis to
 
     :math:`||x||_2 = \sqrt{\sum_i x_i^2}`
 
@@ -133,12 +133,12 @@ class EuclideanNorm(GraphBaseLayer):
             if inputs.ragged_rank == 1 and axis > 1:
                 out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs.values), axis=axis - 1, keepdims=self.keepdims)))
                 if self.invert_norm:
-                    out = tf.math.divide_no_nan(tf.constant(1.0, dtype=out.dtype), out)
+                    out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
         # Default
         out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=self.axis, keepdims=self.keepdims)))
         if self.invert_norm:
-            out = tf.math.divide_no_nan(tf.constant(1.0, dtype=out.dtype), out)
+            out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
         return out
 
     def get_config(self):
@@ -229,7 +229,6 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         return self.layer_euclidean_norm(diff)
 
 
-
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
@@ -272,50 +271,49 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeAngle')
-class NodeAngle(GraphBaseLayer):
-    """Compute geometric node angles.
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
+class VectorAngle(GraphBaseLayer):
+    """Compute geometric angles between vectors ind euclidean space.
+
+                v1 = xi - xj
+                v2 = xj - xk
 
     The geometric angle is computed between i<-j,j<-k for index tuple (i,j,k) in (batch, None, 3) last dimension.
     """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
-        super(NodeAngle, self).__init__(**kwargs)
-        self.lay_gather = GatherNodesSelection([0, 1, 2], **self._kgcnn_info)
+        super(VectorAngle, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
-        super(NodeAngle, self).build(input_shape)
+        super(VectorAngle, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
 
         Args:
-            inputs (list): [position, node_index]
+            inputs (list): [vector_1, vector_2]
 
-                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - node_index (tf.RaggedTensor): Node indices of shape (batch, [M], 3) referring to nodes
+                - vector_1 (tf.RaggedTensor): Node positions or vectors of shape (batch, [M], 3)
+                - vector_2 (tf.RaggedTensor): Node positions or vectors of shape (batch, [M], 3)
 
         Returns:
-            tf.RaggedTensor: Gathered node angles between edges that match the indices. Shape is (batch, [M], 1)
+            tf.RaggedTensor: Calculate Angle between vector 1 and 2 of shape (batch, [M], 1)
         """
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
-                rxi, rxj, rxk = self.lay_gather(inputs)
-                xi, xj, xk = rxi.values, rxj.values, rxk.values
-                v1 = xi - xj
-                v2 = xj - xk
+                v1 = inputs[0].values
+                v2 = inputs[1].values
                 x = tf.reduce_sum(v1 * v2, axis=-1)
                 y = tf.linalg.cross(v1, v2)
                 y = tf.norm(y, axis=-1)
                 angle = tf.math.atan2(y, x)
                 angle = tf.expand_dims(angle, axis=-1)
-                return tf.RaggedTensor.from_row_splits(angle, rxi.row_splits, validate=self.ragged_validate)
+                return tf.RaggedTensor.from_row_splits(angle, inputs[0].row_splits, validate=self.ragged_validate)
         # Default
-        xi, xj, xk = self.lay_gather(inputs)
-        v1 = xi - xj
-        v2 = xj - xk
+        v1 = inputs[0]
+        v2 = inputs[1]
         x = tf.reduce_sum(v1 * v2, axis=-1)
         y = tf.linalg.cross(v1, v2)
         y = tf.norm(y, axis=-1)
@@ -325,7 +323,7 @@ class NodeAngle(GraphBaseLayer):
 
     def get_config(self):
         """Update config."""
-        config = super(NodeAngle, self).get_config()
+        config = super(VectorAngle, self).get_config()
         return config
 
 
@@ -339,8 +337,8 @@ class EdgeAngle(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(EdgeAngle, self).__init__(**kwargs)
-        self.lay_gather_x = GatherNodesSelection([0, 1], **self._kgcnn_info)
-        self.lay_gather_v = GatherNodesSelection([0, 1], **self._kgcnn_info)
+        self.layer_gather_vectors = GatherNodesSelection([0, 1])
+        self.layer_angle = VectorAngle()
 
     def build(self, input_shape):
         """Build layer."""
@@ -350,38 +348,16 @@ class EdgeAngle(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index, angle_index]
+            inputs (list): [vector, angle_index]
 
-                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3)
-                - edge_index (tf.RaggedTensor): Edge indices of shape (batch, [M], 2) referring to nodes.
-                - angle_index (tf.RaggedTensor): Angle indices of shape (batch, [K], 2) referring to edges.
+                - vector (tf.RaggedTensor): Node or Edge directions of shape (batch, [N], 3)
+                - angle_index (tf.RaggedTensor): Angle indices of vector pairs of shape (batch, [K], 2).
 
         Returns:
-            tf.RaggedTensor: Gathered edge angles between edges that match the indices. Shape is (batch, [K], 1)
+            tf.RaggedTensor: Edge angles between edges that match the indices. Shape is (batch, [K], 1)
         """
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
-            if all([x.ragged_rank == 1 for x in inputs]):
-                rxi, rxj = self.lay_gather_x([inputs[0], inputs[1]])
-                vs = tf.RaggedTensor.from_row_splits(rxi.values - rxj.values, rxi.row_splits,
-                                                     validate=self.ragged_validate)
-                rv1, rv2 = self.lay_gather_v([vs, inputs[2]])
-                v1, v2 = rv1.values, rv2.values
-                x = tf.reduce_sum(v1 * v2, axis=-1)
-                y = tf.linalg.cross(v1, v2)
-                y = tf.norm(y, axis=-1)
-                angle = tf.math.atan2(y, x)
-                angle = tf.expand_dims(angle, axis=-1)
-                return tf.RaggedTensor.from_row_splits(angle, rv1.row_splits, validate=self.ragged_validate)
-        # Default
-        xi, xj = self.lay_gather_x([inputs[0], inputs[1]])
-        vs = xi - xj
-        v1, v2 = self.lay_gather_v([vs, inputs[2]])
-        x = tf.reduce_sum(v1 * v2, axis=-1)
-        y = tf.linalg.cross(v1, v2)
-        y = tf.norm(y, axis=-1)
-        angle = tf.math.atan2(y, x)
-        angle = tf.expand_dims(angle, axis=-1)
-        return angle
+        v1, v2 = self.layer_gather_vectors(inputs)
+        return self.layer_angle([v1, v2])
 
     def get_config(self):
         """Update config."""

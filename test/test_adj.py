@@ -37,8 +37,8 @@ class SelfLoops(unittest.TestCase):
         edge1 = np.array([1, 2, 3])
         edge2 = np.array([[11], [22], [33]])
         result, result1, result2 = add_self_loops_to_edge_indices(indices, edge1, edge2)
-        # print(result, result1, result2)
-        expected_result1 = np.array([1, 3, 1, 2, 1])
+        print(result, result1, result2)
+        expected_result1 = np.array([1, 3, 0, 2, 0])
         self.assertTrue(np.max(np.abs(result1 - expected_result1)) < 1e-6)
 
 
@@ -75,7 +75,7 @@ class TestAngleCompute(unittest.TestCase):
         indices = np.array([[1, 0, 2], [2, 0, 1]])
         result = get_angle(coord, indices)/2/np.pi*360
         expected_result = np.array([[90], [90]])
-        # print(result)
+        print(result)
         self.assertTrue(np.max(np.abs(result - expected_result)) < 1e-6)
 
 
