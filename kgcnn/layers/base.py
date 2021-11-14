@@ -4,7 +4,7 @@ import kgcnn.ops.activ
 
 
 class GraphBaseLayer(tf.keras.layers.Layer):
-    """Base layer for graph layers used in kgcnn that holds some additional information about the graph, which can
+    r"""Base layer for graph layers used in `kgcnn` that holds some additional information about the graph, which can
     improve performance, if set differently.
 
     Args:
@@ -77,13 +77,6 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        "output_tensor_type": self.output_tensor_type,
                        "is_directed": self.is_directed
                        })
-        # Only necessary if has some keras wrapper layer internally
-        if hasattr(self, "_kgcnn_wrapper_layer") and hasattr(self, "_kgcnn_wrapper_args"):
-            if self._kgcnn_wrapper_layer is not None:
-                layer_conf = self._kgcnn_wrapper_layer.get_config()
-                for x in self._kgcnn_wrapper_args:
-                    if x in layer_conf:
-                        config.update({x: layer_conf[x]})
         return config
 
     def build(self, input_shape):
@@ -97,3 +90,30 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             if input_shape[-1] is None:
                 print("WARNING:kgcnn: Layer", self.name, "has undefined inner dimension for input", input_shape)
 
+
+class KerasWrapperBase(GraphBaseLayer):
+    r"""Base layer for wrapping tf.keras.layers to support ragged tensors and to optionally call original layer
+    only on the values of :obj:`RaggedTensor`. If inputs is a list, then a lazy operation (e.g. add, concat)
+    is performed if :obj:`ragged_validate` is set to :obj:`False`.
+    """
+
+    def __init__(self, **kwargs):
+        super(KerasWrapperBase, self).__init__(**kwargs)
+        self._kgcnn_wrapper_layer = None
+        self._kgcnn_wrapper_args = None
+
+    def build(self, input_shape):
+        super(KerasWrapperBase, self).build(input_shape)
+
+    def get_config(self):
+        config = super(KerasWrapperBase, self).get_config()
+        # Only necessary if this instance has a keras layer internally as attribute.
+        if hasattr(self, "_kgcnn_wrapper_layer") and hasattr(self, "_kgcnn_wrapper_args"):
+            if self._kgcnn_wrapper_layer is not None:
+                layer_conf = self._kgcnn_wrapper_layer.get_config()
+                for x in self._kgcnn_wrapper_args:
+                    if x in layer_conf:
+                        config.update({x: layer_conf[x]})
+
+    def call(self, inputs, **kwargs):
+        pass

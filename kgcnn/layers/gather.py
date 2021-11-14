@@ -10,7 +10,6 @@ class GatherNodes(GraphBaseLayer):
     """Gather nodes by indices, e.g. that define an edge.
 
     An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
     """
 
     def __init__(self,
@@ -53,7 +52,7 @@ class GatherNodes(GraphBaseLayer):
                                                        from_indexing=self.node_indexing)
                 out = tf.gather(node, disjoint_list, axis=0)
                 if self.concat_axis == 2:
-                    out = tf.keras.backend.concatenate([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
+                    out = tf.concat([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
                 out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 return out
 

@@ -1,16 +1,16 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.base import KerasWrapperBase
 
 
-# There are limitations for RaggedTensor working with standard Keras layers. Here are some simply wrappers.
+# There are limitations for RaggedTensor working with standard Keras layers. Here are some simple wrappers.
 # This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
 # Since all kgcnn layers work with ragged_rank=1 and defined inner dimension. This case can be caught explicitly.
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dense')
-class Dense(GraphBaseLayer):
+class Dense(KerasWrapperBase):
 
     def __init__(self,
                  units,
@@ -39,7 +39,7 @@ class Dense(GraphBaseLayer):
                                                     bias_constraint=bias_constraint)
 
     def call(self, inputs, **kwargs):
-        """Forward pass wrapping tf.keras layer."""
+        """Forward pass wrapping tf.keras.layers"""
         # Call on a single Tensor
         if isinstance(inputs, tf.RaggedTensor):
             return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
@@ -48,7 +48,7 @@ class Dense(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Activation')
-class Activation(GraphBaseLayer):
+class Activation(KerasWrapperBase):
 
     def __init__(self,
                  activation,
@@ -74,7 +74,7 @@ class Activation(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Add')
-class Add(GraphBaseLayer):
+class Add(KerasWrapperBase):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Add."""
@@ -98,7 +98,7 @@ class Add(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Subtract')
-class Subtract(GraphBaseLayer):
+class Subtract(KerasWrapperBase):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Add."""
@@ -122,7 +122,7 @@ class Subtract(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Average')
-class Average(GraphBaseLayer):
+class Average(KerasWrapperBase):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Average."""
@@ -146,7 +146,7 @@ class Average(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Multiply')
-class Multiply(GraphBaseLayer):
+class Multiply(KerasWrapperBase):
 
     def __init__(self, **kwargs):
         """Initialize layer same as tf.keras.Multiply."""
@@ -170,7 +170,7 @@ class Multiply(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Concatenate')
-class Concatenate(GraphBaseLayer):
+class Concatenate(KerasWrapperBase):
 
     def __init__(self,
                  axis=-1,
@@ -197,7 +197,7 @@ class Concatenate(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dropout')
-class Dropout(GraphBaseLayer):
+class Dropout(KerasWrapperBase):
 
     def __init__(self,
                  rate,
@@ -224,7 +224,7 @@ class Dropout(GraphBaseLayer):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LayerNormalization')
-class LayerNormalization(GraphBaseLayer):
+class LayerNormalization(KerasWrapperBase):
 
     def __init__(self,
                  axis=-1,
@@ -262,13 +262,13 @@ class LayerNormalization(GraphBaseLayer):
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
     def get_config(self):
-        config = super(GraphBaseLayer, self).get_config()
+        config = super(LayerNormalization, self).get_config()
         config.update({"axis": self.axis})
         return config
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BatchNormalization')
-class BatchNormalization(GraphBaseLayer):
+class BatchNormalization(KerasWrapperBase):
 
     def __init__(self,
                  axis=-1,
