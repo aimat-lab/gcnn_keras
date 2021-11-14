@@ -310,10 +310,11 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        self._log("INFO:kgcnn: Pickle dataset...")
         super(MemoryGraphDataset, self).save(filepath)
         return self
 
-    def load(self, filepath: str):
+    def load(self, filepath: str = None):
         """Load graph properties from pickled file.
 
         Args:
@@ -321,6 +322,7 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        self._log("INFO:kgcnn: Load pickled dataset...")
         super(MemoryGraphDataset, self).load(filepath)
         return self
 
