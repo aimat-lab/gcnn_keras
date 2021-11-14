@@ -5,11 +5,11 @@ from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.axis import get_positive_axis
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodes')
-class GatherNodes(GraphBaseLayer):
-    """Gather nodes by indices, e.g. that define an edge.
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbedding')
+class GatherEmbedding(GraphBaseLayer):
+    r"""Gather node or edge embedding by index list, e.g. that define an edge.
 
-    An edge is defined by index tuple (i,j) with i<-j connection.
+    An edge is defined by index tuple :math:`(i,j)` with i<-j connection.
     """
 
     def __init__(self,
@@ -17,12 +17,12 @@ class GatherNodes(GraphBaseLayer):
                  concat_axis=2,
                  **kwargs):
         """Initialize layer."""
-        super(GatherNodes, self).__init__(**kwargs)
+        super(GatherEmbedding, self).__init__(**kwargs)
         self.concat_axis = concat_axis
         self.axis = axis
 
     def build(self, input_shape):
-        super(GatherNodes, self).build(input_shape)
+        super(GatherEmbedding, self).build(input_shape)
         if len(input_shape) != 2:
             print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
         if [i for i in range(len(input_shape[0]))][self.axis] == 0:
@@ -65,13 +65,16 @@ class GatherNodes(GraphBaseLayer):
         return out
 
     def get_config(self):
-        config = super(GatherNodes, self).get_config()
+        config = super(GatherEmbedding, self).get_config()
         config.update({"concat_axis": self.concat_axis, "axis": self.axis})
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesSelection')
-class GatherNodesSelection(GraphBaseLayer):
+GatherNodes = GatherEmbedding
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbeddingSelection')
+class GatherEmbeddingSelection(GraphBaseLayer):
     """Gather nodes with a defined index. E.g. for ingoing or outgoing nodes or angles.
 
     For ingoing nodes, layer uses only index[0]. An edge is defined by index tuple (i,j) with i<-j connection.
@@ -79,7 +82,7 @@ class GatherNodesSelection(GraphBaseLayer):
 
     def __init__(self, selection_index, axis=1, axis_indices=2, **kwargs):
         """Initialize layer."""
-        super(GatherNodesSelection, self).__init__(**kwargs)
+        super(GatherEmbeddingSelection, self).__init__(**kwargs)
         self.axis = axis
         self.axis_indices = axis_indices
 
@@ -93,7 +96,7 @@ class GatherNodesSelection(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(GatherNodesSelection, self).build(input_shape)
+        super(GatherEmbeddingSelection, self).build(input_shape)
         if len(input_shape) != 2:
             print("WARNING:kgcnn: Number of inputs for layer", self.name, "is expected to be 2.")
         if [i for i in range(len(input_shape[0]))][self.axis] == 0:
@@ -133,13 +136,16 @@ class GatherNodesSelection(GraphBaseLayer):
         return out
 
     def get_config(self):
-        config = super(GatherNodesSelection, self).get_config()
+        config = super(GatherEmbeddingSelection, self).get_config()
         config.update({"axis": self.axis, "axis_indices": self.axis_indices, "selection_index": self.selection_index})
         return config
 
 
+GatherNodesSelection = GatherEmbeddingSelection
+
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesOutgoing')
-class GatherNodesOutgoing(GatherNodesSelection):
+class GatherNodesOutgoing(GatherEmbeddingSelection):
     """Gather nodes by indices.
 
     For outgoing nodes, layer uses only index[1]. An edge is defined by index tuple (i,j) with i<-j connection.
@@ -154,7 +160,7 @@ class GatherNodesOutgoing(GatherNodesSelection):
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesIngoing')
-class GatherNodesIngoing(GatherNodesSelection):
+class GatherNodesIngoing(GatherEmbeddingSelection):
     """Gather nodes by edge edge_indices.
     
     For ingoing nodes, layer uses only index[0]. An edge is defined by index tuple (i,j) with i<-j connection.

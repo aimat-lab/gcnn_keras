@@ -48,16 +48,15 @@ data_length = dataset.length
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)
 
+# Define Scaler for targets.
+scaler = StandardScaler(with_std=True, with_mean=True, copy=True)
+
 # Test Split
 kf = KFold(**hyper_selection.k_fold())
-split_indices = kf.split(X=np.arange(data_length)[:, None])
 
-# Variables
+# Training on splits
 history_list, test_indices_list = [], []
-model, scaler, xtest, ytest = None, None, None, None
-
-# Train on splits
-for train_index, test_index in split_indices:
+for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Select train and test data.
     is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
     xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
