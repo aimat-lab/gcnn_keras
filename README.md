@@ -7,7 +7,7 @@
 ![GitHub](https://img.shields.io/github/license/aimat-lab/gcnn_keras)
 ![GitHub issues](https://img.shields.io/github/issues/aimat-lab/gcnn_keras)
 
-# Keras Graph Convolutions Neural Networks
+# Keras Graph Convolution Neural Networks
 
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
