@@ -4,6 +4,7 @@ import os
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices
+from kgcnn.utils.data import save_pickle_file, load_pickle_file
 
 
 class MemoryGraphList:
@@ -70,11 +71,26 @@ class MemoryGraphList:
                         setattr(self, x, None)
             self._length = int(value)
 
-    def save(self):
-        raise NotImplementedError("ERROR:kcnn: Functionality will be added.")
+    def save(self, filepath: str):
+        """Save all graph properties to pickled file.
 
-    def load(self):
-        raise NotImplementedError("ERROR:kcnn: Functionality will be added.")
+        Args:
+            filepath (str): Full path of output file.
+        """
+        save_pickle_file({x: getattr(self, x) for x in self._find_all_graph_properties()}, filepath)
+        return self
+
+    def load(self, filepath: str):
+        """Load graph properties from pickled file.
+
+        Args:
+            filepath (str): Full path of input file.
+        """
+        in_dict = load_pickle_file(filepath)
+        for key, value in in_dict.items():
+            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]) and value is not None:
+                setattr(self, key, value)
+        return self
 
 
 class MemoryGraphDataset(MemoryGraphList):
@@ -284,6 +300,28 @@ class MemoryGraphDataset(MemoryGraphList):
             new_weights.append(rescale_edge_weights_degree_sym(idx, edw))
 
         self.edge_weights = new_weights
+        return self
+
+    def save(self, filepath: str = None):
+        """Save all graph properties to pickled file.
+
+        Args:
+            filepath (str): Full path of output file.
+        """
+        if filepath is None:
+            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        super(MemoryGraphDataset, self).save(filepath)
+        return self
+
+    def load(self, filepath: str):
+        """Load graph properties from pickled file.
+
+        Args:
+            filepath (str): Full path of input file.
+        """
+        if filepath is None:
+            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        super(MemoryGraphDataset, self).load(filepath)
         return self
 
 

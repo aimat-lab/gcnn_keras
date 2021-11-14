@@ -24,7 +24,7 @@ model_default = {"name": "PAiNN",
                                 "activation": ["swish", "linear"]},
                  "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                  "pooling_args": {"pooling_method": "sum"},
-                 "conv_args": {"units": 128, "cutoff": None},
+                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                  "update_args": {"units": 128},
                  "depth": 3,
                  "verbose": 1
