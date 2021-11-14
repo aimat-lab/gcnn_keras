@@ -14,6 +14,7 @@ from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.selection import HyperSelection
 from kgcnn.utils.data import save_json_file
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
+from kgcnn.training.graph import train_graph_regression_supervised
 
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
@@ -62,31 +63,17 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
     xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
 
-    # Make model.
-    model = make_model(**hyper_selection.make_model())
-
     # Normalize training and test targets.
     scaler = StandardScaler(with_std=True, with_mean=True, copy=True)
     ytrain = scaler.fit_transform(ytrain)
     ytest = scaler.transform(ytest)
 
-    # Get optimizer from serialized hyper-parameter.
-    mae_metric = ScaledMeanAbsoluteError((1, 1), name="mean_absolute_error")
-    rms_metric = ScaledRootMeanSquaredError((1, 1))
-    if scaler.scale_ is not None:
-        mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-        rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-    model.compile(**hyper_selection.compile(loss='mean_squared_error', metrics=[mae_metric, rms_metric]))
-    print(model.summary())
-
-    # Start and time training
-    start = time.process_time()
-    hist = model.fit(xtrain, ytrain,
-                     validation_data=(xtest, ytest),
-                     **hyper_selection.fit()
-                     )
-    stop = time.process_time()
-    print("Print Time for taining: ", stop - start)
+    # Use a generic training function for graph regression.
+    model, hist = train_graph_regression_supervised(xtrain, ytrain,
+                                                    validation_data=(xtest, ytest),
+                                                    make_model=make_model,
+                                                    hyper_selection=hyper_selection,
+                                                    scaler=scaler)
 
     # Get loss from history
     history_list.append(hist)

@@ -116,6 +116,7 @@ class KerasWrapperBase(GraphBaseLayer):
                 for x in self._kgcnn_wrapper_args:
                     if x in layer_conf:
                         config.update({x: layer_conf[x]})
+        return config
 
     def call(self, inputs, **kwargs):
         pass
