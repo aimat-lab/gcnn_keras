@@ -9,7 +9,7 @@
 
 # Keras Graph Convolution Neural Networks
 <p align="left">
-  <img src="https://github.com/aimat-lab/gcnn_keras/tree/master/docs/source/_static/icon.png" height="50" />
+  <img src="https://github.com/aimat-lab/gcnn_keras/blob/master/docs/source/_static/icon.svg" height="50"/>
 </p>
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
