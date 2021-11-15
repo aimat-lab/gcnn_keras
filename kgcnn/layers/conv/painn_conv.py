@@ -10,7 +10,6 @@ from kgcnn.layers.ops import ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.embedding import SplitEmbedding
-from kgcnn.layers.keras import LayerNormalization, BatchNormalization
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNconv')

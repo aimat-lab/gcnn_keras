@@ -185,7 +185,7 @@ dataset.read_in_memory()
 ```
 
 In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
-TUDatasets or MoleculeNet and directly processed and loaded.
+TUDatasets or MoleculeNet and directly processed and loaded. They are stored at `~/.kgcnn/datasets`.
 
 
 <a name="examples"></a>
