@@ -42,8 +42,7 @@ class Dense(KerasWrapperBase):
         """Forward pass wrapping tf.keras.layers"""
         # Call on a single Tensor
         if isinstance(inputs, tf.RaggedTensor):
-            out = tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
-            return out
+            return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
         # Try normal keras call
         return self._kgcnn_wrapper_layer(inputs, **kwargs)
 
