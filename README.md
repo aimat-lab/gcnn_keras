@@ -11,6 +11,7 @@
 <p align="left">
   <img src="https://github.com/aimat-lab/gcnn_keras/blob/master/docs/source/_static/icon.svg" height="80"/>
 </p>
+
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
 * [General](#general)
