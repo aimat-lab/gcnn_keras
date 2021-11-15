@@ -273,15 +273,16 @@ class EdgeDirectionNormalized(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
 class VectorAngle(GraphBaseLayer):
-    """Compute geometric angles between vectors in euclidean space.
+    """Compute geometric angles between vectors ind euclidean space.
+
+                v1 = xi - xj
+                v2 = xj - xk
 
     The geometric angle is computed between i<-j,j<-k for index tuple (i,j,k) in (batch, None, 3) last dimension.
     """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
-        # v1 = xi - xj
-        # v2 = xj - xk
         super(VectorAngle, self).__init__(**kwargs)
 
     def build(self, input_shape):
