@@ -88,8 +88,10 @@ class MemoryGraphList:
         """
         in_dict = load_pickle_file(filepath)
         for key, value in in_dict.items():
-            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]) and value is not None:
+            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
                 setattr(self, key, value)
+            else:
+                print("WARNING:kgcnn: Not accepted graph property, ignore name %s" % key)
         return self
 
 
