@@ -13,8 +13,6 @@ class DownloadDataset:
     Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
     """
 
-    data_main_dir = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
-
     def __init__(self,
                  dataset_name: str = None,
                  download_file_name: str = None,
@@ -27,6 +25,7 @@ class DownloadDataset:
                  extract_gz: bool = False,
                  reload: bool = False,
                  verbose: int = 1,
+                 data_main_dir=os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets"),
                  **kwargs):
         r"""Base initialization function for downloading and extracting the data.
 
@@ -43,6 +42,7 @@ class DownloadDataset:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
+        self.data_main_dir = data_main_dir
         self.dataset_name = dataset_name
         self.download_file_name = download_file_name
         self.data_directory_name = data_directory_name
