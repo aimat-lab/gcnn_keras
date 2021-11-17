@@ -524,3 +524,30 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
 
     graph_indices = graph_indices[graph_adjacency]
     return graph_adjacency, graph_indices
+
+
+def compute_reverse_edges_index_map(edge_idx):
+    r"""Computes the index map of the reverse edge for each of the edges if available. This can be used by a model
+    to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
+    Edges that do not have a reverse pair get a `nan` as map index.
+    If there are multiple edges, the first encounter is assigned.
+
+    Args:
+        edge_idx (np.ndarray): Array of edge indices of shape `(N, 2)`.
+
+    Returns:
+        np.ndarray: Map of reverse indices of shape `(N, )`.
+    """
+    if len(edge_idx) == 0:
+        return np.array([], dtype="int")
+
+    edge_idx_rev = np.flip(edge_idx, axis=-1)
+    edge_pos, rev_pos = np.where(
+        np.all(np.expand_dims(edge_idx, axis=1) == np.expand_dims(edge_idx_rev, axis=0), axis=-1))
+    # May have duplicates, find unique.
+    ege_pos_uni, uni_pos = np.unique(edge_pos, return_index=True)
+    rev_pos_uni = rev_pos[uni_pos]
+    edge_map = np.empty(len(edge_idx), dtype="int")
+    edge_map.fill(np.nan)
+    edge_map[ege_pos_uni] = rev_pos_uni
+    return edge_map
