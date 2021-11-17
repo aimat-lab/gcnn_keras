@@ -109,7 +109,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         Returns:
             self
         """
-        prepare_info = {"overwrite": overwrite, "verbose": verbose, "smiles_column_name": smiles_column_name,
+        prepare_info = {"overwrite": overwrite, "smiles_column_name": smiles_column_name,
                         "add_hydrogen": add_hydrogen, "make_conformers": make_conformers}
         prepare_info.update(self.datasets_prepare_data_info[self.dataset_name])
 
@@ -146,5 +146,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-#data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
+data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

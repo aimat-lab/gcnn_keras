@@ -5,6 +5,7 @@ import pandas as pd
 from kgcnn.data.base import MemoryGeometricGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
+from kgcnn.mol.convert import write_mol_block_list_to_sdf, dummy_load_sdf_file
 
 
 class MoleculeNetDataset(MemoryGeometricGraphDataset):
@@ -25,7 +26,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose=1):
-        r"""Initialize a `MoleculeNetDataset` with information on the dataset location on disk.
+        r"""Initialize a `MoleculeNetDataset` with information of the dataset location on disk.
 
         Args:
             file_name (str): Filename for reading into memory. This must be the name of the '.csv' file.
@@ -39,7 +40,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.data_keys = None
 
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
-                            make_conformers: bool = True, verbose: int = 1):
+                            make_conformers: bool = True):
         r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
 
         Args:
@@ -47,13 +48,11 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             add_hydrogen (bool): Whether to add hydrogen after smile translation.
             sanitize (bool): Whether to sanitize molecule.
             make_conformers (bool): Try to generate 3D coordinates
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
 
         Returns:
             list: A list of mol-block information as sting.
         """
-        self.verbose = verbose
-        mol_filename = "".join(self.file_name.split(".")[:-1]) + ".json"
+        mol_filename = self._get_mol_filename()
         if len(smiles) == 0:
             print("ERROR:kgcnn: Can not translate smiles, received empty list for %s." % self.dataset_name)
 
@@ -70,7 +69,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         return molecule_list
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
-                     make_conformers: bool = True, add_hydrogen: bool = True, **kwargs):
+                     make_conformers: bool = True, add_hydrogen: bool = True):
         r"""Pre-computation of molecular structure information and optionally conformers.
 
         Args:
@@ -92,10 +91,9 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         smiles = data[smiles_column_name].values
         # We need to parallelize this.
         mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True,
-                                      make_conformers=make_conformers,
-                                      verbose=self.verbose)
+                                      make_conformers=make_conformers)
 
-        save_json_file(mb, os.path.join(self.data_directory, mol_filename))
+        write_mol_block_list_to_sdf(mb, os.path.join(self.data_directory, mol_filename))
 
         return self
 
@@ -145,7 +143,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
         self._log("INFO:kgcnn: Read mol-blocks from %s of pre-computed structures..." % mol_filename)
-        mols = load_json_file(mol_path)
+        mols = dummy_load_sdf_file(mol_path)
 
         # Main loop to read molecules from mol-block
         atoms = []
@@ -230,7 +228,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
         self._log("INFO:kgcnn: Making attributes...")
 
-        mols = load_json_file(mol_path)
+        mols = dummy_load_sdf_file(mol_path)
 
         # Choose default values here:
         if nodes is None:
@@ -347,7 +345,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""
-        return "".join(self.file_name.split(".")[:-1]) + ".json"
+        return os.path.splitext(self.file_name)[0] + ".sdf"
 
     def _flexible_csv_file_name(self):
         pass
