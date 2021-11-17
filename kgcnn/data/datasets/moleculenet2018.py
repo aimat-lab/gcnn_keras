@@ -56,7 +56,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "Tox21": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 12)},
         "ToxCast": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 618)},
         "SIDER": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 28)},
-        "ClinTox": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 3)}
+        "ClinTox": {"has_conformers": False, "add_hydrogen": False, "label_column_name": [1, 2]}
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
@@ -91,7 +91,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         self.fits_in_memory = True
 
         if self.require_prepare_data:
-            self.prepare_data(overwrite=reload, verbose=verbose)
+            self.prepare_data(overwrite=reload)
         if self.fits_in_memory:
             self.read_in_memory()
 
@@ -146,4 +146,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-# data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
+#data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
+# data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

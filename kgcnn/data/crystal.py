@@ -1,5 +1,8 @@
 import os
-import pymatgen.core.structure
+try:
+    import pymatgen.core.structure
+except ModuleNotFoundError:
+    print("ERROR:kgcnn: Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
 
 from kgcnn.data.base import MemoryGeometricGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file

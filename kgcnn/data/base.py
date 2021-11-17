@@ -271,7 +271,7 @@ class MemoryGraphDataset(MemoryGraphList):
                                sort_indices=sort_indices)
         return self
 
-    def add_self_loops(self, remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0):
+    def add_edge_self_loops(self, remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0):
         r"""Add self loops to the each graph property. The function expects the property :obj:`edge_indices`
         to be defined. By default the edges are also sorted after adding the self-loops.
         All other edge properties are filled with :obj:`fill_value`.
@@ -349,7 +349,8 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
     r"""Subclass of :obj:`MemoryGraphDataset`. It expands the graph dataset with range and angle properties.
     The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
     to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
-    edge. They are characterized by the prefix `range_` and `angle_` and are also saved and checked for length.
+    edge. They are characterized by the prefix `range_` and `angle_` and are also saved in :obj:`save()` and
+    checked for length when assigning attributes to the instances of this class.
 
     .. code-block:: python
 
@@ -375,6 +376,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
         self._reserved_graph_property_prefix = self._reserved_graph_property_prefix + ["range_", "angle_"]
 
+        # Extend nodes to have coordinates.
         self.node_coordinates = None
 
         self.range_indices = None
@@ -469,8 +471,9 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         return self
 
     def set_angle(self, prefix_indices: str = "range_"):
-        r"""Compute angles between geometric edges defined by `indices` using :obj:`node_coordinates`
-        in :obj:`angle_attributes`. Which edges were used to calculate angles is stored in :obj:`angle_indices`.
+        r"""Compute angles between geometric range connections defined by :obj:`range_indices` using
+        :obj:`node_coordinates` into :obj:`angle_attributes`.
+        Which edges were used to calculate angles is stored in :obj:`angle_indices`.
         One can also change `prefix_indices` to 'edge_' to compute angles between edges instead of range connections.
 
         .. warning::
@@ -482,7 +485,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        # We need to sort indices
+        # We need to sort indices for the following operation.
         self._operate_on_edges(sort_edge_indices, _prefix_attributes="range_")
 
         # Compute angles
