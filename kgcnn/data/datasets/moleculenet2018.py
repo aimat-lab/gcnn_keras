@@ -146,5 +146,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
-data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
+# data = MoleculeNetDataset2018("FreeSolv", reload=True).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()
