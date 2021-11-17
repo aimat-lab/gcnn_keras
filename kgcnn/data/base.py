@@ -421,7 +421,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
 
     def set_range(self, max_distance: float = 4.0, max_neighbours: int = 15,
                   do_invert_distance: bool = False, self_loops: bool = False, exclusive: bool = True):
-        """Define range in euclidean space for interaction or edge-like connections. The number of connection is
+        r"""Define range in euclidean space for interaction or edge-like connections. The number of connection is
         determines based on a cutoff radius and a maximum number of neighbours or both.
         Requires :obj:`node_coordinates` and :obj:`edge_indices` to be set.
         The distance is stored in :obj:`range_attributes`.
@@ -468,23 +468,28 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.range_indices = edge_idx
         return self
 
-    def set_angle(self):
+    def set_angle(self, prefix_indices: str = "range_"):
+        r"""Compute angles between geometric edges defined by `indices` using :obj:`node_coordinates`
+        in :obj:`angle_attributes`. Which edges were used to calculate angles is stored in :obj:`angle_indices`.
+        One can also change `prefix_indices` to 'edge_' to compute angles between edges instead of range connections.
 
+        .. warning::
+            Angles are not recomputed if you use :obj:`set_range` or redefine edges.
+
+        Args:
+            prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is "range_".
+
+        Returns:
+            self
+        """
         # We need to sort indices
-        for i, x in enumerate(self.range_indices):
-            order = np.arange(len(x))
-            x_sorted, reorder = sort_edge_indices(x, order)
-            self.range_indices[i] = x_sorted
-            # Must sort attributes accordingly!
-            if self.range_attributes is not None:
-                self.range_attributes[i] = self.range_attributes[i][reorder]
-            if self.range_labels is not None:
-                self.range_labels[i] = self.range_labels[i][reorder]
+        self._operate_on_edges(sort_edge_indices, _prefix_attributes="range_")
 
         # Compute angles
+        e_indices = getattr(self, prefix_indices+"indices")
         a_indices = []
         a_angle = []
-        for i, x in enumerate(self.range_indices):
+        for i, x in enumerate(e_indices):
             temp = get_angle_indices(x)
             a_indices.append(temp[2])
             if self.node_coordinates is not None:
