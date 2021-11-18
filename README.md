@@ -190,6 +190,11 @@ dataset.read_in_memory()
 In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
 TUDatasets or MoleculeNet and directly processed and loaded. They are stored at `~/.kgcnn/datasets`.
 
+```python
+from kgcnn.data.datasets.mutag import MUTAGDataset
+dataset = MUTAGDataset()
+print(dataset.edge_indices[0])
+```
 
 <a name="examples"></a>
 # Examples
