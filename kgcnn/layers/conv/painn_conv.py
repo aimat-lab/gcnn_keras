@@ -14,7 +14,7 @@ from kgcnn.layers.embedding import SplitEmbedding
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNconv')
 class PAiNNconv(GraphBaseLayer):
-    """Continuous filter convolution of PAiNN.
+    """Continuous filter convolution block of PAiNN.
 
     Args:
         units (int): Units for Dense layer.

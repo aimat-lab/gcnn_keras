@@ -33,7 +33,7 @@ class HasteGRUUpdate(GraphBaseLayer):
         assert len(input_shape) == 2
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        """Forward pass. Operates on values without checking splits of the ragged dimension.
 
         Args:
             inputs (list): [nodes, updates]
@@ -89,7 +89,7 @@ class HasteLayerNormGRUUpdate(GraphBaseLayer):
         assert len(input_shape) == 2
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        """Forward pass. Operates on values without checking splits of the ragged dimension.
 
         Args:
             inputs (list): [nodes, updates]

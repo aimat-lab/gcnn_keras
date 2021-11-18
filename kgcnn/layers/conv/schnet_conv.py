@@ -8,9 +8,9 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SchNetCFconv')
 class SchNetCFconv(GraphBaseLayer):
-    """Continuous filter convolution of SchNet.
+    r"""Continuous filter convolution of `SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`_ .
 
-    Edges are processed by 2 Dense layers, multiplied on outgoing node features and pooled for ingoing node.
+    Edges are processed by 2 :obj:`Dense` layers, multiplied on outgoing node features and pooled for receiving node.
 
     Args:
         units (int): Units for Dense layer.
@@ -43,26 +43,23 @@ class SchNetCFconv(GraphBaseLayer):
         self.cfconv_pool = cfconv_pool
         self.units = units
         self.use_bias = use_bias
-
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args,
-                                **self._kgcnn_info)
-        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args,
-                                **self._kgcnn_info)
-        self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool, **self._kgcnn_info)
-        self.gather_n = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_mult = Multiply(**self._kgcnn_info)
+        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool)
+        self.gather_n = GatherNodesOutgoing()
+        self.lay_mult = Multiply()
 
     def build(self, input_shape):
         """Build layer."""
         super(SchNetCFconv, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass: Calculate edge update.
+        """Forward pass. Calculate edge update.
 
         Args:
             inputs: [nodes, edges, edge_index]
@@ -75,11 +72,11 @@ class SchNetCFconv(GraphBaseLayer):
             tf.RaggedTensor: Updated node features.
         """
         node, edge, indexlist = inputs
-        x = self.lay_dense1(edge)
-        x = self.lay_dense2(x)
-        node2exp = self.gather_n([node, indexlist])
-        x = self.lay_mult([node2exp, x])
-        x = self.lay_sum([node, x, indexlist])
+        x = self.lay_dense1(edge, **kwargs)
+        x = self.lay_dense2(x, **kwargs)
+        node2exp = self.gather_n([node, indexlist], **kwargs)
+        x = self.lay_mult([node2exp, x], **kwargs)
+        x = self.lay_sum([node, x, indexlist], **kwargs)
         return x
 
     def get_config(self):
@@ -95,8 +92,8 @@ class SchNetCFconv(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SchNetInteraction')
 class SchNetInteraction(GraphBaseLayer):
-    """
-    Schnet interaction block, which uses the continuous filter convolution from SchNetCFconv.
+    r"""`SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`_ interaction block,
+    which uses the continuous filter convolution from :obj:`SchNetCFconv`.
 
     Args:
         units (int): Dimension of node embedding. Default is 128.
@@ -127,11 +124,9 @@ class SchNetInteraction(GraphBaseLayer):
                  **kwargs):
         """Initialize Layer."""
         super(SchNetInteraction, self).__init__(**kwargs)
-
         self.cfconv_pool = cfconv_pool
         self.use_bias = use_bias
         self.units = units
-
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
@@ -139,21 +134,18 @@ class SchNetInteraction(GraphBaseLayer):
         conv_args = {"units": self.units, "use_bias": use_bias, "activation": activation, "cfconv_pool": cfconv_pool}
 
         # Layers
-        self.lay_cfconv = SchNetCFconv(**conv_args, **kernel_args, **self._kgcnn_info)
-        self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False,
-                                **self._kgcnn_info, **kernel_args)
-        self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias,
-                                **self._kgcnn_info, **kernel_args)
-        self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias,
-                                **self._kgcnn_info, **kernel_args)
-        self.lay_add = Add(**self._kgcnn_info)
+        self.lay_cfconv = SchNetCFconv(**conv_args, **kernel_args)
+        self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False, **kernel_args)
+        self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_add = Add()
 
     def build(self, input_shape):
         """Build layer."""
         super(SchNetInteraction, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass: Calculate node update.
+        """Forward pass. Calculate node update.
 
         Args:
             inputs: [nodes, edges, tensor_index]
@@ -163,14 +155,14 @@ class SchNetInteraction(GraphBaseLayer):
                 - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2)
 
         Returns:
-            tf.RaggedTensor: Updated node embeddings.
+            tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F).
         """
         node, edge, indexlist = inputs
-        x = self.lay_dense1(node)
-        x = self.lay_cfconv([x, edge, indexlist])
-        x = self.lay_dense2(x)
-        x = self.lay_dense3(x)
-        out = self.lay_add([node, x])
+        x = self.lay_dense1(node, **kwargs)
+        x = self.lay_cfconv([x, edge, indexlist], **kwargs)
+        x = self.lay_dense2(x, **kwargs)
+        x = self.lay_dense3(x, **kwargs)
+        out = self.lay_add([node, x], **kwargs)
         return out
 
     def get_config(self):

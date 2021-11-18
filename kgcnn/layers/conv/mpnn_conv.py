@@ -1,19 +1,15 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.embedding import SplitEmbedding
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Multiply, Add, Concatenate
-from kgcnn.layers.ops import ExpandDims
-from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
-from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoMatMulMessages')
 class TrafoMatMulMessages(GraphBaseLayer):
-    """Apply message by edge matrix multiplication.
-    
-    The message dimension must be suitable for matrix multiplication.
+    """Make message from edges by a linear transformation, i.e. matrix multiplication.
+    The message dimension must be suitable for matrix multiplication. The actual matrix is not a trainable weight of
+    this layer but passed as input.
+    This was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
     
     Args:
         target_shape (int): Target dimension. Message dimension must match target_dim*node_dim.
@@ -29,27 +25,25 @@ class TrafoMatMulMessages(GraphBaseLayer):
         super(TrafoMatMulMessages, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        """Forward pass. Operates on values without checking splits of the ragged dimension.
 
         Args:
-            inputs (list): [trafo, edges]
+            inputs (list): [trafo_mat, edges]
 
-                - trafo (tf.RaggedTensor): Transformation by matrix multiplication for each message.
+                - trafo_mat (tf.RaggedTensor): Transformation by matrix multiplication for each message.
                   Must be reshaped to (batch, [M], FxF).
                 - edges (tf.RaggedTensor): Edge embeddings or messages (batch, [M], F)
             
         Returns:
             tf.RaggedTensor: Transformation of messages by matrix multiplication of shape (batch, [M], F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        dens_trafo, trafo_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        dens_e, epart = dyn_inputs[1].values, dyn_inputs[1].row_splits
-
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        dens_trafo, trafo_part = inputs[0].values, inputs[0].row_splits
+        dens_e, epart = inputs[1].values, inputs[1].row_splits
         dens_m = tf.reshape(dens_trafo,
                             (ks.backend.shape(dens_trafo)[0], self.target_shape, ks.backend.shape(dens_e)[-1]))
         out = tf.keras.backend.batch_dot(dens_m, dens_e)
-
         out = tf.RaggedTensor.from_row_splits(out, epart, validate=self.ragged_validate)
         return out
 
@@ -62,7 +56,7 @@ class TrafoMatMulMessages(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
 class GRUUpdate(GraphBaseLayer):
-    """Gated recurrent unit update.
+    """Gated recurrent unit for updating embeddings. First proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
 
     Args:
         units (int): Units for GRU.
@@ -130,7 +124,6 @@ class GRUUpdate(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        # self.gru.build(channels)
         super(GRUUpdate, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
@@ -145,13 +138,11 @@ class GRUUpdate(GraphBaseLayer):
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        n, npart = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        eu, _ = dyn_inputs[1].values, dyn_inputs[1].row_splits
-
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        n, npart = inputs[0].values, inputs[0].row_splits
+        eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)
-
         out = tf.RaggedTensor.from_row_splits(out, npart, validate=self.ragged_validate)
         return out
 

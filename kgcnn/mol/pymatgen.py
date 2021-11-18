@@ -42,5 +42,8 @@ def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1
     edge_indices = np.array(edge_indices, dtype="int")
     edge_image = np.array(edge_image, dtype="int")
     edge_distance = np.expand_dims(np.array(edge_distance), axis=-1)
-    edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
+    try:
+        edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
+    except:
+        print(edge_indices)
     return [edge_indices, edge_image, edge_distance]

@@ -125,7 +125,7 @@ class CrystalDataset(MemoryGeometricGraphDataset):
         self._set_dataset_range_from_structures(structs)
         return self
 
-    def _set_dataset_range_from_structures(self, structs, radius=4, numerical_tol: float = 1e-08):
+    def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08):
         self._log("INFO:kgcnn: Setting range ...", end='', flush=True)
         range_indices = []
         range_image = []
@@ -140,7 +140,8 @@ class CrystalDataset(MemoryGeometricGraphDataset):
         self.range_attributes = range_distance
         self._log("done")
 
-    def set_range(self, max_distance=4, max_neighbours=15, do_invert_distance=False, self_loops=True, exclusive=True):
+    def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
+                  self_loops=True, exclusive=True):
         print("WARNING:kgcnn: Range in `CrystalDataset` does not work for neighbours or self_loops yet.")
         structs = self._read_pymatgen_json_in_memory()
         self._set_dataset_range_from_structures(structs=structs, radius=max_distance)

@@ -12,6 +12,7 @@ class MessagePassingBase(GraphBaseLayer):
     update functions. The idea is to create a subclass of :obj:`MessagePassingBase` and then just implement the methods
     :obj:`message_function` and :obj:`update_nodes`. The pooling is handled by built-in :obj:`PoolingLocalEdges`.
     Alternatively also :obj:`aggregate_message` could be overwritten.
+    The original message passing scheme was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
 
     Args:
         pooling_method (str): Aggregation method of edges. Default is "sum".

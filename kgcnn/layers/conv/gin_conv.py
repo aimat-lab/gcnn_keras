@@ -30,11 +30,10 @@ class GIN(GraphBaseLayer):
         super(GIN, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.epsilon_learnable = epsilon_learnable
-        pool_args = {"pooling_method": pooling_method}
 
         # Layers
         self.lay_gather = GatherNodesOutgoing()
-        self.lay_pool = PoolingLocalEdges(**pool_args)
+        self.lay_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.lay_add = Add()
 
         # Epsilon with trainable as optional and default zeros initialized.

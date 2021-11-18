@@ -9,8 +9,9 @@ from kgcnn.layers.pool.pooling import PoolingLocalMessages, PoolingLocalEdgesLST
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageNodeLayer')
 class GraphSageNodeLayer(GraphBaseLayer):
-    r"""This is a convolutional layer for GraphSAGE model as proposed by Hamilton et al. (2018). It is not used in the
-    :obj:``kgcnn.literature.GraphSAGE`` model implementation but meant as a simplified module for other networks.
+    r"""This is a convolutional layer for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_  model as proposed
+    by Hamilton et al. (2018). It is not used in the :obj:``kgcnn.literature.GraphSAGE`` model implementation
+    but meant as a simplified module for other networks.
 
     Args:
         units: Dimensionality of embedding for each layer in the MLP.
@@ -51,27 +52,23 @@ class GraphSageNodeLayer(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
 
-        self.gather_nodes_outgoing = GatherNodesOutgoing(**self._kgcnn_info)
-        self.concatenate = Concatenate(**self._kgcnn_info)
-        self.update_node_from_neighbors_mlp = MLP(units=units, activation=activation, **kernel_args, **self._kgcnn_info)
-        self.update_node_from_self_mlp = MLP(units=units, activation=activation, **kernel_args, **self._kgcnn_info)
-
+        self.gather_nodes_outgoing = GatherNodesOutgoing()
+        self.concatenate = Concatenate()
+        self.update_node_from_neighbors_mlp = MLP(units=units, activation=activation, **kernel_args)
+        self.update_node_from_self_mlp = MLP(units=units, activation=activation, **kernel_args)
         if self.pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             # We do not allow full access to all parameters for the LSTM here for simplification.
-            self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units, **self._kgcnn_info)
+            self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units)
         else:
-            self.pooling = PoolingLocalMessages(pooling_method=pooling_method, **self._kgcnn_info)
-
-        # normalization layer for nodes
-        self.normalize_nodes = LayerNormalization(axis=-1, **self._kgcnn_info)
+            self.pooling = PoolingLocalMessages(pooling_method=pooling_method)
+        self.normalize_nodes = LayerNormalization(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""
         super(GraphSageNodeLayer, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """
-        Forward pass.
+        """Forward pass.
 
         Args:
             inputs: [nodes, edge_index] or [nodes, edges, edge_index]
@@ -89,19 +86,18 @@ class GraphSageNodeLayer(GraphBaseLayer):
             n, edi = inputs
             ed = None
 
-        neighboring_node_features = self.gather_nodes_outgoing([n, edi])
+        neighboring_node_features = self.gather_nodes_outgoing([n, edi], **kwargs)
         if self.use_edge_features:
-            neighboring_node_features = self.concatenate([neighboring_node_features, ed])
+            neighboring_node_features = self.concatenate([neighboring_node_features, ed], **kwargs)
 
-        neighboring_node_features = self.update_node_from_neighbors_mlp(neighboring_node_features)
+        neighboring_node_features = self.update_node_from_neighbors_mlp(neighboring_node_features, **kwargs)
 
         # Pool message
-        nu = self.pooling([n, neighboring_node_features, edi])
-        nu = self.concatenate([n, nu])  # Concatenate node features with new edge updates
+        nu = self.pooling([n, neighboring_node_features, edi], **kwargs)
+        nu = self.concatenate([n, nu], **kwargs)  # Concatenate node features with new edge updates
 
-        n = self.update_node_from_self_mlp(nu)
-        n = self.normalize_nodes(n)  # Normalize
-
+        n = self.update_node_from_self_mlp(nu, **kwargs)
+        n = self.normalize_nodes(n, **kwargs)  # Normalize
         return n
 
     def get_config(self):
@@ -118,8 +114,8 @@ class GraphSageNodeLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageEdgeUpdateLayer')
 class GraphSageEdgeUpdateLayer(GraphBaseLayer):
-    r"""A extension for GraphSAGE model to have edge updates. It is a direct extension and should fit the GraphSAGE
-    idea of message passing.
+    r"""A extension for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ model to have edge updates.
+    It is a direct extension and should fit the GraphSAGE idea of message passing.
 
     Args:
         units: Dimensionality of embedding for each layer in the MLP.
@@ -156,12 +152,12 @@ class GraphSageEdgeUpdateLayer(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
         # non-stateful layers
-        self.gather_nodes = GatherNodes(**self._kgcnn_info)
-        self.concatenate = Concatenate(**self._kgcnn_info)
-        self.update_edge_mlp = MLP(units=units, activation=activation, **kernel_args, **self._kgcnn_info)
+        self.gather_nodes = GatherNodes()
+        self.concatenate = Concatenate()
+        self.update_edge_mlp = MLP(units=units, activation=activation, **kernel_args)
 
         # normalization layer for edge features
-        self.normalize_edges = LayerNormalization(axis=-1, **self._kgcnn_info)
+        self.normalize_edges = LayerNormalization(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""
@@ -181,11 +177,11 @@ class GraphSageEdgeUpdateLayer(GraphBaseLayer):
             tf.RaggedTensor: Edge embeddings of shape (batch, [M], F)
         """
         n, ed, edi = inputs
-        node_features = self.gather_nodes([n, edi])
-        ed_new_input = self.concatenate([ed, node_features])
-        ed = self.update_edge_mlp(ed_new_input)
+        node_features = self.gather_nodes([n, edi], **kwargs)
+        ed_new_input = self.concatenate([ed, node_features], **kwargs)
+        ed = self.update_edge_mlp(ed_new_input, **kwargs)
         if self.use_normalization:
-            ed = self.normalize_edges(ed)
+            ed = self.normalize_edges(ed, **kwargs)
         return ed
 
     def get_config(self):

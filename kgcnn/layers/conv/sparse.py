@@ -5,7 +5,9 @@ from kgcnn.ops.partition import partition_row_indexing
 
 
 class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
-    """Layer to cast e.g. RaggedTensor graph representation to a single Sparse tensor in disjoint representation.
+    r"""Helper layer to cast a set of RaggedTensors forming a graph representation into a single SparseTensor, which
+    then can be regarded to be in disjoint representation. This means that the batch is represented as one big
+    adjacency matrix with disjoint sub-blocks.
 
     This includes edge_indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
     """
@@ -29,13 +31,13 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
                 - edge_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
-            tf.SparseTensor: Sparse disjoint matrix of shape (batch*None,batch*None)
+            tf.SparseTensor: Sparse disjoint matrix of shape (batch*[N],batch*[N])
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        nod, node_len = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
-        edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        edge_index, edge_len = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        nod, node_len = inputs[0].values, inputs[0].row_lengths()
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edge_index, edge_len = inputs[2].values, inputs[2].row_lengths()
 
         # batch-wise indexing
         edge_index = partition_row_indexing(edge_index,
@@ -71,9 +73,10 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
 
 
 class PoolingAdjacencyMatmul(GraphBaseLayer):
-    r"""Layer for pooling of node features by multiplying with sparse adjacency matrix.
+    r"""Layer for graph convolution of node embeddings by multiplying with sparse adjacency matrix, as proposed
+    in Graph convolution according to `Kipf et al <https://arxiv.org/abs/1609.02907>`_ .
 
-    Computes
+    :math:`A x`, where :math:`A` represents the possibly scaled adjacency matrix.
 
     The node features are flatten for a disjoint representation.
 
@@ -103,9 +106,7 @@ class PoolingAdjacencyMatmul(GraphBaseLayer):
             tf.RaggedTensor: Pooled node features of shape (batch, [N], F)
         """
         adj = inputs[1]
-        dyn_inputs = self._kgcnn_inspect_input_ragged([inputs[0]], 0)
-        node, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-
+        node, node_part = inputs[0].values, inputs[0].row_splits
         out = tf.sparse.sparse_dense_matmul(adj, node)
         out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
         return out
