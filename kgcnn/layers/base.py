@@ -97,17 +97,21 @@ class KerasWrapperBase(GraphBaseLayer):
     r"""Base layer for wrapping tf.keras.layers to support ragged tensors and to optionally call original layer
     only on the values of :obj:`RaggedTensor`. If inputs is a list, then a lazy operation (e.g. add, concat)
     is performed if :obj:`ragged_validate` is set to :obj:`False`.
+
     """
 
     def __init__(self, **kwargs):
+        r"""Initialize instance of :obj:`KerasWrapperBase`"""
         super(KerasWrapperBase, self).__init__(**kwargs)
         self._kgcnn_wrapper_layer = None
         self._kgcnn_wrapper_args = None
 
     def build(self, input_shape):
+        """Build layer."""
         super(KerasWrapperBase, self).build(input_shape)
 
     def get_config(self):
+        """Make config from wrapped keras layer,"""
         config = super(KerasWrapperBase, self).get_config()
         # Only necessary if this instance has a keras layer internally as attribute.
         if hasattr(self, "_kgcnn_wrapper_layer") and hasattr(self, "_kgcnn_wrapper_args"):
@@ -117,6 +121,3 @@ class KerasWrapperBase(GraphBaseLayer):
                     if x in layer_conf:
                         config.update({x: layer_conf[x]})
         return config
-
-    def call(self, inputs, **kwargs):
-        pass
