@@ -105,6 +105,8 @@ class PoolingAdjacencyMatmul(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled node features of shape (batch, [N], F)
         """
+        assert isinstance(inputs[0], tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert inputs[0].ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
         adj = inputs[1]
         node, node_part = inputs[0].values, inputs[0].row_splits
         out = tf.sparse.sparse_dense_matmul(adj, node)

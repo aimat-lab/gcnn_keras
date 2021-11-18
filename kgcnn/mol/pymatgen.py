@@ -26,7 +26,7 @@ def structure_get_properties(py_struct):
     return [node_coordinates, lattice_matrix, abc, charge, volume, symbols]
 
 
-def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1e-08 ):
+def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1e-08, struct_id=None):
     # Determine all neighbours
     all_nbrs = py_struct.get_all_neighbors(radius, include_index=True, numerical_tol=numerical_tol)
 
@@ -42,8 +42,7 @@ def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1
     edge_indices = np.array(edge_indices, dtype="int")
     edge_image = np.array(edge_image, dtype="int")
     edge_distance = np.expand_dims(np.array(edge_distance), axis=-1)
-    try:
-        edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
-    except:
-        print(edge_indices)
+    if len(edge_indices) <= 0:
+        print("ERROR:kgcnn: No edges for %s" % struct_id)
+    edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
     return [edge_indices, edge_image, edge_distance]

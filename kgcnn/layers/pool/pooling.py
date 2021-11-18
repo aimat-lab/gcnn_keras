@@ -8,14 +8,18 @@ from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
-    r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
+    r"""The main aggregation or pooling function to collect all edges or edge-like embeddings per node,
+    corresponding to receiving node assigned by edge indices.
 
-    Apply e.g. segment_mean fo edges with ID's taken from `index_tensor`.
-    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
+    Apply e.g. sum or mean on edges with node target ID taken from the (edge) index_tensor, that has a list of
+    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
+
+    Note: index_tensor[:, :, pooling_index] is sorted for the subsequent segment-operation.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
-        pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 0.
+        pooling_index (int): Index from edge_indices to pick ID's for pooling edge-like embeddings. Default is 0.
     """
 
     def __init__(self, pooling_method="mean", pooling_index=0, **kwargs):
@@ -41,11 +45,13 @@ class PoolingLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+
+        nod, node_part = inputs[0].values, inputs[0].row_splits
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
 
         shiftind = partition_row_indexing(edgeind, node_part, edge_part,
                                           partition_type_target="row_splits",
@@ -121,12 +127,14 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
-        weights, _ = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+
+        nod, node_part = inputs[0].values, inputs[0].row_splits
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
+        weights, _ = inputs[3].values, inputs[3].row_lengths()
 
         shiftind = partition_row_indexing(edgeind, node_part, edge_part,
                                           partition_type_target="row_splits", partition_type_index="row_length",
