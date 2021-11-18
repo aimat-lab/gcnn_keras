@@ -9,7 +9,7 @@ from kgcnn.layers.pool.pooling import PoolingNodesAttention, PoolingLocalEdgesAt
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
 class AttentionHeadGAT(GraphBaseLayer):
-    r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`_.
+    r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`_ .
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
     optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -119,7 +119,7 @@ class AttentionHeadGAT(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGATV2')
 class AttentionHeadGATV2(GraphBaseLayer):
-    r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`_.
+    r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`_ .
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
     optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -232,7 +232,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentiveHeadFP')
 class AttentiveHeadFP(GraphBaseLayer):
-    r"""Computes the attention head for Attentive FP model.
+    r"""Computes the attention head for `Attentive FP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ model.
     The attention coefficients are computed by :math:`a_{ij} = \sigma_1( W_1 [h_i || h_j] )`.
     The initial representation :math:`h_i` and :math:`h_j` must be calculated beforehand.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -346,7 +346,8 @@ class AttentiveHeadFP(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttentive')
 class PoolingNodesAttentive(GraphBaseLayer):
-    r"""Computes the attentive pooling for node embeddings.
+    r"""Computes the attentive pooling for node embeddings for
+    `Attentive FP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ model.
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
@@ -390,9 +391,7 @@ class PoolingNodesAttentive(GraphBaseLayer):
         super(PoolingNodesAttentive, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.depth = depth
-        # dense args
         self.units = int(units)
-
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
@@ -405,13 +404,13 @@ class PoolingNodesAttentive(GraphBaseLayer):
                     "recurrent_constraint": recurrent_constraint, "bias_constraint": bias_constraint,
                     "dropout": dropout, "recurrent_dropout": recurrent_dropout, "reset_after": reset_after}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_gather_s = GatherState(**self._kgcnn_info)
-        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
-        self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.lay_pool_attention = PoolingNodesAttention(**self._kgcnn_info)
-        self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args)
+        self.lay_gather_s = GatherState()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
+        self.lay_pool_attention = PoolingNodesAttention()
+        self.lay_final_activ = Activation(activation=activation_context)
         self.lay_gru = tf.keras.layers.GRUCell(units=units, activation="tanh", **gru_args)
 
     def build(self, input_shape):
