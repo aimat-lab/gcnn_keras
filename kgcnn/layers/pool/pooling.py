@@ -8,11 +8,11 @@ from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
-    r"""The main aggregation or pooling function to collect all edges or edge-like embeddings per node,
-    corresponding to receiving node assigned by edge indices.
+    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
+    corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
-    Apply e.g. sum or mean on edges with node target ID taken from the (edge) index_tensor, that has a list of
+    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index_tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
     receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
 
@@ -90,11 +90,11 @@ PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
 class PoolingWeightedLocalEdges(GraphBaseLayer):
-    r"""The main aggregation or pooling function to collect all edges or edge-like embeddings per node,
-    corresponding to receiving node assigned by edge indices.
+    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
+    corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
-    Apply e.g. sum or mean on edges with node target ID taken from the (edge) index_tensor, that has a list of
+    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index_tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
     receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
 
@@ -184,9 +184,10 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodes')
-class PoolingNodes(GraphBaseLayer):
-    """Polling all nodes per batch. The batch assignment is given by a length-tensor.
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbedding')
+class PoolingEmbedding(GraphBaseLayer):
+    """Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
+    ::obj`tf.Tensor`.
     
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -194,41 +195,51 @@ class PoolingNodes(GraphBaseLayer):
 
     def __init__(self, pooling_method="mean", **kwargs):
         """Initialize layer."""
-        super(PoolingNodes, self).__init__(**kwargs)
+        super(PoolingEmbedding, self).__init__(**kwargs)
         self.pooling_method = pooling_method
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingNodes, self).build(input_shape)
+        super(PoolingEmbedding, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Node features of shape (batch, [N], F)
+            inputs (tf.RaggedTensor): Embedding tensor of shape (batch, [N], F)
     
         Returns:
             tf.Tensor: Pooled node features of shape (batch, F)
         """
-        dyn_inputs = [inputs]
+        # Need ragged input but can be generalized in the future.
+        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
         # We cast to values here
-        nod, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
+        nod, batchi = inputs.values, inputs.value_rowids()
 
+        # Could also use reduce_sum here.
         out = segment_ops_by_name(self.pooling_method, nod, batchi)
-
-        # Output should have correct shape
         return out
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingNodes, self).get_config()
+        config = super(PoolingEmbedding, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedNodes')
-class PoolingWeightedNodes(GraphBaseLayer):
-    """Polling all nodes per batch. The batch assignment is given by a length-tensor.
+PoolingNodes = PoolingEmbedding
+PoolingGlobalEdges = PoolingEmbedding
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedEmbedding')
+class PoolingWeightedEmbedding(GraphBaseLayer):
+    """Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
+    ::obj`tf.Tensor`.
+
+    .. note::
+        In addition of pooling embeddings a weight tensor must be supplied that scales each embedding before
+        pooling. Must broadcast.
 
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
@@ -236,12 +247,12 @@ class PoolingWeightedNodes(GraphBaseLayer):
 
     def __init__(self, pooling_method="mean", **kwargs):
         """Initialize layer."""
-        super(PoolingWeightedNodes, self).__init__(**kwargs)
+        super(PoolingWeightedEmbedding, self).__init__(**kwargs)
         self.pooling_method = pooling_method
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingWeightedNodes, self).build(input_shape)
+        super(PoolingWeightedEmbedding, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -255,72 +266,37 @@ class PoolingWeightedNodes(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled node features of shape (batch, F)
         """
-        dyn_inputs = inputs
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
         # We cast to values here
-        nod, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
-        weights, _ = dyn_inputs[1].values, dyn_inputs[1].value_rowids()
-
+        nod, batchi = inputs[0].values, inputs[0].value_rowids()
+        weights, _ = inputs[1].values, inputs[1].value_rowids()
         nod = tf.math.multiply(nod, weights)
+        # Could also use reduce_sum here.
         out = segment_ops_by_name(self.pooling_method, nod, batchi)
-        # Output should have correct shape
         return out
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingWeightedNodes, self).get_config()
+        config = super(PoolingWeightedEmbedding, self).get_config()
         config.update({"pooling_method": self.pooling_method})
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingGlobalEdges')
-class PoolingGlobalEdges(GraphBaseLayer):
-    """Pooling all edges per graph. The batch assignment is given by a length-tensor.
-
-    Args:
-        pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
-    """
-
-    def __init__(self, pooling_method="mean", **kwargs):
-        """Initialize layer."""
-        super(PoolingGlobalEdges, self).__init__(**kwargs)
-        self.pooling_method = pooling_method
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(PoolingGlobalEdges, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (tf.RaggedTensor): Edge features or message embeddings of shape (batch, [M], F)
-    
-        Returns:
-            tf.Tensor: Pooled edges feature list of shape (batch, F).
-        """
-        dyn_inputs = [inputs]
-        # We cast to values here
-        edge, batchi = dyn_inputs[0].values, dyn_inputs[0].value_rowids()
-
-        out = segment_ops_by_name(self.pooling_method, edge, batchi)
-        # Output already has correct shape and type
-        return out
-
-    def get_config(self):
-        """Update layer config."""
-        config = super(PoolingGlobalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method})
-        return config
+PoolingWeightedNodes = PoolingWeightedEmbedding
+PoolingWeightedGlobalEdges = PoolingWeightedEmbedding
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesLSTM')
 class PoolingLocalEdgesLSTM(GraphBaseLayer):
-    """
-    Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
-    Uses LSTM to aggregate Node-features.
+    """The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
+    corresponding to the receiving node, which is defined by edge indices.
+    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
-    Apply e.g. LSTM embedding for edges with ID's taken from `index_tensor`.
-    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
+    Here, apply LSTM on edges with same target ID taken from the (edge) index_tensor, that has a list of
+    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
 
     Args:
         units (int): Units for LSTM cell.
@@ -436,11 +412,13 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
         # We cast to values here
-        nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        edge, _ = dyn_inputs[1].values, dyn_inputs[1].row_lengths()
-        edgeind, edge_part = dyn_inputs[2].values, dyn_inputs[2].row_lengths()
+        nod, node_part = inputs[0].values, inputs[0].row_splits
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
 
         shiftind = partition_row_indexing(edgeind, node_part, edge_part,
                                           partition_type_target="row_splits",
@@ -490,7 +468,8 @@ PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
 class PoolingLocalEdgesAttention(GraphBaseLayer):
-    r"""Pooling all edges or edge-like features per node, corresponding to node assigned by edge indices.
+    r"""Pooling or aggregation of all edges or edge-like features per node,
+    corresponding to node assigned by edge indices.
     Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
     The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
     attention coefficients :math:`a_{ij}`.
@@ -498,7 +477,8 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
     In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
 
-    An edge is defined by index tuple `(i, j)` with i<-j connection.
+    An edge is defined by index tuple :math:`(i, j)` with :math:`i` being the receiving node in the default definition,
+    but can be changed by pooling_index.
     Important: ID's for segment-operation and for pooling of edges are taken from edge-index-tensor.
     They are sorted for faster pooling from tensor_index[:, :, pooling_index].
 
@@ -529,13 +509,14 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
-
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
         # We cast to values here
-        nod, node_part = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
-        edge = dyn_inputs[1].values
-        attention = dyn_inputs[2].values
-        edgeind, edge_part = dyn_inputs[3].values, dyn_inputs[3].row_lengths()
+        nod, node_part = inputs[0].values, inputs[0].row_lengths()
+        edge = inputs[1].values
+        attention = inputs[2].values
+        edgeind, edge_part = inputs[3].values, inputs[3].row_lengths()
 
         shiftind = partition_row_indexing(edgeind, node_part, edge_part, partition_type_target="row_length",
                                           partition_type_index="row_length", to_indexing='batch',
@@ -572,9 +553,11 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingNodesAttention')
-class PoolingNodesAttention(GraphBaseLayer):
-    r"""Pooling all nodes.
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbeddingAttention')
+class PoolingEmbeddingAttention(GraphBaseLayer):
+    r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
+    ::obj`tf.Tensor`.
+
     Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i`
     The attention is computed via: :math:`\alpha_i = \text{softmax}_i(a_i)` from the attention coefficients :math:`a_i`.
     The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W [s || n_i])` and
@@ -585,11 +568,11 @@ class PoolingNodesAttention(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer."""
-        super(PoolingNodesAttention, self).__init__(**kwargs)
+        super(PoolingEmbeddingAttention, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingNodesAttention, self).build(input_shape)
+        super(PoolingEmbeddingAttention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -603,10 +586,12 @@ class PoolingNodesAttention(GraphBaseLayer):
         Returns:
             tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
         """
-        dyn_inputs = inputs
+        # Need ragged input but can be generalized in the future.
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
         # We cast to values here
-        nod, batchi, target_len = dyn_inputs[0].values, dyn_inputs[0].value_rowids(), dyn_inputs[0].row_lengths()
-        ats = dyn_inputs[1].values
+        nod, batchi, target_len = inputs[0].values, inputs[0].value_rowids(), inputs[0].row_lengths()
+        ats = inputs[1].values
 
         ats = segment_softmax(ats, batchi)
         get = nod * ats
@@ -616,5 +601,8 @@ class PoolingNodesAttention(GraphBaseLayer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingNodesAttention, self).get_config()
+        config = super(PoolingEmbeddingAttention, self).get_config()
         return config
+
+
+PoolingNodesAttention = PoolingEmbeddingAttention
