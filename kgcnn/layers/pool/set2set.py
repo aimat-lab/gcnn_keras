@@ -9,9 +9,11 @@ from kgcnn.layers.base import GraphBaseLayer
 # https://arxiv.org/abs/1511.06391
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingSet2Set')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingSet2Set')
 class PoolingSet2Set(GraphBaseLayer):
-    """PoolingSet2Set layer. The Reading to Memory has to be handled seperately.
+    """Pooling Node or edge embeddings by the Set2Set encoder part from layer.
+    This was first proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
+    The Reading to Memory has to be handled separately.
     Uses a keras LSTM layer for the updates.
     
     Args:
@@ -121,7 +123,7 @@ class PoolingSet2Set(GraphBaseLayer):
         elif self.pooling_method == 'sum':
             self._pool = ksb.sum
         else:
-            raise TypeError("Unknown pooling, choose: 'mean', 'sum', ...")
+            raise TypeError("ERROR:kgcnn: Unknown pooling, choose: 'mean', 'sum', ...")
 
         if self.init_qstar == 'mean':
             self.qstar0 = self.init_qstar_mean
@@ -171,8 +173,7 @@ class PoolingSet2Set(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
-        dyn_inputs = [inputs]
-        x, batch_num, batch_index = dyn_inputs[0].values, dyn_inputs[0].row_lengths(), dyn_inputs[0].value_rowids()
+        x, batch_num, batch_index = inputs[0].values, inputs[0].row_lengths(), inputs[0].value_rowids()
 
         # Reading to memory removed here, is to be done by seperately
         m = x  # (batch*None,feat)
