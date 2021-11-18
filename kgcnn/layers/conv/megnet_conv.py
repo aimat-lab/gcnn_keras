@@ -9,7 +9,7 @@ from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingGlobalEdges, Poo
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
 class MEGnetBlock(GraphBaseLayer):
-    """Megnet Block.
+    """Convolutional unit of `MegNet <https://github.com/materialsvirtuallab/megnet>`_ called MegNet Block.
 
     Args:
         node_embed (list, optional): List of node embedding dimension. Defaults to [16,16,16].
@@ -40,7 +40,6 @@ class MEGnetBlock(GraphBaseLayer):
         """Initialize layer."""
         super(MEGnetBlock, self).__init__(**kwargs)
         self.pooling_method = pooling_method
-
         if node_embed is None:
             node_embed = [16, 16, 16]
         if env_embed is None:
@@ -51,30 +50,29 @@ class MEGnetBlock(GraphBaseLayer):
         self.edge_embed = edge_embed
         self.env_embed = env_embed
         self.use_bias = use_bias
-
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
 
         # Node
-        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args, **self._kgcnn_info)
-        self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.lay_gather_un = GatherState(**self._kgcnn_info)
-        self.lay_conc_nu = Concatenate(axis=-1, **self._kgcnn_info)
+        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **kernel_args)
+        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **kernel_args)
+        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args)
+        self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.lay_gather_un = GatherState()
+        self.lay_conc_nu = Concatenate(axis=-1)
         # Edge
-        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **kernel_args, **self._kgcnn_info)
-        self.lay_gather_n = GatherNodes(**self._kgcnn_info)
-        self.lay_gather_ue = GatherState(**self._kgcnn_info)
-        self.lay_conc_enu = Concatenate(axis=-1, **self._kgcnn_info)
+        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **kernel_args)
+        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **kernel_args)
+        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **kernel_args)
+        self.lay_gather_n = GatherNodes()
+        self.lay_gather_ue = GatherState()
+        self.lay_conc_enu = Concatenate(axis=-1)
         # Environment
-        self.lay_usum_e = PoolingGlobalEdges(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.lay_usum_n = PoolingNodes(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.lay_conc_u = Concatenate(axis=-1, input_tensor_type="tensor")
+        self.lay_usum_e = PoolingGlobalEdges(pooling_method=self.pooling_method)
+        self.lay_usum_n = PoolingNodes(pooling_method=self.pooling_method)
+        self.lay_conc_u = Concatenate(axis=-1)
         self.lay_phi_u = ks.layers.Dense(units=self.env_embed[0], activation=activation, **kernel_args)
         self.lay_phi_u_1 = ks.layers.Dense(units=self.env_embed[1], activation=activation, **kernel_args)
         self.lay_phi_u_2 = ks.layers.Dense(units=self.env_embed[2], activation='linear', **kernel_args)
@@ -99,26 +97,26 @@ class MEGnetBlock(GraphBaseLayer):
         """
         # Calculate edge Update
         node_input, edge_input, edge_index_input, env_input = inputs
-        e_n = self.lay_gather_n([node_input, edge_index_input])
-        e_u = self.lay_gather_ue([env_input, edge_input])
-        ec = self.lay_conc_enu([e_n, edge_input, e_u])
-        ep = self.lay_phi_e(ec)  # Learning of Update Functions
-        ep = self.lay_phi_e_1(ep)  # Learning of Update Functions
-        ep = self.lay_phi_e_2(ep)  # Learning of Update Functions
+        e_n = self.lay_gather_n([node_input, edge_index_input], **kwargs)
+        e_u = self.lay_gather_ue([env_input, edge_input], **kwargs)
+        ec = self.lay_conc_enu([e_n, edge_input, e_u], **kwargs)
+        ep = self.lay_phi_e(ec, **kwargs)  # Learning of Update Functions
+        ep = self.lay_phi_e_1(ep, **kwargs)  # Learning of Update Functions
+        ep = self.lay_phi_e_2(ep, **kwargs)  # Learning of Update Functions
         # Calculate Node update
-        vb = self.lay_esum([node_input, ep, edge_index_input])  # Summing for each node connections
-        v_u = self.lay_gather_un([env_input, node_input])
-        vc = self.lay_conc_nu([vb, node_input, v_u])  # Concatenate node features with new edge updates
-        vp = self.lay_phi_n(vc)  # Learning of Update Functions
-        vp = self.lay_phi_n_1(vp)  # Learning of Update Functions
-        vp = self.lay_phi_n_2(vp)  # Learning of Update Functions
+        vb = self.lay_esum([node_input, ep, edge_index_input], **kwargs)  # Summing for each node connections
+        v_u = self.lay_gather_un([env_input, node_input], **kwargs)
+        vc = self.lay_conc_nu([vb, node_input, v_u], **kwargs)  # Concatenate node features with new edge updates
+        vp = self.lay_phi_n(vc, **kwargs)  # Learning of Update Functions
+        vp = self.lay_phi_n_1(vp, **kwargs)  # Learning of Update Functions
+        vp = self.lay_phi_n_2(vp, **kwargs)  # Learning of Update Functions
         # Calculate environment update
-        es = self.lay_usum_e(ep)
-        vs = self.lay_usum_n(vp)
-        ub = self.lay_conc_u([es, vs, env_input])
-        up = self.lay_phi_u(ub)
-        up = self.lay_phi_u_1(up)
-        up = self.lay_phi_u_2(up)  # Learning of Update Functions
+        es = self.lay_usum_e(ep, **kwargs)
+        vs = self.lay_usum_n(vp, **kwargs)
+        ub = self.lay_conc_u([es, vs, env_input], **kwargs)
+        up = self.lay_phi_u(ub, **kwargs)
+        up = self.lay_phi_u_1(up, **kwargs)
+        up = self.lay_phi_u_2(up, **kwargs)  # Learning of Update Functions
         return vp, ep, up
 
     def get_config(self):

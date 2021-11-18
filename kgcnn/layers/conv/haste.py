@@ -14,18 +14,17 @@ from kgcnn.layers.conv.attention import PoolingNodesAttention
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HasteGRUUpdate')
 class HasteGRUUpdate(GraphBaseLayer):
-    """Gated recurrent unit update with hast GRU.
+    """Gated Recurrent Unit update with a GRU cell implementation from `haste <https://github.com/lmnt-com/haste>`_ .
 
     Args:
         units (int): Units for GRU cell.
         trainable (bool): If GRU is trainable. Defaults to True.
     """
 
-    def __init__(self, units, trainable=True, **kwargs):
+    def __init__(self, units, trainable: bool = True, **kwargs):
         """Initialize layer."""
         super(HasteGRUUpdate, self).__init__(trainable=trainable, **kwargs)
         self.units = units
-
         self.gru_cell = haste.GRUCell(units, trainable=trainable)
 
     def build(self, input_shape):
@@ -45,13 +44,11 @@ class HasteGRUUpdate(GraphBaseLayer):
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        n, npart = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        eu, _ = dyn_inputs[1].values, dyn_inputs[1].row_splits
-
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        n, npart = inputs[0].values, inputs[0].row_splits
+        eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)
-
         out = tf.RaggedTensor.from_row_splits(out, npart, validate=self.ragged_validate)
         return out
 
@@ -64,16 +61,19 @@ class HasteGRUUpdate(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HasteLayerNormGRUUpdate')
 class HasteLayerNormGRUUpdate(GraphBaseLayer):
-    """Gated recurrent unit update with hast GRU.
+    """Gated Recurrent Unit update with a GRU cell implementation from `haste <https://github.com/lmnt-com/haste>`_
+    that uses also a layer normalization.
 
     Args:
         units (int): Units for GRU cell.
+        dropout (float): The amount of dropout to use. Default is 0.0.
+        forget_bias (float): The forget bias in GRU cell. Default is 1.0.
         trainable (bool): If GRU is trainable. Defaults to True.
     """
 
-    def __init__(self, units, trainable=True,
-                 forget_bias=1.0,
-                 dropout=0.0,
+    def __init__(self, units: int, trainable: bool = True,
+                 forget_bias: float = 1.0,
+                 dropout: float = 0.0,
                  **kwargs):
         """Initialize layer."""
         super(HasteLayerNormGRUUpdate, self).__init__(trainable=trainable, **kwargs)
@@ -100,15 +100,12 @@ class HasteLayerNormGRUUpdate(GraphBaseLayer):
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        dyn_inputs = inputs
-        # We cast to values here
-        n, npart = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        eu, _ = dyn_inputs[1].values, dyn_inputs[1].row_splits
-
+        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        n, npart = inputs[0].values, inputs[0].row_splits
+        eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)
-
-        out = tf.RaggedTensor.from_row_splits(out, npart, validate=self.ragged_validate)
-        return out
+        return tf.RaggedTensor.from_row_splits(out, npart, validate=self.ragged_validate)
 
     def get_config(self):
         """Update layer config."""
@@ -119,7 +116,9 @@ class HasteLayerNormGRUUpdate(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HastePoolingNodesAttentiveLayerNorm')
 class HastePoolingNodesAttentiveLayerNorm(GraphBaseLayer):
-    r"""Computes the attentive pooling for node embeddings.
+    r"""Computes the attentive pooling for node embeddings for
+    `Attentive FP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ model but uses the
+    `haste <https://github.com/lmnt-com/haste>`_  GRU cell as update with a layer normalization.
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
@@ -159,22 +158,20 @@ class HastePoolingNodesAttentiveLayerNorm(GraphBaseLayer):
         super(HastePoolingNodesAttentiveLayerNorm, self).__init__(trainable=trainable, **kwargs)
         self.pooling_method = pooling_method
         self.depth = depth
-        # dense args
         self.units = int(units)
-
         kernel_args = {"use_bias": use_bias, "kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
         gru_args = {"dropout": dropout, "forget_bias": forget_bias, "trainable": trainable}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args, **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation=activation, **kernel_args, **self._kgcnn_info)
-        self.lay_gather_s = GatherState(**self._kgcnn_info)
-        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
-        self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method, **self._kgcnn_info)
-        self.lay_pool_attention = PoolingNodesAttention(**self._kgcnn_info)
-        self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args)
+        self.lay_gather_s = GatherState()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
+        self.lay_pool_attention = PoolingNodesAttention()
+        self.lay_final_activ = Activation(activation=activation_context)
         self.lay_gru = haste.LayerNormGRUCell(units, **gru_args)
 
     def build(self, input_shape):
@@ -194,14 +191,14 @@ class HastePoolingNodesAttentiveLayerNorm(GraphBaseLayer):
         """
         node = inputs
 
-        h = self.lay_pool_start(node)
-        wn = self.lay_linear_trafo(node)
+        h = self.lay_pool_start(node, **kwargs)
+        wn = self.lay_linear_trafo(node, **kwargs)
         for _ in range(self.depth):
-            hv = self.lay_gather_s([h, node])
-            ev = self.lay_concat([hv, node])
-            av = self.lay_alpha(ev)
-            cont = self.lay_pool_attention([wn, av])
-            cont = self.lay_final_activ(cont)
+            hv = self.lay_gather_s([h, node], **kwargs)
+            ev = self.lay_concat([hv, node], **kwargs)
+            av = self.lay_alpha(ev, **kwargs)
+            cont = self.lay_pool_attention([wn, av], **kwargs)
+            cont = self.lay_final_activ(cont, **kwargs)
             h, _ = self.lay_gru(cont, h, **kwargs)
 
         out = h
