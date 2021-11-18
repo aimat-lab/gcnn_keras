@@ -33,7 +33,7 @@ class ChangeTensorType(GraphBaseLayer):
         self.output_tensor_type = output_tensor_type
 
         if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-            raise ValueError("Input must be RaggedTensor for layer", self.name)
+            raise ValueError("ERROR:kgcnn: Input must be RaggedTensor for layer", self.name)
 
     def build(self, input_shape):
         """Build layer."""

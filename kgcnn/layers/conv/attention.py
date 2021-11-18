@@ -9,7 +9,7 @@ from kgcnn.layers.pool.pooling import PoolingNodesAttention, PoolingLocalEdgesAt
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
 class AttentionHeadGAT(GraphBaseLayer):
-    r"""Computes the attention head according to GAT from https://arxiv.org/abs/1710.10903.
+    r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`_.
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
     optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -17,8 +17,7 @@ class AttentionHeadGAT(GraphBaseLayer):
     If the graph has no self-loops, they must be added beforehand or use external skip connections.
     And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} W n_j)`.
 
-    An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
@@ -53,28 +52,24 @@ class AttentionHeadGAT(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGAT, self).__init__(**kwargs)
-        # graph args
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
-
-        # dense args
         self.units = int(units)
         self.use_bias = use_bias
-
         kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args, **self._kgcnn_info)
-        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
-        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
-        self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args)
+        self.lay_gather_in = GatherNodesIngoing()
+        self.lay_gather_out = GatherNodesOutgoing()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
-            self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
+            self.lay_final_activ = Activation(activation=activation)
 
     def build(self, input_shape):
         """Build layer."""
@@ -124,7 +119,7 @@ class AttentionHeadGAT(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGATV2')
 class AttentionHeadGATV2(GraphBaseLayer):
-    r"""Computes the modified attention head according to https://arxiv.org/pdf/2105.14491.pdf.
+    r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`_.
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
     optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -132,8 +127,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
     If the graph has no self-loops, they must be added beforehand or use external skip connections.
     And optionally passed through an activation :math:`h_i = \sigma(\sum_j \alpha_{ij} e_{ij})`.
 
-    An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
@@ -168,30 +162,25 @@ class AttentionHeadGATV2(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGATV2, self).__init__(**kwargs)
-        # graph args
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
-
-        # dense args
         self.units = int(units)
         self.use_bias = use_bias
-
         kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args,
-                                          **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args, **self._kgcnn_info)
-        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
-        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
-        self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
+        self.lay_gather_in = GatherNodesIngoing()
+        self.lay_gather_out = GatherNodesOutgoing()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
-            self.lay_final_activ = Activation(activation=activation, **self._kgcnn_info)
+            self.lay_final_activ = Activation(activation=activation)
 
     def build(self, input_shape):
         """Build layer."""
@@ -249,7 +238,7 @@ class AttentiveHeadFP(GraphBaseLayer):
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
     And finally pooled for context :math:`C_i = \sigma_2(\sum_j \alpha_{ij} W_2 h_j)`.
 
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    An edge is defined by index tuple :math:`(i, j)` with the direction of the connection from :math:`j` to :math:`i`.
 
     Args:
         units (int): Units for the linear trafo of node features before attention.
@@ -282,31 +271,26 @@ class AttentiveHeadFP(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(AttentiveHeadFP, self).__init__(**kwargs)
-        # graph args
         self.use_edge_features = use_edge_features
-
-        # dense args
         self.units = int(units)
         self.use_bias = use_bias
-
         kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args,
-                                          **self._kgcnn_info)
-        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args, **self._kgcnn_info)
-        self.lay_gather_in = GatherNodesIngoing(**self._kgcnn_info)
-        self.lay_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_concat = Concatenate(axis=-1, **self._kgcnn_info)
-        self.lay_pool_attention = PoolingLocalEdgesAttention(**self._kgcnn_info)
-        self.lay_final_activ = Activation(activation=activation_context, **self._kgcnn_info)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
+        self.lay_gather_in = GatherNodesIngoing()
+        self.lay_gather_out = GatherNodesOutgoing()
+        self.lay_concat = Concatenate(axis=-1)
+        self.lay_pool_attention = PoolingLocalEdgesAttention()
+        self.lay_final_activ = Activation(activation=activation_context)
         if use_edge_features:
-            self.lay_fc1 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-            self.lay_fc2 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args, **self._kgcnn_info)
-            self.lay_concat_edge = Concatenate(axis=-1, **self._kgcnn_info)
+            self.lay_fc1 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+            self.lay_fc2 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+            self.lay_concat_edge = Concatenate(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""

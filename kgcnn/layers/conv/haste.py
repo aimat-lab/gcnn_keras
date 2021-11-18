@@ -2,7 +2,7 @@ import tensorflow as tf
 try:
     import haste_tf as haste
 except ModuleNotFoundError:
-    print("WARNING: Could not load haste implementation of GRU. Please check https://github.com/lmnt-com/haste.")
+    print("ERROR:kgcnn: Could not load haste implementation of GRU. Please check https://github.com/lmnt-com/haste.")
     import haste_tf as haste
 
 from kgcnn.layers.base import GraphBaseLayer

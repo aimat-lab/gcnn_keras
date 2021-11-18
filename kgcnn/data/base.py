@@ -299,7 +299,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def normalize_edge_weights_sym(self):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
-        Normalize edge weights as :math:`\tilde(e)_{i,j} = d_{i,i}^{-0.5} e_{i,j} d_{j,j}^{-0.5}`.
+        Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
         The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
         Does not affect other edge-properties and only sets :obj:`edge_weights`.
 
