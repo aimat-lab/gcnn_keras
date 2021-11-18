@@ -60,9 +60,9 @@ class ResidualLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Node or edge embedding of shape (batch, [N], F)
         """
-        x = self.dense_1(inputs)
-        x = self.dense_2(x)
-        x = self.add_end([inputs, x])
+        x = self.dense_1(inputs, **kwargs)
+        x = self.dense_2(x, **kwargs)
+        x = self.add_end([inputs, x], **kwargs)
         return x
 
     def get_config(self):
@@ -177,39 +177,39 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         x, rbf, sbf, id_expand = inputs
 
         # Initial transformation
-        x_ji = self.dense_ji(x)
-        x_kj = self.dense_kj(x)
+        x_ji = self.dense_ji(x, **kwargs)
+        x_kj = self.dense_kj(x, **kwargs)
 
         # Transform via Bessel basis
-        rbf = self.dense_rbf1(rbf)
-        rbf = self.dense_rbf2(rbf)
-        x_kj = self.lay_mult1([x_kj, rbf])
+        rbf = self.dense_rbf1(rbf, **kwargs)
+        rbf = self.dense_rbf2(rbf, **kwargs)
+        x_kj = self.lay_mult1([x_kj, rbf], **kwargs)
 
         # Down-project embeddings and generate interaction triplet embeddings
-        x_kj = self.down_projection(x_kj)
-        x_kj = self.lay_gather([x_kj, id_expand])
+        x_kj = self.down_projection(x_kj, **kwargs)
+        x_kj = self.lay_gather([x_kj, id_expand], **kwargs)
 
         # Transform via 2D spherical basis
-        sbf = self.dense_sbf1(sbf)
-        sbf = self.dense_sbf2(sbf)
-        x_kj = self.lay_mult1([x_kj, sbf])
+        sbf = self.dense_sbf1(sbf, **kwargs)
+        sbf = self.dense_sbf2(sbf, **kwargs)
+        x_kj = self.lay_mult1([x_kj, sbf], **kwargs)
 
         # Aggregate interactions and up-project embeddings
-        x_kj = self.lay_pool([rbf, x_kj, id_expand])
-        x_kj = self.up_projection(x_kj)
+        x_kj = self.lay_pool([rbf, x_kj, id_expand], **kwargs)
+        x_kj = self.up_projection(x_kj, **kwargs)
 
         # Transformations before skip connection
-        x2 = self.lay_add1([x_ji, x_kj])
+        x2 = self.lay_add1([x_ji, x_kj], **kwargs)
         for layer in self.layers_before_skip:
-            x2 = layer(x2)
-        x2 = self.final_before_skip(x2)
+            x2 = layer(x2, **kwargs)
+        x2 = self.final_before_skip(x2, **kwargs)
 
         # Skip connection
-        x = self.lay_add2([x, x2])
+        x = self.lay_add2([x, x2],**kwargs)
 
         # Transformations after skip connection
         for layer in self.layers_after_skip:
-            x = layer(x)
+            x = layer(x, **kwargs)
 
         return x
 
@@ -300,12 +300,12 @@ class DimNetOutputBlock(GraphBaseLayer):
         """
         # Calculate edge Update
         n_atoms, x, rbf, idnb_i = inputs
-        g = self.dense_rbf(rbf)
-        x = self.dimnet_mult([g, x])
-        x = self.pool([n_atoms, x, idnb_i])
-        x = self.up_projection(x)
-        x = self.dense_mlp(x)
-        x = self.dense_final(x)
+        g = self.dense_rbf(rbf, **kwargs)
+        x = self.dimnet_mult([g, x], **kwargs)
+        x = self.pool([n_atoms, x, idnb_i], **kwargs)
+        x = self.up_projection(x, **kwargs)
+        x = self.dense_mlp(x, **kwargs)
+        x = self.dense_final(x, **kwargs)
         return x
 
     def get_config(self):

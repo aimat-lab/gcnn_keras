@@ -90,18 +90,18 @@ class AttentionHeadGAT(GraphBaseLayer):
         """
         node, edge, edge_index = inputs
 
-        w_n = self.lay_linear_trafo(node)
-        wn_in = self.lay_gather_in([w_n, edge_index])
-        wn_out = self.lay_gather_out([w_n, edge_index])
+        w_n = self.lay_linear_trafo(node, **kwargs)
+        wn_in = self.lay_gather_in([w_n, edge_index], **kwargs)
+        wn_out = self.lay_gather_out([w_n, edge_index], **kwargs)
         if self.use_edge_features:
-            e_ij = self.lay_concat([wn_in, wn_out, edge])
+            e_ij = self.lay_concat([wn_in, wn_out, edge], **kwargs)
         else:
-            e_ij = self.lay_concat([wn_in, wn_out])
+            e_ij = self.lay_concat([wn_in, wn_out], **kwargs)
         a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch*None,1)
-        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
+        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index], **kwargs)
 
         if self.use_final_activation:
-            h_i = self.lay_final_activ(h_i)
+            h_i = self.lay_final_activ(h_i, **kwargs)
         return h_i
 
     def get_config(self):
@@ -201,20 +201,20 @@ class AttentionHeadGATV2(GraphBaseLayer):
         """
         node, edge, edge_index = inputs
 
-        w_n = self.lay_linear_trafo(node)
-        n_in = self.lay_gather_in([node, edge_index])
-        n_out = self.lay_gather_out([node, edge_index])
-        wn_out = self.lay_gather_out([w_n, edge_index])
+        w_n = self.lay_linear_trafo(node, **kwargs)
+        n_in = self.lay_gather_in([node, edge_index], **kwargs)
+        n_out = self.lay_gather_out([node, edge_index], **kwargs)
+        wn_out = self.lay_gather_out([w_n, edge_index], **kwargs)
         if self.use_edge_features:
-            e_ij = self.lay_concat([n_in, n_out, edge])
+            e_ij = self.lay_concat([n_in, n_out, edge], **kwargs)
         else:
-            e_ij = self.lay_concat([n_in, n_out])
-        a_ij = self.lay_alpha_activation(e_ij)
-        a_ij = self.lay_alpha(a_ij)
-        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
+            e_ij = self.lay_concat([n_in, n_out], **kwargs)
+        a_ij = self.lay_alpha_activation(e_ij, **kwargs)
+        a_ij = self.lay_alpha(a_ij, **kwargs)
+        h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index], **kwargs)
 
         if self.use_final_activation:
-            h_i = self.lay_final_activ(h_i)
+            h_i = self.lay_final_activ(h_i, **kwargs)
         return h_i
 
     def get_config(self):
@@ -312,22 +312,22 @@ class AttentiveHeadFP(GraphBaseLayer):
         node, edge, edge_index = inputs
 
         if self.use_edge_features:
-            n_in = self.lay_gather_in([node, edge_index])
-            n_out = self.lay_gather_out([node, edge_index])
-            n_in = self.lay_fc1(n_in)
-            n_out = self.lay_concat_edge([n_out, edge])
-            n_out = self.lay_fc2(n_out)
+            n_in = self.lay_gather_in([node, edge_index], **kwargs)
+            n_out = self.lay_gather_out([node, edge_index], **kwargs)
+            n_in = self.lay_fc1(n_in, **kwargs)
+            n_out = self.lay_concat_edge([n_out, edge], **kwargs)
+            n_out = self.lay_fc2(n_out, **kwargs)
         else:
-            n_in = self.lay_gather_in([node, edge_index])
-            n_out = self.lay_gather_out([node, edge_index])
+            n_in = self.lay_gather_in([node, edge_index], **kwargs)
+            n_out = self.lay_gather_out([node, edge_index], **kwargs)
 
-        wn_out = self.lay_linear_trafo(n_out)
-        e_ij = self.lay_concat([n_in, n_out])
-        e_ij = self.lay_alpha_activation(e_ij)  # Maybe uses GAT original definition.
+        wn_out = self.lay_linear_trafo(n_out, **kwargs)
+        e_ij = self.lay_concat([n_in, n_out], **kwargs)
+        e_ij = self.lay_alpha_activation(e_ij, **kwargs)  # Maybe uses GAT original definition.
         # a_ij = e_ij
-        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch,None,1) not fully clear in original paper SI.
-        n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index])
-        out = self.lay_final_activ(n_i)
+        a_ij = self.lay_alpha(e_ij, **kwargs)  # Should be dimension (batch,None,1) not fully clear in original paper.
+        n_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index], **kwargs)
+        out = self.lay_final_activ(n_i, **kwargs)
         return out
 
     def get_config(self):
@@ -430,14 +430,14 @@ class PoolingNodesAttentive(GraphBaseLayer):
         """
         node = inputs
 
-        h = self.lay_pool_start(node)
-        wn = self.lay_linear_trafo(node)
+        h = self.lay_pool_start(node, **kwargs)
+        wn = self.lay_linear_trafo(node, **kwargs)
         for _ in range(self.depth):
-            hv = self.lay_gather_s([h, node])
-            ev = self.lay_concat([hv, node])
-            av = self.lay_alpha(ev)
-            cont = self.lay_pool_attention([wn, av])
-            cont = self.lay_final_activ(cont)
+            hv = self.lay_gather_s([h, node], **kwargs)
+            ev = self.lay_concat([hv, node], **kwargs)
+            av = self.lay_alpha(ev, **kwargs)
+            cont = self.lay_pool_attention([wn, av], **kwargs)
+            cont = self.lay_final_activ(cont, **kwargs)
             h, _ = self.lay_gru(cont, h, **kwargs)
 
         out = h
