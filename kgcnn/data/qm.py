@@ -21,7 +21,7 @@ class QMDataset(MemoryGeometricGraphDataset):
     required.
     """
 
-    global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
+    _global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
                           'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20,
                           'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29,
                           'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38,
@@ -35,7 +35,7 @@ class QMDataset(MemoryGeometricGraphDataset):
                           'No': 102, 'Lr': 103, 'Rf': 104, 'Db': 105, 'Sg': 106, 'Bh': 107, 'Hs': 108, 'Mt': 109,
                           'Ds': 110, 'Rg': 111, 'Cn': 112, 'Nh': 113, 'Fl': 114, 'Mc': 115, 'Lv': 116, 'Ts': 117,
                           'Og': 118, 'Uue': 119}
-    inverse_global_proton_dict = {value: key for key, value in global_proton_dict.items()}
+    inverse_global_proton_dict = {value: key for key, value in _global_proton_dict.items()}
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 1, length: int = None, file_directory: str = None):
@@ -121,7 +121,7 @@ class QMDataset(MemoryGeometricGraphDataset):
         xyz_list = read_xyz_file(filepath)
         symbol = [np.array([x[0] for x in y]) for y in xyz_list]
         coords = [np.array([x[1:4] for x in y], dtype="float") for y in xyz_list]
-        nodes = [np.array([self.global_proton_dict[x[0]] for x in y], dtype="int") for y in xyz_list]
+        nodes = [np.array([self._global_proton_dict[x[0]] for x in y], dtype="int") for y in xyz_list]
         self.length = len(symbol)
         self.node_coordinates = coords
         self.node_symbol = symbol
