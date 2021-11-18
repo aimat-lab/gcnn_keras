@@ -97,7 +97,7 @@ class AttentionHeadGAT(GraphBaseLayer):
             e_ij = self.lay_concat([wn_in, wn_out, edge], **kwargs)
         else:
             e_ij = self.lay_concat([wn_in, wn_out], **kwargs)
-        a_ij = self.lay_alpha(e_ij)  # Should be dimension (batch*None,1)
+        a_ij = self.lay_alpha(e_ij, **kwargs)  # Should be dimension (batch*None,1)
         h_i = self.lay_pool_attention([node, wn_out, a_ij, edge_index], **kwargs)
 
         if self.use_final_activation:

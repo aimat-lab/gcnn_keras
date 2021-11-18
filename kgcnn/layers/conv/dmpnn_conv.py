@@ -10,7 +10,7 @@ from kgcnn.layers.keras import Subtract
 class DMPNNGatherEdgesPairs(GraphBaseLayer):
     """Gather edge pairs that also works for invalid indices given a certain pair, i.e. if a edge does not have its
     reverse counterpart in the edge indices list.
-    This is used by `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ .
+    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ .
 
     """
 

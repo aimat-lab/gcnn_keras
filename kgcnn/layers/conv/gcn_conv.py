@@ -8,7 +8,7 @@ from kgcnn.layers.keras import Activation, Dense
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
 class GCN(GraphBaseLayer):
-    r"""Graph convolution according to Kipf et al.
+    r"""Graph convolution according to `Kipf et al <https://arxiv.org/abs/1609.02907>`_ .
 
     Computes graph convolution as :math:`\sigma(A_s(WX+b))` where :math:`A_s` is the precomputed and scaled adjacency
     matrix. The scaled adjacency matrix is defined by :math:`A_s = D^{-0.5} (A + I) D^{-0.5}` with the degree
@@ -53,7 +53,6 @@ class GCN(GraphBaseLayer):
         self.normalize_by_weights = normalize_by_weights
         self.pooling_method = pooling_method
         self.units = units
-
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
@@ -61,13 +60,10 @@ class GCN(GraphBaseLayer):
         pool_args = {"pooling_method": pooling_method, "normalize_by_weights": normalize_by_weights}
 
         # Layers
-        self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_dense = Dense(units=self.units, activation='linear',
-                               input_tensor_type=self.input_tensor_type, ragged_validate=self.ragged_validate,
-                               **kernel_args)
-        self.lay_pool = PoolingWeightedLocalEdges(**pool_args, **self._kgcnn_info)
-        self.lay_act = Activation(activation, ragged_validate=self.ragged_validate,
-                                  input_tensor_type=self.input_tensor_type)
+        self.lay_gather = GatherNodesOutgoing()
+        self.lay_dense = Dense(units=self.units, activation='linear', **kernel_args)
+        self.lay_pool = PoolingWeightedLocalEdges(**pool_args)
+        self.lay_act = Activation(activation)
 
     def build(self, input_shape):
         """Build layer."""
@@ -87,10 +83,10 @@ class GCN(GraphBaseLayer):
             tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
         """
         node, edges, edge_index = inputs
-        no = self.lay_dense(node)
-        no = self.lay_gather([no, edge_index])
-        nu = self.lay_pool([node, no, edge_index, edges])  # Summing for each node connection
-        out = self.lay_act(nu)
+        no = self.lay_dense(node, **kwargs)
+        no = self.lay_gather([no, edge_index], **kwargs)
+        nu = self.lay_pool([node, no, edge_index, edges], **kwargs)  # Summing for each node connection
+        out = self.lay_act(nu, **kwargs)
         return out
 
     def get_config(self):

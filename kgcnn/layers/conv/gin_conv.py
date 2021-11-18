@@ -8,9 +8,11 @@ from kgcnn.layers.keras import Add
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GIN')
 class GIN(GraphBaseLayer):
-    r"""Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
+    r"""Convolutional unit of `Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
+    <https://arxiv.org/abs/1810.00826>`_ .
 
-    Computes graph convolution as
+    Computes graph convolution as:
+
     :math:`h_\nu^{(k)} = \phi^{(k)} ((1+\epsilon^{(k)}) h_\nu^{k-1} + \sum\limits_{u\in N(\nu)}) h_u^{k-1}`.
     with optional learnable :math:`\epsilon^{(k)}`
     Note: The non-linear mapping :math:`\phi^{(k)}`, usually an MLP, is not included in this layer.
@@ -28,13 +30,12 @@ class GIN(GraphBaseLayer):
         super(GIN, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.epsilon_learnable = epsilon_learnable
-
         pool_args = {"pooling_method": pooling_method}
 
         # Layers
-        self.lay_gather = GatherNodesOutgoing(**self._kgcnn_info)
-        self.lay_pool = PoolingLocalEdges(**pool_args, **self._kgcnn_info)
-        self.lay_add = Add(**self._kgcnn_info)
+        self.lay_gather = GatherNodesOutgoing()
+        self.lay_pool = PoolingLocalEdges(**pool_args)
+        self.lay_add = Add()
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,
@@ -57,11 +58,11 @@ class GIN(GraphBaseLayer):
             tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
         """
         node, edge_index = inputs
-        ed = self.lay_gather([node, edge_index])
-        nu = self.lay_pool([node, ed, edge_index])  # Summing for each node connection
+        ed = self.lay_gather([node, edge_index], **kwargs)
+        nu = self.lay_pool([node, ed, edge_index], **kwargs)  # Summing for each node connection
         no = (1+self.eps_k)*node
         # no = node
-        out = self.lay_add([no, nu])
+        out = self.lay_add([no, nu], **kwargs)
         return out
 
     def get_config(self):
