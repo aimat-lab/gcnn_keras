@@ -35,7 +35,7 @@ class QMDataset(MemoryGeometricGraphDataset):
                           'No': 102, 'Lr': 103, 'Rf': 104, 'Db': 105, 'Sg': 106, 'Bh': 107, 'Hs': 108, 'Mt': 109,
                           'Ds': 110, 'Rg': 111, 'Cn': 112, 'Nh': 113, 'Fl': 114, 'Mc': 115, 'Lv': 116, 'Ts': 117,
                           'Og': 118, 'Uue': 119}
-    inverse_global_proton_dict = {value: key for key, value in _global_proton_dict.items()}
+    _inverse_global_proton_dict = {value: key for key, value in _global_proton_dict.items()}
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 1, length: int = None, file_directory: str = None):
