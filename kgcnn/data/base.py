@@ -470,27 +470,27 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.range_indices = edge_idx
         return self
 
-    def set_angle(self, prefix_indices: str = "range_"):
+    def set_angle(self, prefix_indices: str = "range"):
         r"""Compute angles between geometric range connections defined by :obj:`range_indices` using
         :obj:`node_coordinates` into :obj:`angle_attributes`.
         Which edges were used to calculate angles is stored in :obj:`angle_indices`.
-        One can also change :obj:`prefix_indices` to `edge_...` to compute angles between edges instead
+        One can also change :obj:`prefix_indices` to `edge` to compute angles between edges instead
         of range connections.
 
         .. warning::
             Angles are not recomputed if you use :obj:`set_range` or redefine edges.
 
         Args:
-            prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is `range_...`.
+            prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is `range`.
 
         Returns:
             self
         """
         # We need to sort indices for the following operation.
-        self._operate_on_edges(sort_edge_indices, _prefix_attributes="range_")
+        self._operate_on_edges(sort_edge_indices, _prefix_attributes=prefix_indices + "_")
 
         # Compute angles
-        e_indices = getattr(self, prefix_indices+"indices")
+        e_indices = getattr(self, prefix_indices+"_indices")
         a_indices = []
         a_angle = []
         for i, x in enumerate(e_indices):
