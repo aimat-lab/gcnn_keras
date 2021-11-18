@@ -10,6 +10,7 @@ from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 class PoolingLocalEdges(GraphBaseLayer):
     r"""The main aggregation or pooling function to collect all edges or edge-like embeddings per node,
     corresponding to receiving node assigned by edge indices.
+    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
     Apply e.g. sum or mean on edges with node target ID taken from the (edge) index_tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
@@ -59,15 +60,17 @@ class PoolingLocalEdges(GraphBaseLayer):
                                           to_indexing='batch',
                                           from_indexing=self.node_indexing)
 
-        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
+        nodind = shiftind[:, self.pooling_index]  # Pick index eg. ingoing
         dens = edge
         if not self.is_sorted:
-            # Sort edgeindices
             node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
             nodind = tf.gather(nodind, node_order, axis=0)
             dens = tf.gather(dens, node_order, axis=0)
+
         # Pooling via e.g. segment_sum
         out = segment_ops_by_name(self.pooling_method, dens, nodind)
+
+        # If not unsort_segment operation need a scatter here.
         if self.has_unconnected:
             out = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
                                 tf.concat([tf.shape(nod)[:1], tf.shape(out)[1:]], axis=0))
@@ -87,11 +90,18 @@ PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
 class PoolingWeightedLocalEdges(GraphBaseLayer):
-    """Pooling all edges or message/edge-like features per node, corresponding to node assigned by edge_indices.
-    
-    Apply e.g. segment_mean fo edges with ID's taken from `index_tensor`.
-    Note: `index_tensor[:, :, pooling_index]` are sorted for segment-operation.
-    
+    r"""The main aggregation or pooling function to collect all edges or edge-like embeddings per node,
+    corresponding to receiving node assigned by edge indices.
+    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
+
+    Apply e.g. sum or mean on edges with node target ID taken from the (edge) index_tensor, that has a list of
+    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
+
+    .. note::
+        In addition of aggregating edge embeddings a weight tensor must be supplied that scales each edge before
+        pooling. Must broadcast.
+
     Args:
         pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
@@ -145,7 +155,6 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         nodind = shiftind[:, self.pooling_index]
 
         if not self.is_sorted:
-            # Sort edgeindices
             node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
             nodind = tf.gather(nodind, node_order, axis=0)
             dens = tf.gather(dens, node_order, axis=0)
