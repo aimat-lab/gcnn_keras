@@ -96,7 +96,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 class KerasWrapperBase(GraphBaseLayer):
     r"""Base layer for wrapping tf.keras.layers to support ragged tensors and to optionally call original layer
     only on the values of :obj:`RaggedTensor`. If inputs is a list, then a lazy operation (e.g. add, concat)
-    is performed if :obj:`ragged_validate` is set to :obj:`False`.
+    is performed if :obj:`ragged_validate` is set to :obj:`False` on the values too.
 
     """
 
