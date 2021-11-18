@@ -20,7 +20,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
     molecular coordinate or mol-blocks stored in a single SDF file with the base-name of the csv :obj:``file_name``.
 
     The selection of smiles and whether conformers should be generated is handled by sub-classes or specified in the
-    the methods :obj:`prepare_data()` and :obj:`read_in_memory()`, see the documentation of the methods
+    the methods :obj:`prepare_data` and :obj:`read_in_memory`, see the documentation of the methods
     for further details.
     """
 
@@ -38,6 +38,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         MemoryGeometricGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                              file_name=file_name, verbose=verbose)
         self.data_keys = None
+        self.valid_molecule_id = None
 
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
                             make_conformers: bool = True):
@@ -70,7 +71,10 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
                      make_conformers: bool = True, add_hydrogen: bool = True):
-        r"""Pre-computation of molecular structure information and optionally conformers.
+        r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
+        from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
+        file name. The class requires RDKit.
+        Smiles that are not compatible with RDKit result in an empty mol-block in the SDF file.
 
         Args:
             overwrite (bool): Overwrite existing database mol-json file. Default is False.
@@ -99,8 +103,12 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
 
     def read_in_memory(self, has_conformers: bool = True, label_column_name: str = None,
                        add_hydrogen: bool = True):
-        r"""Load list of molecules from cached json-file in into memory. And
-        already extract basic graph information. No further attributes are computed as default.
+        r"""Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
+        path information in the constructor of this class. Extract basic graph information from mol-blocks.
+        No further attributes are computed as default. Use :obj:`set_attributes` for this purpose.
+        It further checks the csv-file for graph labels specified by :obj:`label_column_name`.
+        Labels that do not have valid smiles or molecule in the SDF-file are also skipped.
+        The assignment to original IDs is stored in :obj:`valid_molecule_id`.
 
         Args:
             has_conformers (bool): If molecules need 3D coordinates pre-computed.
@@ -146,6 +154,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         mols = dummy_load_sdf_file(mol_path)
 
         # Main loop to read molecules from mol-block
+        valid_molecule_id = []
         atoms = []
         coords = []
         number = []
@@ -179,6 +188,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             counter_iter += 1
             if i % 1000 == 0:
                 self._log(" ... read molecules {0} from {1}".format(i, num_mols))
+            valid_molecule_id.append(i)
 
         self.node_symbol = atoms
         self.node_coordinates = coords if has_conformers else None
@@ -188,18 +198,19 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.length = counter_iter
         self.graph_labels = graph_labels
         self.edge_number = edge_number
+        self.valid_molecule_id = valid_molecule_id
 
         self._log("done")
 
         return self
 
     def set_attributes(self,
-                       nodes=None,
-                       edges=None,
-                       graph=None,
-                       encoder_nodes=None,
-                       encoder_edges=None,
-                       encoder_graph=None,
+                       nodes: list = None,
+                       edges: list = None,
+                       graph: list = None,
+                       encoder_nodes: dict = None,
+                       encoder_edges: dict = None,
+                       encoder_graph: dict = None,
                        add_hydrogen: bool = False,
                        has_conformers: bool = True,
                        verbose: int = 1):
@@ -263,6 +274,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             encoder_graph[key] = self._deserialize_encoder(value)
 
         # Reset all attributes
+        valid_molecule_id = []
         graph_attributes = []
         node_attributes = []
         edge_attributes = []
@@ -300,6 +312,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             counter_iter += 1
             if i % 1000 == 0:
                 self._log(" ... read molecules {0} from {1}".format(i, num_mols))
+            valid_molecule_id.append(i)
 
         self.graph_size = [len(x) for x in node_attributes]
         self.graph_attributes = graph_attributes
@@ -310,6 +323,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.node_symbol = node_symbol
         self.node_number = node_number
         self.length = counter_iter
+        self.valid_molecule_id = valid_molecule_id
 
         if verbose > 0:
             print("done")

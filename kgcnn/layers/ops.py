@@ -24,7 +24,7 @@ class ExpandDims(GraphBaseLayer):
                 return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
             else:
                 print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
-        # Try normal operaton
+        # Try normal operation
         return tf.expand_dims(inputs, axis=self.axis)
 
     def get_config(self):

@@ -16,7 +16,8 @@ class QMDataset(MemoryGeometricGraphDataset):
     The class inherits :obj:`MemoryGeometricGraphDataset`.
 
     At the moment, there is no connection to :obj:`MoleculeNetDataset` since usually for geometric data, the usage is
-    related to learning quantum properties like energy, orbitals or forces.
+    related to learning quantum properties like energy, orbitals or forces and no chemical feature information is
+    required.
     """
 
     global_proton_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
@@ -37,7 +38,7 @@ class QMDataset(MemoryGeometricGraphDataset):
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 1, length: int = None, file_directory: str = None):
-        r"""Default initialization. Must be called from sub-class.
+        r"""Default initialization. File information on the location of the dataset on disk should be provided here.
 
         Args:
             data_directory (str): Full path to directory of the dataset. Default is None.
@@ -72,7 +73,7 @@ class QMDataset(MemoryGeometricGraphDataset):
         return mol_list
 
     def prepare_data(self, overwrite: bool = False):
-        r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file.
+        r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
 
         Args:
             overwrite (bool): Overwrite existing database SDF file. Default is False.
@@ -106,7 +107,7 @@ class QMDataset(MemoryGeometricGraphDataset):
 
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""
-        return "".join(self.file_name.split(".")[:-1]) + ".sdf"
+        return os.path.splitext(self.file_name)[0] + ".sdf"
 
     def read_in_memory(self):
         """Read xyz-file geometric information into memory.

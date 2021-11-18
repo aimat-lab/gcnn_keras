@@ -3,14 +3,16 @@ import os
 import shutil
 import tarfile
 import zipfile
-
 import requests
 
 
 class DownloadDataset:
-    r"""Base layer for datasets. Provides class-method functions for download and unzip of the data.
-    Dataset-specific functions like prepare_data() must be implemented in subclasses.
-    Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets.
+    r"""Download class for datasets. Provides static-methods and functions for download and unzip of the data.
+    They are intentionally kept general and could also be used outside of this class definition.
+    Dataset-specific functions like :obj:`prepare_data` must be implemented in subclasses.
+    Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
+    as default. Classes in :obj:`kgcnn.data.datasets` inherit from this class, but :obj:`DownloadDataset` can also be
+    used as a member.
     """
 
     def __init__(self,
@@ -25,20 +27,23 @@ class DownloadDataset:
                  extract_gz: bool = False,
                  reload: bool = False,
                  verbose: int = 1,
-                 data_main_dir=os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets"),
+                 data_main_dir: str = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets"),
                  **kwargs):
-        r"""Base initialization function for downloading and extracting the data.
+        r"""Base initialization function for downloading and extracting the data. The arguments to the constructor
+        determine what to download and whether to unpack the download. The main function :obj:`download_dataset_to_disk`
+        is already called in the constructor.
 
         Args:
-            dataset_name (str): None.
-            download_file_name=None (str): None.
-            data_directory_name (str): None.
-            unpack_directory_name (str): None.
-            extract_file_name (str): None.
-            download_url (str): None.
-            unpack_tar (bool): False.
-            unpack_zip (bool): False.
-            extract_gz (bool): False.
+            dataset_name (str): Name of the dataset to download (optional). Default is None.
+            download_file_name (str): Name of the file that the source is downloaded to. Default is None.
+            data_directory_name (str): Name of the data directory in data_main_dir the file is saved. Default is None.
+            unpack_directory_name (str): The name of a new directory in data_directory_name to unpack archive.
+                Default is None.
+            extract_file_name (str): Name of a gz-file to extract. Default is None.
+            download_url (str): Url for file to download. Default is None.
+            unpack_tar (bool): Whether to unpack a tar-archive. Default is False.
+            unpack_zip (bool): Whether to unpack a zip-archive. Default is False.
+            extract_gz (bool): Whether to unpack a gz-archive. Default is False.
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
@@ -55,11 +60,14 @@ class DownloadDataset:
         self.verbose = verbose
         self.download_reload = reload
 
+        if len(kwargs) > 0:
+            print("WARNING:kgcnn: Unknown kwargs for `DownloadDataset`: {}".format(list(kwargs.keys())))
+
         # Make the download already in init.
         self.download_dataset_to_disk()
 
     def download_dataset_to_disk(self):
-        """Main download function to store and unpack dataset."""
+        """Main download function to run the download and unpack of the dataset. Defined by attributes in self."""
 
         # Some datasets do not offer all information or require multiple files.
         if self.verbose > 1:
@@ -84,10 +92,11 @@ class DownloadDataset:
 
         if self.extract_gz:
             self.extract_gz_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.extract_file_name, overwrite=self.download_reload, verbose=self.verbose)
+                                 self.extract_file_name, overwrite=self.download_reload, verbose=self.verbose,
+                                 print_context="INFO:kgcnn: ")
 
-    @classmethod
-    def setup_dataset_main(cls, data_main_dir, verbose=1):
+    @staticmethod
+    def setup_dataset_main(data_main_dir, verbose=1):
         """Make the main-directory for all datasets to store data.
 
         Args:
@@ -98,8 +107,8 @@ class DownloadDataset:
         if verbose > 0:
             print("INFO:kgcnn: Dataset directory located at", data_main_dir)
 
-    @classmethod
-    def setup_dataset_dir(cls, data_main_dir, data_directory, verbose=1):
+    @staticmethod
+    def setup_dataset_dir(data_main_dir: str, data_directory: str, verbose: int = 1):
         """Make directory for each dataset.
 
         Args:
@@ -113,8 +122,8 @@ class DownloadDataset:
             if verbose > 0:
                 print("INFO:kgcnn: Dataset directory found... done")
 
-    @classmethod
-    def download_database(cls, path, download_url, filename, overwrite=False, verbose=1):
+    @staticmethod
+    def download_database(path: str, download_url: str, filename: str, overwrite: bool = False, verbose: int = 1):
         """Download dataset file.
 
         Args:
@@ -139,8 +148,8 @@ class DownloadDataset:
                 print("INFO:kgcnn: Dataset found... done")
         return os.path.join(path, filename)
 
-    @classmethod
-    def unpack_tar_file(cls, path, filename, unpack_directory, overwrite=False, verbose=1):
+    @staticmethod
+    def unpack_tar_file(path: str, filename: str, unpack_directory: str, overwrite: bool = False, verbose: int = 1):
         """Extract tar-file.
 
         Args:
@@ -183,8 +192,8 @@ class DownloadDataset:
 
         return os.path.join(path, unpack_directory)
 
-    @classmethod
-    def unpack_zip_file(cls, path, filename, unpack_directory, overwrite=False, verbose=1):
+    @staticmethod
+    def unpack_zip_file(path: str, filename: str, unpack_directory: str, overwrite: bool = False, verbose: int = 1):
         """Extract zip-file.
 
         Args:
@@ -221,9 +230,9 @@ class DownloadDataset:
 
         return os.path.join(path, unpack_directory)
 
-    @classmethod
-    def extract_gz_file(cls, path: str, filename: str, out_filename: str = None,
-                        overwrite: bool = False, verbose: int = 1):
+    @staticmethod
+    def extract_gz_file(path: str, filename: str, out_filename: str = None,
+                        overwrite: bool = False, verbose: int = 1, print_context: str = ""):
         """Extract gz-file.
 
         Args:
@@ -232,6 +241,7 @@ class DownloadDataset:
             out_filename (str): Name of the extracted file.
             overwrite (bool): Overwrite existing database. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            print_context (str): Information of context to print for status. Default is "".
 
         Returns:
             os.path: Filepath of the extracted file.
@@ -241,14 +251,14 @@ class DownloadDataset:
 
         if os.path.exists(os.path.join(path, out_filename)):
             if verbose > 0:
-                print("INFO:kgcnn: Extracted file exists... done")
+                print(print_context + "Extracted file exists ... done")
             if not overwrite:
                 if verbose > 0:
-                    print("INFO:kgcnn: Not extracting gz-file ... stopped")
+                    print(print_context + "Not extracting gz-file ... stopped")
                 return os.path.join(path, out_filename)
 
         if verbose > 0:
-            print("INFO:kgcnn: Extract zgz file ... ", end='', flush=True)
+            print(print_context + "Extract gz-file ... ", end='', flush=True)
 
         with gzip.open(os.path.join(path, filename), 'rb') as f_in:
             with open(os.path.join(path, out_filename), 'wb') as f_out:

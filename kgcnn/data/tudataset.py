@@ -3,7 +3,6 @@ import os
 
 from kgcnn.data.base import MemoryGraphDataset
 
-
 # TUDataset: A collection of benchmark datasets for learning with graphs
 # by Christopher Morris and Nils M. Kriege and Franka Bause and Kristian Kersting and Petra Mutzel and Marion Neumann
 # http://graphlearning.io
@@ -12,18 +11,19 @@ from kgcnn.data.base import MemoryGraphDataset
 class GraphTUDataset(MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
     <https://chrsmrrs.github.io/datasets>`_. Datasets contain non-isomorphic graphs. This general base class has
-    functionality to load TUDatasets in a generic way.
+    functionality to load TUDatasets in a generic way. The datasets are already in a graph-like format and do not
+    need further processing via e.g. `prepare data`.
 
     .. note::
-        Note that sub-classes of `GraphTUDataset2020` in :obj:``kgcnn.data.datasets`` downloads datasets,
-        There are also further TU-datasets in :obj:``kgcnn.data.datasets``, if further processing is used in literature.
+        Note that sub-classes of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
+        There are also further TU-datasets in :obj:`kgcnn.data.datasets`, if further processing is used in literature.
         Not all datasets can provide all types of graph properties like `edge_attributes` etc.
 
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  file_directory: str = None, verbose: int = 1):
-        r"""Initialize a `GraphTUDataset` instance from file.
+        r"""Initialize a :obj:`GraphTUDataset` instance from file.
 
         Args:
             data_directory (str): Full path to directory of the dataset. Default is None.
@@ -166,8 +166,8 @@ class GraphTUDataset(MemoryGraphDataset):
 
         return self
 
-    @classmethod
-    def read_csv_simple(cls, filepath, delimiter=",", dtype=float):
+    @staticmethod
+    def read_csv_simple(filepath: str, delimiter: str= ",", dtype=float):
         """Very simple python-only function to read in a csv-file from file.
 
         Args:
