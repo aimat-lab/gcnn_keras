@@ -6,7 +6,7 @@ except ModuleNotFoundError:
 
 from kgcnn.data.base import MemoryGeometricGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
-from kgcnn.mol.periodic import parse_cif_file_to_structures, convert_structures_as_dict, structure_get_properties, \
+from kgcnn.mol.pymatgen import parse_cif_file_to_structures, convert_structures_as_dict, structure_get_properties, \
     structure_get_range_neighbors
 
 

@@ -3,8 +3,9 @@ import numpy as np
 
 from kgcnn.data.base import MemoryGeometricGraphDataset
 from kgcnn.utils.adj import add_edges_reverse_indices
-from kgcnn.mol.convert import convert_xyz_to_mol_ob, convert_list_to_xyz_str, read_xyz_file, \
+from kgcnn.mol.convert import convert_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, parse_mol_str, dummy_load_sdf_file
+from kgcnn.mol.openbabel import convert_xyz_to_mol_ob
 
 
 class QMDataset(MemoryGeometricGraphDataset):

@@ -474,13 +474,14 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         r"""Compute angles between geometric range connections defined by :obj:`range_indices` using
         :obj:`node_coordinates` into :obj:`angle_attributes`.
         Which edges were used to calculate angles is stored in :obj:`angle_indices`.
-        One can also change `prefix_indices` to "edge_..." to compute angles between edges instead of range connections.
+        One can also change :obj:`prefix_indices` to 'edge_...' to compute angles between edges instead
+        of range connections.
 
         .. warning::
             Angles are not recomputed if you use :obj:`set_range` or redefine edges.
 
         Args:
-            prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is "range_...".
+            prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is 'range_...'.
 
         Returns:
             self
