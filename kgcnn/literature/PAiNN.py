@@ -7,7 +7,7 @@ from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
 from kgcnn.layers.keras import Add
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra

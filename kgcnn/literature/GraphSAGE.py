@@ -3,9 +3,9 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Concatenate, LayerNormalization, BatchNormalization
+from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
+from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
 # 'Inductive Representation Learning on Large Graphs'

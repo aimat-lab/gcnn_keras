@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.pool.pooling import PoolingWeightedLocalEdges
+from kgcnn.layers.pooling import PoolingWeightedLocalEdges
 from kgcnn.layers.keras import Activation, Dense
 
 

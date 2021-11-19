@@ -1,12 +1,11 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.connect import AdjacencyPower
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense, Activation, Add
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingNodes, PoolingLocalEdges
-from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK
+from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
+from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Graph U-Nets

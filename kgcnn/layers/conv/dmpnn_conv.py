@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.pool.pooling import PoolingLocalEdges
+from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.keras import Subtract
 
 

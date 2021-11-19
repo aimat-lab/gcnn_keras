@@ -4,7 +4,7 @@ from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.keras import Dense, Add, Dropout
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingGlobalEdges, PoolingNodes
+from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 

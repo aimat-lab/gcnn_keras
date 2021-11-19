@@ -4,7 +4,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.keras import Concatenate, LayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodes
-from kgcnn.layers.pool.pooling import PoolingLocalMessages, PoolingLocalEdgesLSTM
+from kgcnn.layers.pooling import PoolingLocalMessages, PoolingLocalEdgesLSTM
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageNodeLayer')

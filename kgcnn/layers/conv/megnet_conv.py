@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.keras import Dense, Concatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
-from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
+from kgcnn.layers.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')

@@ -57,7 +57,7 @@ class GatherEmbedding(GraphBaseLayer):
                 return out
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
-        # Works in tf.__version__>=2.4
+        # Works in tf.__version__>=2.4 now!
         out = tf.gather(inputs[0], inputs[1], batch_dims=1, axis=self.axis)
         if self.concat_axis is not None:
             out = tf.concat([tf.gather(out, i, axis=self.concat_axis) for i in range(out.shape[self.concat_axis])],

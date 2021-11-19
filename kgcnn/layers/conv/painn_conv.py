@@ -4,12 +4,11 @@ import tensorflow.keras as ks
 from kgcnn.ops.axis import get_positive_axis
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.pool.pooling import PoolingLocalEdges
+from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.keras import Add, Multiply, Dense, Concatenate
 from kgcnn.layers.ops import ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.embedding import SplitEmbedding
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNconv')
@@ -358,4 +357,38 @@ class EquivariantInitialize(GraphBaseLayer):
         """Update layer config."""
         config = super(EquivariantInitialize, self).get_config()
         config.update({"dim": self.dim})
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='SplitEmbedding')
+class SplitEmbedding(GraphBaseLayer):
+    def __init__(self,
+                 num_or_size_splits,
+                 axis=-1,
+                 num=None,
+                 **kwargs):
+        super(SplitEmbedding, self).__init__(**kwargs)
+        # self._supports_ragged_inputs = True
+        self.num_or_size_splits = num_or_size_splits
+        self.axis = axis
+        self.out_num = num
+
+    def call(self, inputs, **kwargs):
+        """Split embeddings across feature dimension e.g. `axis=-1`."""
+        if isinstance(inputs, tf.RaggedTensor):
+            if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
+                value_tensor = inputs.values  # will be Tensor
+                out_tensor = tf.split(value_tensor, self.num_or_size_splits, axis=self.axis, num=self.out_num)
+                return [tf.RaggedTensor.from_row_splits(x, inputs.row_splits, validate=self.ragged_validate) for x in
+                        out_tensor]
+            else:
+                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting tf.split... ")
+
+        out = tf.split(inputs, self.num_or_size_splits, axis=self.axis, num=self.out_num)
+        return out
+
+    def get_config(self):
+        config = super(SplitEmbedding, self).get_config()
+        config.update({"num_or_size_splits": self.num_or_size_splits, "axis": self.axis, "num": self.out_num
+                       })
         return config

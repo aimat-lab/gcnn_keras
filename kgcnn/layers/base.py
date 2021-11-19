@@ -77,7 +77,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         else:
             self._build_input_shape_check(input_shape, 0)
 
-    def call_on_ragged_values(self, inputs, fun, axis=None, **kwargs):
+    def call_on_ragged_values(self, inputs, fun, *args, axis=None, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`,
         if :obj:`inputs` is a ragged tensors with ragged rank of one, or a list of ragged tensors. The fallback
         is to call fun directly on inputs. If axis is provided reduces the target axis by one for call of fun on
@@ -87,6 +87,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             inputs (tf.RaggedTensor, list): Tensor input or list of tensors.
             fun (callable): Callable function that accepts inputs and kwargs.
             axis (int): Target axis. Default is None.
+            args: Additional args for fun.
             kwargs: Additional kwargs for fun.
 
         Returns:

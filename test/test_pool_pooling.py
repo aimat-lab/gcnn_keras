@@ -3,8 +3,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.pool.pooling import PoolingLocalEdgesLSTM
-from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
+from kgcnn.layers.pooling import PoolingLocalEdgesLSTM
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.keras import Concatenate
 

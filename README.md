@@ -95,7 +95,7 @@ Models can be set up in a functional way. Example message passing from fundament
 import tensorflow.keras as ks
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.keras import Dense, Concatenate  # ragged support
-from kgcnn.layers.pool.pooling import PoolingLocalMessages, PoolingNodes
+from kgcnn.layers.pooling import PoolingLocalMessages, PoolingNodes
 
 n = ks.layers.Input(shape=(None, 3), name='node_input', dtype="float32", ragged=True)
 ei = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)

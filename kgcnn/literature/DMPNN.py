@@ -1,10 +1,10 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
+from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.keras import Dense, Concatenate, Activation, Add, Dropout
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 

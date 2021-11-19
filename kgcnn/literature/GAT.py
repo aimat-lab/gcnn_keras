@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGAT
 from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingNodes
+from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Graph Attention Networks

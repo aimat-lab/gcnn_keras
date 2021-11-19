@@ -11,10 +11,12 @@ class ChangeTensorType(GraphBaseLayer):
     """Layer to change the ragged tensor representation into tensor type information.
 
     The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-    The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs or zero padded graphs (batch, N, F).
+    The RaggedTensor has shape (batch, None, F). The dense tensor in case of equal sized graphs or zero padded
+    graphs has shape (batch, N, F).
     For disjoint representation (values, partition), the embeddings are given by
     a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
-    "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information.
+    "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information, which effectively keeps
+    the batch assignment.
 
     Args:
         partition_type (str): Partition tensor type. Default is "row_length".
@@ -80,7 +82,6 @@ class ChangeIndexing(GraphBaseLayer):
         Flatten operation changes index tensor as [[0, 1, 2], [0, 1], [0, 1]] to [0, 1, 2, 0, 1, 0, 1] with
         requires a subsequent index-shift of [0, 1, 2, 1, 1, 0, 1] to [0, 1, 2, 3+0, 3+1, 5+0, 5+1].
         This is equivalent to a single graph with disconnected sub-graphs.
-        Therefore tf.gather will find the correct nodes for a flatten 1D tensor.
     
     Args:
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.

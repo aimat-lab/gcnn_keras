@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import unittest
 
-from kgcnn.layers.connect import AdjacencyPower
+from kgcnn.layers.pool.topk import AdjacencyPower
 
 nods = tf.ragged.constant([[[5.0],[5.0],[5.0]],[[5.0],[5.0],[5.0]]],ragged_rank=1)
 inds = tf.ragged.constant([[[0,1],[0,2],[1,0],[2,0]],[[0,0],[1,1],[2,2]]],ragged_rank=1)

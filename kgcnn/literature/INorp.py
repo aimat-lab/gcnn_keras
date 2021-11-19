@@ -4,7 +4,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.keras import Concatenate, Dense
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.pool.pooling import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
