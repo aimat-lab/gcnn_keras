@@ -214,6 +214,7 @@ class PoolingTopK(GraphBaseLayer):
         })
         return config
 
+
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='UnPoolingTopK')
 class UnPoolingTopK(GraphBaseLayer):
     """Layer for un-pooling of nodes from PoolingTopK.

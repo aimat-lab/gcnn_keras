@@ -5,7 +5,7 @@ import kgcnn.ops.activ
 
 class GraphBaseLayer(tf.keras.layers.Layer):
     r"""Base layer for graph layers used in :obj:`kgcnn` that holds some additional information about the graph, which
-    could improve performance, if set differently.
+    could improve performance for some layers, if set differently.
 
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
@@ -62,7 +62,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         return config
 
     def _build_input_shape_check(self, input_shape, input_position):
-        """Simply intercept of input type check."""
+        """Simple intercept of input type check."""
         if isinstance(input_shape, tf.TensorShape):
             if input_shape[-1] is None:
                 print("WARNING:kgcnn: Layer {0} has undefined inner dimension {1} for input {2}".format(
@@ -76,6 +76,23 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 self._build_input_shape_check(ips, i)
         else:
             self._build_input_shape_check(input_shape, 0)
+
+    def call_on_ragged_values(self, inputs, fun, axis=None, **kwargs):
+        r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`,
+        if :obj:`inputs` is a ragged tensors with ragged rank of one, or a list of ragged tensors. The fallback
+        is to call fun directly on inputs. If axis is provided reduces the target axis by one for call of fun on
+        value tensor of inputs. For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`.
+
+        Args:
+            inputs (tf.RaggedTensor, list): Tensor input or list of tensors.
+            fun (callable): Callable function that accepts inputs and kwargs.
+            axis (int): Target axis. Default is None.
+            kwargs: Additional kwargs for fun.
+
+        Returns:
+            tf.RaggedTensor: Output of fun.
+        """
+        pass
 
 
 class KerasWrapperBase(GraphBaseLayer):
@@ -107,7 +124,7 @@ class KerasWrapperBase(GraphBaseLayer):
         return config
 
     def call(self, inputs, **kwargs):
-        """Call on values of the ragged input or fall back to keras layer.
+        """Call on values of the ragged input or fall back to keras layer call.
 
         Args:
             inputs (tf.RaggedTensor, list): Ragged tensor of list of tensors to call wrapped layer on.

@@ -8,11 +8,11 @@ from kgcnn.layers.base import GraphBaseLayer
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
 class ChangeTensorType(GraphBaseLayer):
-    """Layer to change graph representation tensor type.
+    """Layer to change the ragged tensor representation into tensor type information.
 
     The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
-    The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs (batch, N, F).
-    For disjoint representation (values, partition), the node embeddings are given by
+    The RaggedTensor has shape (batch, None, F) or in case of equal sized graphs or zero padded graphs (batch, N, F).
+    For disjoint representation (values, partition), the embeddings are given by
     a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
     "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information.
 
@@ -48,15 +48,16 @@ class ChangeTensorType(GraphBaseLayer):
         Returns:
             tensor: Changed tensor type.
         """
+        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
 
         if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
             return inputs.to_tensor()
-
+        elif self.output_tensor_type in ["ragged", "RaggedTensor"]:
+            return inputs
         elif self.output_tensor_type in ["disjoint", "row_partition", "nested", "values_partition"]:
             return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
-
         else:
-            raise NotImplementedError("Unsupported output_tensor_type", self.output_tensor_type)
+            raise NotImplementedError("ERROR:kgcnn: Unsupported output_tensor_type %s" % self.output_tensor_type)
 
     def get_config(self):
         """Update layer config."""
@@ -70,14 +71,16 @@ class ChangeTensorType(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeIndexing')
 class ChangeIndexing(GraphBaseLayer):
-    """Shift the index for index-tensors to assign nodes in a disjoint graph from single batched graph
-    representation or vice-versa.
+    """Shift the index for index-tensors to assign e.g. nodes within the batch or for each of the single samples
+    or vice-versa.
+    This can be interpreted as a per-graph assignment of batched graph representations versus a global disjoint graph
+    representation with unconnected sub-graphs.
     
-    Example: 
-        Flatten operation changes index tensor as [[0,1,2],[0,1],[0,1]] -> [0,1,2,0,1,0,1] with
-        requires a subsequent index-shift of [0,1,2,1,1,0,1] -> [0,1,2,3+0,3+1,5+0,5+1].
+    .. note::
+        Flatten operation changes index tensor as [[0, 1, 2], [0, 1], [0, 1]] to [0, 1, 2, 0, 1, 0, 1] with
+        requires a subsequent index-shift of [0, 1, 2, 1, 1, 0, 1] to [0, 1, 2, 3+0, 3+1, 5+0, 5+1].
         This is equivalent to a single graph with disconnected sub-graphs.
-        Therefore tf.gather will find the correct nodes for a 1D tensor.
+        Therefore tf.gather will find the correct nodes for a flatten 1D tensor.
     
     Args:
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
@@ -107,8 +110,6 @@ class ChangeIndexing(GraphBaseLayer):
         if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
             raise ValueError("Input must be RaggedTensor for layer", self.name)
 
-        self._supports_ragged_inputs = True
-
         if self.from_indexing != self.node_indexing:
             print("WARNING: Graph layer's node_indexing does not agree with from_indexing", self.node_indexing,
                   "vs.", self.to_indexing)
@@ -129,7 +130,8 @@ class ChangeIndexing(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Corrected edge indices of shape (batch, [N], 2).
         """
-
+        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
         nod, edge_index = inputs
         indexlist = partition_row_indexing(edge_index.values,
                                            nod.row_splits,
