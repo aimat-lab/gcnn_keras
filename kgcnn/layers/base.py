@@ -10,7 +10,6 @@ class GraphBaseLayer(tf.keras.layers.Layer):
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
         partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
-            This is used for input_tensor_type="values_partition".
         input_tensor_type (str): Tensor input type. Default is "RaggedTensor".
         output_tensor_type (str): Tensor output type. Default is "RaggedTensor".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
@@ -83,7 +82,6 @@ class KerasWrapperBase(GraphBaseLayer):
     r"""Base layer for wrapping tf.keras.layers to support ragged tensors and to optionally call original layer
     only on the values of :obj:`RaggedTensor`. If inputs is a list, then a lazy operation (e.g. add, concat)
     is performed if :obj:`ragged_validate` is set to :obj:`False` on the values too.
-
     """
 
     def __init__(self, **kwargs):

@@ -173,10 +173,12 @@ class PoolingSet2Set(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
+        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
         x, batch_num, batch_index = inputs[0].values, inputs[0].row_lengths(), inputs[0].value_rowids()
 
-        # Reading to memory removed here, is to be done by seperately
-        m = x  # (batch*None,feat)
+        # Reading to memory removed here, is to be done by separately
+        m = x  # (batch*None, feat)
 
         # Initialize q0 and r0
         qstar = self.qstar0(m, batch_index, batch_num)
