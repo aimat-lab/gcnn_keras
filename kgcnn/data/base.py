@@ -251,7 +251,8 @@ class MemoryGraphDataset(MemoryGraphList):
         Returns:
             self
         """
-        self.edge_indices_reverse = [compute_reverse_edges_index_map(x) for x in self.edge_indices]
+        self.edge_indices_reverse = [np.expand_dims(compute_reverse_edges_index_map(x), axis=-1) for x in
+                                     self.edge_indices]
         return self
 
     def make_undirected_edges(self, remove_duplicates: bool = True, sort_indices: bool = True):
@@ -490,7 +491,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self._operate_on_edges(sort_edge_indices, _prefix_attributes=prefix_indices + "_")
 
         # Compute angles
-        e_indices = getattr(self, prefix_indices+"_indices")
+        e_indices = getattr(self, prefix_indices + "_indices")
         a_indices = []
         a_angle = []
         for i, x in enumerate(e_indices):
