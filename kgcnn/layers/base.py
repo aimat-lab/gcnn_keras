@@ -96,7 +96,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         if isinstance(inputs, list):
             if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
                 if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
-                    out = fun([x.values for x in inputs], *args, **kwargs),
+                    out = fun([x.values for x in inputs], *args, **kwargs)
                     if isinstance(out, list):
                         return [tf.RaggedTensor.from_row_splits(x, inputs[i].row_splits, validate=self.ragged_validate)
                                 for i, x in enumerate(out)]

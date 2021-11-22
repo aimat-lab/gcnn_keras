@@ -38,6 +38,13 @@ class Dense(KerasWrapperBase):
                                                     kernel_constraint=kernel_constraint,
                                                     bias_constraint=bias_constraint)
 
+    def call(self, inputs, **kwargs):
+        """Forward pass wrapping tf.keras.layers"""
+        # For Dense can call on flat values too.
+        if isinstance(inputs, tf.RaggedTensor):
+            return tf.ragged.map_flat_values(self._kgcnn_wrapper_layer, inputs, **kwargs)
+        return self._kgcnn_wrapper_layer(inputs, **kwargs)
+
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Activation')
 class Activation(KerasWrapperBase):
