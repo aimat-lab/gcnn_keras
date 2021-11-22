@@ -2,11 +2,8 @@ import numpy as np
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesSelection, GatherNodesOutgoing, GatherState
-from kgcnn.ops.partition import partition_row_indexing
+from kgcnn.layers.gather import GatherNodesSelection, GatherState
 from kgcnn.layers.keras import Subtract, Multiply
-from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
-    tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 from kgcnn.ops.axis import get_positive_axis
 
 
@@ -486,93 +483,6 @@ class BesselBasisLayer(GraphBaseLayer):
         config = super(BesselBasisLayer, self).get_config()
         config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
                        "envelope_exponent": self.envelope_exponent, "envelope_type": self.envelope_type})
-        return config
-
-
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='SphericalBasisLayer')
-class SphericalBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
-
-    Args:
-        num_spherical (int): Number of spherical basis functions
-        num_radial (int): Number of radial basis functions
-        cutoff (float): Cutoff distance c
-        envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
-    """
-
-    def __init__(self, num_spherical,
-                 num_radial,
-                 cutoff,
-                 envelope_exponent=5,
-                 **kwargs):
-        super(SphericalBasisLayer, self).__init__(**kwargs)
-
-        assert num_radial <= 64
-        self.num_radial = num_radial
-        self.num_spherical = num_spherical
-        self.cutoff = cutoff
-        self.inv_cutoff = tf.constant(1 / cutoff, dtype=tf.float32)
-        self.envelope_exponent = envelope_exponent
-
-        # retrieve formulas
-        self.bessel_n_zeros = spherical_bessel_jn_zeros(num_spherical, num_radial)
-        self.bessel_norm = spherical_bessel_jn_normalization_prefactor(num_spherical, num_radial)
-
-        self.layer_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
-
-    @tf.function
-    def envelope(self, inputs):
-        p = self.envelope_exponent + 1
-        a = -(p + 1) * (p + 2) / 2
-        b = p * (p + 2)
-        c = -p * (p + 1) / 2
-        env_val = 1 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
-        return tf.where(inputs < 1, env_val, tf.zeros_like(inputs))
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs: [distance, angles, angle_index]
-
-                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], 1)
-                - angles (tf.RaggedTensor): Angle list of shape (batch, [K], 1)
-                - angle_index (tf.RaggedTensor): Angle indices referring to edges of shape (batch, [K], 2)
-
-        Returns:
-            tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
-        """
-        dyn_inputs = inputs
-        edge, edge_part = dyn_inputs[0].values, dyn_inputs[0].row_splits
-        angles, angle_part = dyn_inputs[1].values, dyn_inputs[1].row_splits
-
-        d = edge
-        d_scaled = d[:, 0] * self.inv_cutoff
-        rbf = []
-        for n in range(self.num_spherical):
-            for k in range(self.num_radial):
-                rbf += [self.bessel_norm[n, k] * tf_spherical_bessel_jn(d_scaled * self.bessel_n_zeros[n][k], n)]
-        rbf = tf.stack(rbf, axis=1)
-
-        d_cutoff = self.envelope(d_scaled)
-        rbf_env = d_cutoff[:, None] * rbf
-        ragged_rbf_env = tf.RaggedTensor.from_row_splits(rbf_env, edge_part, validate=self.ragged_validate)
-        rbf_env = self.layer_gather_out([ragged_rbf_env, inputs[2]]).values
-        # rbf_env = tf.gather(rbf_env, id_expand_kj[:, 1])
-
-        cbf = [tf_spherical_harmonics_yl(angles[:, 0], n) for n in range(self.num_spherical)]
-        cbf = tf.stack(cbf, axis=1)
-        cbf = tf.repeat(cbf, self.num_radial, axis=1)
-        out = rbf_env * cbf
-
-        out = tf.RaggedTensor.from_row_splits(out, angle_part, validate=self.ragged_validate)
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(SphericalBasisLayer, self).get_config()
-        config.update({"num_radial": self.num_radial, "cutoff": self.cutoff,
-                       "envelope_exponent": self.envelope_exponent, "num_spherical": self.num_spherical})
         return config
 
 

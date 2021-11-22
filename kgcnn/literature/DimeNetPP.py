@@ -1,9 +1,10 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, EmbeddingDimeBlock
+from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, EmbeddingDimeBlock, \
+    SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
-from kgcnn.layers.geom import SphericalBasisLayer, NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
+from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
 from kgcnn.layers.keras import Dense, Concatenate, Add, Subtract
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
