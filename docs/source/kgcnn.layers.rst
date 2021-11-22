@@ -29,22 +29,6 @@ kgcnn.layers.casting module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.connect module
----------------------------
-
-.. automodule:: kgcnn.layers.connect
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.embedding module
------------------------------
-
-.. automodule:: kgcnn.layers.embedding
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.layers.gather module
 --------------------------
 
@@ -73,6 +57,14 @@ kgcnn.layers.mlp module
 -----------------------
 
 .. automodule:: kgcnn.layers.mlp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.gather module
+--------------------------
+
+.. automodule:: kgcnn.layers.pooling
    :members:
    :undoc-members:
    :show-inheritance:

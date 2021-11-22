@@ -77,23 +77,39 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         else:
             self._build_input_shape_check(input_shape, 0)
 
-    def call_on_ragged_values(self, inputs, fun, *args, axis=None, **kwargs):
+    def call_on_ragged_values(self, fun, inputs, *args, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`,
         if :obj:`inputs` is a ragged tensors with ragged rank of one, or a list of ragged tensors. The fallback
-        is to call fun directly on inputs. If axis is provided reduces the target axis by one for call of fun on
-        value tensor of inputs. For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`.
+        is to call fun directly on inputs.
+        For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`. The output is always
+        assumed that the ragged partition does not change.
 
         Args:
-            inputs (tf.RaggedTensor, list): Tensor input or list of tensors.
             fun (callable): Callable function that accepts inputs and kwargs.
-            axis (int): Target axis. Default is None.
+            inputs (tf.RaggedTensor, list): Tensor input or list of tensors.
             args: Additional args for fun.
             kwargs: Additional kwargs for fun.
 
         Returns:
             tf.RaggedTensor: Output of fun.
         """
-        pass
+        if isinstance(inputs, list):
+            if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+                if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
+                    out = fun([x.values for x in inputs], *args, **kwargs),
+                    if isinstance(out, list):
+                        return [tf.RaggedTensor.from_row_splits(x, inputs[i].row_splits, validate=self.ragged_validate)
+                                for i, x in enumerate(out)]
+                    else:
+                        return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
+        elif isinstance(inputs, tf.RaggedTensor):
+            if inputs.ragged_rank == 1:
+                return tf.RaggedTensor.from_row_splits(fun(inputs.values, *args, **kwargs),
+                                                       inputs.row_splits, validate=self.ragged_validate)
+        else:
+            print("WARNING:kgcnn: Layer %s fail call on ragged values, attempting keras call... " % self.name)
+        # Default fallback.
+        return fun(inputs, *args, **kwargs)
 
 
 class KerasWrapperBase(GraphBaseLayer):
@@ -133,4 +149,4 @@ class KerasWrapperBase(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Output of keras layer.
         """
-        return self._kgcnn_wrapper_layer.call(inputs, **kwargs)
+        return self.call_on_ragged_values(self._kgcnn_wrapper_layer, inputs, **kwargs)

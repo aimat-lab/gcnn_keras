@@ -4,14 +4,6 @@ kgcnn.layers.pool package
 Submodules
 ----------
 
-kgcnn.layers.pool.pooling module
---------------------------------
-
-.. automodule:: kgcnn.layers.pool.pooling
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.layers.pool.set2set module
 --------------------------------
 

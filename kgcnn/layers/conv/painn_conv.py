@@ -12,7 +12,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNconv')
 class PAiNNconv(GraphBaseLayer):
-    """Continuous filter convolution block of PAiNN.
+    """Continuous filter convolution block of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
 
     Args:
         units (int): Units for Dense layer.
@@ -134,14 +134,25 @@ class PAiNNconv(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoEquivariant')
 class TrafoEquivariant(GraphBaseLayer):
-    """Linear Combination of equivariant features.
-    Used by PAiNN.
+    """Linear Combination of equivariant features as defined by `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
 
+    Args:
+        units (int): Units for kernel.
+        axis (int): Axis to perform linear transformation. Must be >1. Default is 2.
+        use_bias (bool): Use bias. Default is True.
+        activation (str): Activation function. Default is 'kgcnn>shifted_softplus'.
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
                  units,
-                 axis=-2,
+                 axis=2,
                  activation="linear",
                  use_bias=True,
                  kernel_initializer='glorot_uniform',
@@ -174,10 +185,11 @@ class TrafoEquivariant(GraphBaseLayer):
 
         if mul_dim is None:
             raise ValueError(
-                'The axis %s of the inputs to `TrafoEquivariant` should be defined. Found `None`.' % self.axis)
+                'ERROR:kgcnn: The axis %s of the inputs to `TrafoEquivariant` must not be None.' % self.axis)
 
         if self.axis <= 1:
-            raise ValueError('The axis argument to `TrafoEquivariant` must be >1. Found `%s`.' % self.axis)
+            raise ValueError(
+                'ERROR:kgcnn: The axis argument to `TrafoEquivariant` must be >1. Found `%s`.' % self.axis)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -192,7 +204,8 @@ class TrafoEquivariant(GraphBaseLayer):
         """
         # Require RaggedTensor with ragged_rank=1 as inputs.
         # tf.transpose with perm argument does not allow ragged input in tf.__version__='2.5.0'.
-        assert isinstance(inputs, tf.RaggedTensor) and inputs.ragged_rank == 1
+        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Require ragged input."
+        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Require ragged input."
         values = inputs.values
 
         # Find axis to apply linear transformation.
@@ -216,7 +229,7 @@ class TrafoEquivariant(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNUpdate')
 class PAiNNUpdate(GraphBaseLayer):
-    """Continuous filter convolution of PAiNN.
+    """Continuous filter convolution of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
 
     Args:
         units (int): Units for Dense layer.
@@ -319,7 +332,7 @@ class PAiNNUpdate(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EquivariantInitialize')
 class EquivariantInitialize(GraphBaseLayer):
-    """Zero equivariant initializer.
+    """Zero equivariant initializer of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
 
     Args:
         dim (int): Dimension of equivariant features. Default is 3.
@@ -361,6 +374,13 @@ class EquivariantInitialize(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SplitEmbedding')
 class SplitEmbedding(GraphBaseLayer):
+    """Split embeddings of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
+
+    Args:
+        num_or_size_splits: Number or size of splits.
+        axis (int): Axis to split.
+        num (int): Number the number of output splits.
+    """
     def __init__(self,
                  num_or_size_splits,
                  axis=-1,
