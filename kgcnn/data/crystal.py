@@ -1,4 +1,5 @@
 import os
+import numpy as np
 try:
     import pymatgen.core.structure
 except ModuleNotFoundError:
@@ -125,13 +126,15 @@ class CrystalDataset(MemoryGeometricGraphDataset):
         self._set_dataset_range_from_structures(structs)
         return self
 
-    def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08):
+    def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08,
+                                           max_neighbours: int = 100000000):
         self._log("INFO:kgcnn: Setting range ...", end='', flush=True)
         range_indices = []
         range_image = []
         range_distance = []
         for x in structs:
-            ridx, rimg, rd = structure_get_range_neighbors(x, radius=radius, numerical_tol=numerical_tol)
+            ridx, rimg, rd = structure_get_range_neighbors(x, radius=radius, numerical_tol=numerical_tol,
+                                                           max_neighbours=max_neighbours)
             range_indices.append(ridx)
             range_image.append(rimg)
             range_distance.append(rd)
@@ -142,7 +145,7 @@ class CrystalDataset(MemoryGeometricGraphDataset):
 
     def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
                   self_loops=True, exclusive=True):
-        print("WARNING:kgcnn: Range in `CrystalDataset` does not work for neighbours or self_loops yet.")
+        assert exclusive, "ERROR:kgcnn: Range in `CrystalDataset` only for exclusive=True at the moment."
         structs = self._read_pymatgen_json_in_memory()
-        self._set_dataset_range_from_structures(structs=structs, radius=max_distance)
+        self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
         return self

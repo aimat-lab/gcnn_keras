@@ -26,7 +26,8 @@ def structure_get_properties(py_struct):
     return [node_coordinates, lattice_matrix, abc, charge, volume, symbols]
 
 
-def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1e-08, struct_id=None):
+def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1e-08, struct_id=None,
+                                  max_neighbours: int = 100000000):
     # Determine all neighbours
     all_nbrs = py_struct.get_all_neighbors(radius, include_index=True, numerical_tol=numerical_tol)
 
@@ -39,10 +40,23 @@ def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1
             edge_indices.append([i, stop_site.index])
             edge_image.append(stop_site.image)
 
-    edge_indices = np.array(edge_indices, dtype="int")
-    edge_image = np.array(edge_image, dtype="int")
+    # Sort after distance
+    edge_distance = np.array(edge_distance)
+    order_distance = np.argsort(edge_distance)
+    # Sort image and indices too
+    edge_distance = edge_distance[order_distance]
+    edge_indices = np.array(edge_indices, dtype="int")[order_distance]
+    edge_image = np.array(edge_image, dtype="int")[order_distance]
+    # Pick max neighbours
+    edge_distance = edge_distance[:max_neighbours]
+    edge_indices = edge_indices[:max_neighbours]
+    edge_image = edge_image[:max_neighbours]
     edge_distance = np.expand_dims(np.array(edge_distance), axis=-1)
+
     if len(edge_indices) <= 0:
-        print("ERROR:kgcnn: No edges for %s" % struct_id)
+        print("ERROR:kgcnn: No edges for %s, please increase cutoff or neighbours" % struct_id)
+        return [edge_indices, edge_image, edge_distance]
+
+    # Sort after edge indices.
     edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
     return [edge_indices, edge_image, edge_distance]
