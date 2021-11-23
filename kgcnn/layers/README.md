@@ -5,9 +5,11 @@ The layers for `kgcnn` should accept ragged tensor input and are sorted as follo
 * The most general layers that accept all kind of tensor input and kept maintained beyond different models are located in `kgcnn.layers`. These are:
     * `kgcnn.layers.gather` Layers around tf.gather
     * `kgcnn.layers.pooling` General layers for standard aggregation and pooling.
+    * `kgcnn.layers.geom` Geometry operations.
+    * `kgcnn.layers.keras` Keras layers to support ragged tensor input.
   
 
-* Model specific pooling and convolutional layers (they can make use of existing modules in `kgcnn.layers`) are sorted into:
+* Model specific pooling and convolutional layers (they should make use of existing modules in `kgcnn.layers`) are sorted into:
     * `kgcnn.layers.pool`
     * `kgcnn.layers.conv`
 
