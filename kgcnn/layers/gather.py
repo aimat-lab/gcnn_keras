@@ -20,8 +20,8 @@ class GatherEmbedding(GraphBaseLayer):
     """
 
     def __init__(self,
-                 axis=1,
-                 concat_axis=2,
+                 axis: int = 1,
+                 concat_axis: int = 2,
                  **kwargs):
         """Initialize layer."""
         super(GatherEmbedding, self).__init__(**kwargs)
@@ -80,19 +80,20 @@ GatherNodes = GatherEmbedding
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbeddingSelection')
 class GatherEmbeddingSelection(GraphBaseLayer):
-    """Gather node or edge embedding for a defined index in the index list.
-    E.g. for ingoing or outgoing nodes or angles. Returns a list ot
+    r"""Gather node or edge embedding for a defined index in the index list.
+    E.g. for ingoing or outgoing nodes or angles. Returns a list of embeddings for each :obj:`selection_index`.
 
     An edge is defined by index tuple :math:`(i,j)`.
     In the default definition for this layer index :math:`i` is expected to be the
     receiving or target node (in standard case of directed edges).
 
     Args:
-        selection_index (list, int): Which indices
+        selection_index (list): Which indices to gather embeddings for.
         axis (int): Axis to gather embeddings from. Default is 1.
+        axis_indices (int): From which axis to take the indices for gather. Default is 2.
     """
 
-    def __init__(self, selection_index, axis=1, axis_indices=2, **kwargs):
+    def __init__(self, selection_index, axis: int = 1, axis_indices: int = 2, **kwargs):
         """Initialize layer."""
         super(GatherEmbeddingSelection, self).__init__(**kwargs)
         self.axis = axis
@@ -158,13 +159,17 @@ GatherNodesSelection = GatherEmbeddingSelection
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesOutgoing')
 class GatherNodesOutgoing(GatherEmbeddingSelection):
-    """Gather nodes by indices.
+    r"""Gather nodes by index :math:`j`, here defined as sending or outgoing.
 
-    For outgoing nodes, layer uses only index[1]. An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    An edge is defined by index tuple :math:`(i,j)`.
+    In the default definition for this layer index :math:`i` is expected to be the
+    receiving or target node (in standard case of directed edges).
+
+    Args:
+        selection_index (list): Which index to gather embeddings for. Default is 1.
     """
 
-    def __init__(self, selection_index=1, **kwargs):
+    def __init__(self, selection_index: int = 1, **kwargs):
         super(GatherNodesOutgoing, self).__init__(selection_index=selection_index, **kwargs)
 
     def call(self, inputs, **kwargs):
@@ -173,13 +178,17 @@ class GatherNodesOutgoing(GatherEmbeddingSelection):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherNodesIngoing')
 class GatherNodesIngoing(GatherEmbeddingSelection):
-    """Gather nodes by edge edge_indices.
-    
-    For ingoing nodes, layer uses only index[0]. An edge is defined by index tuple (i,j) with i<-j connection.
-    If graphs indices were in 'batch' mode, the layer's 'node_indexing' must be set to 'batch'.
+    r"""Gather nodes by index :math:`i`, here defined as receiving or ingoing.
+
+    An edge is defined by index tuple :math:`(i,j)`.
+    In the default definition for this layer index :math:`i` is expected to be the
+    receiving or target node (in standard case of directed edges).
+
+    Args:
+        selection_index (list): Which index to gather embeddings for. Default is 0.
     """
 
-    def __init__(self, selection_index=0, **kwargs):
+    def __init__(self, selection_index: int = 0, **kwargs):
         super(GatherNodesIngoing, self).__init__(selection_index=selection_index, **kwargs)
 
     def call(self, inputs, **kwargs):
@@ -188,7 +197,7 @@ class GatherNodesIngoing(GatherEmbeddingSelection):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherState')
 class GatherState(GraphBaseLayer):
-    """Layer to repeat environment or global state for node or edge lists.
+    """Layer to repeat environment or global state for a specific node or edge lists.
     
     To repeat the correct environment for each sample, a tensor with the target length/partition is required.
     """
@@ -213,11 +222,13 @@ class GatherState(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
         """
+        env = inputs[0]
         dyn_inputs = inputs[1]
 
-        # We cast to values here
-        env = inputs[0]
-        target_len = dyn_inputs.row_lengths()
+        if isinstance(dyn_inputs, tf.RaggedTensor):
+            target_len = dyn_inputs.row_lengths()
+        else:
+            target_len = tf.repeat(tf.shape(dyn_inputs)[1], tf.shape(dyn_inputs)[0])
 
         out = tf.repeat(env, target_len, axis=0)
         out = tf.RaggedTensor.from_row_lengths(out, target_len, validate=self.ragged_validate)
