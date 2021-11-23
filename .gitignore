@@ -10,9 +10,9 @@ kgcnn.egg-info
 /legacy/
 /training/.ipynb_checkpoints/
 /develop/old_traing/
-/training/results/Example
-/training/results/Example/*
-/training/Example/*
+/develop/Example
+/develop/Example/*
+/develop/Example/Example/*
 /training/results/Mutagenicity/GraphSAGE/model*/
 /training/results/MUTAG/INorp/model*/
 /training/results/MUTAG/Unet/model*/

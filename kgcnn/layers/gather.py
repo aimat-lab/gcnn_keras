@@ -7,9 +7,16 @@ from kgcnn.ops.axis import get_positive_axis
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbedding')
 class GatherEmbedding(GraphBaseLayer):
-    r"""Gather node or edge embedding by index list, e.g. that define an edge.
+    r"""Gather node or edge embedding by index list, e.g. that define an edge. The embeddings for multiple indices
+    are concatenated.
 
-    An edge is defined by index tuple :math:`(i,j)` with i<-j connection.
+    An edge is defined by index tuple :math:`(i,j)`.
+    In the default definition for this layer index :math:`i` is expected to be the
+    receiving or target node (in standard case of directed edges).
+
+    Args:
+        axis (int): The axis to gather embeddings from. Default is 1.
+        concat_axis (int): The axis which concatenates embeddings. Default is 2.
     """
 
     def __init__(self,
@@ -25,8 +32,6 @@ class GatherEmbedding(GraphBaseLayer):
         super(GatherEmbedding, self).build(input_shape)
         if len(input_shape) != 2:
             print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
-        if [i for i in range(len(input_shape[0]))][self.axis] == 0:
-            print("WARNING: Shape error for", self.name, ", gather from batch-dimension is not intended.")
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -75,9 +80,16 @@ GatherNodes = GatherEmbedding
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbeddingSelection')
 class GatherEmbeddingSelection(GraphBaseLayer):
-    """Gather nodes with a defined index. E.g. for ingoing or outgoing nodes or angles.
+    """Gather node or edge embedding for a defined index in the index list.
+    E.g. for ingoing or outgoing nodes or angles. Returns a list ot
 
-    For ingoing nodes, layer uses only index[0]. An edge is defined by index tuple (i,j) with i<-j connection.
+    An edge is defined by index tuple :math:`(i,j)`.
+    In the default definition for this layer index :math:`i` is expected to be the
+    receiving or target node (in standard case of directed edges).
+
+    Args:
+        selection_index (list, int): Which indices
+        axis (int): Axis to gather embeddings from. Default is 1.
     """
 
     def __init__(self, selection_index, axis=1, axis_indices=2, **kwargs):
