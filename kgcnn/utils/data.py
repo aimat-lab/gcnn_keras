@@ -99,5 +99,5 @@ def ragged_tensor_from_nested_numpy(numpy_list: list):
     Returns:
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
     """
-    return tf.RaggedTensor.from_row_lengths(np.concatenate(numpy_list, axis=0), np.array([len(x) for x in numpy_list],
-                                                                                         dtype="int"))
+    return tf.RaggedTensor.from_row_lengths(np.concatenate(numpy_list, axis=0),
+                                            np.array([len(x) for x in numpy_list], dtype="int"))
