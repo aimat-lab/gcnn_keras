@@ -197,7 +197,7 @@ class GatherNodesIngoing(GatherEmbeddingSelection):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherState')
 class GatherState(GraphBaseLayer):
-    """Layer to repeat environment or global state for a specific node or edge lists.
+    """Layer to repeat environment or global state for a specific node or edge list.
     
     To repeat the correct environment for each sample, a tensor with the target length/partition is required.
     """

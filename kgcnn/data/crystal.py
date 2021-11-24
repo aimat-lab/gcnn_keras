@@ -149,3 +149,8 @@ class CrystalDataset(MemoryGeometricGraphDataset):
         structs = self._read_pymatgen_json_in_memory()
         self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
         return self
+
+    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False):
+        # Since coordinates are periodic.
+        assert not compute_angles, "ERROR:kgcnn: Can not compute angles atm."
+        super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles)

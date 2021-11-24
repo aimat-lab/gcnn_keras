@@ -330,6 +330,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self._log("INFO:kgcnn: Pickle dataset...")
         super(MemoryGraphDataset, self).save(filepath)
+        self._log("done")
         return self
 
     def load(self, filepath: str = None):
@@ -343,6 +344,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self._log("INFO:kgcnn: Load pickled dataset...")
         super(MemoryGraphDataset, self).load(filepath)
+        self._log("done")
         return self
 
 
@@ -471,7 +473,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.range_indices = edge_idx
         return self
 
-    def set_angle(self, prefix_indices: str = "range"):
+    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = True):
         r"""Compute angles between geometric range connections defined by :obj:`range_indices` using
         :obj:`node_coordinates` into :obj:`angle_attributes`.
         Which edges were used to calculate angles is stored in :obj:`angle_indices`.
@@ -483,6 +485,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
 
         Args:
             prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is `range`.
+            compute_angles (bool): Whether to calculate angles based on coordinates. Default is True.
 
         Returns:
             self
@@ -493,13 +496,18 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         # Compute angles
         e_indices = getattr(self, prefix_indices + "_indices")
         a_indices = []
-        a_angle = []
-        for i, x in enumerate(e_indices):
-            temp = get_angle_indices(x)
-            a_indices.append(temp[2])
-            if self.node_coordinates is not None:
+        if self.node_coordinates is not None and compute_angles:
+            a_angle = []
+            for i, x in enumerate(e_indices):
+                temp = get_angle_indices(x)
+                a_indices.append(temp[2])
                 a_angle.append(get_angle(self.node_coordinates[i], temp[1]))
+            self.angle_attributes = a_angle
+        else:
+            for i, x in enumerate(e_indices):
+                temp = get_angle_indices(x)
+                a_indices.append(temp[2])
 
         self.angle_indices = a_indices
-        self.angle_attributes = a_angle
+
         return self

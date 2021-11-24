@@ -1,6 +1,10 @@
-import pymatgen
-import pymatgen.io.cif
 import numpy as np
+try:
+    import pymatgen
+    import pymatgen.io.cif
+except ImportError:
+    print("ERROR:kgcnn: This module needs pymatgen to be installed.")
+
 from kgcnn.utils.adj import sort_edge_indices
 
 
@@ -31,32 +35,31 @@ def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1
     # Determine all neighbours
     all_nbrs = py_struct.get_all_neighbors(radius, include_index=True, numerical_tol=numerical_tol)
 
-    edge_distance = []
-    edge_indices = []
-    edge_image = []
+    all_edge_distance = []
+    all_edge_indices = []
+    all_edge_image = []
     for i, start_site in enumerate(all_nbrs):
+        edge_distance = []
+        edge_indices = []
+        edge_image = []
         for j, stop_site in enumerate(start_site):
             edge_distance.append(stop_site.nn_distance)
             edge_indices.append([i, stop_site.index])
             edge_image.append(stop_site.image)
+        # Sort after distance
+        edge_distance = np.array(edge_distance)
+        order_dist = np.argsort(edge_distance)
+        edge_distance = np.expand_dims(edge_distance[order_dist], axis=-1)
+        edge_indices = np.array(edge_indices, dtype="int")[order_dist]
+        edge_image = np.array(edge_image, dtype="int")[order_dist]
+        # Append to index list
+        all_edge_distance.append(edge_distance[:max_neighbours])
+        all_edge_indices.append(edge_indices[:max_neighbours])
+        all_edge_image.append(edge_image[:max_neighbours])
 
-    # Sort after distance
-    edge_distance = np.array(edge_distance)
-    order_distance = np.argsort(edge_distance)
-    # Sort image and indices too
-    edge_distance = edge_distance[order_distance]
-    edge_indices = np.array(edge_indices, dtype="int")[order_distance]
-    edge_image = np.array(edge_image, dtype="int")[order_distance]
-    # Pick max neighbours
-    edge_distance = edge_distance[:max_neighbours]
-    edge_indices = edge_indices[:max_neighbours]
-    edge_image = edge_image[:max_neighbours]
-    edge_distance = np.expand_dims(np.array(edge_distance), axis=-1)
-
-    if len(edge_indices) <= 0:
-        print("ERROR:kgcnn: No edges for %s, please increase cutoff or neighbours" % struct_id)
-        return [edge_indices, edge_image, edge_distance]
-
-    # Sort after edge indices.
-    edge_indices, edge_image, edge_distance = sort_edge_indices(edge_indices, edge_image, edge_distance)
+    all_edge_distance = np.concatenate(all_edge_distance, axis=0)
+    all_edge_indices = np.concatenate(all_edge_indices, axis=0)
+    all_edge_image = np.concatenate(all_edge_image, axis=0)
+    # Sort after edge indices again.
+    edge_indices, edge_image, edge_distance = sort_edge_indices(all_edge_indices, all_edge_image, all_edge_distance)
     return [edge_indices, edge_image, edge_distance]

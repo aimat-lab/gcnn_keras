@@ -82,7 +82,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape (batch, [M], 1)
         """
-        lattice_rep = self.layer_state([inputs[2], inputs[1]])  # Should be (batch, None, 3, 3)
+        lattice_rep = self.layer_state([inputs[2], inputs[1]], **kwargs)  # Should be (batch, None, 3, 3)
         if all([isinstance(x, tf.RaggedTensor) for x in inputs[:2]]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs[:2]]):
                 x = inputs[0]

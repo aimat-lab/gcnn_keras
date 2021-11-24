@@ -279,49 +279,57 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None, shape=None)
 
 
 def get_angle_indices(idx, check_sorted: bool = True):
-    r"""Compute index list for edge-pairs forming an angle. Requires sorted indices.
-    Not for batches, only for single instance.
+    r"""Compute index list for edge-pairs forming an angle. Not for batches, only for single instance.
 
     Args:
         idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
-        check_sorted (bool): Whether to check inf indices are sorted. Default is True.
+        check_sorted (bool): Whether to to sort for new angle indices. Default is True.
 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
 
         - idx (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
         - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
-        - idx_ijk_ij (np.ndarray): Indices for an angle referring to edges of shape `(M, 2)`.
+        - idx_ijk_ij (np.ndarray): Indices for angle pairs referring to edges of shape `(M, 2)`.
     """
-    # Verify sorted
-    if check_sorted:
-        order1 = np.argsort(idx[:, 1], axis=0, kind='mergesort')  # stable!
-        ind1 = idx[order1]
-        order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
-        ind2 = ind1[order2]
-        if not np.array_equal(idx, ind2):
-            raise ValueError("ERROR:kgcnn: Indices need to be sorted to compute angles from.")
-
-    pair_label = np.arange(len(idx))
+    # Can swap here
     idx_i = idx[:, 0]
     idx_j = idx[:, 1]
-    uni_i, cnts_i = np.unique(idx_i, return_counts=True)
-    reps = cnts_i[idx_j]
-    idx_ijk_i = np.repeat(idx_i, reps)
-    idx_ijk_j = np.repeat(idx_j, reps)
-    idx_ijk_label_i = np.repeat(pair_label, reps)
-    idx_j_tagged = np.concatenate([np.expand_dims(idx_j, axis=-1), np.expand_dims(pair_label, axis=-1)], axis=-1)
-    idx_ijk_k_tagged = np.concatenate([idx_j_tagged[idx_i == x] for x in idx_j])  # This is not fully vectorized
-    idx_ijk_k = idx_ijk_k_tagged[:, 0]
-    idx_ijk_label_j = idx_ijk_k_tagged[:, 1]
-    back_and_forth = idx_ijk_i != idx_ijk_k
-    idx_ijk = np.concatenate([np.expand_dims(idx_ijk_i, axis=-1),
-                              np.expand_dims(idx_ijk_j, axis=-1),
-                              np.expand_dims(idx_ijk_k, axis=-1)], axis=-1)
-    idx_ijk = idx_ijk[back_and_forth]
-    idx_ijk_ij = np.concatenate([np.expand_dims(idx_ijk_label_i, axis=-1),
-                                 np.expand_dims(idx_ijk_label_j, axis=-1)], axis=-1)
-    idx_ijk_ij = idx_ijk_ij[back_and_forth]
+    label_ij = np.arange(len(idx))
+    # Direction of edges is i<-j here, so angles around i<-j<-k
+    idx_ijk = []  # index triples that form an angle as i<-j<-k
+    idx_ijk_ij = []  # New indices that refer to edges to form an angle as i',j'   i':(i, j) j':(j, k)
+    max_j = np.amax(idx_j)
+    for n in range(max_j + 1):
+        mask_jn = idx_j == n
+        mask_in = idx_i == n
+        pos_i = idx_i[mask_jn]
+        pos_j = idx_j[mask_jn]
+        pos_k = idx_j[mask_in]
+        label_i = label_ij[mask_jn]
+        label_k = label_ij[mask_in]
+        if len(pos_i) == 0 or len(pos_j) == 0 or len(pos_k) == 0:
+            continue
+        # All combos around j
+        combos_ik = np.concatenate(
+            [np.expand_dims(np.repeat(np.expand_dims(pos_i, axis=1), len(pos_k), axis=1), axis=-1),
+             np.expand_dims(np.repeat(np.expand_dims(pos_j, axis=1), len(pos_k), axis=1), axis=-1),
+             np.expand_dims(np.repeat(np.expand_dims(pos_k, axis=0), len(pos_i), axis=0), axis=-1)], axis=-1)
+        combos_label = np.concatenate(
+            [np.expand_dims(np.repeat(np.expand_dims(label_i, axis=1), len(label_k), axis=1), axis=-1),
+             np.expand_dims(np.repeat(np.expand_dims(label_k, axis=0), len(label_i), axis=0), axis=-1)], axis=-1)
+        mask_combos = np.array(combos_ik[:, :, 0] != combos_ik[:, :, 2],dtype="bool")
+        idx_ijk.append(combos_ik[mask_combos])
+        idx_ijk_ij.append(combos_label[mask_combos])
+    idx_ijk = np.concatenate(idx_ijk, axis=0)
+    idx_ijk_ij = np.concatenate(idx_ijk_ij, axis=0)
+    if check_sorted:
+        order1 = np.argsort(idx_ijk_ij[:, 1], axis=0, kind='mergesort')  # stable!
+        idx_ijk_ij = idx_ijk_ij[order1]
+        idx_ijk = idx_ijk[order1]
+        order2 = np.argsort(idx_ijk_ij[:, 0], axis=0, kind='mergesort')
+        idx_ijk = idx_ijk[order2]
+        idx_ijk_ij = idx_ijk_ij[order2]
 
     return idx, idx_ijk, idx_ijk_ij
 

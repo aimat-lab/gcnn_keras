@@ -1,3 +1,9 @@
+try:
+    from openbabel import openbabel
+except ImportError:
+    print("ERROR:kgcnn: Conversion from xyz to mol requires openbabel. Please install openbabel")
+
+
 def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = True):
     """Conversion of xyz-string to mol-string.
 
@@ -9,11 +15,6 @@ def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = True):
     Returns:
         str: Mol-string from xyz-information. Generates structure or bond information.
     """
-    try:
-        from openbabel import openbabel
-    except ImportError:
-        raise ImportError("ERROR:kgcnn: Conversion from xyz to mol requires openbabel. Please install openbabel")
-
     if stop_logging:
         openbabel.obErrorLog.StopLogging()
 
