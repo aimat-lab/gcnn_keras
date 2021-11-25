@@ -498,8 +498,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
         r"""Read a data frame in :obj:`data_frame` from file path. By default uses :obj:`file_name` and pandas.
-        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is removed
-        first.
+        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is ignored.
 
         Args:
             file_path (str): File path to table file. Default is None.

@@ -14,10 +14,10 @@ class QMDataset(MemoryGraphDataset):
 
     Additionally, it should be possible to generate approximate chemical bonding information via `openbabel`, if this
     additional package is installed.
-    The class inherits :obj:`MemoryGeometricGraphDataset`.
+    The class inherits :obj:`MemoryGraphDataset`.
 
     At the moment, there is no connection to :obj:`MoleculeNetDataset` since usually for geometric data, the usage is
-    related to learning quantum properties like energy, orbitals or forces and no chemical feature information is
+    related to learning quantum properties like energy, orbitals or forces and no "chemical" feature information is
     required.
     """
 
@@ -44,9 +44,9 @@ class QMDataset(MemoryGraphDataset):
 
         Args:
             data_directory (str): Full path to directory of the dataset. Default is None.
-            file_name (str): Filename for reading into memory. This must be the name of the '.xyz' file. Or the
-                name of a '.csv' formatted file that has a list of file names. Files are expected to be in
-                :obj:`file_directory`. Default is None.
+            file_name (str): Filename for reading into memory. This must be the base-name of a '.xyz' file.
+                Or additionally the name of a '.csv' formatted file that has a list of file names.
+                Files are expected to be in :obj:`file_directory`. Default is None.
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 '.xyz' files. Only used if :obj:`file_name` is None. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
@@ -77,6 +77,7 @@ class QMDataset(MemoryGraphDataset):
 
     def prepare_data(self, overwrite: bool = False):
         r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
+        If there is no single xyz-file, it will be created with the information of a csv-file with the same name.
 
         Args:
             overwrite (bool): Overwrite existing database SDF file. Default is False.
@@ -84,10 +85,16 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        mol_filename = self._get_mol_filename()
-        if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self.log("INFO:kgcnn: Found SDF-file %s of pre-computed structures." % mol_filename)
+        mol_file_path = os.path.join(self.data_directory, self._get_mol_filename())
+        xyz_file_path = os.path.join(self.data_directory, self._get_xyz_filename())
+        self.data_frame = self.read_in_table_file()
+
+        if os.path.exists(mol_file_path) and not overwrite:
+            self.log("INFO:kgcnn: Found SDF-file %s of pre-computed structures." % mol_file_path)
             return self
+
+        if not os.path.exists(xyz_file_path):
+            pass
 
         try:
             from openbabel import openbabel
@@ -111,6 +118,10 @@ class QMDataset(MemoryGraphDataset):
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_name)[0] + ".sdf"
+
+    def _get_xyz_filename(self):
+        """Try to determine a file name for the mol information to store."""
+        return os.path.splitext(self.file_name)[0] + ".xyz"
 
     def read_in_memory(self):
         """Read xyz-file geometric information into memory.
