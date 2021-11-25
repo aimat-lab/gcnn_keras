@@ -123,7 +123,7 @@ class CrystalDataset(MemoryGraphDataset):
 
         structs = self._read_pymatgen_json_in_memory()
         self._structs = structs
-        self.info("INFO:kgcnn: Making node features ...")
+        self.info("Making node features ...")
         node_symbol = []
         node_coordinates = []
         graph_lattice_matrix = []
