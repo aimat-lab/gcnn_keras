@@ -112,12 +112,11 @@ class QMDataset(MemoryGraphDataset):
                 xyz_list.append(file_xyz)
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_mols))
-            self.info("done")
             out_file = "".join(xyz_list)
             with open(xyz_file_path, "w") as f:
                 f.write(out_file)
         else:
-            self.info("Reading single xyz-file ...", end='', flush=True)
+            self.info("Reading single xyz-file ...")
             filepath = os.path.join(self.data_directory, self.file_name)
             xyz_list = read_xyz_file(filepath)
 
@@ -128,7 +127,7 @@ class QMDataset(MemoryGraphDataset):
             self.warning("Can not make mol-objects. Please install openbabel.")
             return self
 
-        self.info("Converting xyz to mol information (silent)...", end='', flush=True)
+        self.info("Converting xyz to mol information (silent)...")
         mb = self._make_mol_list(xyz_list)
         write_mol_block_list_to_sdf(mb, mol_file_path)
 
@@ -178,7 +177,7 @@ class QMDataset(MemoryGraphDataset):
         # Load sdf file here.
         mol_list = dummy_load_sdf_file(mol_path)
         if mol_list is not None:
-            self.info("Parsing mol information ...", end='', flush=True)
+            self.info("Parsing mol information ...")
             bond_info = []
             for x in mol_list:
                 bond_info.append(np.array(parse_mol_str(x)[5], dtype="int"))
@@ -194,5 +193,4 @@ class QMDataset(MemoryGraphDataset):
                     edge_attr.append(np.array(temp[1], dtype="float"))
             self.edge_indices = edge_index
             self.edge_attributes = edge_attr
-            self.info("done")
         return self
