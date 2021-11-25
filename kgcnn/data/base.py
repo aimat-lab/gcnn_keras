@@ -471,6 +471,9 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         if self.verbose > verbosity_level:
             print("WARNING:kgcnn: ", *args, **print_kwargs)
 
+    def task(self, *args, **kwargs):
+        return
+
     def save(self, filepath: str = None):
         r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
         :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.

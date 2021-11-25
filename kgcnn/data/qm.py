@@ -107,7 +107,7 @@ class QMDataset(MemoryGraphDataset):
                 # Only one file per path
                 with open(os.path.join(self.data_directory, self.file_directory, x), "r") as f:
                     file_xyz = f.read()
-                    xyzs_str.append(file_xyz)
+                xyzs_str.append(file_xyz)
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_mols))
             self.info("done")
@@ -115,7 +115,7 @@ class QMDataset(MemoryGraphDataset):
             with open(xyz_file_path, "w") as f:
                 f.write(out_file)
 
-        # Additionally try to make a SDF file
+        # Additionally try to make SDF file
         try:
             from openbabel import openbabel
         except ImportError:
@@ -178,7 +178,7 @@ class QMDataset(MemoryGraphDataset):
         # Load sdf file here.
         mol_list = dummy_load_sdf_file(mol_path)
         if mol_list is not None:
-            self.info("INFO:kgcnn: Parsing mol information ...", end='', flush=True)
+            self.info("Parsing mol information ...", end='', flush=True)
             bond_info = []
             for x in mol_list:
                 bond_info.append(np.array(parse_mol_str(x)[5], dtype="int"))

@@ -66,16 +66,13 @@ class CrystalDataset(MemoryGraphDataset):
         found_cif_file = False
         if os.path.exists(file_path_base + ".cif"):
             found_cif_file = True
-            self.info("Start to read many structures form cif-file via pymatgen ...", end='', flush=True)
+            self.info("Start to read many structures form cif-file via pymatgen ...")
             structs = parse_cif_file_to_structures(file_path)
-            self.info("done")
-            self.info("Exporting as dict for pymatgen ...", end='', flush=True)
+            self.info("Exporting as dict for pymatgen ...")
             dicts = [s.as_dict() for s in structs]
-            self.info("done")
-            self.info("Saving structures as .json ...", end='', flush=True)
+            self.info("Saving structures as .json ...")
             out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
             save_json_file(dicts, out_path)
-            self.info("done")
             pymatgen_file_made = True
 
         # We try to read in a csv file.
@@ -86,21 +83,18 @@ class CrystalDataset(MemoryGraphDataset):
             cif_file_list = self.data_frame[cif_column_name].values
             num_structs = len(cif_file_list)
             structs = []
-            self.info("INFO:kgcnn: Read %s cif-file via pymatgen ..." % num_structs)
+            self.info("Read %s cif-file via pymatgen ..." % num_structs)
             for i, x in enumerate(cif_file_list):
                 # Only one file per path
                 structs.append(parse_cif_file_to_structures(os.path.join(self.data_directory,
                                                                          self.file_directory, x))[0])
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_structs))
-            self.info("done")
-            self.info("INFO:kgcnn: Exporting as dict for pymatgen ...", end='', flush=True)
+            self.info("Exporting as dict for pymatgen ...")
             dicts = [s.as_dict() for s in structs]
-            self.info("done")
-            self.info("INFO:kgcnn: Saving structures as .json ...", end='', flush=True)
+            self.info("Saving structures as .json ...")
             out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
             save_json_file(dicts, out_path)
-            self.info("done")
             pymatgen_file_made = True
 
         if not pymatgen_file_made:
@@ -112,10 +106,10 @@ class CrystalDataset(MemoryGraphDataset):
         file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
         if not os.path.exists(file_path):
             raise FileNotFoundError("ERROR:kgcnn: Cannot find .json file for `CrystalDataset`. Please prepare_data().")
-        self.info("INFO:kgcnn: Reading structures from .json ...", end='', flush=True)
+
+        self.info("Reading structures from .json ...")
         dicts = load_json_file(file_path)
         structs = [pymatgen.core.structure.Structure.from_dict(x) for x in dicts]
-        self.info("done")
         return structs
 
     def read_in_memory(self, label_column_name: str = None):
@@ -129,7 +123,7 @@ class CrystalDataset(MemoryGraphDataset):
 
         structs = self._read_pymatgen_json_in_memory()
         self._structs = structs
-        self.info("INFO:kgcnn: Making node features ...", end='', flush=True)
+        self.info("INFO:kgcnn: Making node features ...")
         node_symbol = []
         node_coordinates = []
         graph_lattice_matrix = []
@@ -164,7 +158,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08,
                                            max_neighbours: int = 100000000):
-        self.info("INFO:kgcnn: Setting range ...", end='', flush=True)
+        self.info("INFO:kgcnn: Setting range ...")
         range_indices = []
         range_image = []
         range_distance = []
@@ -181,14 +175,14 @@ class CrystalDataset(MemoryGraphDataset):
 
     def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
                   self_loops=True, exclusive=True):
-        assert exclusive, "ERROR:kgcnn: Range in `CrystalDataset` only for exclusive=True at the moment."
+        assert exclusive, "Range in `CrystalDataset` only for exclusive=True at the moment."
         structs = self._read_pymatgen_json_in_memory()
         self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
         return self
 
     def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False, allow_multi_edges=True):
         # Since coordinates are periodic.
-        assert not compute_angles, "ERROR:kgcnn: Can not compute angles for periodic systems."
-        assert allow_multi_edges, "ERROR:kgcnn: Required for periodic structures."
+        assert not compute_angles, "Can not compute angles for periodic systems."
+        assert allow_multi_edges, "Require multi edges for periodic structures."
         super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles,
                                               allow_multi_edges=allow_multi_edges)
