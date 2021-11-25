@@ -172,7 +172,7 @@ class QMDataset(MemoryGraphDataset):
         mol_filename = self._get_mol_filename()
         mol_path = os.path.join(self.data_directory, mol_filename)
         if not os.path.exists(mol_path):
-            print("WARNING:kgcnn: Can not load SDF-file for dataset %s" % self.dataset_name)
+            self.warning("Can not load SDF-file for dataset %s" % self.dataset_name)
             return self
 
         # Load sdf file here.
