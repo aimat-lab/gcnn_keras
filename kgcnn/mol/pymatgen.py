@@ -14,20 +14,21 @@ def parse_cif_file_to_structures(cif_file: str):
     return structures
 
 
-def convert_structures_as_dict(structures: list):
-    dicts = [s.as_dict() for s in structures]
-    return dicts
-
-
 def structure_get_properties(py_struct):
     node_coordinates = np.array(py_struct.cart_coords, dtype="float")
     lattice_matrix = np.ascontiguousarray(np.array(py_struct.lattice.matrix), dtype="float")
     abc = np.array(py_struct.lattice.abc)
     charge = np.array([py_struct.charge], dtype="float")
     volume = np.array([py_struct.lattice.volume], dtype="float")
+    occupation = np.zeros((len(py_struct.sites), 95))
+    oxidation = np.zeros((len(py_struct.sites), 95))
+    for i, x in enumerate(py_struct.sites):
+        for sp, occ in x.species.items():
+            occupation[i, sp.number] = occ
+            oxidation[i, sp.number] = sp.oxi_state
     symbols = np.array([x.species_string for x in py_struct.sites])
 
-    return [node_coordinates, lattice_matrix, abc, charge, volume, symbols]
+    return [node_coordinates, lattice_matrix, abc, charge, volume, occupation, oxidation, symbols]
 
 
 def structure_get_range_neighbors(py_struct, radius=4,  numerical_tol: float = 1e-08, struct_id=None,

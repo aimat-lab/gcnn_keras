@@ -192,7 +192,7 @@ hyper = {
             "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
             "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
-            "pooling_args": {"pooling_method": "segment_mean"},
+            "pooling_args": {"pooling_method": "segment_sum"},
             "depth": 3, "use_set2set": False, "verbose": 1,
             "gather_args": {}
         },
@@ -237,7 +237,7 @@ hyper = {
                            "activation": ["relu", "relu", "linear"]},
             "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
                                "use_final_activation": False, "has_self_loops": True},
-            "pooling_nodes_args": {"pooling_method": "mean"},
+            "pooling_nodes_args": {"pooling_method": "sum"},
             "depth": 4, "attention_heads_num": 10,
             "attention_heads_concat": False, "verbose": 1
         },

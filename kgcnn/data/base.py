@@ -366,8 +366,6 @@ class MemoryGeometricGraphList(MemoryGraphList):
         Returns:
             self
         """
-        # We need to sort indices for the following operation.
-        self._operate_on_edges(sort_edge_indices, _prefix_attributes=prefix_indices + "_")
 
         # Compute angles
         e_indices = getattr(self, prefix_indices + "_indices")
