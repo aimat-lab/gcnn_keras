@@ -1,5 +1,5 @@
 import os
-
+import numpy as np
 try:
     import pymatgen.core.structure
 except ModuleNotFoundError:
@@ -135,15 +135,21 @@ class CrystalDataset(MemoryGraphDataset):
         graph_abc = []
         graph_charge = []
         graph_volume = []
+        node_occ = []
+        node_oxidation = []
         for x in structs:
-            coords, lat_matrix, abc, tot_chg, volume, occ, oxi = structure_get_properties(x)
+            coords, lat_matrix, abc, tot_chg, volume, occ, oxi, symb = structure_get_properties(x)
             node_coordinates.append(coords)
             graph_lattice_matrix.append(lat_matrix)
             graph_abc.append(abc)
             graph_charge.append(tot_chg)
             graph_volume.append(volume)
-            node_symbol.append(sites)
+            node_symbol.append(symb)
+            node_occ.append(occ)
+            node_oxidation.append(oxi)
 
+        self.node_attributes = node_occ
+        self.node_number = [np.argmax(x, axis=-1) for x in node_occ]
         self.node_symbol = node_symbol
         self.node_coordinates = node_coordinates
         self.graph_lattice_matrix = graph_lattice_matrix
@@ -178,7 +184,9 @@ class CrystalDataset(MemoryGraphDataset):
         self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
         return self
 
-    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False):
+    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False, allow_multi_edges=True):
         # Since coordinates are periodic.
         assert not compute_angles, "ERROR:kgcnn: Can not compute angles atm."
-        super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles)
+        assert allow_multi_edges, "ERROR:kgcnn: Required for periodic structures."
+        super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles,
+                                              allow_multi_edges=allow_multi_edges)

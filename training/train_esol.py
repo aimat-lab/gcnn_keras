@@ -14,7 +14,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GATv2")  # AttentiveFP
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())

@@ -278,13 +278,13 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None, shape=None)
     return out_adj
 
 
-def get_angle_indices(idx, check_sorted: bool = True, has_multi_edges: bool = False):
+def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = False):
     r"""Compute index list for edge-pairs forming an angle. Not for batches, only for single instance.
 
     Args:
         idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
         check_sorted (bool): Whether to to sort for new angle indices. Default is True.
-        has_multi_edges (bool): Whether to keep angle pairs with :math:`i=k` in the tuple :math:`(i, j, k)`
+        allow_multi_edges (bool): Whether to keep angle pairs with :math:`i=k` in the tuple :math:`(i, j, k)`
 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
@@ -319,7 +319,7 @@ def get_angle_indices(idx, check_sorted: bool = True, has_multi_edges: bool = Fa
         combos_label = np.concatenate(
             [np.expand_dims(np.repeat(np.expand_dims(label_i, axis=1), len(label_k), axis=1), axis=-1),
              np.expand_dims(np.repeat(np.expand_dims(label_k, axis=0), len(label_i), axis=0), axis=-1)], axis=-1)
-        if has_multi_edges:
+        if allow_multi_edges:
             mask_combos = np.ones(combos_label.shape[:2], dtype="bool")
         else:
             mask_combos = np.array(combos_ik[:, :, 0] != combos_ik[:, :, 1], dtype="bool")

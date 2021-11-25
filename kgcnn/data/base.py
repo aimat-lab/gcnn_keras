@@ -263,6 +263,7 @@ class MemoryGeometricGraphList(MemoryGraphList):
         self.range_labels = None
 
         self.angle_indices = None
+        self.angle_indices_nodes = None
         self.angle_labels = None
         self.angle_attributes = None
 
@@ -349,10 +350,9 @@ class MemoryGeometricGraphList(MemoryGraphList):
         self.range_indices = edge_idx
         return self
 
-    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = True):
-        r"""Compute angles between geometric range connections defined by :obj:`range_indices` using
-        :obj:`node_coordinates` into :obj:`angle_attributes`.
-        Which edges were used to calculate angles is stored in :obj:`angle_indices`.
+    def set_angle(self, prefix_indices: str = "range", allow_multi_edges: bool = False, compute_angles: bool = True):
+        r"""Find possible angles between geometric range connections defined by :obj:`range_indices`.
+        Which edges form angles is stored in :obj:`angle_indices`.
         One can also change :obj:`prefix_indices` to `edge` to compute angles between edges instead
         of range connections.
 
@@ -361,7 +361,9 @@ class MemoryGeometricGraphList(MemoryGraphList):
 
         Args:
             prefix_indices (str): Prefix for edge-like attributes to pick indices from. Default is `range`.
-            compute_angles (bool): Whether to calculate angles based on coordinates. Default is True.
+            allow_multi_edges (bool): Whether to allow angles between 'i<-j<-i', which gives 0 degree angle, if they
+                the nodes are unique. Default is False.
+            compute_angles (bool): Whether to also compute angles
 
         Returns:
             self
@@ -370,20 +372,19 @@ class MemoryGeometricGraphList(MemoryGraphList):
         # Compute angles
         e_indices = getattr(self, prefix_indices + "_indices")
         a_indices = []
-        if self.node_coordinates is not None and compute_angles:
-            a_angle = []
-            for i, x in enumerate(e_indices):
-                temp = get_angle_indices(x)
-                a_indices.append(temp[2])
-                a_angle.append(get_angle(self.node_coordinates[i], temp[1]))
-            self.angle_attributes = a_angle
-        else:
-            for i, x in enumerate(e_indices):
-                temp = get_angle_indices(x)
-                a_indices.append(temp[2])
-
+        a_triples = []
+        for i, x in enumerate(e_indices):
+            temp = get_angle_indices(x, allow_multi_edges=allow_multi_edges)
+            a_indices.append(temp[2])
+            a_triples.append(temp[1])
         self.angle_indices = a_indices
-
+        self.angle_indices_nodes = a_triples
+        # Also compute angles
+        if compute_angles:
+            a_angle = []
+            for i, x in enumerate(a_triples):
+                a_angle.append(get_angle(self.node_coordinates[i], x))
+            self.angle_attributes = a_angle
         return self
 
 
