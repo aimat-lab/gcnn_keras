@@ -9,7 +9,7 @@ dist
 kgcnn.egg-info
 /legacy/
 /training/.ipynb_checkpoints/
-/training/results/*/*/model/*
+/training/results/*/*/model*/*
 /notebooks/ExampleMol/
 /notebooks/ExampleMol/*
 /notebooks/gcn_explain_*.png
