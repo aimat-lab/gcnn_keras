@@ -110,7 +110,7 @@ class QMDataset(MemoryGraphDataset):
         self.log("INFO:kgcnn: Converting xyz to mol information (silent)...", end='', flush=True)
         # We need to parallelize this?
         mb = self._make_mol_list(xyz_list)
-        write_mol_block_list_to_sdf(mb, os.path.join(self.data_directory, mol_filename))
+        write_mol_block_list_to_sdf(mb, mol_file_path)
         self.log("done")
 
         return self
