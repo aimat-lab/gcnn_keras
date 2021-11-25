@@ -532,7 +532,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
                 self.data_frame = pd.read_excel(file_path_base + file_extension, **kwargs)
                 return self
 
-        self.warning("Unsupported data format for %s. Return None" % file_path)
+        self.warning("Unsupported data extension of %s for csv file." % file_path)
         return self
 
 
