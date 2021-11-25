@@ -66,7 +66,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             molecule_list.append(mg.to_mol_block())
             if i % 1000 == 0:
                 self.info(" ... converted molecules {0} from {1}".format(i, max_number))
-        self.info("done")
+
         return molecule_list
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
@@ -87,7 +87,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         """
         mol_filename = self._get_mol_filename()
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self.info("INFO:kgcnn: Found rdkit %s of pre-computed structures." % mol_filename)
+            self.info("Found rdkit %s of pre-computed structures." % mol_filename)
             return self
         filepath = os.path.join(self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
@@ -150,7 +150,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self.info("INFO:kgcnn: Read mol-blocks from %s of pre-computed structures..." % mol_filename)
+        self.info("Read mol-blocks from %s of pre-computed structures..." % mol_filename)
         mols = dummy_load_sdf_file(mol_path)
 
         # Main loop to read molecules from mol-block
@@ -200,7 +200,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.edge_number = edge_number
         self.valid_molecule_id = valid_molecule_id
 
-        self.info("done")
 
         return self
 
@@ -237,7 +236,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self.info("INFO:kgcnn: Making attributes...")
+        self.info("Making attributes...")
 
         mols = dummy_load_sdf_file(mol_path)
 

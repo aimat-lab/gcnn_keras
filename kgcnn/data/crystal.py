@@ -152,7 +152,6 @@ class CrystalDataset(MemoryGraphDataset):
         self.graph_abc = graph_abc
         self.graph_charge = graph_charge
         self.graph_volume = graph_volume
-        self.info("done")
 
         return self
 
@@ -171,7 +170,6 @@ class CrystalDataset(MemoryGraphDataset):
         self.range_indices = range_indices
         self.range_image = range_image
         self.range_attributes = range_distance
-        self.info("done")
 
     def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
                   self_loops=True, exclusive=True):
