@@ -88,32 +88,38 @@ class QMDataset(MemoryGraphDataset):
         """
         mol_file_path = os.path.join(self.data_directory, self._get_mol_filename())
         xyz_file_path = os.path.join(self.data_directory, self._get_xyz_filename())
-        self.data_frame = self.read_in_table_file()
 
         if os.path.exists(mol_file_path) and not overwrite:
             self.info("Found SDF-file %s of pre-computed structures." % mol_file_path)
             return self
 
         if not os.path.exists(xyz_file_path):
+            self.read_in_table_file()
             if self.data_frame is None:
                 raise FileNotFoundError("ERROR:kgcnn: Can not find csv table.")
             if xyz_column_name is None:
                 raise ValueError("ERROR:kgcnn: Please specify column for csv file.")
             xyz_file_list = self.data_frame[xyz_column_name].values
             num_mols = len(xyz_file_list)
-            xyzs_str = []
-            self.info("Read single %s xyz-file ..." % num_mols)
+            xyz_list = []
+            if not os.path.exists(os.path.join(self.data_directory, self.file_directory)):
+                raise ValueError("ERROR:kgcnn: No file directory of xyz files.")
+            self.info("Read %s single xyz-file ..." % num_mols)
             for i, x in enumerate(xyz_file_list):
                 # Only one file per path
                 with open(os.path.join(self.data_directory, self.file_directory, x), "r") as f:
                     file_xyz = f.read()
-                xyzs_str.append(file_xyz)
+                xyz_list.append(file_xyz)
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_mols))
             self.info("done")
-            out_file = "".join(xyzs_str)
+            out_file = "".join(xyz_list)
             with open(xyz_file_path, "w") as f:
                 f.write(out_file)
+        else:
+            self.info("Reading single xyz-file ...", end='', flush=True)
+            filepath = os.path.join(self.data_directory, self.file_name)
+            xyz_list = read_xyz_file(filepath)
 
         # Additionally try to make SDF file
         try:
@@ -122,15 +128,9 @@ class QMDataset(MemoryGraphDataset):
             self.warning("Can not make mol-objects. Please install openbabel.")
             return self
 
-        self.info("Reading single xyz-file ...", end='', flush=True)
-        filepath = os.path.join(self.data_directory, self.file_name)
-        xyz_list = read_xyz_file(filepath)
-        self.info("done")
-
         self.info("Converting xyz to mol information (silent)...", end='', flush=True)
         mb = self._make_mol_list(xyz_list)
         write_mol_block_list_to_sdf(mb, mol_file_path)
-        self.info("done")
 
         return self
 
@@ -185,9 +185,13 @@ class QMDataset(MemoryGraphDataset):
             edge_index = []
             edge_attr = []
             for x in bond_info:
-                temp = add_edges_reverse_indices(np.array(x[:, :2]), np.array(x[:, 2:]))
-                edge_index.append(temp[0] - 1)
-                edge_attr.append(np.array(temp[1], dtype="float"))
+                if len(x) == 0:
+                    edge_index.append(np.array([[]], dtype="int"))
+                    edge_attr.append(np.array([[]], dtype="float"))
+                else:
+                    temp = add_edges_reverse_indices(np.array(x[:, :2]), np.array(x[:, 2:]))
+                    edge_index.append(temp[0] - 1)
+                    edge_attr.append(np.array(temp[1], dtype="float"))
             self.edge_indices = edge_index
             self.edge_attributes = edge_attr
             self.info("done")

@@ -282,12 +282,12 @@ class MemoryGeometricGraphList(MemoryGraphList):
             raise ValueError("Edge indices are not set. Can not infer range definition.")
         coord = self.node_coordinates
 
-        if self.node_coordinates is None:
-            print("WARNING:kgcnn: Coordinates are not set for `GeometricGraph`. Can not make graph.")
-            return self
-
         # We make a copy here of the edge indices.
         self.range_indices = [np.array(x, dtype="int") for x in self.edge_indices]
+
+        if self.node_coordinates is None:
+            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
+            return self
 
         edges = []
         for i in range(len(coord)):
@@ -461,7 +461,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
         verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
         if self.verbose > verbosity_level:
-            print("INFO:kgcnn: ", *args, **print_kwargs)
+            print("INFO:kgcnn:", *args, **print_kwargs)
 
     def warning(self, *args, **kwargs):
         """Logging information."""
@@ -469,7 +469,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
         verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
         if self.verbose > verbosity_level:
-            print("WARNING:kgcnn: ", *args, **print_kwargs)
+            print("WARNING:kgcnn:", *args, **print_kwargs)
 
     def task(self, *args, **kwargs):
         return
@@ -519,7 +519,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
             self
         """
         if file_path is None:
-            file_path = os.path.join(self.file_directory, self.file_name)
+            file_path = os.path.join(self.data_directory, self.file_name)
         file_path_base = os.path.splitext(file_path)[0]
         # file_extension_given = os.path.splitext(file_path)[1]
 
