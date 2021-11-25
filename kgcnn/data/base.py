@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
@@ -9,7 +10,7 @@ from kgcnn.utils.data import save_pickle_file, load_pickle_file
 
 class MemoryGraphList:
     r"""Class to store a list of graph properties in memory.
-    The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. .
+    The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
     They are added in form of a list as class attributes to the instance of this class.
     Graph related properties must have a special prefix to be noted as graph property.
     Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
@@ -23,7 +24,9 @@ class MemoryGraphList:
         print(data.edge_indices, data.node_labels)
 
     For now, only the length of the different properties are checked to be the same when assigning the (new)
-    attributes.
+    attributes. Functions to modify graph properties are
+    provided with this class, like for example :obj:`sort_edge_indices`, which expect list of numpy arrays. Please
+    find functions in :class:`kgcnn.utils.adj` and their documentation for further details.
     """
 
     def __init__(self, length: int = None):
@@ -36,6 +39,29 @@ class MemoryGraphList:
         """
         self._length = length
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_"]
+
+        # Assign empty node attributes frequently used by subclasses.
+        self.node_coordinates = None
+        self.node_attributes = None
+        self.node_labels = None
+        self.node_degree = None
+        self.node_symbol = None
+        self.node_number = None
+
+        # Assign empty edge attributes frequently used by subclasses.
+        self.edge_indices = None
+        self.edge_indices_reverse = None
+        self.edge_attributes = None
+        self.edge_labels = None
+        self.edge_number = None
+        self.edge_symbol = None
+        self.edge_weights = None
+
+        # Assign empty graph attributes frequently used by subclasses.
+        self.graph_labels = None
+        self.graph_attributes = None
+        self.graph_number = None
+        self.graph_size = None
 
     def _find_graph_properties(self, prop_prefix):
         return [x for x in list(self.__dict__.keys()) if prop_prefix == x[:len(prop_prefix)]]
@@ -80,132 +106,13 @@ class MemoryGraphList:
                         setattr(self, x, None)
             self._length = int(value)
 
-    def save(self, filepath: str):
-        """Save all graph properties to pickled file.
-
-        Args:
-            filepath (str): Full path of output file.
-        """
-        save_pickle_file({x: getattr(self, x) for x in self._find_all_graph_properties()}, filepath)
-        return self
-
-    def load(self, filepath: str):
-        """Load graph properties from pickled file.
-
-        Args:
-            filepath (str): Full path of input file.
-        """
-        in_dict = load_pickle_file(filepath)
-        for key, value in in_dict.items():
-            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-                setattr(self, key, value)
-            else:
-                print("WARNING:kgcnn: Not accepted graph property, ignore name %s" % key)
-        return self
-
-
-class MemoryGraphDataset(MemoryGraphList):
-    r"""Dataset class for lists of graph tensor properties that can be cast into the :obj:`tf.RaggedTensor` class.
-    The graph list is expected to only store numpy arrays in place of the each node or edge information!
-
-    .. note::
-        Each graph attribute is expected to be a python list or iterable object containing numpy arrays.
-        For example, the special attribute of :obj:`edge_indices` is expected to be a list of arrays of
-        shape `(Num_edges, 2)` with the indices of node connections.
-        The node attributes in :obj:`node_attributes` are numpy arrays of shape `(Num_nodes, Num_features)`.
-
-    The Memory Dataset class inherits from :obj:`MemoryGraphList` and has further information about a location on disk,
-    i.e. a file directory and a file name as well as a name of the dataset. Functions to modify graph properties are
-    provided with this class, like for example :obj:`sort_edge_indices`, which expect list of numpy arrays. Please
-    find functions in :class:`kgcnn.utils.adj` and their documentation for further details.
-
-    .. code-block:: python
-
-        from kgcnn.data.base import MemoryGraphDataset
-        dataset = MemoryGraphDataset(data_directory="", dataset_name="Example", length=1)
-        dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
-        dataset.edge_labels = [np.array([[0], [1]])]
-        print(dataset.edge_indices, dataset.edge_labels)
-        dataset.sort_edge_indices()
-        print(dataset.edge_indices, dataset.edge_labels)
-
-    The file directory and file name are not used directly. However, for :obj:`load()` and :obj:`safe()`,
-    the default is constructed from the data directory and dataset name. File name and file directory is reserved for
-    child classes.
-    """
-
-    fits_in_memory = True
-
-    def __init__(self,
-                 data_directory: str = None,
-                 dataset_name: str = None,
-                 file_name: str = None,
-                 file_directory: str = None,
-                 length: int = None,
-                 verbose: int = 1, **kwargs):
-        r"""Initialize a base class of :obj:`MemoryGraphDataset`.
-
-        Args:
-            data_directory (str): Full path to directory of the dataset. Default is None.
-            file_name (str): Generic filename for dataset to read into memory like a 'csv' file. Default is None.
-            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
-                files. Default is None.
-            dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
-            length (int): Length of the dataset, if known beforehand. Default is None.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
-        """
-        super(MemoryGraphDataset, self).__init__(length=length)
-        # For logging.
-        self.verbose = verbose
-        # Dataset information on file.
-        self.data_directory = data_directory
-        self.file_name = file_name
-        self.file_directory = file_directory
-        self.dataset_name = dataset_name
-        # Get path information from filename if directory is not specified.
-        if self.data_directory is None and isinstance(self.file_name, str):
-            self.data_directory = os.path.dirname(os.path.realpath(self.file_name))
-
-        # Check if no wrong kwargs passed to init. Reserve for future compatibility.
-        if len(kwargs) > 0:
-            print("WARNING:kgcnn: Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
-
-        # Assign empty node attributes frequently used by subclasses.
-        self.node_attributes = None
-        self.node_labels = None
-        self.node_degree = None
-        self.node_symbol = None
-        self.node_number = None
-
-        # Assign empty edge attributes frequently used by subclasses.
-        self.edge_indices = None
-        self.edge_indices_reverse = None
-        self.edge_attributes = None
-        self.edge_labels = None
-        self.edge_number = None
-        self.edge_symbol = None
-        self.edge_weights = None
-
-        # Assign empty graph attributes frequently used by subclasses.
-        self.graph_labels = None
-        self.graph_attributes = None
-        self.graph_number = None
-        self.graph_size = None
-
-    def _log(self, *args, **kwargs):
-        """Logging information."""
-        # Could use logger in the future.
-        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
-        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
-        if self.verbose > verbosity_level:
-            print(*args, **print_kwargs)
-
     def _operate_on_edges(self, operation, _prefix_attributes: str = "edge_", **kwargs):
         r"""Wrapper to run a certain function on all edge related properties. The indices attributes must be defined
         and must be composed of :obj:`_prefix_attributes` and 'indices'.
 
         Args:
-              operation (callable): Function to apply to a list of edge arrays. First entry is assured to be indices.
+              operation (callable): Function to apply to a list of all edge arrays.
+                First entry is assured to be indices.
               _prefix_attributes (str): Prefix for attributes to identify as edges.
               kwargs: Kwargs for operation function call.
         """
@@ -234,12 +141,6 @@ class MemoryGraphDataset(MemoryGraphList):
         for i, at in enumerate(no_nan_edge_prop):
             setattr(self, at, new_edges[i])
 
-        # Recompute the edge reverse pair map.
-        if self.edge_indices_reverse is not None:
-            self.set_edge_indices_reverse()
-
-        # May have to recompute special attributes here.
-        # ...
         return self
 
     def set_edge_indices_reverse(self):
@@ -247,6 +148,9 @@ class MemoryGraphDataset(MemoryGraphList):
         to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
         Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
         pair get a `nan` as map index. If there are multiple edges, the first encounter is assigned.
+
+        .. warning::
+            Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
 
         Returns:
             self
@@ -319,46 +223,18 @@ class MemoryGraphDataset(MemoryGraphList):
         self.edge_weights = new_weights
         return self
 
-    def save(self, filepath: str = None):
-        r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
-        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
 
-        Args:
-            filepath (str): Full path of output file. Default is None.
-        """
-        if filepath is None:
-            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
-        self._log("INFO:kgcnn: Pickle dataset...")
-        super(MemoryGraphDataset, self).save(filepath)
-        self._log("done")
-        return self
-
-    def load(self, filepath: str = None):
-        r"""Load graph properties from a pickled file. By default loads a file named
-        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
-
-        Args:
-            filepath (str): Full path of input file.
-        """
-        if filepath is None:
-            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
-        self._log("INFO:kgcnn: Load pickled dataset...")
-        super(MemoryGraphDataset, self).load(filepath)
-        self._log("done")
-        return self
-
-
-class MemoryGeometricGraphDataset(MemoryGraphDataset):
-    r"""Subclass of :obj:`MemoryGraphDataset`. It expands the graph dataset with range and angle properties.
+class MemoryGeometricGraphList(MemoryGraphList):
+    r"""Subclass of :obj:`MemoryGraphList`. It expands the graph list with range and angle properties.
     The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
     to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
-    edge. They are characterized by the prefix `range_` and `angle_` and are also saved in :obj:`save()` and
+    edge. They are characterized by the prefix `range_` and `angle_` and are also
     checked for length when assigning attributes to the instances of this class.
 
     .. code-block:: python
 
-        from kgcnn.data.base import MemoryGeometricGraphDataset
-        dataset = MemoryGeometricGraphDataset(data_directory="", dataset_name="Example", length=1)
+        from kgcnn.data.base import MemoryGeometricGraphList
+        dataset = MemoryGeometricGraphList(length=1)
         dataset.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
         print(dataset.node_coordinates)
         dataset.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
@@ -376,7 +252,7 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         Args:
             kwargs: Arguments that are passed to :obj:`MemoryGraphDataset` base class.
         """
-        super(MemoryGeometricGraphDataset, self).__init__(**kwargs)
+        super(MemoryGeometricGraphList, self).__init__(**kwargs)
         self._reserved_graph_property_prefix = self._reserved_graph_property_prefix + ["range_", "angle_"]
 
         # Extend nodes to have coordinates.
@@ -511,3 +387,144 @@ class MemoryGeometricGraphDataset(MemoryGraphDataset):
         self.angle_indices = a_indices
 
         return self
+
+
+class MemoryGraphDataset(MemoryGeometricGraphList):
+    r"""Dataset class for lists of graph tensor properties that can be cast into the :obj:`tf.RaggedTensor` class.
+    The graph list is expected to only store numpy arrays in place of the each node or edge information!
+
+    .. note::
+        Each graph attribute is expected to be a python list or iterable object containing numpy arrays.
+        For example, the special attribute of :obj:`edge_indices` is expected to be a list of arrays of
+        shape `(Num_edges, 2)` with the indices of node connections.
+        The node attributes in :obj:`node_attributes` are numpy arrays of shape `(Num_nodes, Num_features)`.
+
+    The Memory Dataset class inherits from :obj:`MemoryGeometricGraphList` and has further information
+    about a location on disk, i.e. a file directory and a file name as well as a name of the dataset.
+
+    .. code-block:: python
+
+        from kgcnn.data.base import MemoryGraphDataset
+        dataset = MemoryGraphDataset(data_directory="", dataset_name="Example", length=1)
+        dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
+        dataset.edge_labels = [np.array([[0], [1]])]
+        print(dataset.edge_indices, dataset.edge_labels)
+        dataset.sort_edge_indices()
+        print(dataset.edge_indices, dataset.edge_labels)
+
+    The file directory and file name are not used directly. However, for :obj:`load()` and :obj:`safe()`,
+    the default is constructed from the data directory and dataset name. File name and file directory is reserved for
+    child classes.
+    """
+
+    fits_in_memory = True
+
+    def __init__(self,
+                 data_directory: str = None,
+                 dataset_name: str = None,
+                 file_name: str = None,
+                 file_directory: str = None,
+                 length: int = None,
+                 verbose: int = 1, **kwargs):
+        r"""Initialize a base class of :obj:`MemoryGraphDataset`.
+
+        Args:
+            data_directory (str): Full path to directory of the dataset. Default is None.
+            file_name (str): Generic filename for dataset to read into memory like a 'csv' file. Default is None.
+            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
+                files. Default is None.
+            dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
+            length (int): Length of the dataset, if known beforehand. Default is None.
+            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+        """
+        super(MemoryGraphDataset, self).__init__(length=length)
+        # For logging.
+        self.verbose = verbose
+        # Dataset information on file.
+        self.data_directory = data_directory
+        self.file_name = file_name
+        self.file_directory = file_directory
+        self.dataset_name = dataset_name
+        # Get path information from filename if directory is not specified.
+        if self.data_directory is None and isinstance(self.file_name, str):
+            self.data_directory = os.path.dirname(os.path.realpath(self.file_name))
+
+        # Data Frame for information.
+        self.data_frame = None
+
+        # Check if no wrong kwargs passed to init. Reserve for future compatibility.
+        if len(kwargs) > 0:
+            print("WARNING:kgcnn: Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
+
+    def log(self, *args, **kwargs):
+        """Logging information."""
+        # Could use logger in the future.
+        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
+        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
+        if self.verbose > verbosity_level:
+            print(*args, **print_kwargs)
+
+    def save(self, filepath: str = None):
+        r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
+        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
+
+        Args:
+            filepath (str): Full path of output file. Default is None.
+        """
+        if filepath is None:
+            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        self.log("INFO:kgcnn: Pickle dataset...")
+        save_pickle_file({x: getattr(self, x) for x in self._find_all_graph_properties()}, filepath)
+        self.log("done")
+        return self
+
+    def load(self, filepath: str = None):
+        r"""Load graph properties from a pickled file. By default loads a file named
+        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
+
+        Args:
+            filepath (str): Full path of input file.
+        """
+        if filepath is None:
+            filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
+        self.log("INFO:kgcnn: Load pickled dataset...")
+        in_dict = load_pickle_file(filepath)
+        for key, value in in_dict.items():
+            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
+                setattr(self, key, value)
+            else:
+                print("WARNING:kgcnn: Not accepted graph property, ignore name %s" % key)
+        self.log("done")
+        return self
+
+    def read_in_table_file(self, file_path: str = None, **kwargs):
+        r"""Read a data frame in :obj:`data_frame` from file path. By default uses :obj:`file_name` and pandas.
+        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is removed
+        first.
+
+        Args:
+            file_path (str): File path to table file. Default is None.
+            kwargs: Kwargs for pandas :obj:`read_csv` function.
+
+        Returns:
+            self
+        """
+        if file_path is None:
+            file_path = os.path.join(self.file_directory, self.file_name)
+        file_path_base = os.path.splitext(file_path)[0]
+        # file_extension_given = os.path.splitext(file_path)[1]
+
+        for file_extension in [".csv"]:
+            if os.path.exists(file_path_base + file_extension):
+                self.data_frame = pd.read_csv(file_path_base + file_extension, **kwargs)
+                return self
+        for file_extension in [".xls", ".xlsx", ".xlsm", ".xlsb", ".odf", ".ods", ".odt"]:
+            if os.path.exists(file_path_base + file_extension):
+                self.data_frame = pd.read_excel(file_path_base + file_extension, **kwargs)
+                return self
+
+        self.log("WARNING:kgcnn: Unsupported data format for %s. Return None" % file_path)
+        return self
+
+
+MemoryGeometricGraphDataset = MemoryGraphDataset

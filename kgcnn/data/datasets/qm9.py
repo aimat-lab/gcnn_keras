@@ -68,14 +68,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
                 os.path.join(path, "qm9.json"))) and not overwrite:
-            self._log("INFO:kgcnn: Single molecules already pickled... done")
+            self.log("INFO:kgcnn: Single molecules already pickled... done")
         else:
             if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
                 print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run reload dataset again.")
                 return
             qm9 = []
             # Read individual files
-            self._log("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
+            self.log("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
             for i in range(1, dataset_size + 1):
                 mol = []
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
@@ -101,26 +101,26 @@ class QM9Dataset(QMDataset, DownloadDataset):
                 mol.append(inchis)
                 open_file.close()
                 qm9.append(mol)
-            self._log('done')
+            self.log('done')
 
             # Save pickle data
-            self._log("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
+            self.log("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
             with open(os.path.join(path, "qm9.json"), 'w') as f:
                 json.dump(qm9, f)
-            self._log('done')
+            self.log('done')
 
             # Remove file after reading
-            self._log("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
+            self.log("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
             for i in range(1, dataset_size + 1):
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
                 file = os.path.join(path, "dsgdb9nsd.xyz", file)
                 os.remove(file)
-            self._log('done')
+            self.log('done')
 
         if os.path.exists(os.path.join(path, self.file_name)) and not overwrite:
-            self._log("INFO:kgcnn: Single xyz-file %s for molecules already created... done" % self.file_name)
+            self.log("INFO:kgcnn: Single xyz-file %s for molecules already created... done" % self.file_name)
         else:
-            self._log("INFO:kgcnn: Reading dataset...", end='', flush=True)
+            self.log("INFO:kgcnn: Reading dataset...", end='', flush=True)
             if os.path.exists(os.path.join(path, "qm9.pickle")):
                 with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                     qm9 = pickle.load(f)
@@ -129,13 +129,13 @@ class QM9Dataset(QMDataset, DownloadDataset):
                     qm9 = json.load(f)
             else:
                 raise FileNotFoundError("Can not find pickled QM9 dataset.")
-            self._log('done')
+            self.log('done')
 
             # Try extract bond-info and save mol-file.
-            self._log("INFO:kgcnn: Writing single xyz-file ...", end='', flush=True)
+            self.log("INFO:kgcnn: Writing single xyz-file ...", end='', flush=True)
             atoms = [x[2] for x in qm9]
             write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms)
-            self._log('done')
+            self.log('done')
 
         super(QM9Dataset, self).prepare_data(overwrite=overwrite)
         return self
@@ -144,7 +144,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         """Load the pickled QM9 data into memory and already split into items."""
         path = self.data_directory
 
-        self._log("INFO:kgcnn: Reading dataset ...", end='', flush=True)
+        self.log("INFO:kgcnn: Reading dataset ...", end='', flush=True)
         if os.path.exists(os.path.join(path, "qm9.pickle")):
             with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                 qm9 = pickle.load(f)
@@ -181,7 +181,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.node_number = nodes
         self.graph_attributes = mmw
 
-        self._log('done')
+        self.log('done')
 
         # Try to read mol information
         self.read_in_memory_sdf()

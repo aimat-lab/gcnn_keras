@@ -2,13 +2,13 @@ import os
 import numpy as np
 import pandas as pd
 
-from kgcnn.data.base import MemoryGeometricGraphDataset
+from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
 from kgcnn.mol.convert import write_mol_block_list_to_sdf, dummy_load_sdf_file
 
 
-class MoleculeNetDataset(MemoryGeometricGraphDataset):
+class MoleculeNetDataset(MemoryGraphDataset):
     r"""Class for using molecule datasets. The concept is to load a table of smiles and corresponding targets and
     convert them into a tensors representation for graph networks.
 
@@ -35,8 +35,8 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             dataset_name (str): Name of the dataset. Important for naming. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        MemoryGeometricGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
-                                             file_name=file_name, verbose=verbose)
+        MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
+                                    file_name=file_name, verbose=verbose)
         self.data_keys = None
         self.valid_molecule_id = None
 
@@ -57,7 +57,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if len(smiles) == 0:
             print("ERROR:kgcnn: Can not translate smiles, received empty list for %s." % self.dataset_name)
 
-        self._log("INFO:kgcnn: Generating molecules and store %s to disk..." % mol_filename)
+        self.log("INFO:kgcnn: Generating molecules and store %s to disk..." % mol_filename)
         molecule_list = []
         max_number = len(smiles)
         for i, sm in enumerate(smiles):
@@ -65,8 +65,8 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             mg.from_smiles(sm, sanitize=sanitize)
             molecule_list.append(mg.to_mol_block())
             if i % 1000 == 0:
-                self._log(" ... converted molecules {0} from {1}".format(i, max_number))
-        self._log("done")
+                self.log(" ... converted molecules {0} from {1}".format(i, max_number))
+        self.log("done")
         return molecule_list
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
@@ -87,7 +87,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         """
         mol_filename = self._get_mol_filename()
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self._log("INFO:kgcnn: Found rdkit %s of pre-computed structures." % mol_filename)
+            self.log("INFO:kgcnn: Found rdkit %s of pre-computed structures." % mol_filename)
             return self
         filepath = os.path.join(self.data_directory, self.file_name)
         data = pd.read_csv(filepath)
@@ -150,7 +150,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self._log("INFO:kgcnn: Read mol-blocks from %s of pre-computed structures..." % mol_filename)
+        self.log("INFO:kgcnn: Read mol-blocks from %s of pre-computed structures..." % mol_filename)
         mols = dummy_load_sdf_file(mol_path)
 
         # Main loop to read molecules from mol-block
@@ -166,16 +166,16 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         for i, x in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(x, sanitize=True)
             if mg.mol is None:
-                self._log(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                self.log(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
                 continue
             temp_edge = mg.edge_number
             if len(temp_edge[0]) == 0:
-                self._log(" ... skip molecule {0} as it has 0 edges.".format(i))
+                self.log(" ... skip molecule {0} as it has 0 edges.".format(i))
                 continue
             if has_conformers:
                 temp_xyz = mg.node_coordinates
                 if len(temp_xyz) == 0:
-                    self._log(" ... skip molecule {0} as it has no conformer.".format(i))
+                    self.log(" ... skip molecule {0} as it has no conformer.".format(i))
                     continue
                 coords.append(np.array(temp_xyz, dtype="float32"))
 
@@ -187,7 +187,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             graph_labels.append(graph_labels_all[i])
             counter_iter += 1
             if i % 1000 == 0:
-                self._log(" ... read molecules {0} from {1}".format(i, num_mols))
+                self.log(" ... read molecules {0} from {1}".format(i, num_mols))
             valid_molecule_id.append(i)
 
         self.node_symbol = atoms
@@ -200,7 +200,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         self.edge_number = edge_number
         self.valid_molecule_id = valid_molecule_id
 
-        self._log("done")
+        self.log("done")
 
         return self
 
@@ -237,7 +237,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         if not os.path.exists(mol_path):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self._log("INFO:kgcnn: Making attributes...")
+        self.log("INFO:kgcnn: Making attributes...")
 
         mols = dummy_load_sdf_file(mol_path)
 
@@ -288,16 +288,16 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
         for i, sm in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
             if mg.mol is None:
-                self._log(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                self.log(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
                 continue
             temp_edge = mg.edge_number
             if len(temp_edge[0]) == 0:
-                self._log(" ... skip molecule {0} as it has 0 edges.".format(i))
+                self.log(" ... skip molecule {0} as it has 0 edges.".format(i))
                 continue
             if has_conformers:
                 temp_xyz = mg.node_coordinates
                 if len(temp_xyz) == 0:
-                    self._log(" ... skip molecule {0} as it has no conformer as requested.".format(i))
+                    self.log(" ... skip molecule {0} as it has no conformer as requested.".format(i))
                     continue
                 node_coordinates.append(np.array(temp_xyz, dtype="float32"))
 
@@ -311,7 +311,7 @@ class MoleculeNetDataset(MemoryGeometricGraphDataset):
             node_number.append(mg.node_number)
             counter_iter += 1
             if i % 1000 == 0:
-                self._log(" ... read molecules {0} from {1}".format(i, num_mols))
+                self.log(" ... read molecules {0} from {1}".format(i, num_mols))
             valid_molecule_id.append(i)
 
         self.graph_size = [len(x) for x in node_attributes]
