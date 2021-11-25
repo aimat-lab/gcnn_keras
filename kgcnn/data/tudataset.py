@@ -50,10 +50,10 @@ class GraphTUDataset(MemoryGraphDataset):
             if self.file_directory is not None:
                 path = os.path.join(path, self.file_directory)
         else:
-            self.log("ERROR:kgcnn: Dataset needs name {0} and path {1}.".format(self.dataset_name, self.data_directory))
+            self.info("ERROR:kgcnn: Dataset needs name {0} and path {1}.".format(self.dataset_name, self.data_directory))
             return None
 
-        self.log("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
+        self.info("INFO:kgcnn: Reading dataset to memory with name %s" % str(self.dataset_name))
 
         # Define a graph with indices
         # They must be defined
@@ -105,7 +105,7 @@ class GraphTUDataset(MemoryGraphDataset):
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
-            self.log("INFO:kgcnn: Shift start of graph id to zero for %s to match python indexing." % name_dataset)
+            self.info("INFO:kgcnn: Shift start of graph id to zero for %s to match python indexing." % name_dataset)
             g_a = g_a - 1
             g_n_id = g_n_id - 1
 
@@ -146,8 +146,8 @@ class GraphTUDataset(MemoryGraphDataset):
             all_cons.append(np.sum(is_cons == False))
         all_cons = np.array(all_cons)
 
-        self.log("INFO:kgcnn: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
-                 all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
+        self.info("INFO:kgcnn: Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
+                  all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
 
         node_degree = [np.zeros(x, dtype="int") for x in graphlen]
         for i, x in enumerate(edge_indices):

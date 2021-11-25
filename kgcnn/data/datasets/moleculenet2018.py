@@ -45,7 +45,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
     }
     datasets_read_in_memory_info = {
         "ESOL": {"add_hydrogen": False, "has_conformers": True,
-                 "label_column_name": "measured log solubility in mols per litre"},
+                 "label_column_name": "measured info solubility in mols per litre"},
         "FreeSolv": {"has_conformers": True, "add_hydrogen": False, "label_column_name": "expt"},
         "Lipop": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "exp"},
         "PCBA": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 128)},

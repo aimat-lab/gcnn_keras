@@ -5,7 +5,7 @@ import tensorflow.keras as ks
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
 class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
     """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets. Only intended as
-    metric this allows to log the MAE with correct units or absolute values during fit."""
+    metric this allows to info the MAE with correct units or absolute values during fit."""
 
     def __init__(self, scaling_shape=(), name='mean_absolute_error', **kwargs):
         super(ScaledMeanAbsoluteError, self).__init__(name=name, **kwargs)
@@ -45,7 +45,7 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
 class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
     """Metric for a scaled root mean squared error (RMSE), which can undo a pre-scaling of the targets.
-    Only intended as metric this allows to log the MAE with correct units or absolute values during fit."""
+    Only intended as metric this allows to info the MAE with correct units or absolute values during fit."""
 
     def __init__(self, scaling_shape=(), name='root_mean_squared_error', **kwargs):
         super(ScaledRootMeanSquaredError, self).__init__(name=name, **kwargs)

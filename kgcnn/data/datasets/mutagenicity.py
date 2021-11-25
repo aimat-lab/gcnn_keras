@@ -54,7 +54,7 @@ class MutagenicityDataset(GraphTUDataset2020):
         atoms_clean = []
 
         # Remove unconnected atoms. not Na Li etc.
-        self.log("INFO:kgcnn: Checking database...")
+        self.info("INFO:kgcnn: Checking database...")
         for i in range(len(nodes)):
             nats = nodes[i]
             cons = np.arange(len(nodes[i]))
@@ -69,7 +69,7 @@ class MutagenicityDataset(GraphTUDataset2020):
                 info_list = nodes[i][is_cons == False]
                 info_list, info_cnt = np.unique(info_list, return_counts=True)
                 info_list = {z_translate[info_list[j]]: info_cnt[j] for j in range(len(info_list))}
-                self.log("INFO: Removing unconnected", info_list, "from molecule", i)
+                self.info("INFO: Removing unconnected", info_list, "from molecule", i)
                 nodes_clean.append(nats[is_cons])
                 atoms_clean.append([atoms[i][j] for j in range(len(is_cons)) if is_cons[j] == True])
                 # Need to correct edge_indices
@@ -86,7 +86,7 @@ class MutagenicityDataset(GraphTUDataset2020):
             edges_clean.append(edges[i])
             labels_clean.append(labels[i])
 
-        self.log("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
+        self.info("INFO:kgcnn: Database still has unconnected Na+, Li+, ksb+ etc.")
 
         # Since no attributes in graph dataset, we use labels as attributes
         self.graph_labels = labels_clean

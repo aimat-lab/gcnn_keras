@@ -77,7 +77,7 @@ class MemoryGraphList:
                     self._length = len(value)
                 else:
                     if self._length != len(value):
-                        raise ValueError("ERROR:kgcnn: len() of %s does not match len() of graph list." % key)
+                        raise ValueError("len() of %s does not match len() of graph list." % key)
 
         super(MemoryGraphList, self).__setattr__(key, value)
 
@@ -117,7 +117,7 @@ class MemoryGraphList:
               kwargs: Kwargs for operation function call.
         """
         if getattr(self, _prefix_attributes + "indices") is None:
-            raise ValueError("ERROR:kgcnn: Can not operate on edges, as indices are not defined.")
+            raise ValueError("Can not operate on edges, as indices are not defined.")
 
         # Determine all linked edge attributes, that are not None.
         edge_linked = self._find_graph_properties(_prefix_attributes)
@@ -212,7 +212,7 @@ class MemoryGraphList:
             self
         """
         if self.edge_indices is None:
-            raise ValueError("ERROR:kgcnn: Can scale adjacency matrix, as graph indices are not defined.")
+            raise ValueError("Can scale adjacency matrix, as graph indices are not defined.")
         if self.edge_weights is None:
             self.edge_weights = [np.ones_like(x[:, :1]) for x in self.edge_indices]
 
@@ -279,7 +279,7 @@ class MemoryGeometricGraphList(MemoryGraphList):
             self
         """
         if self.edge_indices is None:
-            raise ValueError("ERROR:kgcnn: Edge indices are not set. Can not infer range definition.")
+            raise ValueError("Edge indices are not set. Can not infer range definition.")
         coord = self.node_coordinates
 
         if self.node_coordinates is None:
@@ -453,15 +453,23 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
 
         # Check if no wrong kwargs passed to init. Reserve for future compatibility.
         if len(kwargs) > 0:
-            print("WARNING:kgcnn: Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
+            self.warning("Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
 
-    def log(self, *args, **kwargs):
+    def info(self, *args, **kwargs):
         """Logging information."""
         # Could use logger in the future.
         print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
         verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
         if self.verbose > verbosity_level:
-            print(*args, **print_kwargs)
+            print("INFO:kgcnn: ", *args, **print_kwargs)
+
+    def warning(self, *args, **kwargs):
+        """Logging information."""
+        # Could use logger in the future.
+        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
+        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
+        if self.verbose > verbosity_level:
+            print("WARNING:kgcnn: ", *args, **print_kwargs)
 
     def save(self, filepath: str = None):
         r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
@@ -472,9 +480,9 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         """
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
-        self.log("INFO:kgcnn: Pickle dataset...")
+        self.info("Pickle dataset...")
         save_pickle_file({x: getattr(self, x) for x in self._find_all_graph_properties()}, filepath)
-        self.log("done")
+        self.info("done")
         return self
 
     def load(self, filepath: str = None):
@@ -486,14 +494,14 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         """
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
-        self.log("INFO:kgcnn: Load pickled dataset...")
+        self.info("Load pickled dataset...")
         in_dict = load_pickle_file(filepath)
         for key, value in in_dict.items():
             if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
                 setattr(self, key, value)
             else:
-                print("WARNING:kgcnn: Not accepted graph property, ignore name %s" % key)
-        self.log("done")
+                self.warning("Not accepted graph property, ignore name %s" % key)
+        self.info("done")
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
@@ -521,7 +529,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
                 self.data_frame = pd.read_excel(file_path_base + file_extension, **kwargs)
                 return self
 
-        self.log("WARNING:kgcnn: Unsupported data format for %s. Return None" % file_path)
+        self.warning("Unsupported data format for %s. Return None" % file_path)
         return self
 
 
