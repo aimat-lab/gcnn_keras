@@ -46,6 +46,7 @@ class CrystalDataset(MemoryGraphDataset):
         self.graph_abc = None
         self.graph_charge = None
         self.graph_volume = None
+        self.node_oxidation = None
         self.range_image = None
         self._structs = None
 
@@ -149,7 +150,8 @@ class CrystalDataset(MemoryGraphDataset):
             node_oxidation.append(oxi)
 
         self.node_attributes = node_occ
-        self.node_number = [np.argmax(x, axis=-1) for x in node_occ]
+        self.node_oxidation = node_oxidation
+        self.node_number = [np.argmax(x, axis=-1) for x in node_occ]  # Only takes maximum occupation here!!!
         self.node_symbol = node_symbol
         self.node_coordinates = node_coordinates
         self.graph_lattice_matrix = graph_lattice_matrix
@@ -186,7 +188,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False, allow_multi_edges=True):
         # Since coordinates are periodic.
-        assert not compute_angles, "ERROR:kgcnn: Can not compute angles atm."
+        assert not compute_angles, "ERROR:kgcnn: Can not compute angles for periodic systems."
         assert allow_multi_edges, "ERROR:kgcnn: Required for periodic structures."
         super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles,
                                               allow_multi_edges=allow_multi_edges)
