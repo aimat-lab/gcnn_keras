@@ -126,6 +126,15 @@ def read_xyz_file(file_path, delimiter: str = None):
 
 
 def write_mol_block_list_to_sdf(mol_block_list, filepath):
+    """Write a list of mol blocks as string into a SDF file.
+
+    Args:
+        mol_block_list (list): List of mol blocks as string.
+        filepath (str): File path for SDF file.
+
+    Returns:
+        None.
+    """
     with open(filepath, "w+") as file:
         for i, mol_block in enumerate(mol_block_list):
             if mol_block is not None:
@@ -143,6 +152,14 @@ def write_mol_block_list_to_sdf(mol_block_list, filepath):
 
 
 def dummy_load_sdf_file(filepath):
+    """Simple loader to load a SDF file by only splitting.
+
+    Args:
+        filepath (str): File path for SDF file.
+
+    Returns:
+        list: List of mol blocks as string.
+    """
     with open(filepath, "r") as f:
         all_sting = f.read()
     return all_sting.split("$$$$\n")

@@ -56,7 +56,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         # Compute labels
         labels = loader.get('labels')
         labels = np.expand_dims(labels, axis=-1)
-        labels = np.array(labels == np.arange(70), dtype=np.float)
+        labels = np.array(labels == np.arange(70), dtype="float")
         self.node_labels = [labels]  # One graph
 
         # Node attributes
