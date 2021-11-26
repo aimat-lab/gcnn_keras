@@ -4,7 +4,7 @@ except ImportError:
     print("ERROR:kgcnn: Conversion from xyz to mol requires openbabel. Please install openbabel")
 
 
-def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = True):
+def convert_xyz_to_mol_ob(xyz_str: str, stop_logging: bool = False):
     """Conversion of xyz-string to mol-string.
 
     The order of atoms in the list should be the same as output. Uses openbabel for conversion.
