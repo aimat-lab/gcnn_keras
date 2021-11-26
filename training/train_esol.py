@@ -14,7 +14,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")  # AttentiveFP
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())
@@ -31,7 +31,7 @@ hyper = hyper_selection.hyper()
 
 # Loading ESOL Dataset
 hyper_data = hyper['data']
-dataset = ESOLDataset().set_attributes()
+dataset = ESOLDataset().set_attributes().normalize_edge_weights_sym()
 if "set_range" in hyper_data:
     dataset.set_range(**hyper_data['set_range'])
 if "set_edge_indices_reverse" in hyper_data:
