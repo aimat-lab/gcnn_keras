@@ -37,14 +37,12 @@ def write_list_to_xyz_file(filepath: str, mol_list: list):
             file.write(xyz_str)
 
 
-def parse_mol_str(mol_str: str, delimiter: str = " "):
-    """Parse a mol string into python nested list.
-
-    Only supports V2000 format.
+def parse_mol_str(mol_str: str, delimiter: str = None):
+    """Parse a mol string into python nested list. Only supports V2000 format.
 
     Args:
-        mol_str (str):
-        delimiter (str):
+        mol_str (str): String of mol block.
+        delimiter (str): Delimiter for mol info. Default is None.
 
     Returns:
         list: list of bocks in mol-file. That is title, program, comment, counts, atoms, bonds, properties.

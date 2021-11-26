@@ -6,6 +6,7 @@ from kgcnn.utils.adj import add_edges_reverse_indices
 from kgcnn.mol.convert import convert_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, parse_mol_str, dummy_load_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.openbabel import convert_xyz_to_mol_ob
+from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
 
 class QMDataset(MemoryGraphDataset):
@@ -139,14 +140,16 @@ class QMDataset(MemoryGraphDataset):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_name)[0] + ".xyz"
 
-    def read_in_memory(self):
-        """Read xyz-file geometric information into memory.
-        Optionally read
+    def read_in_memory(self, label_column_name: str = None):
+        """Read xyz-file geometric information into memory. Optionally read also mol information. And try to find CSV
+        file with graph labels if a column is specified by :obj:`label_column_name`.
 
         Returns:
             self
         """
         filepath = os.path.join(self.data_directory, self.file_name)
+
+        # Try to read xyz file here.
         xyz_list = read_xyz_file(filepath)
         symbol = [np.array([x[0] for x in y]) for y in xyz_list]
         coords = [np.array([x[1:4] for x in y], dtype="float") for y in xyz_list]
@@ -158,6 +161,13 @@ class QMDataset(MemoryGraphDataset):
 
         # Try also to read SDF file.
         self.read_in_memory_sdf()
+
+        # Try also to read labels
+        self.read_in_table_file(file_path=filepath)
+
+        # We can try to get labels here.
+        if self.data_frame is not None and label_column_name is not None:
+            self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
         return self
 
     def read_in_memory_sdf(self):

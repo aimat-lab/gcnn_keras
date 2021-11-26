@@ -119,7 +119,7 @@ class CrystalDataset(MemoryGraphDataset):
 
         # We can try to get labels here.
         if self.data_frame is not None and label_column_name is not None:
-            self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name, "ERROR:kgcnn: ")
+            self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
 
         structs = self._read_pymatgen_json_in_memory()
         # self._structs = structs

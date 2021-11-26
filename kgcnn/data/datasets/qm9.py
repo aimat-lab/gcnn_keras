@@ -138,8 +138,15 @@ class QM9Dataset(QMDataset, DownloadDataset):
         super(QM9Dataset, self).prepare_data(overwrite=overwrite)
         return self
 
-    def read_in_memory(self):
-        """Load the pickled QM9 data into memory and already split into items."""
+    def read_in_memory(self, label_column_name: str = None):
+        """Load the pickled QM9 data into memory and already split into items.
+
+        Args:
+            label_column_name(str): Not used.
+
+        Returns:
+            self
+        """
         path = self.data_directory
 
         self.info("Reading dataset ...")
@@ -296,8 +303,8 @@ class QM9GraphLabelScaler:
 
     @staticmethod
     def _check_input(node_number, graph_labels):
-        assert len(node_number) == len(graph_labels), "ERROR:kgcnn: `QM9GraphLabelScaler` needs same length input."
-        assert graph_labels.shape[-1] == 15, "ERROR:kgcnn: `QM9GraphLabelScaler` got wrong targets."
+        assert len(node_number) == len(graph_labels), "`QM9GraphLabelScaler` needs same length input."
+        assert graph_labels.shape[-1] == 15, "`QM9GraphLabelScaler` got wrong targets."
 
 # dataset = QM9Dataset()
 # scaler = QM9GraphLabelScaler()
