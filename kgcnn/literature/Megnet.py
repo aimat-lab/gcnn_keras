@@ -98,7 +98,7 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Edge distance as Gauss-Basis
-    if not make_distance:
+    if make_distance:
         x = xyz_input
         pos1, pos2 = NodePosition()([x, edi])
         ed = NodeDistanceEuclidean()([pos1, pos2])

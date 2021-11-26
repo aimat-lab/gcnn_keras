@@ -218,7 +218,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "1.1.2"
         }
     },
     "GAT": {
@@ -262,7 +262,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "1.1.2"
         }
     },
     "GATv2": {
@@ -306,7 +306,109 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "1.1.2"
+        }
+    },
+    "Schnet": {
+        "model": {
+            "name": "Schnet",
+            "inputs": [
+                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+            ],
+            "input_embedding": {
+                "node": {"input_dim": 95, "output_dim": 64}
+            },
+            "output_embedding": "graph",
+            "interaction_args": {
+                "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+            },
+            "output_mlp": {
+                "use_bias": [True, True], "units": [128, 64],
+                "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]
+            },
+            "output_dense": {"units": 1, "activation": "linear", "use_bias": True},
+            "node_pooling_args": {"pooling_method": "sum"},
+            "depth": 4,
+            "out_scale_pos": 1,
+            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
+        },
+        "training": {
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0}
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            }
+        },
+        "data": {
+            "set_range": {"max_distance": 4, "max_neighbours": 100},
+        },
+        "info": {
+            "postfix": "",
+            "kgcnn_version": "1.1.2"
+        }
+    },
+    "Megnet": {
+        "model": {
+            "name": "Megnet",
+            "inputs": [
+                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                {"shape": [2], "name": "graph_attributes", "dtype": "float32", "ragged": False}
+            ],
+            "input_embedding": {"node": {"input_dim": 95, "output_dim": 16},
+                                "graph": {"input_dim": 100, "output_dim": 64}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                           "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
+            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+            "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
+                               "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+            "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+            "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+            "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+            "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2",
+                              "input_tensor_type": "tensor"},
+            "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
+            "make_distance": True, "expand_distance": True,
+            "verbose": 1
+        },
+        "training": {
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0
+                    }
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            }
+        },
+        "data": {
+            "set_range": {"max_distance": 4, "max_neighbours": 100},
+        },
+        "info": {
+            "postfix": "",
+            "kgcnn_version": "1.1.2"
         }
     }
 }

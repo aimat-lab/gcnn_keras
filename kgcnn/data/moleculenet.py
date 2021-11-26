@@ -126,26 +126,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         # Find columns to take graph labels from.
         self.data_keys = data.columns
-        graph_labels_all = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
-        if isinstance(label_column_name, str):
-            graph_labels_all = np.expand_dims(np.array(data[label_column_name]), axis=-1)
-        elif isinstance(label_column_name, list):
-            graph_labels_all = []
-            for x in label_column_name:
-                if isinstance(x, int):
-                    x_col = np.array(data.iloc[:, x])
-                elif isinstance(x, str):
-                    x_col = np.array(data[x])
-                else:
-                    raise ValueError("ERROR:kgcnn: Column list must contain name or position but got %s" % x)
-                if len(x_col.shape) <= 1:
-                    x_col = np.expand_dims(x_col, axis=-1)
-                graph_labels_all.append(x_col)
-            graph_labels_all = np.concatenate(graph_labels_all, axis=-1)
-        elif isinstance(label_column_name, slice):
-            graph_labels_all = np.array(data.iloc[:, label_column_name])
-        else:
-            raise ValueError("ERROR:kgcnn: Column label definition must be list or string, got %s" % label_column_name)
+        graph_labels_all = pandas_data_frame_columns_to_numpy(data, label_column_name)
 
         mol_filename = self._get_mol_filename()
         mol_path = os.path.join(self.data_directory, mol_filename)

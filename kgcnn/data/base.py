@@ -321,7 +321,7 @@ class MemoryGeometricGraphList(MemoryGraphList):
 
         coord = self.node_coordinates
         if self.node_coordinates is None:
-            print("WARNING:kgcnn: Coordinates are not set for `GeometricGraph`. Can not make graph.")
+            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
             return self
 
         edge_idx = []
