@@ -6,6 +6,7 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
 from kgcnn.mol.convert import write_mol_block_list_to_sdf, dummy_load_sdf_file
+from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
 
 class MoleculeNetDataset(MemoryGraphDataset):
@@ -55,9 +56,9 @@ class MoleculeNetDataset(MemoryGraphDataset):
         """
         mol_filename = self._get_mol_filename()
         if len(smiles) == 0:
-            print("ERROR:kgcnn: Can not translate smiles, received empty list for %s." % self.dataset_name)
+            self.error("Can not translate smiles, received empty list for %s." % self.dataset_name)
 
-        self.info("INFO:kgcnn: Generating molecules and store %s to disk..." % mol_filename)
+        self.info("Generating molecules and store %s to disk..." % mol_filename)
         molecule_list = []
         max_number = len(smiles)
         for i, sm in enumerate(smiles):
@@ -125,6 +126,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         # Find columns to take graph labels from.
         self.data_keys = data.columns
+        graph_labels_all = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
         if isinstance(label_column_name, str):
             graph_labels_all = np.expand_dims(np.array(data[label_column_name]), axis=-1)
         elif isinstance(label_column_name, list):
@@ -199,7 +201,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.graph_labels = graph_labels
         self.edge_number = edge_number
         self.valid_molecule_id = valid_molecule_id
-
 
         return self
 
@@ -359,7 +360,3 @@ class MoleculeNetDataset(MemoryGraphDataset):
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_name)[0] + ".sdf"
-
-    def _flexible_csv_file_name(self):
-        pass
-

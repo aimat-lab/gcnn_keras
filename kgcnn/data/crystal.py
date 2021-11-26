@@ -55,6 +55,17 @@ class CrystalDataset(MemoryGraphDataset):
         return os.path.splitext(self.file_name)[0] + ".pymatgen.json"
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
+        r"""Try to load all crystal structures from CIF files and save them as a pymatgen json serialization.
+        Can load single CIF file with multiple structures (maybe unstable), or multiple CIF files from a table
+        that keeps file names and possible values.
+
+        Args:
+            cif_column_name (str): Name of the column that has file names found in file_directory. Default is None.
+            overwrite (bool): Whether to rerun the data extraction. Default is False.
+
+        Returns:
+            self
+        """
         if os.path.exists(os.path.join(self.data_directory, self._get_pymatgen_file_name())) and not overwrite:
             self.info("Pickled pymatgen structures already exist. Do nothing.")
             return self
@@ -63,6 +74,7 @@ class CrystalDataset(MemoryGraphDataset):
         file_path = os.path.join(self.data_directory, self.file_name)
         file_path_base = os.path.splitext(file_path)[0]
 
+        # Check for a single CIF file.
         found_cif_file = False
         if os.path.exists(file_path_base + ".cif"):
             found_cif_file = True
@@ -78,6 +90,7 @@ class CrystalDataset(MemoryGraphDataset):
         # We try to read in a csv file.
         self.read_in_table_file(file_path=file_path)
 
+        # Check if table has a list of single cif files in file directory.
         if not found_cif_file and cif_column_name is not None and self.data_frame is not None:
             # Try to find file names in data_frame
             cif_file_list = self.data_frame[cif_column_name].values
@@ -105,7 +118,7 @@ class CrystalDataset(MemoryGraphDataset):
     def _read_pymatgen_json_in_memory(self):
         file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
         if not os.path.exists(file_path):
-            raise FileNotFoundError("ERROR:kgcnn: Cannot find .json file for `CrystalDataset`. Please prepare_data().")
+            raise FileNotFoundError("Cannot find .json file for `CrystalDataset`. Please prepare_data().")
 
         self.info("Reading structures from .json ...")
         dicts = load_json_file(file_path)
@@ -113,16 +126,25 @@ class CrystalDataset(MemoryGraphDataset):
         return structs
 
     def read_in_memory(self, label_column_name: str = None):
+        """Read structures from pymatgen json serialization and convert them into graph information.
 
+        Args:
+            label_column_name (str): Columns of labels for graph. Default is None.
+
+        Returns:
+            self
+        """
         file_path = os.path.join(self.data_directory, self.file_name)
+
+        # Try to read table file
         self.read_in_table_file(file_path=file_path)
 
         # We can try to get labels here.
         if self.data_frame is not None and label_column_name is not None:
             self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
 
+        # Read pymatgen JSON file from file.
         structs = self._read_pymatgen_json_in_memory()
-        # self._structs = structs
         self.info("Making node features ...")
         node_symbol = []
         node_coordinates = []
@@ -157,7 +179,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08,
                                            max_neighbours: int = 100000000):
-        self.info("INFO:kgcnn: Setting range ...")
+        self.info("Setting range ...")
         range_indices = []
         range_image = []
         range_distance = []
