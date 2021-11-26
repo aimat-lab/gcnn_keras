@@ -122,7 +122,7 @@ class CrystalDataset(MemoryGraphDataset):
             self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name, "ERROR:kgcnn: ")
 
         structs = self._read_pymatgen_json_in_memory()
-        self._structs = structs
+        # self._structs = structs
         self.info("Making node features ...")
         node_symbol = []
         node_coordinates = []

@@ -69,14 +69,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         if (os.path.exists(os.path.join(path, "qm9.pickle")) or os.path.exists(
                 os.path.join(path, "qm9.json"))) and not overwrite:
-            self.info("INFO:kgcnn: Single molecules already pickled... done")
+            self.info("Single molecules already pickled.")
         else:
             if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
-                print("ERROR:kgcnn: Can not find extracted dsgdb9nsd.xyz directory. Run reload dataset again.")
+                self.error("Can not find extracted dsgdb9nsd.xyz directory. Run reload dataset again.")
                 return
             qm9 = []
             # Read individual files
-            self.info("INFO:kgcnn: Reading dsgdb9nsd files ...", end='', flush=True)
+            self.info("Reading dsgdb9nsd files ...")
             for i in range(1, dataset_size + 1):
                 mol = []
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
@@ -85,7 +85,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
                 mol.append(int(lines[0]))
                 labels = lines[1].strip().split(' ')[1].split('\t')
                 if int(labels[0]) != i:
-                    print("KGCNN:WARNING: Index for QM9 not matching xyz-file.")
+                    self.warning("Index for QM9 not matching xyz-file.")
                 labels = [lines[1].strip().split(' ')[0].strip()] + [int(labels[0])] + [float(x) for x in labels[1:]]
                 mol.append(labels)
                 cords = []
@@ -102,26 +102,23 @@ class QM9Dataset(QMDataset, DownloadDataset):
                 mol.append(inchis)
                 open_file.close()
                 qm9.append(mol)
-            self.info('done')
 
             # Save pickle data
-            self.info("INFO:kgcnn: Saving qm9.json ...", end='', flush=True)
+            self.info("Saving qm9.json ...")
             with open(os.path.join(path, "qm9.json"), 'w') as f:
                 json.dump(qm9, f)
-            self.info('done')
 
             # Remove file after reading
-            self.info("INFO:kgcnn: Cleaning up extracted files...", end='', flush=True)
+            self.info("Cleaning up extracted files...")
             for i in range(1, dataset_size + 1):
                 file = "dsgdb9nsd_" + "{:06d}".format(i) + ".xyz"
                 file = os.path.join(path, "dsgdb9nsd.xyz", file)
                 os.remove(file)
-            self.info('done')
 
         if os.path.exists(os.path.join(path, self.file_name)) and not overwrite:
-            self.info("INFO:kgcnn: Single xyz-file %s for molecules already created... done" % self.file_name)
+            self.info("Single xyz-file %s for molecules already created." % self.file_name)
         else:
-            self.info("INFO:kgcnn: Reading dataset...", end='', flush=True)
+            self.info("Reading dataset...", end='', flush=True)
             if os.path.exists(os.path.join(path, "qm9.pickle")):
                 with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                     qm9 = pickle.load(f)
@@ -130,13 +127,13 @@ class QM9Dataset(QMDataset, DownloadDataset):
                     qm9 = json.load(f)
             else:
                 raise FileNotFoundError("Can not find pickled QM9 dataset.")
-            self.info('done')
 
             # Try extract bond-info and save mol-file.
-            self.info("INFO:kgcnn: Writing single xyz-file ...", end='', flush=True)
-            atoms = [x[2] for x in qm9]
-            write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms)
-            self.info('done')
+            self.info("Writing single xyz-file ...")
+            pos = [[y[1:] for y in x[2]] for x in qm9]
+            atoms = [[y[0] for y in x[2]] for x in qm9]
+            atoms_pos = [[x, y] for x, y in zip(atoms, pos)]
+            write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms_pos)
 
         super(QM9Dataset, self).prepare_data(overwrite=overwrite)
         return self
@@ -145,7 +142,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         """Load the pickled QM9 data into memory and already split into items."""
         path = self.data_directory
 
-        self.info("INFO:kgcnn: Reading dataset ...", end='', flush=True)
+        self.info("Reading dataset ...")
         if os.path.exists(os.path.join(path, "qm9.pickle")):
             with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                 qm9 = pickle.load(f)
@@ -163,7 +160,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         atoms = [[y[0] for y in x[2]] for x in qm9]
         atom_dict = {'H': 1, 'C': 6, 'N': 7, 'O': 8, 'F': 9}
         zval = [[atom_dict[y] for y in x] for x in atoms]
-        outzval = [np.array(x, dtype=np.int) for x in zval]
+        outzval = [np.array(x, dtype="int") for x in zval]
         nodes = outzval
 
         # Mean molecular weight mmw
@@ -181,8 +178,6 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.node_symbol = atoms
         self.node_number = nodes
         self.graph_attributes = mmw
-
-        self.info('done')
 
         # Try to read mol information
         self.read_in_memory_sdf()

@@ -4,7 +4,7 @@ import numpy as np
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.adj import add_edges_reverse_indices
 from kgcnn.mol.convert import convert_list_to_xyz_str, read_xyz_file, \
-    write_mol_block_list_to_sdf, parse_mol_str, dummy_load_sdf_file
+    write_mol_block_list_to_sdf, parse_mol_str, dummy_load_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.openbabel import convert_xyz_to_mol_ob
 
 
@@ -63,7 +63,7 @@ class QMDataset(MemoryGraphDataset):
 
         Args:
             atoms_coordinates_xyz (list): Nested list of xyz information for each molecule such as
-                `[[['H', 0.0, 0.0, 0.0], ['C', 1.0, 1.0, 1.0], ...], ... ]`
+                `[[['C', 'H', ... ], [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], ... ]], ... ]`.
 
         Returns:
             list: A list of mol-blocks as string.
@@ -107,14 +107,12 @@ class QMDataset(MemoryGraphDataset):
             self.info("Read %s single xyz-file ..." % num_mols)
             for i, x in enumerate(xyz_file_list):
                 # Only one file per path
-                with open(os.path.join(self.data_directory, self.file_directory, x), "r") as f:
-                    file_xyz = f.read()
-                xyz_list.append(file_xyz)
+                xyz_info = read_xyz_file(os.path.join(self.data_directory, self.file_directory, x))
+                xyz_list.append(xyz_info[0])
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_mols))
-            out_file = "".join(xyz_list)
-            with open(xyz_file_path, "w") as f:
-                f.write(out_file)
+            # Make single file
+            write_list_to_xyz_file(xyz_file_path, xyz_list)
         else:
             self.info("Reading single xyz-file ...")
             filepath = os.path.join(self.data_directory, self.file_name)
