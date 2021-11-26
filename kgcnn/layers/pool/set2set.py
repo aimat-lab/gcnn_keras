@@ -175,7 +175,7 @@ class PoolingSet2Set(GraphBaseLayer):
         """
         assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
         assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
-        x, batch_num, batch_index = inputs[0].values, inputs[0].row_lengths(), inputs[0].value_rowids()
+        x, batch_num, batch_index = inputs.values, inputs.row_lengths(), inputs.value_rowids()
 
         # Reading to memory removed here, is to be done by separately
         m = x  # (batch*None, feat)
