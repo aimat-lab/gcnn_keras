@@ -46,7 +46,8 @@ Packages which must be installed manually for full functionality:
 
 * tensorflow>=2.4.1
 * rdkit>=2020.03.4
-* openbabel>=3.0.1 (optional for QM)
+* openbabel>=3.0.1
+* pymatgen>=??.??.??
 
 <a name="installation"></a>
 # Installation

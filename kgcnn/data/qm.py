@@ -87,6 +87,9 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
+        xyz_list = None
+
+        # Names for single xyz and mol file.
         mol_file_path = os.path.join(self.data_directory, self._get_mol_filename())
         xyz_file_path = os.path.join(self.data_directory, self._get_xyz_filename())
 
@@ -94,19 +97,24 @@ class QMDataset(MemoryGraphDataset):
             self.info("Found SDF-file %s of pre-computed structures." % mol_file_path)
             return self
 
+        # Collect single xyz files in directory
         if not os.path.exists(xyz_file_path):
             self.read_in_table_file()
+
             if self.data_frame is None:
                 raise FileNotFoundError("Can not find csv table.")
+
             if xyz_column_name is None:
                 raise ValueError("Please specify column for csv file.")
+
             xyz_file_list = self.data_frame[xyz_column_name].values
             num_mols = len(xyz_file_list)
-            xyz_list = []
+
             if not os.path.exists(os.path.join(self.data_directory, self.file_directory)):
                 raise ValueError("No file directory of xyz files.")
 
             self.info("Read %s single xyz-file ..." % num_mols)
+            xyz_list = []
             for i, x in enumerate(xyz_file_list):
                 # Only one file per path
                 xyz_info = read_xyz_file(os.path.join(self.data_directory, self.file_directory, x))
@@ -115,10 +123,6 @@ class QMDataset(MemoryGraphDataset):
                     self.info(" ... read structure {0} from {1}".format(i, num_mols))
             # Make single file
             write_list_to_xyz_file(xyz_file_path, xyz_list)
-        else:
-            self.info("Reading single xyz-file ...")
-            filepath = os.path.join(self.data_directory, self.file_name)
-            xyz_list = read_xyz_file(filepath)
 
         # Additionally try to make SDF file
         try:
@@ -127,10 +131,14 @@ class QMDataset(MemoryGraphDataset):
             self.warning("Can not make mol-objects. Please install openbabel.")
             return self
 
+        if xyz_list is None:
+            self.info("Reading single xyz-file ...")
+            filepath = os.path.join(self.data_directory, self.file_name)
+            xyz_list = read_xyz_file(filepath)
+
         self.info("Converting xyz to mol information (silent)...")
         mb = self._make_mol_list(xyz_list)
         write_mol_block_list_to_sdf(mb, mol_file_path)
-
         return self
 
     def _get_mol_filename(self):
@@ -179,6 +187,7 @@ class QMDataset(MemoryGraphDataset):
         """
         mol_filename = self._get_mol_filename()
         mol_path = os.path.join(self.data_directory, mol_filename)
+
         if not os.path.exists(mol_path):
             self.warning("Can not load SDF-file for dataset %s" % self.dataset_name)
             return self

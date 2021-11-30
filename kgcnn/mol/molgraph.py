@@ -29,7 +29,7 @@ class OneHotEncoder:
         """
         assert isinstance(dtype, str)
         if dtype not in ["str", "int", "float"]:
-            raise ValueError("ERROR:kgnn: Unsupported dtype for OneHotEncoder %s" % dtype)
+            raise ValueError("Unsupported dtype for OneHotEncoder %s" % dtype)
         self.dtype_identifier = dtype
         self.dtype = self._dtype_translate[dtype]
         self.categories = [self.dtype(x) for x in categories]

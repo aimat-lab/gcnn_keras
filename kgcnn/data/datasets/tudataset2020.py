@@ -56,7 +56,7 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
         if not isinstance(dataset_name, str):
-            raise ValueError("ERROR:kgcnn: Please provide string identifier for TUDataset.")
+            raise ValueError("Please provide string identifier for TUDataset.")
 
         GraphTUDataset.__init__(self, verbose=verbose)
 
@@ -71,7 +71,7 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
                 "dataset_name": dataset_name
             }
         else:
-            raise ValueError("ERROR:kgcnn: Can not resolve %s as a TUDataset." % dataset_name,
+            raise ValueError("Can not resolve %s as a TUDataset." % dataset_name,
                              "Add to `all_tudataset_identifier` list manually.")
 
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)

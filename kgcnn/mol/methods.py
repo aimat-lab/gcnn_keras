@@ -40,7 +40,7 @@ def get_connectivity_from_inverse_distance_matrix(inv_dist_mat, protons, radii_d
     if radii_dict is None:
         radii_dict = proton_radii_dict  # index matches atom number
     # Get Radii
-    protons = np.array(protons, dtype=np.int)
+    protons = np.array(protons, dtype="int")
     radii = radii_dict[protons]
     # Calculate
     shape_rad = radii.shape
@@ -103,7 +103,7 @@ class ExtensiveMolecularScaler:
         """
         if len(atomic_number) != len(molecular_property):
             raise ValueError(
-                "ERROR:kgcnn: `ExtensiveMolecularScaler` different input shape {0} vs. {1}".format(
+                "`ExtensiveMolecularScaler` different input shape {0} vs. {1}".format(
                     len(atomic_number), len(molecular_property))
             )
 
@@ -145,7 +145,7 @@ class ExtensiveMolecularScaler:
             array_atoms[unique_per_mol] = num_unique
             positives = array_atoms[self._fit_atom_selection_mask]
             if np.sum(positives) != np.sum(num_unique):
-                print("WARNING:kgcnn: `ExtensiveMolecularScaler` got unknown atom species in transform.")
+                print("`ExtensiveMolecularScaler` got unknown atom species in transform.")
             total_number.append(positives)
         total_number = np.array(total_number)
         offset = self.ridge.predict(total_number)
