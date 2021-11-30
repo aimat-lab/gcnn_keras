@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 from kgcnn.mol.methods import ExtensiveMolecularScaler
-from kgcnn.mol.convert import write_list_to_xyz_file
+from kgcnn.mol.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):

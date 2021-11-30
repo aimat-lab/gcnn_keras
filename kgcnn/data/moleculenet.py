@@ -5,7 +5,7 @@ import pandas as pd
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
-from kgcnn.mol.convert import write_mol_block_list_to_sdf, dummy_load_sdf_file
+from kgcnn.mol.io import write_mol_block_list_to_sdf, dummy_load_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
 
@@ -336,7 +336,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         elif hasattr(encoder_identifier, "__call__"):
             return encoder_identifier
         else:
-            raise ValueError("ERROR:kgcnn: Unable to deserialize encoder %s " % encoder_identifier)
+            raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
 
     def _get_mol_filename(self):
         """Try to determine a file name for the mol information to store."""

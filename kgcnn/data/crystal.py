@@ -111,7 +111,7 @@ class CrystalDataset(MemoryGraphDataset):
             pymatgen_file_made = True
 
         if not pymatgen_file_made:
-            raise FileNotFoundError("ERROR:kgcnn: Could not make pymatgen structures.")
+            raise FileNotFoundError("Could not make pymatgen structures.")
 
         return self
 
@@ -195,7 +195,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
                   self_loops=True, exclusive=True):
-        assert exclusive, "Range in `CrystalDataset` only for exclusive=True at the moment."
+        assert exclusive, "Range in `CrystalDataset` must have exclusive=True."
         structs = self._read_pymatgen_json_in_memory()
         self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
         return self

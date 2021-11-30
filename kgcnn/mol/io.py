@@ -18,7 +18,7 @@ def convert_list_to_xyz_str(mol: list, comment: str = ""):
     xyz_str = xyz_str + comment + "\n"
     for a_iter, c_iter in zip(atoms, coordinates):
         _at_str = str(a_iter)
-        _c_format_str = " {:.10f}"*len(c_iter) + "\n"
+        _c_format_str = " {:.10f}" * len(c_iter) + "\n"
         xyz_str = xyz_str + _at_str + _c_format_str.format(*c_iter)
     return xyz_str
 
@@ -37,48 +37,61 @@ def write_list_to_xyz_file(filepath: str, mol_list: list):
             file.write(xyz_str)
 
 
-def parse_mol_str(mol_str: str, delimiter: str = None):
-    """Parse a mol string into python nested list. Only supports V2000 format.
+def parse_mol_str(mol_str: str):
+    """Parse a MDL mol table string into nested list. Only supports V2000 format and CTab. Better rely on
+    openbabel to do this. This function was a temporary solution.
 
     Args:
         mol_str (str): String of mol block.
-        delimiter (str): Delimiter for mol info. Default is None.
 
     Returns:
-        list: list of bocks in mol-file. That is title, program, comment, counts, atoms, bonds, properties.
+        list: [title, program, comment, counts, atoms, bonds, properties]
     """
+    empty_return = ["", "", "", [], [], [], []]
+    if len(mol_str) == 0:
+        print("ERROR: Received empty MLD mol-block string.")
+        return empty_return
     lines = mol_str.split("\n")
-    lines = [x.strip().split(delimiter) for x in lines]
-    lines = [[y for y in x if y != ''] for x in lines]
-    lines[3] = [int(x) for x in lines[3][:-1]] + [lines[3][-1]]
-    na = int(lines[3][0])
-    nb = int(lines[3][1])
-    out_list = []
-    if lines[3][-1] == "V2000":
-        # Separate into blocks:
-        for x in lines[:4]:
-            out_list.append(x)
-        # atom block
+    if len(lines) < 4:
+        print("ERROR: Could not find counts line. Invalid format.")
+        return empty_return
+
+    title = lines[0]
+    program = lines[1]  # IIPPPPPPPPMMDDYYHHmmddSSssssssssssEEEEEEEEEEEERRRRRR
+    comment = lines[2]
+    version = lines[3][-6:].strip()
+    if version == "V2000":
+        # counts has aaabbblllfffcccsssxxxrrrpppiiimmmvvvvvv
+        # or shorter but should have version of len=5 at the end
+        counts = [lines[3][i:i + 3].strip() for i in range(0, len(lines[3][:-6]), 3)] + [version]
+        na = int(counts[0])
+        nb = int(counts[1])
+        nl = int(counts[2])
+        ns = int(counts[5])
+        if ns != 0 or nl != 0:
+            print("WARNING: No supporting atom lists (deprecated) or stext entries.")
         atoms = []
         for a in lines[4:(na + 4)]:
+            # xxxxx.xxxxyyyyy.yyyyzzzzz.zzzz aaaddcccssshhhbbbvvvHHHrrriiimmmnnneee
             # noinspection PyTypeChecker
-            atoms.append([float(x) for x in a[:3]] + a[3:])
-        out_list.append(atoms)
+            atoms.append([a[0:10].strip(), a[10:20].strip(), a[20:30].strip(), a[30:34].strip(), a[34:36].strip(),
+                          a[36:39].strip(), a[39:42].strip(), a[42:45].strip(), a[45:48].strip(), a[48:51].strip(),
+                          a[51:54].strip(), a[54:57].strip(), a[57:60].strip(), a[60:63].strip(), a[63:66].strip(),
+                          a[66:69].strip()])
         # bond block
         bonds = []
         for b in lines[4 + na:4 + na + nb]:
-            bonds.append([int(x) for x in b])
-        out_list.append(bonds)
+            # 111222tttsssxxxrrrccc
+            # noinspection PyTypeChecker
+            bonds.append([b[i:i+3].strip() for i in range(0, len(b), 3)])
         # Properties block
-        prop_block = []
+        properties = []
         for p in lines[4 + na + nb:]:
-            if len(p) >= 2:
-                if p[0] == "M" and p[1] != "END":
-                    prop_block.append(p)
-        out_list.append(prop_block)
+            if "M" in p and p != "M  END":
+                properties.append(p)
     else:
-        raise NotImplementedError("ERROR:kgcnn: Can not parse mol V3000 or higher.")
-    return out_list
+        raise NotImplementedError("ERROR: Can not parse mol V3000 or higher.")
+    return [title, program, comment, counts, atoms, bonds, properties]
 
 
 def read_xyz_file(file_path, delimiter: str = None):
@@ -139,7 +152,7 @@ def write_mol_block_list_to_sdf(mol_block_list, filepath):
         for i, mol_block in enumerate(mol_block_list):
             if mol_block is not None:
                 file.write(mol_block)
-                if i < len(mol_block_list)-1:
+                if i < len(mol_block_list) - 1:
                     file.write("$$$$\n")
             else:
                 file.write("".join(["\n",

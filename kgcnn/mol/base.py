@@ -2,7 +2,7 @@ class MolGraphInterface:
     r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph. The method implementation
     to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
     of a chemical informatics package like `rdkit` is treated via composition. The interface is designed to
-    extract a graph from a mol instance not to make a mol object from a graph, but could be extended that way.
+    extract a graph from a mol instance not to make a mol object from a graph.
 
     """
 
@@ -154,7 +154,7 @@ class MolGraphInterface:
         else:
             props_unknown = [x for x in properties if x not in possible_properties]
             if len(props_unknown) > 0:
-                print("WARNING:kgcnn: %s property is not defined, ignore following keys:" % attribute_name,
+                print("WARNING: %s property is not defined, ignore following keys:" % attribute_name,
                       props_unknown)
             props = [x for x in properties if x in possible_properties]
         return props

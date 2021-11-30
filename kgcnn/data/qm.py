@@ -3,7 +3,7 @@ import numpy as np
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.adj import add_edges_reverse_indices
-from kgcnn.mol.convert import convert_list_to_xyz_str, read_xyz_file, \
+from kgcnn.mol.io import convert_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, parse_mol_str, dummy_load_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.openbabel import convert_xyz_to_mol_ob
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
@@ -97,14 +97,15 @@ class QMDataset(MemoryGraphDataset):
         if not os.path.exists(xyz_file_path):
             self.read_in_table_file()
             if self.data_frame is None:
-                raise FileNotFoundError("ERROR:kgcnn: Can not find csv table.")
+                raise FileNotFoundError("Can not find csv table.")
             if xyz_column_name is None:
-                raise ValueError("ERROR:kgcnn: Please specify column for csv file.")
+                raise ValueError("Please specify column for csv file.")
             xyz_file_list = self.data_frame[xyz_column_name].values
             num_mols = len(xyz_file_list)
             xyz_list = []
             if not os.path.exists(os.path.join(self.data_directory, self.file_directory)):
-                raise ValueError("ERROR:kgcnn: No file directory of xyz files.")
+                raise ValueError("No file directory of xyz files.")
+
             self.info("Read %s single xyz-file ..." % num_mols)
             for i, x in enumerate(xyz_file_list):
                 # Only one file per path
@@ -188,7 +189,9 @@ class QMDataset(MemoryGraphDataset):
             self.info("Parsing mol information ...")
             bond_info = []
             for x in mol_list:
-                bond_info.append(np.array(parse_mol_str(x)[5], dtype="int"))
+                bond_block = parse_mol_str(x)[5]
+                bond_array = np.array([[int(z) for z in y] for y in bond_block], dtype="int")
+                bond_info.append(bond_array)
             edge_index = []
             edge_attr = []
             for x in bond_info:

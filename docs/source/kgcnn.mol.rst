@@ -4,10 +4,10 @@ kgcnn.mol package
 Submodules
 ----------
 
-kgcnn.mol.convert module
+kgcnn.mol.io module
 ------------------------
 
-.. automodule:: kgcnn.mol.convert
+.. automodule:: kgcnn.mol.io
    :members:
    :undoc-members:
    :show-inheritance:

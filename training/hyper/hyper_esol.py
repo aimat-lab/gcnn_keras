@@ -411,7 +411,7 @@ hyper = {
             "kgcnn_version": "1.1.2"
         }
     },
-"GraphSAGE": {
+    "GraphSAGE": {
         "model": {
             "name": "GraphSAGE",
             "inputs": [
@@ -491,6 +491,60 @@ hyper = {
         },
         "info": {
             "postfix": "",
+            "kgcnn_version": "1.2.0"
+        }
+    },
+    "DimeNetPP": {
+        "model": {
+            "name": "DimeNetPP",
+            "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                       {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                       {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                       {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
+            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
+                                         "embeddings_initializer": {"class_name": "RandomUniform",
+                                                                    "config": {"minval": -1.7320508075688772,
+                                                                               "maxval": 1.7320508075688772}}}},
+            "output_embedding": "graph",
+            "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
+            "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
+            "cutoff": 5.0, "envelope_exponent": 5,
+            "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 1,
+            "num_targets": 1, "extensive": False, "output_init": "zeros",
+            "activation": "swish", "verbose": 1
+        },
+        "training": {
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+            },
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 30.0, "decay_steps": 40000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": True
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            }
+        },
+        "data": {
+            "set_range": {"max_distance": 4, "max_neighbours": 20},
+            "set_angle": {},
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
             "kgcnn_version": "1.2.0"
         }
     }
