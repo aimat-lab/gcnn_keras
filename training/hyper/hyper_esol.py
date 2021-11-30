@@ -460,7 +460,7 @@ hyper = {
                 {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 10, "output_dim": 64}},
-            "output_embedding": "node",
+            "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
                            "activation": ["relu", "relu", "linear"]},
             "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
