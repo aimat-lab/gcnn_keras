@@ -115,6 +115,14 @@ class EuclideanNorm(GraphBaseLayer):
         """Build layer."""
         super(EuclideanNorm, self).build(input_shape)
 
+    @staticmethod
+    def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False):
+        """Function to compute euclidean norm for inputs."""
+        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims)))
+        if invert_norm:
+            out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
+        return out
+
     def call(self, inputs, **kwargs):
         """Forward pass for `EuclideanNorm`.
 
@@ -128,15 +136,9 @@ class EuclideanNorm(GraphBaseLayer):
         if isinstance(inputs, tf.RaggedTensor):
             axis = get_positive_axis(self.axis, inputs.shape.rank)
             if inputs.ragged_rank == 1 and axis > 1:
-                out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs.values), axis=axis - 1, keepdims=self.keepdims)))
-                if self.invert_norm:
-                    out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
+                out = self._compute_euclidean_norm(inputs.values, axis-1, self.keepdims, self.invert_norm)
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        # Default
-        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=self.axis, keepdims=self.keepdims)))
-        if self.invert_norm:
-            out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
-        return out
+        return self._compute_euclidean_norm(inputs, self.axis, self.keepdims, self.invert_norm)
 
     def get_config(self):
         """Update config."""
@@ -165,10 +167,10 @@ class ScalarProduct(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [vec1, vec1]
+            inputs (list): [vec1, vec2]
 
                 - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
-                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
+                - vec2 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
 
         Returns:
             tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
@@ -270,10 +272,8 @@ class EdgeDirectionNormalized(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
 class VectorAngle(GraphBaseLayer):
-    """Compute geometric angles between vectors ind euclidean space.
-
-                v1 = xi - xj
-                v2 = xj - xk
+    r"""Compute geometric angles between vectors in euclidean space. The vectors would be obtained from the points
+    :math:`x_i` from :math:`v_1 = x_i - x_j` and :math:`v_2 = x_j - x_k`.
 
     The geometric angle is computed between i<-j,j<-k for index tuple (i,j,k) in (batch, None, 3) last dimension.
     """
@@ -285,6 +285,17 @@ class VectorAngle(GraphBaseLayer):
     def build(self, input_shape):
         """Build layer."""
         super(VectorAngle, self).build(input_shape)
+
+    @staticmethod
+    def _compute_vector_angle(inputs):
+        """Function to compute angles between v1 and v2"""
+        v1, v2 = inputs[0], inputs[1]
+        x = tf.reduce_sum(v1 * v2, axis=-1)
+        y = tf.linalg.cross(v1, v2)
+        y = tf.norm(y, axis=-1)
+        angle = tf.math.atan2(y, x)
+        out = tf.expand_dims(angle, axis=-1)
+        return out
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -300,23 +311,9 @@ class VectorAngle(GraphBaseLayer):
         """
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
-                v1 = inputs[0].values
-                v2 = inputs[1].values
-                x = tf.reduce_sum(v1 * v2, axis=-1)
-                y = tf.linalg.cross(v1, v2)
-                y = tf.norm(y, axis=-1)
-                angle = tf.math.atan2(y, x)
-                angle = tf.expand_dims(angle, axis=-1)
+                angle = self._compute_vector_angle([inputs[0].values, inputs[1].values])
                 return tf.RaggedTensor.from_row_splits(angle, inputs[0].row_splits, validate=self.ragged_validate)
-        # Default
-        v1 = inputs[0]
-        v2 = inputs[1]
-        x = tf.reduce_sum(v1 * v2, axis=-1)
-        y = tf.linalg.cross(v1, v2)
-        y = tf.norm(y, axis=-1)
-        angle = tf.math.atan2(y, x)
-        out = tf.expand_dims(angle, axis=-1)
-        return out
+        return self._compute_vector_angle(inputs)
 
     def get_config(self):
         """Update config."""
@@ -375,8 +372,16 @@ class GaussBasisLayer(GraphBaseLayer):
         self.offset = float(offset)
         self.sigma = float(sigma)
         self.gamma = 1 / sigma / sigma * (-1) / 2
-
         # Note: For arbitrary axis the code must be adapted.
+
+    @staticmethod
+    def _compute_gauss_basis(inputs, offset, gamma, bins, distance):
+        """expand into gaussian basis."""
+        gbs = tf.range(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
+        out = inputs - offset
+        out = tf.square(out - gbs) * gamma
+        out = tf.exp(out)
+        return out
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -389,20 +394,12 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #bins)
         """
-        gbs = tf.range(0, self.bins, 1, dtype=self.dtype) / float(self.bins) * self.distance
         # Possibly faster RaggedRank==1
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
-                edge, ege_part = inputs.values, inputs.row_splits
-                out = edge - self.offset
-                out = tf.square(out - gbs) * self.gamma
-                out = tf.exp(out)
-                return tf.RaggedTensor.from_row_splits(out, ege_part, validate=self.ragged_validate)
-        # Default
-        out = inputs - self.offset
-        out = tf.square(out - gbs) * self.gamma
-        out = tf.exp(out)
-        return out
+                out = self._compute_gauss_basis(inputs.values, self.offset, self.gamma, self.bins, self.distance)
+                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
+        return self._compute_gauss_basis(inputs, self.offset, self.gamma, self.bins, self.distance)
 
     def get_config(self):
         """Update config."""
@@ -453,6 +450,12 @@ class BesselBasisLayer(GraphBaseLayer):
         env_val = 1.0 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
         return tf.where(inputs < 1, env_val, tf.zeros_like(inputs))
 
+    def expand_bessel_basis(self, inputs):
+        d_scaled = inputs * self.inv_cutoff
+        d_cutoff = self.envelope(d_scaled)
+        out = d_cutoff * tf.sin(self.frequencies * d_scaled)
+        return out
+
     def call(self, inputs, **kwargs):
         """Forward pass.
 
@@ -467,16 +470,9 @@ class BesselBasisLayer(GraphBaseLayer):
         # Possibly faster RaggedRank==1
         if isinstance(inputs, tf.RaggedTensor):
             if inputs.ragged_rank == 1:
-                node, node_part = inputs.values, inputs.row_splits
-                d_scaled = node * self.inv_cutoff
-                d_cutoff = self.envelope(d_scaled)
-                out = d_cutoff * tf.sin(self.frequencies * d_scaled)
-                return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
-        # Default
-        d_scaled = inputs * self.inv_cutoff
-        d_cutoff = self.envelope(d_scaled)
-        out = d_cutoff * tf.sin(self.frequencies * d_scaled)
-        return out
+                out = self.expand_bessel_basis(inputs.values)
+                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
+        return self.expand_bessel_basis(inputs)
 
     def get_config(self):
         """Update config."""
@@ -501,6 +497,14 @@ class CosCutOffEnvelope(GraphBaseLayer):
         super(CosCutOffEnvelope, self).__init__(**kwargs)
         self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
+    @staticmethod
+    def _compute_cutoff_envelope(inputs, cutoff):
+        """Implements the cutoff envelope."""
+        fc = tf.clip_by_value(inputs, -cutoff, cutoff)
+        fc = (tf.math.cos(fc * np.pi / cutoff) + 1) * 0.5
+        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
+        return fc
+
     def call(self, inputs, **kwargs):
         """Forward pass.
 
@@ -514,16 +518,9 @@ class CosCutOffEnvelope(GraphBaseLayer):
         """
         if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
             if inputs.ragged_rank == 1:
-                values = inputs.values
-                fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
-                fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-                # fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
+                fc = self._compute_cutoff_envelope(inputs.values, self.cutoff)
                 return tf.RaggedTensor.from_row_splits(fc, inputs.row_splits, validate=self.ragged_validate)
-        # Try tf.cos directly, works also for ragged
-        fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
-        fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
-        return fc
+        return self._compute_cutoff_envelope(inputs, self.cutoff)
 
     def get_config(self):
         """Update config."""
@@ -535,7 +532,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
     r"""Apply cos-cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
-    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
+    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]` by simply multiplying with the envelope.
 
     Args:
         cutoff (float): Cutoff distance :math:`R_c`.
@@ -546,6 +543,14 @@ class CosCutOff(GraphBaseLayer):
                  **kwargs):
         super(CosCutOff, self).__init__(**kwargs)
         self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
+
+    @staticmethod
+    def _compute_cutoff(inputs, cutoff):
+        fc = tf.clip_by_value(inputs, -cutoff, cutoff)
+        fc = (tf.math.cos(fc * np.pi / cutoff) + 1) * 0.5
+        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
+        out = fc * inputs
+        return out
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -559,19 +564,9 @@ class CosCutOff(GraphBaseLayer):
         """
         if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
             if inputs.ragged_rank == 1:
-                values = inputs.values
-                fc = tf.clip_by_value(values, -self.cutoff, self.cutoff)
-                fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-                # fc = tf.where(tf.abs(values) < self.cutoff, fc, tf.zeros_like(fc))
-                out = fc * values
+                out = self._compute_cutoff(inputs.values, self.cutoff)
                 return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        # Default
-        # Try tf.cos directly, works also for ragged
-        fc = tf.clip_by_value(inputs, -self.cutoff, self.cutoff)
-        fc = (tf.math.cos(fc * np.pi / self.cutoff) + 1) * 0.5
-        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
-        out = fc * inputs
-        return out
+        return self._compute_cutoff(inputs, self.cutoff)
 
     def get_config(self):
         """Update config."""

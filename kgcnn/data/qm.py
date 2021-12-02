@@ -102,10 +102,10 @@ class QMDataset(MemoryGraphDataset):
             self.read_in_table_file()
 
             if self.data_frame is None:
-                raise FileNotFoundError("Can not find csv table.")
+                raise FileNotFoundError("Can not find csv table with file names.")
 
             if xyz_column_name is None:
-                raise ValueError("Please specify column for csv file.")
+                raise ValueError("Please specify column for csv file which contains file names.")
 
             xyz_file_list = self.data_frame[xyz_column_name].values
             num_mols = len(xyz_file_list)
@@ -113,7 +113,7 @@ class QMDataset(MemoryGraphDataset):
             if not os.path.exists(os.path.join(self.data_directory, self.file_directory)):
                 raise ValueError("No file directory of xyz files.")
 
-            self.info("Read %s single xyz-file ..." % num_mols)
+            self.info("Read %s single xyz-files ..." % num_mols)
             xyz_list = []
             for i, x in enumerate(xyz_file_list):
                 # Only one file per path

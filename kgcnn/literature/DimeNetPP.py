@@ -8,6 +8,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.keras import Dense, Concatenate, Add, Subtract
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+from kgcnn.layers.mlp import MLP
 
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
@@ -23,12 +24,13 @@ model_default = {"name": "DimeNetPP",
                                                                          "config": {"minval": -1.7320508075688772,
                                                                                     "maxval": 1.7320508075688772}}}},
                  "output_embedding": "graph",
+                 'output_mlp': None,
                  "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
                  "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
                  "cutoff": 5.0, "envelope_exponent": 5,
                  "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
                  "num_targets": 12, "extensive": True, "output_init": "zeros",
-                 "activation": "swish", "verbose": 1,
+                 "activation": "swish", "verbose": 1
                  }
 
 
@@ -52,7 +54,10 @@ def make_model(inputs=None,
                activation=None,
                extensive=None,
                output_init=None,
-               **kwargs):
+               output_mlp=None,
+               verbose=None,
+               name=None
+               ):
     """Make DimeNetPP graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Note: DimeNetPP does require a large amount of memory for this implementation, which increase quickly with
@@ -62,6 +67,10 @@ def make_model(inputs=None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation. Note that DimeNetPP originally defines the output dimension
+            via `num_targets`. But this can be set to `out_emb_size` and the `output_mlp`  be used for more
+            specific control.
         emb_size (int): Overall embedding size used for the messages.
         out_emb_size (int): Embedding size for output of `DimNetOutputBlock`.
         int_emb_size (int): Embedding size used for interaction triplets.
@@ -78,11 +87,12 @@ def make_model(inputs=None,
         activation (str, dict): Activation to use.
         extensive (bool): Graph output for extensive target to apply sum for pooling or mean otherwise.
         output_init (str, dict): Output initializer for kernel.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
 
     Returns:
         tf.keras.models.Model
     """
-
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
@@ -132,6 +142,9 @@ def make_model(inputs=None,
         main_output = PoolingNodes(pooling_method="sum")(ps)
     else:
         main_output = PoolingNodes(pooling_method="mean")(ps)
+
+    if output_mlp is not None:
+        main_output = MLP(**output_mlp)(main_output)
 
     if output_embedding != "graph":
         raise ValueError("Unsupported graph embedding for mode `DimeNetPP`.")

@@ -48,6 +48,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         if self.node_indexing != "sample":
             raise ValueError("Indexing for disjoint representation is not supported as of version 1.0")
 
+        self._add_layer_config_to_self = {}
+
     def get_config(self):
         config = super(GraphBaseLayer, self).get_config()
         config.update({"node_indexing": self.node_indexing,
@@ -77,12 +79,33 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         else:
             self._build_input_shape_check(input_shape, 0)
 
+    def _assert_ragged_input(self, inputs, ragged_rank: int = 1):
+        """Assert input to be ragged with a given ragged_rank.
+
+        Args:
+            inputs: Tensor or list of tensors to assert to be ragged and have ragged rank.
+            ragged_rank (int): Assert ragged tensor to have ragged_rank = 1.
+        """
+        if isinstance(inputs, (list, tuple)):
+            assert all(
+                [isinstance(x, tf.RaggedTensor) for x in inputs]), "%s requires `RaggedTensor` input." % self.name
+            if ragged_rank is not None:
+                assert all(
+                    [x.ragged_rank == ragged_rank for x in inputs]), "%s must have input with ragged_rank=%s." % (
+                        self.name, ragged_rank)
+        else:
+            assert isinstance(inputs, tf.RaggedTensor), "%s requires `RaggedTensor` input." % self.name
+            if ragged_rank is not None:
+                assert inputs.ragged_rank == ragged_rank, "%s must have input with ragged_rank=%s." % (
+                    self.name, ragged_rank)
+
     def call_on_ragged_values(self, fun, inputs, *args, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`,
         if :obj:`inputs` is a ragged tensors with ragged rank of one, or a list of ragged tensors. The fallback
         is to call fun directly on inputs.
-        For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`. The output is always
-        assumed that the ragged partition does not change.
+        For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`, which means it is not
+        checked if splits are equal. For the output is always assumed that the ragged partition does not change in
+        :obj:`fun`.
 
         Args:
             fun (callable): Callable function that accepts inputs and kwargs.
@@ -107,8 +130,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 return tf.RaggedTensor.from_row_splits(fun(inputs.values, *args, **kwargs),
                                                        inputs.row_splits, validate=self.ragged_validate)
         else:
-            print("WARNING:kgcnn: Layer %s fail call on ragged values, attempting keras call... " % self.name)
-        # Default fallback.
+            print("Layer %s fail call on ragged values, calling directly on Tensor " % self.name)
         return fun(inputs, *args, **kwargs)
 
 

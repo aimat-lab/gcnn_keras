@@ -506,11 +506,13 @@ hyper = {
                                                                     "config": {"minval": -1.7320508075688772,
                                                                                "maxval": 1.7320508075688772}}}},
             "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, False], "units": [128, 1],
+                           "activation": ["swish", "linear"]},
             "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
             "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
             "cutoff": 5.0, "envelope_exponent": 5,
-            "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 1,
-            "num_targets": 1, "extensive": False, "output_init": "zeros",
+            "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
+            "num_targets": 128, "extensive": False, "output_init": "zeros",
             "activation": "swish", "verbose": 1
         },
         "training": {
@@ -545,6 +547,53 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
+            "kgcnn_version": "1.2.0"
+        }
+    },
+    "NMPN": {
+        "model": {
+            'name': "NMPN",
+            'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                    {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
+                    {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+            'input_embedding': {"node": {"input_dim": 95, "output_dim": 128},
+                                "edge": {"input_dim": 5, "output_dim": 128}},
+            'output_embedding': 'graph',
+            'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ['swish', 'swish', 'linear']},
+            'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+            'set2set_args': {'channels': 64, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
+            'pooling_args': {'pooling_method': "segment_sum"},
+            'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64]},
+            'use_set2set': True, 'depth': 3, 'node_dim': 128,
+            "geometric_edge": False, "make_distance": False, "expand_distance": False,
+            'verbose': 1
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32,
+                "epochs": 800,
+                "validation_freq": 10,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                            "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 100, "epo": 800,
+                            "verbose": 0
+                        }
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
+            },
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": None
+        },
+        "data": {
+        },
+        "info": {
+            "postfix": "",
             "kgcnn_version": "1.2.0"
         }
     }

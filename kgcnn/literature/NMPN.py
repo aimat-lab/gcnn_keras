@@ -1,13 +1,14 @@
 import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoMatMulMessages
-from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
+from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
+from kgcnn.layers.keras import Dense, Concatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer
 
 # Neural Message Passing for Quantum Chemistry
 # by Justin Gilmer, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, George E. Dahl
@@ -22,11 +23,13 @@ model_default = {'name': "NMPN",
                  'output_embedding': 'graph',
                  'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                 "activation": ['selu', 'selu', 'sigmoid']},
+                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
                                   "init_qstar": "0"},
-                 'pooling_args': {'pooling_method': "segment_mean"},
-                 'edge_dense': {'use_bias': True, 'activation': 'selu'},
-                 'use_set2set': True, 'depth': 3, 'node_dim': 128,
+                 'pooling_args': {'pooling_method': "segment_sum"},
+                 'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64, 64]},
+                 'use_set2set': True, 'depth': 3, 'node_dim': 64,
+                 "geometric_edge": False, "make_distance": False, "expand_distance": False,
                  'verbose': 1
                  }
 
@@ -36,12 +39,18 @@ def make_model(inputs=None,
                input_embedding=None,
                output_embedding=None,
                output_mlp=None,
+               gauss_args=None,
                set2set_args=None,
                pooling_args=None,
-               edge_dense=None,
+               edge_mlp=None,
                use_set2set=None,
                node_dim=None,
-               depth=None, **kwargs):
+               depth=None,
+               geometric_edge=None,
+               make_distance=None,
+               expand_distance=None,
+               verbose=None,
+               name=None):
     """Make NMPN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -50,12 +59,19 @@ def make_model(inputs=None,
         output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
             Defines number of model outputs and activation.
+        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
-        edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge matrix.
+        edge_mlp (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge matrix.
         use_set2set (bool): Whether to use `PoolingSet2Set` layer.
         node_dim (int): Dimension of hidden node embedding.
         depth (int): Number of graph embedding units or depth of the network.
+        geometric_edge (bool): Whether the edges are geometric, like distance or coordinates.
+        make_distance (bool): Whether input is distance or coordinates at in place of edges.
+        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
+            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
 
     Returns:
         tf.keras.models.Model
@@ -63,36 +79,57 @@ def make_model(inputs=None,
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
-    edge_input = ks.layers.Input(**inputs[1])
+    edge_input = ks.layers.Input(**inputs[1])  # Or coordinates
     edge_index_input = ks.layers.Input(**inputs[2])
-
-    # embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
     edi = edge_index_input
 
-    # Model
-    n = Dense(node_dim, activation="linear")(n)
-    edge_net = Dense(node_dim * node_dim, **edge_dense)(ed)
+    # embedding, if no feature dimension
+    n0 = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    if not geometric_edge:
+        ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+
+    # If coordinates are in place of edges
+    if make_distance:
+        pos1, pos2 = NodePosition()([ed, edi])
+        ed = NodeDistanceEuclidean()([pos1, pos2])
+
+    if expand_distance:
+        ed = GaussBasisLayer(**gauss_args)(ed)
+
+    # Make hidden dimension
+    n = Dense(node_dim, activation="linear")(n0)
+
+    # Make edge networks.
+    edge_net_in = MLP(**edge_mlp)(ed)
+    edge_net_in = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_in)
+    edge_net_out = MLP(**edge_mlp)(ed)
+    edge_net_out = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_out)
+
+    # Gru for node updates
     gru = GRUUpdate(node_dim)
 
     for i in range(0, depth):
-        eu = GatherNodesOutgoing()([n, edi])
-        eu = TrafoMatMulMessages(node_dim, )([edge_net, eu])
-        eu = PoolingLocalEdges(**pooling_args)(
-            [n, eu, edi])  # Summing for each node connections
+        n_in = GatherNodesOutgoing()([n, edi])
+        n_out = GatherNodesIngoing()([n, edi])
+        m_in = MatMulMessages()([edge_net_in, n_in])
+        m_out = MatMulMessages()([edge_net_out, n_out])
+        eu = Concatenate(axis=-1)([m_in, m_out])
+        eu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
+
+    n = Concatenate(axis=-1)([n0, n])
 
     # Output embedding choice
     if output_embedding == 'graph':
         if use_set2set:
             # output
-            outss = Dense(set2set_args['channels'], activation="linear")(n)
-            out = PoolingSet2Set(**set2set_args)(outss)
+            out = Dense(set2set_args['channels'], activation="linear")(n)
+            out = PoolingSet2Set(**set2set_args)(out)
         else:
             out = PoolingNodes(**pooling_args)(n)
 
         # final dense layers
+        out = ks.layers.Flatten()(out)
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n

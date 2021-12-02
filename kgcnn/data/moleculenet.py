@@ -216,7 +216,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         mol_filename = self._get_mol_filename()
         mol_path = os.path.join(self.data_directory, mol_filename)
         if not os.path.exists(mol_path):
-            raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
+            raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
         self.info("Making attributes...")
 
