@@ -64,7 +64,7 @@ def smile_to_mol(smile_list: list,
             if optimize_conformer and make_conformers:
                 ff = openbabel.OBForceField.FindType("mmff94")
                 ffsetup_okay = ff.Setup(m)
-                ff.SteepestDescent(50)  # 50 steps here
+                ff.SteepestDescent(100)  # defaults are 50-500 in pybel
                 ff.GetCoordinates(m)
                 is_okay.append(ffsetup_okay)
             all_okay = all(is_okay)
