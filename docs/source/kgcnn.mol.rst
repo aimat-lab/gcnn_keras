@@ -20,10 +20,10 @@ kgcnn.mol.methods module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.mol.molgraph module
+kgcnn.mol.rdkit module
 -------------------------
 
-.. automodule:: kgcnn.mol.molgraph
+.. automodule:: kgcnn.mol.rdkit
    :members:
    :undoc-members:
    :show-inheritance:
