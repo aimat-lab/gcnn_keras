@@ -5,6 +5,213 @@ from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPBase')
+class MLPBase(GraphBaseLayer):
+    r"""Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
+    If not list, then the single argument is used for each layer.
+    The number of layers is given by units, which should be list.
+    Additionally this base class holds arguments for batch-normalization which should be applied between kernel
+    and activation. And dropout. Does not initialize layer or implements `call()`. Only for managing arguments.
+
+    Args:
+        units: Positive integer, dimensionality of the output space.
+        activation: Activation function to use.
+            If you don't specify anything, no activation is applied
+            (ie. "linear" activation: `a(x) = x`).
+        use_bias: Boolean, whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+        kernel_regularizer: Regularizer function applied to
+            the `kernel` weights matrix.
+        bias_regularizer: Regularizer function applied to the bias vector.
+        activity_regularizer: Regularizer function applied to
+            the output of the layer (its "activation").
+        kernel_constraint: Constraint function applied to
+            the `kernel` weights matrix.
+        bias_constraint: Constraint function applied to the bias vector.
+        axis: Integer, the axis that should be normalized (typically the features
+            axis). For instance, after a `Conv2D` layer with
+            `data_format="channels_first"`, set `axis=1` in `BatchNormalization`.
+        momentum: Momentum for the moving average.
+        epsilon: Small float added to variance to avoid dividing by zero.
+        center: If True, add offset of `beta` to normalized tensor. If False, `beta`
+            is ignored.
+        scale: If True, multiply by `gamma`. If False, `gamma` is not used. When the
+            next layer is linear (also e.g. `nn.relu`), this can be disabled since the
+            scaling will be done by the next layer.
+        beta_initializer: Initializer for the beta weight.
+        gamma_initializer: Initializer for the gamma weight.
+        moving_mean_initializer: Initializer for the moving mean.
+        moving_variance_initializer: Initializer for the moving variance.
+        beta_regularizer: Optional regularizer for the beta weight.
+        gamma_regularizer: Optional regularizer for the gamma weight.
+        beta_constraint: Optional constraint for the beta weight.
+        gamma_constraint: Optional constraint for the gamma weight.
+        rate: Float between 0 and 1. Fraction of the input units to drop.
+        noise_shape: 1D integer tensor representing the shape of the
+            binary dropout mask that will be multiplied with the input.
+            For instance, if your inputs have shape`(batch_size, timesteps, features)` and
+            you want the dropout mask to be the same for all timesteps,
+            you can use `noise_shape=(batch_size, 1, features)`.
+        seed: A Python integer to use as random seed.
+    """
+
+    def __init__(self,
+                 units,
+                 use_bias=True,
+                 activation=None,
+                 activity_regularizer=None,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 # Normalization should use either Layer or BatchNorm here, not both...
+                 use_normalization=False,
+                 axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
+                 beta_initializer='zeros', gamma_initializer='ones',
+                 moving_mean_initializer='zeros',
+                 moving_variance_initializer='ones', beta_regularizer=None,
+                 gamma_regularizer=None, beta_constraint=None, gamma_constraint=None,
+                 # Dropout
+                 use_dropout=False,
+                 rate=None, noise_shape=None, seed=None,
+                 **kwargs):
+        """Initialize MLP as for dense."""
+        super(MLPBase, self).__init__(**kwargs)
+        # everything should be defined by units.
+        if isinstance(units, int):
+            units = [units]
+        if not isinstance(units, list):
+            raise ValueError("Units must be a list or a single int for `MLP`.")
+
+        self.depth = len(units)
+
+        # Assert matching number of args
+        def assert_args_is_list(args):
+            if not isinstance(args, (list, tuple)):
+                return [args for _ in range(self.depth)]
+            return args
+        # Dense
+        use_bias = assert_args_is_list(use_bias)
+        activation = assert_args_is_list(activation)
+        kernel_regularizer = assert_args_is_list(kernel_regularizer)
+        bias_regularizer = assert_args_is_list(bias_regularizer)
+        activity_regularizer = assert_args_is_list(activity_regularizer)
+        kernel_initializer = assert_args_is_list(kernel_initializer)
+        bias_initializer = assert_args_is_list(bias_initializer)
+        kernel_constraint = assert_args_is_list(kernel_constraint)
+        bias_constraint = assert_args_is_list(bias_constraint)
+        # Normalization
+        use_normalization = assert_args_is_list(use_normalization)
+        if not isinstance(axis, list):  # Special case, if axis is supposed to be multiple axis, use tuple here.
+            axis = [axis for _ in units]
+        momentum = assert_args_is_list(momentum)
+        epsilon = assert_args_is_list(epsilon)
+        center = assert_args_is_list(center)
+        scale = assert_args_is_list(scale)
+        beta_initializer = assert_args_is_list(beta_initializer)
+        gamma_initializer = assert_args_is_list(gamma_initializer)
+        moving_mean_initializer = assert_args_is_list(moving_mean_initializer)
+        moving_variance_initializer = assert_args_is_list(moving_variance_initializer)
+        beta_regularizer = assert_args_is_list(beta_regularizer)
+        gamma_regularizer = assert_args_is_list(gamma_regularizer)
+        beta_constraint = assert_args_is_list(beta_constraint)
+        gamma_constraint = assert_args_is_list(gamma_constraint)
+        # Dropout
+        use_dropout = assert_args_is_list(use_dropout)
+        rate = assert_args_is_list(rate)
+        seed = assert_args_is_list(seed)
+        if not isinstance(noise_shape, list):  # Special case, for shape, use tuple here.
+            noise_shape = [noise_shape for _ in units]
+
+        for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
+                  bias_initializer, kernel_constraint, bias_constraint, use_bias, axis, momentum, epsilon,
+                  center, scale, beta_initializer, gamma_initializer, moving_mean_initializer,
+                  moving_variance_initializer, beta_regularizer, gamma_regularizer, beta_constraint,
+                  gamma_constraint, rate, seed, noise_shape, use_dropout, use_normalization]:
+            if len(x) != len(units):
+                raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
+
+        # Deserialized args
+        self.mlp_units = list(units)
+        self.mlp_use_bias = list(use_bias)
+        self.mlp_activation = list([tf.keras.activations.get(x) for x in activation])
+        self.mlp_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
+        self.mlp_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
+        self.mlp_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
+        self.mlp_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
+        self.mlp_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
+        self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
+        self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
+        # Serialized args for norm
+        self.mlp_use_normalization = list(use_normalization)
+        self.mlp_axis = list(axis)
+        self.mlp_momentum = list(momentum)
+        self.mlp_epsilon = list(epsilon)
+        self.mlp_center = list(center)
+        self.mlp_scale = list(scale)
+        self.mlp_beta_initializer = list([tf.keras.initializers.get(x) for x in beta_initializer])
+        self.mlp_gamma_initializer = list([tf.keras.initializers.get(x) for x in gamma_initializer])
+        self.mlp_moving_mean_initializer = list([tf.keras.initializers.get(x) for x in moving_mean_initializer])
+        self.mlp_moving_variance_initializer = list([tf.keras.initializers.get(x) for x in moving_variance_initializer])
+        self.mlp_beta_regularizer = list([tf.keras.regularizers.get(x) for x in beta_regularizer])
+        self.mlp_gamma_regularizer = list([tf.keras.regularizers.get(x) for x in gamma_regularizer])
+        self.mlp_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
+        self.mlp_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
+        # Dropout
+        self.mlp_use_dropout = list(use_dropout)
+        self.mlp_rate = list(rate)
+        self.mlp_seed = list(seed)
+        self.mlp_noise_shape = list(noise_shape)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(MLPBase, self).build(input_shape)
+
+    def get_config(self):
+        """Update config."""
+        config = super(MLPBase, self).get_config()
+        config.update({
+            # Dense
+            "units": self.mlp_units,
+            'use_bias': self.mlp_use_bias,
+            'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
+            'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in
+                                    self.mlp_activity_regularizer],
+            'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_kernel_regularizer],
+            'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_bias_regularizer],
+            "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_kernel_initializer],
+            "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
+            "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
+            "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
+            # Norm
+            "use_normalization": self.mlp_use_normalization,
+            "axis": list(self.mlp_axis),
+            "momentum": self.mlp_momentum,
+            "epsilon": self.mlp_epsilon,
+            "center": self.mlp_center,
+            "scale": self.mlp_scale,
+            "beta_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_beta_initializer],
+            "gamma_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_gamma_initializer],
+            "moving_mean_initializer": [tf.keras.initializers.serialize(x) for x in
+                                       self.mlp_moving_mean_initializer],
+            "moving_variance_initializer": [tf.keras.initializers.serialize(x) for x in
+                                           self.mlp_moving_variance_initializer],
+            "beta_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_beta_regularizer],
+            "gamma_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_gamma_regularizer],
+            "beta_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_beta_constraint],
+            "gamma_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_gamma_constraint],
+            # Dropout
+            "use_dropout": self.mlp_use_dropout,
+            'rate': self.mlp_rate,
+            'noise_shape': self.mlp_noise_shape,
+            'seed': self.mlp_seed
+        })
+        return config
+
+
 # import tensorflow.keras.backend as ksb
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(GraphBaseLayer):

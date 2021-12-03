@@ -34,7 +34,7 @@ def smile_to_mol(smile_list: list,
                 rdkit.Chem.RemoveStereochemistry(m)
                 rdkit.Chem.AssignStereochemistry(m)
                 rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-            if optimize_conformer:
+            if optimize_conformer and make_conformers:
                 rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
                 rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
                 rdkit.Chem.AssignStereochemistryFrom3D(m)
@@ -61,7 +61,7 @@ def smile_to_mol(smile_list: list,
             if add_hydrogen:
                 # it seems h's are made after build, an get embedded too
                 m.AddHydrogens()
-            if optimize_conformer:
+            if optimize_conformer and make_conformers:
                 ff = openbabel.OBForceField.FindType("mmff94")
                 ffsetup_okay = ff.Setup(m)
                 ff.SteepestDescent(50)  # 50 steps here
@@ -69,7 +69,7 @@ def smile_to_mol(smile_list: list,
                 is_okay.append(ffsetup_okay)
             all_okay = all(is_okay)
             if not all_okay:
-                print("ERROR: Openbabel failed for %s." % smile)
+                print("WARNING: Openbabel returned false flag at %s" % is_okay)
         except:
             m = None
             obconversion = None
@@ -77,6 +77,8 @@ def smile_to_mol(smile_list: list,
         if m is not None:
             mol_list.append(obconversion.WriteString(m))
             continue
+
+        print("WARNING: Openbabel and RDKit failed for %s." % smile)
 
         # Nothing worked
         mol_list.append(None)
