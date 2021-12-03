@@ -32,13 +32,11 @@ hyper = hyper_selection.hyper()
 
 # Loading ESOL Dataset
 dataset = ESOLDataset().set_attributes()
-dataset.process_hyper(hyper_selection.hyper("data"))
+dataset.process_hyper(hyper_selection.data())
+dataset.assert_property(hyper_selection.model("inputs"))
 data_length = dataset.length
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
-for x in hyper['model']['inputs']:
-    if not hasattr(dataset, x['name']):
-        print("ERROR: Dataset does not has information on %s" % x['name'])
 data_loader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)
 

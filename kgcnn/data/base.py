@@ -559,6 +559,25 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
             self.set_edge_indices_reverse()
         if "normalize_edge_weights_sym" in hyper_data:
             self.normalize_edge_weights_sym()
+        return self
+
+    def assert_property(self, property_list: list):
+        """Check whether dataset has requested properties.
+
+        Args:
+            property_list (list): List of properties that need to be available to a model for training.
+
+        Returns:
+            self
+        """
+        for x in property_list:
+            if isinstance(x, dict):
+                prop = x["name"]
+            else:
+                prop = x
+            if not hasattr(self, prop):
+                raise ValueError("Dataset does not have information on %s" % prop)
+        return self
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset

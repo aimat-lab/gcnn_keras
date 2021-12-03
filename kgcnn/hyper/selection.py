@@ -41,23 +41,20 @@ class HyperSelection:
         else:
             raise ValueError("ERROR:kgcnn: Not a valid hyper dictionary. Please provide model_name.")
 
-    def hyper(self, section=None):
-        """Get copy of the hyper-parameter dictionary stored by this class.
-
-        Args:
-            section (str): If specified, return copy of hyper[selection].
-
-        Returns:
-            dict: Hyper-parameters
-        """
+    def hyper(self, section: str = None):
         if section is None:
             return deepcopy(self._hyper)
-        else:
-            return deepcopy(self._hyper[section])
+        return deepcopy(self._hyper[section])
 
-    def get_hyper(self, section=None):
-        # Only for backward compatibility.
-        return self.hyper(section)
+    def model(self, section: str = None):
+        if section is None:
+            deepcopy(self._hyper["model"])
+        return deepcopy(self._hyper["model"][section])
+
+    def data(self, section: str = None):
+        if section is None:
+            return deepcopy(self._hyper["data"])
+        return deepcopy(self._hyper["data"][section])
 
     def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
         """Select compile hyper-parameter.
@@ -173,8 +170,12 @@ class HyperSelection:
         save_json_file(self._hyper, file_path)
 
     def make_model(self):
-        # Add some logic to compare hyper-parameters with data sahpe
+        """Only for backward compatibility."""
         return deepcopy(self._hyper["model"])
+
+    def get_hyper(self, section=None):
+        """Only for backward compatibility."""
+        return deepcopy(self.hyper(section))
 
 
 # Only for backward compatibility.
