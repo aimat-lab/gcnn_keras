@@ -1,68 +1,13 @@
 import numpy as np
-try:
-    import rdkit
-    import rdkit.Chem
-    import rdkit.Chem.AllChem
-    import rdkit.Chem.Descriptors
-except ImportError:
-    print("ERROR:kgcnn: This module needs Rdkit To be installed")
+import rdkit
+import rdkit.Chem
+import rdkit.Chem.AllChem
+import rdkit.Chem.Descriptors
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
 # or check https://pypi.org/project/rdkit-pypi/ via `pip install rdkit-pypi`
 # or try `conda install -c rdkit rdkit` or `conda install -c conda-forge rdkit`
 from kgcnn.mol.base import MolGraphInterface
-
-
-class OneHotEncoder:
-    """Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
-    value. The translated values must support ``__eq__()`` operator. The list of possible values must be set beforehand.
-    Is used as a basic encoder example for ``MolecularGraphRDKit``. There can not be different dtypes in categories.
-    """
-    _dtype_translate = {"int": int, "float": float, "str": str}
-
-    def __init__(self, categories: list, add_unknown: bool = True, dtype: str = "int"):
-        """Initialize the encoder beforehand with a set of all possible values to encounter.
-
-        Args:
-            categories (list): List of possible values, matching the one-hot encoding.
-            add_unknown (bool): Whether to add a unknown bit. Default is True.
-        """
-        assert isinstance(dtype, str)
-        if dtype not in ["str", "int", "float"]:
-            raise ValueError("Unsupported dtype for OneHotEncoder %s" % dtype)
-        self.dtype_identifier = dtype
-        self.dtype = self._dtype_translate[dtype]
-        self.categories = [self.dtype(x) for x in categories]
-        self.found_values = []
-        self.add_unknown = add_unknown
-
-    def __call__(self, value, **kwargs):
-        r"""Encode a single feature or value, mapping it to a one-hot python list. E.g. `[0, 0, 1, 0]`
-
-        Args:
-            value: Any object that can be compared to items in ``self.one_hot_values``.
-            **kwargs: Additional kwargs. Not used atm.
-
-        Returns:
-            list: Python list with 1 at value match. E.g. `[0, 0, 1, 0]`
-        """
-        encoded_list = [1 if x == self.dtype(value) else 0 for x in self.categories]
-        if self.add_unknown:
-            if value not in self.categories:
-                encoded_list += [1]
-            else:
-                encoded_list += [0]
-        if value not in self.found_values:
-            self.found_values += [value]
-        return encoded_list
-
-    def get_config(self):
-        config = {"categories": self.categories, "add_unknown": self.add_unknown, "dtype": self.dtype_identifier}
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class MolecularGraphRDKit(MolGraphInterface):
@@ -118,30 +63,22 @@ class MolecularGraphRDKit(MolGraphInterface):
         self.is_directed = is_directed
         self._make_conformers = make_conformers
 
-    def make_conformers(self):
+    def make_conformers(self, useRandomCoords: bool = True):
+        """Make random conformer."""
         if self.mol is None:
             return
         m = self.mol
         try:
-            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+            rdkit.Chem.RemoveStereochemistry(m)
+            rdkit.Chem.AssignStereochemistry(m)
+            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=useRandomCoords)
             rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
             rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
             rdkit.Chem.AssignStereochemistryFrom3D(m)
             rdkit.Chem.AssignStereochemistry(m)
-            self.mol = m
+            return m
         except ValueError:
-            try:
-                rdkit.Chem.RemoveStereochemistry(m)
-                rdkit.Chem.AssignStereochemistry(m)
-                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-                rdkit.Chem.AssignStereochemistryFrom3D(m)
-                rdkit.Chem.AssignStereochemistry(m)
-                self.mol = m
-            except ValueError:
-                print("WARNING:kgcnn: Rdkit could not embed molecule with smile", m.GetProp("_Name"))
-                return
+            print("WARNING: Rdkit could not embed molecule %s" % m.GetProp("_Name"))
 
     def from_smiles(self, smile, sanitize: bool = True):
         """Make molecule from smile.
@@ -153,7 +90,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         # Make molecule from smile via rdkit
         m = rdkit.Chem.MolFromSmiles(smile)
         if m is None:
-            print("ERROR:kgcnn: Rdkit can not convert smile %s" % smile)
+            print("ERROR: Rdkit can not convert smile %s" % smile)
             return self
 
         if sanitize:

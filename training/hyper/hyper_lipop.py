@@ -133,5 +133,43 @@ hyper = {
             "postfix": "",
             "kgcnn_version": "1.1.0"
         }
-    }
+    },
+    "GIN": {
+        "model": {
+            "name": "GIN",
+            "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+            "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
+            "output_activation": "linear",
+            "depth": 5,
+            "dropout": 0.05,
+            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"]}
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                    "config": {"lr": {
+                        "class_name": "ExponentialDecay",
+                        "config": {"initial_learning_rate": 0.001,
+                                   "decay_steps": 5800,
+                                   "decay_rate": 0.5, "staircase":  False}
+                        }
+                    }
+                },
+                "loss": "mean_absolute_error"
+            },
+            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": None
+        },
+        "data": {
+        },
+        "info": {
+            "postfix" : "",
+            "kgcnn_version": "1.1.0"
+        }
+    },
 }

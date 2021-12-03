@@ -4,7 +4,8 @@ import pandas as pd
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
-from kgcnn.mol.molgraph import MolecularGraphRDKit, OneHotEncoder
+from kgcnn.mol.rdkit import MolecularGraphRDKit
+from kgcnn.mol.enocder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, dummy_load_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
@@ -58,13 +59,18 @@ class MoleculeNetDataset(MemoryGraphDataset):
         if len(smiles) == 0:
             self.error("Can not translate smiles, received empty list for %s." % self.dataset_name)
 
+        try:
+            from kgcnn.mol.gen.default import smile_to_mol
+        except ImportError:
+            self.error("Can not make Molecule. Please install Rdkit and OpenBabel.")
+            from kgcnn.mol.gen.default import smile_to_mol
+
         self.info("Generating molecules and store %s to disk..." % mol_filename)
         molecule_list = []
         max_number = len(smiles)
         for i, sm in enumerate(smiles):
-            mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen, make_conformers=make_conformers)
-            mg.from_smiles(sm, sanitize=sanitize)
-            molecule_list.append(mg.to_mol_block())
+            mg = smile_to_mol([sm], add_hydrogen=add_hydrogen, make_conformers=make_conformers, sanitize=sanitize)
+            molecule_list = molecule_list + mg
             if i % 1000 == 0:
                 self.info(" ... converted molecules {0} from {1}".format(i, max_number))
 
@@ -87,13 +93,13 @@ class MoleculeNetDataset(MemoryGraphDataset):
             self
         """
         mol_filename = self._get_mol_filename()
+
         if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
             self.info("Found rdkit %s of pre-computed structures." % mol_filename)
             return self
-        filepath = os.path.join(self.data_directory, self.file_name)
-        data = pd.read_csv(filepath)
-        # print(data)
-        smiles = data[smiles_column_name].values
+
+        self.read_in_table_file()
+        smiles = self.data_frame[smiles_column_name].values
         # We need to parallelize this.
         mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True,
                                       make_conformers=make_conformers)

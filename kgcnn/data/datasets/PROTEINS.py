@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from kgcnn.data.datasets.tudataset2020 import GraphTUDataset2020
-from kgcnn.mol.molgraph import OneHotEncoder
+from kgcnn.mol.enocder import OneHotEncoder
 
 
 class PROTEINSDatset(GraphTUDataset2020):
