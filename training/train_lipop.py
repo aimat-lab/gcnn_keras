@@ -41,6 +41,9 @@ data_unit = "logD at pH 7.4"
 data_length = dataset.length
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
+for x in hyper['model']['inputs']:
+    if not hasattr(dataset, x['name']):
+        print("ERROR: Dataset does not has information on %s" % x['name'])
 data_loader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)
 
