@@ -541,7 +541,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         self.warning("Unsupported data extension of %s for csv file." % file_path)
         return self
 
-    def process_hyper(self, hyper_data: dict):
+    def process_methods(self, hyper_data: dict):
         """Process hyper-parameter for this dataset. That includes to set or execute methods of this class.
 
         Args:
