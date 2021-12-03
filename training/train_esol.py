@@ -19,27 +19,20 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
                     default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
+model_name = args["model"]
+dataset_name = "ESOL"
+hyper_path = args["hyper"]
 
 # Model identification
-model_name = args["model"]
-model_selection = ModelSelection()
-make_model = model_selection.make_model(model_name)
+model_selection = ModelSelection(model_name)
 
 # Hyper-parameter.
-hyper_selection = HyperSelection(args["hyper"], model_name=model_name, dataset_name="ESOL")
+hyper_selection = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 hyper = hyper_selection.hyper()
 
 # Loading ESOL Dataset
-hyper_data = hyper['data']
-dataset = ESOLDataset().set_attributes().normalize_edge_weights_sym()
-if "set_range" in hyper_data:
-    dataset.set_range(**hyper_data['set_range'])
-if "set_edge_indices_reverse" in hyper_data:
-    dataset.set_edge_indices_reverse()
-if "set_angle" in hyper_data:
-    dataset.set_angle(**hyper_data['set_angle'])
-dataset_name = dataset.dataset_name
-data_unit = "mol/L"
+dataset = ESOLDataset().set_attributes()
+dataset.process_hyper(hyper_selection.hyper("data"))
 data_length = dataset.length
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
@@ -70,7 +63,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Use a generic training function for graph regression.
     model, hist = train_graph_regression_supervised(xtrain, ytrain,
                                                     validation_data=(xtest, ytest),
-                                                    make_model=make_model,
+                                                    make_model=model_selection,
                                                     hyper_selection=hyper_selection,
                                                     scaler=scaler)
     # Get loss from history
@@ -87,7 +80,7 @@ plot_train_test_loss(history_list, loss_name="mean_absolute_error", val_loss_nam
                      file_name="MAE" + postfix_file + ".png")
 # Plot prediction
 plot_predict_true(scaler.inverse_transform(model.predict(xtest)), scaler.inverse_transform(ytest),
-                  filepath=filepath,
+                  filepath=filepath, data_unit=["mol/L"],
                   model_name=model_name, dataset_name=dataset_name,
                   file_name="predict" + postfix_file + ".png")
 

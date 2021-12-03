@@ -514,7 +514,8 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
         r"""Read a data frame in :obj:`data_frame` from file path. By default uses :obj:`file_name` and pandas.
-        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is ignored.
+        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is ignored
+        but must be any of the following '.csv', '.xls', '.xlsx', ... .
 
         Args:
             file_path (str): File path to table file. Default is None.
@@ -539,6 +540,25 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
 
         self.warning("Unsupported data extension of %s for csv file." % file_path)
         return self
+
+    def process_hyper(self, hyper_data: dict):
+        """Process hyper-parameter for this dataset. That includes to set or execute methods of this class.
+
+        Args:
+            hyper_data (dict): Process hyper parameter for this dataset.
+
+        Returns:
+            self
+        """
+        # The order here is important. So for the moment we explicitly check for methods in hyper.
+        if "set_range" in hyper_data:
+            self.set_range(**hyper_data["set_range"])
+        if "set_angle" in hyper_data:
+            self.set_angle(**hyper_data['set_angle'])
+        if "set_edge_indices_reverse" in hyper_data:
+            self.set_edge_indices_reverse()
+        if "normalize_edge_weights_sym" in hyper_data:
+            self.normalize_edge_weights_sym()
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset

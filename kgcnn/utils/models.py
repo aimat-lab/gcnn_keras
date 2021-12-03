@@ -130,7 +130,7 @@ class ModelSelection:
 
         return make_model
 
-    def __call__(self, model_kwargs: dict):
+    def __call__(self, **model_kwargs):
         """Make a model for with model kwargs.
 
         Args:

@@ -14,30 +14,25 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # Input arguments from command line.
 # A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
 parser = argparse.ArgumentParser(description='Train a graph network on Lipop dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")  # AttentiveFP
+parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper/hyper_lipop.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
+model_name = args["model"]
+dataset_name = "Lipop"
+hyper_path = args["hyper"]
 
 # Model
-model_name = args["model"]
-model_selection = ModelSelection()
-make_model = model_selection.make_model(model_name)
+model_selection = ModelSelection(model_name)
 
 # Hyper-parameter.
-hyper_selection = HyperSelection(args["hyper"], model_name=model_name, dataset_name="Lipop")
+hyper_selection = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 hyper = hyper_selection.hyper()
 
 # Loading Lipop Dataset
-hyper_data = hyper['data']
 dataset = LipopDataset().set_attributes()
-if "set_range" in hyper_data:
-    dataset.set_range(**hyper_data["set_range"])
-if "set_edge_indices_reverse" in hyper_data:
-    dataset.set_edge_indices_reverse()
-dataset_name = dataset.dataset_name
-data_unit = "logD at pH 7.4"
+dataset.process_hyper(hyper_selection.hyper("data"))
 data_length = dataset.length
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
@@ -68,7 +63,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Use a generic training function for graph regression.
     model, hist = train_graph_regression_supervised(xtrain, ytrain,
                                                     validation_data=(xtest, ytest),
-                                                    make_model=make_model,
+                                                    make_model=model_selection,
                                                     hyper_selection=hyper_selection,
                                                     scaler=scaler)
     # Get loss from history
@@ -85,7 +80,7 @@ plot_train_test_loss(history_list, loss_name="mean_absolute_error", val_loss_nam
                      file_name="MAE" + postfix_file + ".png")
 # Plot prediction
 plot_predict_true(scaler.inverse_transform(model.predict(xtest)), scaler.inverse_transform(ytest),
-                  filepath=filepath,
+                  filepath=filepath, data_unit=["logD at pH 7.4"],
                   model_name=model_name, dataset_name=dataset_name,
                   file_name="predict" + postfix_file + ".png")
 

@@ -27,27 +27,27 @@ hyper = {
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
-            },
+                    },
             "compile": {
                 "optimizer": {"class_name": "Adam",
-                    "config": {"lr": {
-                        "class_name": "ExponentialDecay",
-                        "config": {"initial_learning_rate": 0.001,
-                                   "decay_steps": 1600,
-                                   "decay_rate": 0.5, "staircase":  False}
-                        }
-                    }
-                },
+                              "config": {"lr": {
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}
+                              }
+                              }
+                              },
                 "loss": "mean_absolute_error"
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": None
         },
         "data": {
             "set_edge_indices_reverse": {}
         },
         "info": {
-            "postfix" : "",
+            "postfix": "",
             "kgcnn_version": "1.1.0"
         }
     },
@@ -66,26 +66,26 @@ hyper = {
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
-            },
+                    },
             "compile": {
                 "optimizer": {"class_name": "Adam",
-                    "config": {"lr": {
-                        "class_name": "ExponentialDecay",
-                        "config": {"initial_learning_rate": 0.001,
-                                   "decay_steps": 1600,
-                                   "decay_rate": 0.5, "staircase":  False}
-                        }
-                    }
-                },
+                              "config": {"lr": {
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}
+                              }
+                              }
+                              },
                 "loss": "mean_absolute_error"
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": None
         },
         "data": {
         },
         "info": {
-            "postfix" : "",
+            "postfix": "",
             "kgcnn_version": "1.1.0"
         }
     },
@@ -93,13 +93,13 @@ hyper = {
         "model": {
             "name": "AttentiveFP",
             "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                      {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                      {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                       {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                               "edge": {"input_dim": 5, "output_dim": 64}},
+                                "edge": {"input_dim": 5, "output_dim": 64}},
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                          "activation": ["kgcnn>leaky_relu", "linear"]},
+                           "activation": ["kgcnn>leaky_relu", "linear"]},
             "attention_args": {"units": 200},
             "depth": 2,
             "dropout": 0.2,
@@ -112,16 +112,16 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.0031622776601683794,
-                    "weight_decay": 1e-05}
-                }
+                                                                       "weight_decay": 1e-05}
+                              }
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": None
         },
         "data": {
         },
         "info": {
-            "postfix" : "",
+            "postfix": "",
             "kgcnn_version": "1.1.0"
         }
     },
@@ -163,14 +163,14 @@ hyper = {
                 },
                 "loss": "mean_absolute_error"
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": None
         },
         "data": {
             "set_range": {"max_distance": 3, "max_neighbours": 10000}
         },
         "info": {
-            "postfix" : "",
+            "postfix": "",
             "kgcnn_version": "1.1.0"
         }
     },
@@ -204,7 +204,7 @@ hyper = {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 300, "epo": 500,
                         "verbose": 0
                     }
-                    }
+                     }
                 ]
             },
             "compile": {
@@ -248,7 +248,7 @@ hyper = {
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
                         "verbose": 0}
-                    }
+                     }
                 ]
             },
             "compile": {
@@ -343,7 +343,7 @@ hyper = {
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
                         "verbose": 0}
-                    }
+                     }
                 ]
             },
             "compile": {
@@ -395,7 +395,7 @@ hyper = {
                         "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
                         "verbose": 0
                     }
-                    }
+                     }
                 ]
             },
             "compile": {
@@ -415,9 +415,9 @@ hyper = {
         "model": {
             "name": "GraphSAGE",
             "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32","ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32","ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64","ragged": True}],
+                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 32, "output_dim": 32}},
@@ -434,14 +434,14 @@ hyper = {
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
-                "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
-                               "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
-                                   "epo_min": 400, "epo": 500, "verbose": 0}}]
-            },
+                    "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
+                                   "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
+                                              "epo_min": 400, "epo": 500, "verbose": 0}}]
+                    },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                "loss": "mean_absolute_error"
-            },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
+                        "loss": "mean_absolute_error"
+                        },
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": None
         },
         "data": {
@@ -475,9 +475,8 @@ hyper = {
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                            "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
-                            "verbose": 0
-                        }
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
+                        "verbose": 0}
                     }
                 ]
             },
@@ -488,6 +487,7 @@ hyper = {
             "execute_folds": None
         },
         "data": {
+            "normalize_edge_weights_sym": {}
         },
         "info": {
             "postfix": "",
@@ -554,8 +554,8 @@ hyper = {
         "model": {
             'name': "NMPN",
             'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                    {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
-                    {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                       {'shape': (None,), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
+                       {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
             'input_embedding': {"node": {"input_dim": 95, "output_dim": 128},
                                 "edge": {"input_dim": 5, "output_dim": 128}},
             'output_embedding': 'graph',
@@ -578,9 +578,9 @@ hyper = {
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                            "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 100, "epo": 800,
-                            "verbose": 0
-                        }
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0
+                    }
                     }
                 ]
             },
