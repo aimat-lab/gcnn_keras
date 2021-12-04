@@ -128,7 +128,7 @@ class QMDataset(MemoryGraphDataset):
         try:
             from openbabel import openbabel
         except ImportError:
-            self.warning("Can not make mol-objects. Please install openbabel.")
+            self.warning("Can not make SDF file. Please install openbabel.")
             return self
 
         if xyz_list is None:

@@ -176,3 +176,18 @@ def dummy_load_sdf_file(filepath):
     with open(filepath, "r") as f:
         all_sting = f.read()
     return all_sting.split("$$$$\n")
+
+
+def read_smiles_file(file_path):
+    with open(file_path, "r") as f:
+        smile_list = f.read().splitlines()
+    return smile_list
+
+
+def write_smiles_file(file_path, smile_list):
+    with open(file_path, "w+") as f:
+        for i, x in enumerate(smile_list):
+            if i == len(smile_list)-1:
+                f.write(x)
+            else:
+                f.write(x + "\n")

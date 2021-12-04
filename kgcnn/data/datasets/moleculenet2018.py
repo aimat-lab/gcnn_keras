@@ -34,7 +34,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "FreeSolv": {"make_conformers": True, "add_hydrogen": True},
         "Lipop": {"make_conformers": True, "add_hydrogen": True},
         "PCBA": {"make_conformers": False, "add_hydrogen": False},
-        "MUV": {"make_conformers": False, "add_hydrogen": False},
+        "MUV": {"make_conformers": True, "add_hydrogen": True},
         "HIV": {"make_conformers": False, "add_hydrogen": False},
         "BACE": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "mol"},
         "BBBP": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
@@ -147,5 +147,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
 
 
-data = MoleculeNetDataset2018("PCBA", reload=False).set_attributes()
+data = MoleculeNetDataset2018("MUV", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

@@ -439,14 +439,11 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         super(MemoryGraphDataset, self).__init__(length=length)
         # For logging.
         self.verbose = verbose
-        # Dataset information on file.
+        # Dataset information on file. Take care of path and name specifics here.
         self.data_directory = data_directory
         self.file_name = file_name
         self.file_directory = file_directory
         self.dataset_name = dataset_name
-        # Get path information from filename if directory is not specified.
-        if self.data_directory is None and isinstance(self.file_name, str):
-            self.data_directory = os.path.dirname(os.path.realpath(self.file_name))
 
         # Data Frame for information.
         self.data_frame = None
