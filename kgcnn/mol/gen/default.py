@@ -3,33 +3,9 @@ import rdkit
 import rdkit.Chem
 import rdkit.Chem.AllChem
 from openbabel import openbabel
-import multiprocessing as mp
-import argparse
-from distutils import util
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
 # from openbabel import pybel
-
-
-def read_smiles_file(file_path):
-    with open(file_path, "r") as f:
-        smile_list_split = f.read().splitlines()
-    return smile_list_split
-
-
-def write_mol_block_list_to_sdf(mol_block_list, filepath):
-    with open(filepath, "w+") as file:
-        for i, mol_block in enumerate(mol_block_list):
-            if mol_block is not None:
-                file.write(mol_block)
-                if i < len(mol_block_list) - 1:
-                    file.write("$$$$\n")
-            else:
-                file.write("".join(["\n",
-                                    "     FAIL\n",
-                                    "\n",
-                                    "  0  0  0  0  0  0  0  0  0  0 V2000\n",
-                                    "M  END\n"]))
-                if i < len(mol_block_list) - 1:
-                    file.write("$$$$\n")
 
 
 def single_smile_to_mol(smile: str,
@@ -103,32 +79,57 @@ def single_smile_to_mol(smile: str,
     return None
 
 
-if __name__ == '__main__':
-    # Input arguments from command line.
-    parser = argparse.ArgumentParser(description='Translate smiles.')
-    parser.add_argument("--file", required=True, help="Path to smile file")
-    parser.add_argument("--nprocs", required=False, help="nprocs", default=1, type=int)
-    parser.add_argument("--sanitize", required=False, help="sanitize", default=True, type=util.strtobool)
-    parser.add_argument("--add_hydrogen", required=False, help="add_hydrogen", default=True, type=util.strtobool)
-    parser.add_argument("--make_conformers", required=False, help="make_conformers", default=True, type=util.strtobool)
-    parser.add_argument("--optimize_conformer", required=False, help="optimize_conformer", default=True, type=util.strtobool)
-    args = vars(parser.parse_args())
+def smile_to_mol_parallel(smile_list: list,
+                          num_workers: int = None,
+                          sanitize: bool = True,
+                          add_hydrogen: bool = True,
+                          make_conformers: bool = True,
+                          optimize_conformer: bool = True):
+    if num_workers is None:
+        num_workers = os.cpu_count()
 
-    arg_nprocs = args["nprocs"]
-    arg_file_path = args["file"]
-    arg_sanitize = args["sanitize"]
-    arg_add_hydrogen = args["add_hydrogen"]
-    arg_make_conformers = args["make_conformers"]
-    arg_optimize_conformer = args["optimize_conformer"]
+    # Default parallelize with rdkit and openbabel
+    if num_workers == 1:
+        mol_list = [single_smile_to_mol(x, sanitize=sanitize, add_hydrogen=add_hydrogen,
+                                        make_conformers=make_conformers,
+                                        optimize_conformer=optimize_conformer) for x in smile_list]
+        return mol_list
+    else:
+        arg_list = [(x, sanitize, add_hydrogen, make_conformers, optimize_conformer) for x in smile_list]
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            result = executor.map(single_smile_to_mol, *zip(*arg_list))
+        mol_list = list(result)
+        return mol_list
 
-    smile_list = read_smiles_file(arg_file_path)
-    if arg_nprocs is None:
-        arg_nprocs = mp.cpu_count()
-
-    pool = mp.Pool(arg_nprocs)
-    results = pool.starmap(single_smile_to_mol,
-                           [(smile, arg_sanitize, arg_add_hydrogen, arg_make_conformers, arg_optimize_conformer)
-                            for smile in smile_list])
-    pool.close()
-
-    write_mol_block_list_to_sdf(results, os.path.splitext(arg_file_path)[0] + ".sdf")
+# if __name__ == '__main__':
+#     # Input arguments from command line.
+#     import multiprocessing as mp
+#     import argparse
+#     from distutils import util
+#     parser = argparse.ArgumentParser(description='Translate smiles.')
+#     parser.add_argument("--file", required=True, help="Path to smile file")
+#     parser.add_argument("--nprocs", required=False, help="nprocs", default=1, type=int)
+#     parser.add_argument("--sanitize", required=False, help="sanitize", default=True, type=util.strtobool)
+#     parser.add_argument("--add_hydrogen", required=False, help="add_hydrogen", default=True, type=util.strtobool)
+#     parser.add_argument("--make_conformers", required=False, help="make_conformers", default=True, type=util.strtobool)
+#     parser.add_argument("--optimize_conformer", required=False, help="optimize_conformer", default=True, type=util.strtobool)
+#     args = vars(parser.parse_args())
+#
+#     arg_nprocs = args["nprocs"]
+#     arg_file_path = args["file"]
+#     arg_sanitize = args["sanitize"]
+#     arg_add_hydrogen = args["add_hydrogen"]
+#     arg_make_conformers = args["make_conformers"]
+#     arg_optimize_conformer = args["optimize_conformer"]
+#
+#     smile_list = read_smiles_file(arg_file_path)
+#     if arg_nprocs is None:
+#         arg_nprocs = mp.cpu_count()
+#
+#     pool = mp.Pool(arg_nprocs)
+#     results = pool.starmap(single_smile_to_mol,
+#                            [(smile, arg_sanitize, arg_add_hydrogen, arg_make_conformers, arg_optimize_conformer)
+#                             for smile in smile_list])
+#     pool.close()
+#
+#     write_mol_block_list_to_sdf(results, os.path.splitext(arg_file_path)[0] + ".sdf")

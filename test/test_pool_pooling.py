@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from kgcnn.layers.pooling import PoolingLocalEdgesLSTM
 from kgcnn.layers.gather import GatherNodes
-from kgcnn.layers.keras import Concatenate
+from kgcnn.layers.keras import LazyConcatenate
 
 
 class TestPoolingLocalEdgesLSTM(unittest.TestCase):
@@ -33,7 +33,7 @@ class TestPoolingLocalEdgesLSTM(unittest.TestCase):
         ed = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
 
         ns = GatherNodes()([n, edi])
-        messages = Concatenate(axis=-1)([ed,ns])
+        messages = LazyConcatenate(axis=-1)([ed, ns])
         out = PoolingLocalEdgesLSTM(units=3)([n, messages, edi])
         print(out[0].shape)
         self.assertTrue(np.all(np.array(out[0].shape) == np.array([8,3])))

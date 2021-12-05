@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.layers.keras import Concatenate, Dense
+from kgcnn.layers.keras import LazyConcatenate, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -88,16 +88,16 @@ def make_model(inputs=None,
         # upd = GatherNodes()([n,edi])
         eu1 = GatherNodesIngoing(**gather_args)([n, edi])
         eu2 = GatherNodesOutgoing(**gather_args)([n, edi])
-        upd = Concatenate(axis=-1)([eu2, eu1])
-        eu = Concatenate(axis=-1)([upd, ed])
+        upd = LazyConcatenate(axis=-1)([eu2, eu1])
+        eu = LazyConcatenate(axis=-1)([upd, ed])
 
         eu = MLP(**edge_mlp_args)(eu)
         # Pool message
         nu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connection
         # Add environment
-        nu = Concatenate(axis=-1)(
-            [n, nu, ev])  # Concatenate node features with new edge updates
+        nu = LazyConcatenate(axis=-1)(
+            [n, nu, ev])  # LazyConcatenate node features with new edge updates
         n = MLP(**node_mlp_args)(nu)
 
     # Output embedding choice

@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.keras import Dense, Add, Dropout
+from kgcnn.layers.keras import Dense, LazyAdd, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -134,9 +134,9 @@ def make_model(inputs=None,
             ep2 = Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
             up2 = Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
-        vp = Add()([vp2, vp])
-        ep = Add()([ep2, ep])
-        up = Add(input_tensor_type="tensor")([up2, up])
+        vp = LazyAdd()([vp2, vp])
+        ep = LazyAdd()([ep2, ep])
+        up = LazyAdd(input_tensor_type="tensor")([up2, up])
 
     if use_set2set:
         vp = Dense(set2set_args["channels"], activation='linear')(vp)  # to match units

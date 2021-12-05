@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
-from kgcnn.layers.keras import Subtract, Multiply
+from kgcnn.layers.keras import LazySubtract, LazyMultiply
 from kgcnn.ops.axis import get_positive_axis
 
 
@@ -205,7 +205,7 @@ class NodeDistanceEuclidean(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer instance of `NodeDistanceEuclidean`."""
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
-        self.layer_subtract = Subtract()
+        self.layer_subtract = LazySubtract()
         self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True)
 
     def build(self, input_shape):
@@ -241,9 +241,9 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
-        self.layer_subtract = Subtract()
+        self.layer_subtract = LazySubtract()
         self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True, invert_norm=True)
-        self.layer_multiply = Multiply()
+        self.layer_multiply = LazyMultiply()
 
     def build(self, input_shape):
         super(EdgeDirectionNormalized, self).build(input_shape)

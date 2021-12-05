@@ -10,7 +10,7 @@ from kgcnn.utils.adj import get_angle_indices
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition, EdgeAngle2
 from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
 from kgcnn.layers.geom import BesselBasisLayer
-from kgcnn.layers.keras import Subtract
+from kgcnn.layers.keras import LazySubtract
 
 
 class TestSphericalBasisLayer(unittest.TestCase):
@@ -276,7 +276,7 @@ class TestSphericalBasisLayer(unittest.TestCase):
 
         a, b = NodePosition()([rag_x, rag_ei])
         dist = NodeDistanceEuclidean()([a, b])
-        vec = Subtract()([a, b])
+        vec = LazySubtract()([a, b])
         angs = EdgeAngle()([vec, rag_a])
         bessel = SphericalBasisLayer(10,10,5.0)([dist, angs, rag_a])
 

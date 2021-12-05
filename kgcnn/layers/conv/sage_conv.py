@@ -1,7 +1,8 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Concatenate, LayerNormalization
+from kgcnn.layers.keras import LazyConcatenate
+from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodes
 from kgcnn.layers.pooling import PoolingLocalMessages, PoolingLocalEdgesLSTM
@@ -53,7 +54,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
 
         self.gather_nodes_outgoing = GatherNodesOutgoing()
-        self.concatenate = Concatenate()
+        self.concatenate = LazyConcatenate()
         self.update_node_from_neighbors_mlp = MLP(units=units, activation=activation, **kernel_args)
         self.update_node_from_self_mlp = MLP(units=units, activation=activation, **kernel_args)
         if self.pooling_args['pooling_method'] in ["LSTM", "lstm"]:
@@ -61,7 +62,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
             self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units)
         else:
             self.pooling = PoolingLocalMessages(pooling_method=pooling_method)
-        self.normalize_nodes = LayerNormalization(axis=-1)
+        self.normalize_nodes = GraphLayerNormalization(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""
@@ -94,7 +95,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
 
         # Pool message
         nu = self.pooling([n, neighboring_node_features, edi], **kwargs)
-        nu = self.concatenate([n, nu], **kwargs)  # Concatenate node features with new edge updates
+        nu = self.concatenate([n, nu], **kwargs)  # LazyConcatenate node features with new edge updates
 
         n = self.update_node_from_self_mlp(nu, **kwargs)
         n = self.normalize_nodes(n, **kwargs)  # Normalize
@@ -119,7 +120,7 @@ class GraphSageEdgeUpdateLayer(GraphBaseLayer):
 
     Args:
         units: Dimensionality of embedding for each layer in the MLP.
-        use_normalization: Whether to use LayerNormalization at the output of the update. Default is True.
+        use_normalization: Whether to use GraphLayerNormalization at the output of the update. Default is True.
         activation: Activation function to use. Default is "relu".
         use_bias: Boolean, whether the layer uses a bias vector.
         kernel_initializer: Initializer for the `kernel` weights matrix.
@@ -153,11 +154,11 @@ class GraphSageEdgeUpdateLayer(GraphBaseLayer):
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
         # non-stateful layers
         self.gather_nodes = GatherNodes()
-        self.concatenate = Concatenate()
+        self.concatenate = LazyConcatenate()
         self.update_edge_mlp = MLP(units=units, activation=activation, **kernel_args)
 
         # normalization layer for edge features
-        self.normalize_edges = LayerNormalization(axis=-1)
+        self.normalize_edges = GraphLayerNormalization(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""

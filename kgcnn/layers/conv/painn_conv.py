@@ -5,7 +5,7 @@ from kgcnn.ops.axis import get_positive_axis
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import Add, Multiply, Dense, Concatenate, ExpandDims
+from kgcnn.layers.keras import LazyAdd, LazyMultiply, Dense, LazyConcatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 
@@ -62,15 +62,15 @@ class PAiNNconv(GraphBaseLayer):
         self.lay_sum_v = PoolingLocalEdges(pooling_method=conv_pool)
         self.gather_n = GatherNodesOutgoing()
         self.gather_v = GatherNodesOutgoing()
-        self.lay_mult = Multiply()
-        self.lay_mult_cutoff = Multiply()
+        self.lay_mult = LazyMultiply()
+        self.lay_mult_cutoff = LazyMultiply()
         self.lay_exp_vv = ExpandDims(axis=-2)
         self.lay_exp_vw = ExpandDims(axis=-2)
         self.lay_exp_r = ExpandDims(axis=-1)
-        self.lay_mult_vv = Multiply()
-        self.lay_mult_vw = Multiply()
+        self.lay_mult_vv = LazyMultiply()
+        self.lay_mult_vw = LazyMultiply()
 
-        self.lay_add = Add()
+        self.lay_add = LazyAdd()
 
     def build(self, input_shape):
         """Build layer."""
@@ -172,13 +172,13 @@ class PAiNNUpdate(GraphBaseLayer):
 
         self.lay_scalar_prod = ScalarProduct(axis=2)
         self.lay_norm = EuclideanNorm(axis=2)
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_split = SplitEmbedding(3, axis=-1)
 
-        self.lay_mult = Multiply()
+        self.lay_mult = LazyMultiply()
         self.lay_exp_v = ExpandDims(axis=-2)
-        self.lay_mult_vv = Multiply()
-        self.lay_add = Add()
+        self.lay_mult_vv = LazyMultiply()
+        self.lay_add = LazyAdd()
 
     def build(self, input_shape):
         """Build layer."""

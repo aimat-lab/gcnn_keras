@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Dense, Concatenate, Activation, Add, Dropout
+from kgcnn.layers.keras import Dense, LazyConcatenate, Activation, LazyAdd, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
@@ -85,7 +85,7 @@ def make_model(name=None,
 
     # Make first edge hidden h0
     h_n0 = GatherNodesOutgoing()([n, edi])
-    h0 = Concatenate(axis=-1)([h_n0, ed])
+    h0 = LazyConcatenate(axis=-1)([h_n0, ed])
     h0 = Dense(**edge_initialize)(h0)
 
     # One Dense layer for all message steps
@@ -96,13 +96,13 @@ def make_model(name=None,
     for i in range(depth):
         m_vw = DMPNNPPoolingEdgesDirected()([n, h, edi, ed_pairs])
         h = edge_dense_all(m_vw)
-        h = Add()([h, h0])
+        h = LazyAdd()([h, h0])
         h = Activation(**edge_activation)(h)
         if dropout is not None:
             h = Dropout(**dropout)(h)
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
-    mv = Concatenate(axis=-1)([mv, n])
+    mv = LazyConcatenate(axis=-1)([mv, n])
     hv = Dense(**node_dense)(mv)
 
     # Output embedding choice

@@ -6,7 +6,7 @@ except ModuleNotFoundError:
     import haste_tf as haste
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.layers.keras import Dense, Activation, LazyConcatenate
 from kgcnn.layers.gather import GatherState
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.conv.attention import PoolingNodesAttention
@@ -168,7 +168,7 @@ class HastePoolingNodesAttentiveLayerNorm(GraphBaseLayer):
         self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
         self.lay_alpha = Dense(1, activation=activation, **kernel_args)
         self.lay_gather_s = GatherState()
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
         self.lay_pool_attention = PoolingNodesAttention()
         self.lay_final_activ = Activation(activation=activation_context)

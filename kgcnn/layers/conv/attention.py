@@ -2,7 +2,7 @@ import tensorflow as tf
 # import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
-from kgcnn.layers.keras import Dense, Activation, Concatenate
+from kgcnn.layers.keras import Dense, Activation, LazyConcatenate
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.pooling import PoolingNodesAttention, PoolingLocalEdgesAttention
 
@@ -66,7 +66,7 @@ class AttentionHeadGAT(GraphBaseLayer):
         self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
@@ -177,7 +177,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
         self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
@@ -284,13 +284,13 @@ class AttentiveHeadFP(GraphBaseLayer):
         self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
         self.lay_final_activ = Activation(activation=activation_context)
         if use_edge_features:
             self.lay_fc1 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
             self.lay_fc2 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
-            self.lay_concat_edge = Concatenate(axis=-1)
+            self.lay_concat_edge = LazyConcatenate(axis=-1)
 
     def build(self, input_shape):
         """Build layer."""
@@ -407,7 +407,7 @@ class PoolingNodesAttentive(GraphBaseLayer):
         self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
         self.lay_alpha = Dense(1, activation=activation, **kernel_args)
         self.lay_gather_s = GatherState()
-        self.lay_concat = Concatenate(axis=-1)
+        self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
         self.lay_pool_attention = PoolingNodesAttention()
         self.lay_final_activ = Activation(activation=activation_context)

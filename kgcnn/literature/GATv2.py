@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGATV2
-from kgcnn.layers.keras import Concatenate, Dense, Average, Activation
+from kgcnn.layers.keras import LazyConcatenate, Dense, LazyAverage, Activation
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -75,9 +75,9 @@ def make_model(inputs=None,
     for i in range(0, depth):
         heads = [AttentionHeadGATV2(**attention_args)([nk, ed, edi]) for _ in range(attention_heads_num)]
         if attention_heads_concat:
-            nk = Concatenate(axis=-1)(heads)
+            nk = LazyConcatenate(axis=-1)(heads)
         else:
-            nk = Average()(heads)
+            nk = LazyAverage()(heads)
             nk = Activation(activation=attention_args["activation"])(nk)
     n = nk
 

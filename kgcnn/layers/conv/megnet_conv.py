@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Concatenate
+from kgcnn.layers.keras import Dense, LazyConcatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
 
@@ -61,18 +61,18 @@ class MEGnetBlock(GraphBaseLayer):
         self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args)
         self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.lay_gather_un = GatherState()
-        self.lay_conc_nu = Concatenate(axis=-1)
+        self.lay_conc_nu = LazyConcatenate(axis=-1)
         # Edge
         self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **kernel_args)
         self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **kernel_args)
         self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **kernel_args)
         self.lay_gather_n = GatherNodes()
         self.lay_gather_ue = GatherState()
-        self.lay_conc_enu = Concatenate(axis=-1)
+        self.lay_conc_enu = LazyConcatenate(axis=-1)
         # Environment
         self.lay_usum_e = PoolingGlobalEdges(pooling_method=self.pooling_method)
         self.lay_usum_n = PoolingNodes(pooling_method=self.pooling_method)
-        self.lay_conc_u = Concatenate(axis=-1)
+        self.lay_conc_u = LazyConcatenate(axis=-1)
         self.lay_phi_u = ks.layers.Dense(units=self.env_embed[0], activation=activation, **kernel_args)
         self.lay_phi_u_1 = ks.layers.Dense(units=self.env_embed[1], activation=activation, **kernel_args)
         self.lay_phi_u_2 = ks.layers.Dense(units=self.env_embed[2], activation='linear', **kernel_args)
@@ -106,7 +106,7 @@ class MEGnetBlock(GraphBaseLayer):
         # Calculate Node update
         vb = self.lay_esum([node_input, ep, edge_index_input], **kwargs)  # Summing for each node connections
         v_u = self.lay_gather_un([env_input, node_input], **kwargs)
-        vc = self.lay_conc_nu([vb, node_input, v_u], **kwargs)  # Concatenate node features with new edge updates
+        vc = self.lay_conc_nu([vb, node_input, v_u], **kwargs)  # LazyConcatenate node features with new edge updates
         vp = self.lay_phi_n(vc, **kwargs)  # Learning of Update Functions
         vp = self.lay_phi_n_1(vp, **kwargs)  # Learning of Update Functions
         vp = self.lay_phi_n_2(vp, **kwargs)  # Learning of Update Functions

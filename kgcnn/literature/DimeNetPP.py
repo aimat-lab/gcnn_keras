@@ -5,7 +5,7 @@ from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutpu
     SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
-from kgcnn.layers.keras import Dense, Concatenate, Add, Subtract
+from kgcnn.layers.keras import Dense, LazyConcatenate, LazyAdd, LazySubtract
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.mlp import MLP
@@ -116,7 +116,7 @@ def make_model(inputs=None,
     rbf = BesselBasisLayer(num_radial=num_radial, cutoff=cutoff, envelope_exponent=envelope_exponent)(d)
 
     # Calculate angles
-    v12 = Subtract()([pos1, pos2])
+    v12 = LazySubtract()([pos1, pos2])
     a = EdgeAngle()([v12, adi])
     sbf = SphericalBasisLayer(num_spherical=num_spherical, num_radial=num_radial, cutoff=cutoff,
                               envelope_exponent=envelope_exponent)([d, a, adi])
@@ -124,13 +124,13 @@ def make_model(inputs=None,
     # Embedding block
     rbf_emb = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
     n_pairs = GatherNodes()([n, edi])
-    x = Concatenate(axis=-1)([n_pairs, rbf_emb])
+    x = LazyConcatenate(axis=-1)([n_pairs, rbf_emb])
     x = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
     ps = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
                            output_kernel_initializer=output_init)([n, x, rbf, edi])
 
     # Interaction blocks
-    add_xp = Add()
+    add_xp = LazyAdd()
     for i in range(num_blocks):
         x = DimNetInteractionPPBlock(emb_size, int_emb_size, basis_emb_size, num_before_skip, num_after_skip)(
             [x, rbf, sbf, adi])

@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
-from kgcnn.layers.keras import Add, Subtract
+from kgcnn.layers.keras import LazyAdd, LazySubtract
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -83,12 +83,12 @@ def make_model(inputs=None,
     for i in range(depth):
         # Message
         ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
-        z = Add()([z, ds])
-        v = Add()([v, dv])
+        z = LazyAdd()([z, ds])
+        v = LazyAdd()([v, dv])
         # Update
         ds, dv = PAiNNUpdate(**update_args)([z, v])
-        z = Add()([z, ds])
-        v = Add()([v, dv])
+        z = LazyAdd()([z, ds])
+        v = LazyAdd()([v, dv])
     n = z
     # Output embedding choice
     if output_embedding == "graph":

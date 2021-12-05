@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.keras import Dense, Concatenate
+from kgcnn.layers.keras import Dense, LazyConcatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -113,11 +113,11 @@ def make_model(inputs=None,
         n_out = GatherNodesIngoing()([n, edi])
         m_in = MatMulMessages()([edge_net_in, n_in])
         m_out = MatMulMessages()([edge_net_out, n_out])
-        eu = Concatenate(axis=-1)([m_in, m_out])
+        eu = LazyConcatenate(axis=-1)([m_in, m_out])
         eu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
 
-    n = Concatenate(axis=-1)([n0, n])
+    n = LazyConcatenate(axis=-1)([n0, n])
 
     # Output embedding choice
     if output_embedding == 'graph':

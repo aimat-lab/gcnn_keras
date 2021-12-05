@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import Add
+from kgcnn.layers.keras import LazyAdd
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GIN')
@@ -34,7 +34,7 @@ class GIN(GraphBaseLayer):
         # Layers
         self.lay_gather = GatherNodesOutgoing()
         self.lay_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
-        self.lay_add = Add()
+        self.lay_add = LazyAdd()
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,

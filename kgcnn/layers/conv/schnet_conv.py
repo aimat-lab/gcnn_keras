@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Multiply, Dense, Add
+from kgcnn.layers.keras import LazyMultiply, Dense, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 
@@ -52,7 +52,7 @@ class SchNetCFconv(GraphBaseLayer):
         self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
         self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool)
         self.gather_n = GatherNodesOutgoing()
-        self.lay_mult = Multiply()
+        self.lay_mult = LazyMultiply()
 
     def build(self, input_shape):
         """Build layer."""
@@ -138,7 +138,7 @@ class SchNetInteraction(GraphBaseLayer):
         self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False, **kernel_args)
         self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
         self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
-        self.lay_add = Add()
+        self.lay_add = LazyAdd()
 
     def build(self, input_shape):
         """Build layer."""

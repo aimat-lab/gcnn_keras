@@ -3,7 +3,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Concatenate, LayerNormalization
+from kgcnn.layers.keras import LazyConcatenate
+from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -60,7 +61,7 @@ def make_model(inputs=None,
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalMessages` layer.
         pooling_nodes_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
         gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
-        concat_args (dict): Dictionary of layer arguments unpacked in `Concatenate` layer.
+        concat_args (dict): Dictionary of layer arguments unpacked in `LazyConcatenate` layer.
         use_edge_features (bool): Whether to add edge features in message step.
         depth (int): Number of graph embedding units or depth of the network.
         name (str): Name of the model.
@@ -82,7 +83,7 @@ def make_model(inputs=None,
         # upd = GatherNodes()([n,edi])
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
         if use_edge_features:
-            eu = Concatenate(**concat_args)([eu, ed])
+            eu = LazyConcatenate(**concat_args)([eu, ed])
 
         eu = MLP(**edge_mlp_args)(eu)
         # Pool message
@@ -91,10 +92,10 @@ def make_model(inputs=None,
         else:
             nu = PoolingLocalMessages(**pooling_args)([n, eu, edi])  # Summing for each node connection
 
-        nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
+        nu = LazyConcatenate(**concat_args)([n, nu])  # LazyConcatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
-        n = LayerNormalization()(n)  # Normalize
+        n = GraphLayerNormalization()(n)  # Normalize
 
     # Regression layer on output
     if output_embedding == 'graph':

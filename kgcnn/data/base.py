@@ -452,6 +452,30 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         if len(kwargs) > 0:
             self.warning("Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
 
+    @property
+    def file_path(self):
+        if self.data_directory is None:
+            self.warning("Data directory is not set.")
+            return None
+        if not os.path.exists(self.data_directory):
+            self.error("Data directory does not exist.")
+        if self.file_name is None:
+            self.warning("Can not determine file path.")
+            return None
+        return os.path.join(self.data_directory, self.file_name)
+
+    @property
+    def file_directory_path(self):
+        if self.data_directory is None:
+            self.warning("Data directory is not set.")
+            return None
+        if not os.path.exists(self.data_directory):
+            self.error("Data directory does not exist.")
+        if self.file_directory is None:
+            self.warning("Can not determine file directory.")
+            return None
+        return os.path.join(self.data_directory, self.file_directory)
+
     def info(self, *args, **kwargs):
         """Logging information."""
         # Could use logger in the future.
@@ -539,7 +563,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         return self
 
     def process_methods(self, hyper_data: dict):
-        """Process hyper-parameter for this dataset. That includes to set or execute methods of this class.
+        """Process methods for this dataset. That includes to set or execute methods of this class.
 
         Args:
             hyper_data (dict): Process hyper parameter for this dataset.
@@ -548,6 +572,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
             self
         """
         # The order here is important. So for the moment we explicitly check for methods in hyper.
+        methods_supported = ["set_range", "set_angle", "set_edge_indices_reverse", "normalize_edge_weights_sym"]
         if "set_range" in hyper_data:
             self.set_range(**hyper_data["set_range"])
         if "set_angle" in hyper_data:
@@ -556,9 +581,13 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
             self.set_edge_indices_reverse()
         if "normalize_edge_weights_sym" in hyper_data:
             self.normalize_edge_weights_sym()
+
+        for key, value in hyper_data.items():
+            if key not in methods_supported:
+                self.warning("Can not process the method: %s" % key)
         return self
 
-    def assert_property(self, property_list: list):
+    def assert_valid_attribute(self, property_list: list):
         """Check whether dataset has requested properties.
 
         Args:
@@ -572,8 +601,8 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
                 prop = x["name"]
             else:
                 prop = x
-            if not hasattr(self, prop):
-                raise ValueError("Dataset does not have information on %s" % prop)
+            assert hasattr(self, prop), "Dataset does not have property on %s" % prop
+            assert prop is not None, "Empty property of %s is `None` or not set." % prop
         return self
 
 

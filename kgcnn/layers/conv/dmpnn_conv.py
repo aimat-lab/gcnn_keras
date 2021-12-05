@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import Subtract
+from kgcnn.layers.keras import LazySubtract
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DMPNNGatherEdgesPairs')
@@ -60,7 +60,7 @@ class DMPNNPPoolingEdgesDirected(GraphBaseLayer):
         self.pool_edge_1 = PoolingLocalEdges(pooling_method="sum")
         self.gather_edges = GatherNodesOutgoing()
         self.gather_pairs = DMPNNGatherEdgesPairs()
-        self.subtract_layer = Subtract()
+        self.subtract_layer = LazySubtract()
 
     def build(self, input_shape):
         """Build layer."""

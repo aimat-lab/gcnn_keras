@@ -33,7 +33,7 @@ Models can be set up in a functional way. Example message passing from fundament
 
     import tensorflow.keras as ks
     from kgcnn.layers.gather import GatherNodes
-    from kgcnn.layers.keras import Dense, Concatenate  # ragged support
+    from kgcnn.layers.keras import Dense, LazyConcatenate  # ragged support
     from kgcnn.layers.pool.pooling import PoolingLocalMessages, PoolingNodes
 
     n = ks.layers.Input(shape=(None, 3), name='node_input', dtype="float32", ragged=True)
@@ -42,7 +42,7 @@ Models can be set up in a functional way. Example message passing from fundament
     n_in_out = GatherNodes()([n, ei])
     node_messages = Dense(10, activation='relu')(n_in_out)
     node_updates = PoolingLocalMessages()([n, node_messages, ei])
-    n_node_updates = Concatenate(axis=-1)([n, node_updates])
+    n_node_updates = LazyConcatenate(axis=-1)([n, node_updates])
     n_embedd = Dense(1)(n_node_updates)
     g_embedd = PoolingNodes()(n_embedd)
 

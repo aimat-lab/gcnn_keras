@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Multiply, Add
+from kgcnn.layers.keras import Dense, LazyMultiply, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import MLP
@@ -47,7 +47,7 @@ class ResidualLayer(GraphBaseLayer):
 
         self.dense_1 = Dense(**dense_args)
         self.dense_2 = Dense(**dense_args)
-        self.add_end = Add()
+        self.add_end = LazyAdd()
 
     def build(self, input_shape):
         """Build layer."""
@@ -154,10 +154,10 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
             self.layers_after_skip.append(
                 ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args))
 
-        self.lay_add1 = Add()
-        self.lay_add2 = Add()
-        self.lay_mult1 = Multiply()
-        self.lay_mult2 = Multiply()
+        self.lay_add1 = LazyAdd()
+        self.lay_add2 = LazyAdd()
+        self.lay_mult1 = LazyMultiply()
+        self.lay_mult2 = LazyMultiply()
 
         self.lay_gather = GatherNodesOutgoing()  # Are edges here
         self.lay_pool = PoolingLocalEdges(pooling_method=pooling_method)
@@ -277,7 +277,7 @@ class DimNetOutputBlock(GraphBaseLayer):
         self.up_projection = Dense(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.dense_mlp = MLP([out_emb_size] * num_dense, activation=activation, kernel_initializer=kernel_initializer,
                              use_bias=use_bias, **kernel_args)
-        self.dimnet_mult = Multiply(**self._kgcnn_info)
+        self.dimnet_mult = LazyMultiply(**self._kgcnn_info)
         self.pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.dense_final = Dense(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
                                  **kernel_args)

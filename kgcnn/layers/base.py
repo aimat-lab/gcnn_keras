@@ -61,6 +61,14 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        "output_tensor_type": self.output_tensor_type,
                        "is_directed": self.is_directed
                        })
+        # Also add to config info of layer to self
+        for key, value in self._add_layer_config_to_self.items():
+            if hasattr(self, key):
+                if getattr(self, key) is not None:
+                    layer_conf = getattr(self, key).get_config()
+                    for x in value:
+                        if x in layer_conf:
+                            config.update({x: layer_conf[x]})
         return config
 
     def _build_input_shape_check(self, input_shape, input_position):
@@ -114,7 +122,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             kwargs: Additional kwargs for fun.
 
         Returns:
-            tf.RaggedTensor: Output of fun.
+            tf.RaggedTensor: Output of fun only on the values tensor of the ragged input.
         """
         if isinstance(inputs, list):
             if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
@@ -132,43 +140,3 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         else:
             print("Layer %s fail call on ragged values, calling directly on Tensor " % self.name)
         return fun(inputs, *args, **kwargs)
-
-
-class KerasWrapperBase(GraphBaseLayer):
-    r"""Base layer for wrapping tf.keras.layers to support ragged tensors and to optionally call original layer
-    only on the values of :obj:`RaggedTensor`. If inputs is a list, then a lazy operation (e.g. add, concat)
-    is performed if :obj:`ragged_validate` is set to :obj:`False` on the values too.
-    """
-
-    def __init__(self, **kwargs):
-        r"""Initialize instance of :obj:`KerasWrapperBase`"""
-        super(KerasWrapperBase, self).__init__(**kwargs)
-        self._kgcnn_wrapper_layer = None
-        self._kgcnn_wrapper_args = None
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(KerasWrapperBase, self).build(input_shape)
-
-    def get_config(self):
-        """Make config from wrapped keras layer,"""
-        config = super(KerasWrapperBase, self).get_config()
-        # Only necessary if this instance has a keras layer internally as attribute.
-        if hasattr(self, "_kgcnn_wrapper_layer") and hasattr(self, "_kgcnn_wrapper_args"):
-            if self._kgcnn_wrapper_layer is not None:
-                layer_conf = self._kgcnn_wrapper_layer.get_config()
-                for x in self._kgcnn_wrapper_args:
-                    if x in layer_conf:
-                        config.update({x: layer_conf[x]})
-        return config
-
-    def call(self, inputs, **kwargs):
-        """Call on values of the ragged input or fall back to keras layer call.
-
-        Args:
-            inputs (tf.RaggedTensor, list): Ragged tensor of list of tensors to call wrapped layer on.
-
-        Returns:
-            tf.RaggedTensor: Output of keras layer.
-        """
-        return self.call_on_ragged_values(self._kgcnn_wrapper_layer, inputs, **kwargs)

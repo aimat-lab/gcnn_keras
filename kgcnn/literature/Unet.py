@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Dense, Activation, Add
+from kgcnn.layers.keras import Dense, Activation, LazyAdd
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
@@ -108,7 +108,7 @@ def make_model(inputs=None,
 
         n, ed, edi = ui_graph
         # skip connection
-        n = Add()([n, o_graph[0]])
+        n = LazyAdd()([n, o_graph[0]])
         # GCN
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
         eu = Dense(**hidden_dim)(eu)

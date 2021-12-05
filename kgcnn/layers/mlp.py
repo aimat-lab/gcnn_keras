@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from kgcnn.layers.keras import Dense, Activation, BatchNormalization
+from kgcnn.layers.keras import Dense, Activation
+from kgcnn.layers.norm import GraphBatchNormalization
 from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
 
@@ -31,7 +32,7 @@ class MLPBase(GraphBaseLayer):
         bias_constraint: Constraint function applied to the bias vector.
         axis: Integer, the axis that should be normalized (typically the features
             axis). For instance, after a `Conv2D` layer with
-            `data_format="channels_first"`, set `axis=1` in `BatchNormalization`.
+            `data_format="channels_first"`, set `axis=1` in `GraphBatchNormalization`.
         momentum: Momentum for the moving average.
         epsilon: Small float added to variance to avoid dividing by zero.
         center: If True, add offset of `beta` to normalized tensor. If False, `beta`
@@ -367,7 +368,7 @@ class BatchNormMLP(GraphBaseLayer):
         bias_constraint: Constraint function applied to the bias vector.
         axis: Integer, the axis that should be normalized (typically the features
             axis). For instance, after a `Conv2D` layer with
-            `data_format="channels_first"`, set `axis=1` in `BatchNormalization`.
+            `data_format="channels_first"`, set `axis=1` in `GraphBatchNormalization`.
         momentum: Momentum for the moving average.
         epsilon: Small float added to variance to avoid dividing by zero.
         center: If True, add offset of `beta` to normalized tensor. If False, `beta`
@@ -496,7 +497,7 @@ class BatchNormMLP(GraphBaseLayer):
             activity_regularizer=self.mlp_activity_regularizer[i],
         ) for i in range(len(self.mlp_units))]
 
-        self.mlp_batch_norm_list = [BatchNormalization(
+        self.mlp_batch_norm_list = [GraphBatchNormalization(
             axis=self.mlp_axis[i],
             momentum=self.mlp_momentum[i],
             epsilon=self.mlp_epsilon[i],
