@@ -35,7 +35,7 @@ def smile_to_mol(smile_list: list,
     if num_workers is None:
         num_workers = os.cpu_count()
 
-    def check_success_converted(a, b):
+    def check_is_correct_length(a, b):
         if len(a) != len(b):
             print("Mismatch in number of converted. That is %s vs. %s" % (len(a), len(b)))
             raise ValueError("Conversion was not successful")
@@ -48,7 +48,7 @@ def smile_to_mol(smile_list: list,
                                          make_conformers=make_conformers,
                                          optimize_conformer=optimize_conformer)
         # Check success
-        check_success_converted(smile_list, mol_list)
+        check_is_correct_length(smile_list, mol_list)
         return mol_list
 
     # External programs
@@ -76,5 +76,5 @@ def smile_to_mol(smile_list: list,
     os.remove(smile_file)
 
     # Check success
-    check_success_converted(smile_list, mol_list)
+    check_is_correct_length(smile_list, mol_list)
     return mol_list
