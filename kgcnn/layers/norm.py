@@ -35,7 +35,7 @@ class GraphLayerNormalization(GraphBaseLayer):
                                                         gamma_regularizer=gamma_regularizer,
                                                         beta_constraint=beta_constraint,
                                                         gamma_constraint=gamma_constraint, dtype="float32")
-        self._add_layer_config_to_self = {"_layer_norm": ["axis", "epsilon", "center", "scale", "beta_initializer",
+        self._add_layer_config_to_self = {"_layer_norm": ["epsilon", "center", "scale", "beta_initializer",
                                                           "gamma_initializer", "beta_regularizer", "gamma_regularizer",
                                                           "beta_constraint", "gamma_constraint"]}
 
@@ -54,8 +54,9 @@ class GraphLayerNormalization(GraphBaseLayer):
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
+        # Give positive axis to self
+        self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
-        self.axis = axis  # give positive axis to self
         self._layer_norm.axis = axis_values
         # Build keras layer with axis_values
         self._layer_norm.build(input_shape[1:])
@@ -111,7 +112,7 @@ class GraphBatchNormalization(GraphBaseLayer):
                                                         beta_constraint=beta_constraint,
                                                         gamma_constraint=gamma_constraint)
         self._add_layer_config_to_self = {
-            "_layer_norm": ["axis", "momentum", "epsilon", "scale", "center", "beta_initializer", "gamma_initializer",
+            "_layer_norm": ["momentum", "epsilon", "scale", "center", "beta_initializer", "gamma_initializer",
                             "moving_mean_initializer", "moving_variance_initializer"
                             "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]}
 
@@ -130,8 +131,9 @@ class GraphBatchNormalization(GraphBaseLayer):
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
+        # Give positive axis to self
+        self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
-        self.axis = axis  # give positive axis to self
         self._layer_norm.axis = axis_values
         # Build keras layer with axis_values
         self._layer_norm.build(input_shape[1:])
