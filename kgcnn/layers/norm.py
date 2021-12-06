@@ -35,6 +35,7 @@ class GraphLayerNormalization(GraphBaseLayer):
                                                         gamma_regularizer=gamma_regularizer,
                                                         beta_constraint=beta_constraint,
                                                         gamma_constraint=gamma_constraint, dtype="float32")
+        # We can add config from keras layer except the axis parameter.
         self._add_layer_config_to_self = {"_layer_norm": ["epsilon", "center", "scale", "beta_initializer",
                                                           "gamma_initializer", "beta_regularizer", "gamma_regularizer",
                                                           "beta_constraint", "gamma_constraint"]}
@@ -111,6 +112,7 @@ class GraphBatchNormalization(GraphBaseLayer):
                                                         gamma_regularizer=gamma_regularizer,
                                                         beta_constraint=beta_constraint,
                                                         gamma_constraint=gamma_constraint)
+        # We can add config from keras layer except the axis parameter.
         self._add_layer_config_to_self = {
             "_layer_norm": ["momentum", "epsilon", "scale", "center", "beta_initializer", "gamma_initializer",
                             "moving_mean_initializer", "moving_variance_initializer"
