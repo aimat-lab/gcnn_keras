@@ -305,7 +305,7 @@ class BalloonInterface:
         config = {"input_file": self.input_file, "output_format": self.output_format, "output_file": self.output_file}
         config.update(self._config_args)
         config.update(self._config_flags)
-        return {}
+        return config
 
     @classmethod
     def from_config(cls, config):
