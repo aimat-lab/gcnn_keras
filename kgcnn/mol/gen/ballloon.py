@@ -9,7 +9,7 @@ class BalloonInterface:
     Copyright (C) 2006-2021 Mikko J. Vainio and J. Santeri Puranen.
     Copyright (C) 2010 Visipoint Ltd. www.visipoint.fi.
 
-    Setup Balloon configuration. This is the help parameter option of balloon mapped to python.
+    Setup Balloon configuration. This is the help parameter option of balloon help output mapped to python.
     The parameters are named identical except of `input_file`, `output_file` and `output_format`.
 
     Args:
@@ -264,12 +264,35 @@ class BalloonInterface:
         }
 
     def run(self, input_file: str, output_file: str = None, output_format: str = None):
+        if input_file is None:
+            raise ValueError("Input file must be defined.")
         if output_file is None:
             output_file = self.output_file
         if output_format is None:
             output_format = self.output_format
 
         command_list = ["balloon"]
+        # Added flags. They have the same name as command line argument.
+        for key, value in self._config_flags.items():
+            if value is not None:
+                command_list.append("--"+key)
+        # Add args.
+        for key, value in self._config_flags.items():
+            if value is not None:
+                command_list.append("--"+key)
+                command_list.append(str(value))
+        # Output format
+        if output_format is not None:
+            command_list.append("--output-format")
+            command_list.append(str(output_format))
+
+        # Finally add input and output file
+        command_list.append("--input-file")
+        command_list.append(str(input_file))
+
+        if output_file is not None:
+            command_list.append("--output-file")
+            command_list.append(str(output_file))
 
         return_code = subprocess.run(command_list)
         # Check return code
