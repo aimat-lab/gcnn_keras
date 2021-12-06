@@ -49,8 +49,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
         return os.path.splitext(self.file_path)[0] + ".sdf"
 
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
-                            make_conformers: bool = True, optimize_conformer=True,
-                            conv_program="default", num_workers=None):
+                            make_conformers: bool = True, optimize_conformer: bool = True,
+                            conv_program: dict = None, num_workers: int = None):
         r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
 
         Args:
@@ -83,8 +83,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
                      add_hydrogen: bool = True, sanitize: bool = True,
-                     make_conformers: bool = True, optimize_conformer=True,
-                     conv_program="default", num_workers=None):
+                     make_conformers: bool = True, optimize_conformer: bool = True,
+                     conv_program: dict = None, num_workers: int = None):
         r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
         from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
         file name. The class requires RDKit.
@@ -98,7 +98,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             make_conformers (bool): Whether to make conformers. Default is True.
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
-            conv_program (str): Method to use for translating smiles. Default is "default".
+            conv_program (dict): External program for translating smiles. Default is None.
             num_workers (int): Parallel execution for translating smiles.
 
         Returns:

@@ -101,11 +101,14 @@ def smile_to_mol_parallel(smile_list: list,
         mol_list = list(result)
         return mol_list
 
+
+# # Former parallelization using multiprocessing
 # if __name__ == '__main__':
 #     # Input arguments from command line.
 #     import multiprocessing as mp
 #     import argparse
 #     from distutils import util
+#     from kgcnn.mol.io import read_smiles_file, write_mol_block_list_to_sdf
 #     parser = argparse.ArgumentParser(description='Translate smiles.')
 #     parser.add_argument("--file", required=True, help="Path to smile file")
 #     parser.add_argument("--nprocs", required=False, help="nprocs", default=1, type=int)

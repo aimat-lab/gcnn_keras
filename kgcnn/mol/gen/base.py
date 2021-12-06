@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 import uuid
 
 from kgcnn.mol.io import dummy_load_sdf_file, write_smiles_file
@@ -9,13 +8,13 @@ from kgcnn.mol.gen.default import smile_to_mol_parallel
 
 def smile_to_mol(smile_list: list,
                  base_path: str = None,
-                 conv_program: str = "default",
+                 conv_program: dict = None,
                  num_workers: int = None,
                  sanitize: bool = True,
                  add_hydrogen: bool = True,
                  make_conformers: bool = True,
                  optimize_conformer: bool = True):
-    """Workflow to make mol information, i.e. compute structure and conformation. With rdkit and openbabel only.
+    """Workflow to make mol information, i.e. compute structure and conformation.
 
     Args:
         smile_list (list): List of smiles.
@@ -40,7 +39,8 @@ def smile_to_mol(smile_list: list,
             print("Mismatch in number of converted. That is %s vs. %s" % (len(a), len(b)))
             raise ValueError("Conversion was not successful")
 
-    if conv_program == "default":
+    if conv_program is None:
+        # Default via rdkit and openbabel
         mol_list = smile_to_mol_parallel(smile_list=smile_list,
                                          num_workers=num_workers,
                                          sanitize=sanitize,
@@ -57,17 +57,9 @@ def smile_to_mol(smile_list: list,
     write_smiles_file(smile_file, smile_list)
 
     if conv_program == "balloon":
-        raise NotImplementedError("TODO.")
-        return_code = subprocess.run()
+        pass
     else:
         raise ValueError("Unknown program for conversion of smiles %s" % conv_program)
-
-    # Check return code
-    if int(return_code.returncode) != 0:
-        raise ValueError("Batch process returned with error:", return_code)
-    else:
-        # print("Batch process returned:", return_code)
-        pass
 
     mol_file = os.path.splitext(smile_file)[0] + ".sdf"
     mol_list = dummy_load_sdf_file(mol_file)
