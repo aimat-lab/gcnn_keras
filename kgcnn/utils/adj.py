@@ -20,10 +20,11 @@ def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
             adj_matrix = adj_matrix + np.identity(adj_matrix.shape[0])
         rowsum = np.sum(adj_matrix, axis=-1)
         colsum = np.sum(adj_matrix, axis=0)
-        d_ii = np.power(rowsum, -0.5).flatten()
-        d_jj = np.power(colsum, -0.5).flatten()
-        d_ii[np.isinf(d_ii)] = 0.
-        d_jj[np.isinf(d_jj)] = 0.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            d_ii = np.power(rowsum, -0.5).flatten()
+            d_jj = np.power(colsum, -0.5).flatten()
+            d_ii = np.nan_to_num(d_ii, nan=0.0, posinf=0.0, neginf=0.0)
+            d_jj = np.nan_to_num(d_jj, nan=0.0, posinf=0.0, neginf=0.0)
         di = np.zeros((adj_matrix.shape[0], adj_matrix.shape[0]), dtype=adj_matrix.dtype)
         dj = np.zeros((adj_matrix.shape[1], adj_matrix.shape[1]), dtype=adj_matrix.dtype)
         di[np.arange(adj_matrix.shape[0]), np.arange(adj_matrix.shape[0])] = d_ii
