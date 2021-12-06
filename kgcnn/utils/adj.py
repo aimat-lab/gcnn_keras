@@ -35,10 +35,11 @@ def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
             adj = adj + sp.eye(adj.shape[0])
         colsum = np.array(adj.sum(0))
         rowsum = np.array(adj.sum(1))
-        d_ii = np.power(rowsum, -0.5).flatten()
-        d_jj = np.power(colsum, -0.5).flatten()
-        d_ii[np.isinf(d_ii)] = 0.
-        d_jj[np.isinf(d_jj)] = 0.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            d_ii = np.power(rowsum, -0.5).flatten()
+            d_jj = np.power(colsum, -0.5).flatten()
+            d_ii = np.nan_to_num(d_ii, nan=0.0, posinf=0.0, neginf=0.0)
+            d_jj = np.nan_to_num(d_jj, nan=0.0, posinf=0.0, neginf=0.0)
         di = sp.diags(d_ii, format='coo')
         dj = sp.diags(d_jj, format='coo')
         return di.dot(adj).dot(dj).tocoo()
@@ -64,10 +65,11 @@ def rescale_edge_weights_degree_sym(edge_indices, edge_weights):
     d_col = np.zeros(len(edge_weights), dtype=edge_weights.dtype)
     d_row[row_val] = row_cnt
     d_col[col_val] = col_cnt
-    d_ii = np.power(d_row, -0.5).flatten()
-    d_jj = np.power(d_col, -0.5).flatten()
-    d_ii[np.isinf(d_ii)] = 0.
-    d_jj[np.isinf(d_jj)] = 0.
+    with np.errstate(divide='ignore', invalid='ignore'):
+        d_ii = np.power(d_row, -0.5).flatten()
+        d_jj = np.power(d_col, -0.5).flatten()
+        d_ii = np.nan_to_num(d_ii, nan=0.0, posinf=0.0, neginf=0.0)
+        d_jj = np.nan_to_num(d_jj, nan=0.0, posinf=0.0, neginf=0.0)
     new_weights = np.expand_dims(d_ii[edge_indices[:, 0]], axis=-1) * edge_weights * np.expand_dims(
         d_jj[edge_indices[:, 1]], axis=-1)
     return new_weights
