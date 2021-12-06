@@ -33,8 +33,7 @@ class CastRaggedToDisjointSparseAdjacency(GraphBaseLayer):
         Returns:
             tf.SparseTensor: Sparse disjoint matrix of shape (batch*[N],batch*[N])
         """
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         nod, node_len = inputs[0].values, inputs[0].row_lengths()
         edge, _ = inputs[1].values, inputs[1].row_lengths()
         edge_index, edge_len = inputs[2].values, inputs[2].row_lengths()
@@ -105,8 +104,7 @@ class PoolingAdjacencyMatmul(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled node features of shape (batch, [N], F)
         """
-        assert isinstance(inputs[0], tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert inputs[0].ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs[0])
         adj = inputs[1]
         node, node_part = inputs[0].values, inputs[0].row_splits
         out = tf.sparse.sparse_dense_matmul(adj, node)

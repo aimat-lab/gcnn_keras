@@ -47,8 +47,7 @@ class TrafoEdgeNetMessages(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Messages in matrix for multiplication of shape (batch, [M], F, F)
         """
-        assert isinstance(inputs, tf.RaggedTensor), "%s requires `RaggedTensor` input." % self.name
-        assert inputs.ragged_rank == 1, "%s must have ragged_rank=1 input." % self.name
+        self._assert_ragged_input(inputs)
         up_scale = self.lay_dense(inputs, **kwargs)
         dens_trafo, trafo_part = up_scale.values, up_scale.row_splits
         dens_m = tf.reshape(dens_trafo, (ks.backend.shape(dens_trafo)[0], self._units_out, self._units_in))
@@ -95,8 +94,7 @@ class MatMulMessages(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Transformation of messages by matrix multiplication of shape (batch, [M], F')
         """
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "%s requires `RaggedTensor` input." % self.name
-        assert all([x.ragged_rank == 1 for x in inputs]), "%s must have ragged_rank=1 input." % self.name
+        self._assert_ragged_input(inputs)
         dens_trafo, trafo_part = inputs[0].values, inputs[0].row_splits
         dens_e, epart = inputs[1].values, inputs[1].row_splits
         out = tf.keras.backend.batch_dot(dens_trafo, dens_e)

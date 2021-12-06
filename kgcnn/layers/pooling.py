@@ -47,8 +47,7 @@ class PoolingLocalEdges(GraphBaseLayer):
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
         # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -137,9 +136,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -212,8 +209,7 @@ class PoolingEmbedding(GraphBaseLayer):
             tf.Tensor: Pooled node features of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         # We cast to values here
         nod, batchi = inputs.values, inputs.value_rowids()
 
@@ -267,8 +263,7 @@ class PoolingWeightedEmbedding(GraphBaseLayer):
             tf.Tensor: Pooled node features of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         # We cast to values here
         nod, batchi = inputs[0].values, inputs[0].value_rowids()
         weights, _ = inputs[1].values, inputs[1].value_rowids()
@@ -412,10 +407,8 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
-        # We cast to values here
+        self._assert_ragged_input(inputs)
+
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
         edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
@@ -510,8 +503,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
         # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         # We cast to values here
         nod, node_part = inputs[0].values, inputs[0].row_lengths()
         edge = inputs[1].values
@@ -587,8 +579,7 @@ class PoolingEmbeddingAttention(GraphBaseLayer):
             tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         # We cast to values here
         nod, batchi, target_len = inputs[0].values, inputs[0].value_rowids(), inputs[0].row_lengths()
         ats = inputs[1].values

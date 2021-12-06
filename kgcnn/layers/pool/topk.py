@@ -70,6 +70,7 @@ class PoolingTopK(GraphBaseLayer):
                 - map_nodes (tf.RaggedTensor): Index map between original and pooled nodes
                 - map_edges (tf.RaggedTensor): Index map between original and pooled edges
         """
+        self._assert_ragged_input(inputs)
         dyn_inputs = inputs
         # We cast to values here
         node, nodelen = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
@@ -253,6 +254,7 @@ class UnPoolingTopK(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Un-pooled edge feature list
                 - edge_indices (tf.RaggedTensor): Un-pooled edge index
         """
+        self._assert_ragged_input(inputs)
         dyn_inputs = inputs
         # We cast to values here
         node_old, nrowlength = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
@@ -330,6 +332,7 @@ class AdjacencyPower(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Adjacency entries of shape  (batch, [M], 1)
                 - edge_indices (tf.RaggedTensor): Flatten index list of shape (batch, [M], 2)
         """
+        self._assert_ragged_input(inputs)
         dyn_inputs = inputs
 
         nod, node_len = dyn_inputs[0].values, dyn_inputs[0].row_lengths()

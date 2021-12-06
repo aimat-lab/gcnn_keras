@@ -50,7 +50,7 @@ class ChangeTensorType(GraphBaseLayer):
         Returns:
             tensor: Changed tensor type.
         """
-        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
+        self._assert_ragged_input(inputs)
 
         if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
             return inputs.to_tensor()
@@ -131,8 +131,7 @@ class ChangeIndexing(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Corrected edge indices of shape (batch, [N], 2).
         """
-        assert isinstance(inputs, tf.RaggedTensor), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert inputs.ragged_rank == 1, "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         nod, edge_index = inputs
         indexlist = partition_row_indexing(edge_index.values,
                                            nod.row_splits,

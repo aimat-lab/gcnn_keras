@@ -52,7 +52,7 @@ def smile_to_mol(smile_list: list,
         return mol_list
 
     # External programs
-    # Write out temp file.
+    # Write out temporary smiles file.
     smile_file = os.path.join(base_path, str(uuid.uuid4()) + ".smile")
     write_smiles_file(smile_file, smile_list)
 

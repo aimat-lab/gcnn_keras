@@ -430,8 +430,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         edge, edge_part = inputs[0].values, inputs[0].row_splits
         angles, angle_part = inputs[1].values, inputs[1].row_splits
 

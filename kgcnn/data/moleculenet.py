@@ -28,7 +28,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose=1):
+                 verbose: int = 1):
         r"""Initialize a `MoleculeNetDataset` with information of the dataset location on disk.
 
         Args:
@@ -43,8 +43,14 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.data_keys = None
         self.valid_molecule_id = None
 
+    @property
+    def file_path_mol(self):
+        """Try to determine a file path for the mol information to store."""
+        return os.path.splitext(self.file_path)[0] + ".sdf"
+
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
-                            make_conformers: bool = True):
+                            make_conformers: bool = True, optimize_conformer=True,
+                            conv_program="default", num_workers=None):
         r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
 
         Args:
@@ -52,28 +58,33 @@ class MoleculeNetDataset(MemoryGraphDataset):
             add_hydrogen (bool): Whether to add hydrogen after smile translation.
             sanitize (bool): Whether to sanitize molecule.
             make_conformers (bool): Try to generate 3D coordinates
+            optimize_conformer (bool): Whether to optimize conformer via force field.
+                Only possible with :obj:`make_conformers`. Default is True.
+            conv_program (str): Method to use for translating smiles. Default is "default".
+            num_workers (int): Parallel execution for translating smiles.
 
         Returns:
             list: A list of mol-block information as sting.
         """
-        mol_filename = self._get_mol_filename()
         if len(smiles) == 0:
             self.error("Can not translate smiles, received empty list for %s." % self.dataset_name)
 
-        self.info("Generating molecules and store %s to disk..." % mol_filename)
+        self.info("Generating molecules and store %s to disk..." % self.file_path_mol)
         molecule_list = []
-        max_number = len(smiles)
         for i in range(0, len(smiles), 1000):
             mg = smile_to_mol(smiles[i:i+1000], self.data_directory,
-                              add_hydrogen=add_hydrogen, make_conformers=make_conformers, sanitize=sanitize)
-            converted_num = len(mg)
+                              add_hydrogen=add_hydrogen, sanitize=sanitize,
+                              make_conformers=make_conformers, optimize_conformer=optimize_conformer,
+                              conv_program=conv_program, num_workers=num_workers)
             molecule_list = molecule_list + mg
-            self.info(" ... converted molecules {0} from {1}".format(i+converted_num, max_number))
+            self.info(" ... converted molecules {0} from {1}".format(i+len(mg), len(smiles)))
 
         return molecule_list
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
-                     make_conformers: bool = True, add_hydrogen: bool = True):
+                     add_hydrogen: bool = True, sanitize: bool = True,
+                     make_conformers: bool = True, optimize_conformer=True,
+                     conv_program="default", num_workers=None):
         r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
         from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
         file name. The class requires RDKit.
@@ -82,25 +93,30 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Args:
             overwrite (bool): Overwrite existing database mol-json file. Default is False.
             smiles_column_name (str): Column name where smiles are given in csv-file. Default is "smiles".
-            make_conformers (bool): Whether to make conformers. Default is True.
             add_hydrogen (bool): Whether to add H after smile translation. Default is True.
+            sanitize (bool): Whether to sanitize molecule.
+            make_conformers (bool): Whether to make conformers. Default is True.
+            optimize_conformer (bool): Whether to optimize conformer via force field.
+                Only possible with :obj:`make_conformers`. Default is True.
+            conv_program (str): Method to use for translating smiles. Default is "default".
+            num_workers (int): Parallel execution for translating smiles.
 
         Returns:
             self
         """
-        mol_filename = self._get_mol_filename()
-
-        if os.path.exists(os.path.join(self.data_directory, mol_filename)) and not overwrite:
-            self.info("Found SDF %s of pre-computed structures." % mol_filename)
+        if os.path.exists(self.file_path_mol) and not overwrite:
+            self.info("Found SDF %s of pre-computed structures." % self.file_path_mol)
             return self
 
         self.read_in_table_file()
         smiles = self.data_frame[smiles_column_name].values
 
-        mb = self._smiles_to_mol_list(smiles, add_hydrogen=add_hydrogen, sanitize=True,
-                                  make_conformers=make_conformers)
+        mb = self._smiles_to_mol_list(smiles,
+                                      add_hydrogen=add_hydrogen, sanitize=sanitize,
+                                      make_conformers=make_conformers, optimize_conformer=optimize_conformer,
+                                      conv_program=conv_program, num_workers=num_workers)
 
-        write_mol_block_list_to_sdf(mb, os.path.join(self.data_directory, mol_filename))
+        write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
     def read_in_memory(self, has_conformers: bool = True, label_column_name: str = None,
@@ -129,13 +145,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.data_keys = data.columns
         graph_labels_all = pandas_data_frame_columns_to_numpy(data, label_column_name)
 
-        mol_filename = self._get_mol_filename()
-        mol_path = os.path.join(self.data_directory, mol_filename)
-        if not os.path.exists(mol_path):
+        if not os.path.exists(self.file_path_mol):
             raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
 
-        self.info("Read mol-blocks from %s of pre-computed structures..." % mol_filename)
-        mols = dummy_load_sdf_file(mol_path)
+        self.info("Read mol-blocks from %s of pre-computed structures..." % self.file_path_mol)
+        mols = dummy_load_sdf_file(self.file_path_mol)
 
         # Main loop to read molecules from mol-block
         valid_molecule_id = []
@@ -214,14 +228,12 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        mol_filename = self._get_mol_filename()
-        mol_path = os.path.join(self.data_directory, mol_filename)
-        if not os.path.exists(mol_path):
+        if not os.path.exists(self.file_path_mol):
             raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
         self.info("Making attributes...")
 
-        mols = dummy_load_sdf_file(mol_path)
+        mols = dummy_load_sdf_file(self.file_path_mol)
 
         # Choose default values here:
         if nodes is None:
@@ -338,7 +350,3 @@ class MoleculeNetDataset(MemoryGraphDataset):
             return encoder_identifier
         else:
             raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
-
-    def _get_mol_filename(self):
-        """Try to determine a file name for the mol information to store."""
-        return os.path.splitext(self.file_name)[0] + ".sdf"

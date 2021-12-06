@@ -57,7 +57,7 @@ class MessagePassingBase(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Aggregated edge embeddings per node of shape (batch, [N], F)
         """
-        return self.lay_pool_default(inputs)
+        return self.lay_pool_default(inputs, **kwargs)
 
     def update_nodes(self, inputs, **kwargs):
         r"""Defines the update function, i.e. a method that updates the node embeddings from aggregated messages.

@@ -44,8 +44,7 @@ class HasteGRUUpdate(GraphBaseLayer):
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         n, npart = inputs[0].values, inputs[0].row_splits
         eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)
@@ -100,8 +99,7 @@ class HasteLayerNormGRUUpdate(GraphBaseLayer):
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        assert all([isinstance(x, tf.RaggedTensor) for x in inputs]), "ERROR:kgcnn: Requires `RaggedTensor` input."
-        assert all([x.ragged_rank == 1 for x in inputs]), "ERROR:kgcnn: Must have ragged_rank=1 input."
+        self._assert_ragged_input(inputs)
         n, npart = inputs[0].values, inputs[0].row_splits
         eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)
