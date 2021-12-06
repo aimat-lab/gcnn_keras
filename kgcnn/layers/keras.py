@@ -61,6 +61,7 @@ class Activation(GraphBaseLayer):
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Activation layer."""
         return self.call_on_ragged_values(self._layer_act, inputs, **kwargs)
 
 
@@ -73,6 +74,7 @@ class LazyAdd(GraphBaseLayer):
         self._layer_add = ks.layers.Add()
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Add layer."""
         return self.call_on_ragged_values(self._layer_add, inputs, **kwargs)
 
 
@@ -85,6 +87,7 @@ class LazySubtract(GraphBaseLayer):
         self._layer_subtract = ks.layers.Subtract()
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Average layer."""
         return self.call_on_ragged_values(self._layer_subtract, inputs, **kwargs)
 
 
@@ -97,6 +100,7 @@ class LazyAverage(GraphBaseLayer):
         self._layer_avg = ks.layers.Average()
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Average layer."""
         return self.call_on_ragged_values(self._layer_avg, inputs, **kwargs)
 
 
@@ -109,6 +113,7 @@ class LazyMultiply(GraphBaseLayer):
         self._layer_mult = ks.layers.Multiply()
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Multiply layer."""
         return self.call_on_ragged_values(self._layer_mult, inputs, **kwargs)
 
 
@@ -126,6 +131,7 @@ class Dropout(GraphBaseLayer):
         self._add_layer_config_to_self = {"_layer_drop": ["rate", "noise_shape", "seed"]}
 
     def call(self, inputs, **kwargs):
+        """Forward pass corresponding to keras Dropout layer."""
         return self.call_on_ragged_values(self._layer_drop, inputs, **kwargs)
 
 

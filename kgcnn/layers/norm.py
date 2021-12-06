@@ -55,7 +55,7 @@ class GraphLayerNormalization(GraphBaseLayer):
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
-        # Give positive axis to self
+        # Give positive axis to self, after built the axis is always positive
         self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
         self._layer_norm.axis = axis_values
@@ -133,7 +133,7 @@ class GraphBatchNormalization(GraphBaseLayer):
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
-        # Give positive axis to self
+        # Give positive axis to self, after built the axis is always positive
         self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
         self._layer_norm.axis = axis_values
