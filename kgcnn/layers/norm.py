@@ -44,9 +44,13 @@ class GraphLayerNormalization(GraphBaseLayer):
         n_dims = len(input_shape)
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
+            if axis < 1:
+                raise ValueError("The (positive) axis must be >= 1.")
             axis_values = axis - 1
         elif isinstance(self.axis, list):
             axis = [get_positive_axis(x, n_dims) for x in self.axis]
+            if any([x < 1 for x in axis]):
+                raise ValueError("All (positive) axis must be >= 1.")
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
@@ -116,9 +120,13 @@ class GraphBatchNormalization(GraphBaseLayer):
         n_dims = len(input_shape)
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
+            if axis < 1:
+                raise ValueError("The (positive) axis must be >= 1.")
             axis_values = axis - 1
         elif isinstance(self.axis, list):
             axis = [get_positive_axis(x, n_dims) for x in self.axis]
+            if any([x < 1 for x in axis]):
+                raise ValueError("All (positive) axis must be >= 1.")
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
