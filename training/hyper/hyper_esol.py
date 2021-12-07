@@ -62,7 +62,8 @@ hyper = {
             "output_activation": "linear",
             "depth": 5,
             "dropout": 0.05,
-            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"]}
+            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"],
+                         "use_normalization": True, "normalization_technique": "batch"}
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
