@@ -10,7 +10,7 @@ from kgcnn.mol.gen.ballloon import BalloonInterface
 
 def smile_to_mol(smile_list: list,
                  base_path: str = None,
-                 conv_program: dict = None,
+                 external_program: dict = None,
                  num_workers: int = None,
                  sanitize: bool = True,
                  add_hydrogen: bool = True,
@@ -21,7 +21,7 @@ def smile_to_mol(smile_list: list,
     Args:
         smile_list (list): List of smiles.
         base_path: None
-        conv_program: "default"
+        external_program: "default"
         num_workers: None
         sanitize: True
         add_hydrogen: True
@@ -41,7 +41,7 @@ def smile_to_mol(smile_list: list,
             print("Mismatch in number of converted. That is %s vs. %s" % (len(a), len(b)))
             raise ValueError("Conversion was not successful")
 
-    if conv_program is None:
+    if external_program is None:
         # Default via rdkit and openbabel
         mol_list = smile_to_mol_parallel(smile_list=smile_list,
                                          num_workers=num_workers,
@@ -60,11 +60,11 @@ def smile_to_mol(smile_list: list,
 
     write_smiles_file(smile_file, smile_list)
 
-    if conv_program["class_name"] == "balloon":
-        ext_program = BalloonInterface(**conv_program["config"])
+    if external_program["class_name"] == "balloon":
+        ext_program = BalloonInterface(**external_program["config"])
         ext_program.run(input_file=smile_file, output_file=mol_file, output_format="sdf")
     else:
-        raise ValueError("Unknown program for conversion of smiles %s" % conv_program)
+        raise ValueError("Unknown program for conversion of smiles %s" % external_program)
 
     mol_list = dummy_load_sdf_file(mol_file)
     # Clean up

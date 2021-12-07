@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding, LazyAdd
+from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyAdd
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower

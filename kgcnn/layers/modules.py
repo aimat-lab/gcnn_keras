@@ -61,7 +61,7 @@ class ActivationEmbedding(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass corresponding to keras Activation layer."""
-        return self.call_on_ragged_values(self._layer_act, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_act, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
@@ -74,7 +74,7 @@ class LazyAdd(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass corresponding to keras Add layer."""
-        return self.call_on_ragged_values(self._layer_add, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_add, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazySubtract')
@@ -86,8 +86,8 @@ class LazySubtract(GraphBaseLayer):
         self._layer_subtract = ks.layers.Subtract()
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Average layer."""
-        return self.call_on_ragged_values(self._layer_subtract, inputs, **kwargs)
+        """Forward pass corresponding layer."""
+        return self.call_on_values_tensor_of_ragged(self._layer_subtract, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyAverage')
@@ -100,7 +100,7 @@ class LazyAverage(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass corresponding to keras Average layer."""
-        return self.call_on_ragged_values(self._layer_avg, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_avg, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyMultiply')
@@ -113,7 +113,7 @@ class LazyMultiply(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass corresponding to keras Multiply layer."""
-        return self.call_on_ragged_values(self._layer_mult, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_mult, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DropoutEmbedding')
@@ -131,7 +131,7 @@ class DropoutEmbedding(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass corresponding to keras Dropout layer."""
-        return self.call_on_ragged_values(self._layer_drop, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_drop, inputs, **kwargs)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyConcatenate')
@@ -172,18 +172,16 @@ class ExpandDims(GraphBaseLayer):
         super(ExpandDims, self).__init__(**kwargs)
         self.axis = axis
 
+    def build(self, input_shape):
+        # If rank is not defined can't call on values if axis does not happen to be positive.
+        if len(input_shape) == 0:
+            return
+        # The possible target axis can be one rank larger to increase rank with expand_dims.
+        self.axis = get_positive_axis(self.axis, len(input_shape) + 1)
+
     def call(self, inputs, **kwargs):
         """Forward pass wrapping tf.keras layer."""
-        if isinstance(inputs, tf.RaggedTensor):
-            axis = get_positive_axis(self.axis, inputs.shape.rank + 1)
-            if axis > 1 and inputs.ragged_rank == 1:
-                value_tensor = inputs.values  # will be Tensor
-                out_tensor = tf.expand_dims(value_tensor, axis=axis - 1)
-                return tf.RaggedTensor.from_row_splits(out_tensor, inputs.row_splits, validate=self.ragged_validate)
-            else:
-                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
-        # Try normal operation
-        return tf.expand_dims(inputs, axis=self.axis)
+        return self.call_on_values_tensor_of_ragged(tf.expand_dims, inputs, axis=self.axis)
 
     def get_config(self):
         config = super(GraphBaseLayer, self).get_config()
@@ -212,4 +210,4 @@ class ZerosLike(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Zero-like tensor of input.
         """
-        return self.call_on_ragged_values(tf.zeros_like, inputs)
+        return self.call_on_values_tensor_of_ragged(tf.zeros_like, inputs)

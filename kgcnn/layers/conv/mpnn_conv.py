@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoEdgeNetMessages')

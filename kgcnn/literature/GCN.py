@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
-from kgcnn.layers.keras import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding

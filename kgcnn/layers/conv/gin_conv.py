@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import LazyAdd
+from kgcnn.layers.modules import LazyAdd
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GIN')

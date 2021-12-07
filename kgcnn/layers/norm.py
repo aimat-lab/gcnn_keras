@@ -42,6 +42,7 @@ class GraphLayerNormalization(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
+        super(GraphLayerNormalization, self).build(input_shape)
         n_dims = len(input_shape)
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
@@ -72,7 +73,7 @@ class GraphLayerNormalization(GraphBaseLayer):
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
         self._assert_ragged_input(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
-        return self.call_on_ragged_values(self._layer_norm, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
         config = super(GraphLayerNormalization, self).get_config()
@@ -120,6 +121,7 @@ class GraphBatchNormalization(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
+        super(GraphBatchNormalization, self).build(input_shape)
         n_dims = len(input_shape)
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
@@ -150,7 +152,7 @@ class GraphBatchNormalization(GraphBaseLayer):
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
         self._assert_ragged_input(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
-        return self.call_on_ragged_values(self._layer_norm, inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
         config = super(GraphBatchNormalization, self).get_config()

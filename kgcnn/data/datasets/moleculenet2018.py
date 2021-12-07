@@ -36,27 +36,26 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "PCBA": {"make_conformers": False, "add_hydrogen": False},
         "MUV": {"make_conformers": True, "add_hydrogen": True},
         "HIV": {"make_conformers": True, "add_hydrogen": True},
-        "BACE": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "mol"},
-        "BBBP": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
-        "Tox21": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
-        "ToxCast": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
-        "SIDER": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
+        "BACE": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "mol"},
+        "BBBP": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
+        "Tox21": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
+        "ToxCast": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
+        "SIDER": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
         "ClinTox": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"}
     }
     datasets_read_in_memory_info = {
-        "ESOL": {"add_hydrogen": False, "has_conformers": True,
-                 "label_column_name": "measured log solubility in mols per litre"},
-        "FreeSolv": {"has_conformers": True, "add_hydrogen": False, "label_column_name": "expt"},
+        "ESOL": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "measured log solubility in mols per litre"},
+        "FreeSolv": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "expt"},
         "Lipop": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "exp"},
-        "PCBA": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 128)},
-        "MUV": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 17)},
-        "HIV": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "HIV_active"},
-        "BACE": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "Class"},
-        "BBBP": {"has_conformers": False, "add_hydrogen": False, "label_column_name": "p_np"},
-        "Tox21": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(0, 12)},
-        "ToxCast": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 618)},
-        "SIDER": {"has_conformers": False, "add_hydrogen": False, "label_column_name": slice(1, 28)},
-        "ClinTox": {"has_conformers": False, "add_hydrogen": False, "label_column_name": [1, 2]}
+        "PCBA": {"add_hydrogen": False, "has_conformers": False,  "label_column_name": slice(0, 128)},
+        "MUV": {"add_hydrogen": False, "has_conformers": True,  "label_column_name": slice(0, 17)},
+        "HIV": {"add_hydrogen": False,"has_conformers": True, "label_column_name": "HIV_active"},
+        "BACE": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "Class"},
+        "BBBP": { "add_hydrogen": False, "has_conformers": True, "label_column_name": "p_np"},
+        "Tox21": {"add_hydrogen": False, "has_conformers": True, "label_column_name": slice(0, 12)},
+        "ToxCast": {"add_hydrogen": False, "has_conformers": True, "label_column_name": slice(1, 618)},
+        "SIDER": {"add_hydrogen": False, "has_conformers": True, "label_column_name": slice(1, 28)},
+        "ClinTox": {"add_hydrogen": False, "has_conformers": True,  "label_column_name": [1, 2]}
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
@@ -96,5 +95,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
 
-data = MoleculeNetDataset2018("HIV", reload=False).set_attributes()
+# data = MoleculeNetDataset2018("SIDER", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

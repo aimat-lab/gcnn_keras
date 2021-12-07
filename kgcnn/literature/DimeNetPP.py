@@ -5,7 +5,7 @@ from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutpu
     SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
-from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate, LazyAdd, LazySubtract
+from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, LazyAdd, LazySubtract
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.mlp import MLP

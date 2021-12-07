@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingWeightedLocalEdges
-from kgcnn.layers.keras import ActivationEmbedding, DenseEmbedding
+from kgcnn.layers.modules import ActivationEmbedding, DenseEmbedding
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')

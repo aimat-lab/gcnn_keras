@@ -96,7 +96,7 @@ Models can be set up in a functional way. Example message passing from fundament
 ```python
 import tensorflow.keras as ks
 from kgcnn.layers.gather import GatherNodes
-from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate  # ragged support
+from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate  # ragged support
 from kgcnn.layers.pooling import PoolingLocalMessages, PoolingNodes
 
 n = ks.layers.Input(shape=(None, 3), name='node_input', dtype="float32", ragged=True)
@@ -116,22 +116,22 @@ or via sub-classing of the message passing base layer. Where only `message_funct
 
 ```python
 from kgcnn.layers.conv.message import MessagePassingBase
-from kgcnn.layers.keras import DenseEmbedding, LazyAdd
+from kgcnn.layers.modules import DenseEmbedding, LazyAdd
 
 
 def MyMessageNN(MessagePassingBase):
-    def __init__(self, units, **kwargs):
-        super(MyMessageNN, self).__init__(**kwargs)
-        self.dense = DenseEmbedding(units)
-        self.add = LazyAdd(axis=-1)
+  def __init__(self, units, **kwargs):
+    super(MyMessageNN, self).__init__(**kwargs)
+    self.dense = DenseEmbedding(units)
+    self.add = LazyAdd(axis=-1)
 
-    def message_function(self, inputs, **kwargs):
-        n_in, n_out, edges = inputs
-        return self.dense(n_out)
+  def message_function(self, inputs, **kwargs):
+    n_in, n_out, edges = inputs
+    return self.dense(n_out)
 
-    def update_nodes(self, inputs, **kwargs):
-        nodes, nodes_update = inputs
-        return self.add([nodes, nodes_update])
+  def update_nodes(self, inputs, **kwargs):
+    nodes, nodes_update = inputs
+    return self.add([nodes, nodes_update])
 ```
 
 <a name="literature"></a>

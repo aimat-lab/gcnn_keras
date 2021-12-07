@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP
-from kgcnn.layers.keras import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm

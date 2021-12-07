@@ -6,7 +6,7 @@ except ModuleNotFoundError:
     import haste_tf as haste
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding, LazyConcatenate
+from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyConcatenate
 from kgcnn.layers.gather import GatherState
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.conv.attention import PoolingNodesAttention

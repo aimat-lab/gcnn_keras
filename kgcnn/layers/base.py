@@ -107,36 +107,55 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 assert inputs.ragged_rank == ragged_rank, "%s must have input with ragged_rank=%s." % (
                     self.name, ragged_rank)
 
-    def call_on_ragged_values(self, fun, inputs, *args, **kwargs):
-        r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`,
-        if :obj:`inputs` is a ragged tensors with ragged rank of one, or a list of ragged tensors. The fallback
-        is to call fun directly on inputs.
+    def call_on_values_tensor_of_ragged(self, fun, inputs, **kwargs):
+        r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`.
+        For ragged rank of one, the values is a tf.Tensor.
+        Function :obj:`inputs` must be a ragged tensors with ragged rank of one, or a list of ragged tensors.
+        The fallback is to call :obj:`fun` directly on inputs.
         For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`, which means it is not
-        checked if splits are equal. For the output is always assumed that the ragged partition does not change in
-        :obj:`fun`.
+        checked if splits are equal.
+        For the output of :obj:`fun` it is always assumed that the ragged partition does not change in :obj:`fun`.
+        If `axis` is found in kwargs, the axis argument of adapted for the values tensor if possible, otherwise
+        the tensor is passed as fallback to :obj:`fun` directly.
 
         Args:
             fun (callable): Callable function that accepts inputs and kwargs.
             inputs (tf.RaggedTensor, list): Tensor input or list of tensors.
-            args: Additional args for fun.
             kwargs: Additional kwargs for fun.
 
         Returns:
             tf.RaggedTensor: Output of fun only on the values tensor of the ragged input.
         """
-        if isinstance(inputs, list):
+        if "axis" in kwargs:
+            axis = kwargs["axis"]
+            axis_values = None
+            kwargs_values = None
+            if isinstance(axis, int):
+                if axis > 1:
+                    axis_values = axis - 1
+            elif isinstance(axis, (list, tuple)):
+                if all([x > 1 for x in axis]):
+                    axis_values = [x - 1 for x in axis]
+            if axis_values is not None:
+                kwargs_values = {key: value for key, value in kwargs.items()}
+                kwargs_values.pop("axis")
+                kwargs_values.update({"axis": axis_values})
+        else:
+            kwargs_values = {key: value for key, value in kwargs.items()}
+
+        if isinstance(inputs, list) and kwargs_values is not None:
             if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
                 if all([x.ragged_rank == 1 for x in inputs]) and not self.ragged_validate:
-                    out = fun([x.values for x in inputs], *args, **kwargs)
+                    out = fun([x.values for x in inputs], **kwargs_values)
                     if isinstance(out, list):
                         return [tf.RaggedTensor.from_row_splits(x, inputs[i].row_splits, validate=self.ragged_validate)
                                 for i, x in enumerate(out)]
                     else:
                         return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-        elif isinstance(inputs, tf.RaggedTensor):
+        elif isinstance(inputs, tf.RaggedTensor) and kwargs_values is not None:
             if inputs.ragged_rank == 1:
-                return tf.RaggedTensor.from_row_splits(fun(inputs.values, *args, **kwargs),
+                return tf.RaggedTensor.from_row_splits(fun(inputs.values, **kwargs_values),
                                                        inputs.row_splits, validate=self.ragged_validate)
-        else:
-            print("Layer %s fail call on ragged values, calling directly on Tensor " % self.name)
-        return fun(inputs, *args, **kwargs)
+
+        print("WARNING: Layer %s fail call on value Tensor of ragged Tensor." % self.name)
+        return fun(inputs, **kwargs)

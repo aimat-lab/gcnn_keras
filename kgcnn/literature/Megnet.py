@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.keras import DenseEmbedding, LazyAdd, DropoutEmbedding
+from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set

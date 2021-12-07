@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate
+from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set

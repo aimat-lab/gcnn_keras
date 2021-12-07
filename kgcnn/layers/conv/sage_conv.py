@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import LazyConcatenate
+from kgcnn.layers.modules import LazyConcatenate
 from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodes

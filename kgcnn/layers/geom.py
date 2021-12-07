@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
-from kgcnn.layers.keras import LazySubtract, LazyMultiply
+from kgcnn.layers.modules import LazySubtract, LazyMultiply
 from kgcnn.ops.axis import get_positive_axis
 
 

@@ -50,7 +50,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
                             make_conformers: bool = True, optimize_conformer: bool = True,
-                            conv_program: dict = None, num_workers: int = None):
+                            external_program: dict = None, num_workers: int = None):
         r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
 
         Args:
@@ -60,11 +60,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
             make_conformers (bool): Try to generate 3D coordinates
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
-            conv_program (dict): External program for translating smiles. Default is None.
+            external_program (dict): External program for translating smiles. Default is None.
                 If you want to use an external program you have to supply a dictionary of the form:
                 {"class_name": "balloon", "config": {"balloon_executable_path": ..., ...}}.
                 Note that usually the parameters like :obj:`add_hydrogen` are ignored. And you need to control the
-                SDF file generation within `config` of the :obj:`conv_program`.
+                SDF file generation within `config` of the :obj:`external_program`.
             num_workers (int): Parallel execution for translating smiles.
 
         Returns:
@@ -79,7 +79,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             mg = smile_to_mol(smiles[i:i+1000], self.data_directory,
                               add_hydrogen=add_hydrogen, sanitize=sanitize,
                               make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-                              conv_program=conv_program, num_workers=num_workers)
+                              external_program=external_program, num_workers=num_workers)
             molecule_list = molecule_list + mg
             self.info(" ... converted molecules {0} from {1}".format(i+len(mg), len(smiles)))
 
@@ -88,7 +88,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
                      add_hydrogen: bool = True, sanitize: bool = True,
                      make_conformers: bool = True, optimize_conformer: bool = True,
-                     conv_program: dict = None, num_workers: int = None):
+                     external_program: dict = None, num_workers: int = None):
         r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
         from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
         file name. The class requires RDKit.
@@ -102,11 +102,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
             make_conformers (bool): Whether to make conformers. Default is True.
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
-            conv_program (dict): External program for translating smiles. Default is None.
+            external_program (dict): External program for translating smiles. Default is None.
                 If you want to use an external program you have to supply a dictionary of the form:
                 {"class_name": "balloon", "config": {"balloon_executable_path": ..., ...}}.
                 Note that usually the parameters like :obj:`add_hydrogen` are ignored. And you need to control the
-                SDF file generation within `config` of the :obj:`conv_program`.
+                SDF file generation within `config` of the :obj:`external_program`.
             num_workers (int): Parallel execution for translating smiles.
 
         Returns:
@@ -122,7 +122,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         mb = self._smiles_to_mol_list(smiles,
                                       add_hydrogen=add_hydrogen, sanitize=sanitize,
                                       make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-                                      conv_program=conv_program, num_workers=num_workers)
+                                      external_program=external_program, num_workers=num_workers)
 
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self

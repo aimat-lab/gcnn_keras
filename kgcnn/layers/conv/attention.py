@@ -2,7 +2,7 @@ import tensorflow as tf
 # import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
-from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding, LazyConcatenate
+from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyConcatenate
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.pooling import PoolingNodesAttention, PoolingLocalEdgesAttention
 

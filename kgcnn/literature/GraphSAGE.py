@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import LazyConcatenate
+from kgcnn.layers.modules import LazyConcatenate
 from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM

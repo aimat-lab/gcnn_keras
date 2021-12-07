@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGATV2
-from kgcnn.layers.keras import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding
+from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_embedding, update_model_kwargs

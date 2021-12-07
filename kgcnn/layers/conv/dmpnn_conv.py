@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import LazySubtract
+from kgcnn.layers.modules import LazySubtract
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DMPNNGatherEdgesPairs')

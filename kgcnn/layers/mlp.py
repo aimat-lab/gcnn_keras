@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding
+from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization
 from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
