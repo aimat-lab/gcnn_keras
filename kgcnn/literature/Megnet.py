@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.keras import DenseEmbedding, LazyAdd, Dropout
+from kgcnn.layers.keras import DenseEmbedding, LazyAdd, DropoutEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -130,9 +130,9 @@ def make_model(inputs=None,
 
         # skip connection
         if dropout is not None:
-            vp2 = Dropout(dropout, name='dropout_atom_%d' % i)(vp2)
-            ep2 = Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
-            up2 = Dropout(dropout, name='dropout_state_%d' % i)(up2)
+            vp2 = DropoutEmbedding(dropout, name='dropout_atom_%d' % i)(vp2)
+            ep2 = DropoutEmbedding(dropout, name='dropout_bond_%d' % i)(ep2)
+            up2 = DropoutEmbedding(dropout, name='dropout_state_%d' % i)(up2)
 
         vp = LazyAdd()([vp2, vp])
         ep = LazyAdd()([ep2, ep])

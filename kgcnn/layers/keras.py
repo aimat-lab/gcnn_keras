@@ -9,7 +9,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dense')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
 class DenseEmbedding(GraphBaseLayer):
 
     def __init__(self,
@@ -116,8 +116,8 @@ class LazyMultiply(GraphBaseLayer):
         return self.call_on_ragged_values(self._layer_mult, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dropout')
-class Dropout(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DropoutEmbedding')
+class DropoutEmbedding(GraphBaseLayer):
 
     def __init__(self,
                  rate,
@@ -125,7 +125,7 @@ class Dropout(GraphBaseLayer):
                  seed=None,
                  **kwargs):
         """Initialize layer same as Activation."""
-        super(Dropout, self).__init__(**kwargs)
+        super(DropoutEmbedding, self).__init__(**kwargs)
         self._layer_drop = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
         self._add_layer_config_to_self = {"_layer_drop": ["rate", "noise_shape", "seed"]}
 
@@ -140,6 +140,7 @@ class LazyConcatenate(GraphBaseLayer):
     def __init__(self,
                  axis=-1,
                  **kwargs):
+        """Initialize layer."""
         super(LazyConcatenate, self).__init__(**kwargs)
         self._layer_concat = ks.layers.Concatenate(axis=axis)
         self._add_layer_config_to_self = {"_layer_concat": ["axis"]}
@@ -167,9 +168,9 @@ class ExpandDims(GraphBaseLayer):
     def __init__(self,
                  axis=-1,
                  **kwargs):
-        """Initialize layer same as Activation."""
+        """Initialize layer."""
         super(ExpandDims, self).__init__(**kwargs)
-        self.axis = axis  # We do not change the axis here
+        self.axis = axis
 
     def call(self, inputs, **kwargs):
         """Forward pass wrapping tf.keras layer."""

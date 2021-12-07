@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, Dropout
+from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
@@ -99,7 +99,7 @@ def make_model(name=None,
         h = LazyAdd()([h, h0])
         h = ActivationEmbedding(**edge_activation)(h)
         if dropout is not None:
-            h = Dropout(**dropout)(h)
+            h = DropoutEmbedding(**dropout)(h)
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
     mv = LazyConcatenate(axis=-1)([mv, n])

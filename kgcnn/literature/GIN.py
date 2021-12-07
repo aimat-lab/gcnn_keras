@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
-from kgcnn.layers.keras import Dropout, ActivationEmbedding, DenseEmbedding
+from kgcnn.layers.keras import DropoutEmbedding, ActivationEmbedding, DenseEmbedding
 from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -72,7 +72,7 @@ def make_model(inputs=None,
     if output_embedding == "graph":
         out = [PoolingNodes()(x) for x in list_embeddings]  # will return tensor
         out = [MLP(**output_mlp)(x) for x in out]
-        out = [Dropout(dropout)(x) for x in out]
+        out = [DropoutEmbedding(dropout)(x) for x in out]
         out = ks.layers.Add()(out)
         out = ks.layers.Activation(output_activation)(out)
     elif output_embedding == "node":  # Node labeling
