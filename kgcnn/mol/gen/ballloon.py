@@ -160,6 +160,7 @@ class BalloonInterface:
     """
 
     def __init__(self,
+                 balloon_executable_path="",
                  config: str = None,
                  writeMOL2: bool = None,
                  onlycharge: bool = None,
@@ -230,6 +231,7 @@ class BalloonInterface:
                  noElitism: bool = None
                  ):
         """Initialize. Pass to config dictionary."""
+        self.balloon_executable_path = balloon_executable_path
         self.input_file = input_file
         if self.input_file is not None:
             print("Definition of input file in config is not used. Please pass to run method.")
@@ -271,7 +273,7 @@ class BalloonInterface:
         if output_format is None:
             output_format = self.output_format
 
-        command_list = ["balloon"]
+        command_list = [str(os.path.join(self.balloon_executable_path, "balloon"))]
         # Added flags. They have the same name as command line argument.
         for key, value in self._config_flags.items():
             if value is not None:
@@ -302,7 +304,8 @@ class BalloonInterface:
         return return_code
 
     def get_config(self):
-        config = {"input_file": self.input_file, "output_format": self.output_format, "output_file": self.output_file}
+        config = {"input_file": self.input_file, "output_format": self.output_format, "output_file": self.output_file,
+                  "balloon_executable_path": self.balloon_executable_path}
         config.update(self._config_args)
         config.update(self._config_flags)
         return config

@@ -5,7 +5,7 @@ from kgcnn.ops.axis import get_positive_axis
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.keras import LazyAdd, LazyMultiply, Dense, LazyConcatenate, ExpandDims
+from kgcnn.layers.keras import LazyAdd, LazyMultiply, DenseEmbedding, LazyConcatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
 
@@ -53,9 +53,9 @@ class PAiNNconv(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_phi = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
-        self.lay_w = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_dense1 = DenseEmbedding(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_phi = DenseEmbedding(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_w = DenseEmbedding(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
 
         self.lay_split = SplitEmbedding(3, axis=-1)
         self.lay_sum = PoolingLocalEdges(pooling_method=conv_pool)
@@ -165,10 +165,10 @@ class PAiNNUpdate(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_lin_u = Dense(self.units, activation='linear', use_bias=False, **kernel_args)
-        self.lay_lin_v = Dense(self.units, activation='linear', use_bias=False, **kernel_args)
-        self.lay_a = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_dense1 = DenseEmbedding(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_lin_u = DenseEmbedding(self.units, activation='linear', use_bias=False, **kernel_args)
+        self.lay_lin_v = DenseEmbedding(self.units, activation='linear', use_bias=False, **kernel_args)
+        self.lay_a = DenseEmbedding(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
 
         self.lay_scalar_prod = ScalarProduct(axis=2)
         self.lay_norm = EuclideanNorm(axis=2)

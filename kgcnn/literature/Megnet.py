@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.keras import Dense, LazyAdd, Dropout
+from kgcnn.layers.keras import DenseEmbedding, LazyAdd, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -139,8 +139,8 @@ def make_model(inputs=None,
         up = LazyAdd(input_tensor_type="tensor")([up2, up])
 
     if use_set2set:
-        vp = Dense(set2set_args["channels"], activation='linear')(vp)  # to match units
-        ep = Dense(set2set_args["channels"], activation='linear')(ep)  # to match units
+        vp = DenseEmbedding(set2set_args["channels"], activation='linear')(vp)  # to match units
+        ep = DenseEmbedding(set2set_args["channels"], activation='linear')(ep)  # to match units
         vp = PoolingSet2Set(**set2set_args)(vp)
         ep = PoolingSet2Set(**set2set_args)(ep)
     else:

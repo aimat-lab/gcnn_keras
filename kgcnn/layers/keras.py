@@ -10,7 +10,7 @@ from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Dense')
-class Dense(GraphBaseLayer):
+class DenseEmbedding(GraphBaseLayer):
 
     def __init__(self,
                  units,
@@ -25,7 +25,7 @@ class Dense(GraphBaseLayer):
                  bias_constraint=None,
                  **kwargs):
         """Initialize layer as tf.keras.Dense."""
-        super(Dense, self).__init__(**kwargs)
+        super(DenseEmbedding, self).__init__(**kwargs)
         self._layer_dense = ks.layers.Dense(units=units, activation=activation,
                                             use_bias=use_bias, kernel_initializer=kernel_initializer,
                                             bias_initializer=bias_initializer,
@@ -47,17 +47,16 @@ class Dense(GraphBaseLayer):
         return self._layer_dense(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Activation')
-class Activation(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ActivationEmbedding')
+class ActivationEmbedding(GraphBaseLayer):
 
     def __init__(self,
                  activation,
                  activity_regularizer=None,
                  **kwargs):
         """Initialize layer."""
-        super(Activation, self).__init__(**kwargs)
-        self._layer_act = tf.keras.layers.Activation(activation=activation,
-                                                    activity_regularizer=activity_regularizer)
+        super(ActivationEmbedding, self).__init__(**kwargs)
+        self._layer_act = tf.keras.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
@@ -212,11 +211,4 @@ class ZerosLike(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Zero-like tensor of input.
         """
-        if isinstance(inputs, tf.RaggedTensor):
-            if inputs.ragged_rank == 1:
-                zero_tensor = tf.zeros_like(inputs.values)  # will be Tensor
-                return tf.RaggedTensor.from_row_splits(zero_tensor, inputs.row_splits, validate=self.ragged_validate)
-            else:
-                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1.")
-        # Try normal tf call
-        return tf.zeros_like(inputs)
+        return self.call_on_ragged_values(tf.zeros_like, inputs)

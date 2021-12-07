@@ -35,7 +35,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "Lipop": {"make_conformers": True, "add_hydrogen": True},
         "PCBA": {"make_conformers": False, "add_hydrogen": False},
         "MUV": {"make_conformers": True, "add_hydrogen": True},
-        "HIV": {"make_conformers": False, "add_hydrogen": False},
+        "HIV": {"make_conformers": True, "add_hydrogen": True},
         "BACE": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "mol"},
         "BBBP": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
         "Tox21": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"},
@@ -91,61 +91,10 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         self.fits_in_memory = True
 
         if self.require_prepare_data:
-            self.prepare_data(overwrite=reload)
+            self.prepare_data(overwrite=reload, **self.datasets_prepare_data_info[self.dataset_name])
         if self.fits_in_memory:
-            self.read_in_memory()
-
-    def prepare_data(self, overwrite: bool = False, verbose: int = 1, smiles_column_name: str = "smiles",
-                     make_conformers: bool = None, add_hydrogen: bool = None, **kwargs):
-        r"""Pre-computation of molecular structure.
-
-        Args:
-            overwrite (bool): Overwrite existing database mol-json file. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
-            smiles_column_name (str): Column name where smiles are given in csv-file. Default is "smiles".
-            add_hydrogen (bool): Whether to add H after smile translation. Default is True.
-            make_conformers (bool): Whether to make conformers. Default is True.
-
-        Returns:
-            self
-        """
-        prepare_info = {"overwrite": overwrite, "smiles_column_name": smiles_column_name,
-                        "add_hydrogen": add_hydrogen, "make_conformers": make_conformers}
-        prepare_info.update(self.datasets_prepare_data_info[self.dataset_name])
-
-        if add_hydrogen is not None:
-            prepare_info["add_hydrogen"] = add_hydrogen
-        if make_conformers is not None:
-            make_conformers["make_conformers"] = make_conformers
-
-        return super(MoleculeNetDataset2018, self).prepare_data(**prepare_info)
-
-    def read_in_memory(self, has_conformers: bool = None, label_column_name: str = None,
-                       add_hydrogen: bool = None):
-        r"""Load list of molecules from json-file named in :obj:`MoleculeNetDataset.mol_filename` into memory. And
-        already extract basic graph information. No further attributes are computed as default.
-
-        Args:
-            has_conformers (bool): If molecules have 3D coordinates pre-computed.
-            label_column_name (str): Column name where labels are given in csv-file. Default is None.
-            add_hydrogen (bool): Whether to add H after smile translation.
-
-        Returns:
-            self
-        """
-        read_in_memory_info = {"label_column_name": label_column_name,
-                               "add_hydrogen": add_hydrogen, "has_conformers": has_conformers}
-        read_in_memory_info.update(self.datasets_read_in_memory_info[self.dataset_name])
-
-        if add_hydrogen is not None:
-            read_in_memory_info["add_hydrogen"] = add_hydrogen
-        if has_conformers is not None:
-            read_in_memory_info["has_conformers"] = has_conformers
-        if label_column_name is not None:
-            read_in_memory_info["label_column_name"] = label_column_name
-
-        return super(MoleculeNetDataset2018, self).read_in_memory(**read_in_memory_info)
+            self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
 
-# data = MoleculeNetDataset2018("Lipop", reload=False).set_attributes()
+data = MoleculeNetDataset2018("HIV", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

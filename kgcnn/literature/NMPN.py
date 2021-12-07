@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.keras import Dense, LazyConcatenate
+from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -97,7 +97,7 @@ def make_model(inputs=None,
         ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Make hidden dimension
-    n = Dense(node_dim, activation="linear")(n0)
+    n = DenseEmbedding(node_dim, activation="linear")(n0)
 
     # Make edge networks.
     edge_net_in = MLP(**edge_mlp)(ed)
@@ -123,7 +123,7 @@ def make_model(inputs=None,
     if output_embedding == 'graph':
         if use_set2set:
             # output
-            out = Dense(set2set_args['channels'], activation="linear")(n)
+            out = DenseEmbedding(set2set_args['channels'], activation="linear")(n)
             out = PoolingSet2Set(**set2set_args)(out)
         else:
             out = PoolingNodes(**pooling_args)(n)

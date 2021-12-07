@@ -33,17 +33,17 @@ Models can be set up in a functional way. Example message passing from fundament
 
     import tensorflow.keras as ks
     from kgcnn.layers.gather import GatherNodes
-    from kgcnn.layers.keras import Dense, LazyConcatenate  # ragged support
-    from kgcnn.layers.pool.pooling import PoolingLocalMessages, PoolingNodes
+    from kgcnn.layers.keras import DenseEmbedding, LazyConcatenate  # ragged support
+    from kgcnn.layers.pooling import PoolingLocalMessages, PoolingNodes
 
     n = ks.layers.Input(shape=(None, 3), name='node_input', dtype="float32", ragged=True)
     ei = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ragged=True)
 
     n_in_out = GatherNodes()([n, ei])
-    node_messages = Dense(10, activation='relu')(n_in_out)
+    node_messages = DenseEmbedding(10, activation='relu')(n_in_out)
     node_updates = PoolingLocalMessages()([n, node_messages, ei])
     n_node_updates = LazyConcatenate(axis=-1)([n, node_updates])
-    n_embedd = Dense(1)(n_node_updates)
+    n_embedd = DenseEmbedding(1)(n_node_updates)
     g_embedd = PoolingNodes()(n_embedd)
 
     message_passing = ks.models.Model(inputs=[n, ei], outputs=g_embedd)
@@ -51,14 +51,14 @@ Models can be set up in a functional way. Example message passing from fundament
 or via sub-classing of the message passing base layer. Where only ``message_function`` and ``update_nodes`` must be implemented::
 
     from kgcnn.layers.conv.message import MessagePassingBase
-    from kgcnn.layers.keras import Dense, Add
+    from kgcnn.layers.keras import DenseEmbedding, LazyAdd
+
 
     def MyMessageNN(MessagePassingBase):
-
         def __init__(self, units, **kwargs):
             super(MyMessageNN, self).__init__(**kwargs)
-            self.dense = Dense(units)
-            self.add = Add(axis=-1)
+            self.dense = DenseEmbedding(units)
+            self.add = LazyAdd(axis=-1)
 
         def message_function(self, inputs, **kwargs):
             n_in, n_out, edges = inputs

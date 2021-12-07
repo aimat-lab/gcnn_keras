@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
-from kgcnn.layers.keras import Dense, Dropout
+from kgcnn.layers.keras import DenseEmbedding, Dropout
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
@@ -68,7 +68,7 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Model
-    nk = Dense(units=attention_args['units'])(n)
+    nk = DenseEmbedding(units=attention_args['units'])(n)
     ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
     nk = GRUUpdate(units=attention_args['units'])([nk, ck])
 

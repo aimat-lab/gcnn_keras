@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.keras import DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
@@ -70,7 +70,7 @@ def make_model_haste(inputs=None,
     edi = edge_index_input
 
     # Model
-    nk = Dense(units=attention_args['units'])(n)
+    nk = DenseEmbedding(units=attention_args['units'])(n)
     ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
     nk = HasteLayerNormGRUUpdate(units=attention_args['units'], dropout=dropout)([nk, ck])
 

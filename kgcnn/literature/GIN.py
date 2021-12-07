@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
-from kgcnn.layers.keras import Dropout, Activation, Dense
+from kgcnn.layers.keras import Dropout, ActivationEmbedding, DenseEmbedding
 from kgcnn.layers.mlp import MLP, BatchNormMLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -60,7 +60,7 @@ def make_model(inputs=None,
 
     # Model
     # Map to the required number of units.
-    n = Dense(gin_args["units"][0], use_bias=True, activation='linear')(n)
+    n = DenseEmbedding(gin_args["units"][0], use_bias=True, activation='linear')(n)
     # n = MLP(gin_args["units"], use_bias=gin_args["use_bias"], activation=gin_args["activation"])(n)
     list_embeddings = [n]
     for i in range(0, depth):
@@ -78,7 +78,7 @@ def make_model(inputs=None,
     elif output_embedding == "node":  # Node labeling
         out = n
         out = MLP(**output_mlp)(out)
-        out = Activation(output_activation)(out)
+        out = ActivationEmbedding(output_activation)(out)
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
             out)  # no ragged for distribution supported atm
     else:

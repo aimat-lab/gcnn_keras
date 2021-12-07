@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from kgcnn.layers.keras import Dense, Activation
+from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization
 from kgcnn.layers.base import GraphBaseLayer
 import kgcnn.ops.activ
@@ -290,7 +290,7 @@ class MLP(GraphBaseLayer):
         self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
         self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
 
-        self.mlp_dense_list = [Dense(
+        self.mlp_dense_list = [DenseEmbedding(
             units=self.mlp_units[i],
             use_bias=self.mlp_use_bias[i],
             name=self.name + '_dense_' + str(i),
@@ -476,7 +476,7 @@ class BatchNormMLP(GraphBaseLayer):
         self.mlp_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
         self.mlp_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
 
-        self.mlp_dense_list = [Dense(
+        self.mlp_dense_list = [DenseEmbedding(
             units=self.mlp_units[i],
             use_bias=self.mlp_use_bias[i],
             name=self.name + '_dense_' + str(i),
@@ -492,7 +492,7 @@ class BatchNormMLP(GraphBaseLayer):
             input_tensor_type=self.input_tensor_type
         ) for i in range(len(self.mlp_units))]
 
-        self.mlp_activation_layer_list = [Activation(
+        self.mlp_activation_layer_list = [ActivationEmbedding(
             activation=self.mlp_activation[i],
             activity_regularizer=self.mlp_activity_regularizer[i],
         ) for i in range(len(self.mlp_units))]

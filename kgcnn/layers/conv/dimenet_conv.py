@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, LazyMultiply, LazyAdd
+from kgcnn.layers.keras import DenseEmbedding, LazyMultiply, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import MLP
@@ -45,8 +45,8 @@ class ResidualLayer(GraphBaseLayer):
                       "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                       "bias_initializer": bias_initializer}
 
-        self.dense_1 = Dense(**dense_args)
-        self.dense_2 = Dense(**dense_args)
+        self.dense_1 = DenseEmbedding(**dense_args)
+        self.dense_2 = DenseEmbedding(**dense_args)
         self.add_end = LazyAdd()
 
     def build(self, input_shape):
@@ -128,25 +128,25 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
                        "bias_initializer": bias_initializer}
 
         # Transformations of Bessel and spherical basis representations
-        self.dense_rbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args)
-        self.dense_rbf2 = Dense(emb_size, use_bias=False, **kernel_args)
-        self.dense_sbf1 = Dense(basis_emb_size, use_bias=False, **kernel_args)
-        self.dense_sbf2 = Dense(int_emb_size, use_bias=False, **kernel_args)
+        self.dense_rbf1 = DenseEmbedding(basis_emb_size, use_bias=False, **kernel_args)
+        self.dense_rbf2 = DenseEmbedding(emb_size, use_bias=False, **kernel_args)
+        self.dense_sbf1 = DenseEmbedding(basis_emb_size, use_bias=False, **kernel_args)
+        self.dense_sbf2 = DenseEmbedding(int_emb_size, use_bias=False, **kernel_args)
 
         # Dense transformations of input messages
-        self.dense_ji = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
-        self.dense_kj = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
+        self.dense_ji = DenseEmbedding(emb_size, activation=activation, use_bias=True, **kernel_args)
+        self.dense_kj = DenseEmbedding(emb_size, activation=activation, use_bias=True, **kernel_args)
 
         # Embedding projections for interaction triplets
-        self.down_projection = Dense(int_emb_size, activation=activation, use_bias=False, **kernel_args)
-        self.up_projection = Dense(emb_size, activation=activation, use_bias=False, **kernel_args)
+        self.down_projection = DenseEmbedding(int_emb_size, activation=activation, use_bias=False, **kernel_args)
+        self.up_projection = DenseEmbedding(emb_size, activation=activation, use_bias=False, **kernel_args)
 
         # Residual layers before skip connection
         self.layers_before_skip = []
         for i in range(num_before_skip):
             self.layers_before_skip.append(
                 ResidualLayer(emb_size, activation=activation, use_bias=True, **kernel_args))
-        self.final_before_skip = Dense(emb_size, activation=activation, use_bias=True, **kernel_args)
+        self.final_before_skip = DenseEmbedding(emb_size, activation=activation, use_bias=True, **kernel_args)
 
         # Residual layers after skip connection
         self.layers_after_skip = []
@@ -273,14 +273,14 @@ class DimNetOutputBlock(GraphBaseLayer):
                        "kernel_constraint": kernel_constraint, "bias_initializer": bias_initializer,
                        "bias_regularizer": bias_regularizer, "bias_constraint": bias_constraint, }
 
-        self.dense_rbf = Dense(emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
-        self.up_projection = Dense(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
+        self.dense_rbf = DenseEmbedding(emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
+        self.up_projection = DenseEmbedding(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.dense_mlp = MLP([out_emb_size] * num_dense, activation=activation, kernel_initializer=kernel_initializer,
                              use_bias=use_bias, **kernel_args)
         self.dimnet_mult = LazyMultiply(**self._kgcnn_info)
         self.pool = PoolingLocalEdges(pooling_method=self.pooling_method)
-        self.dense_final = Dense(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
-                                 **kernel_args)
+        self.dense_final = DenseEmbedding(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
+                                          **kernel_args)
 
     def build(self, input_shape):
         """Build layer."""

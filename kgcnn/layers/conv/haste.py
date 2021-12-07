@@ -6,7 +6,7 @@ except ModuleNotFoundError:
     import haste_tf as haste
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense, Activation, LazyConcatenate
+from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding, LazyConcatenate
 from kgcnn.layers.gather import GatherState
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.conv.attention import PoolingNodesAttention
@@ -163,13 +163,13 @@ class HastePoolingNodesAttentiveLayerNorm(GraphBaseLayer):
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
         gru_args = {"dropout": dropout, "forget_bias": forget_bias, "trainable": trainable}
 
-        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
-        self.lay_alpha = Dense(1, activation=activation, **kernel_args)
+        self.lay_linear_trafo = DenseEmbedding(units, activation="linear", **kernel_args)
+        self.lay_alpha = DenseEmbedding(1, activation=activation, **kernel_args)
         self.lay_gather_s = GatherState()
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
         self.lay_pool_attention = PoolingNodesAttention()
-        self.lay_final_activ = Activation(activation=activation_context)
+        self.lay_final_activ = ActivationEmbedding(activation=activation_context)
         self.lay_gru = haste.LayerNormGRUCell(units, **gru_args)
 
     def build(self, input_shape):

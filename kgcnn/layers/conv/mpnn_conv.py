@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.keras import DenseEmbedding
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='TrafoEdgeNetMessages')
@@ -27,12 +27,12 @@ class TrafoEdgeNetMessages(GraphBaseLayer):
         self.target_shape = target_shape
         self._units_out = int(target_shape[0])
         self._units_in = int(target_shape[1])
-        self.lay_dense = Dense(units=self._units_out*self._units_in,
-                               activation=activation, use_bias=use_bias,
-                               kernel_regularizer=kernel_regularizer, bias_regularizer=bias_regularizer,
-                               activity_regularizer=activity_regularizer, kernel_constraint=kernel_constraint,
-                               bias_constraint=bias_constraint,kernel_initializer=kernel_initializer,
-                               bias_initializer=bias_initializer)
+        self.lay_dense = DenseEmbedding(units=self._units_out * self._units_in,
+                                        activation=activation, use_bias=use_bias,
+                                        kernel_regularizer=kernel_regularizer, bias_regularizer=bias_regularizer,
+                                        activity_regularizer=activity_regularizer, kernel_constraint=kernel_constraint,
+                                        bias_constraint=bias_constraint, kernel_initializer=kernel_initializer,
+                                        bias_initializer=bias_initializer)
 
     def build(self, input_shape):
         """Build layer."""

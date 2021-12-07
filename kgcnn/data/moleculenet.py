@@ -60,7 +60,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
             make_conformers (bool): Try to generate 3D coordinates
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
-            conv_program (str): Method to use for translating smiles. Default is "default".
+            conv_program (dict): External program for translating smiles. Default is None.
+                If you want to use an external program you have to supply a dictionary of the form:
+                {"class_name": "balloon", "config": {"balloon_executable_path": ..., ...}}.
+                Note that usually the parameters like :obj:`add_hydrogen` are ignored. And you need to control the
+                SDF file generation within `config` of the :obj:`conv_program`.
             num_workers (int): Parallel execution for translating smiles.
 
         Returns:
@@ -99,6 +103,10 @@ class MoleculeNetDataset(MemoryGraphDataset):
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
             conv_program (dict): External program for translating smiles. Default is None.
+                If you want to use an external program you have to supply a dictionary of the form:
+                {"class_name": "balloon", "config": {"balloon_executable_path": ..., ...}}.
+                Note that usually the parameters like :obj:`add_hydrogen` are ignored. And you need to control the
+                SDF file generation within `config` of the :obj:`conv_program`.
             num_workers (int): Parallel execution for translating smiles.
 
         Returns:
@@ -146,7 +154,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         graph_labels_all = pandas_data_frame_columns_to_numpy(data, label_column_name)
 
         if not os.path.exists(self.file_path_mol):
-            raise FileNotFoundError("ERROR:kgcnn: Can not load molecules for dataset %s" % self.dataset_name)
+            raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
         self.info("Read mol-blocks from %s of pre-computed structures..." % self.file_path_mol)
         mols = dummy_load_sdf_file(self.file_path_mol)

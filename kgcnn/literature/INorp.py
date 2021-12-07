@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.layers.keras import LazyConcatenate, Dense
+from kgcnn.layers.keras import LazyConcatenate, DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -104,7 +104,7 @@ def make_model(inputs=None,
     if output_embedding == 'graph':
         if use_set2set:
             # output
-            outss = Dense(set2set_args["channels"], activation="linear")(n)
+            outss = DenseEmbedding(set2set_args["channels"], activation="linear")(n)
             out = PoolingSet2Set(**set2set_args)(outss)
         else:
             out = PoolingNodes(**pooling_args)(n)

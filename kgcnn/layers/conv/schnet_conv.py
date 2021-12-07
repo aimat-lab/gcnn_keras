@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.keras import LazyMultiply, Dense, LazyAdd
+from kgcnn.layers.keras import LazyMultiply, DenseEmbedding, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 
@@ -48,8 +48,8 @@ class SchNetCFconv(GraphBaseLayer):
                        "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
                        "bias_initializer": bias_initializer}
         # Layer
-        self.lay_dense1 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_dense2 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_dense1 = DenseEmbedding(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_dense2 = DenseEmbedding(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
         self.lay_sum = PoolingLocalEdges(pooling_method=cfconv_pool)
         self.gather_n = GatherNodesOutgoing()
         self.lay_mult = LazyMultiply()
@@ -135,9 +135,9 @@ class SchNetInteraction(GraphBaseLayer):
 
         # Layers
         self.lay_cfconv = SchNetCFconv(**conv_args, **kernel_args)
-        self.lay_dense1 = Dense(units=self.units, activation='linear', use_bias=False, **kernel_args)
-        self.lay_dense2 = Dense(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
-        self.lay_dense3 = Dense(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
+        self.lay_dense1 = DenseEmbedding(units=self.units, activation='linear', use_bias=False, **kernel_args)
+        self.lay_dense2 = DenseEmbedding(units=self.units, activation=activation, use_bias=self.use_bias, **kernel_args)
+        self.lay_dense3 = DenseEmbedding(units=self.units, activation='linear', use_bias=self.use_bias, **kernel_args)
         self.lay_add = LazyAdd()
 
     def build(self, input_shape):

@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.keras import Dense, Activation, LazyAdd
+from kgcnn.layers.keras import DenseEmbedding, ActivationEmbedding, LazyAdd
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
@@ -74,7 +74,7 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # Model
-    n = Dense(**hidden_dim)(n)
+    n = DenseEmbedding(**hidden_dim)(n)
     in_graph = [n, ed, edi]
     graph_list = [in_graph]
     map_list = []
@@ -86,9 +86,9 @@ def make_model(inputs=None,
         n, ed, edi = i_graph
         # GCN layer
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(**hidden_dim)(eu)
+        eu = DenseEmbedding(**hidden_dim)(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
-        n = Activation(activation=activation)(nu)
+        n = ActivationEmbedding(activation=activation)(nu)
 
         if use_reconnect:
             ed, edi = AdjacencyPower(n=2)([n, ed, edi])
@@ -111,9 +111,9 @@ def make_model(inputs=None,
         n = LazyAdd()([n, o_graph[0]])
         # GCN
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
-        eu = Dense(**hidden_dim)(eu)
+        eu = DenseEmbedding(**hidden_dim)(eu)
         nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
-        n = Activation(activation=activation)(nu)
+        n = ActivationEmbedding(activation=activation)(nu)
 
         ui_graph = [n, ed, edi]
 

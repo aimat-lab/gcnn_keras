@@ -87,7 +87,9 @@ def parse_mol_str(mol_str: str):
         # Properties block
         properties = []
         for p in lines[4 + na + nb:]:
-            if "M" in p and p != "M  END":
+            if p == "M  END":
+                break
+            if "M" in p:
                 properties.append(p)
     else:
         raise NotImplementedError("ERROR: Can not parse mol V3000 or higher.")
@@ -175,7 +177,11 @@ def dummy_load_sdf_file(filepath):
     """
     with open(filepath, "r") as f:
         all_sting = f.read()
-    return all_sting.split("$$$$\n")
+    mol_list = all_sting.split("$$$$\n")
+    # Check if there was tailing $$$$ with nothing to follow. Split will make empty string though.
+    if len(mol_list[-1]) == 0:
+        mol_list = mol_list[:-1]
+    return mol_list
 
 
 def read_smiles_file(file_path):

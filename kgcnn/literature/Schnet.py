@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.keras import Dense
+from kgcnn.layers.keras import DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -89,12 +89,12 @@ def make_model(inputs=None,
         ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
-    n = Dense(interaction_args["units"], activation='linear')(n)
+    n = DenseEmbedding(interaction_args["units"], activation='linear')(n)
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
     n = MLP(**output_mlp)(n)
-    mlp_last = Dense(**output_dense)
+    mlp_last = DenseEmbedding(**output_dense)
 
     # Output embedding choice
     if output_embedding == 'graph':
