@@ -33,7 +33,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "ESOL": {"make_conformers": True, "add_hydrogen": True},
         "FreeSolv": {"make_conformers": True, "add_hydrogen": True},
         "Lipop": {"make_conformers": True, "add_hydrogen": True},
-        "PCBA": {"make_conformers": False, "add_hydrogen": False},
+        "PCBA": {"make_conformers": True, "add_hydrogen": True},
         "MUV": {"make_conformers": True, "add_hydrogen": True},
         "HIV": {"make_conformers": True, "add_hydrogen": True},
         "BACE": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "mol"},
@@ -41,7 +41,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "Tox21": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
         "ToxCast": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
         "SIDER": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"},
-        "ClinTox": {"make_conformers": False, "add_hydrogen": False, "smiles_column_name": "smiles"}
+        "ClinTox": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"}
     }
     datasets_read_in_memory_info = {
         "ESOL": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "measured log solubility in mols per litre"},
@@ -95,5 +95,5 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
 
-# data = MoleculeNetDataset2018("SIDER", reload=False).set_attributes()
+# data = MoleculeNetDataset2018("PCBA", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()

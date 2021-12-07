@@ -91,8 +91,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         """Assert input to be ragged with a given ragged_rank.
 
         Args:
-            inputs: Tensor or list of tensors to assert to be ragged and have ragged rank.
-            ragged_rank (int): Assert ragged tensor to have ragged_rank = 1.
+            inputs: Tensor or list of tensors to assert to be ragged and have given ragged rank.
+            ragged_rank (int): Assert ragged tensor to have ragged_rank. Default is 1.
         """
         if isinstance(inputs, (list, tuple)):
             assert all(
@@ -157,5 +157,9 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                 return tf.RaggedTensor.from_row_splits(fun(inputs.values, **kwargs_values),
                                                        inputs.row_splits, validate=self.ragged_validate)
 
-        print("WARNING: Layer %s fail call on value Tensor of ragged Tensor." % self.name)
+        if isinstance(inputs, tf.RaggedTensor):
+            print("WARNING: Layer %s fail call on value Tensor of ragged Tensor." % self.name)
+        if isinstance(inputs, list):
+            if any([isinstance(x, tf.RaggedTensor) for x in inputs]):
+                print("WARNING: Layer %s fail call on value Tensor for ragged Tensor in list." % self.name)
         return fun(inputs, **kwargs)

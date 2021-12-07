@@ -18,7 +18,8 @@ model_default = {'name': "GIN",
                  'output_embedding': 'graph',
                  'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                 "activation": ['relu', 'relu', 'linear']},
-                 'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear']},
+                 'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
+                              "use_normalization": True, "normalization_technique": "batch"},
                  'depth': 3, "output_activation": "softmax", "dropout": 0.0, 'verbose': 1,
                  }
 

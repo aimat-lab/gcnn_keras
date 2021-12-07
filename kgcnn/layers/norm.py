@@ -34,7 +34,7 @@ class GraphLayerNormalization(GraphBaseLayer):
                                                         beta_regularizer=beta_regularizer,
                                                         gamma_regularizer=gamma_regularizer,
                                                         beta_constraint=beta_constraint,
-                                                        gamma_constraint=gamma_constraint, dtype="float32")
+                                                        gamma_constraint=gamma_constraint, dtype=self.dtype)
         # We can add config from keras layer except the axis parameter.
         self._add_layer_config_to_self = {"_layer_norm": ["epsilon", "center", "scale", "beta_initializer",
                                                           "gamma_initializer", "beta_regularizer", "gamma_regularizer",
