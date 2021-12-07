@@ -2,7 +2,7 @@
 
 The layers for `kgcnn` should accept ragged tensor input and are sorted as following: 
 
-* The most general layers that  kept maintained beyond different models are located in `kgcnn.layers`. These are:
+* The most general layers that kept maintained beyond different models are located in `kgcnn.layers`. These are:
     * `kgcnn.layers.gather` Layers around tf.gather
     * `kgcnn.layers.pooling` General layers for standard aggregation and pooling.
     * `kgcnn.layers.geom` Geometry operations.

@@ -516,11 +516,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff envelope of shape (batch, [M], 1)
         """
-        if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
-            if inputs.ragged_rank == 1:
-                fc = self._compute_cutoff_envelope(inputs.values, self.cutoff)
-                return tf.RaggedTensor.from_row_splits(fc, inputs.row_splits, validate=self.ragged_validate)
-        return self._compute_cutoff_envelope(inputs, self.cutoff)
+        return self.call_on_values_tensor_of_ragged(self._compute_cutoff_envelope, inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""
@@ -562,11 +558,7 @@ class CosCutOff(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
         """
-        if isinstance(inputs, tf.RaggedTensor):   # Possibly faster for ragged_rank == 1
-            if inputs.ragged_rank == 1:
-                out = self._compute_cutoff(inputs.values, self.cutoff)
-                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        return self._compute_cutoff(inputs, self.cutoff)
+        return self.call_on_values_tensor_of_ragged(self._compute_cutoff, inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""
