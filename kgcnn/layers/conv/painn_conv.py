@@ -63,7 +63,8 @@ class PAiNNconv(GraphBaseLayer):
         self.gather_n = GatherNodesOutgoing()
         self.gather_v = GatherNodesOutgoing()
         self.lay_mult = LazyMultiply()
-        self.lay_mult_cutoff = LazyMultiply()
+        if self.cutoff is not None:
+            self.lay_mult_cutoff = LazyMultiply()
         self.lay_exp_vv = ExpandDims(axis=-2)
         self.lay_exp_vw = ExpandDims(axis=-2)
         self.lay_exp_r = ExpandDims(axis=-1)
