@@ -148,37 +148,41 @@ class MLPBase(GraphBaseLayer):
                 raise ValueError("ERROR Unknown normalization method, choose: batch, layer, group, instance, ...")
 
         # Deserialized args
-        self.mlp_units = list(units)
-        self.mlp_use_bias = list(use_bias)
-        self.mlp_activation = list([tf.keras.activations.get(x) for x in activation])
-        self.mlp_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
-        self.mlp_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
-        self.mlp_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
-        self.mlp_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
-        self.mlp_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
-        self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
-        self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
+        self._conf_units = list(units)
+        self._conf_use_bias = list(use_bias)
+        self._conf_activation = list([tf.keras.activations.get(x) for x in activation])
+        self._conf_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
+        self._conf_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
+        self._conf_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
+        self._conf_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
+        self._conf_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
+        self._conf_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
+        self._conf_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
         # Serialized args for norm
-        self.mlp_use_normalization = list(use_normalization)
-        self.mlp_normalization_technique = list(normalization_technique)
-        self.mlp_axis = list(axis)
-        self.mlp_momentum = list(momentum)
-        self.mlp_epsilon = list(epsilon)
-        self.mlp_center = list(center)
-        self.mlp_scale = list(scale)
-        self.mlp_beta_initializer = list([tf.keras.initializers.get(x) for x in beta_initializer])
-        self.mlp_gamma_initializer = list([tf.keras.initializers.get(x) for x in gamma_initializer])
-        self.mlp_moving_mean_initializer = list([tf.keras.initializers.get(x) for x in moving_mean_initializer])
-        self.mlp_moving_variance_initializer = list([tf.keras.initializers.get(x) for x in moving_variance_initializer])
-        self.mlp_beta_regularizer = list([tf.keras.regularizers.get(x) for x in beta_regularizer])
-        self.mlp_gamma_regularizer = list([tf.keras.regularizers.get(x) for x in gamma_regularizer])
-        self.mlp_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
-        self.mlp_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
+        self._conf_use_normalization = list(use_normalization)
+        self._conf_normalization_technique = list(normalization_technique)
+        self._conf_axis = list(axis)
+        self._conf_momentum = list(momentum)
+        self._conf_epsilon = list(epsilon)
+        self._conf_center = list(center)
+        self._conf_scale = list(scale)
+        self._conf_beta_initializer = list([tf.keras.initializers.get(x) for x in beta_initializer])
+        self._conf_gamma_initializer = list([tf.keras.initializers.get(x) for x in gamma_initializer])
+        self._conf_moving_mean_initializer = list([tf.keras.initializers.get(x) for x in moving_mean_initializer])
+        self._conf_moving_variance_initializer = list([tf.keras.initializers.get(x) for x in moving_variance_initializer])
+        self._conf_beta_regularizer = list([tf.keras.regularizers.get(x) for x in beta_regularizer])
+        self._conf_gamma_regularizer = list([tf.keras.regularizers.get(x) for x in gamma_regularizer])
+        self._conf_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
+        self._conf_gamma_constraint = list([tf.keras.constraints.get(x) for x in gamma_constraint])
         # Dropout
-        self.mlp_use_dropout = list(use_dropout)
-        self.mlp_rate = list(rate)
-        self.mlp_seed = list(seed)
-        self.mlp_noise_shape = list(noise_shape)
+        self._conf_use_dropout = list(use_dropout)
+        self._conf_rate = list(rate)
+        self._conf_seed = list(seed)
+        self._conf_noise_shape = list(noise_shape)
+
+        # Processed arguments for each layer.
+        self._conf_mlp_norm_layer_kwargs = [{} for x in range(self._depth)]
+        self._conf_mlp_dense_layer_kwargs = []
 
     def build(self, input_shape):
         """Build layer."""
@@ -189,40 +193,40 @@ class MLPBase(GraphBaseLayer):
         config = super(MLPBase, self).get_config()
         config.update({
             # Dense
-            "units": self.mlp_units,
-            'use_bias': self.mlp_use_bias,
-            'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
+            "units": self._conf_units,
+            'use_bias': self._conf_use_bias,
+            'activation': [tf.keras.activations.serialize(x) for x in self._conf_activation],
             'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in
-                                     self.mlp_activity_regularizer],
-            'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_kernel_regularizer],
-            'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_bias_regularizer],
-            "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_kernel_initializer],
-            "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
-            "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
-            "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
+                                     self._conf_activity_regularizer],
+            'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self._conf_kernel_regularizer],
+            'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self._conf_bias_regularizer],
+            "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self._conf_kernel_initializer],
+            "bias_initializer": [tf.keras.initializers.serialize(x) for x in self._conf_bias_initializer],
+            "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self._conf_kernel_constraint],
+            "bias_constraint": [tf.keras.constraints.serialize(x) for x in self._conf_bias_constraint],
             # Norm
-            "mlp_normalization_technique": self.mlp_normalization_technique,
-            "use_normalization": self.mlp_use_normalization,
-            "axis": list(self.mlp_axis),
-            "momentum": self.mlp_momentum,
-            "epsilon": self.mlp_epsilon,
-            "center": self.mlp_center,
-            "scale": self.mlp_scale,
-            "beta_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_beta_initializer],
-            "gamma_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_gamma_initializer],
+            "normalization_technique": self._conf_normalization_technique,
+            "use_normalization": self._conf_use_normalization,
+            "axis": list(self._conf_axis),
+            "momentum": self._conf_momentum,
+            "epsilon": self._conf_epsilon,
+            "center": self._conf_center,
+            "scale": self._conf_scale,
+            "beta_initializer": [tf.keras.initializers.serialize(x) for x in self._conf_beta_initializer],
+            "gamma_initializer": [tf.keras.initializers.serialize(x) for x in self._conf_gamma_initializer],
             "moving_mean_initializer": [tf.keras.initializers.serialize(x) for x in
-                                        self.mlp_moving_mean_initializer],
+                                        self._conf_moving_mean_initializer],
             "moving_variance_initializer": [tf.keras.initializers.serialize(x) for x in
-                                            self.mlp_moving_variance_initializer],
-            "beta_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_beta_regularizer],
-            "gamma_regularizer": [tf.keras.regularizers.serialize(x) for x in self.mlp_gamma_regularizer],
-            "beta_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_beta_constraint],
-            "gamma_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_gamma_constraint],
+                                            self._conf_moving_variance_initializer],
+            "beta_regularizer": [tf.keras.regularizers.serialize(x) for x in self._conf_beta_regularizer],
+            "gamma_regularizer": [tf.keras.regularizers.serialize(x) for x in self._conf_gamma_regularizer],
+            "beta_constraint": [tf.keras.constraints.serialize(x) for x in self._conf_beta_constraint],
+            "gamma_constraint": [tf.keras.constraints.serialize(x) for x in self._conf_gamma_constraint],
             # Dropout
-            "use_dropout": self.mlp_use_dropout,
-            'rate': self.mlp_rate,
-            'noise_shape': self.mlp_noise_shape,
-            'seed': self.mlp_seed
+            "use_dropout": self._conf_use_dropout,
+            'rate': self._conf_rate,
+            'noise_shape': self._conf_noise_shape,
+            'seed': self._conf_seed
         })
         return config
 
@@ -239,69 +243,68 @@ class GraphMLP(MLPBase):
         super(GraphMLP, self).__init__(units=units, **kwargs)
 
         self.mlp_dense_layer_list = [DenseEmbedding(
-            units=self.mlp_units[i],
-            use_bias=self.mlp_use_bias[i],
+            units=self._conf_units[i],
+            use_bias=self._conf_use_bias[i],
             name=self.name + '_dense_' + str(i),
             activation="linear",
             activity_regularizer=None,
-            kernel_regularizer=self.mlp_kernel_regularizer[i],
-            bias_regularizer=self.mlp_bias_regularizer[i],
-            kernel_initializer=self.mlp_kernel_initializer[i],
-            bias_initializer=self.mlp_bias_initializer[i],
-            kernel_constraint=self.mlp_kernel_constraint[i],
-            bias_constraint=self.mlp_bias_constraint[i],
-            ragged_validate=self.ragged_validate,
-        ) for i in range(len(self.mlp_units))]
+            kernel_regularizer=self._conf_kernel_regularizer[i],
+            bias_regularizer=self._conf_bias_regularizer[i],
+            kernel_initializer=self._conf_kernel_initializer[i],
+            bias_initializer=self._conf_bias_initializer[i],
+            kernel_constraint=self._conf_kernel_constraint[i],
+            bias_constraint=self._conf_bias_constraint[i],
+        ) for i in range(len(self._conf_units))]
 
         self.mlp_activation_layer_list = [ActivationEmbedding(
-            activation=self.mlp_activation[i],
-            activity_regularizer=self.mlp_activity_regularizer[i],
-        ) for i in range(len(self.mlp_units))]
+            activation=self._conf_activation[i],
+            activity_regularizer=self._conf_activity_regularizer[i],
+        ) for i in range(len(self._conf_units))]
 
         self.mlp_norm_layer_list = [None]*self._depth
-        for i in range(len(self.mlp_units)):
-            if self.mlp_use_normalization[i]:
-                if self.mlp_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
+        for i in range(len(self._conf_units)):
+            if self._conf_use_normalization[i]:
+                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
                     self.mlp_norm_layer_list[i] = GraphBatchNormalization(
-                        axis=self.mlp_axis[i],
+                        axis=self._conf_axis[i],
                         name=self.name + '_norm_' + str(i),
-                        momentum=self.mlp_momentum[i],
-                        epsilon=self.mlp_epsilon[i],
-                        center=self.mlp_center[i],
-                        scale=self.mlp_scale[i],
-                        beta_initializer=self.mlp_beta_initializer[i],
-                        gamma_initializer=self.mlp_gamma_initializer[i],
-                        moving_mean_initializer=self.mlp_moving_mean_initializer[i],
-                        moving_variance_initializer=self.mlp_moving_variance_initializer[i],
-                        beta_regularizer=self.mlp_beta_regularizer[i],
-                        gamma_regularizer=self.mlp_gamma_regularizer[i],
-                        beta_constraint=self.mlp_beta_constraint[i],
-                        gamma_constraint=self.mlp_gamma_constraint[i])
-                elif self.mlp_normalization_technique[i] in ["layer", "LayerNormalization", "GraphLayerNormalization"]:
+                        momentum=self._conf_momentum[i],
+                        epsilon=self._conf_epsilon[i],
+                        center=self._conf_center[i],
+                        scale=self._conf_scale[i],
+                        beta_initializer=self._conf_beta_initializer[i],
+                        gamma_initializer=self._conf_gamma_initializer[i],
+                        moving_mean_initializer=self._conf_moving_mean_initializer[i],
+                        moving_variance_initializer=self._conf_moving_variance_initializer[i],
+                        beta_regularizer=self._conf_beta_regularizer[i],
+                        gamma_regularizer=self._conf_gamma_regularizer[i],
+                        beta_constraint=self._conf_beta_constraint[i],
+                        gamma_constraint=self._conf_gamma_constraint[i])
+                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization", "GraphLayerNormalization"]:
                     self.mlp_norm_layer_list[i] = GraphLayerNormalization(
                         name=self.name + '_norm_' + str(i),
-                        axis=self.mlp_axis[i],
-                        epsilon=self.mlp_epsilon[i],
-                        center=self.mlp_center[i],
-                        scale=self.mlp_scale[i],
-                        beta_initializer=self.mlp_beta_initializer[i],
-                        gamma_initializer=self.mlp_gamma_initializer[i],
-                        beta_regularizer=self.mlp_beta_regularizer[i],
-                        gamma_regularizer=self.mlp_gamma_regularizer[i],
-                        beta_constraint=self.mlp_beta_constraint[i],
-                        gamma_constraint=self.mlp_gamma_constraint[i])
+                        axis=self._conf_axis[i],
+                        epsilon=self._conf_epsilon[i],
+                        center=self._conf_center[i],
+                        scale=self._conf_scale[i],
+                        beta_initializer=self._conf_beta_initializer[i],
+                        gamma_initializer=self._conf_gamma_initializer[i],
+                        beta_regularizer=self._conf_beta_regularizer[i],
+                        gamma_regularizer=self._conf_gamma_regularizer[i],
+                        beta_constraint=self._conf_beta_constraint[i],
+                        gamma_constraint=self._conf_gamma_constraint[i])
                 else:
                     raise NotImplementedError(
-                        "ERROR: Normalization via %s not supported." % self.mlp_normalization_technique[i])
+                        "ERROR: Normalization via %s not supported." % self._conf_normalization_technique[i])
 
         self.mlp_dropout_layer_list = [None]*self._depth
-        for i in range(len(self.mlp_units)):
-            if self.mlp_use_dropout[i]:
+        for i in range(len(self._conf_units)):
+            if self._conf_use_dropout[i]:
                 self.mlp_dropout_layer_list[i] = DropoutEmbedding(
                     name=self.name + '_dropout_' + str(i),
-                    rate=self.mlp_rate[i],
-                    noise_shape=self.mlp_noise_shape[i],
-                    seed=self.mlp_seed[i])
+                    rate=self._conf_rate[i],
+                    noise_shape=self._conf_noise_shape[i],
+                    seed=self._conf_seed[i])
 
     def build(self, input_shape):
         """Build layer."""
@@ -317,13 +320,13 @@ class GraphMLP(MLPBase):
             tf.Tensor: MLP pass.
         """
         x = inputs
-        for i in range(len(self.mlp_units)):
-            x = self.mlp_dense_layer_list[i](x, **kwargs)
-            if self.mlp_use_dropout[i]:
-                x = self.mlp_dropout_layer_list[i](x, **kwargs)
-            if self.mlp_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
-            x = self.mlp_activation_layer_list[i](x, **kwargs)
+        for i in range(len(self._conf_units)):
+            x = self._conf_dense_layer_list[i](x, **kwargs)
+            if self._conf_use_dropout[i]:
+                x = self._conf_dropout_layer_list[i](x, **kwargs)
+            if self._conf_use_normalization[i]:
+                x = self._conf_norm_layer_list[i](x, **kwargs)
+            x = self._conf_activation_layer_list[i](x, **kwargs)
         out = x
         return out
 
