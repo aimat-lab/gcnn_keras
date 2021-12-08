@@ -318,21 +318,17 @@ hyper = {
                 {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
                 {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
             ],
-            "input_embedding": {
-                "node": {"input_dim": 95, "output_dim": 64}
-            },
+            "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
             "output_embedding": "graph",
+            'output_mlp': {"use_bias": [True, True], "units": [64, 1],
+                           "activation": ['kgcnn>shifted_softplus', "linear"]},
+            'last_mlp': {"use_bias": [True, True], "units": [128, 64],
+                         "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
             "interaction_args": {
                 "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
             },
-            "output_mlp": {
-                "use_bias": [True, True], "units": [128, 64],
-                "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]
-            },
-            "output_dense": {"units": 1, "activation": "linear", "use_bias": True},
             "node_pooling_args": {"pooling_method": "sum"},
             "depth": 4,
-            "out_scale_pos": 1,
             "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
         },
         "training": {

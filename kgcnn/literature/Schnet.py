@@ -4,7 +4,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.modules import DenseEmbedding
-from kgcnn.layers.mlp import MLPEmbedding
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -21,13 +21,14 @@ model_default = {'name': "Schnet",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
                  'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True], "units": [128, 64],
-                                "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-                 'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
+                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
+                                "activation": ['kgcnn>shifted_softplus', "linear"]},
+                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
+                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                  'interaction_args': {"units": 128, "use_bias": True,
                                       "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
                  'node_pooling_args': {"pooling_method": "sum"},
-                 'depth': 4, 'out_scale_pos': 1,
+                 'depth': 4,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  "make_distance": True, 'expand_distance': True,
                  'verbose': 1
@@ -39,15 +40,15 @@ def make_model(inputs=None,
                input_embedding=None,
                interaction_args=None,
                output_mlp=None,
-               output_dense=None,
+               last_mlp=None,
                output_embedding=None,
                node_pooling_args=None,
                depth=None,
-               out_scale_pos=None,
                gauss_args=None,
                expand_distance=None,
                make_distance=None,
-               **kwargs):
+               name=None,
+               verbose=None):
     r"""Make Schnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -58,13 +59,14 @@ def make_model(inputs=None,
             Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         interaction_args (dict): Dictionary of layer arguments unpacked in final `SchNetInteraction` layers.
-        output_dense (dict): Dictionary of layer arguments unpacked in final `Dense` layer.
+        last_mlp (dict): Dictionary of layer arguments unpacked in last `MLP` layer before output or pooling.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
-        out_scale_pos (int): Position of final `output_dense` layer.
         gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
 
     Returns:
         tf.keras.models.Model
@@ -93,19 +95,19 @@ def make_model(inputs=None,
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
-    n = MLPEmbedding(**output_mlp)(n)
-    mlp_last = DenseEmbedding(**output_dense)
+    n = MLPEmbedding(**last_mlp)(n)
 
     # Output embedding choice
     if output_embedding == 'graph':
-        if out_scale_pos == 0:
-            n = mlp_last(n)
         out = PoolingNodes(**node_pooling_args)(n)
-        if out_scale_pos == 1:
-            out = mlp_last(out)
-        main_output = ks.layers.Flatten()(out)  # will be dense
+        out = ks.layers.Flatten()(out)  # will be dense
+        if output_mlp is not None:
+            out = MLP(**output_mlp)(out)
+        main_output = out
     elif output_embedding == 'node':
-        out = mlp_last(n)
+        out = n
+        if output_mlp is not None:
+            out = MLPEmbedding(**output_mlp)(out)
         # no ragged for distribution atm
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:

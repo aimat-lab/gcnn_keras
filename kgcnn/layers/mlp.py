@@ -294,7 +294,7 @@ class MLPEmbedding(MLPBase):
                     raise NotImplementedError(
                         "ERROR: Normalization via %s not supported." % self.mlp_normalization_technique[i])
 
-        self.mlp_dropout_layer_list = [None]*self.depth
+        self.mlp_dropout_layer_list = [None]*self._depth
         for i in range(len(self.mlp_units)):
             if self.mlp_use_dropout[i]:
                 self.mlp_dropout_layer_list[i] = DropoutEmbedding(
