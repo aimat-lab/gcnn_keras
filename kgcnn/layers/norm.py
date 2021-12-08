@@ -17,12 +17,17 @@ class GraphLayerNormalization(GraphBaseLayer):
                  **kwargs):
         """Initialize layer same as Activation."""
         super(GraphLayerNormalization, self).__init__(**kwargs)
+        # The axis 0,1 are merged for ragged embedding input.
         if isinstance(axis, (list, tuple)):
             self.axis = list(axis[:])
-            axis_values = [x - 1 for x in axis]
+            if any([x == 0 for x in self.axis]):
+                raise ValueError("Positive axis for graph normalization must be > 0 or negative.")
+            axis_values = [x - 1 if x > 0 else x for x in self.axis]
         elif isinstance(axis, int):
             self.axis = axis
-            axis_values = axis - 1
+            if self.axis == 0:
+                raise ValueError("Positive axis for graph normalization must be > 0 or negative.")
+            axis_values = axis - 1 if axis > 0 else axis
         else:
             raise TypeError('Expected an int or a list/tuple of ints for the '
                             'argument \'axis\', but received: %r' % axis)
@@ -47,12 +52,12 @@ class GraphLayerNormalization(GraphBaseLayer):
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
             if axis < 1:
-                raise ValueError("The (positive) axis must be >= 1.")
+                raise ValueError("The (positive) axis must be > 0.")
             axis_values = axis - 1
         elif isinstance(self.axis, list):
             axis = [get_positive_axis(x, n_dims) for x in self.axis]
             if any([x < 1 for x in axis]):
-                raise ValueError("All (positive) axis must be >= 1.")
+                raise ValueError("All (positive) axis must be > 0.")
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
@@ -60,8 +65,6 @@ class GraphLayerNormalization(GraphBaseLayer):
         self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
         self._layer_norm.axis = axis_values
-        # Build keras layer with axis_values
-        self._layer_norm.build(input_shape[1:])
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -94,7 +97,7 @@ class GraphBatchNormalization(GraphBaseLayer):
                  **kwargs):
         """Initialize layer same as Activation."""
         super(GraphBatchNormalization, self).__init__(**kwargs)
-        # The axis 0,1 are merged for ragged embedding intput.
+        # The axis 0,1 are merged for ragged embedding input.
         if isinstance(axis, (list, tuple)):
             self.axis = list(axis[:])
             if any([x == 0 for x in self.axis]):
@@ -132,12 +135,12 @@ class GraphBatchNormalization(GraphBaseLayer):
         if isinstance(self.axis, int):
             axis = get_positive_axis(self.axis, n_dims)
             if axis < 1:
-                raise ValueError("The (positive) axis must be >= 1.")
+                raise ValueError("The (positive) axis must be > 0.")
             axis_values = axis - 1
         elif isinstance(self.axis, list):
             axis = [get_positive_axis(x, n_dims) for x in self.axis]
             if any([x < 1 for x in axis]):
-                raise ValueError("All (positive) axis must be >= 1.")
+                raise ValueError("All (positive) axis must be > 0.")
             axis_values = [x - 1 for x in axis]
         else:
             raise TypeError("Expected an int or a list of ints for the axis %s" % self.axis)
@@ -145,8 +148,6 @@ class GraphBatchNormalization(GraphBaseLayer):
         self.axis = axis
         # Remove batch dimension as we will call directly on value tensor in call.
         self._layer_norm.axis = axis_values
-        # Build keras layer with axis_values
-        self._layer_norm.build(input_shape[1:])
 
     def call(self, inputs, **kwargs):
         """Forward pass.
