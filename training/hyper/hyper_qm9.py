@@ -10,9 +10,9 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64}
             },
-            'output_mlp': None,
+            "output_mlp": None,
             "output_embedding": "graph",
-            'last_mlp': {"use_bias": [True, True, True], "units": [128, 64, 3],
+            "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 3],
                          "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
             "interaction_args": {
                 "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
@@ -213,6 +213,7 @@ hyper = {
                                                                     "config": {"minval": -1.7320508075688772,
                                                                                "maxval": 1.7320508075688772}}}},
             "output_embedding": "graph",
+            "output_mlp": None,
             "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
             "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
             "cutoff": 5.0, "envelope_exponent": 5,
