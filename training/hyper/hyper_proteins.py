@@ -6,8 +6,9 @@ hyper = {
                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node_labels": {"input_dim": 800, "output_dim": 64}},
             "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True], "units": [2], "activation": ["linear"]},
-            "output_activation": "softmax",
+            "output_mlp": {"use_bias": True, "units": 2, "activation": "softmax"},
+            "last_mlp": {"use_bias": [True], "units": [2],
+                         "activation": ['linear']},
             "depth": 5,
             "dropout": 0.5,
             "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"]}
