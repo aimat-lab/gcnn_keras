@@ -21,29 +21,20 @@ class GraphBaseLayer(tf.keras.layers.Layer):
 
     def __init__(self,
                  node_indexing="sample",
-                 partition_type="row_length",
-                 input_tensor_type="RaggedTensor",
-                 output_tensor_type=None,
                  ragged_validate=False,
                  is_sorted=False,
                  has_unconnected=True,
-                 is_directed=True,
                  **kwargs):
         """Initialize layer."""
         super(GraphBaseLayer, self).__init__(**kwargs)
-        self.is_directed = is_directed
         self.node_indexing = node_indexing
-        self.partition_type = partition_type
-        self.input_tensor_type = input_tensor_type
-        self.output_tensor_type = input_tensor_type if output_tensor_type is None else output_tensor_type
         self.ragged_validate = ragged_validate
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         self._supports_ragged_inputs = True
-        self._kgcnn_info = {"node_indexing": self.node_indexing, "partition_type": self.partition_type,
-                            "input_tensor_type": self.input_tensor_type, "ragged_validate": self.ragged_validate,
-                            "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected,
-                            "output_tensor_type": self.output_tensor_type, "is_directed": self.is_directed}
+        self._kgcnn_info = {"node_indexing": self.node_indexing,
+                            "ragged_validate": self.ragged_validate,
+                            "is_sorted": self.is_sorted, "has_unconnected": self.has_unconnected}
 
         if self.node_indexing != "sample":
             raise ValueError("Indexing for disjoint representation is not supported as of version 1.0")
@@ -53,13 +44,9 @@ class GraphBaseLayer(tf.keras.layers.Layer):
     def get_config(self):
         config = super(GraphBaseLayer, self).get_config()
         config.update({"node_indexing": self.node_indexing,
-                       "partition_type": self.partition_type,
-                       "input_tensor_type": self.input_tensor_type,
                        "ragged_validate": self.ragged_validate,
                        "is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
-                       "output_tensor_type": self.output_tensor_type,
-                       "is_directed": self.is_directed
                        })
         # Also add to config info of layer to self
         for key, value in self._add_layer_config_to_self.items():
@@ -87,7 +74,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
         else:
             self._build_input_shape_check(input_shape, 0)
 
-    def _assert_ragged_input(self, inputs, ragged_rank: int = 1):
+    def assert_ragged_input_rank(self, inputs, ragged_rank: int = 1):
         """Assert input to be ragged with a given ragged_rank.
 
         Args:

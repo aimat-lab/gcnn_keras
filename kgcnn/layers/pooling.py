@@ -47,7 +47,7 @@ class PoolingLocalEdges(GraphBaseLayer):
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
         # Need ragged input but can be generalized in the future.
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -93,7 +93,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
     corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
-    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index_tensor, that has a list of
+    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index-tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
     receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
 
@@ -136,7 +136,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -209,7 +209,7 @@ class PoolingEmbedding(GraphBaseLayer):
             tf.Tensor: Pooled node features of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         # We cast to values here
         nod, batchi = inputs.values, inputs.value_rowids()
 
@@ -263,7 +263,7 @@ class PoolingWeightedEmbedding(GraphBaseLayer):
             tf.Tensor: Pooled node features of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         # We cast to values here
         nod, batchi = inputs[0].values, inputs[0].value_rowids()
         weights, _ = inputs[1].values, inputs[1].value_rowids()
@@ -407,7 +407,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -503,7 +503,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
         # Need ragged input but can be generalized in the future.
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         # We cast to values here
         nod, node_part = inputs[0].values, inputs[0].row_lengths()
         edge = inputs[1].values
@@ -550,12 +550,11 @@ class PoolingEmbeddingAttention(GraphBaseLayer):
     r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
     ::obj`tf.Tensor`.
 
-    Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i`
+    Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i`.
     The attention is computed via: :math:`\alpha_i = \text{softmax}_i(a_i)` from the attention coefficients :math:`a_i`.
     The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W [s || n_i])` and
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
     In summary, :math:`s =  \sum_i \text{softmax}_j(a_i) n_i` is computed by the layer.
-
     """
 
     def __init__(self, **kwargs):
@@ -579,7 +578,7 @@ class PoolingEmbeddingAttention(GraphBaseLayer):
             tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
         """
         # Need ragged input but can be generalized in the future.
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         # We cast to values here
         nod, batchi, target_len = inputs[0].values, inputs[0].value_rowids(), inputs[0].row_lengths()
         ats = inputs[1].values

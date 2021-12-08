@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -112,16 +112,16 @@ def make_model(inputs=None,
     vp = n
     ep = ed
     up = uenv
-    vp = MLP(**node_ff_args)(vp)
-    ep = MLP(**edge_ff_args)(ep)
+    vp = MLPEmbedding(**node_ff_args)(vp)
+    ep = MLPEmbedding(**edge_ff_args)(ep)
     up = MLP(**state_ff_args)(up)
     vp2 = vp
     ep2 = ep
     up2 = up
     for i in range(0, nblocks):
         if has_ff and i > 0:
-            vp2 = MLP(**node_ff_args)(vp)
-            ep2 = MLP(**edge_ff_args)(ep)
+            vp2 = MLPEmbedding(**node_ff_args)(vp)
+            ep2 = MLPEmbedding(**edge_ff_args)(ep)
             up2 = MLP(**state_ff_args)(up)
 
         # MEGnetBlock
@@ -132,11 +132,11 @@ def make_model(inputs=None,
         if dropout is not None:
             vp2 = DropoutEmbedding(dropout, name='dropout_atom_%d' % i)(vp2)
             ep2 = DropoutEmbedding(dropout, name='dropout_bond_%d' % i)(ep2)
-            up2 = DropoutEmbedding(dropout, name='dropout_state_%d' % i)(up2)
+            up2 = ks.layers.Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
         vp = LazyAdd()([vp2, vp])
         ep = LazyAdd()([ep2, ep])
-        up = LazyAdd(input_tensor_type="tensor")([up2, up])
+        up = ks.layers.Add()([up2, up])
 
     if use_set2set:
         vp = DenseEmbedding(set2set_args["channels"], activation='linear')(vp)  # to match units
@@ -154,10 +154,10 @@ def make_model(inputs=None,
     if dropout is not None:
         final_vec = ks.layers.Dropout(dropout, name='dropout_final')(final_vec)
 
+    # Only graph embedding for Megnet
     if output_embedding != "graph":
         raise ValueError("Unsupported graph embedding for mode `Megnet`.")
-    # final dense layers
-    # Only graph embedding for Megnet
-    main_output = MLP(**output_mlp, input_tensor_type="tensor")(final_vec)
+
+    main_output = MLP(**output_mlp)(final_vec)
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, env_input], outputs=main_output)
     return model

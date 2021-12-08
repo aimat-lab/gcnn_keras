@@ -35,7 +35,7 @@ class DMPNNGatherEdgesPairs(GraphBaseLayer):
         Returns:
             list: Gathered edge embeddings that match the reverse edges of shape (batch, [M], F) for selection_index.
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         edges, pair_index = inputs
         index_corrected = tf.RaggedTensor.from_row_splits(
             tf.where(pair_index.values >= 0, pair_index.values, tf.zeros_like(pair_index.values)),

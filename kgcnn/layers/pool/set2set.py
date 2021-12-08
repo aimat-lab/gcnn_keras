@@ -173,7 +173,7 @@ class PoolingSet2Set(GraphBaseLayer):
         Returns:
             tf.Tensor: Pooled tensor q_star of shape (batch, 1, 2*channels)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         x, batch_num, batch_index = inputs.values, inputs.row_lengths(), inputs.value_rowids()
 
         # Reading to memory removed here, is to be done by separately

@@ -263,4 +263,48 @@ hyper = {
             "kgcnn_version": "1.1.2"
         }
     },
+    "GATv2": {
+        "model": {
+            "name": "GATv2",
+            "inputs": [
+                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+            ],
+            "input_embedding": {
+                "node": {"input_dim": 95, "output_dim": 64},
+                "edge": {"input_dim": 8, "output_dim": 64}},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ["relu", "relu", "linear"]},
+            "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                               "use_final_activation": False, "has_self_loops": True},
+            "pooling_nodes_args": {"pooling_method": "sum"},
+            "depth": 4, "attention_heads_num": 10,
+            "attention_heads_concat": False, "verbose": 1
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "loss": "mean_absolute_error"
+            },
+            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
+            "execute_folds": None
+        },
+        "data": {
+        },
+        "info": {
+            "postfix": "",
+            "kgcnn_version": "1.1.2"
+        }
+    },
 }

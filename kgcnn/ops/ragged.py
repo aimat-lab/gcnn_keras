@@ -43,7 +43,7 @@ def partition_from_ragged_tensor_by_name(ragged_tensor, partition_type: str):
         partition_type (str): String identifier of the partition scheme. Either `row_splits`, `row_limits` etc.
 
     Returns:
-        tf.Tensor: Row partition defined by partition_type.
+        tf.Tensor: Row partition defined by partition-type.
     """
     # Not for nested ragged definition
     flat_tens = ragged_tensor.values

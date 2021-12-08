@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.modules import DenseEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -34,7 +34,9 @@ def make_model(inputs=None,
                output_mlp=None,
                depth=None,
                gcn_args=None,
-               **kwargs):
+               name=None,
+               verbose=None
+               ):
     """Make GCN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -45,11 +47,12 @@ def make_model(inputs=None,
             Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         gcn_args (dict): Dictionary of layer arguments unpacked in `GCN` convolutional layer.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
 
     Returns:
         tf.keras.models.Model
     """
-
     input_node_shape = inputs[0]['shape']
     input_edge_shape = inputs[1]['shape']
 
@@ -78,9 +81,9 @@ def make_model(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        out = MLP(**output_mlp)(out)
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
-            out)  # no ragged for distribution supported atm
+        out = MLPEmbedding(**output_mlp)(out)
+        # no ragged for distribution supported atm
+        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for `GCN`")
 
@@ -110,8 +113,9 @@ def make_model_weighted(inputs=None,
                         output_mlp=None,
                         depth=None,
                         gcn_args=None,
-                        **kwargs):
-    """Make GCN model."""
+                        name=None,
+                        verbose=None):
+    """Make GCN model with edge weights."""
 
     input_node_shape = inputs[0]['shape']
     input_edge_shape = inputs[1]['shape']
@@ -143,9 +147,9 @@ def make_model_weighted(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        out = MLP(**output_mlp)(out)
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
-            out)  # no ragged for distribution supported atm
+        out = MLPEmbedding(**output_mlp)(out)
+        # no ragged for distribution supported atm
+        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for `GCN`")
 

@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -39,7 +39,8 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None,
                attention_args=None,
-               **kwargs):
+               name=None,
+               verbose=None):
     """Make AttentiveFP graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -52,6 +53,8 @@ def make_model(inputs=None,
             Defines number of model outputs and activation.
         attention_args (dict): Dictionary of layer arguments unpacked in `AttentiveHeadFP` layer. Units parameter
             is also used in GRU-update and `PoolingNodesAttentive`.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
 
     Returns:
         tf.keras.models.Model
@@ -81,10 +84,10 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodesAttentive(units=attention_args['units'])(n)
-        out = MLP(**output_mlp)(out)
-        main_output = ks.layers.Flatten()(out)  # will be dense
+        out = ks.layers.Flatten()(out)  # will be dense
+        main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':  # node embedding
-        out = MLP(**output_mlp)(n)
+        out = MLPEmbedding(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")

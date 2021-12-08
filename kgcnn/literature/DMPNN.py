@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -113,9 +113,9 @@ def make_model(name=None,
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
-        main_output = MLP(**output_mlp)(out)
-        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
+        main_output = MLPEmbedding(**output_mlp)(out)
         # no ragged for distribution supported atm
+        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
     else:
         raise ValueError("Unsupported graph embedding for mode `DMPNN`")
 

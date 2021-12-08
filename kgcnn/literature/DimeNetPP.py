@@ -23,13 +23,13 @@ model_default = {"name": "DimeNetPP",
                                               "embeddings_initializer": {"class_name": "RandomUniform",
                                                                          "config": {"minval": -1.7320508075688772,
                                                                                     "maxval": 1.7320508075688772}}}},
+                 "output_mlp": {"use_bias": [True, False], "units": [64, 12], "activation": ["swish", "linear"]},
                  "output_embedding": "graph",
-                 'output_mlp': None,
                  "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
                  "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
                  "cutoff": 5.0, "envelope_exponent": 5,
                  "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
-                 "num_targets": 12, "extensive": True, "output_init": "zeros",
+                 "num_targets": 64, "extensive": True, "output_init": "zeros",
                  "activation": "swish", "verbose": 1
                  }
 

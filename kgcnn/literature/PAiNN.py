@@ -6,7 +6,7 @@ from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
 from kgcnn.layers.modules import LazyAdd, LazySubtract
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -19,9 +19,9 @@ model_default = {"name": "PAiNN",
                             {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                             {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
                  "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-                 "output_embedding": "graph",
                  "output_mlp": {"use_bias": [True, True], "units": [128, 1],
                                 "activation": ["swish", "linear"]},
+                 "output_embedding": "graph",
                  "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                  "pooling_args": {"pooling_method": "sum"},
                  "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
@@ -40,7 +40,9 @@ def make_model(inputs=None,
                pooling_args=None,
                output_mlp=None,
                conv_args=None,
-               update_args=None, **kwargs):
+               update_args=None,
+               name=None,
+               verbose=None):
     """Make PAiNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -54,6 +56,8 @@ def make_model(inputs=None,
             Defines number of model outputs and activation.
         conv_args (dict): Dictionary of layer arguments unpacked in `PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in `PAiNNUpdate` layer.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
 
     Returns:
         tf.keras.models.Model
@@ -96,7 +100,7 @@ def make_model(inputs=None,
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        main_output = MLP(**output_mlp)(out)
+        main_output = MLPEmbedding(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:

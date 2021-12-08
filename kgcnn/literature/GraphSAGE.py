@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate
 from kgcnn.layers.norm import GraphLayerNormalization
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -85,7 +85,7 @@ def make_model(inputs=None,
         if use_edge_features:
             eu = LazyConcatenate(**concat_args)([eu, ed])
 
-        eu = MLP(**edge_mlp_args)(eu)
+        eu = MLPEmbedding(**edge_mlp_args)(eu)
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             nu = PoolingLocalEdgesLSTM(**pooling_args)([n, eu, edi])
@@ -94,16 +94,16 @@ def make_model(inputs=None,
 
         nu = LazyConcatenate(**concat_args)([n, nu])  # LazyConcatenate node features with new edge updates
 
-        n = MLP(**node_mlp_args)(nu)
+        n = MLPEmbedding(**node_mlp_args)(nu)
         n = GraphLayerNormalization()(n)  # Normalize
 
     # Regression layer on output
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
-        out = MLP(**output_mlp)(out)
-        main_output = ks.layers.Flatten()(out)  # will be tensor
+        out = ks.layers.Flatten()(out)  # will be tensor
+        main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = MLP(**output_mlp)(n)
+        out = MLPEmbedding(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `GraphSAGE`")

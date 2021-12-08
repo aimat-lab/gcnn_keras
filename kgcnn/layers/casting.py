@@ -50,7 +50,7 @@ class ChangeTensorType(GraphBaseLayer):
         Returns:
             tensor: Changed tensor type.
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
 
         if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
             return inputs.to_tensor()
@@ -73,7 +73,7 @@ class ChangeTensorType(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeIndexing')
 class ChangeIndexing(GraphBaseLayer):
-    """Shift the index for index-tensors to assign e.g. nodes within the batch or for each of the single samples
+    """Shift the index for index-tensors to assign e.g. nodes within the batch or for each of the sample
     or vice-versa.
     This can be interpreted as a per-graph assignment of batched graph representations versus a global disjoint graph
     representation with unconnected sub-graphs.
@@ -87,29 +87,20 @@ class ChangeIndexing(GraphBaseLayer):
         to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
             The disjoint representation assigns nodes within the 'batch'.
             It changes "sample" to "batch" or "batch" to "sample." Default is 'batch'.
-        from_indexing (str): Index convention that has been set for the input. Default is 'sample'.
-        partition_type (str): Partition tensor type. Default is "row_length". Only used for values_partition input.
-        input_tensor_type (str): Input type of the tensors for call(). Default is "values_partition".
+        from_indexing (str): Index convention that has been set for the input. Default is 'sample'..
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
     """
 
     def __init__(self,
                  to_indexing='batch',
                  from_indexing='sample',
-                 partition_type="row_length",
-                 input_tensor_type="values_partition",
                  ragged_validate=False,
                  **kwargs):
         """Initialize layer."""
         super(ChangeIndexing, self).__init__(**kwargs)
         self.to_indexing = to_indexing
         self.from_indexing = from_indexing
-        self.partition_type = partition_type
-        self.input_tensor_type = input_tensor_type
         self.ragged_validate = ragged_validate
-
-        if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-            raise ValueError("Input must be RaggedTensor for layer", self.name)
 
         if self.from_indexing != self.node_indexing:
             print("WARNING: Graph layer's node_indexing does not agree with from_indexing", self.node_indexing,
@@ -129,9 +120,9 @@ class ChangeIndexing(GraphBaseLayer):
                 - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [N], 2).
             
         Returns:
-            tf.RaggedTensor: Corrected edge indices of shape (batch, [N], 2).
+            tf.RaggedTensor: Batch-wise edge indices of shape (batch, [N], 2).
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         nod, edge_index = inputs
         indexlist = partition_row_indexing(edge_index.values,
                                            nod.row_splits,
@@ -139,8 +130,7 @@ class ChangeIndexing(GraphBaseLayer):
                                            partition_type_target="row_splits",
                                            partition_type_index="value_rowids",
                                            from_indexing=self.from_indexing,
-                                           to_indexing=self.to_indexing
-                                           )
+                                           to_indexing=self.to_indexing)
 
         out = tf.RaggedTensor.from_row_splits(indexlist, edge_index.row_splits, validate=self.ragged_validate)
         return out
@@ -150,7 +140,5 @@ class ChangeIndexing(GraphBaseLayer):
         config = super(ChangeIndexing, self).get_config()
         config.update({"to_indexing": self.to_indexing,
                        "from_indexing": self.from_indexing,
-                       "partition_type": self.partition_type,
-                       "input_tensor_type": self.input_tensor_type,
                        "ragged_validate": self.ragged_validate})
         return config

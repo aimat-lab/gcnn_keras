@@ -4,7 +4,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.modules import DenseEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -21,11 +21,11 @@ model_default = {'name': "Schnet",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
                  'output_embedding': 'graph',
-                 'interaction_args': {"units": 128, "use_bias": True,
-                                      "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
                  'output_mlp': {"use_bias": [True, True], "units": [128, 64],
                                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                  'output_dense': {"units": 1, "activation": 'linear', "use_bias": True},
+                 'interaction_args': {"units": 128, "use_bias": True,
+                                      "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4, 'out_scale_pos': 1,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
@@ -93,7 +93,7 @@ def make_model(inputs=None,
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
-    n = MLP(**output_mlp)(n)
+    n = MLPEmbedding(**output_mlp)(n)
     mlp_last = DenseEmbedding(**output_dense)
 
     # Output embedding choice

@@ -12,7 +12,8 @@ class MLPBase(GraphBaseLayer):
     If not list, then the single argument is used for each layer.
     The number of layers is given by units, which should be list.
     Additionally this base class holds arguments for batch-normalization which should be applied between kernel
-    and activation. And dropout. Does not initialize layer or implements `call()`. Only for managing arguments.
+    and activation. And dropout after the kernel output and before normalization.
+    This base class does not initialize any sub-layers or implements :obj:`call()`. Only for managing arguments.
 
     Args:
         units: Positive integer, dimensionality of the output space.
@@ -32,6 +33,7 @@ class MLPBase(GraphBaseLayer):
         bias_constraint: Constraint function applied to the bias vector.
         use_normalization: Whether to use a normalization layer in between.
         normalization_technique: Which keras normalization technique to apply.
+            This can be either 'batch', 'layer', 'group' etc.
         axis: Integer, the axis that should be normalized (typically the features
             axis). For instance, after a `Conv2D` layer with
             `data_format="channels_first"`, set `axis=1` in `GraphBatchNormalization`.
@@ -71,7 +73,7 @@ class MLPBase(GraphBaseLayer):
                  bias_initializer='zeros',
                  kernel_constraint=None,
                  bias_constraint=None,
-                 # Normalization should use either Layer or BatchNorm here
+                 # Normalization
                  use_normalization=False,
                  normalization_technique="batch",
                  axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
@@ -91,12 +93,12 @@ class MLPBase(GraphBaseLayer):
         if not isinstance(units, list):
             raise ValueError("Units must be a list or a single int for `MLP`.")
 
-        self.depth = len(units)
+        self._depth = len(units)
 
         # Assert matching number of args
         def assert_args_is_list(args):
             if not isinstance(args, (list, tuple)):
-                return [args for _ in range(self.depth)]
+                return [args for _ in range(self._depth)]
             return args
 
         # Dense
@@ -225,146 +227,16 @@ class MLPBase(GraphBaseLayer):
         return config
 
 
-# import tensorflow.keras.backend as ksb
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
-class MLP(GraphBaseLayer):
-    """Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
-    If not list, then the single argument is used for each layer.
-    The number of layers is given by units, which should be list.
-        
-    Args:
-        units: Positive integer, dimensionality of the output space.
-        activation: Activation function to use.
-            If you don't specify anything, no activation is applied
-            (ie. "linear" activation: `a(x) = x`).
-        use_bias: Boolean, whether the layer uses a bias vector.
-        kernel_initializer: Initializer for the `kernel` weights matrix.
-        bias_initializer: Initializer for the bias vector.
-        kernel_regularizer: Regularizer function applied to
-            the `kernel` weights matrix.
-        bias_regularizer: Regularizer function applied to the bias vector.
-        activity_regularizer: Regularizer function applied to
-            the output of the layer (its "activation").
-        kernel_constraint: Constraint function applied to
-            the `kernel` weights matrix.
-        bias_constraint: Constraint function applied to the bias vector.
-    """
-
-    def __init__(self,
-                 units,
-                 use_bias=True,
-                 activation=None,
-                 activity_regularizer=None,
-                 kernel_regularizer=None,
-                 bias_regularizer=None,
-                 kernel_initializer='glorot_uniform',
-                 bias_initializer='zeros',
-                 kernel_constraint=None,
-                 bias_constraint=None,
-                 **kwargs):
-        """Initialize MLP as for dense."""
-        super(MLP, self).__init__(**kwargs)
-        # Make to one element list
-        if isinstance(units, int):
-            units = [units]
-
-        self.depth = len(units)
-
-        def assert_args_is_list(args):
-            if not isinstance(args, (list, tuple)):
-                return [args for _ in range(self.depth)]
-            return args
-
-        use_bias = assert_args_is_list(use_bias)
-        activation = assert_args_is_list(activation)
-        kernel_regularizer = assert_args_is_list(kernel_regularizer)
-        bias_regularizer = assert_args_is_list(bias_regularizer)
-        activity_regularizer = assert_args_is_list(activity_regularizer)
-        kernel_initializer = assert_args_is_list(kernel_initializer)
-        bias_initializer = assert_args_is_list(bias_initializer)
-        kernel_constraint = assert_args_is_list(kernel_constraint)
-        bias_constraint = assert_args_is_list(bias_constraint)
-
-        for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
-                  bias_initializer, kernel_constraint, bias_constraint, use_bias]:
-            if len(x) != len(units):
-                raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
-
-        # Serialized args
-        self.mlp_units = list(units)
-        self.mlp_use_bias = list(use_bias)
-        self.mlp_activation = list([tf.keras.activations.get(x) for x in activation])
-        self.mlp_kernel_regularizer = list([tf.keras.regularizers.get(x) for x in kernel_regularizer])
-        self.mlp_bias_regularizer = list([tf.keras.regularizers.get(x) for x in bias_regularizer])
-        self.mlp_activity_regularizer = list([tf.keras.regularizers.get(x) for x in activity_regularizer])
-        self.mlp_kernel_initializer = list([tf.keras.initializers.get(x) for x in kernel_initializer])
-        self.mlp_bias_initializer = list([tf.keras.initializers.get(x) for x in bias_initializer])
-        self.mlp_kernel_constraint = list([tf.keras.constraints.get(x) for x in kernel_constraint])
-        self.mlp_bias_constraint = list([tf.keras.constraints.get(x) for x in bias_constraint])
-
-        self.mlp_dense_list = [DenseEmbedding(
-            units=self.mlp_units[i],
-            use_bias=self.mlp_use_bias[i],
-            name=self.name + '_dense_' + str(i),
-            activation=self.mlp_activation[i],
-            activity_regularizer=self.mlp_activity_regularizer[i],
-            kernel_regularizer=self.mlp_kernel_regularizer[i],
-            bias_regularizer=self.mlp_bias_regularizer[i],
-            kernel_initializer=self.mlp_kernel_initializer[i],
-            bias_initializer=self.mlp_bias_initializer[i],
-            kernel_constraint=self.mlp_kernel_constraint[i],
-            bias_constraint=self.mlp_bias_constraint[i],
-            ragged_validate=self.ragged_validate,
-            input_tensor_type=self.input_tensor_type
-        ) for i in range(len(self.mlp_units))]
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(MLP, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not None.
-
-        Returns:
-            tf.Tensor: MLP pass.
-        """
-        x = inputs
-        for i in range(len(self.mlp_units)):
-            x = self.mlp_dense_list[i](x, **kwargs)
-        out = x
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(MLP, self).get_config()
-        config.update({"units": self.mlp_units,
-                       'use_bias': self.mlp_use_bias,
-                       'activation': [tf.keras.activations.serialize(x) for x in self.mlp_activation],
-                       'activity_regularizer': [tf.keras.regularizers.serialize(x) for x in
-                                                self.mlp_activity_regularizer],
-                       'kernel_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_kernel_regularizer],
-                       'bias_regularizer': [tf.keras.regularizers.serialize(x) for x in self.mlp_bias_regularizer],
-                       "kernel_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_kernel_initializer],
-                       "bias_initializer": [tf.keras.initializers.serialize(x) for x in self.mlp_bias_initializer],
-                       "kernel_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_kernel_constraint],
-                       "bias_constraint": [tf.keras.constraints.serialize(x) for x in self.mlp_bias_constraint],
-                       })
-        return config
-
-
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='BatchNormMLP')
-class BatchNormMLP(MLPBase):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPEmbedding')
+class MLPEmbedding(MLPBase):
     r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
-    See layer arguments of :obj:`MLPBase` for configuration.
-
+    See layer arguments of :obj:`MLPBase` for configuration. This layer adds normalization for embeddings tensors of
+    node or edge embeddings represented by a ragged tensor.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, units, **kwargs):
         """Initialize MLP as for dense."""
-        super(BatchNormMLP, self).__init__(**kwargs)
+        super(MLPEmbedding, self).__init__(units=units, **kwargs)
 
         self.mlp_dense_layer_list = [DenseEmbedding(
             units=self.mlp_units[i],
@@ -379,7 +251,6 @@ class BatchNormMLP(MLPBase):
             kernel_constraint=self.mlp_kernel_constraint[i],
             bias_constraint=self.mlp_bias_constraint[i],
             ragged_validate=self.ragged_validate,
-            input_tensor_type=self.input_tensor_type
         ) for i in range(len(self.mlp_units))]
 
         self.mlp_activation_layer_list = [ActivationEmbedding(
@@ -387,7 +258,7 @@ class BatchNormMLP(MLPBase):
             activity_regularizer=self.mlp_activity_regularizer[i],
         ) for i in range(len(self.mlp_units))]
 
-        self.mlp_norm_layer_list = [None]*self.depth
+        self.mlp_norm_layer_list = [None]*self._depth
         for i in range(len(self.mlp_units)):
             if self.mlp_use_normalization[i]:
                 if self.mlp_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
@@ -434,7 +305,7 @@ class BatchNormMLP(MLPBase):
 
     def build(self, input_shape):
         """Build layer."""
-        super(BatchNormMLP, self).build(input_shape)
+        super(MLPEmbedding, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -458,5 +329,8 @@ class BatchNormMLP(MLPBase):
 
     def get_config(self):
         """Update config."""
-        config = super(BatchNormMLP, self).get_config()
+        config = super(MLPEmbedding, self).get_config()
         return config
+
+
+MLP = MLPEmbedding

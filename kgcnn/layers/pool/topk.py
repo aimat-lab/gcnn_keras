@@ -38,11 +38,6 @@ class PoolingTopK(GraphBaseLayer):
         """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
 
-        if self.input_tensor_type in ["ragged", "RaggedTensor"]:
-            self.units_p = input_shape[0][-1]
-        else:
-            raise NotImplementedError("Error: Not supported input tensor type.")
-
         self.kernel_p = self.add_weight('score',
                                         shape=[1, self.units_p],
                                         initializer=self.kernel_initializer,
@@ -70,7 +65,7 @@ class PoolingTopK(GraphBaseLayer):
                 - map_nodes (tf.RaggedTensor): Index map between original and pooled nodes
                 - map_edges (tf.RaggedTensor): Index map between original and pooled edges
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         dyn_inputs = inputs
         # We cast to values here
         node, nodelen = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
@@ -254,7 +249,7 @@ class UnPoolingTopK(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Un-pooled edge feature list
                 - edge_indices (tf.RaggedTensor): Un-pooled edge index
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         dyn_inputs = inputs
         # We cast to values here
         node_old, nrowlength = dyn_inputs[0].values, dyn_inputs[0].row_lengths()
@@ -332,7 +327,7 @@ class AdjacencyPower(GraphBaseLayer):
                 - edges (tf.RaggedTensor): Adjacency entries of shape  (batch, [M], 1)
                 - edge_indices (tf.RaggedTensor): Flatten index list of shape (batch, [M], 2)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         dyn_inputs = inputs
 
         nod, node_len = dyn_inputs[0].values, dyn_inputs[0].row_lengths()

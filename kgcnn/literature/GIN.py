@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
 from kgcnn.layers.modules import DropoutEmbedding, ActivationEmbedding, DenseEmbedding
-from kgcnn.layers.mlp import MLP, BatchNormMLP
+from kgcnn.layers.mlp import MLPEmbedding, BatchNormMLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -32,7 +32,10 @@ def make_model(inputs=None,
                depth=None,
                gin_args=None,
                output_activation=None,
-               dropout=None, **kwargs):
+               dropout=None,
+               name=None,
+               verbose=None
+               ):
     """Make GIN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -45,6 +48,8 @@ def make_model(inputs=None,
         gin_args (dict): Dictionary of layer arguments unpacked in `GIN` convolutional layer.
         output_activation (str, dict): Activation for final output layer.
         dropout (float): Dropout to use.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
 
     Returns:
         tf.keras.models.Model
@@ -72,16 +77,16 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == "graph":
         out = [PoolingNodes()(x) for x in list_embeddings]  # will return tensor
-        out = [MLP(**output_mlp)(x) for x in out]
+        out = [MLPEmbedding(**output_mlp)(x) for x in out]
         out = [DropoutEmbedding(dropout)(x) for x in out]
         out = ks.layers.Add()(out)
         out = ks.layers.Activation(output_activation)(out)
     elif output_embedding == "node":  # Node labeling
         out = n
-        out = MLP(**output_mlp)(out)
+        out = MLPEmbedding(**output_mlp)(out)
         out = ActivationEmbedding(output_activation)(out)
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(
-            out)  # no ragged for distribution supported atm
+        # no ragged for distribution supported atm
+        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `GIN`")
 

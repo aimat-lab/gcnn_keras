@@ -2,15 +2,18 @@ import tensorflow as tf
 import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
-
+from kgcnn.ops.axis import get_positive_axis
 # There are limitations for RaggedTensor working with standard Keras layers. Here are some simple wrappers.
 # This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
 # Since all kgcnn layers work with ragged_rank=1 and defined inner dimension. This case can be caught explicitly.
-from kgcnn.ops.axis import get_positive_axis
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
 class DenseEmbedding(GraphBaseLayer):
+    r"""Dense layer for ragged tensors representing a geometric or graph tensor such as node or edge embeddings.
+    Current tensorflow version does support ragged input for :obj:`tf.keras.layers.Dense` with defined inner dimension.
+    This layer is kept for backward compatibility and but does not necessarily have to be used in models anymore.
+    """
 
     def __init__(self,
                  units,
@@ -41,7 +44,7 @@ class DenseEmbedding(GraphBaseLayer):
 
     def call(self, inputs, **kwargs):
         """Forward pass wrapping tf.keras.layers"""
-        # For Dense can call on flat values too.
+        # For Dense can call on flat values.
         if isinstance(inputs, tf.RaggedTensor):
             return tf.ragged.map_flat_values(self._layer_dense, inputs, **kwargs)
         return self._layer_dense(inputs, **kwargs)

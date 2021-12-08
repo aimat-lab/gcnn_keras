@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGATV2
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
@@ -41,7 +41,8 @@ def make_model(inputs=None,
                depth=None,
                attention_heads_num=None,
                attention_heads_concat=None,
-               **kwargs):
+               name=None,
+               verbose=None):
     """Make GATv2 graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -55,6 +56,8 @@ def make_model(inputs=None,
         depth (int): Number of graph embedding units or depth of the network.
         attention_heads_num (int): Number of attention heads to use.
         attention_heads_concat (bool): Whether to concat attention heads. Otherwise average heads.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
 
     Returns:
         tf.keras.models.Model
@@ -84,10 +87,10 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
-        out = MLP(**output_mlp)(out)
-        main_output = ks.layers.Flatten()(out)  # will be dense
+        out = ks.layers.Flatten()(out)  # will be dense
+        main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = MLP(**output_mlp)(n)
+        out = MLPEmbedding(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for `GATv2`")

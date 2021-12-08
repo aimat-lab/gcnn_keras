@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -47,7 +47,8 @@ def make_model(inputs=None,
                set2set_args=None,
                pooling_args=None,
                use_set2set=None,
-               **kwargs
+               name=None,
+               verbose=None
                ):
     """Make INorp graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -64,6 +65,8 @@ def make_model(inputs=None,
         set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges`, `PoolingNodes` layer.
         use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
 
     Returns:
         tf.keras.models.Model
@@ -91,27 +94,27 @@ def make_model(inputs=None,
         upd = LazyConcatenate(axis=-1)([eu2, eu1])
         eu = LazyConcatenate(axis=-1)([upd, ed])
 
-        eu = MLP(**edge_mlp_args)(eu)
+        eu = MLPEmbedding(**edge_mlp_args)(eu)
         # Pool message
         nu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = LazyConcatenate(axis=-1)(
             [n, nu, ev])  # LazyConcatenate node features with new edge updates
-        n = MLP(**node_mlp_args)(nu)
+        n = MLPEmbedding(**node_mlp_args)(nu)
 
     # Output embedding choice
     if output_embedding == 'graph':
         if use_set2set:
             # output
-            outss = DenseEmbedding(set2set_args["channels"], activation="linear")(n)
-            out = PoolingSet2Set(**set2set_args)(outss)
+            n = DenseEmbedding(set2set_args["channels"], activation="linear")(n)
+            out = PoolingSet2Set(**set2set_args)(n)
         else:
             out = PoolingNodes(**pooling_args)(n)
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
-        main_output = MLP(**output_mlp)(out)
+        main_output = MLPEmbedding(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:

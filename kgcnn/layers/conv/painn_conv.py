@@ -255,7 +255,7 @@ class EquivariantInitialize(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Zero equivariant tensor of shape (batch, [N], dim, F)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         values = tf.zeros_like(inputs.values)
         values = tf.expand_dims(values, axis=1)
         # Static shape expansion for dim, tf.repeat would be possible too.

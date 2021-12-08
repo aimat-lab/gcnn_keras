@@ -4,7 +4,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import DenseEmbedding, LazyMultiply, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.mlp import MLP
+from kgcnn.layers.mlp import MLPEmbedding
 from kgcnn.ops.polynom import spherical_bessel_jn_zeros, spherical_bessel_jn_normalization_prefactor, \
     tf_spherical_bessel_jn, tf_spherical_harmonics_yl
 
@@ -275,9 +275,9 @@ class DimNetOutputBlock(GraphBaseLayer):
 
         self.dense_rbf = DenseEmbedding(emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
         self.up_projection = DenseEmbedding(out_emb_size, use_bias=False, kernel_initializer=kernel_initializer, **kernel_args)
-        self.dense_mlp = MLP([out_emb_size] * num_dense, activation=activation, kernel_initializer=kernel_initializer,
-                             use_bias=use_bias, **kernel_args)
-        self.dimnet_mult = LazyMultiply(**self._kgcnn_info)
+        self.dense_mlp = MLPEmbedding([out_emb_size] * num_dense, activation=activation,
+                                      kernel_initializer=kernel_initializer, use_bias=use_bias, **kernel_args)
+        self.dimnet_mult = LazyMultiply()
         self.pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.dense_final = DenseEmbedding(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
                                           **kernel_args)
@@ -430,7 +430,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
-        self._assert_ragged_input(inputs)
+        self.assert_ragged_input_rank(inputs)
         edge, edge_part = inputs[0].values, inputs[0].row_splits
         angles, angle_part = inputs[1].values, inputs[1].row_splits
 
