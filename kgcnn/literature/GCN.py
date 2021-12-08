@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.modules import DenseEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -81,7 +81,7 @@ def make_model(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        out = MLPEmbedding(**output_mlp)(out)
+        out = GraphMLP(**output_mlp)(out)
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
@@ -147,7 +147,7 @@ def make_model_weighted(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        out = MLPEmbedding(**output_mlp)(out)
+        out = GraphMLP(**output_mlp)(out)
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:

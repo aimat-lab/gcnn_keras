@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
 from kgcnn.layers.modules import DropoutEmbedding, ActivationEmbedding, DenseEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -73,7 +73,7 @@ def make_model(inputs=None,
     list_embeddings = [n]
     for i in range(0, depth):
         n = GIN()([n, edi])
-        n = MLPEmbedding(**gin_args)(n)
+        n = GraphMLP(**gin_args)(n)
         list_embeddings.append(n)
 
     # Output embedding choice
@@ -85,8 +85,8 @@ def make_model(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":  # Node labeling
         out = n
-        out = MLPEmbedding(**last_mlp)(out)
-        out = MLPEmbedding(**output_mlp)(out)
+        out = GraphMLP(**last_mlp)(out)
+        out = GraphMLP(**output_mlp)(out)
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:

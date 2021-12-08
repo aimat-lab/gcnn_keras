@@ -227,8 +227,8 @@ class MLPBase(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPEmbedding')
-class MLPEmbedding(MLPBase):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
+class GraphMLP(MLPBase):
     r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
     See layer arguments of :obj:`MLPBase` for configuration. This layer adds normalization for embeddings tensors of
     node or edge embeddings represented by a ragged tensor.
@@ -236,7 +236,7 @@ class MLPEmbedding(MLPBase):
 
     def __init__(self, units, **kwargs):
         """Initialize MLP as for dense."""
-        super(MLPEmbedding, self).__init__(units=units, **kwargs)
+        super(GraphMLP, self).__init__(units=units, **kwargs)
 
         self.mlp_dense_layer_list = [DenseEmbedding(
             units=self.mlp_units[i],
@@ -305,7 +305,7 @@ class MLPEmbedding(MLPBase):
 
     def build(self, input_shape):
         """Build layer."""
-        super(MLPEmbedding, self).build(input_shape)
+        super(GraphMLP, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -329,8 +329,8 @@ class MLPEmbedding(MLPBase):
 
     def get_config(self):
         """Update config."""
-        config = super(MLPEmbedding, self).get_config()
+        config = super(GraphMLP, self).get_config()
         return config
 
 
-MLP = MLPEmbedding
+MLP = GraphMLP

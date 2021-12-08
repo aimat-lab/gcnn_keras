@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -112,16 +112,16 @@ def make_model(inputs=None,
     vp = n
     ep = ed
     up = uenv
-    vp = MLPEmbedding(**node_ff_args)(vp)
-    ep = MLPEmbedding(**edge_ff_args)(ep)
+    vp = GraphMLP(**node_ff_args)(vp)
+    ep = GraphMLP(**edge_ff_args)(ep)
     up = MLP(**state_ff_args)(up)
     vp2 = vp
     ep2 = ep
     up2 = up
     for i in range(0, nblocks):
         if has_ff and i > 0:
-            vp2 = MLPEmbedding(**node_ff_args)(vp)
-            ep2 = MLPEmbedding(**edge_ff_args)(ep)
+            vp2 = GraphMLP(**node_ff_args)(vp)
+            ep2 = GraphMLP(**edge_ff_args)(ep)
             up2 = MLP(**state_ff_args)(up)
 
         # MEGnetBlock

@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -87,7 +87,7 @@ def make_model(inputs=None,
         out = ks.layers.Flatten()(out)  # will be dense
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':  # node embedding
-        out = MLPEmbedding(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")

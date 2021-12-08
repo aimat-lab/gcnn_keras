@@ -6,7 +6,7 @@ from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
 from kgcnn.layers.modules import LazyAdd, LazySubtract
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -100,7 +100,7 @@ def make_model(inputs=None,
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
-        main_output = MLPEmbedding(**output_mlp)(out)
+        main_output = GraphMLP(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:

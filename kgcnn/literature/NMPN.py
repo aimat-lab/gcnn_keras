@@ -4,7 +4,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -100,9 +100,9 @@ def make_model(inputs=None,
     n = DenseEmbedding(node_dim, activation="linear")(n0)
 
     # Make edge networks.
-    edge_net_in = MLPEmbedding(**edge_mlp)(ed)
+    edge_net_in = GraphMLP(**edge_mlp)(ed)
     edge_net_in = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_in)
-    edge_net_out = MLPEmbedding(**edge_mlp)(ed)
+    edge_net_out = GraphMLP(**edge_mlp)(ed)
     edge_net_out = TrafoEdgeNetMessages(target_shape=(node_dim, node_dim))(edge_net_out)
 
     # Gru for node updates
@@ -132,7 +132,7 @@ def make_model(inputs=None,
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
-        main_output = MLPEmbedding(**output_mlp)(out)
+        main_output = GraphMLP(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
         # no ragged for distribution supported atm
     else:

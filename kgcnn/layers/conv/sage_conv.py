@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import LazyConcatenate
 from kgcnn.layers.norm import GraphLayerNormalization
-from kgcnn.layers.mlp import MLPEmbedding
+from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodes
 from kgcnn.layers.pooling import PoolingLocalMessages, PoolingLocalEdgesLSTM
 
@@ -55,8 +55,8 @@ class GraphSageNodeLayer(GraphBaseLayer):
 
         self.gather_nodes_outgoing = GatherNodesOutgoing()
         self.concatenate = LazyConcatenate()
-        self.update_node_from_neighbors_mlp = MLPEmbedding(units=units, activation=activation, **kernel_args)
-        self.update_node_from_self_mlp = MLPEmbedding(units=units, activation=activation, **kernel_args)
+        self.update_node_from_neighbors_mlp = GraphMLP(units=units, activation=activation, **kernel_args)
+        self.update_node_from_self_mlp = GraphMLP(units=units, activation=activation, **kernel_args)
         if self.pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             # We do not allow full access to all parameters for the LSTM here for simplification.
             self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units)
@@ -155,7 +155,7 @@ class GraphSageEdgeUpdateLayer(GraphBaseLayer):
         # non-stateful layers
         self.gather_nodes = GatherNodes()
         self.concatenate = LazyConcatenate()
-        self.update_edge_mlp = MLPEmbedding(units=units, activation=activation, **kernel_args)
+        self.update_edge_mlp = GraphMLP(units=units, activation=activation, **kernel_args)
 
         # normalization layer for edge features
         self.normalize_edges = GraphLayerNormalization(axis=-1)

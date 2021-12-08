@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyAdd
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -128,7 +128,7 @@ def make_model(inputs=None,
         out = ks.layers.Flatten()(out)  # will be dense
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = MLPEmbedding(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `Unet`")

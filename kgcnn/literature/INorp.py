@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -94,14 +94,14 @@ def make_model(inputs=None,
         upd = LazyConcatenate(axis=-1)([eu2, eu1])
         eu = LazyConcatenate(axis=-1)([upd, ed])
 
-        eu = MLPEmbedding(**edge_mlp_args)(eu)
+        eu = GraphMLP(**edge_mlp_args)(eu)
         # Pool message
         nu = PoolingLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = LazyConcatenate(axis=-1)(
             [n, nu, ev])  # LazyConcatenate node features with new edge updates
-        n = MLPEmbedding(**node_mlp_args)(nu)
+        n = GraphMLP(**node_mlp_args)(nu)
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -114,7 +114,7 @@ def make_model(inputs=None,
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
-        main_output = MLPEmbedding(**output_mlp)(out)
+        main_output = GraphMLP(**output_mlp)(out)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:

@@ -4,7 +4,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
 from kgcnn.layers.modules import DenseEmbedding
-from kgcnn.layers.mlp import MLPEmbedding, MLP
+from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
 
@@ -95,7 +95,7 @@ def make_model(inputs=None,
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
-    n = MLPEmbedding(**last_mlp)(n)
+    n = GraphMLP(**last_mlp)(n)
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -107,7 +107,7 @@ def make_model(inputs=None,
     elif output_embedding == 'node':
         out = n
         if output_mlp is not None:
-            out = MLPEmbedding(**output_mlp)(out)
+            out = GraphMLP(**output_mlp)(out)
         # no ragged for distribution atm
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
