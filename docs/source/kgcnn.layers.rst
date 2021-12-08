@@ -45,10 +45,10 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.keras module
+kgcnn.layers.modules module
 -------------------------
 
-.. automodule:: kgcnn.layers.keras
+.. automodule:: kgcnn.layers.modules
    :members:
    :undoc-members:
    :show-inheritance:

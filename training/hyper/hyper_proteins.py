@@ -3,7 +3,7 @@ hyper = {
         "model": {
             "name": "GIN",
             "inputs": [{"shape": [None, 3], "name": "node_labels", "dtype": "float32", "ragged": True},
-                      {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node_labels": {"input_dim": 800, "output_dim": 64}},
             "output_embedding": "graph",
             "output_mlp": {"use_bias": True, "units": 2, "activation": "softmax"},
