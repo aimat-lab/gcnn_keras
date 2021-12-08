@@ -10,18 +10,15 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64}
             },
+            'output_mlp': None,
             "output_embedding": "graph",
+            'last_mlp': {"use_bias": [True, True, True], "units": [128, 64, 3],
+                         "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
             "interaction_args": {
                 "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
             },
-            "output_mlp": {
-                "use_bias": [True, True], "units": [128, 64],
-                "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]
-            },
-            "output_dense": {"units": 3, "activation": "linear", "use_bias": True},
             "node_pooling_args": {"pooling_method": "sum"},
             "depth": 4,
-            "out_scale_pos": 0,
             "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
         },
         "training": {
@@ -49,7 +46,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "1.2.0"
         }
     },
     "Megnet": {
