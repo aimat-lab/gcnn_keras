@@ -169,7 +169,8 @@ class MLPBase(GraphBaseLayer):
         self._conf_beta_initializer = list([tf.keras.initializers.get(x) for x in beta_initializer])
         self._conf_gamma_initializer = list([tf.keras.initializers.get(x) for x in gamma_initializer])
         self._conf_moving_mean_initializer = list([tf.keras.initializers.get(x) for x in moving_mean_initializer])
-        self._conf_moving_variance_initializer = list([tf.keras.initializers.get(x) for x in moving_variance_initializer])
+        self._conf_moving_variance_initializer = list(
+            [tf.keras.initializers.get(x) for x in moving_variance_initializer])
         self._conf_beta_regularizer = list([tf.keras.regularizers.get(x) for x in beta_regularizer])
         self._conf_gamma_regularizer = list([tf.keras.regularizers.get(x) for x in gamma_regularizer])
         self._conf_beta_constraint = list([tf.keras.constraints.get(x) for x in beta_constraint])
@@ -181,8 +182,39 @@ class MLPBase(GraphBaseLayer):
         self._conf_noise_shape = list(noise_shape)
 
         # Processed arguments for each layer.
-        self._conf_mlp_norm_layer_kwargs = [{} for x in range(self._depth)]
-        self._conf_mlp_dense_layer_kwargs = []
+        self._conf_mlp_dense_layer_kwargs = [{"units": self._conf_units[i],
+                                              "use_bias": self._conf_use_bias[i],
+                                              "name": self.name + "_dense_" + str(i),
+                                              "activation": "linear",
+                                              "activity_regularizer": None,
+                                              "kernel_regularizer": self._conf_kernel_regularizer[i],
+                                              "bias_regularizer": self._conf_bias_regularizer[i],
+                                              "kernel_initializer": self._conf_kernel_initializer[i],
+                                              "bias_initializer": self._conf_bias_initializer[i],
+                                              "kernel_constraint": self._conf_kernel_constraint[i],
+                                              "bias_constraint": self._conf_bias_constraint[i]}
+                                             for i in range(self._depth)]
+        self._conf_mlp_activ_layer_kwargs = [{"activation": self._conf_activation[i],
+                                              "name": self.name + "_act_" + str(i),
+                                              "activity_regularizer": self._conf_activity_regularizer[i]}
+                                             for i in range(self._depth)]
+        self._conf_mlp_norm_layer_kwargs = [{"name": self.name + '_norm_' + str(i),
+                                             "axis": self._conf_axis[i],
+                                             "epsilon": self._conf_epsilon[i],
+                                             "center": self._conf_center[i],
+                                             "scale": self._conf_scale[i],
+                                             "beta_initializer": self._conf_beta_initializer[i],
+                                             "gamma_initializer": self._conf_gamma_initializer[i],
+                                             "beta_regularizer": self._conf_beta_regularizer[i],
+                                             "gamma_regularizer": self._conf_gamma_regularizer[i],
+                                             "beta_constraint": self._conf_beta_constraint[i],
+                                             "gamma_constraint": self._conf_gamma_constraint[i]}
+                                            for i in range(self._depth)]
+        self._conf_mlp_drop_layer_kwargs = [{"name": self.name + '_drop_' + str(i),
+                                             "rate": self._conf_rate[i],
+                                             "noise_shape": self._conf_noise_shape[i],
+                                             "seed": self._conf_seed[i]}
+                                            for i in range(self._depth)]
 
     def build(self, input_shape):
         """Build layer."""
@@ -234,8 +266,10 @@ class MLPBase(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
 class GraphMLP(MLPBase):
     r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
-    See layer arguments of :obj:`MLPBase` for configuration. This layer adds normalization for embeddings tensors of
-    node or edge embeddings represented by a ragged tensor.
+    See layer arguments of :obj:`MLPBase` for configuration.
+    This layer adds normalization for embeddings tensors of node or edge embeddings represented by a ragged tensor.
+    The definition of graph, batch or layer normalization is different from the standard keras definition.
+    See :obj:`kgcnn.layers.norm` for more information.
     """
 
     def __init__(self, units, **kwargs):
@@ -243,68 +277,31 @@ class GraphMLP(MLPBase):
         super(GraphMLP, self).__init__(units=units, **kwargs)
 
         self.mlp_dense_layer_list = [DenseEmbedding(
-            units=self._conf_units[i],
-            use_bias=self._conf_use_bias[i],
-            name=self.name + '_dense_' + str(i),
-            activation="linear",
-            activity_regularizer=None,
-            kernel_regularizer=self._conf_kernel_regularizer[i],
-            bias_regularizer=self._conf_bias_regularizer[i],
-            kernel_initializer=self._conf_kernel_initializer[i],
-            bias_initializer=self._conf_bias_initializer[i],
-            kernel_constraint=self._conf_kernel_constraint[i],
-            bias_constraint=self._conf_bias_constraint[i],
-        ) for i in range(len(self._conf_units))]
+            **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
 
         self.mlp_activation_layer_list = [ActivationEmbedding(
-            activation=self._conf_activation[i],
-            activity_regularizer=self._conf_activity_regularizer[i],
-        ) for i in range(len(self._conf_units))]
+            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
 
-        self.mlp_norm_layer_list = [None]*self._depth
-        for i in range(len(self._conf_units)):
+        self.mlp_dropout_layer_list = [
+            DropoutEmbedding(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i in
+            range(self._depth)]
+
+        self.mlp_norm_layer_list = [None] * self._depth
+        for i in range(self._depth):
             if self._conf_use_normalization[i]:
                 if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
                     self.mlp_norm_layer_list[i] = GraphBatchNormalization(
-                        axis=self._conf_axis[i],
-                        name=self.name + '_norm_' + str(i),
+                        **self._conf_mlp_norm_layer_kwargs[i],
                         momentum=self._conf_momentum[i],
-                        epsilon=self._conf_epsilon[i],
-                        center=self._conf_center[i],
-                        scale=self._conf_scale[i],
-                        beta_initializer=self._conf_beta_initializer[i],
-                        gamma_initializer=self._conf_gamma_initializer[i],
                         moving_mean_initializer=self._conf_moving_mean_initializer[i],
-                        moving_variance_initializer=self._conf_moving_variance_initializer[i],
-                        beta_regularizer=self._conf_beta_regularizer[i],
-                        gamma_regularizer=self._conf_gamma_regularizer[i],
-                        beta_constraint=self._conf_beta_constraint[i],
-                        gamma_constraint=self._conf_gamma_constraint[i])
-                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization", "GraphLayerNormalization"]:
+                        moving_variance_initializer=self._conf_moving_variance_initializer[i])
+                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization",
+                                                               "GraphLayerNormalization"]:
                     self.mlp_norm_layer_list[i] = GraphLayerNormalization(
-                        name=self.name + '_norm_' + str(i),
-                        axis=self._conf_axis[i],
-                        epsilon=self._conf_epsilon[i],
-                        center=self._conf_center[i],
-                        scale=self._conf_scale[i],
-                        beta_initializer=self._conf_beta_initializer[i],
-                        gamma_initializer=self._conf_gamma_initializer[i],
-                        beta_regularizer=self._conf_beta_regularizer[i],
-                        gamma_regularizer=self._conf_gamma_regularizer[i],
-                        beta_constraint=self._conf_beta_constraint[i],
-                        gamma_constraint=self._conf_gamma_constraint[i])
+                        **self._conf_mlp_norm_layer_kwargs[i])
                 else:
                     raise NotImplementedError(
                         "ERROR: Normalization via %s not supported." % self._conf_normalization_technique[i])
-
-        self.mlp_dropout_layer_list = [None]*self._depth
-        for i in range(len(self._conf_units)):
-            if self._conf_use_dropout[i]:
-                self.mlp_dropout_layer_list[i] = DropoutEmbedding(
-                    name=self.name + '_dropout_' + str(i),
-                    rate=self._conf_rate[i],
-                    noise_shape=self._conf_noise_shape[i],
-                    seed=self._conf_seed[i])
 
     def build(self, input_shape):
         """Build layer."""
@@ -321,12 +318,12 @@ class GraphMLP(MLPBase):
         """
         x = inputs
         for i in range(len(self._conf_units)):
-            x = self._conf_dense_layer_list[i](x, **kwargs)
+            x = self.mlp_dense_layer_list[i](x, **kwargs)
             if self._conf_use_dropout[i]:
-                x = self._conf_dropout_layer_list[i](x, **kwargs)
+                x = self.mlp_dropout_layer_list[i](x, **kwargs)
             if self._conf_use_normalization[i]:
-                x = self._conf_norm_layer_list[i](x, **kwargs)
-            x = self._conf_activation_layer_list[i](x, **kwargs)
+                x = self.mlp_norm_layer_list[i](x, **kwargs)
+            x = self.mlp_activation_layer_list[i](x, **kwargs)
         out = x
         return out
 
@@ -336,4 +333,69 @@ class GraphMLP(MLPBase):
         return config
 
 
-MLP = GraphMLP
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
+class MLP(MLPBase):
+    r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
+    See layer arguments of :obj:`MLPBase` for configuration.
+    This layer adds normalization and dropout for normal tensor input.
+    """
+
+    def __init__(self, units, **kwargs):
+        """Initialize MLP. See MLPBase."""
+        super(MLP, self).__init__(units=units, **kwargs)
+
+        self.mlp_dense_layer_list = [tf.keras.layers.Dense(
+            **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
+
+        self.mlp_activation_layer_list = [tf.keras.layers.Activation(
+            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
+
+        self.mlp_dropout_layer_list = [
+            tf.keras.layers.Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
+            in range(self._depth)]
+
+        self.mlp_norm_layer_list = [None] * self._depth
+        for i in range(self._depth):
+            if self._conf_use_normalization[i]:
+                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
+                    self.mlp_norm_layer_list[i] = tf.keras.layers.BatchNormalization(
+                        **self._conf_mlp_norm_layer_kwargs[i],
+                        momentum=self._conf_momentum[i],
+                        moving_mean_initializer=self._conf_moving_mean_initializer[i],
+                        moving_variance_initializer=self._conf_moving_variance_initializer[i])
+                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization",
+                                                               "GraphLayerNormalization"]:
+                    self.mlp_norm_layer_list[i] = tf.keras.layers.LayerNormalization(
+                        **self._conf_mlp_norm_layer_kwargs[i])
+                else:
+                    raise NotImplementedError(
+                        "ERROR: Normalization via %s not supported." % self._conf_normalization_technique[i])
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(MLP, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.Tensor): Input tensor with last dimension not None.
+
+        Returns:
+            tf.Tensor: MLP pass.
+        """
+        x = inputs
+        for i in range(len(self._conf_units)):
+            x = self.mlp_dense_layer_list[i](x, **kwargs)
+            if self._conf_use_dropout[i]:
+                x = self.mlp_dropout_layer_list[i](x, **kwargs)
+            if self._conf_use_normalization[i]:
+                x = self.mlp_norm_layer_list[i](x, **kwargs)
+            x = self.mlp_activation_layer_list[i](x, **kwargs)
+        out = x
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(MLP, self).get_config()
+        return config
