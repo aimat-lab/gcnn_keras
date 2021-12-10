@@ -23,9 +23,10 @@ def train_graph_regression_supervised(X_train, y_train,
     # Get optimizer from serialized hyper-parameter.
     mae_metric = ScaledMeanAbsoluteError((1, 1), name='mean_absolute_error')
     rms_metric = ScaledRootMeanSquaredError((1, 1))
-    if scaler.scale_ is not None:
-        mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-        rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
+    if scaler is not None:
+        if scaler.scale_ is not None:
+            mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
+            rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
     model.compile(**hyper_selection.compile(loss='mean_squared_error', metrics=[mae_metric, rms_metric]))
     print(model.summary())
 

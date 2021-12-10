@@ -332,7 +332,7 @@ hyper = {
             "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 12, "epochs": 300, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
@@ -341,7 +341,7 @@ hyper = {
                             "class_name": "Adam", "config": {
                                 "learning_rate": {
                                     "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 50.0, "decay_steps": 60000.0,
+                                        "learning_rate": 0.001, "warmup_steps": 40.0, "decay_steps": 40000.0,
                                         "decay_rate": 0.01
                                     }
                                 }, "amsgrad": True

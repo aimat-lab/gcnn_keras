@@ -602,7 +602,7 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
             else:
                 prop = x
             assert hasattr(self, prop), "Dataset does not have property on %s" % prop
-            assert prop is not None, "Empty property of %s is `None` or not set." % prop
+            assert getattr(self, prop) is not None, "Empty property of %s is `None` or not set." % prop
         return self
 
 
