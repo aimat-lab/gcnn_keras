@@ -141,38 +141,31 @@ class GraphContainer:
             self._dict[prefix_attributes + "indices"], self._dict[prefix_attributes + "weights"])
         return self
 
-    def set_range_from_edges(self, do_invert_distance: bool = False):
+    def set_range_from_edges(self, prefix_attributes="edge_", do_invert_distance: bool = False):
         r"""Assigns range indices and attributes (distance) from the definition of edge indices. This operations
         requires the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
         :obj:`range_indices` will be equal to :obj:`edge_indices`.
 
         Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
             do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
 
         Returns:
             self
         """
-        if self.edge_indices is None:
-            raise ValueError("Edge indices are not set. Can not infer range definition.")
-        coord = self.node_coordinates
+        if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
+        self._dict["range_indices"] = self._dict["edge_indices"]  # We make a copy.
 
-        # We make a copy here of the edge indices.
-        self.range_indices = [np.array(x, dtype="int") for x in self.edge_indices]
-
-        if self.node_coordinates is None:
-            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
+        if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
             return self
-
-        edges = []
-        for i in range(len(coord)):
-            idx = self.range_indices[i]
-            # Assuming all list are numpy arrays.
-            xyz = coord[i]
-            dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
-            if do_invert_distance:
-                dist = invert_distance(dist)
-            edges.append(dist)
-        self.range_attributes = edges
+        xyz = self._dict["node_coordinates"]
+        idx = self._dict["range_indices"]
+        dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
+        if do_invert_distance:
+            dist = invert_distance(dist)
+        self._dict["range_attributes"] = dist
         return self
 
     def set_range(self, max_distance: float = 4.0, max_neighbours: int = 15,
@@ -328,6 +321,12 @@ class MemoryGraphList:
     def __len__(self):
         """Return the current length of this instance."""
         return len(self._list)
+
+    def set_edge_indices_reverse(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.set_edge_indices_reverse(**kwargs)
+        return self
 
 
 class MemoryGraphDataset(MemoryGraphList):
