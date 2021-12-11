@@ -9,6 +9,11 @@ from kgcnn.utils.data import save_pickle_file, load_pickle_file
 
 
 class GraphContainer:
+    """Container to store tensor for graph objects such as edges and node attributes or indices in a dictionary.
+    The naming convention if not restricted, however, functions to sort e.g. edges require a certain naming with a
+    flexible prefix.
+
+    """
     def __init__(self):
 
         # Data for graph list.
@@ -18,7 +23,10 @@ class GraphContainer:
         self._dict.update({key: value})
 
     def obtain_property(self, key):
-        return self._dict[key]
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return None
 
     def _find_graph_properties(self, prop_prefix):
         return [x for x in self._dict if prop_prefix == x[:len(prop_prefix)]]
@@ -48,7 +56,7 @@ class GraphContainer:
             new_edges = [new_edges]
         # Set all new edge attributes.
         for i, at in enumerate(no_nan_edge_prop):
-            setattr(self, at, new_edges[i])
+            self._dict[at] = new_edges[i]
         return self
 
     def set_edge_indices_reverse(self, prefix_attributes: str = "edge_"):
@@ -185,39 +193,27 @@ class GraphContainer:
         Returns:
             self
         """
-
-        coord = self.node_coordinates
-        if self.node_coordinates is None:
-            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
+        if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
             return self
-
-        edge_idx = []
-        edges = []
-        for i in range(len(coord)):
-            xyz = coord[i]
-            # Compute distance matrix here. May be problematic for too large graphs.
-            dist = coordinates_to_distancematrix(xyz)
-            cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
-                                                           max_neighbours=max_neighbours,
-                                                           exclusive=exclusive, self_loops=self_loops)
-            mask = np.array(cons, dtype="bool")
-            dist_masked = dist[mask]
-
-            if do_invert_distance:
-                dist_masked = invert_distance(dist_masked)
-
-            # Need one feature dimension.
-            if len(dist_masked.shape) <= 1:
-                dist_masked = np.expand_dims(dist_masked, axis=-1)
-            edges.append(dist_masked)
-            edge_idx.append(indices)
-
+        # Compute distance matrix here. May be problematic for too large graphs.
+        dist = coordinates_to_distancematrix(self._dict["node_coordinates"])
+        cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
+                                                       max_neighbours=max_neighbours,
+                                                       exclusive=exclusive, self_loops=self_loops)
+        mask = np.array(cons, dtype="bool")
+        dist_masked = dist[mask]
+        if do_invert_distance:
+            dist_masked = invert_distance(dist_masked)
+        # Need one feature dimension.
+        if len(dist_masked.shape) <= 1:
+            dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self.range_attributes = edges
-        self.range_indices = edge_idx
+        self._dict["range_attributes"]= dist_masked
+        self._dict["range_indices"] = indices
         return self
 
-    def set_angle(self, prefix_indices: str = "range", allow_multi_edges: bool = False, compute_angles: bool = True):
+    def set_angle(self, prefix_indices: str = "range_", allow_multi_edges: bool = False, compute_angles: bool = True):
         r"""Find possible angles between geometric range connections defined by :obj:`range_indices`.
         Which edges form angles is stored in :obj:`angle_indices`.
         One can also change :obj:`prefix_indices` to `edge` to compute angles between edges instead
@@ -235,23 +231,19 @@ class GraphContainer:
         Returns:
             self
         """
-
+        if prefix_indices + "indices" not in self._dict or self._dict[prefix_indices + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_indices)
         # Compute angles
-        e_indices = getattr(self, prefix_indices + "_indices")
-        a_indices = []
-        a_triples = []
-        for i, x in enumerate(e_indices):
-            temp = get_angle_indices(x, allow_multi_edges=allow_multi_edges)
-            a_indices.append(temp[2])
-            a_triples.append(temp[1])
-        self.angle_indices = a_indices
-        self.angle_indices_nodes = a_triples
+        _, a_triples, a_indices = get_angle_indices(self._dict[prefix_indices+"indices"],
+                                                    allow_multi_edges=allow_multi_edges)
+        self._dict["angle_indices"] = a_indices
+        self._dict["angle_indices_nodes"]= a_triples
         # Also compute angles
         if compute_angles:
-            a_angle = []
-            for i, x in enumerate(a_triples):
-                a_angle.append(get_angle(self.node_coordinates[i], x))
-            self.angle_attributes = a_angle
+            if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+                print("Coordinates are not set in `GraphContainer`. Can not make graph.")
+                return self
+            self._dict["angle_attributes"] = get_angle(self._dict["node_coordinates"], a_triples)
         return self
 
 
@@ -274,10 +266,10 @@ class MemoryGraphList:
         data.edge_indices = [np.array([[0, 1], [1, 0]])]
         data.node_labels = [np.array([[0], [1]])]
         print(data.edge_indices, data.node_labels)
-        dataset.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
-        print(dataset.node_coordinates)
-        dataset.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
-        print(dataset.range_indices, dataset.range_attributes)
+        data.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
+        print(data.node_coordinates)
+        data.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
+        print(data.range_indices, data.range_attributes)
 
     Functions to modify graph properties are accessed with this class,
     like for example :obj:`sort_edge_indices`. Please find functions in
@@ -296,7 +288,7 @@ class MemoryGraphList:
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
 
     def __setattr__(self, key, value):
-        """Setter that intercepts reserved attributes and stores them in a list of graph containers."""
+        """Setter that intercepts reserved attributes and stores them in the list of graph containers."""
         if not hasattr(self, "_reserved_graph_property_prefix") or not hasattr(self, "_list"):
             return super(MemoryGraphList, self).__setattr__(key, value)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
@@ -314,7 +306,11 @@ class MemoryGraphList:
         if key in ["_reserved_graph_property_prefix", "_list"]:
             return super(MemoryGraphList, self).__getattribute__(key)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-            return [x.obtain_property(key) for x in self._list]
+            prop_list = [x.obtain_property(key) for x in self._list]
+            if all([x is None for x in prop_list]):
+                print("Warning: Property %s is not set on any graph" % key)
+                return None
+            return prop_list
         else:
             return super(MemoryGraphList, self).__getattribute__(key)
 
@@ -326,6 +322,42 @@ class MemoryGraphList:
         r"""See :obj:`GraphContainer` for usage."""
         for x in self._list:
             x.set_edge_indices_reverse(**kwargs)
+        return self
+
+    def make_undirected_edges(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.make_undirected_edges(**kwargs)
+        return self
+
+    def add_edge_self_loops(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.add_edge_self_loops(**kwargs)
+        return self
+
+    def sort_edge_indices(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.sort_edge_indices(**kwargs)
+        return self
+
+    def normalize_edge_weights_sym(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.normalize_edge_weights_sym(**kwargs)
+        return self
+
+    def set_range_from_edges(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.set_range_from_edges(**kwargs)
+        return self
+
+    def set_range(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        for x in self._list:
+            x.set_range(**kwargs)
         return self
 
 
