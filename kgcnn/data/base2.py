@@ -277,8 +277,7 @@ class MemoryGraphList:
     """
 
     def __init__(self):
-        r"""Initialize an empty :obj:`MemoryGraphList` instance. The expected length can be already provided to
-        throw an error if a graph list does not match the length of the dataset. If you want to expand the list or
+        r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
         namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
 
         Args:
@@ -318,47 +317,38 @@ class MemoryGraphList:
         """Return the current length of this instance."""
         return len(self._list)
 
+    def _set_method_for_elements(self, fun, **kwargs):
+        for x in self._list:
+            getattr(x, fun)(**kwargs)
+        return self
+
     def set_edge_indices_reverse(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.set_edge_indices_reverse(**kwargs)
-        return self
+        return self._set_method_for_elements("set_edge_indices_reverse", **kwargs)
 
     def make_undirected_edges(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.make_undirected_edges(**kwargs)
-        return self
+        return self._set_method_for_elements("make_undirected_edges", **kwargs)
 
     def add_edge_self_loops(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.add_edge_self_loops(**kwargs)
-        return self
+        return self._set_method_for_elements("add_edge_self_loops", **kwargs)
 
     def sort_edge_indices(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.sort_edge_indices(**kwargs)
-        return self
+        return self._set_method_for_elements("sort_edge_indices", **kwargs)
 
     def normalize_edge_weights_sym(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.normalize_edge_weights_sym(**kwargs)
-        return self
+        return self._set_method_for_elements("normalize_edge_weights_sym", **kwargs)
 
     def set_range_from_edges(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.set_range_from_edges(**kwargs)
-        return self
+        return self._set_method_for_elements("set_range_from_edges", **kwargs)
 
     def set_range(self, **kwargs):
         r"""See :obj:`GraphContainer` for usage."""
-        for x in self._list:
-            x.set_range(**kwargs)
-        return self
+        return self._set_method_for_elements("set_range", **kwargs)
 
 
 class MemoryGraphDataset(MemoryGraphList):
