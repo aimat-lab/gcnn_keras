@@ -287,19 +287,29 @@ class MemoryGraphList:
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
         self.empty(length)
 
+    def assign_property(self, key, value):
+        if not isinstance(value, list):
+            raise TypeError("Expected type 'list' to assign graph properties.")
+        if len(self._list) == 0:
+            self.empty(len(value))
+        if len(self._list) != len(value):
+            raise ValueError("Can only store graph attributes from list with same length.")
+        for i, x in enumerate(value):
+            self._list[i].assign_property(key, x)
+
+    def obtain_property(self, key):
+        prop_list = [x.obtain_property(key) for x in self._list]
+        if all([x is None for x in prop_list]):
+            print("Warning: Property %s is not set on any graph" % key)
+            return None
+        return prop_list
+
     def __setattr__(self, key, value):
         """Setter that intercepts reserved attributes and stores them in the list of graph containers."""
         if not hasattr(self, "_reserved_graph_property_prefix") or not hasattr(self, "_list"):
             return super(MemoryGraphList, self).__setattr__(key, value)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-            if not isinstance(value, list):
-                raise TypeError("Expected type 'list' to assign graph attributes.")
-            if len(self._list) == 0:
-                self.empty(len(value))
-            if len(self._list) != len(value):
-                raise ValueError("Can only store graph attributes from list with same length.")
-            for i, x in enumerate(value):
-                self._list[i].assign_property(key, x)
+            self.assign_property(key, value)
         else:
             return super(MemoryGraphList, self).__setattr__(key, value)
 
@@ -308,11 +318,7 @@ class MemoryGraphList:
         if key in ["_reserved_graph_property_prefix", "_list"]:
             return super(MemoryGraphList, self).__getattribute__(key)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-            prop_list = [x.obtain_property(key) for x in self._list]
-            if all([x is None for x in prop_list]):
-                print("Warning: Property %s is not set on any graph" % key)
-                return None
-            return prop_list
+            return self.obtain_property(key)
         else:
             return super().__getattribute__(key)
 
@@ -552,7 +558,7 @@ class MemoryGraphDataset(MemoryGraphList):
                 self.data_frame = pd.read_excel(file_path_base + file_extension, **kwargs)
                 return self
 
-        self.warning("Unsupported data extension of %s for csv file." % file_path)
+        self.warning("Unsupported data extension of %s for table file." % file_path)
         return self
 
     def hyper_process_methods(self, hyper_data: dict):
@@ -594,7 +600,7 @@ class MemoryGraphDataset(MemoryGraphList):
         for x in hyper_input:
             data = [self._list[i].obtain_property(x["name"]) for i in range(self.length)]
             if any([y is None for y in data]):
-                raise ValueError("Property %s is not defined for all graphs in list" % x["name"])
+                raise ValueError("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
 
         return self
 
