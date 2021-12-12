@@ -8,142 +8,58 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 from kgcnn.utils.data import save_pickle_file, load_pickle_file
 
 
-class MemoryGraphList:
-    r"""Class to store a list of graph properties in memory.
-    The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
-    They are added in form of a list as class attributes to the instance of this class.
-    Graph related properties must have a special prefix to be noted as graph property.
-    Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
+class GraphContainer:
+    """Container to store tensor for graph objects such as edges and node attributes or indices in a dictionary.
+    The naming convention if not restricted, however, functions to sort e.g. edges require a certain naming with a
+    flexible prefix.
 
-    .. code-block:: python
-
-        from kgcnn.data.base import MemoryGraphList
-        data = MemoryGraphList()
-        data.edge_indices = [np.array([[0, 1], [1, 0]])]
-        data.node_labels = [np.array([[0], [1]])]
-        print(data.edge_indices, data.node_labels)
-
-    For now, only the length of the different properties are checked to be the same when assigning the (new)
-    attributes. Functions to modify graph properties are
-    provided with this class, like for example :obj:`sort_edge_indices`, which expect list of numpy arrays. Please
-    find functions in :class:`kgcnn.utils.adj` and their documentation for further details.
     """
+    def __init__(self):
 
-    def __init__(self, length: int = None):
-        r"""Initialize an empty :obj:`MemoryGraphList` instance. The expected length can be already provided to
-        throw an error if a graph list does not match the length of the dataset. If you want to expand the list or
-        namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
+        # Data for graph list.
+        self._dict = {}
 
-        Args:
-            length (int): Length of the graph list.
-        """
-        self._length = length
-        self._reserved_graph_property_prefix = ["node_", "edge_", "graph_"]
+    def assign_property(self, key, value):
+        self._dict.update({key: value})
 
-        # Assign empty node attributes frequently used by subclasses.
-        self.node_coordinates = None
-        self.node_attributes = None
-        self.node_labels = None
-        self.node_degree = None
-        self.node_symbol = None
-        self.node_number = None
-
-        # Assign empty edge attributes frequently used by subclasses.
-        self.edge_indices = None
-        self.edge_indices_reverse = None
-        self.edge_attributes = None
-        self.edge_labels = None
-        self.edge_number = None
-        self.edge_symbol = None
-        self.edge_weights = None
-
-        # Assign empty graph attributes frequently used by subclasses.
-        self.graph_labels = None
-        self.graph_attributes = None
-        self.graph_number = None
-        self.graph_size = None
+    def obtain_property(self, key):
+        if key in self._dict:
+            return self._dict[key]
+        else:
+            return None
 
     def _find_graph_properties(self, prop_prefix):
-        return [x for x in list(self.__dict__.keys()) if prop_prefix == x[:len(prop_prefix)]]
+        return [x for x in self._dict if prop_prefix == x[:len(prop_prefix)]]
 
-    def _find_all_graph_properties(self):
-        return [x for x in list(self.__dict__.keys()) for prop_prefix in
-                self._reserved_graph_property_prefix if prop_prefix == x[:len(prop_prefix)]]
-
-    def __setattr__(self, key, value):
-        if hasattr(self, "_reserved_graph_property_prefix"):
-            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]) and value is not None:
-                if self._length is None:
-                    self._length = len(value)
-                else:
-                    if self._length != len(value):
-                        raise ValueError("len() of %s does not match len() of graph list." % key)
-
-        super(MemoryGraphList, self).__setattr__(key, value)
-
-    @property
-    def length(self):
-        """Return the current length of this instance."""
-        return self._length
-
-    @length.setter
-    def length(self, value: int):
-        r"""Reset the nominal length of all graph attributes. Sets all graph properties to :obj:`None`,
-        which do not match the new length.
-
-        Args:
-            value (int): Length of graph properties for this instance.
-        """
-        if value is None:
-            self._length = None
-            for x in self._find_all_graph_properties():
-                setattr(self, x, None)
-        else:
-            for x in self._find_all_graph_properties():
-                ax = getattr(self, x)
-                if ax is not None:
-                    if len(ax) != value:
-                        setattr(self, x, None)
-            self._length = int(value)
-
-    def _operate_on_edges(self, operation, _prefix_attributes: str = "edge_", **kwargs):
+    def _operate_on_edges(self, operation, prefix_attributes: str = "edge_", **kwargs):
         r"""Wrapper to run a certain function on all edge related properties. The indices attributes must be defined
-        and must be composed of :obj:`_prefix_attributes` and 'indices'.
+        and must be composed of :obj:`prefix_attributes` and 'indices'.
 
         Args:
               operation (callable): Function to apply to a list of all edge arrays.
                 First entry is assured to be indices.
-              _prefix_attributes (str): Prefix for attributes to identify as edges.
+              prefix_attributes (str): Prefix for attributes to identify as edges.
               kwargs: Kwargs for operation function call.
         """
-        if getattr(self, _prefix_attributes + "indices") is None:
-            raise ValueError("Can not operate on edges, as indices are not defined.")
-
+        if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
         # Determine all linked edge attributes, that are not None.
-        edge_linked = self._find_graph_properties(_prefix_attributes)
+        edge_linked = self._find_graph_properties(prefix_attributes)
         # Edge indices is always at first position!
-        edge_linked = [_prefix_attributes + "indices"] + [x for x in edge_linked if x != _prefix_attributes + "indices"]
-        no_nan_edge_prop = [x for x in edge_linked if getattr(self, x) is not None]
-        non_nan_edge = [getattr(self, x) for x in no_nan_edge_prop]
-
-        # Create empty list for all edges.
-        new_edges = [[] for _ in non_nan_edge]
-        for eds in zip(*non_nan_edge):
-            added_edge = operation(*eds, **kwargs)
-            # If dataset only has edge indices, fun_operation is expected to only return array not list!
-            # This restricts the type of fun_operation used with this method.
-            if len(no_nan_edge_prop) == 1:
-                added_edge = [added_edge]
-            for i, x in enumerate(new_edges):
-                x.append(added_edge[i])
-
+        edge_linked = [prefix_attributes + "indices"] + [x for x in edge_linked if x != prefix_attributes + "indices"]
+        no_nan_edge_prop = [x for x in edge_linked if self._dict[x] is not None]
+        non_nan_edge = [self._dict[x] for x in no_nan_edge_prop]
+        new_edges = operation(*non_nan_edge, **kwargs)
+        # If dataset only has edge indices, fun_operation is expected to only return array not list!
+        # This restricts the type of fun_operation used with this method.
+        if len(no_nan_edge_prop) == 1:
+            new_edges = [new_edges]
         # Set all new edge attributes.
         for i, at in enumerate(no_nan_edge_prop):
-            setattr(self, at, new_edges[i])
-
+            self._dict[at] = new_edges[i]
         return self
 
-    def set_edge_indices_reverse(self):
+    def set_edge_indices_reverse(self, prefix_attributes: str = "edge_"):
         r"""Computes the index map of the reverse edge for each of the edges if available. This can be used by a model
         to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
         Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
@@ -152,36 +68,44 @@ class MemoryGraphList:
         .. warning::
             Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
 
+        Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
+
         Returns:
             self
         """
-        self.edge_indices_reverse = [np.expand_dims(compute_reverse_edges_index_map(x), axis=-1) for x in
-                                     self.edge_indices]
+        if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
+        self._dict[prefix_attributes + "indices_reverse"] = np.expand_dims(
+            compute_reverse_edges_index_map(self._dict[prefix_attributes + "indices"]), axis=-1)
         return self
 
-    def make_undirected_edges(self, remove_duplicates: bool = True, sort_indices: bool = True):
+    def make_undirected_edges(self, prefix_attributes="edge_", remove_duplicates: bool = True, sort_indices: bool = True):
         r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
         With :obj:`remove_duplicates` an edge can be added even though there is already and edge at :math:`(j, i)`.
         For other edge tensors, like the attributes or labels, the values of edge :math:`(i, j)` is added in place.
         Requires that :obj:`edge_indices` property is assigned.
 
         Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
             remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
             sort_indices (bool): Sort indices after adding edges. Default is True.
 
         Returns:
             self
         """
-        self._operate_on_edges(add_edges_reverse_indices, remove_duplicates=remove_duplicates,
-                               sort_indices=sort_indices)
+        self._operate_on_edges(add_edges_reverse_indices, prefix_attributes=prefix_attributes,
+                               remove_duplicates=remove_duplicates, sort_indices=sort_indices)
         return self
 
-    def add_edge_self_loops(self, remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0):
+    def add_edge_self_loops(self, prefix_attributes="edge_", remove_duplicates: bool = True, sort_indices: bool = True,
+                            fill_value: int = 0):
         r"""Add self loops to the each graph property. The function expects the property :obj:`edge_indices`
         to be defined. By default the edges are also sorted after adding the self-loops.
         All other edge properties are filled with :obj:`fill_value`.
 
         Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
             remove_duplicates (bool): Whether to remove duplicates. Default is True.
             sort_indices (bool): To sort indices after adding self-loops. Default is True.
             fill_value (in): The fill_value for all other edge properties.
@@ -189,116 +113,67 @@ class MemoryGraphList:
         Returns:
             self
         """
-        self._operate_on_edges(add_self_loops_to_edge_indices, remove_duplicates=remove_duplicates,
-                               sort_indices=sort_indices, fill_value=fill_value)
+        self._operate_on_edges(add_self_loops_to_edge_indices, prefix_attributes=prefix_attributes,
+                               remove_duplicates=remove_duplicates, sort_indices=sort_indices, fill_value=fill_value)
         return self
 
-    def sort_edge_indices(self):
+    def sort_edge_indices(self, prefix_attributes="edge_"):
         r"""Sort edge indices and all edge-related properties. The index list is sorted for the first entry.
+
+        Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
 
         Returns:
             self
         """
-        self._operate_on_edges(sort_edge_indices)
+        self._operate_on_edges(sort_edge_indices, prefix_attributes=prefix_attributes)
         return self
 
-    def normalize_edge_weights_sym(self):
+    def normalize_edge_weights_sym(self, prefix_attributes="edge_"):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
         Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
         The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
         Does not affect other edge-properties and only sets :obj:`edge_weights`.
 
+        Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
+
         Returns:
             self
         """
-        if self.edge_indices is None:
-            raise ValueError("Can scale adjacency matrix, as graph indices are not defined.")
-        if self.edge_weights is None:
-            self.edge_weights = [np.ones_like(x[:, :1]) for x in self.edge_indices]
-
-        new_weights = []
-        for idx, edw in zip(self.edge_indices, self.edge_weights):
-            new_weights.append(rescale_edge_weights_degree_sym(idx, edw))
-
-        self.edge_weights = new_weights
+        if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
+        if prefix_attributes + "weights" not in self._dict or self._dict[prefix_attributes + "weights"] is None:
+            self._dict[prefix_attributes + "weights"] = np.ones_like(self._dict[prefix_attributes + "indices"][:, :1])
+        self._dict[prefix_attributes + "weights"] = rescale_edge_weights_degree_sym(
+            self._dict[prefix_attributes + "indices"], self._dict[prefix_attributes + "weights"])
         return self
 
-
-class MemoryGeometricGraphList(MemoryGraphList):
-    r"""Subclass of :obj:`MemoryGraphList`. It expands the graph list with range and angle properties.
-    The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
-    to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
-    edge. They are characterized by the prefix `range_` and `angle_` and are also
-    checked for length when assigning attributes to the instances of this class.
-
-    .. code-block:: python
-
-        from kgcnn.data.base import MemoryGeometricGraphList
-        dataset = MemoryGeometricGraphList(length=1)
-        dataset.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
-        print(dataset.node_coordinates)
-        dataset.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
-        print(dataset.range_indices, dataset.range_attributes)
-
-    Having additional geometric edges is mainly required for structures like molecules that have explicit bonds
-    (chemical structure) but also coordinates and long range interactions that depend on their mutual distance
-    beyond directly bonded atom pairs.
-    """
-
-    def __init__(self, **kwargs):
-        r"""Initialize a :obj:`MemoryGeometricGraphDataset` instance. See :obj:`MemoryGraphDataset` for definition
-        of arguments. Already sets empty `range` and `angle` attributes.
-
-        Args:
-            kwargs: Arguments that are passed to :obj:`MemoryGraphDataset` base class.
-        """
-        super(MemoryGeometricGraphList, self).__init__(**kwargs)
-        self._reserved_graph_property_prefix = self._reserved_graph_property_prefix + ["range_", "angle_"]
-
-        # Extend nodes to have coordinates.
-        self.node_coordinates = None
-
-        self.range_indices = None
-        self.range_attributes = None
-        self.range_labels = None
-
-        self.angle_indices = None
-        self.angle_indices_nodes = None
-        self.angle_labels = None
-        self.angle_attributes = None
-
-    def set_range_from_edges(self, do_invert_distance: bool = False):
+    def set_range_from_edges(self, prefix_attributes="edge_", do_invert_distance: bool = False):
         r"""Assigns range indices and attributes (distance) from the definition of edge indices. This operations
         requires the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
         :obj:`range_indices` will be equal to :obj:`edge_indices`.
 
         Args:
+            prefix_attributes (str): Prefix for attributes to identify as edges.
             do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
 
         Returns:
             self
         """
-        if self.edge_indices is None:
-            raise ValueError("Edge indices are not set. Can not infer range definition.")
-        coord = self.node_coordinates
+        if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
+        self._dict["range_indices"] = self._dict["edge_indices"]  # We make a copy.
 
-        # We make a copy here of the edge indices.
-        self.range_indices = [np.array(x, dtype="int") for x in self.edge_indices]
-
-        if self.node_coordinates is None:
-            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
+        if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
             return self
-
-        edges = []
-        for i in range(len(coord)):
-            idx = self.range_indices[i]
-            # Assuming all list are numpy arrays.
-            xyz = coord[i]
-            dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
-            if do_invert_distance:
-                dist = invert_distance(dist)
-            edges.append(dist)
-        self.range_attributes = edges
+        xyz = self._dict["node_coordinates"]
+        idx = self._dict["range_indices"]
+        dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
+        if do_invert_distance:
+            dist = invert_distance(dist)
+        self._dict["range_attributes"] = dist
         return self
 
     def set_range(self, max_distance: float = 4.0, max_neighbours: int = 15,
@@ -318,39 +193,27 @@ class MemoryGeometricGraphList(MemoryGraphList):
         Returns:
             self
         """
-
-        coord = self.node_coordinates
-        if self.node_coordinates is None:
-            print("Coordinates are not set for `GeometricGraph`. Can not make graph.")
+        if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
             return self
-
-        edge_idx = []
-        edges = []
-        for i in range(len(coord)):
-            xyz = coord[i]
-            # Compute distance matrix here. May be problematic for too large graphs.
-            dist = coordinates_to_distancematrix(xyz)
-            cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
-                                                           max_neighbours=max_neighbours,
-                                                           exclusive=exclusive, self_loops=self_loops)
-            mask = np.array(cons, dtype="bool")
-            dist_masked = dist[mask]
-
-            if do_invert_distance:
-                dist_masked = invert_distance(dist_masked)
-
-            # Need one feature dimension.
-            if len(dist_masked.shape) <= 1:
-                dist_masked = np.expand_dims(dist_masked, axis=-1)
-            edges.append(dist_masked)
-            edge_idx.append(indices)
-
+        # Compute distance matrix here. May be problematic for too large graphs.
+        dist = coordinates_to_distancematrix(self._dict["node_coordinates"])
+        cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
+                                                       max_neighbours=max_neighbours,
+                                                       exclusive=exclusive, self_loops=self_loops)
+        mask = np.array(cons, dtype="bool")
+        dist_masked = dist[mask]
+        if do_invert_distance:
+            dist_masked = invert_distance(dist_masked)
+        # Need one feature dimension.
+        if len(dist_masked.shape) <= 1:
+            dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self.range_attributes = edges
-        self.range_indices = edge_idx
+        self._dict["range_attributes"]= dist_masked
+        self._dict["range_indices"] = indices
         return self
 
-    def set_angle(self, prefix_indices: str = "range", allow_multi_edges: bool = False, compute_angles: bool = True):
+    def set_angle(self, prefix_indices: str = "range_", allow_multi_edges: bool = False, compute_angles: bool = True):
         r"""Find possible angles between geometric range connections defined by :obj:`range_indices`.
         Which edges form angles is stored in :obj:`angle_indices`.
         One can also change :obj:`prefix_indices` to `edge` to compute angles between edges instead
@@ -368,27 +231,157 @@ class MemoryGeometricGraphList(MemoryGraphList):
         Returns:
             self
         """
-
+        if prefix_indices + "indices" not in self._dict or self._dict[prefix_indices + "indices"] is None:
+            raise ValueError("Can not operate on %s, as indices are not defined." % prefix_indices)
         # Compute angles
-        e_indices = getattr(self, prefix_indices + "_indices")
-        a_indices = []
-        a_triples = []
-        for i, x in enumerate(e_indices):
-            temp = get_angle_indices(x, allow_multi_edges=allow_multi_edges)
-            a_indices.append(temp[2])
-            a_triples.append(temp[1])
-        self.angle_indices = a_indices
-        self.angle_indices_nodes = a_triples
+        _, a_triples, a_indices = get_angle_indices(self._dict[prefix_indices+"indices"],
+                                                    allow_multi_edges=allow_multi_edges)
+        self._dict["angle_indices"] = a_indices
+        self._dict["angle_indices_nodes"]= a_triples
         # Also compute angles
         if compute_angles:
-            a_angle = []
-            for i, x in enumerate(a_triples):
-                a_angle.append(get_angle(self.node_coordinates[i], x))
-            self.angle_attributes = a_angle
+            if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
+                print("Coordinates are not set in `GraphContainer`. Can not make graph.")
+                return self
+            self._dict["angle_attributes"] = get_angle(self._dict["node_coordinates"], a_triples)
         return self
 
 
-class MemoryGraphDataset(MemoryGeometricGraphList):
+class MemoryGraphList:
+    r"""Class to store a list of graphs containers in memory.
+    The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
+    They are added in form of a list of numpy arrays to the instance of this class.
+    Graph related properties must have a special prefix to be noted as graph property and passed to
+    the :obj:`GraphContainer`, which is generated for each item of this list.
+    Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
+    The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
+    to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
+    edge. They are characterized by the prefix `range_` and `angle_` and are also
+    checked for length when assigning attributes to the instances of this class.
+
+    .. code-block:: python
+
+        from kgcnn.data.base import MemoryGraphList
+        data = MemoryGraphList()
+        data.edge_indices = [np.array([[0, 1], [1, 0]])]
+        data.node_labels = [np.array([[0], [1]])]
+        print(data.edge_indices, data.node_labels)
+        data.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
+        print(data.node_coordinates)
+        data.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
+        print(data.range_indices, data.range_attributes)
+
+    Functions to modify graph properties are accessed with this class,
+    like for example :obj:`sort_edge_indices`. Please find functions in
+    :class:`GraphContainer` and their documentation for further details.
+    """
+
+    def __init__(self, length: int):
+        r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
+        namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
+
+        Args:
+            length (int): Length of the graph list.
+        """
+        self._list = []
+        self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
+        self.empty(length)
+
+    def __setattr__(self, key, value):
+        """Setter that intercepts reserved attributes and stores them in the list of graph containers."""
+        if not hasattr(self, "_reserved_graph_property_prefix") or not hasattr(self, "_list"):
+            return super(MemoryGraphList, self).__setattr__(key, value)
+        if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
+            if not isinstance(value, list):
+                raise TypeError("Expected type 'list' to assign graph attributes.")
+            if len(self._list) == 0:
+                self.empty(len(value))
+            if len(self._list) != len(value):
+                raise ValueError("Can only store graph attributes from list with same length.")
+            for i, x in enumerate(value):
+                self._list[i].assign_property(key, x)
+        else:
+            return super(MemoryGraphList, self).__setattr__(key, value)
+
+    def __getattribute__(self, key):
+        """Getter that retrieves a list of properties from graph containers."""
+        if key in ["_reserved_graph_property_prefix", "_list"]:
+            return super(MemoryGraphList, self).__getattribute__(key)
+        if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
+            prop_list = [x.obtain_property(key) for x in self._list]
+            if all([x is None for x in prop_list]):
+                print("Warning: Property %s is not set on any graph" % key)
+                return None
+            return prop_list
+        else:
+            return super().__getattribute__(key)
+
+    def __len__(self):
+        """Return the current length of this instance."""
+        return len(self._list)
+
+    def __getitem__(self, item):
+        return self._list[item]
+
+    def __setitem__(self, key, value):
+        if not isinstance(value, GraphContainer):
+            raise TypeError("Require a GraphContainer as list item.")
+        self._list[key] = value
+
+    def clear(self):
+        self._list = []
+
+    def empty(self, length: int):
+        if length is None:
+            return self
+        if length < 0:
+            raise ValueError("Length of empty list must be >=0.")
+        self._list = [GraphContainer() for _ in range(length)]
+        return self
+
+    @property
+    def length(self):
+        return len(self._list)
+
+    @length.setter
+    def length(self, value: int):
+        raise ValueError("Can not set length. Please use 'empty()' to initialize an empty list.")
+
+    def _set_method_for_elements(self, fun, **kwargs):
+        for x in self._list:
+            getattr(x, fun)(**kwargs)
+        return self
+
+    def set_edge_indices_reverse(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("set_edge_indices_reverse", **kwargs)
+
+    def make_undirected_edges(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("make_undirected_edges", **kwargs)
+
+    def add_edge_self_loops(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("add_edge_self_loops", **kwargs)
+
+    def sort_edge_indices(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("sort_edge_indices", **kwargs)
+
+    def normalize_edge_weights_sym(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("normalize_edge_weights_sym", **kwargs)
+
+    def set_range_from_edges(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("set_range_from_edges", **kwargs)
+
+    def set_range(self, **kwargs):
+        r"""See :obj:`GraphContainer` for usage."""
+        return self._set_method_for_elements("set_range", **kwargs)
+
+
+class MemoryGraphDataset(MemoryGraphList):
     r"""Dataset class for lists of graph tensor properties that can be cast into the :obj:`tf.RaggedTensor` class.
     The graph list is expected to only store numpy arrays in place of the each node or edge information!
 
@@ -562,8 +555,9 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
         self.warning("Unsupported data extension of %s for csv file." % file_path)
         return self
 
-    def process_methods(self, hyper_data: dict):
-        """Process methods for this dataset. That includes to set or execute methods of this class.
+    def hyper_process_methods(self, hyper_data: dict):
+        """Interface to hyper-parameters. Process methods for this dataset.
+        That includes to set or execute methods of this class.
 
         Args:
             hyper_data (dict): Process hyper parameter for this dataset.
@@ -587,22 +581,21 @@ class MemoryGraphDataset(MemoryGeometricGraphList):
                 self.warning("Can not process the method: %s" % key)
         return self
 
-    def assert_valid_attribute(self, property_list: list):
-        """Check whether dataset has requested properties.
+    def hyper_assert_valid_model_input(self, hyper_input: list):
+        """Interface to hyper-parameters. Check whether dataset has requested graph (tensor) properties requested
+        by model input.
 
         Args:
-            property_list (list): List of properties that need to be available to a model for training.
+            hyper_input (list): List of properties that need to be available to a model for training.
 
         Returns:
             self
         """
-        for x in property_list:
-            if isinstance(x, dict):
-                prop = x["name"]
-            else:
-                prop = x
-            assert hasattr(self, prop), "Dataset does not have property on %s" % prop
-            assert getattr(self, prop) is not None, "Empty property of %s is `None` or not set." % prop
+        for x in hyper_input:
+            data = [self._list[i].obtain_property(x["name"]) for i in range(self.length)]
+            if any([y is None for y in data]):
+                raise ValueError("Property %s is not defined for all graphs in list" % x["name"])
+
         return self
 
 

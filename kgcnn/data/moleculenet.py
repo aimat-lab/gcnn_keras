@@ -201,7 +201,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.node_number = number
         self.graph_size = [len(x) for x in atoms]
         self.edge_indices = edgind
-        self.length = counter_iter
         self.graph_labels = graph_labels
         self.edge_number = edge_number
         self.valid_molecule_id = valid_molecule_id
@@ -324,7 +323,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.node_coordinates = node_coordinates
         self.node_symbol = node_symbol
         self.node_number = node_number
-        self.length = counter_iter
         self.valid_molecule_id = valid_molecule_id
 
         if verbose > 0:

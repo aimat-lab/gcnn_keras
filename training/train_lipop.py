@@ -32,8 +32,8 @@ hyper = hyper_selection.hyper()
 
 # Loading Lipop Dataset
 dataset = LipopDataset().set_attributes()
-dataset.process_methods(hyper_selection.data())
-dataset.assert_valid_attribute(hyper_selection.model("inputs"))
+dataset.hyper_process_methods(hyper_selection.data())
+dataset.hyper_assert_valid_model_input(hyper_selection.model("inputs"))
 data_length = dataset.length
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
