@@ -296,6 +296,7 @@ class MemoryGraphList:
             raise ValueError("Can only store graph attributes from list with same length.")
         for i, x in enumerate(value):
             self._list[i].assign_property(key, x)
+        return self
 
     def obtain_property(self, key):
         prop_list = [x.obtain_property(key) for x in self._list]
@@ -587,12 +588,13 @@ class MemoryGraphDataset(MemoryGraphList):
                 self.warning("Can not process the method: %s" % key)
         return self
 
-    def hyper_assert_valid_model_input(self, hyper_input: list):
+    def hyper_assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
         """Interface to hyper-parameters. Check whether dataset has requested graph (tensor) properties requested
         by model input.
 
         Args:
             hyper_input (list): List of properties that need to be available to a model for training.
+            raise_error_on_fail (bool): Whether to raise an error if assertion failed.
 
         Returns:
             self
@@ -601,7 +603,7 @@ class MemoryGraphDataset(MemoryGraphList):
             data = [self._list[i].obtain_property(x["name"]) for i in range(self.length)]
             if any([y is None for y in data]):
                 raise ValueError("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
-
+            # we also will check shape here.
         return self
 
 
