@@ -14,10 +14,13 @@ class GraphContainer:
     flexible prefix.
 
     """
-    def __init__(self):
-
+    def __init__(self, graph: dict = None):
         # Data for graph list.
         self._dict = {}
+        if graph is None:
+            self._dict = {}
+        if isinstance(graph, (dict, list)):
+            self._dict = dict(graph)
 
     def assign_property(self, key, value):
         self._dict.update({key: value})
@@ -288,6 +291,9 @@ class MemoryGraphList:
         self.empty(length)
 
     def assign_property(self, key, value):
+        if value is None:
+            # We could also here remove the key from graphs.
+            return self
         if not isinstance(value, list):
             raise TypeError("Expected type 'list' to assign graph properties.")
         if len(self._list) == 0:
@@ -424,7 +430,8 @@ class MemoryGraphDataset(MemoryGraphList):
                  file_name: str = None,
                  file_directory: str = None,
                  length: int = None,
-                 verbose: int = 1, **kwargs):
+                 verbose: int = 1,
+                 **kwargs):
         r"""Initialize a base class of :obj:`MemoryGraphDataset`.
 
         Args:
@@ -439,7 +446,8 @@ class MemoryGraphDataset(MemoryGraphList):
         super(MemoryGraphDataset, self).__init__(length=length)
         # For logging.
         self.verbose = verbose
-        # Dataset information on file. Take care of path and name specifics here.
+
+        # Dataset information on file.
         self.data_directory = data_directory
         self.file_name = file_name
         self.file_directory = file_directory
@@ -448,7 +456,7 @@ class MemoryGraphDataset(MemoryGraphList):
         # Data Frame for information.
         self.data_frame = None
 
-        # Check if no wrong kwargs passed to init. Reserve for future compatibility.
+        # Check if no wrong kwargs passed to init.
         if len(kwargs) > 0:
             self.warning("Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
 
@@ -510,7 +518,7 @@ class MemoryGraphDataset(MemoryGraphList):
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Pickle dataset...")
-        save_pickle_file({x: getattr(self, x) for x in self._find_all_graph_properties()}, filepath)
+        save_pickle_file([x._dict for x in self._list], filepath)
         self.info("done")
         return self
 
@@ -524,19 +532,15 @@ class MemoryGraphDataset(MemoryGraphList):
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
-        in_dict = load_pickle_file(filepath)
-        for key, value in in_dict.items():
-            if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-                setattr(self, key, value)
-            else:
-                self.warning("Not accepted graph property, ignore name %s" % key)
+        in_list = load_pickle_file(filepath)
+        self._list = [GraphContainer(x) for x in in_list]
         self.info("done")
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
         r"""Read a data frame in :obj:`data_frame` from file path. By default uses :obj:`file_name` and pandas.
         Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is ignored
-        but must be any of the following '.csv', '.xls', '.xlsx', ... .
+        but must be any of the following '.csv', '.xls', '.xlsx', 'odt'.
 
         Args:
             file_path (str): File path to table file. Default is None.
@@ -599,11 +603,32 @@ class MemoryGraphDataset(MemoryGraphList):
         Returns:
             self
         """
+        def message_error(msg):
+            if raise_error_on_fail:
+                raise ValueError(msg)
+            else:
+                print("ERROR:", msg)
+
         for x in hyper_input:
+            if "name" not in x:
+                message_error("Can not infer name from %s for model input." % x)
             data = [self._list[i].obtain_property(x["name"]) for i in range(self.length)]
             if any([y is None for y in data]):
-                raise ValueError("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
-            # we also will check shape here.
+                message_error("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
+            # we also will check shape here but only with first element.
+            if hasattr(data[0], "shape") and "shape" in x:
+                shape_element = data[0].shape
+                shape_input = x["shape"]
+                if len(shape_input) != len(shape_element):
+                    message_error(
+                        "Mismatch in rank for model input {} vs. {}".format(shape_element, shape_input))
+                for i, dim in enumerate(shape_input):
+                    if dim is not None:
+                        if shape_element[i] != dim:
+                            message_error(
+                                "Mismatch in shape for model input {} vs. {}".format(shape_element, shape_input))
+            else:
+                message_error("Can not check shape for %s." % x["name"])
         return self
 
 

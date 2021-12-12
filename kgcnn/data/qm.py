@@ -163,7 +163,7 @@ class QMDataset(MemoryGraphDataset):
         symbol = [np.array([x[0] for x in y]) for y in xyz_list]
         coords = [np.array([x[1:4] for x in y], dtype="float") for y in xyz_list]
         nodes = [np.array([self._global_proton_dict[x[0]] for x in y], dtype="int") for y in xyz_list]
-        self.length = len(symbol)
+
         self.node_coordinates = coords
         self.node_symbol = symbol
         self.node_number = nodes

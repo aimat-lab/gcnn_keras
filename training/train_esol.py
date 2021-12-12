@@ -18,6 +18,7 @@ parser.add_argument("--model", required=False, help="Graph model to train.", def
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())
+
 print("Input of argparse:", args)
 model_name = args["model"]
 dataset_name = "ESOL"
@@ -35,7 +36,8 @@ dataset = ESOLDataset().set_attributes()
 dataset.hyper_process_methods(hyper_selection.data())
 dataset.hyper_assert_valid_model_input(hyper_selection.model("inputs"))
 data_length = dataset.length
-
+dataset.save()
+dataset.load()
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 data_loader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
 labels = np.array(dataset.graph_labels)

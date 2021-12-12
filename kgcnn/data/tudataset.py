@@ -153,7 +153,6 @@ class GraphTUDataset(MemoryGraphDataset):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts
 
-        self.length = num_graphs
         self.node_degree = node_degree
         self.node_attributes = n_attr
         self.edge_attributes = e_attr
@@ -161,7 +160,7 @@ class GraphTUDataset(MemoryGraphDataset):
         self.edge_indices = edge_indices
         self.node_labels = n_labels
         self.edge_labels = e_labels
-        self.graph_labels = g_labels
+        self.graph_labels = [x for x in g_labels]
 
         return self
 

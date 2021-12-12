@@ -160,7 +160,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             raise FileNotFoundError("Can not find pickled QM9 dataset.")
 
         # labels
-        self.length = 133885
+        # self.length = 133885
         labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag here
 
         # Atoms as nodes
