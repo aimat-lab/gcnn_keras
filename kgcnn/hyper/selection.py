@@ -56,6 +56,9 @@ class HyperSelection:
             return deepcopy(self._hyper["data"])
         return deepcopy(self._hyper["data"][section])
 
+    def inputs(self):
+        return deepcopy(self._hyper["model"]["inputs"])
+
     def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
         """Select compile hyper-parameter.
 

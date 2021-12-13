@@ -1,17 +1,18 @@
 import numpy as np
+import tensorflow as tf
 import pandas as pd
 import os
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map
-from kgcnn.utils.data import save_pickle_file, load_pickle_file
+from kgcnn.utils.data import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 
 
-class GraphContainer:
-    """Container to store tensor for graph objects such as edges and node attributes or indices in a dictionary.
-    The naming convention if not restricted, however, functions to sort e.g. edges require a certain naming with a
-    flexible prefix.
+class GraphNumpyContainer(object):
+    """Container to store numpy arrays for graph objects such as edges and node attributes or indices in a dictionary.
+    The naming convention is not restricted, however, functions to sort e.g. edges require a certain naming
+    convention with a certain prefix to be recognized. This class essentially wraps a python dict.
 
     """
     def __init__(self, graph: dict = None):
@@ -20,16 +21,29 @@ class GraphContainer:
         if graph is None:
             self._dict = {}
         if isinstance(graph, (dict, list)):
-            self._dict = dict(graph)
+            in_dict = dict(graph)
+            self._dict = {key: np.array(value) for key, value in in_dict.items()}
 
     def assign_property(self, key, value):
-        self._dict.update({key: value})
+        self._dict.update({key: np.array(value)})
 
     def obtain_property(self, key):
         if key in self._dict:
             return self._dict[key]
         else:
             return None
+
+    def __getitem__(self, item):
+        return self._dict[item]
+
+    def __setitem__(self, item, value):
+        self._dict[item] = np.array(value)
+
+    def __str__(self):
+        return str(self._dict)
+
+    def __repr__(self):
+        return "GraphNumpyContainer(" + str(self._dict) + ")"
 
     def _find_graph_properties(self, prop_prefix):
         return [x for x in self._dict if prop_prefix == x[:len(prop_prefix)]]
@@ -169,7 +183,7 @@ class GraphContainer:
         self._dict["range_indices"] = self._dict["edge_indices"]  # We make a copy.
 
         if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
-            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
+            print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
             return self
         xyz = self._dict["node_coordinates"]
         idx = self._dict["range_indices"]
@@ -197,7 +211,7 @@ class GraphContainer:
             self
         """
         if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
-            print("Coordinates are not set in `GraphContainer`. Can not make graph.")
+            print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
             return self
         # Compute distance matrix here. May be problematic for too large graphs.
         dist = coordinates_to_distancematrix(self._dict["node_coordinates"])
@@ -244,18 +258,18 @@ class GraphContainer:
         # Also compute angles
         if compute_angles:
             if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
-                print("Coordinates are not set in `GraphContainer`. Can not make graph.")
+                print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
                 return self
             self._dict["angle_attributes"] = get_angle(self._dict["node_coordinates"], a_triples)
         return self
 
 
 class MemoryGraphList:
-    r"""Class to store a list of graphs containers in memory.
+    r"""Class to store a list of graphs containers in memory. Simply wraps a python list.
     The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
     They are added in form of a list of numpy arrays to the instance of this class.
     Graph related properties must have a special prefix to be noted as graph property and passed to
-    the :obj:`GraphContainer`, which is generated for each item of this list.
+    the :obj:`GraphNumpyContainer` directly, which is generated for each item of this list.
     Prefix are `node_`, `edge_` and `graph_` for their node, edge and graph properties, respectively.
     The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation. This allows
     to have geometric range-connections and topological edges separately. The label 'range' is synonym for a geometric
@@ -276,10 +290,10 @@ class MemoryGraphList:
 
     Functions to modify graph properties are accessed with this class,
     like for example :obj:`sort_edge_indices`. Please find functions in
-    :class:`GraphContainer` and their documentation for further details.
+    :class:`GraphNumpyContainer` and their documentation for further details.
     """
 
-    def __init__(self, length: int):
+    def __init__(self, length: int = None):
         r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
         namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
 
@@ -292,7 +306,7 @@ class MemoryGraphList:
 
     def assign_property(self, key, value):
         if value is None:
-            # We could also here remove the key from graphs.
+            # We could also here remove the key from all graphs.
             return self
         if not isinstance(value, list):
             raise TypeError("Expected type 'list' to assign graph properties.")
@@ -307,7 +321,7 @@ class MemoryGraphList:
     def obtain_property(self, key):
         prop_list = [x.obtain_property(key) for x in self._list]
         if all([x is None for x in prop_list]):
-            print("Warning: Property %s is not set on any graph" % key)
+            print("Warning: Property %s is not set on any graph." % key)
             return None
         return prop_list
 
@@ -334,11 +348,27 @@ class MemoryGraphList:
         return len(self._list)
 
     def __getitem__(self, item):
-        return self._list[item]
+        # Does not make a copy of the data, as a python list does.
+        if isinstance(item, int):
+            return self._list[item]
+        new_list = MemoryGraphList()
+        if isinstance(item, slice):
+            return new_list._set_internal_list(self._list[item])
+        if isinstance(item, list):
+            return new_list._set_internal_list([self._list[int(i)] for i in item])
+        if isinstance(item, np.ndarray):
+            return new_list._set_internal_list([self._list[int(i)] for i in item])
+        raise TypeError("Unsupported type for MemoryGraphList items.")
+
+    def _set_internal_list(self, value: list):
+        if not isinstance(value, list):
+            raise TypeError("Must set list for MemoryGraphList.")
+        self._list = value
+        return self
 
     def __setitem__(self, key, value):
-        if not isinstance(value, GraphContainer):
-            raise TypeError("Require a GraphContainer as list item.")
+        if not isinstance(value, GraphNumpyContainer):
+            raise TypeError("Require a GraphNumpyContainer as list item.")
         self._list[key] = value
 
     def clear(self):
@@ -349,7 +379,7 @@ class MemoryGraphList:
             return self
         if length < 0:
             raise ValueError("Length of empty list must be >=0.")
-        self._list = [GraphContainer() for _ in range(length)]
+        self._list = [GraphNumpyContainer() for _ in range(length)]
         return self
 
     @property
@@ -360,37 +390,55 @@ class MemoryGraphList:
     def length(self, value: int):
         raise ValueError("Can not set length. Please use 'empty()' to initialize an empty list.")
 
+    def _to_tensor(self, item, make_copy=True):
+        if not make_copy:
+            print("Warning: at the moment always a copy is made for tensor().")
+        props = self.obtain_property(item["name"])  # Will be list.
+        is_ragged = item["ragged"] if "ragged" in item else False
+        if is_ragged:
+            return ragged_tensor_from_nested_numpy(props)
+        else:
+            return tf.constant(np.array(props))
+
+    def tensor(self, items, make_copy=True):
+        if isinstance(items, dict):
+            return self._to_tensor(items, make_copy=make_copy)
+        elif isinstance(items, (tuple, list)):
+            return [self._to_tensor(x, make_copy=make_copy) for x in items]
+        else:
+            raise TypeError("Wrong type, expected e.g. [{'name': 'edge_indices', 'ragged': True}, {...}, ...]")
+
     def _set_method_for_elements(self, fun, **kwargs):
         for x in self._list:
             getattr(x, fun)(**kwargs)
         return self
 
     def set_edge_indices_reverse(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("set_edge_indices_reverse", **kwargs)
 
     def make_undirected_edges(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("make_undirected_edges", **kwargs)
 
     def add_edge_self_loops(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("add_edge_self_loops", **kwargs)
 
     def sort_edge_indices(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("sort_edge_indices", **kwargs)
 
     def normalize_edge_weights_sym(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("normalize_edge_weights_sym", **kwargs)
 
     def set_range_from_edges(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("set_range_from_edges", **kwargs)
 
     def set_range(self, **kwargs):
-        r"""See :obj:`GraphContainer` for usage."""
+        r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("set_range", **kwargs)
 
 
@@ -533,7 +581,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
-        self._list = [GraphContainer(x) for x in in_list]
+        self._list = [GraphNumpyContainer(x) for x in in_list]
         self.info("done")
         return self
 

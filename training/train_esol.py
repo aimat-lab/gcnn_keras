@@ -4,7 +4,6 @@ import os
 
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.datasets.ESOL import ESOLDataset
-from kgcnn.io.loader import NumpyTensorList
 from kgcnn.utils.models import ModelSelection
 from kgcnn.hyper.selection import HyperSelection
 from kgcnn.training.graph import train_graph_regression_supervised
@@ -34,12 +33,8 @@ hyper = hyper_selection.hyper()
 # Loading ESOL Dataset
 dataset = ESOLDataset().set_attributes()
 dataset.hyper_process_methods(hyper_selection.data())
-dataset.hyper_assert_valid_model_input(hyper_selection.model("inputs"))
-data_length = dataset.length
-dataset.save()
-dataset.load()
-# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
-data_loader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
+dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
+data_length = len(dataset)
 labels = np.array(dataset.graph_labels)
 
 # Define Scaler for targets.
@@ -52,9 +47,8 @@ kf = KFold(**hyper_selection.k_fold())
 history_list, test_indices_list = [], []
 for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Select train and test data.
-    is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
-    xtrain, ytrain = data_loader[train_index].tensor(ragged=is_ragged), labels[train_index]
-    xtest, ytest = data_loader[test_index].tensor(ragged=is_ragged), labels[test_index]
+    xtrain, ytrain = dataset[train_index].tensor(hyper_selection.inputs()), labels[train_index]
+    xtest, ytest = dataset[test_index].tensor(hyper_selection.inputs()), labels[test_index]
 
     # Normalize training and test targets.
     ytrain = scaler.fit_transform(ytrain)
