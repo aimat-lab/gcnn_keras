@@ -29,7 +29,7 @@ model_selection = ModelSelection(model_name)
 hyper_selection = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # Loading MUTAG Dataset
-dataset = MUTAGDataset().set_attributes()
+dataset = MUTAGDataset()
 dataset.hyper_set_graph_methods(hyper_selection.data())
 dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
 data_length = len(dataset)

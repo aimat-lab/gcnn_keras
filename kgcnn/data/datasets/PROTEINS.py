@@ -24,7 +24,7 @@ class PROTEINSDatset(GraphTUDataset2020):
         processing.
         """
         super(PROTEINSDatset, self).read_in_memory()
-        self.graph_labels = np.array([[0, 1] if int(x) == 2 else [1, 0] for x in self.graph_labels])
+        self.graph_labels = [np.array([0, 1]) if int(x) == 2 else np.array([1, 0]) for x in self.graph_labels]
         ohe = OneHotEncoder(
             [-538, -345, -344, -134, -125, -96, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
              21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 47, 61, 63, 73, 74, 75,

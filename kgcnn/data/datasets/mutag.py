@@ -30,11 +30,13 @@ class MUTAGDataset(GraphTUDataset2020):
         self.node_attributes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
         # nodes = [node_translate[x] for x in nodes0123]
         atoms = [[atoms_translate[int(y)] for y in x] for x in self.node_labels]
+        graph_labels = np.array(self.graph_labels)
+        graph_labels[graph_labels<0] = 0
 
         self.edge_attributes = [x[:, 0] for x in self.edge_labels]
         self.node_symbol = atoms
         self.node_number = self.node_attributes
-        self.graph_labels[self.graph_labels < 0] = 0
+        self.graph_labels = [x for x in graph_labels]
         self.graph_attributes = None  # We make a better graph attributes here
         self.graph_size = [len(x) for x in self.node_attributes]
 
