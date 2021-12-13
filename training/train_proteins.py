@@ -34,11 +34,7 @@ dataset = PROTEINSDatset()
 dataset.hyper_set_graph_methods(hyper_selection.data())
 dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
 data_length = len(dataset)
-labels = np.expand_dims(dataset.graph_labels)
-
-# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
-dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
-labels = dataset.graph_labels
+labels = np.array(dataset.graph_labels)
 
 # Test Split
 kf = KFold(**hyper_selection.k_fold())

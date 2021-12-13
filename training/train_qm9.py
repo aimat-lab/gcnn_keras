@@ -137,6 +137,7 @@ plot_train_test_loss(history_list, loss_name="mean_absolute_error", val_loss_nam
 # Plot predicted targets vs actual targets for last split. This will be adapted for all targets in the future.
 true_test = scaler.inverse_transform(atoms_test, scaler.padd(ytest, target_indices))[:, target_indices]
 pred_test = scaler.inverse_transform(atoms_test, scaler.padd(model.predict(xtest), target_indices))[:, target_indices]
+
 plot_predict_true(pred_test, true_test, filepath=filepath, data_unit=[data_unit[x] for x in target_indices],
                   model_name=model_name, dataset_name=dataset_name,
                   target_names=[target_names[x] for x in target_indices], file_name="predict" + postfix_file + ".png")

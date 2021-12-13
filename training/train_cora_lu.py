@@ -20,41 +20,34 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
                     default="hyper/hyper_cora_lu.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
+model_name = args["model"]
+dataset_name = "cora_lu"
+hyper_path = args["hyper"]
 
 # Model identification.
-model_name = args["model"]
-model_selection = ModelSelection()
-make_model = model_selection.make_model(model_name)
+model_selection = ModelSelection(model_name)
 
 # Hyper-parameter
-hyper_selection = HyperSelectionTraining(args["hyper"], model_name=model_name, dataset_name="cora_lu")
-hyper = hyper_selection.get_hyper()
+hyper_selection = HyperSelectionTraining(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # Loading Cora_lu Dataset
-hyper_data = hyper['data']
 dataset = CoraLUDataset().make_undirected_edges().add_edge_self_loops(fill_value=1.0).normalize_edge_weights_sym()
-dataset_name = dataset.dataset_name
-data_length = dataset.length
+dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
+data_length = len(dataset)
 labels = dataset.node_labels
 
-# Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
-dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
-is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
-xtrain = dataloader.tensor(ragged=is_ragged)
+# Data in Tensor format.
+xtrain = dataset.tensor(hyper_selection.inputs())
 ytrain = np.array(labels)
 
 # Test Split
 kf = KFold(**hyper_selection.k_fold())
-split_indices = kf.split(X=np.arange(len(labels[0]))[:, None])
-
-# Variables
-history_list, test_indices_list = [], []
-model, scaler, xtest, ytest = None, None, None, None
 
 # Training on splits
-for train_index, test_index in split_indices:
+history_list, test_indices_list = [], []
+for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
     # Make model.
-    model = make_model(**hyper_selection.make_model())
+    model = model_selection(**hyper_selection.make_model())
 
     # Make training/validation mask to hide test labels from training.
     val_mask = np.zeros_like(labels[0][:, 0])
@@ -66,7 +59,8 @@ for train_index, test_index in split_indices:
 
     # Compile model with optimizer and loss.
     # Important to use weighted_metrics!
-    model.compile(**hyper_selection.compile(loss='categorical_crossentropy', weighted_metrics=["categorical_accuracy"]))
+    model.compile(**hyper_selection.compile(loss='categorical_crossentropy',
+                                            weighted_metrics=["categorical_accuracy"]))
     print(model.summary())
 
     start = time.process_time()
