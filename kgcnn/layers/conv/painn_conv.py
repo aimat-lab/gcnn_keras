@@ -279,7 +279,7 @@ class SplitEmbedding(GraphBaseLayer):
     Args:
         num_or_size_splits: Number or size of splits.
         axis (int): Axis to split.
-        num (int): Number the number of output splits.
+        num (int): Number of output splits.
     """
 
     def __init__(self,
@@ -288,24 +288,32 @@ class SplitEmbedding(GraphBaseLayer):
                  num=None,
                  **kwargs):
         super(SplitEmbedding, self).__init__(**kwargs)
-        # self._supports_ragged_inputs = True
         self.num_or_size_splits = num_or_size_splits
         self.axis = axis
         self.out_num = num
 
-    def call(self, inputs, **kwargs):
-        """Split embeddings across feature dimension e.g. `axis=-1`."""
-        if isinstance(inputs, tf.RaggedTensor):
-            if self.axis == -1 and inputs.shape[-1] is not None and inputs.ragged_rank == 1:
-                value_tensor = inputs.values  # will be Tensor
-                out_tensor = tf.split(value_tensor, self.num_or_size_splits, axis=self.axis, num=self.out_num)
-                return [tf.RaggedTensor.from_row_splits(x, inputs.row_splits, validate=self.ragged_validate) for x in
-                        out_tensor]
-            else:
-                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting tf.split... ")
+    def build(self, input_shape):
+        super(SplitEmbedding, self).build(input_shape)
+        # If rank is not defined can't call on values if axis does not happen to be positive.
+        self.axis = get_positive_axis(self.axis, len(input_shape))
+        if self.axis <= 1:
+            raise ValueError("Can not split tensor at axis <= 1.")
 
-        out = tf.split(inputs, self.num_or_size_splits, axis=self.axis, num=self.out_num)
-        return out
+    def call(self, inputs, **kwargs):
+        r"""Forward pass: Split embeddings across feature dimension e.g. `axis=-1`..
+
+        Args:
+            inputs (tf.RaggedTensor): Embeddings of shape (batch, [N], F)
+
+        Returns:
+            list: List of tensor splits of shape (batch, [N], F/num)
+        """
+        self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        # Axis will be positive and >=1 from built!
+        # Axis for values is axis-1.
+        out_tensors = tf.split(inputs.values, self.num_or_size_splits, axis=self.axis-1, num=self.out_num)
+        return [tf.RaggedTensor.from_row_splits(x, inputs.row_splits, validate=self.ragged_validate) for x in
+                out_tensors]
 
     def get_config(self):
         config = super(SplitEmbedding, self).get_config()

@@ -3,9 +3,10 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
-# There are limitations for RaggedTensor working with standard Keras layers. Here are some simple wrappers.
+
+# There are limitations for RaggedTensor working with standard Keras layers. Here are some simple surrogates.
 # This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
-# Since all kgcnn layers work with ragged_rank=1 and defined inner dimension, this case can be caught explicitly.
+# Since most kgcnn layers work with ragged_rank = 1 and defined inner dimension, this case can be caught explicitly.
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
@@ -176,7 +177,8 @@ class ExpandDims(GraphBaseLayer):
         self.axis = axis
 
     def build(self, input_shape):
-        # If rank is not defined can't call on values if axis does not happen to be positive.
+        super(ExpandDims, self).build(input_shape)
+        # If rank is not defined can't call on values, if axis does not happen to be positive.
         if len(input_shape) == 0:
             return
         # The possible target axis can be one rank larger to increase rank with expand_dims.
@@ -214,3 +216,38 @@ class ZerosLike(GraphBaseLayer):
             tf.RaggedTensor: Zero-like tensor of input.
         """
         return self.call_on_values_tensor_of_ragged(tf.zeros_like, inputs)
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ReduceSum')
+class ReduceSum(GraphBaseLayer):
+    """Make a zero-like graph tensor. Calls tf.zeros_like()."""
+
+    def __init__(self, axis=-1, **kwargs):
+        """Initialize layer."""
+        super(ReduceSum, self).__init__(**kwargs)
+        self.axis = axis
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(ReduceSum, self).build(input_shape)
+        # If rank is not defined can't call on values, if axis does not happen to be positive.
+        if len(input_shape) == 0:
+            return
+        # The possible target axis can be one rank larger to increase rank with expand_dims.
+        self.axis = get_positive_axis(self.axis, len(input_shape) + 1)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor): Tensor of node or edge embeddings of shape (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Zero-like tensor of input.
+        """
+        return self.call_on_values_tensor_of_ragged(tf.reduce_sum, inputs, axis=self.axis)
+
+    def get_config(self):
+        config = super(GraphBaseLayer, self).get_config()
+        config.update({"axis": self.axis})
+        return config

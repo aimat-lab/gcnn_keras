@@ -48,7 +48,8 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                        "is_sorted": self.is_sorted,
                        "has_unconnected": self.has_unconnected,
                        })
-        # Also add to config info of layer to self
+        # Also add the config of a sub-layer to self.
+        # Should only be done if sub-layer does not change config on built.
         for key, value in self._add_layer_config_to_self.items():
             if hasattr(self, key):
                 if getattr(self, key) is not None:
@@ -87,7 +88,7 @@ class GraphBaseLayer(tf.keras.layers.Layer):
             if ragged_rank is not None:
                 assert all(
                     [x.ragged_rank == ragged_rank for x in inputs]), "%s must have input with ragged_rank=%s." % (
-                        self.name, ragged_rank)
+                    self.name, ragged_rank)
         else:
             assert isinstance(inputs, tf.RaggedTensor), "%s requires `RaggedTensor` input." % self.name
             if ragged_rank is not None:
@@ -141,8 +142,12 @@ class GraphBaseLayer(tf.keras.layers.Layer):
                         return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
         elif isinstance(inputs, tf.RaggedTensor) and kwargs_values is not None:
             if inputs.ragged_rank == 1:
-                return tf.RaggedTensor.from_row_splits(fun(inputs.values, **kwargs_values),
-                                                       inputs.row_splits, validate=self.ragged_validate)
+                out = fun(inputs.values, **kwargs_values)
+                if isinstance(out, list):
+                    return [tf.RaggedTensor.from_row_splits(x, inputs.row_splits, validate=self.ragged_validate) for x
+                            in out]
+                else:
+                    return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
 
         if isinstance(inputs, tf.RaggedTensor):
             print("WARNING: Layer %s fail call on value Tensor of ragged Tensor." % self.name)
