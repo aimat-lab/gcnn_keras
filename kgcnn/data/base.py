@@ -441,6 +441,10 @@ class MemoryGraphList:
         r"""See :obj:`GraphNumpyContainer` for usage."""
         return self._set_method_for_elements("set_range", **kwargs)
 
+    def set_angle(self, **kwargs):
+        r"""See :obj:`GraphNumpyContainer` for usage."""
+        return self._set_method_for_elements("set_angle", **kwargs)
+
 
 class MemoryGraphDataset(MemoryGraphList):
     r"""Dataset class for lists of graph tensor properties that can be cast into the :obj:`tf.RaggedTensor` class.
@@ -614,7 +618,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.warning("Unsupported data extension of %s for table file." % file_path)
         return self
 
-    def hyper_process_methods(self, hyper_data: dict):
+    def hyper_set_graph_methods(self, hyper_data: dict):
         """Interface to hyper-parameters. Process methods for this dataset.
         That includes to set or execute methods of this class.
 

@@ -11,13 +11,14 @@ from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line.
-# A hyper-parameter file can be specified to be loaded containing a python dict for hyper.
+# A hyper-parameter file can be specified to be loaded containing a python dict with parameters.
 parser = argparse.ArgumentParser(description='Train a graph network on ESOL dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")  # AttentiveFP
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.",
                     default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())
 
+# Set main variables.
 print("Input of argparse:", args)
 model_name = args["model"]
 dataset_name = "ESOL"
@@ -28,11 +29,10 @@ model_selection = ModelSelection(model_name)
 
 # Hyper-parameter.
 hyper_selection = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
-hyper = hyper_selection.hyper()
 
 # Loading ESOL Dataset
 dataset = ESOLDataset().set_attributes()
-dataset.hyper_process_methods(hyper_selection.data())
+dataset.hyper_set_graph_methods(hyper_selection.data())
 dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
 data_length = len(dataset)
 labels = np.array(dataset.graph_labels)

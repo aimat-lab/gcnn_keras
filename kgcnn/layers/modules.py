@@ -146,24 +146,29 @@ class LazyConcatenate(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(LazyConcatenate, self).__init__(**kwargs)
-        self._layer_concat = ks.layers.Concatenate(axis=axis)
-        self._add_layer_config_to_self = {"_layer_concat": ["axis"]}
+        self.axis = axis
+
+    def build(self, input_shape):
+        super(LazyConcatenate, self).build(input_shape)
+        if not isinstance(input_shape, (tuple, list)) or len(input_shape) < 1:
+            raise ValueError(
+                'A `Concatenate` layer should be called on a list of '
+                f'at least 1 input. Received: input_shape={input_shape}')
+        if all(shape is None for shape in input_shape):
+            return
+        # Make sure all the shapes have same ranks.
+        ranks = set(len(shape) for shape in input_shape)
+        if len(ranks) == 1:
+            # Make axis positive then for call on values.
+            self.axis = get_positive_axis(self.axis, len(input_shape[0]))
 
     def call(self, inputs, **kwargs):
-        """Forward pass wrapping tf.keras layer."""
-        # Simply wrapper for self._kgcnn_wrapper_layer. Only works for simply element-wise operations.
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            # However, partition could be different, so this is only okay if ragged_validate=False
-            # For defined inner-dimension and raggd_rank=1 can do sloppy concatenate on values.
-            if all([x.ragged_rank == 1 for x in inputs]) and self._layer_concat.axis == -1 and all(
-                    [x.shape[-1] is not None for x in inputs]):
-                out = self._layer_concat([x.values for x in inputs], **kwargs)  # will be all Tensor
-                out = tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-                return out
-            else:
-                print("WARNING: Layer", self.name, "fail call on values for ragged_rank=1, attempting keras call... ")
-        # Try normal keras call
-        return self._layer_concat(inputs, **kwargs)
+        return self.call_on_values_tensor_of_ragged(tf.concat, inputs, axis=self.axis)
+
+    def get_config(self):
+        config = super(LazyConcatenate, self).get_config()
+        config.update({"axis": self.axis})
+        return config
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ExpandDims')
@@ -189,7 +194,7 @@ class ExpandDims(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(tf.expand_dims, inputs, axis=self.axis)
 
     def get_config(self):
-        config = super(GraphBaseLayer, self).get_config()
+        config = super(ExpandDims, self).get_config()
         config.update({"axis": self.axis})
         return config
 
@@ -233,8 +238,8 @@ class ReduceSum(GraphBaseLayer):
         # If rank is not defined can't call on values, if axis does not happen to be positive.
         if len(input_shape) == 0:
             return
-        # The possible target axis can be one rank larger to increase rank with expand_dims.
-        self.axis = get_positive_axis(self.axis, len(input_shape) + 1)
+        # Set axis to be positive for defined rank to call on values.
+        self.axis = get_positive_axis(self.axis, len(input_shape))
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -248,6 +253,6 @@ class ReduceSum(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(tf.reduce_sum, inputs, axis=self.axis)
 
     def get_config(self):
-        config = super(GraphBaseLayer, self).get_config()
+        config = super(ReduceSum, self).get_config()
         config.update({"axis": self.axis})
         return config

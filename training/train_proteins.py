@@ -17,24 +17,24 @@ parser = argparse.ArgumentParser(description='Train a graph network on PROTEINS 
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config.", default="hyper/hyper_proteins.py")
 args = vars(parser.parse_args())
+
 print("Input of argparse:", args)
-
-# Model identification
 model_name = args["model"]
-ms = ModelSelection()
-make_model = ms.make_model(model_name)
+dataset_name = "PROTEINS"
+hyper_path = args["hyper"]
 
-# Hyper-parameter identification
-hyper_selection = HyperSelection(args["hyper"], model_name=model_name, dataset_name="PROTEINS")
-hyper = hyper_selection.get_hyper()
+# Model
+model_selection = ModelSelection(model_name)
 
-# Loading PROTEINS Dataset
-hyper_data = hyper['data']
+# Hyper-parameter.
+hyper_selection = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
+
+# Loading MUTAG Dataset
 dataset = PROTEINSDatset()
-dataset_name = dataset.dataset_name
-data_length = dataset.length
-if "set_edge_indices_reverse" in hyper_data:
-    dataset.set_edge_indices_reverse()
+dataset.hyper_set_graph_methods(hyper_selection.data())
+dataset.hyper_assert_valid_model_input(hyper_selection.inputs())
+data_length = len(dataset)
+labels = np.expand_dims(dataset.graph_labels)
 
 # Using NumpyTensorList() to make tf.Tensor objects from a list of arrays.
 dataloader = NumpyTensorList(*[getattr(dataset, x['name']) for x in hyper['model']['inputs']])
@@ -42,23 +42,18 @@ labels = dataset.graph_labels
 
 # Test Split
 kf = KFold(**hyper_selection.k_fold())
-split_indices = kf.split(X=np.arange(data_length)[:, None])
-
-# Variables
-history_list, test_indices_list = [], []
-model, scaler, xtest, ytest = None, None, None, None
 
 # Train on splits
-for train_index, test_index in split_indices:
+history_list, test_indices_list = [], []
+for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Select train and test data.
-    is_ragged = [x['ragged'] for x in hyper['model']['inputs']]
-    xtrain, ytrain = dataloader[train_index].tensor(ragged=is_ragged), labels[train_index]
-    xtest, ytest = dataloader[test_index].tensor(ragged=is_ragged), labels[test_index]
+    xtrain, ytrain = dataset[train_index].tensor(hyper_selection.inputs()), labels[train_index]
+    xtest, ytest = dataset[test_index].tensor(hyper_selection.inputs()), labels[test_index]
 
     # Use a generic training function for graph classification.
     model, hist = train_graph_classification_supervised(xtrain, ytrain,
                                                         validation_data=(xtest, ytest),
-                                                        make_model=make_model,
+                                                        make_model=model_selection,
                                                         hyper_selection=hyper_selection,
                                                         metrics=["categorical_accuracy"])
 
