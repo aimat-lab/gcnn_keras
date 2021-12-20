@@ -18,11 +18,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a TUDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GraphSAGE")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MutagenicityDataset")
+                    default="MUTAG")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_mutagenicity.py")
+                    default="hyper/hyper_mutag.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -48,7 +48,7 @@ data_selection = DatasetSelection(dataset_name)
 try:
     dataset = data_selection.dataset(**hyper.data("dataset"))
 except NotImplementedError:
-    print("ERROR: Dataset not found, try general `MoleculeNetDataset`...")
+    print("ERROR: Dataset not found, try general `GraphTUDataset`...")
     dataset = GraphTUDataset(**hyper.data("dataset"))
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.

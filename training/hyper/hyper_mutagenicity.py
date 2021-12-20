@@ -36,7 +36,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     }
 }

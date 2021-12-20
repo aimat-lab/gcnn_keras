@@ -1,0 +1,25 @@
+{
+    "model": {
+        "name": "Unet", "inputs": [
+            {"shape": [null], "name": "node_attributes", "dtype": "float32", "ragged": true},
+            {"shape": [null, 1], "name": "edge_labels", "dtype": "float32", "ragged": true},
+            {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}
+        ], "input_embedding": {"node": {"input_dim": 60, "output_dim": 128}, "edge": {"input_dim": 5, "output_dim": 5}},
+        "output_embedding": "graph",
+        "output_mlp": {"use_bias": [true, false], "units": [25, 1], "activation": ["relu", "sigmoid"]},
+        "hidden_dim": {"units": 32, "use_bias": true, "activation": "linear"},
+        "top_k_args": {"k": 0.3, "kernel_initializer": "ones"}, "activation": "relu", "use_reconnect": true, "depth": 4,
+        "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {}, "verbose": 1
+    }, "training": {
+    "fit": {
+        "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2, "callbacks": [
+            {
+                "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 400, "epo": 500, "verbose": 0
+            }
+            }
+        ]
+    }, "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}}, "loss": "binary_crossentropy"},
+    "KFold": {"n_splits": 5, "random_state": null, "shuffle": true}, "execute_folds": null
+}, "data": {}, "info": {"postfix": "", "kgcnn_version": "1.1.0"}
+}
