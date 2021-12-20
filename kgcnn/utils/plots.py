@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 
-def plot_train_test_loss(histories: list, loss_name: str = "loss",
-                         val_loss_name: str = "val_loss", data_unit: str = "", model_name: str = "",
+def plot_train_test_loss(histories: list, loss_name: str = None,
+                         val_loss_name: str = None, data_unit: str = "", model_name: str = "",
                          filepath: str = None, file_name: str = "", dataset_name: str = ""
                          ):
     r"""Plot training curves for a list of fit results in form of keras history objects. This means, training-
@@ -24,33 +24,48 @@ def plot_train_test_loss(histories: list, loss_name: str = "loss",
         matplotlib.pyplot.figure: Figure of the training curves.
     """
     # We assume multiple fits as in KFold.
+    if loss_name is None:
+        loss_name = [x for x in list(histories[0].history.keys()) if "val_" not in x]
+    if val_loss_name is None:
+        val_loss_name = [x for x in list(histories[0].history.keys()) if "val_" in x]
+
+    if not isinstance(loss_name, list):
+        loss_name = [loss_name]
+    if not isinstance(val_loss_name, list):
+        val_loss_name = [val_loss_name]
+
     train_loss = []
-    for hist in histories:
-        train_mae = np.array(hist.history[loss_name])
-        train_loss.append(train_mae)
+    for x in loss_name:
+        loss = np.array([np.array(hist.history[x]) for hist in histories])
+        train_loss.append(loss)
     val_loss = []
-    for hist in histories:
-        val_mae = np.array(hist.history[val_loss_name])
-        val_loss.append(val_mae)
-
-    # Determine a mea
-    mean_valid = [np.mean(x[-1:]) for x in val_loss]
-
-    # val_step
-    val_step = len(train_loss[0]) / len(val_loss[0])
+    for x in val_loss_name:
+        loss = np.array([hist.history[x] for hist in histories])
+        val_loss.append(loss)
 
     fig = plt.figure()
-    for x in train_loss:
-        plt.plot(np.arange(x.shape[0]), x, c='red', alpha=0.85)
-    for y in val_loss:
-        plt.plot(np.arange(y.shape[0]) * val_step, y, c='blue', alpha=0.85)
-    plt.scatter([train_loss[-1].shape[0]], [np.mean(mean_valid)],
-                label=r"Test: {0:0.4f} $\pm$ {1:0.4f} ".format(np.mean(mean_valid), np.std(mean_valid)) + data_unit,
-                c='blue')
+    for i, x in enumerate(train_loss):
+        vp = plt.plot(np.arange(len(np.mean(x, axis=0))), np.mean(x, axis=0), alpha=0.85, label=loss_name[i])
+        plt.fill_between(np.arange(len(np.mean(x, axis=0))),
+                         np.mean(x, axis=0) - np.std(x, axis=0),
+                         np.mean(x, axis=0) + np.std(x, axis=0), color=vp[0].get_color(), alpha=0.2
+                         )
+    for i, y in enumerate(val_loss):
+        val_step = len(train_loss[i][0]) / len(val_loss[i][0])
+        vp = plt.plot(np.arange(len(np.mean(y, axis=0))) * val_step + val_step, np.mean(y, axis=0), alpha=0.85,
+                      label=val_loss_name[i])
+        plt.fill_between(np.arange(len(np.mean(y, axis=0))) * val_step + val_step,
+                         np.mean(y, axis=0) - np.std(y, axis=0),
+                         np.mean(y, axis=0) + np.std(y, axis=0), color=vp[0].get_color(), alpha=0.2
+                         )
+        plt.scatter([len(train_loss[i][0])], [np.mean(y, axis=0)[-1]],
+                    label=r"{0}: {1:0.4f} $\pm$ {2:0.4f} ".format(
+                        val_loss_name[i], np.mean(y, axis=0)[-1], np.std(y, axis=0)[-1]) + data_unit, color=vp[0].get_color()
+                    )
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.title(dataset_name + " training curve for " + model_name)
-    plt.legend(loc='upper right', fontsize='medium')
+    plt.legend(loc='upper right', fontsize='small')
     if filepath is not None:
         plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
     plt.show()

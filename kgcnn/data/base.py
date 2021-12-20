@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -9,12 +10,14 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
 from kgcnn.utils.data import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 
 
-class GraphNumpyContainer(object):
-    """Container to store numpy arrays for graph objects such as edges and node attributes or indices in a dictionary.
-    The naming convention is not restricted, however, functions to sort e.g. edges require a certain naming
-    convention with a certain prefix to be recognized. This class essentially wraps a python dict.
+class NumpyContainer:
+    r"""Container to store named numpy arrays in a dictionary.
+    The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
+    When assigning items, they are cast into a numpy array.
+
 
     """
+
     def __init__(self, graph: dict = None):
         # Data for graph list.
         self._dict = {}
@@ -23,15 +26,16 @@ class GraphNumpyContainer(object):
         if isinstance(graph, (dict, list)):
             in_dict = dict(graph)
             self._dict = {key: np.array(value) for key, value in in_dict.items()}
+        if isinstance(graph, NumpyContainer):
+            self._dict = {key: np.array(value) for key, value in graph._dict.items()}
 
     def assign_property(self, key, value):
-        self._dict.update({key: np.array(value)})
+        if value is not None:
+            self._dict.update({key: np.array(value)})
 
     def obtain_property(self, key):
         if key in self._dict:
             return self._dict[key]
-        else:
-            return None
 
     def __getitem__(self, item):
         return self._dict[item]
@@ -44,6 +48,15 @@ class GraphNumpyContainer(object):
 
     def __repr__(self):
         return "GraphNumpyContainer(" + str(self._dict) + ")"
+
+
+class GraphNumpyContainer(NumpyContainer):
+    r"""Extends :obj:`NumpyContainer` with
+
+    """
+
+    def __init__(self, **kwargs):
+        super(GraphNumpyContainer, self).__init__(**kwargs)
 
     def _find_graph_properties(self, prop_prefix):
         return [x for x in self._dict if prop_prefix == x[:len(prop_prefix)]]
@@ -97,7 +110,8 @@ class GraphNumpyContainer(object):
             compute_reverse_edges_index_map(self._dict[prefix_attributes + "indices"]), axis=-1)
         return self
 
-    def make_undirected_edges(self, prefix_attributes="edge_", remove_duplicates: bool = True, sort_indices: bool = True):
+    def make_undirected_edges(self, prefix_attributes="edge_", remove_duplicates: bool = True,
+                              sort_indices: bool = True):
         r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
         With :obj:`remove_duplicates` an edge can be added even though there is already and edge at :math:`(j, i)`.
         For other edge tensors, like the attributes or labels, the values of edge :math:`(i, j)` is added in place.
@@ -226,7 +240,7 @@ class GraphNumpyContainer(object):
         if len(dist_masked.shape) <= 1:
             dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self._dict["range_attributes"]= dist_masked
+        self._dict["range_attributes"] = dist_masked
         self._dict["range_indices"] = indices
         return self
 
@@ -254,7 +268,7 @@ class GraphNumpyContainer(object):
         _, a_triples, a_indices = get_angle_indices(self._dict[prefix_indices+"indices"],
                                                     allow_multi_edges=allow_multi_edges)
         self._dict["angle_indices"] = a_indices
-        self._dict["angle_indices_nodes"]= a_triples
+        self._dict["angle_indices_nodes"] = a_triples
         # Also compute angles
         if compute_angles:
             if "node_coordinates" not in self._dict or self._dict["node_coordinates"] is None:
@@ -285,7 +299,7 @@ class MemoryGraphList:
         print(data.edge_indices, data.node_labels)
         data.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
         print(data.node_coordinates)
-        data.set_range(max_distance=1.5, max_neighbours=10, self_loops=False)
+        data.map_list("set_range", max_distance=1.5, max_neighbours=10, self_loops=False)
         print(data.range_indices, data.range_attributes)
 
     Functions to modify graph properties are accessed with this class,
@@ -293,16 +307,16 @@ class MemoryGraphList:
     :class:`GraphNumpyContainer` and their documentation for further details.
     """
 
-    def __init__(self, length: int = None):
+    def __init__(self):
         r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
         namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
 
-        Args:
-            length (int): Length of the graph list.
         """
         self._list = []
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
-        self.empty(length)
+        logging.basicConfig()
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
 
     def assign_property(self, key, value):
         if value is None:
@@ -321,7 +335,7 @@ class MemoryGraphList:
     def obtain_property(self, key):
         prop_list = [x.obtain_property(key) for x in self._list]
         if all([x is None for x in prop_list]):
-            print("Warning: Property %s is not set on any graph." % key)
+            print("Property %s is not set on any graph." % key)
             return None
         return prop_list
 
@@ -408,42 +422,35 @@ class MemoryGraphList:
         else:
             raise TypeError("Wrong type, expected e.g. [{'name': 'edge_indices', 'ragged': True}, {...}, ...]")
 
-    def _set_method_for_elements(self, fun, **kwargs):
+    def map_list(self, fun, **kwargs):
         for x in self._list:
             getattr(x, fun)(**kwargs)
         return self
 
-    def set_edge_indices_reverse(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("set_edge_indices_reverse", **kwargs)
-
-    def make_undirected_edges(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("make_undirected_edges", **kwargs)
-
-    def add_edge_self_loops(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("add_edge_self_loops", **kwargs)
-
-    def sort_edge_indices(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("sort_edge_indices", **kwargs)
-
-    def normalize_edge_weights_sym(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("normalize_edge_weights_sym", **kwargs)
-
-    def set_range_from_edges(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("set_range_from_edges", **kwargs)
-
-    def set_range(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("set_range", **kwargs)
-
-    def set_angle(self, **kwargs):
-        r"""See :obj:`GraphNumpyContainer` for usage."""
-        return self._set_method_for_elements("set_angle", **kwargs)
+    def clean(self, inputs: list):
+        invalid_graphs = []
+        for item in inputs:
+            if isinstance(item, dict):
+                item_name = item["name"]
+            else:
+                item_name = item
+            props = self.obtain_property(item_name)
+            if props is None:
+                self.logger.warning("Can not clean property %s as it was not assigned to any graph." % item)
+                continue
+            for i, x in enumerate(props):
+                if x is None or not hasattr(x, "__getitem__"):
+                    self.logger.info("Property %s is not defined for graph %s" % (item_name, i))
+                    invalid_graphs.append(i)
+                elif len(x) <= 0:
+                    self.logger.info("Property %s is with zero length for graph %s" % (item_name, i))
+                    invalid_graphs.append(i)
+        invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
+        invalid_graphs = np.flip(invalid_graphs)  # Need descending order
+        self.logger.warning("Found invalid graphs for properties. Removing graphs %s" % invalid_graphs)
+        for i in invalid_graphs:
+            self._list.pop(int(i))
+        return self
 
 
 class MemoryGraphDataset(MemoryGraphList):
@@ -481,7 +488,6 @@ class MemoryGraphDataset(MemoryGraphList):
                  dataset_name: str = None,
                  file_name: str = None,
                  file_directory: str = None,
-                 length: int = None,
                  verbose: int = 1,
                  **kwargs):
         r"""Initialize a base class of :obj:`MemoryGraphDataset`.
@@ -492,10 +498,9 @@ class MemoryGraphDataset(MemoryGraphList):
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
-            length (int): Length of the dataset, if known beforehand. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
-        super(MemoryGraphDataset, self).__init__(length=length)
+        super(MemoryGraphDataset, self).__init__()
         # For logging.
         self.verbose = verbose
 
@@ -585,7 +590,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
-        self._list = [GraphNumpyContainer(x) for x in in_list]
+        self._list = [GraphNumpyContainer(graph=x) for x in in_list]
         self.info("done")
         return self
 
@@ -616,71 +621,6 @@ class MemoryGraphDataset(MemoryGraphList):
                 return self
 
         self.warning("Unsupported data extension of %s for table file." % file_path)
-        return self
-
-    def hyper_set_graph_methods(self, hyper_data: dict):
-        """Interface to hyper-parameters. Process methods for this dataset.
-        That includes to set or execute methods of this class.
-
-        Args:
-            hyper_data (dict): Process hyper parameter for this dataset.
-
-        Returns:
-            self
-        """
-        # The order here is important. So for the moment we explicitly check for methods in hyper.
-        methods_supported = ["set_range", "set_angle", "set_edge_indices_reverse", "normalize_edge_weights_sym"]
-        if "set_range" in hyper_data:
-            self.set_range(**hyper_data["set_range"])
-        if "set_angle" in hyper_data:
-            self.set_angle(**hyper_data['set_angle'])
-        if "set_edge_indices_reverse" in hyper_data:
-            self.set_edge_indices_reverse()
-        if "normalize_edge_weights_sym" in hyper_data:
-            self.normalize_edge_weights_sym()
-
-        for key, value in hyper_data.items():
-            if key not in methods_supported:
-                self.warning("Can not process the method: %s" % key)
-        return self
-
-    def hyper_assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
-        """Interface to hyper-parameters. Check whether dataset has requested graph (tensor) properties requested
-        by model input.
-
-        Args:
-            hyper_input (list): List of properties that need to be available to a model for training.
-            raise_error_on_fail (bool): Whether to raise an error if assertion failed.
-
-        Returns:
-            self
-        """
-        def message_error(msg):
-            if raise_error_on_fail:
-                raise ValueError(msg)
-            else:
-                print("ERROR:", msg)
-
-        for x in hyper_input:
-            if "name" not in x:
-                message_error("Can not infer name from %s for model input." % x)
-            data = [self._list[i].obtain_property(x["name"]) for i in range(self.length)]
-            if any([y is None for y in data]):
-                message_error("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
-            # we also will check shape here but only with first element.
-            if hasattr(data[0], "shape") and "shape" in x:
-                shape_element = data[0].shape
-                shape_input = x["shape"]
-                if len(shape_input) != len(shape_element):
-                    message_error(
-                        "Mismatch in rank for model input {} vs. {}".format(shape_element, shape_input))
-                for i, dim in enumerate(shape_input):
-                    if dim is not None:
-                        if shape_element[i] != dim:
-                            message_error(
-                                "Mismatch in shape for model input {} vs. {}".format(shape_element, shape_input))
-            else:
-                message_error("Can not check shape for %s." % x["name"])
         return self
 
 

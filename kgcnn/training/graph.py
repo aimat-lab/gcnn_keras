@@ -4,7 +4,6 @@ import time
 from tensorflow_addons import optimizers
 from kgcnn.utils import learning
 from kgcnn.utils.loss import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
-from kgcnn.hyper.selection import HyperSelection
 from datetime import timedelta
 
 
@@ -15,8 +14,6 @@ def train_graph_regression_supervised(X_train, y_train,
                                       scaler,
                                       ):
     # Hyper-parameter via hyper_selection
-    assert isinstance(hyper_selection, HyperSelection), "ERROR:kgcnn: Error require valid `HyperSelection`."
-
     # Make model.
     model = make_model(**hyper_selection.make_model())
 
@@ -49,9 +46,6 @@ def train_graph_classification_supervised(X_train, y_train,
                                           metrics=None,
                                           loss = None,
                                           ):
-    # Hyper-parameter via hyper_selection
-    assert isinstance(hyper_selection, HyperSelection), "ERROR:kgcnn: Error require valid `HyperSelection`."
-
     # Default metrics and loss, if no info in hyper_selection
     if metrics is None and isinstance(y_train, np.ndarray):
         metrics = ["categorical_accuracy"] if len(y_train.shape) > 1 and y_train.shape[-1] > 1 else ["accuracy"]

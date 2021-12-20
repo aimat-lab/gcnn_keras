@@ -84,7 +84,6 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
-        out = ks.layers.Flatten()(out)  # will be dense
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)

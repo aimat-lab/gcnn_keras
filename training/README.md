@@ -3,7 +3,7 @@
 Example training to test the performance of model implementations of ``kgcnn`` per datasets. The training scripts are called via:
 
 ```bash
-python3 train_qm9.py
+python3 train_qm9.py --dataset QM9
 python3 train_qm9.py --model Schnet
 python3 train_qm9.py --model Schnet --hpyer config.json
 ```

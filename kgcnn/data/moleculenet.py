@@ -5,9 +5,9 @@ import pandas as pd
 from kgcnn.mol.gen.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
-from kgcnn.mol.rdkit import MolecularGraphRDKit
+from kgcnn.mol.graphRD import MolecularGraphRDKit
 from kgcnn.mol.enocder import OneHotEncoder
-from kgcnn.mol.io import write_mol_block_list_to_sdf, dummy_load_sdf_file
+from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
 
@@ -91,8 +91,9 @@ class MoleculeNetDataset(MemoryGraphDataset):
                      external_program: dict = None, num_workers: int = None):
         r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
         from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
-        file name. The class requires RDKit.
-        Smiles that are not compatible with RDKit result in an empty mol-block in the SDF file.
+        file name. The class requires RDKit and OpenBabel.
+        Smiles that are not compatible with both RDKit and OpenBabel result in an empty mol-block in the SDF file to
+        keep the number of molecules the same.
 
         Args:
             overwrite (bool): Overwrite existing database mol-json file. Default is False.
@@ -127,7 +128,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def read_in_memory(self, has_conformers: bool = True, label_column_name: str = None,
+    def read_in_memory(self,  label_column_name: str = None, has_conformers: bool = True,
                        add_hydrogen: bool = True):
         r"""Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
         path information in the constructor of this class. Extract basic graph information from mol-blocks.
@@ -137,11 +138,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
         The assignment to original IDs is stored in :obj:`valid_molecule_id`.
 
         Args:
-            has_conformers (bool): If molecules need 3D coordinates pre-computed.
             label_column_name (str): Column name in the csv-file where to take graph labels from.
+            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is True.
+            has_conformers (bool): If molecules has 3D coordinates pre-computed.
                 For multi-targets you can supply a list of column names or positions. Also a slice can be provided
                 for selecting columns as graph labels. Default is None.
-            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is True.
 
         Returns:
             self
@@ -157,14 +158,13 @@ class MoleculeNetDataset(MemoryGraphDataset):
             raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
         self.info("Read mol-blocks from %s of pre-computed structures..." % self.file_path_mol)
-        mols = dummy_load_sdf_file(self.file_path_mol)
+        mols = read_mol_list_from_sdf_file(self.file_path_mol)
 
         # Main loop to read molecules from mol-block
-        valid_molecule_id = []
-        atoms = []
-        coords = []
-        number = []
-        edgind = []
+        node_symbol = []
+        node_coordinates = []
+        node_number = []
+        edge_indices = []
         edge_number = []
         num_mols = len(mols)
         graph_labels = []
@@ -172,39 +172,32 @@ class MoleculeNetDataset(MemoryGraphDataset):
         for i, x in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(x, sanitize=True)
             if mg.mol is None:
-                self.info(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                edge_indices.append(None)
+                edge_number.append(None)
+                node_symbol.append(None)
+                node_number.append(None)
+                graph_labels.append(None)
+                node_coordinates.append(None)
                 continue
-            temp_edge = mg.edge_number
-            if len(temp_edge[0]) == 0:
-                self.info(" ... skip molecule {0} as it has 0 edges.".format(i))
-                continue
-            if has_conformers:
-                temp_xyz = mg.node_coordinates
-                if len(temp_xyz) == 0:
-                    self.info(" ... skip molecule {0} as it has no conformer.".format(i))
-                    continue
-                coords.append(np.array(temp_xyz, dtype="float32"))
-
             # Append all valid tensor quantities
-            edgind.append(temp_edge[0])
+            temp_edge = mg.edge_number
+            edge_indices.append(temp_edge[0])
             edge_number.append(np.array(temp_edge[1], dtype="int"))
-            atoms.append(mg.node_symbol)
-            number.append(mg.node_number)
+            node_symbol.append(mg.node_symbol)
+            node_number.append(mg.node_number)
             graph_labels.append(graph_labels_all[i])
+            node_coordinates.append(mg.node_coordinates)
             counter_iter += 1
             if i % 1000 == 0:
                 self.info(" ... read molecules {0} from {1}".format(i, num_mols))
-            valid_molecule_id.append(i)
 
-        self.node_symbol = atoms
-        self.node_coordinates = coords if has_conformers else None
-        self.node_number = number
-        self.graph_size = [len(x) for x in atoms]
-        self.edge_indices = edgind
-        self.graph_labels = graph_labels
-        self.edge_number = edge_number
-        self.valid_molecule_id = valid_molecule_id
-
+        self.assign_property("node_symbol", node_symbol)
+        self.assign_property("node_coordinates",  node_coordinates)
+        self.assign_property("node_number", node_number)
+        self.assign_property("graph_size", [len(x) for x in node_number])
+        self.assign_property("edge_indices", edge_indices)
+        self.assign_property("graph_labels", graph_labels)
+        self.assign_property("edge_number", edge_number)
         return self
 
     def set_attributes(self,
@@ -240,7 +233,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         self.info("Making attributes...")
 
-        mols = dummy_load_sdf_file(self.file_path_mol)
+        mols = read_mol_list_from_sdf_file(self.file_path_mol)
 
         # Choose default values here:
         if nodes is None:
@@ -275,7 +268,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
             encoder_graph[key] = self._deserialize_encoder(value)
 
         # Reset all attributes
-        valid_molecule_id = []
         graph_attributes = []
         node_attributes = []
         edge_attributes = []
@@ -289,20 +281,18 @@ class MoleculeNetDataset(MemoryGraphDataset):
         for i, sm in enumerate(mols):
             mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
             if mg.mol is None:
-                self.info(" ... skip molecule {0} as it could not be converted to mol-object".format(i))
+                node_coordinates.append(None)
+                edge_indices.append(None)
+                edge_number.append(None)
+                node_attributes.append(None)
+                edge_attributes.append(None)
+                graph_attributes.append(None)
+                node_symbol.append(None)
+                node_number.append(None)
                 continue
-            temp_edge = mg.edge_number
-            if len(temp_edge[0]) == 0:
-                self.info(" ... skip molecule {0} as it has 0 edges.".format(i))
-                continue
-            if has_conformers:
-                temp_xyz = mg.node_coordinates
-                if len(temp_xyz) == 0:
-                    self.info(" ... skip molecule {0} as it has no conformer as requested.".format(i))
-                    continue
-                node_coordinates.append(np.array(temp_xyz, dtype="float32"))
-
             # Append all valid tensor properties
+            temp_edge = mg.edge_number
+            node_coordinates.append(np.array(mg.node_coordinates, dtype="float32"))
             edge_indices.append(np.array(temp_edge[0], dtype="int64"))
             edge_number.append(np.array(temp_edge[1], dtype="int"))
             node_attributes.append(np.array(mg.node_attributes(nodes, encoder_nodes), dtype="float32"))
@@ -313,7 +303,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
             counter_iter += 1
             if i % 1000 == 0:
                 self.info(" ... read molecules {0} from {1}".format(i, num_mols))
-            valid_molecule_id.append(i)
 
         self.graph_size = [len(x) for x in node_attributes]
         self.graph_attributes = graph_attributes
@@ -323,7 +312,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.node_coordinates = node_coordinates
         self.node_symbol = node_symbol
         self.node_number = node_number
-        self.valid_molecule_id = valid_molecule_id
 
         if verbose > 0:
             print("done")

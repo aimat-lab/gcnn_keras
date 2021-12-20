@@ -1,4 +1,7 @@
-def convert_list_to_xyz_str(mol: list, comment: str = ""):
+import logging
+
+
+def parse_list_to_xyz_str(mol: list, comment: str = ""):
     """Convert list of atom and coordinates list into xyz-string.
 
     Args:
@@ -24,7 +27,7 @@ def convert_list_to_xyz_str(mol: list, comment: str = ""):
 
 
 def write_list_to_xyz_file(filepath: str, mol_list: list):
-    """Write a list of nested list of atom and coordinates into xyz-string. Uses :obj:`convert_list_to_xyz_str`.
+    """Write a list of nested list of atom and coordinates into xyz-string. Uses :obj:`parse_list_to_xyz_str`.
 
     Args:
         filepath (str): Full path to file including name.
@@ -33,13 +36,13 @@ def write_list_to_xyz_file(filepath: str, mol_list: list):
     """
     with open(filepath, "w+") as file:
         for x in mol_list:
-            xyz_str = convert_list_to_xyz_str(x)
+            xyz_str = parse_list_to_xyz_str(x)
             file.write(xyz_str)
 
 
 def parse_mol_str(mol_str: str):
     """Parse a MDL mol table string into nested list. Only supports V2000 format and CTab. Better rely on
-    openbabel to do this. This function was a temporary solution.
+    OpenBabel to do this. This function was a temporary solution.
 
     Args:
         mol_str (str): String of mol block.
@@ -49,11 +52,11 @@ def parse_mol_str(mol_str: str):
     """
     empty_return = ["", "", "", [], [], [], []]
     if len(mol_str) == 0:
-        print("ERROR: Received empty MLD mol-block string.")
+        logging.error("Received empty MLD mol-block string. Nothing to parse. Return empty list.")
         return empty_return
     lines = mol_str.split("\n")
     if len(lines) < 4:
-        print("ERROR: Could not find counts line. Invalid format.")
+        logging.error("Could not find counts line. Invalid format. Can not parse string. Return empty list.")
         return empty_return
 
     title = lines[0]
@@ -69,7 +72,7 @@ def parse_mol_str(mol_str: str):
         nl = int(counts[2])
         ns = int(counts[5])
         if ns != 0 or nl != 0:
-            print("WARNING: No supporting atom lists (deprecated) or stext entries.")
+            logging.warning("Not supporting atom lists (deprecated) or stext entries for this function.")
         atoms = []
         for a in lines[4:(na + 4)]:
             # xxxxx.xxxxyyyyy.yyyyzzzzz.zzzz aaaddcccssshhhbbbvvvHHHrrriiimmmnnneee
@@ -92,17 +95,18 @@ def parse_mol_str(mol_str: str):
             if "M" in p:
                 properties.append(p)
     else:
-        raise NotImplementedError("ERROR: Can not parse mol V3000 or higher.")
+        raise NotImplementedError("Can not parse mol V3000 or higher.")
     return [title, program, comment, counts, atoms, bonds, properties]
 
 
-def read_xyz_file(file_path, delimiter: str = None):
+def read_xyz_file(file_path, delimiter: str = None, line_by_line=False):
     """Simple python script to read xyz-file and parse into a nested python list. Always returns a list with
     the geometries in xyz file.
 
     Args:
         file_path (str): Full path to xyz-file.
         delimiter (str): Delimiter for xyz separation. Default is ' '.
+        line_by_line (bool): Whether to read XYZ file line by line.
 
     Returns:
         list: Nested coordinates from xyz-file.
@@ -111,30 +115,42 @@ def read_xyz_file(file_path, delimiter: str = None):
     comment_list = []
     # open file
     infile = open(file_path, "r")
-    lines = infile.readlines()
-    # read separate entries
-    file_pos = 0
-    while file_pos < len(lines):
-        line_list = lines[file_pos].strip().split(delimiter)
-        line_list = [x.strip() for x in line_list if x != '']
-        if len(line_list) == 1:
+    if line_by_line:
+        lines = infile  # File object
+    else:
+        lines = infile.readlines()  # list of lines
+
+    num = 0
+    comment = 0
+    atoms = []
+    coordinates = []
+    for line in lines:
+        line_list = line.strip().split(delimiter)
+        line_list = [x.strip() for x in line_list if x != ""]  # Remove multiple delimiter
+        if len(line_list) == 1 and num == 0 and comment == 0:
+            # Start new conformer and set line counts to read.
             num = int(line_list[0])
-            atoms = []
-            coordinates = []
-            comment_list.append(lines[file_pos + 1].strip())
-            for i in range(num):
-                xyz_list = lines[file_pos + i + 2].strip().split(delimiter)
-                xyz_list = [x.strip() for x in xyz_list if x != '']
-                atoms.append(str(xyz_list[0]).lower().capitalize())
-                coordinates.append([float(x) for x in xyz_list[1:]])
-            mol_list.append([atoms, coordinates])
-            file_pos += num + 2
-        elif len(line_list) > 1:
-            print("Mismatch in atoms and positions in xyz file %s" % file_path)
-            file_pos += 1
+            comment = 1
+        elif comment > 0:
+            # Comment comes before atom block and must always be read.
+            comment_list.append(str(line))
+            comment = 0
+        elif num > 0:
+            if len(line_list) <= 1:
+                logging.error("Expected to read atom-coordinate block but got comment or line count instead.")
+            atoms.append(str(line_list[0]).lower().capitalize())
+            coordinates.append([float(x) for x in line_list[1:]])
+            if num == 1:
+                # This was last line for this conformer. Append result and reset current list.
+                mol_list.append([atoms, coordinates])
+                num = 0
+                atoms = []
+                coordinates = []
+            else:
+                # Finished reading a atom line.
+                num = num - 1
         else:
-            # Skip empty line is fine
-            file_pos += 1
+            logging.warning("Empty line in xyz file for mismatch in atom count found.")
     # close file
     infile.close()
     return mol_list
@@ -166,31 +182,62 @@ def write_mol_block_list_to_sdf(mol_block_list, filepath):
                     file.write("$$$$\n")
 
 
-def dummy_load_sdf_file(filepath):
+def read_mol_list_from_sdf_file(filepath, line_by_line=False):
     """Simple loader to load a SDF file by only splitting.
 
     Args:
         filepath (str): File path for SDF file.
+        line_by_line (bool): Whether to read SDF file line by line.
 
     Returns:
         list: List of mol blocks as string.
     """
+    mol_list = []
     with open(filepath, "r") as f:
-        all_sting = f.read()
-    mol_list = all_sting.split("$$$$\n")
-    # Check if there was tailing $$$$ with nothing to follow. Split will make empty string though.
+        if not line_by_line:
+            all_sting = f.read()
+            mol_list = all_sting.split("$$$$\n")
+        else:
+            iter_mol = ""
+            for line in f:
+                if line == "$$$$\n":
+                    mol_list.append(iter_mol)
+                    iter_mol = ""
+                else:
+                    iter_mol = iter_mol + line
+            if iter_mol != "":
+                mol_list.append(iter_mol)
+    # Check if there was tailing $$$$ with nothing to follow.
+    # Split will make empty string at the end, which does not match actual number of mol blocks.
     if len(mol_list[-1]) == 0:
         mol_list = mol_list[:-1]
     return mol_list
 
 
 def read_smiles_file(file_path):
+    """Simply python function to read smiles from file.
+
+    Args:
+        file_path (str): File path for smiles file.
+
+    Returns:
+        list: List of smiles.
+    """
     with open(file_path, "r") as f:
-        smile_list = f.read().splitlines()
+        smile_list = f.readlines()
     return smile_list
 
 
 def write_smiles_file(file_path, smile_list):
+    """Simply python function to write smiles to file.
+
+    Args:
+        file_path (str): File path for smiles file.
+        smile_list (list): List of smiles to write to file.
+
+    Returns:
+        None
+    """
     with open(file_path, "w+") as f:
         for i, x in enumerate(smile_list):
             if i == len(smile_list)-1:

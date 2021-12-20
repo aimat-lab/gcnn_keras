@@ -24,7 +24,6 @@ class CrystalDataset(MemoryGraphDataset):
                  dataset_name: str = None,
                  file_name: str = None,
                  file_directory: str = None,
-                 length: int = None,
                  verbose: int = 1, **kwargs):
         r"""Initialize a base class of :obj:`CrystalDataset`.
 
@@ -36,11 +35,10 @@ class CrystalDataset(MemoryGraphDataset):
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 'cif' files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
-            length (int): Length of the dataset, if known beforehand. Default is None.
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
         super(CrystalDataset, self).__init__(data_directory=data_directory, dataset_name=dataset_name,
-                                             file_name=file_name, verbose=verbose, length=length,
+                                             file_name=file_name, verbose=verbose,
                                              file_directory=file_directory, **kwargs)
         self.graph_lattice_matrix = None
         self.graph_abc = None

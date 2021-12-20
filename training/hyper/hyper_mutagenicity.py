@@ -9,16 +9,16 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 5, "output_dim": 16}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "sigmoid"]},
             "node_mlp_args": {"units": [64, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": 64, "use_bias": True, "activation": "relu"},
             "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {},
             "concat_args": {"axis": -1},
             "use_edge_features": True,
             "pooling_nodes_args": {"pooling_method": "mean"},
-            "depth": 3, "verbose": 1
+            "depth": 3, "verbose": 1,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ["relu", "relu", "sigmoid"]},
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
@@ -27,10 +27,10 @@ hyper = {
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                "loss": "binary_crossentropy"
+                        "loss": "binary_crossentropy", "metrics": ["accuracy"]
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
         },

@@ -1,9 +1,11 @@
 import tensorflow as tf
-
 import kgcnn.ops.activ
 
+# from keras.engine.base_layer import Layer
+from tensorflow.keras.layers import Layer
 
-class GraphBaseLayer(tf.keras.layers.Layer):
+
+class GraphBaseLayer(Layer):
     r"""Base layer for graph layers used in :obj:`kgcnn` that holds some additional information about the graph, which
     could improve performance for some layers, if set differently.
 

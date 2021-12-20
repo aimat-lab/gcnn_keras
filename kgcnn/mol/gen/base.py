@@ -2,7 +2,7 @@ import os
 import sys
 import uuid
 
-from kgcnn.mol.io import dummy_load_sdf_file, write_smiles_file
+from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
 # Different backends to convert smiles
 from kgcnn.mol.gen.default import smile_to_mol_parallel
 from kgcnn.mol.gen.ballloon import BalloonInterface
@@ -66,7 +66,7 @@ def smile_to_mol(smile_list: list,
     else:
         raise ValueError("Unknown program for conversion of smiles %s" % external_program)
 
-    mol_list = dummy_load_sdf_file(mol_file)
+    mol_list = read_mol_list_from_sdf_file(mol_file)
     # Clean up
     os.remove(mol_file)
     os.remove(smile_file)
