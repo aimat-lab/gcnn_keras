@@ -37,7 +37,7 @@ class PoolingTopK(GraphBaseLayer):
     def build(self, input_shape):
         """Build Layer."""
         super(PoolingTopK, self).build(input_shape)
-
+        self.units_p = int(input_shape[0][-1])
         self.kernel_p = self.add_weight('score',
                                         shape=[1, self.units_p],
                                         initializer=self.kernel_initializer,

@@ -5,17 +5,16 @@ hyper = {
             "inputs": [{"shape": [None, 3], "name": "node_labels", "dtype": "float32", "ragged": True},
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 800, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": True, "units": 2, "activation": "softmax"},
             "last_mlp": {"use_bias": [True], "units": [2],
                          "activation": ['linear']},
             "depth": 5,
             "dropout": 0.5,
-            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"]}
+            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"]},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": True, "units": 2, "activation": "softmax"},
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 150, "validation_freq": 1, "verbose": 2, "callbacks": []
-            },
+            "fit": {"batch_size": 32, "epochs": 150, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                     "config": {"lr": {
@@ -26,17 +25,18 @@ hyper = {
                         }
                     }
                 },
-                "loss": "categorical_crossentropy"
+                "loss": "categorical_crossentropy",
+                "metrics": ["categorical_accuracy"]
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
         },
         "data": {
             "set_range": {"max_distance": 4, "max_neighbours": 30}
         },
         "info": {
-            "postfix" : "",
-            "kgcnn_version": "1.1.0"
+            "postfix": "",
+            "kgcnn_version": "2.0.0"
         }
     }
 }

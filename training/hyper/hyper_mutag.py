@@ -31,7 +31,8 @@ hyper = {
                     },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
-                "loss": "binary_crossentropy"
+                "loss": "binary_crossentropy",
+                "metrics": ["accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
@@ -77,7 +78,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy"
+                "loss": "binary_crossentropy",
+                "metrics": ["accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}

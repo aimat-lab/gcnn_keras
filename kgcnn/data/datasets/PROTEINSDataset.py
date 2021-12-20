@@ -5,7 +5,7 @@ from kgcnn.data.datasets.GraphTUDataset2020 import GraphTUDataset2020
 from kgcnn.mol.enocder import OneHotEncoder
 
 
-class PROTEINSDatset(GraphTUDataset2020):
+class PROTEINSDataset(GraphTUDataset2020):
     """Store and process PROTEINS dataset."""
 
     def __init__(self, reload=False, verbose=1):
@@ -17,13 +17,13 @@ class PROTEINSDatset(GraphTUDataset2020):
         """
         # Use default base class init()
         # We set dataset_name to None since all flags are defined by hand in subclass definition.
-        super(PROTEINSDatset, self).__init__(dataset_name="PROTEINS", reload=reload, verbose=verbose)
+        super(PROTEINSDataset, self).__init__(dataset_name="PROTEINS", reload=reload, verbose=verbose)
 
     def read_in_memory(self):
         r"""Load PROTEINS Dataset into memory and already split into items with further cleaning and
         processing.
         """
-        super(PROTEINSDatset, self).read_in_memory()
+        super(PROTEINSDataset, self).read_in_memory()
         self.graph_labels = [np.array([0, 1]) if int(x) == 2 else np.array([1, 0]) for x in self.graph_labels]
         ohe = OneHotEncoder(
             [-538, -345, -344, -134, -125, -96, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,

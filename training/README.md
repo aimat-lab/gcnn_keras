@@ -3,14 +3,12 @@
 Example training to test the performance of model implementations of ``kgcnn`` per datasets. The training scripts are called via:
 
 ```bash
-python3 train_qm9.py --dataset QM9
-python3 train_qm9.py --model Schnet
-python3 train_qm9.py --model Schnet --hpyer config.json
+python3 train_moleculenet.py --dataset ESOLDataset --model GIN --hyper hyper/hyper_esol.py
 ```
 
-Where `config.json` stores custom hyper-parameters and must be in the same folder or a path to a `.json` file. 
-Alternatively, also a `.yaml`, `.yaml` or `.py` file can be loaded in place of the `.json` file. 
-The python file must define a ```hyper``` attribute as described below.
+Where `hyper_esol.py` stores hyper-parameters and must be in the same folder or a path to a `.py`. 
+Alternatively, also a `.yaml`, `.yaml` or `.json` file can be loaded in place of the `.py` file. 
+The python file must define a `hyper` attribute as described below.
 However, note that not all models can be trained on all datasets and that not all models have proper default hyper parameters here.
 You can check previous runs in the result folders named after each dataset and their hyper parameters and output files.
 
@@ -32,13 +30,17 @@ hyper = {
     },
     "training": {
         "fit": { 
-            # keras fit arguments serialized
+            # serialized keras fit arguments.
         },
         "compile": { 
-            # Keras compile arguments serialized
+            # serialized keras compile arguments.
         },
-        "Kfold": {
-            # kwargs unpacked in scikit-learn Kfold class.  
+        "cross_validation": {
+            # serialized parameters for cross-validation.  
+        },
+        "scaler": {
+            # serialized parameters for scaler.
+            # Only add when training for regression.
         }
     }
 }
