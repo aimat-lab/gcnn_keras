@@ -1,4 +1,5 @@
 import os
+import logging
 import numpy as np
 try:
     import pymatgen.core.structure
@@ -24,7 +25,7 @@ class CrystalDataset(MemoryGraphDataset):
                  dataset_name: str = None,
                  file_name: str = None,
                  file_directory: str = None,
-                 verbose: int = 1, **kwargs):
+                 verbose: int = 10):
         r"""Initialize a base class of :obj:`CrystalDataset`.
 
         Args:
@@ -35,17 +36,11 @@ class CrystalDataset(MemoryGraphDataset):
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 'cif' files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+            verbose (int): Logging level. Default is 10.
         """
         super(CrystalDataset, self).__init__(data_directory=data_directory, dataset_name=dataset_name,
                                              file_name=file_name, verbose=verbose,
-                                             file_directory=file_directory, **kwargs)
-        self.graph_lattice_matrix = None
-        self.graph_abc = None
-        self.graph_charge = None
-        self.graph_volume = None
-        self.node_oxidation = None
-        self.range_image = None
+                                             file_directory=file_directory)
         self._structs = None
 
     def _get_pymatgen_file_name(self):

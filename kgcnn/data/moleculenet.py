@@ -11,11 +11,6 @@ from kgcnn.mol.enocder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 
-# Module logger
-logging.basicConfig()
-module_logger = logging.getLogger(__name__)
-module_logger.setLevel(logging.INFO)
-
 
 class MoleculeNetDataset(MemoryGraphDataset):
     r"""Class for using molecule datasets. The concept is to load a table of smiles and corresponding targets and
@@ -34,7 +29,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose: int = 1):
+                 verbose: int = 10):
         r"""Initialize a `MoleculeNetDataset` with information of the dataset location on disk.
 
         Args:
@@ -42,13 +37,10 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 Default is None.
             data_directory (str): Full path to directory containing all dataset files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming. Default is None.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+            verbose (int): Logging level. Default is 10.
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose)
-        self.data_keys = None
-        self.valid_molecule_id = None
-        self.logger = module_logger
 
     @property
     def file_path_mol(self):

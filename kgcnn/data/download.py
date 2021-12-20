@@ -1,12 +1,11 @@
-import logging
 import gzip
 import os
 import shutil
 import tarfile
 import zipfile
 import requests
+import logging
 
-# Module logger
 logging.basicConfig()
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
@@ -32,7 +31,7 @@ class DownloadDataset:
                  unpack_zip: bool = False,
                  extract_gz: bool = False,
                  reload: bool = False,
-                 verbose: int = 1,
+                 verbose: int = 10,
                  data_main_dir: str = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
                  ):
         r"""Base initialization function for downloading and extracting the data. The arguments to the constructor
@@ -51,7 +50,7 @@ class DownloadDataset:
             unpack_zip (bool): Whether to unpack a zip-archive. Default is False.
             extract_gz (bool): Whether to unpack a gz-archive. Default is False.
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Logging level. Default is 10.
         """
         self.data_main_dir = data_main_dir
         self.dataset_name = dataset_name
@@ -64,8 +63,8 @@ class DownloadDataset:
         self.unpack_zip = unpack_zip
         self.extract_gz = extract_gz
         self.download_reload = reload
-        self.verbose = verbose
-        self.logger = module_logger
+        self.logger_download = module_logger
+        self.logger_download.setLevel(verbose)
 
         # Make the download already in init.
         self.download_dataset_to_disk()
@@ -74,29 +73,30 @@ class DownloadDataset:
         """Main download function to run the download and unpack of the dataset. Defined by attributes in self."""
 
         # Some datasets do not offer all information or require multiple files.
-        self.logger.info("Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
+        self.logger_download.info("Checking and possibly downloading dataset with name %s" % str(self.dataset_name))
 
         # Default functions to load a dataset.
         if self.data_directory_name is not None:
-            self.setup_dataset_main(self.data_main_dir, logger=self.logger)
-            self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, logger=self.logger)
+            self.setup_dataset_main(self.data_main_dir, logger=self.logger_download)
+            self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, logger=self.logger_download)
 
         if self.download_url is not None:
             self.download_database(os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
-                                   self.download_file_name, overwrite=self.download_reload, logger=self.logger)
+                                   self.download_file_name, overwrite=self.download_reload, logger=self.logger_download)
 
         if self.unpack_tar:
             self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=self.download_reload, logger=self.logger)
+                                 self.unpack_directory_name, overwrite=self.download_reload,
+                                 logger=self.logger_download)
 
         if self.unpack_zip:
             self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=self.download_reload, logger=self.logger)
+                                 self.unpack_directory_name, overwrite=self.download_reload,
+                                 logger=self.logger_download)
 
         if self.extract_gz:
             self.extract_gz_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.extract_file_name, overwrite=self.download_reload, verbose=self.verbose,
-                                 logger=self.logger)
+                                 self.extract_file_name, overwrite=self.download_reload, logger=self.logger_download)
 
     @staticmethod
     def setup_dataset_main(data_main_dir, logger=None):
@@ -220,7 +220,7 @@ class DownloadDataset:
 
     @staticmethod
     def extract_gz_file(path: str, filename: str, out_filename: str = None,
-                        overwrite: bool = False, verbose: int = 1, logger=None):
+                        overwrite: bool = False, logger=None):
         """Extract gz-file.
 
         Args:
@@ -228,7 +228,6 @@ class DownloadDataset:
             filename (str): Name of the gz-file to extract.
             out_filename (str): Name of the extracted file.
             overwrite (bool): Overwrite existing database. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
             logger: Logger to print information or warnings.
 
         Returns:

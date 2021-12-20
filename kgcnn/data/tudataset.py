@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import logging
 
 from kgcnn.data.base import MemoryGraphDataset
 
@@ -22,7 +23,7 @@ class GraphTUDataset(MemoryGraphDataset):
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 file_directory: str = None, verbose: int = 1):
+                 file_directory: str = None, verbose: int = 10):
         r"""Initialize a :obj:`GraphTUDataset` instance from file.
 
         Args:
@@ -32,7 +33,7 @@ class GraphTUDataset(MemoryGraphDataset):
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 files. Default is None.
             dataset_name (str): Name of the dataset. Important for base-name for naming of files. Default is None.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+            verbose (int): Logging level. Default is 10.
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose, file_directory=file_directory)

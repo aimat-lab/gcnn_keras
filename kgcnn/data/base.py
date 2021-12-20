@@ -491,7 +491,7 @@ class MemoryGraphDataset(MemoryGraphList):
                  dataset_name: str = None,
                  file_name: str = None,
                  file_directory: str = None,
-                 verbose: int = 1,
+                 verbose: int = 10,
                  ):
         r"""Initialize a base class of :obj:`MemoryGraphDataset`.
 
@@ -501,12 +501,12 @@ class MemoryGraphDataset(MemoryGraphList):
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+            verbose (int): Logging level. Default is 10.
         """
         super(MemoryGraphDataset, self).__init__()
         # For logging.
-        self.verbose = verbose
         self.logger = module_logger
+        self.logger.setLevel(verbose)
         # Dataset information on file.
         self.data_directory = data_directory
         self.file_name = file_name
@@ -514,6 +514,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.dataset_name = dataset_name
         # Data Frame for information.
         self.data_frame = None
+        self.data_keys = None
 
     @property
     def file_path(self):
