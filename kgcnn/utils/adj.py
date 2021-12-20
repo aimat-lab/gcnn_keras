@@ -60,6 +60,8 @@ def rescale_edge_weights_degree_sym(edge_indices, edge_weights):
     Returns:
         edge_weights (np.ndarray):  Rescaled edge weights of shape
     """
+    if len(edge_indices) == 0:
+        return np.array([])
     row_val, row_cnt = np.unique(edge_indices[:, 0], return_counts=True)
     col_val, col_cnt = np.unique(edge_indices[:, 1], return_counts=True)
     d_row = np.zeros(len(edge_weights), dtype=edge_weights.dtype)

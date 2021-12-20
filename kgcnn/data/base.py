@@ -179,8 +179,8 @@ class GraphNumpyContainer(NumpyContainer):
         """
         if prefix_attributes + "indices" not in self._dict or self._dict[prefix_attributes + "indices"] is None:
             raise ValueError("Can not operate on %s, as indices are not defined." % prefix_attributes)
-        if prefix_attributes + "weights" not in self._dict or self._dict[prefix_attributes + "weights"] is None:
-            self._dict[prefix_attributes + "weights"] = np.ones_like(self._dict[prefix_attributes + "indices"][:, :1])
+        if prefix_attributes + "weights" not in self._dict or self.obtain_property(prefix_attributes + "weights") is None:
+            self._dict[prefix_attributes + "weights"] = np.ones((len(self.obtain_property(prefix_attributes + "indices")), 1))
         self._dict[prefix_attributes + "weights"] = rescale_edge_weights_degree_sym(
             self._dict[prefix_attributes + "indices"], self._dict[prefix_attributes + "weights"])
         return self
