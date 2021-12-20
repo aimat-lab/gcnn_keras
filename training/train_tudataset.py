@@ -20,7 +20,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 parser = argparse.ArgumentParser(description='Train a GNN on a TUDataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MUTAG")
+                    default="MUTAGDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mutag.py")
 args = vars(parser.parse_args())
