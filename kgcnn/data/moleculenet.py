@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import logging
 
 from kgcnn.mol.gen.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
@@ -9,6 +10,11 @@ from kgcnn.mol.graphRD import MolecularGraphRDKit
 from kgcnn.mol.enocder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
+
+# Module logger
+logging.basicConfig()
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
 
 class MoleculeNetDataset(MemoryGraphDataset):
@@ -42,6 +48,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                                     file_name=file_name, verbose=verbose)
         self.data_keys = None
         self.valid_molecule_id = None
+        self.logger = module_logger
 
     @property
     def file_path_mol(self):
@@ -314,7 +321,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.node_number = node_number
 
         if verbose > 0:
-            print("done")
             for key, value in encoder_nodes.items():
                 if hasattr(value, "found_values"):
                     print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)

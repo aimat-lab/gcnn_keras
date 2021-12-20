@@ -9,6 +9,11 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map
 from kgcnn.utils.data import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 
+# Module logger
+logging.basicConfig()
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
+
 
 class NumpyContainer:
     r"""Container to store named numpy arrays in a dictionary.
@@ -314,9 +319,7 @@ class MemoryGraphList:
         """
         self._list = []
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
-        logging.basicConfig()
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
+        self.logger = module_logger
 
     def assign_property(self, key, value):
         if value is None:
@@ -335,7 +338,7 @@ class MemoryGraphList:
     def obtain_property(self, key):
         prop_list = [x.obtain_property(key) for x in self._list]
         if all([x is None for x in prop_list]):
-            print("Property %s is not set on any graph." % key)
+            self.logger.warning("Property %s is not set on any graph." % key)
             return None
         return prop_list
 
@@ -406,7 +409,7 @@ class MemoryGraphList:
 
     def _to_tensor(self, item, make_copy=True):
         if not make_copy:
-            print("Warning: at the moment always a copy is made for tensor().")
+            self.logger.warning("At the moment always a copy is made for tensor().")
         props = self.obtain_property(item["name"])  # Will be list.
         is_ragged = item["ragged"] if "ragged" in item else False
         if is_ragged:
@@ -440,14 +443,14 @@ class MemoryGraphList:
                 continue
             for i, x in enumerate(props):
                 if x is None or not hasattr(x, "__getitem__"):
-                    self.logger.info("Property %s is not defined for graph %s" % (item_name, i))
+                    self.logger.info("Property %s is not defined for graph %s." % (item_name, i))
                     invalid_graphs.append(i)
                 elif len(x) <= 0:
-                    self.logger.info("Property %s is with zero length for graph %s" % (item_name, i))
+                    self.logger.info("Property %s is with zero length for graph %s." % (item_name, i))
                     invalid_graphs.append(i)
         invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
         invalid_graphs = np.flip(invalid_graphs)  # Need descending order
-        self.logger.warning("Found invalid graphs for properties. Removing graphs %s" % invalid_graphs)
+        self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
         for i in invalid_graphs:
             self._list.pop(int(i))
         return self
@@ -489,7 +492,7 @@ class MemoryGraphDataset(MemoryGraphList):
                  file_name: str = None,
                  file_directory: str = None,
                  verbose: int = 1,
-                 **kwargs):
+                 ):
         r"""Initialize a base class of :obj:`MemoryGraphDataset`.
 
         Args:
@@ -503,19 +506,14 @@ class MemoryGraphDataset(MemoryGraphList):
         super(MemoryGraphDataset, self).__init__()
         # For logging.
         self.verbose = verbose
-
+        self.logger = module_logger
         # Dataset information on file.
         self.data_directory = data_directory
         self.file_name = file_name
         self.file_directory = file_directory
         self.dataset_name = dataset_name
-
         # Data Frame for information.
         self.data_frame = None
-
-        # Check if no wrong kwargs passed to init.
-        if len(kwargs) > 0:
-            self.warning("Unknown kwargs for `MemoryGraphDataset`: {}".format(list(kwargs.keys())))
 
     @property
     def file_path(self):
@@ -542,28 +540,13 @@ class MemoryGraphDataset(MemoryGraphList):
         return os.path.join(self.data_directory, self.file_directory)
 
     def info(self, *args, **kwargs):
-        """Logging information."""
-        # Could use logger in the future.
-        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
-        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
-        if self.verbose > verbosity_level:
-            print("INFO:kgcnn:", *args, **print_kwargs)
+        self.logger.info(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
-        """Logging information."""
-        # Could use logger in the future.
-        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
-        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
-        if self.verbose > verbosity_level:
-            print("WARNING:kgcnn:", *args, **print_kwargs)
+        self.logger.warning(*args, **kwargs)
 
     def error(self, *args, **kwargs):
-        """Logging information."""
-        # Could use logger in the future.
-        print_kwargs = {key: value for key, value in kwargs.items() if key not in ["verbose"]}
-        verbosity_level = kwargs["verbose"] if "verbose" in kwargs else 0
-        if self.verbose > verbosity_level:
-            print("ERROR:kgcnn:", *args, **print_kwargs)
+        self.logger.error(*args, **kwargs)
 
     def save(self, filepath: str = None):
         r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
@@ -576,7 +559,6 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Pickle dataset...")
         save_pickle_file([x._dict for x in self._list], filepath)
-        self.info("done")
         return self
 
     def load(self, filepath: str = None):
@@ -591,7 +573,6 @@ class MemoryGraphDataset(MemoryGraphList):
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
         self._list = [GraphNumpyContainer(graph=x) for x in in_list]
-        self.info("done")
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):

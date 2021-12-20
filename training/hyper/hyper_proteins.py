@@ -32,7 +32,6 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
         },
         "data": {
-            "set_range": {"max_distance": 4, "max_neighbours": 30}
         },
         "info": {
             "postfix": "",
