@@ -3,10 +3,8 @@ import pickle
 import numpy as np
 import json
 
-from sklearn.preprocessing import StandardScaler
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
-from kgcnn.mol.methods import ExtensiveMolecularScaler
 from kgcnn.mol.io import write_list_to_xyz_file
 
 
@@ -31,7 +29,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        QMDataset.__init__(self, verbose=verbose)
+        QMDataset.__init__(self, verbose=verbose, dataset_name="QM9")
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
@@ -180,9 +178,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
         coord = [[[y[1], y[2], y[3]] for y in x[2]] for x in qm9]
         coord = [np.array(x) for x in coord]
 
-        self.graph_number = [x for x in labels[:, 0]]
+        # Labels
+        ids = [x for x in labels[:, 0]]
+        actual_labels = self.target_unit_conversion*labels[:, 1:]
+        actual_labels = [x for x in actual_labels]
+
+        self.graph_number = ids
         self.node_coordinates = coord
-        self.graph_labels = [x for x in labels[:, 1:]]
+        self.graph_labels = actual_labels
         self.node_symbol = atoms
         self.node_number = nodes
         self.graph_attributes = [x for x in mmw]
@@ -192,123 +195,11 @@ class QM9Dataset(QMDataset, DownloadDataset):
         return self
 
 
-class QM9GraphLabelScaler:
-    """A standard scaler that scales all QM9 targets. For now, the main difference is that intensive and extensive
-    properties are scaled differently. In principle, also dipole, polarizability or rotational constants
-    could to be standardized differently."""
-
-    def __init__(self, intensive_scaler=None, extensive_scaler=None):
-        if intensive_scaler is None:
-            intensive_scaler = {}
-        if extensive_scaler is None:
-            extensive_scaler = {}
-
-        self.intensive_scaler = StandardScaler(**intensive_scaler)
-        self.extensive_scaler = ExtensiveMolecularScaler(**extensive_scaler)
-
-        self.scale_ = None
-
-    def fit_transform(self, node_number, graph_labels):
-        r"""Fit and transform all target labels for QM9.
-
-        Args:
-            node_number (list): List of atomic numbers for each molecule. E.g. `[np.array([6,1,1,1]), ...]`.
-            graph_labels (np.ndarray): Array of QM9 labels of shape `(N, 15)`.
-
-        Returns:
-            np.ndarray: Transformed labels of shape `(N, 15)`.
-        """
-        self.fit(node_number, graph_labels)
-        return self.transform(node_number, graph_labels)
-
-    def transform(self, node_number, graph_labels):
-        r"""Transform all target labels for QM9. Requires :obj:`fit()` called previously.
-
-        Args:
-            node_number (list): List of atomic numbers for each molecule. E.g. `[np.array([6,1,1,1]), ...]`.
-            graph_labels (np.ndarray): Array of QM9 unscaled labels of shape `(N, 15)`.
-
-        Returns:
-            np.ndarray: Transformed labels of shape `(N, 15)`.
-        """
-        self._check_input(node_number, graph_labels)
-
-        intensive_labels = graph_labels[:, :9]
-        extensive_labels = graph_labels[:, 9:]
-
-        trafo_intensive = self.intensive_scaler.transform(intensive_labels)
-        trafo_extensive = self.extensive_scaler.transform(node_number, extensive_labels)
-
-        out_labels = np.concatenate([trafo_intensive, trafo_extensive], axis=-1)
-        return out_labels
-
-    def fit(self, node_number, graph_labels):
-        r"""Fit scaling of QM9 graph labels or targets.
-
-        Args:
-            node_number (list): List of atomic numbers for each molecule. E.g. `[np.array([6,1,1,1]), ...]`.
-            graph_labels (np.ndarray): Array of QM9 labels of shape `(N, 15)`.
-
-        Returns:
-            self
-        """
-        self._check_input(node_number, graph_labels)
-
-        # Note: Rotational Constants and r2 as well as dipole moment and polarizability
-        # should be treated separately.
-        intensive_labels = graph_labels[:, :9]
-        extensive_labels = graph_labels[:, 9:]
-
-        self.intensive_scaler.fit(intensive_labels)
-        self.extensive_scaler.fit(node_number, extensive_labels)
-        # print(self.intensive_scaler.scale_, self.extensive_scaler.scale_)
-        self.scale_ = np.concatenate([self.intensive_scaler.scale_, self.extensive_scaler.scale_[0]], axis=0)
-        return self
-
-    def inverse_transform(self, node_number, graph_labels):
-        r"""Back-transform all target labels for QM9.
-
-        Args:
-            node_number (list): List of atomic numbers for each molecule. E.g. `[np.array([6,1,1,1]), ...]`.
-            graph_labels (np.ndarray): Array of QM9 scaled labels of shape `(N, 15)`.
-
-        Returns:
-            np.ndarray: Back-transformed labels of shape `(N, 15)`.
-        """
-        self._check_input(node_number, graph_labels)
-
-        intensive_labels = graph_labels[:, :9]
-        extensive_labels = graph_labels[:, 9:]
-
-        inverse_trafo_intensive = self.intensive_scaler.inverse_transform(intensive_labels)
-        inverse_trafo_extensive = self.extensive_scaler.inverse_transform(node_number, extensive_labels)
-
-        out_labels = np.concatenate([inverse_trafo_intensive, inverse_trafo_extensive], axis=-1)
-        return out_labels
-
-    @staticmethod
-    def padd(selected_targets, target_indices):
-        r"""Padding a set of specific targets defined by `target_indices` to the full QM9 target dimension of 15.
-
-        Args:
-            selected_targets (np.ndarray): A reduced selection of QM9 target `(n_samples, n_targets)` where
-                `n_targets` <= 15.
-            target_indices (np.ndarray): Indices of specific targets of shape `(n_targets, )`.
-
-        Returns:
-            np.ndarray: Array of QM9 labels of shape `(N, 15)`.
-        """
-        labels = np.zeros((len(selected_targets), 15))
-        labels[:, target_indices] = selected_targets
-        return labels
-
-    @staticmethod
-    def _check_input(node_number, graph_labels):
-        assert len(node_number) == len(graph_labels), "`QM9GraphLabelScaler` needs same length input."
-        assert graph_labels.shape[-1] == 15, "`QM9GraphLabelScaler` got wrong targets."
-
-# dataset = QM9Dataset()
-# scaler = QM9GraphLabelScaler()
-# trafo_labels = scaler.fit_transform(dataset.node_number, dataset.graph_labels)
+from kgcnn.data.qm import QMGraphLabelScaler
+dataset = QM9Dataset()
+scaler = QMGraphLabelScaler([{"class_name": "StandardScaler", "config": {}},
+                             {"class_name": "ExtensiveMolecularScaler", "config": {}},
+                             {"class_name": "ExtensiveMolecularScaler", "config": {}}])
+trafo_labels = scaler.fit_transform(np.array(dataset.graph_labels)[:, :3], dataset.node_number)
 # rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
 # print(np.amax(np.abs(dataset.graph_labels-rev_labels)))

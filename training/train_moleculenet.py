@@ -81,7 +81,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
         ytrain = scaler.fit_transform(ytrain)
         ytest = scaler.transform(ytest)
 
-        # If scaler was used we add rescaled standard metrics to loss
+        # If scaler was used we add rescaled standard metrics to compile.
         mae_metric = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
         rms_metric = ScaledRootMeanSquaredError((1, 1), name="scaled_root_mean_squared_error")
         if scaler.scale_ is not None:
