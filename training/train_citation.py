@@ -68,79 +68,43 @@ ytrain = np.array(labels)
 kf = KFold(**hyper.cross_validation())
 history_list, test_indices_list, model, hist = [], [], None, None
 for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
+    # Make model.
+    model = model_selection(**hyper.make_model())
 
-    # Select train and test data.
-    xtrain, ytrain = dataset[train_index].tensor(hyper.inputs()), labels[train_index]
-    xtest, ytest = dataset[test_index].tensor(hyper.inputs()), labels[test_index]
+    # Make training/validation mask to hide test labels from training.
+    val_mask = np.zeros_like(labels[0][:, 0])
+    train_mask = np.zeros_like(labels[0][:, 0])
+    val_mask[test_index] = 1
+    train_mask[train_index] = 1
+    val_mask = np.expand_dims(val_mask, axis=0)  # One graph in batch
+    train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
 
-    # Normalize training and test targets.
-    if hyper.use_scaler():
-        print("INFO: Using StandardScaler.")
-        scaler = StandardScaler(**hyper.scaler())
-        ytrain = scaler.fit_transform(ytrain)
-        ytest = scaler.transform(ytest)
+    # Compile model with optimizer and loss.
+    # Important to use weighted_metrics!
+    model.compile(**hyper.compile(weighted_metrics=None))
+    print(model.summary())
 
-        # If scaler was used we add rescaled standard metrics to compile.
-        mae_metric = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-        rms_metric = ScaledRootMeanSquaredError((1, 1), name="scaled_root_mean_squared_error")
-        if scaler.scale_ is not None:
-            mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-            rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-        metrics = [mae_metric, rms_metric]
-    else:
-        print("INFO: Not using StandardScaler.")
-        metrics = None
+    start = time.process_time()
+    hist = model.fit(xtrain, ytrain,
+                     validation_data=(xtrain, ytrain, val_mask),
+                     sample_weight=train_mask,  # Hide validation data!
+                     **hyper.fit(epochs=100, validation_freq=10)
+                     )
+    stop = time.process_time()
+    print("Print Time for taining: ", stop - start)
 
-        # Make model.
-        model = model_selection(**hyper.make_model())
+    # Get loss from history
+    history_list.append(hist)
+    test_indices_list.append([train_index, test_index])
 
-        # Make training/validation mask to hide test labels from training.
-        val_mask = np.zeros_like(labels[0][:, 0])
-        train_mask = np.zeros_like(labels[0][:, 0])
-        val_mask[test_index] = 1
-        train_mask[train_index] = 1
-        val_mask = np.expand_dims(val_mask, axis=0)  # One graph in batch
-        train_mask = np.expand_dims(train_mask, axis=0)  # One graph in batch
-
-        # Compile model with optimizer and loss.
-        # Important to use weighted_metrics!
-        model.compile(**hyper.compile(loss='categorical_crossentropy',
-                                                weighted_metrics=["categorical_accuracy"]))
-        print(model.summary())
-
-        start = time.process_time()
-        hist = model.fit(xtrain, ytrain,
-                         validation_data=(xtrain, ytrain, val_mask),
-                         sample_weight=train_mask,  # Hide validation data!
-                         **hyper.fit(epochs=100, validation_freq=10)
-                         )
-        stop = time.process_time()
-        print("Print Time for taining: ", stop - start)
-
-        # Get loss from history
-        history_list.append(hist)
-        test_indices_list.append([train_index, test_index])
-
-# Make output directory
+# Make output directories.
 filepath = hyper.results_file_path()
 postfix_file = hyper.postfix_file()
 
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit="", dataset_name=dataset_name,
-                     filepath=filepath, file_name="loss" + postfix_file + ".png")
-# Plot prediction
-predicted_y = model.predict(xtest)
-true_y = ytest
-
-if hyper.use_scaler():
-    predicted_y = scaler.inverse_transform(predicted_y)
-    true_y = scaler.inverse_transform(true_y)
-
-plot_predict_true(predicted_y, true_y,
-                  filepath=filepath, data_unit=hyper.data_unit(),
-                  model_name=model_name, dataset_name=dataset_name,
-                  file_name="predict" + postfix_file + ".png")
+                     model_name=model_name, data_unit="", dataset_name=dataset_name, filepath=filepath,
+                     file_name="loss" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))

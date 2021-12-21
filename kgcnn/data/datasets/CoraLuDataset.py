@@ -7,7 +7,7 @@ from kgcnn.utils.adj import add_edges_reverse_indices, make_adjacency_undirected
     precompute_adjacency_scaled, make_adjacency_from_edge_indices, convert_scaled_adjacency_to_list
 
 
-class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
+class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process Cora dataset after Lu et al. 2003."""
 
     download_info = {
@@ -18,8 +18,7 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         "download_file_name": 'cora.tgz',
         "unpack_tar": True,
         "unpack_zip": False,
-        "unpack_directory_name": "cora_lu",
-        "fits_in_memory": True,
+        "unpack_directory_name": "cora_lu"
     }
 
     # Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.
@@ -35,8 +34,8 @@ class CoraLUDataset(DownloadDataset, MemoryGraphDataset):
         self.class_label_mapping = None
         # Use default base class init()
 
-        MemoryGraphDataset.__init__(self, dataset_name="cora_lu", length=1, verbose=verbose)
-        DownloadDataset.__init__(self, **self.download_info,reload=reload, verbose=verbose)
+        MemoryGraphDataset.__init__(self, dataset_name="cora_lu", verbose=verbose)
+        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         if self.fits_in_memory:
             self.read_in_memory()

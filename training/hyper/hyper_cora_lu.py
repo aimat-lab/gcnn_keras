@@ -9,14 +9,14 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 5, "output_dim": 64}},
-            "output_embedding": "node",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 7],
-                        "activation": ["relu", "relu", "softmax"]},
             "attention_args": {"units": 32, "use_bias": True, "use_edge_features": True,
                             "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "mean"},
             "depth": 3, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1
+            "attention_heads_concat": False, "verbose": 1,
+            "output_embedding": "node",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 7],
+                           "activation": ["relu", "relu", "softmax"]},
         },
         "training": {
             "fit": {
@@ -32,12 +32,17 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "loss": "categorical_crossentropy",
+                "weighted_metrics":["categorical_accuracy"]
             },
-            "KFold" : {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
+            "make_undirected_edges": {},
+            "add_edge_self_loops": {},
+            "normalize_edge_weights_sym": {}
         },
         "info": {
             "postfix" : "",
