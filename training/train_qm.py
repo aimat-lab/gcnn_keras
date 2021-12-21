@@ -62,7 +62,7 @@ labels = np.array(dataset.graph_labels)
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
-# Atom type for scaler.
+# Atomic number for each molecule intended for scaler.
 atoms = dataset.node_number
 
 # Training on splits

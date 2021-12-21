@@ -195,11 +195,11 @@ class QM9Dataset(QMDataset, DownloadDataset):
         return self
 
 
-from kgcnn.data.qm import QMGraphLabelScaler
-dataset = QM9Dataset()
-scaler = QMGraphLabelScaler([{"class_name": "StandardScaler", "config": {}},
-                             {"class_name": "ExtensiveMolecularScaler", "config": {}},
-                             {"class_name": "ExtensiveMolecularScaler", "config": {}}])
-trafo_labels = scaler.fit_transform(np.array(dataset.graph_labels)[:, :3], dataset.node_number)
+# from kgcnn.data.qm import QMGraphLabelScaler
+# dataset = QM9Dataset()
+# scaler = QMGraphLabelScaler([{"class_name": "StandardScaler", "config": {}},
+#                              {"class_name": "ExtensiveMolecularScaler", "config": {}},
+#                              {"class_name": "ExtensiveMolecularScaler", "config": {}}])
+# trafo_labels = scaler.fit_transform(np.array(dataset.graph_labels)[:, :3], dataset.node_number)
 # rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
 # print(np.amax(np.abs(dataset.graph_labels-rev_labels)))
