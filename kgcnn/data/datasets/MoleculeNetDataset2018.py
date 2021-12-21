@@ -67,9 +67,9 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
         """
         if not isinstance(dataset_name, str):
-            raise ValueError("ERROR:kgcnn: Please provide string identifier for TUDataset.")
+            raise ValueError("Please provide string identifier for TUDataset.")
 
-        MoleculeNetDataset.__init__(self, verbose=verbose)
+        MoleculeNetDataset.__init__(self, verbose=verbose, dataset_name=dataset_name)
 
         # Prepare download
         if dataset_name in self.datsets_download_info:

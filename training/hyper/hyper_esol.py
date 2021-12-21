@@ -380,8 +380,7 @@ hyper = {
             "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
             "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
             "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-            "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2",
-                              "input_tensor_type": "tensor"},
+            "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
             "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
             "make_distance": True, "expand_distance": True,
             "verbose": 1,
@@ -408,6 +407,7 @@ hyper = {
             }
         },
         "data": {
+            "set_attributes": {},
             "set_range": {"max_distance": 4, "max_neighbours": 100},
         },
         "info": {

@@ -442,12 +442,17 @@ class MemoryGraphList:
                 self.logger.warning("Can not clean property %s as it was not assigned to any graph." % item)
                 continue
             for i, x in enumerate(props):
+                # If property is neither list nor np.array
                 if x is None or not hasattr(x, "__getitem__"):
                     self.logger.info("Property %s is not defined for graph %s." % (item_name, i))
                     invalid_graphs.append(i)
-                elif len(x) <= 0:
-                    self.logger.info("Property %s is with zero length for graph %s." % (item_name, i))
+                elif not isinstance(x, np.ndarray):
+                    self.logger.info("Property %s is not a numpy array for graph %s." % (item_name, i))
                     invalid_graphs.append(i)
+                elif len(x.shape) > 0:
+                    if len(x) <= 0:
+                        self.logger.info("Property %s is empty list for graph %s." % (item_name, i))
+                        invalid_graphs.append(i)
         invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
         invalid_graphs = np.flip(invalid_graphs)  # Need descending order
         self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
@@ -505,7 +510,7 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         super(MemoryGraphDataset, self).__init__()
         # For logging.
-        self.logger = module_logger
+        self.logger = logging.getLogger("kgcnn.data." + dataset_name) if dataset_name is not None else module_logger
         self.logger.setLevel(verbose)
         # Dataset information on file.
         self.data_directory = data_directory

@@ -58,7 +58,7 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
         if not isinstance(dataset_name, str):
             raise ValueError("Please provide string identifier for TUDataset.")
 
-        GraphTUDataset.__init__(self, verbose=verbose)
+        GraphTUDataset.__init__(self, verbose=verbose, dataset_name=dataset_name)
 
         # Prepare download
         if dataset_name in self.tudataset_ids:
