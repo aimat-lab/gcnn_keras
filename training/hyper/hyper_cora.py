@@ -8,11 +8,11 @@ hyper = {
                 {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 10, "output_dim": 64}},
+            "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
+            "depth": 3, "verbose": 1,
             "output_embedding": "node",
             "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
                            "activation": ["relu", "relu", "softmax"]},
-            "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
-            "depth": 3, "verbose": 1
         },
         "training": {
             "fit": {
@@ -30,16 +30,21 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "loss": "categorical_crossentropy",
+                "weighted_metrics": ["categorical_accuracy"]
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
+            "make_undirected_edges": {},
+            "add_edge_self_loops": {},
+            "normalize_edge_weights_sym": {}
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     }
 }

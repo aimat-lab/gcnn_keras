@@ -16,11 +16,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraLuDataset")
+                    default="CoraDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora_lu.py")
+                    default="hyper/hyper_cora.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 

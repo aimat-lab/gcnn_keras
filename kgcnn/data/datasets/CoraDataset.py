@@ -18,8 +18,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         "download_file_name": 'cora.npz',
         "unpack_tar": False,
         "unpack_zip": False,
-        "unpack_directory_name": None,
-        "fits_in_memory": True,
+        "unpack_directory_name": None
     }
 
     def __init__(self, reload=False, verbose=1):
@@ -32,7 +31,7 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         # Use default base class init()
         self.data_keys = None
 
-        MemoryGraphDataset.__init__(self, dataset_name="Cora", length=1, verbose=verbose)
+        MemoryGraphDataset.__init__(self, dataset_name="Cora", verbose=verbose)
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         if self.fits_in_memory:

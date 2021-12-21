@@ -25,5 +25,5 @@
         "weighted_metrics": ["categorical_accuracy"]
     }, "cross_validation": {"class_name": "KFold", "config": {"n_splits": 5, "random_state": null, "shuffle": true}}
 }, "data": {"make_undirected_edges": {}, "add_edge_self_loops": {}, "normalize_edge_weights_sym": {}},
-    "info": {"postfix": "", "kgcnn_version": "1.1.0"}
+    "info": {"postfix": "", "kgcnn_version": "2.0.0"}
 }

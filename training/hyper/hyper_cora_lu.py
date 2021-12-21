@@ -34,7 +34,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics":["categorical_accuracy"]
+                "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -46,7 +46,7 @@ hyper = {
         },
         "info": {
             "postfix" : "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     }
 }
