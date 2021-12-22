@@ -82,16 +82,13 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape (batch, [M], 1)
         """
+        self.assert_ragged_input_rank(inputs[:2])
         lattice_rep = self.layer_state([inputs[2], inputs[1]], **kwargs)  # Should be (batch, None, 3, 3)
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs[:2]]):  # Possibly faster
-            if all([x.ragged_rank == 1 for x in inputs[:2]]):
-                x = inputs[0]
-                xj = x.values
-                xj = xj + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=xj.dtype) * tf.expand_dims(
-                    tf.cast(inputs[1].values, dtype=xj.dtype), axis=-1), axis=1)
-                return tf.RaggedTensor.from_row_splits(xj, inputs[1].row_splits, validate=self.ragged_validate)
-        else:
-            raise NotImplementedError("ERROR:kgcnn: Not implemented for arbitrary ragged_rank.")
+        x = inputs[0]
+        xj = x.values
+        xj = xj + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=xj.dtype) * tf.expand_dims(
+            tf.cast(inputs[1].values, dtype=xj.dtype), axis=-1), axis=1)
+        return tf.RaggedTensor.from_row_splits(xj, inputs[1].row_splits, validate=self.ragged_validate)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
