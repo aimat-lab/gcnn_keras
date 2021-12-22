@@ -5,7 +5,7 @@ Example training to test the performance of model implementations of ``kgcnn`` p
 ```bash
 python3 train_citation.py --dataset CoraLuDataset --model GAT --hyper hyper/hyper_esol.py
 python3 train_moleculenet.py --dataset ESOLDataset --model GIN --hyper hyper/hyper_esol.py
-python3 train_tudataset.py --dataset PROTEINSDataset --model GIN --hyper hyper/hyper_mutagenicity.py
+python3 train_tudataset.py --dataset PROTEINSDataset --model GIN --hyper hyper/hyper_proteins.py
 ```
 
 Where `hyper_esol.py` stores hyper-parameters and must be in the same folder or a path to a `.py`. 

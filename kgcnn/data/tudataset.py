@@ -146,8 +146,8 @@ class GraphTUDataset(MemoryGraphDataset):
             all_cons.append(np.sum(is_cons == False))
         all_cons = np.array(all_cons)
 
-        self.info("Graph index which has unconnected", np.arange(len(all_cons))[all_cons > 0], "with",
-                  all_cons[all_cons > 0], "in total", len(all_cons[all_cons > 0]))
+        self.info("Graph index which has unconnected %s with %s in total %s" % (
+            np.arange(len(all_cons))[all_cons > 0], all_cons[all_cons > 0], len(all_cons[all_cons > 0])))
 
         node_degree = [np.zeros(x, dtype="int") for x in graphlen]
         for i, x in enumerate(edge_indices):
