@@ -20,9 +20,6 @@ model_default = {'name': "Schnet",
                             {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                                "activation": ['kgcnn>shifted_softplus', "linear"]},
                  'last_mlp': {"use_bias": [True, True], "units": [128, 64],
                               "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                  'interaction_args': {"units": 128, "use_bias": True,
@@ -30,8 +27,11 @@ model_default = {'name': "Schnet",
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                 "make_distance": True, 'expand_distance': True,
-                 'verbose': 1
+                 "make_distance": True, 'expand_distance': True, 'verbose': 1,
+                 "use_output_mlp": True,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
+                                "activation": ['kgcnn>shifted_softplus', "linear"]},
                  }
 
 
@@ -47,9 +47,10 @@ def make_model(inputs=None,
                gauss_args=None,
                expand_distance=None,
                make_distance=None,
+               use_output_mlp=None,
                name=None,
                verbose=None):
-    r"""Make Schnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make SchNet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -67,6 +68,7 @@ def make_model(inputs=None,
             form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
 
     Returns:
         tf.keras.models.Model
@@ -100,13 +102,12 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodes(**node_pooling_args)(n)
-        out = ks.layers.Flatten()(out)  # will be dense
-        if output_mlp is not None:
+        if use_output_mlp:
             out = MLP(**output_mlp)(out)
         main_output = out
     elif output_embedding == 'node':
         out = n
-        if output_mlp is not None:
+        if use_output_mlp:
             out = GraphMLP(**output_mlp)(out)
         # no ragged for distribution atm
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)

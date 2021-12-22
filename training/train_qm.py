@@ -71,9 +71,11 @@ dataset.clean(hyper.inputs())
 data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For QMDataset, always train on graph, labels.
-labels = np.array(dataset.graph_labels)
+multi_target_indices = hyper.multi_target_indices()
+labels = np.array(dataset.graph_labels)[:, multi_target_indices]
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
+print("Shape of labels %s" % labels)
 
 # For QMDataset, also the atomic number is required to properly pre-scale extensive quantities like total energy.
 atoms = dataset.node_number
@@ -85,7 +87,8 @@ kf = KFold(**hyper.cross_validation())
 # train on all splits for testing.
 execute_splits = hyper.execute_splits()
 splits_done = 0
-history_list, test_indices_list, model, hist = [], [], None, None
+history_list, test_indices_list = [], []
+model, hist, xtest, ytest, scaler, atoms_test = None, None, None, None, None, None
 for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
 
     # Only do execute_splits out of the k-folds of cross-validation.

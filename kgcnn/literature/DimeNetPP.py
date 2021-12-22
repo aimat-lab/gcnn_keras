@@ -23,14 +23,16 @@ model_default = {"name": "DimeNetPP",
                                               "embeddings_initializer": {"class_name": "RandomUniform",
                                                                          "config": {"minval": -1.7320508075688772,
                                                                                     "maxval": 1.7320508075688772}}}},
-                 "output_mlp": {"use_bias": [True, False], "units": [64, 12], "activation": ["swish", "linear"]},
-                 "output_embedding": "graph",
                  "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
                  "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
                  "cutoff": 5.0, "envelope_exponent": 5,
                  "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
                  "num_targets": 64, "extensive": True, "output_init": "zeros",
-                 "activation": "swish", "verbose": 1
+                 "activation": "swish", "verbose": 1,
+                 "use_output_mlp": True,
+                 "output_embedding": "graph",
+                 "output_mlp": {"use_bias": [True, False],
+                                "units": [64, 12], "activation": ["swish", "linear"]},
                  }
 
 
@@ -56,7 +58,8 @@ def make_model(inputs=None,
                output_init=None,
                output_mlp=None,
                verbose=None,
-               name=None
+               name=None,
+               use_output_mlp=None
                ):
     """Make DimeNetPP graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -89,6 +92,7 @@ def make_model(inputs=None,
         output_init (str, dict): Output initializer for kernel.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
 
     Returns:
         tf.keras.models.Model
@@ -143,7 +147,7 @@ def make_model(inputs=None,
     else:
         main_output = PoolingNodes(pooling_method="mean")(ps)
 
-    if output_mlp is not None:
+    if use_output_mlp:
         main_output = MLP(**output_mlp)(main_output)
 
     if output_embedding != "graph":

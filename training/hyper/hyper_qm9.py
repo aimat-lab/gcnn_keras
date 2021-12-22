@@ -10,19 +10,21 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64}
             },
-            "output_mlp": None,
-            "output_embedding": "graph",
-            "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 3],
+            "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 2],
                          "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
             "interaction_args": {
                 "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
             },
             "node_pooling_args": {"pooling_method": "sum"},
             "depth": 4,
-            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
+            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1,
+            "output_embedding": "graph",
+            "use_output_mlp": False,
+            "output_mlp": None,
         },
         "training": {
-            "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -36,17 +38,23 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
                 "loss": "mean_absolute_error"
-            }
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}},
+                           {"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": [5, 6]
         },
         "data": {
             "set_range": {"max_distance": 4, "max_neighbours": 30},
-            "data_points_to_use": 133885,
-            "target_indices": [5, 6, 7]
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.2.0"
+            "postfix_file": "_orbitals",
+            "kgcnn_version": "2.0.0"
         }
     },
     "Megnet": {
@@ -60,9 +68,6 @@ hyper = {
             ],
             "input_embedding": {"node": {"input_dim": 10, "output_dim": 16},
                                 "graph": {"input_dim": 100, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 3],
-                           "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
             "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
             "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
                                "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
@@ -72,7 +77,10 @@ hyper = {
             "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2",
                               "input_tensor_type": "tensor"},
             "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
-            "verbose": 1
+            "verbose": 1,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 3],
+                           "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
         },
         "training": {
             "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},

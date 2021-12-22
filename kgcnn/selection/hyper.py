@@ -212,9 +212,15 @@ class HyperSelection:
         return k_fold_info
 
     def execute_splits(self, splits=np.inf):
-        if "execute_splits" in self.data():
-            splits = int(self.data("execute_splits"))
+        if "execute_splits" in self.training():
+            return int(self.training("execute_splits"))
+        if "execute_folds" in self.training():
+            return int(self.training("execute_folds"))
         return splits
+
+    def multi_target_indices(self):
+        return self.training("multi_target_indices")
+
 
 # Only for backward compatibility.
 HyperSelectionTraining = HyperSelection

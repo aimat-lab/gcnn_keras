@@ -217,12 +217,12 @@ class QMGraphLabelScaler:
 
     """
 
-    def __init__(self, scalers: list):
-        if not isinstance(scalers, list):
-            raise TypeError("Scaler information for `QMGraphLabelScaler` must be list, got %s." % scalers)
+    def __init__(self, scaler: list):
+        if not isinstance(scaler, list):
+            raise TypeError("Scaler information for `QMGraphLabelScaler` must be list, got %s." % scaler)
 
         self.scaler_list = []
-        for x in scalers:
+        for x in scaler:
             # If x is already a scaler, add it directly to the scaler list.
             if hasattr(x, "fit") and hasattr(x, "transform") and hasattr(x, "inverse_transform"):
                 self.scaler_list.append(x)

@@ -128,7 +128,6 @@ def make_model(inputs=None,
         else:
             out = PoolingNodes(**pooling_args)(n)
         # final dense layers
-        out = ks.layers.Flatten()(out)
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
