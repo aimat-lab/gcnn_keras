@@ -3,7 +3,9 @@
 Example training to test the performance of model implementations of ``kgcnn`` per datasets. The training scripts are called via:
 
 ```bash
+python3 train_citation.py --dataset CoraLuDataset --model GAT --hyper hyper/hyper_esol.py
 python3 train_moleculenet.py --dataset ESOLDataset --model GIN --hyper hyper/hyper_esol.py
+python3 train_tudataset.py --dataset PROTEINSDataset --model GIN --hyper hyper/hyper_mutagenicity.py
 ```
 
 Where `hyper_esol.py` stores hyper-parameters and must be in the same folder or a path to a `.py`. 
@@ -19,14 +21,14 @@ on how it is structured. In short the config file contains a python dictionary o
 hyper = {
     "info":{ 
         # General information for training run
-        "kgcnn_version": "1.1.0", # Version 
-        "postfix": "" # postfix for output folder
+        "kgcnn_version": "2.0.0", # Version 
+        "postfix": "" # Postfix for output folder.
     },
     "model": { 
-        # Model specific parameter, see kgcnn.literature
+        # Model specific parameter, see kgcnn.literature.
     },
     "data": { 
-        # Dataset specific parameter
+        # Dataset specific parameters.
     },
     "training": {
         "fit": { 

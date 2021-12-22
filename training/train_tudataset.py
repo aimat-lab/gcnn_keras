@@ -89,10 +89,10 @@ kf = KFold(**hyper.cross_validation())
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
-history_list, test_indices_list, model, hist = [], [], None, None
+history_list, test_indices_list, model, hist, xtest, ytest, scaler = [], [], None, None, None, None, None
 for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
 
-    # First select training and test graphs or molecules from indices, then convert them into tensorflow tensor
+    # First select training and test graphs from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
     # kwargs of the keras `Input` layers ('name' and 'ragged').
     xtrain, ytrain = dataset[train_index].tensor(hyper.inputs()), labels[train_index]
@@ -101,7 +101,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Normalize training and test targets via a sklearn `StandardScaler`. No other scalers are used at the moment.
     # Scaler is applied to targets if 'scaler' appears in hyper-parameters. Only use for regression.
     if hyper.use_scaler():
-        print("INFO: Using Standard scaler")
+        print("Using Standard scaler")
         scaler = StandardScaler(**hyper.scaler())
         ytrain = scaler.fit_transform(ytrain)
         ytest = scaler.transform(ytest)
@@ -115,6 +115,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
             rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
         metrics = [mae_metric, rms_metric]
     else:
+        print("Not using StandardScaler.")
         metrics = None
 
     # Make the model for current split using model kwargs from hyper-parameters.
