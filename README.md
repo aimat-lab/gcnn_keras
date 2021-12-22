@@ -118,16 +118,16 @@ or via sub-classing of the message passing base layer. Where only `message_funct
 from kgcnn.layers.conv.message import MessagePassingBase
 from kgcnn.layers.modules import DenseEmbedding, LazyAdd
 
-def MyMessageNN(MessagePassingBase):
+class MyMessageNN(MessagePassingBase):
   def __init__(self, units, **kwargs):
     super(MyMessageNN, self).__init__(**kwargs)
     self.dense = DenseEmbedding(units)
     self.add = LazyAdd(axis=-1)
-
+  
   def message_function(self, inputs, **kwargs):
     n_in, n_out, edges = inputs
     return self.dense(n_out)
-
+  
   def update_nodes(self, inputs, **kwargs):
     nodes, nodes_update = inputs
     return self.add([nodes, nodes_update])
@@ -183,7 +183,8 @@ The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further ha
 
 ```python
 from kgcnn.data.qm import QMDataset
-dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", file_name="geom.xyz", length=1)
+dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", 
+                    file_name="geom.xyz", file_directory=None)
 dataset.prepare_data()  # Also make .sdf
 dataset.read_in_memory()
 ```
@@ -192,7 +193,7 @@ In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as sub
 TUDatasets or MoleculeNet and directly processed and loaded. They are stored at `~/.kgcnn/datasets`.
 
 ```python
-from kgcnn.data.datasets.mutag import MUTAGDataset
+from kgcnn.data.datasets.MUTAGDataset import MUTAGDataset
 dataset = MUTAGDataset()
 print(dataset.edge_indices[0])
 ```
