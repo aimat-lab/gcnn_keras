@@ -455,7 +455,7 @@ class MemoryGraphList:
                         invalid_graphs.append(i)
         invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
         invalid_graphs = np.flip(invalid_graphs)  # Need descending order
-        if len(invalid_graphs)>0:
+        if len(invalid_graphs) > 0:
             self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
         else:
             self.logger.info("No invalid graphs for assigned properties found.")

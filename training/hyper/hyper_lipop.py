@@ -12,18 +12,18 @@ hyper = {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 5, "output_dim": 64}
             },
-            "output_embedding": "graph",
-            "output_mlp": {
-                "use_bias": [True, True, False], "units": [64, 32, 1],
-                "activation": ["relu", "relu", "linear"]
-            },
             "pooling_args": {"pooling_method": "sum"},
             "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
             "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
             "edge_activation": {"activation": "relu"},
             "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
             "verbose": 1, "depth": 5,
-            "dropout": {"rate": 0.1}
+            "dropout": {"rate": 0.1},
+            "output_embedding": "graph",
+            "output_mlp": {
+                "use_bias": [True, True, False], "units": [64, 32, 1],
+                "activation": ["relu", "relu", "linear"]
+            },
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
@@ -40,15 +40,17 @@ hyper = {
                               },
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                     "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
             "set_edge_indices_reverse": {}
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     },
     "AttentiveFP": {
@@ -59,13 +61,13 @@ hyper = {
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
                                 "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                           "activation": ["kgcnn>leaky_relu", "linear"]},
             "attention_args": {"units": 200},
             "depth": 2,
             "dropout": 0.2,
-            "verbose": 1
+            "verbose": 1,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True], "units": [200, 1],
+                           "activation": ["kgcnn>leaky_relu", "linear"]},
         },
         "training": {
             "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []
@@ -74,16 +76,19 @@ hyper = {
                 "optimizer": {"class_name": "Addons>AdamW",
                               "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
                                          }
-                              }
+                              },
+                "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     },
     "PAiNN": {
@@ -123,15 +128,16 @@ hyper = {
                 },
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "set_range": {"max_distance": 3, "max_neighbours": 10000}
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.0"
+            "kgcnn_version": "2.0.0"
         }
     },
     "GIN": {
@@ -140,17 +146,16 @@ hyper = {
             "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"activation": "linear", "units": 1},
             "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
             "depth": 5,
             "dropout": 0.05,
             "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"],
-                         "use_normalization": True, "normalization_technique": "batch"}
+                         "use_normalization": True, "normalization_technique": "batch"},
+            "output_embedding": "graph",
+            "output_mlp": {"activation": "linear", "units": 1},
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
-            },
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                     "config": {"lr": {
@@ -163,14 +168,16 @@ hyper = {
                 },
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
         },
         "info": {
             "postfix" : "",
-            "kgcnn_version": "1.2.0"
+            "kgcnn_version": "2.0.0"
         }
     },
     "INorp": {
@@ -185,15 +192,15 @@ hyper = {
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
                                 "edge": {"input_dim": 15, "output_dim": 32},
                                 "graph": {"input_dim": 30, "output_dim": 32}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
             "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
             "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
             "pooling_args": {"pooling_method": "segment_sum"},
             "depth": 3, "use_set2set": False, "verbose": 1,
-            "gather_args": {}
+            "gather_args": {},
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
+                           "activation": ["relu", "relu", "linear"]},
         },
         "training": {
             "fit": {
@@ -209,14 +216,16 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.2"
+            "kgcnn_version": "2.0.0"
         }
     },
     "GAT": {
@@ -230,14 +239,14 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 8, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
             "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
                                "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "sum"},
             "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1
+            "attention_heads_concat": False, "verbose": 1,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ["relu", "relu", "linear"]},
         },
         "training": {
             "fit": {
@@ -253,14 +262,16 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.2"
+            "kgcnn_version": "2.0.0"
         }
     },
     "GATv2": {
@@ -274,14 +285,14 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 8, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
             "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
                                "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "sum"},
             "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1
+            "attention_heads_concat": False, "verbose": 1,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ["relu", "relu", "linear"]},
         },
         "training": {
             "fit": {
@@ -297,14 +308,16 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "mean_absolute_error"
             },
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": None
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
+            "set_attributes": {},
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "1.1.2"
+            "kgcnn_version": "2.0.0"
         }
     },
     "DimeNetPP": {
@@ -329,8 +342,9 @@ hyper = {
             "activation": "swish", "verbose": 1
         },
         "training": {
-            "KFold": {"n_splits": 5, "random_state": None, "shuffle": True},
-            "execute_folds": 1,
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 12, "epochs": 300, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -360,7 +374,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "1.2.0"
+            "kgcnn_version": "2.0.0"
         }
     },
 }
