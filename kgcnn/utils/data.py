@@ -68,7 +68,6 @@ def load_hyper_file(file_name):
         return load_pickle_file(file_name)
     elif type_ending == "py":
         path = os.path.realpath(file_name)
-        print(path)
         hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(), "hyper")
         return hyper
     else:

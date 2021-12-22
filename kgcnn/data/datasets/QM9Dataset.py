@@ -32,11 +32,11 @@ class QM9Dataset(QMDataset, DownloadDataset):
         QMDataset.__init__(self, verbose=verbose, dataset_name="QM9")
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
-        self.target_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
+        self.label_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
                              'G', 'Cv']
-        self.target_units = ["GHz", "GHz", "GHz", "D", r"a_0^3", "eV", "eV", "eV", r"a_0^2", "eV", "eV", "eV", "eV",
+        self.label_units = ["GHz", "GHz", "GHz", "D", r"a_0^3", "eV", "eV", "eV", r"a_0^2", "eV", "eV", "eV", "eV",
                              "eV", r"cal/mol K"]
-        self.target_unit_conversion = np.array(
+        self.label_unit_conversion = np.array(
             [[1.0, 1.0, 1.0, 1.0, 1.0, 27.2114, 27.2114, 27.2114, 1.0, 27.2114, 27.2114, 27.2114,
               27.2114, 27.2114, 1.0]]
         )  # Pick always same units for training
@@ -180,7 +180,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         # Labels
         ids = [x for x in labels[:, 0]]
-        actual_labels = self.target_unit_conversion*labels[:, 1:]
+        actual_labels = self.label_unit_conversion*labels[:, 1:]
         actual_labels = [x for x in actual_labels]
 
         self.graph_number = ids

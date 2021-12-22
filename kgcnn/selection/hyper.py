@@ -219,7 +219,8 @@ class HyperSelection:
         return splits
 
     def multi_target_indices(self):
-        return self.training("multi_target_indices")
+        if "multi_target_indices" in self.training():
+            return self.training("multi_target_indices")
 
 
 # Only for backward compatibility.

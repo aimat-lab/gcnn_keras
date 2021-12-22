@@ -44,7 +44,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         "ClinTox": {"make_conformers": True, "add_hydrogen": True, "smiles_column_name": "smiles"}
     }
     datasets_read_in_memory_info = {
-        "ESOL": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "measured log solubility in mols per litre"},
+        "ESOL": {"add_hydrogen": False, "has_conformers": True,
+                 "label_column_name": "measured log solubility in mols per litre"},
         "FreeSolv": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "expt"},
         "Lipop": {"add_hydrogen": False, "has_conformers": True, "label_column_name": "exp"},
         "PCBA": {"add_hydrogen": False, "has_conformers": False,  "label_column_name": slice(0, 128)},

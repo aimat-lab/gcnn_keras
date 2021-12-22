@@ -148,7 +148,7 @@ postfix_file = hyper.postfix_file()
 
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit="", dataset_name=dataset_name,
+                     model_name=model_name, data_unit=hyper.data_unit(), dataset_name=dataset_name,
                      filepath=filepath, file_name="loss" + postfix_file + ".png")
 
 # Plot prediction for the last split.

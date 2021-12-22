@@ -24,6 +24,8 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
         matplotlib.pyplot.figure: Figure of the training curves.
     """
     # We assume multiple fits as in KFold.
+    if data_unit is None:
+        data_unit = ""
     if loss_name is None:
         loss_name = [x for x in list(histories[0].history.keys()) if "val_" not in x]
     if val_loss_name is None:

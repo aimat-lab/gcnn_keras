@@ -523,6 +523,7 @@ class MemoryGraphDataset(MemoryGraphList):
         # Data Frame for information.
         self.data_frame = None
         self.data_keys = None
+        self.data_unit = None
 
     @property
     def file_path(self):

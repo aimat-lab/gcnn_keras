@@ -61,21 +61,9 @@ class GraphBaseLayer(Layer):
                             config.update({x: layer_conf[x]})
         return config
 
-    def _build_input_shape_check(self, input_shape, input_position):
-        """Simple intercept of input type check."""
-        if isinstance(input_shape, tf.TensorShape):
-            if input_shape[-1] is None:
-                print("WARNING:kgcnn: Layer {0} has undefined inner dimension {1} for input {2}".format(
-                    self.name, input_shape, input_position))
-
     def build(self, input_shape):
         """Build base layer."""
         super(GraphBaseLayer, self).build(input_shape)
-        if isinstance(input_shape, (list, tuple)):
-            for i, ips in enumerate(input_shape):
-                self._build_input_shape_check(ips, i)
-        else:
-            self._build_input_shape_check(input_shape, 0)
 
     def assert_ragged_input_rank(self, inputs, ragged_rank: int = 1):
         """Assert input to be ragged with a given ragged_rank.

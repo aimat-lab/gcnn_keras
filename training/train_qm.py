@@ -70,15 +70,22 @@ data_selection.assert_valid_model_input(dataset, hyper.inputs())
 dataset.clean(hyper.inputs())
 data_length = len(dataset)  # Length of the cleaned dataset.
 
-# For QMDataset, always train on graph, labels.
+# For `QMDataset`, always train on graph, labels. The `QMDataset` has property 'label_names' and 'label_units', since
+# targets can be in eV, Hartree, Bohr, GHz etc. Must be defined by sub-classes of the dataset.
 labels = np.array(dataset.graph_labels)
+label_names = dataset.label_names
+label_units = dataset.label_units
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
-# Training on multiple targets for regression.
+# Training on multiple targets for regression. This can is often required to train on orbital energies of ground
+# or excited state or energies and enthalpies etc.
 multi_target_indices = hyper.multi_target_indices()
-labels = labels[:, multi_target_indices]
-print("Shape of labels %s" % labels)
+if multi_target_indices is not None:
+    labels = labels[:, multi_target_indices]
+    if label_names is not None: label_names = [label_names[i] for i in multi_target_indices]
+    if label_units is not None: label_units = [label_units[i] for i in multi_target_indices]
+print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape))
 
 # For QMDataset, also the atomic number is required to properly pre-scale extensive quantities like total energy.
 atoms = dataset.node_number
@@ -111,10 +118,12 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # The are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
-    # Normalize training and test targets.
+    # Normalize training and test targets. For QM datasets this training script uses the `QMGraphLabelScaler` class.
+    # Note that the QMGraphLabelScaler must receive a (serialized) list of individual scalers, one per each target.
+    # These are extensive or intensive scalers, but could be expanded to have other normalization methods.
     if hyper.use_scaler():
         print("Using QMGraphLabelScaler.")
-        scaler = QMGraphLabelScaler(**hyper.scaler()).fit(ytrain, atoms_train)
+        scaler = QMGraphLabelScaler(**hyper.scaler()).fit(ytrain, atoms_train)  # Atomic number as argument here!
         ytrain = scaler.fit_transform(ytrain, atoms_train)
         ytest = scaler.transform(ytest, atoms_test)
 
@@ -145,6 +154,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Get loss from history
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
+    splits_done = splits_done + 1
 
 # Make output directory
 filepath = hyper.results_file_path()
@@ -152,7 +162,7 @@ postfix_file = hyper.postfix_file()
 
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit="", dataset_name=dataset_name,
+                     model_name=model_name, data_unit=hyper.data_unit(), dataset_name=dataset_name,
                      filepath=filepath, file_name="loss" + postfix_file + ".png")
 
 # Plot prediction
@@ -164,8 +174,8 @@ if hyper.use_scaler():
     true_y = scaler.inverse_transform(true_y, atoms_test)
 
 plot_predict_true(predicted_y, true_y,
-                  filepath=filepath, data_unit=hyper.data_unit(),
-                  model_name=model_name, dataset_name=dataset_name, target_names= None,
+                  filepath=filepath, data_unit=label_units,
+                  model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                   file_name="predict" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
