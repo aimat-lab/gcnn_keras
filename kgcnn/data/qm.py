@@ -58,6 +58,8 @@ class QMDataset(MemoryGraphDataset):
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose,
                                     file_directory=file_directory)
+        self.target_units = None
+        self.target_names = None
 
     @classmethod
     def _make_mol_list(cls, atoms_coordinates_xyz: list):

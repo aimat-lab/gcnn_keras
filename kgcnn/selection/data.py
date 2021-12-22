@@ -1,5 +1,6 @@
 import importlib
 
+
 class DatasetSelection:
 
     def __init__(self, dataset_name: str = None):
@@ -13,7 +14,8 @@ class DatasetSelection:
             dataset = getattr(importlib.import_module("kgcnn.data.datasets.%s" % dataset_name), str(dataset_name))
             return dataset(**kwargs)
         except ModuleNotFoundError:
-            raise NotImplementedError("ERROR:kgcnn: Unknown dataset identifier %s" % dataset_name)
+            raise NotImplementedError(
+                "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
 
     @staticmethod
     def assert_valid_model_input(dataset, hyper_input: list, raise_error_on_fail: bool = True):
@@ -25,6 +27,7 @@ class DatasetSelection:
             hyper_input (list): List of properties that need to be available to a model for training.
             raise_error_on_fail (bool): Whether to raise an error if assertion failed.
         """
+
         def message_error(msg):
             if raise_error_on_fail:
                 raise ValueError(msg)

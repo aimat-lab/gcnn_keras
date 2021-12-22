@@ -71,10 +71,13 @@ dataset.clean(hyper.inputs())
 data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For QMDataset, always train on graph, labels.
-multi_target_indices = hyper.multi_target_indices()
-labels = np.array(dataset.graph_labels)[:, multi_target_indices]
+labels = np.array(dataset.graph_labels)
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
+
+# Training on multiple targets for regression.
+multi_target_indices = hyper.multi_target_indices()
+labels = labels[:, multi_target_indices]
 print("Shape of labels %s" % labels)
 
 # For QMDataset, also the atomic number is required to properly pre-scale extensive quantities like total energy.
@@ -162,7 +165,7 @@ if hyper.use_scaler():
 
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=hyper.data_unit(),
-                  model_name=model_name, dataset_name=dataset_name,
+                  model_name=model_name, dataset_name=dataset_name, target_names= None,
                   file_name="predict" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
