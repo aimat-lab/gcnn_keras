@@ -42,50 +42,72 @@ make_model = model_selection.make_model()
 # including all methods to run on the dataset.
 data_selection = DatasetSelection(dataset_name)
 
-# Make dataset.
+# Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
+# Those sub-classed classes are named after the dataset like e.g. `QM9Dataset`
 try:
     dataset = data_selection.dataset(**hyper.data("dataset"))
+
+# If no name is given, a general `QMDataset` is constructed.
+# However, the construction then must be fully defined in the data section of the hyper-parameters,
+# including all methods to run on the dataset. Information required in hyper-parameters are for example 'file_path',
+# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyper-parameters can be
+# more convenient.
 except NotImplementedError:
     print("ERROR: Dataset not found, try general `GraphTUDataset`...")
     dataset = QMDataset(**hyper.data("dataset"))
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is a entry with functional kwargs in hyper-parameters.
+# This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
+# The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
+# methods listed by name below.
 data_selection.perform_methods_on_dataset(
     dataset, ["prepare_data", "read_in_memory", "set_range", "set_angle",
               "normalize_edge_weights_sym", "set_edge_indices_reverse"], hyper.data())
 data_selection.assert_valid_model_input(dataset, hyper.inputs())
-data_length = len(dataset)
 
-# For MoleculeNetDataset, always train on graph, labels.
+# Filter the dataset for invalid graphs. At the moment invalid graphs are graphs which do not have the property set,
+# which is required by the model's input layers, or if a tensor-like property has zero length.
+dataset.clean(hyper.inputs())
+data_length = len(dataset)  # Length of the cleaned dataset.
+
+# For QMDataset, always train on graph, labels.
 labels = np.array(dataset.graph_labels)
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
-# Atomic number for each molecule intended for scaler.
+# For QMDataset, also the atomic number is required to properly pre-scale extensive quantities like total energy.
 atoms = dataset.node_number
 
-# Training on splits
-splits_done = 0
+# Cross-validation via random KFold split form `sklearn.model_selection`.
 kf = KFold(**hyper.cross_validation())
+
+# Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
+# train on all splits for testing.
+execute_splits = hyper.execute_splits()
+splits_done = 0
 history_list, test_indices_list, model, hist = [], [], None, None
 for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
-    # Only do execute_splits out of the 10-folds
+
+    # Only do execute_splits out of the k-folds of cross-validation.
     if splits_done >= execute_splits:
         break
 
-    # Select train and test data.
+    # First select training and test graphs from indices, then convert them into tensorflow tensor
+    # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
+    # kwargs of the keras `Input` layers ('name' and 'ragged').
     xtrain, ytrain = dataset[train_index].tensor(hyper.inputs()), labels[train_index]
     xtest, ytest = dataset[test_index].tensor(hyper.inputs()), labels[test_index]
+    # Also keep the same information for atomic numbers of the molecules.
     atoms_test = [atoms[i] for i in test_index]
     atoms_train = [atoms[i] for i in train_index]
 
-    # Make the model for current split.
+    # Make the model for current split using model kwargs from hyper-parameters.
+    # The are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
     # Normalize training and test targets.
     if hyper.use_scaler():
-        print("INFO: Using QMGraphLabelScaler.")
+        print("Using QMGraphLabelScaler.")
         scaler = QMGraphLabelScaler(**hyper.scaler()).fit(ytrain, atoms_train)
         ytrain = scaler.fit_transform(ytrain, atoms_train)
         ytest = scaler.transform(ytest, atoms_test)
@@ -99,7 +121,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
             rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
         metrics = [mae_metric, rms_metric]
     else:
-        print("INFO: Not using QMGraphLabelScaler.")
+        print("Not using QMGraphLabelScaler.")
         metrics = None
 
     # Compile model with optimizer and loss
@@ -141,7 +163,7 @@ plot_predict_true(predicted_y, true_y,
                   file_name="predict" + postfix_file + ".png")
 
 # Save keras-model to output-folder.
-model.save(os.path.join(filepath, "model"))
+model.save(os.path.join(filepath, "model" + postfix_file))
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)

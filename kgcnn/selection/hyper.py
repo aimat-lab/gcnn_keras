@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+import numpy as np
 
 from copy import deepcopy
 from kgcnn.utils.data import load_hyper_file, save_json_file
@@ -31,7 +32,7 @@ class HyperSelection:
         elif isinstance(hyper_info, dict):
             self._hyper_all = hyper_info
         else:
-            raise ValueError("ERROR:kgcnn: `HyperSelection` requires valid hyper dictionary or path to file.")
+            raise ValueError("`HyperSelection` requires valid hyper dictionary or path to file.")
 
         self._hyper = None
         if "model" in self._hyper_all and "training" in self._hyper_all:
@@ -39,7 +40,7 @@ class HyperSelection:
         elif model_name is not None:
             self._hyper = self._hyper_all[model_name]
         else:
-            raise ValueError("ERROR:kgcnn: Not a valid hyper dictionary. Please provide model_name.")
+            raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
     def hyper(self, section: str = None):
         if section is None:
@@ -209,6 +210,11 @@ class HyperSelection:
         if "KFold" in self._hyper["training"]:
             k_fold_info.update(self._hyper["training"]["KFold"])
         return k_fold_info
+
+    def execute_splits(self, splits=np.inf):
+        if "execute_splits" in self.data():
+            splits = int(self.data("execute_splits"))
+        return splits
 
 # Only for backward compatibility.
 HyperSelectionTraining = HyperSelection
