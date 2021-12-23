@@ -2,13 +2,31 @@ import importlib
 
 
 class DatasetSelection:
+    r"""Helper class to load datasets from :obj:`kgcnn.data.datasets`"""
 
     def __init__(self, dataset_name: str = None):
+        r"""Set-up of the :obj:`DatasetSelection` with a name of the dataset to make and modify.
+
+        Args:
+            dataset_name (str): Name of the dataset. Default is None.
+        """
         super(DatasetSelection, self).__init__()
         self.dataset_name = dataset_name
 
     def dataset(self, **kwargs):
+        r"""Generate a dataset with kwargs for constructor of the dataset. The name of the dataset is passed to this
+        class via :obj:`dataset_name`. The actual dataset class if dynamically loaded from a module in
+        :obj:`kgcnn.data.datasets`.
+
+        Args:
+            kwargs: Kwargs for the dataset constructor.
+
+        Returns:
+            MemoryGraphDataset: Sub-classed :obj:`MemoryGraphDataset`.
+        """
         dataset_name = self.dataset_name
+        if dataset_name is None:
+            raise ValueError("A name of the dataset in kgcnn.data.datasets must be provided.")
 
         try:
             dataset = getattr(importlib.import_module("kgcnn.data.datasets.%s" % dataset_name), str(dataset_name))
@@ -19,20 +37,24 @@ class DatasetSelection:
 
     @staticmethod
     def assert_valid_model_input(dataset, hyper_input: list, raise_error_on_fail: bool = True):
-        """Interface to hyper-parameters. Check whether dataset has requested graph (tensor) properties requested
-        by model input.
+        r"""Interface to hyper-parameters. Check whether dataset has graph (tensor) properties requested
+        by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
+
+        Example:
+            [{"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
+            {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
+            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
 
         Args:
-            dataset: Dataset to chek.
+            dataset: Dataset to validate model input against.
             hyper_input (list): List of properties that need to be available to a model for training.
             raise_error_on_fail (bool): Whether to raise an error if assertion failed.
         """
-
         def message_error(msg):
             if raise_error_on_fail:
                 raise ValueError(msg)
             else:
-                print("ERROR:", msg)
+                dataset.error(msg)
 
         for x in hyper_input:
             if "name" not in x:
@@ -57,13 +79,25 @@ class DatasetSelection:
         return
 
     @staticmethod
-    def perform_methods_on_dataset(dataset, methods_supported, hyper_data):
+    def perform_methods_on_dataset(dataset, methods_supported: list, hyper_data):
+        r"""An interface to hyper-parameters to run further class methods on a :obj:`MemoryGraphDataset`.
+
+        Args:
+            dataset: An instance of a :obj:`MemoryGraphDataset`.
+            methods_supported (list): List of methods that can be performed on the dataset. The order is respected.
+            hyper_data (dict): Dictionary of the 'data' section of hyper-parameters for the dataset.
+
+        Returns:
+            MemoryGraphDataset: Modified :obj:`MemoryGraphDataset` from input.
+        """
         hyper_data_methods = hyper_data["methods"]
+
         for method in methods_supported:
             if method in hyper_data_methods:
                 if hasattr(dataset, method):
                     getattr(dataset, method)(**hyper_data_methods[method])
                 else:
+                    # Try if the list is method is on graphs instead on the list.
                     dataset.map_list(method, **hyper_data_methods[method])
 
         additional_keys = []
@@ -72,5 +106,5 @@ class DatasetSelection:
                 additional_keys.append(key)
         if len(additional_keys) > 0:
             dataset.warning(
-                "Additional key(s) found, which does not match a suitable dataset method: %s" % additional_keys)
+                "Additional method(s) found, which do not match a suitable dataset method: %s" % additional_keys)
         return
