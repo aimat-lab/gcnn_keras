@@ -111,6 +111,7 @@ def make_model(inputs=None,
             out = PoolingSet2Set(**set2set_args)(n)
         else:
             out = PoolingNodes(**pooling_args)(n)
+        out = ks.layers.Flatten()(out)
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n

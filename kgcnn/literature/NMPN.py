@@ -127,13 +127,14 @@ def make_model(inputs=None,
             out = PoolingSet2Set(**set2set_args)(out)
         else:
             out = PoolingNodes(**pooling_args)(n)
-        # final dense layers
+        # Flatten() required for to Set2Set output.
+        out = ks.layers.Flatten()(out)
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = n
         main_output = GraphMLP(**output_mlp)(out)
+        # No ragged for distribution supported atm
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
-        # no ragged for distribution supported atm
     else:
         raise ValueError("Unsupported graph embedding for mode `NMPN`")
 
