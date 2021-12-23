@@ -14,7 +14,7 @@
         "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
         "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
         "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"}, "nblocks": 3, "has_ff": true,
-        "dropout": null, "use_set2set": true, "make_distance": true, "expand_distance": true, "verbose": 1,
+        "dropout": null, "use_set2set": true, "make_distance": true, "expand_distance": true, "verbose": 10,
         "output_embedding": "graph", "output_mlp": {
             "use_bias": [true, true, true], "units": [32, 16, 1],
             "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]
@@ -30,6 +30,8 @@
             }
         ]
     }, "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}}, "loss": "mean_absolute_error"}
-}, "data": {"set_attributes": {}, "set_range": {"max_distance": 4, "max_neighbours": 100}},
-    "info": {"postfix": "", "kgcnn_version": "2.0.0"}
+}, "data": {
+    "dataset": {"class_name": "ESOLDataset", "config": {}},
+    "methods": {"set_attributes": {}, "set_range": {"max_distance": 4, "max_neighbours": 100}}, "data_unit": "mol/L"
+}, "info": {"postfix": "", "kgcnn_version": "2.0.0"}
 }
