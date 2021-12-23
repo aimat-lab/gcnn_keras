@@ -31,7 +31,7 @@ class ModelSelection:
             make_model = getattr(importlib.import_module("kgcnn.literature.%s" % model_id), "make_model")
 
         except ModuleNotFoundError:
-            raise NotImplementedError("ERROR:kgcnn: Unknown model identifier %s" % model_id)
+            raise NotImplementedError("Unknown model identifier %s for a model in kgcnn.literature" % model_id)
 
         return make_model
 

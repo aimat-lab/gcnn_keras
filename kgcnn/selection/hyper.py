@@ -76,10 +76,10 @@ class HyperSelection:
         functional kwargs. Functional kwargs are overwritten by hyper-parameters.
 
         Args:
-            loss: Loss for fit.
-            optimizer: Optimizer.
-            metrics (list): List of metrics
-            weighted_metrics (list): List of weighted_metrics
+            loss: Default loss for fit. Default is None.
+            optimizer: Default optimizer. Default is "rmsprop".
+            metrics (list): Default list of metrics. Default is None.
+            weighted_metrics (list): Default list of weighted_metrics. Default is None.
 
         Returns:
             dict: de-serialized compile kwargs from hyper-parameters.
@@ -113,10 +113,10 @@ class HyperSelection:
         functional kwargs. Functional kwargs are overwritten by hyper-parameters.
 
         Args:
-            epochs (int): Number of epochs.
-            validation_freq (int): Validation frequency.
-            batch_size (int): Batch size.
-            callbacks (list): Callbacks
+            epochs (int): Default number of epochs. Default is 1.
+            validation_freq (int): Default validation frequency. Default is 1.
+            batch_size (int): Default batch size. Default is None.
+            callbacks (list): Default Callbacks. Default is None.
 
         Returns:
             dict: de-serialized fit kwargs from hyper-parameters.
@@ -237,9 +237,9 @@ class HyperSelection:
         are overwritten by hyper-parameters.
 
         Args:
-            n_splits (int): Number of splits
-            shuffle (bool): Shuffle data.
-            random_state (int): Random state for shuffle.
+            n_splits (int): Default number of splits. Default is 5.
+            shuffle (bool): Shuffle data by default. Default is None.
+            random_state (int): Default random state for shuffle. Default is None.
 
         Returns:
             dict: Dictionary of kwargs for sklearn KFold() class from hyper-parameters.
