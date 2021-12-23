@@ -45,7 +45,7 @@ data_selection = DatasetSelection(dataset_name)
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `QM9Dataset`
 try:
-    dataset = data_selection.dataset(**hyper.data("dataset"))
+    dataset = data_selection.dataset(**hyper.dataset()["config"])
 
 # If no name is given, a general `QMDataset` is constructed.
 # However, the construction then must be fully defined in the data section of the hyper-parameters,
@@ -54,7 +54,7 @@ try:
 # more convenient.
 except NotImplementedError:
     print("ERROR: Dataset not found, try general `GraphTUDataset`...")
-    dataset = QMDataset(**hyper.data("dataset"))
+    dataset = QMDataset(**hyper.dataset()["config"])
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
 # This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
@@ -91,7 +91,7 @@ print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape)
 atoms = dataset.node_number
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
-kf = KFold(**hyper.cross_validation())
+kf = KFold(**hyper.cross_validation()["config"])
 
 # Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing.
@@ -123,7 +123,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # These are extensive or intensive scalers, but could be expanded to have other normalization methods.
     if hyper.use_scaler():
         print("Using QMGraphLabelScaler.")
-        scaler = QMGraphLabelScaler(**hyper.scaler()).fit(ytrain, atoms_train)  # Atomic number as argument here!
+        scaler = QMGraphLabelScaler(**hyper.scaler()["config"]).fit(ytrain, atoms_train)  # Atomic number argument here!
         ytrain = scaler.fit_transform(ytrain, atoms_train)
         ytest = scaler.transform(ytest, atoms_test)
 

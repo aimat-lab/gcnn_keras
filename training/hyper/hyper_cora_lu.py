@@ -40,9 +40,12 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
-            "make_undirected_edges": {},
-            "add_edge_self_loops": {},
-            "normalize_edge_weights_sym": {}
+            "dataset": {"class_name": "CoraLuDataset", "config": {}},
+            "methods": {
+                "make_undirected_edges": {},
+                "add_edge_self_loops": {},
+                "normalize_edge_weights_sym": {}
+            }
         },
         "info": {
             "postfix" : "",

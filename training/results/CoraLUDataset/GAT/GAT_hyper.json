@@ -24,6 +24,8 @@
         "optimizer": {"class_name": "Adam", "config": {"lr": 0.001}}, "loss": "categorical_crossentropy",
         "weighted_metrics": ["categorical_accuracy"]
     }, "cross_validation": {"class_name": "KFold", "config": {"n_splits": 5, "random_state": null, "shuffle": true}}
-}, "data": {"make_undirected_edges": {}, "add_edge_self_loops": {}, "normalize_edge_weights_sym": {}},
-    "info": {"postfix": "", "kgcnn_version": "2.0.0"}
+}, "data": {
+    "dataset": {"class_name": "CoraLuDataset", "config": {}},
+    "methods": {"make_undirected_edges": {}, "add_edge_self_loops": {}, "normalize_edge_weights_sym": {}}
+}, "info": {"postfix": "", "kgcnn_version": "2.0.0"}
 }

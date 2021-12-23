@@ -20,11 +20,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="LipopDataset")
+                    default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_lipop.py")
+                    default="hyper/hyper_esol.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -50,7 +50,7 @@ data_selection = DatasetSelection(dataset_name)
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `ESOLDataset`
 try:
-    dataset = data_selection.dataset(**hyper.data("dataset"))
+    dataset = data_selection.dataset(**hyper.dataset()["config"])
 
 # If no name is given, a general `MoleculeNetDataset` is constructed.
 # However, the construction then must be fully defined in the data section of the hyper-parameters,
@@ -59,7 +59,7 @@ try:
 # more convenient.
 except NotImplementedError:
     print("ERROR: Dataset not found, try general `MoleculeNetDataset`...")
-    dataset = MoleculeNetDataset(**hyper.data("dataset"))
+    dataset = MoleculeNetDataset(**hyper.dataset()["config"])
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
 # This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
@@ -87,7 +87,7 @@ if len(labels.shape) <= 1:
 
 # Cross-validation via random KFold split form `sklearn.model_selection`. Other validation schemes could include
 # stratified k-fold cross-validation for `MoleculeNetDataset` but is not implemented yet.
-kf = KFold(**hyper.cross_validation())
+kf = KFold(**hyper.cross_validation()["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
@@ -104,7 +104,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Scaler is applied to targets if 'scaler' appears in hyper-parameters. Only use for regression.
     if hyper.use_scaler():
         print("Using StandardScaler.")
-        scaler = StandardScaler(**hyper.scaler())
+        scaler = StandardScaler(**hyper.scaler()["config"])
         ytrain = scaler.fit_transform(ytrain)
         ytest = scaler.transform(ytest)
 

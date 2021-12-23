@@ -58,15 +58,16 @@ class DatasetSelection:
 
     @staticmethod
     def perform_methods_on_dataset(dataset, methods_supported, hyper_data):
+        hyper_data_methods = hyper_data["methods"]
         for method in methods_supported:
-            if method in hyper_data:
+            if method in hyper_data_methods:
                 if hasattr(dataset, method):
-                    getattr(dataset, method)(**hyper_data[method])
+                    getattr(dataset, method)(**hyper_data_methods[method])
                 else:
-                    dataset.map_list(method, **hyper_data[method])
+                    dataset.map_list(method, **hyper_data_methods[method])
 
         additional_keys = []
-        for key, value in hyper_data.items():
+        for key, value in hyper_data_methods.items():
             if key not in methods_supported:
                 additional_keys.append(key)
         if len(additional_keys) > 0:

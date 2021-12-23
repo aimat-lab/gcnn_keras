@@ -18,11 +18,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraDataset")
+                    default="CoraLuDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora.py")
+                    default="hyper/hyper_cora_lu.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -48,7 +48,7 @@ data_selection = DatasetSelection(dataset_name)
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `CoraLuDataset`
 try:
-    dataset = data_selection.dataset(**hyper.data("dataset"))
+    dataset = data_selection.dataset(**hyper.dataset()["config"])
 except NotImplementedError:
     raise NotImplementedError("ERROR: Dataset not found, no general `CitationDataset` implemented yet...")
 
@@ -82,7 +82,7 @@ xtrain = dataset.tensor(hyper.inputs())
 ytrain = np.array(labels)
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
-kf = KFold(**hyper.cross_validation())
+kf = KFold(**hyper.cross_validation()["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.

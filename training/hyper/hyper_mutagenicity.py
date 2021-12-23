@@ -33,6 +33,9 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
+            "dataset": {"class_name": "MutagenicityDataset", "config": {}},
+            "methods": {},
+            "data_unit": ""
         },
         "info": {
             "postfix": "",

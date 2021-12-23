@@ -49,7 +49,7 @@ data_selection = DatasetSelection(dataset_name)
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `PROTEINSDataset`
 try:
-    dataset = data_selection.dataset(**hyper.data("dataset"))
+    dataset = data_selection.dataset(**hyper.dataset()["config"])
 
 # If no name is given, a general `GraphTUDataset` is constructed.
 # However, the construction then must be fully defined in the data section of the hyper-parameters,
@@ -58,7 +58,7 @@ try:
 # more convenient.
 except NotImplementedError:
     print("ERROR: Dataset not found, try general `GraphTUDataset`...")
-    dataset = GraphTUDataset(**hyper.data("dataset"))
+    dataset = GraphTUDataset(**hyper.dataset()["config"])
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
 # This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
@@ -85,7 +85,7 @@ if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
-kf = KFold(**hyper.cross_validation())
+kf = KFold(**hyper.cross_validation()["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
@@ -102,7 +102,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Scaler is applied to targets if 'scaler' appears in hyper-parameters. Only use for regression.
     if hyper.use_scaler():
         print("Using Standard scaler")
-        scaler = StandardScaler(**hyper.scaler())
+        scaler = StandardScaler(**hyper.scaler()["config"])
         ytrain = scaler.fit_transform(ytrain)
         ytest = scaler.transform(ytest)
 

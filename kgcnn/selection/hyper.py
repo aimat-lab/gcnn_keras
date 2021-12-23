@@ -32,7 +32,7 @@ class HyperSelection:
         elif isinstance(hyper_info, dict):
             self._hyper_all = hyper_info
         else:
-            raise ValueError("`HyperSelection` requires valid hyper dictionary or path to file.")
+            raise TypeError("`HyperSelection` requires valid hyper dictionary or path to file.")
 
         self._hyper = None
         if "model" in self._hyper_all and "training" in self._hyper_all:
@@ -42,31 +42,23 @@ class HyperSelection:
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
-    def hyper(self, section: str = None):
-        if section is None:
-            return deepcopy(self._hyper)
-        return deepcopy(self._hyper[section])
+    def hyper(self):
+        return deepcopy(self._hyper)
 
-    def model(self, section: str = None):
-        if section is None:
-            deepcopy(self._hyper["model"])
-        return deepcopy(self._hyper["model"][section])
+    def model(self):
+        return deepcopy(self._hyper["model"])
 
-    def data(self, section: str = None):
-        if section is not None:
-            if section in self._hyper["data"]:
-                return deepcopy(self._hyper["data"][section])
-            else:
-                return {}
+    def data(self):
         return deepcopy(self._hyper["data"])
 
-    def training(self, section: str = None):
-        if section is not None:
-            return deepcopy(self._hyper["training"][section])
+    def training(self):
         return deepcopy(self._hyper["training"])
 
     def inputs(self):
         return deepcopy(self._hyper["model"]["inputs"])
+
+    def dataset(self):
+        return deepcopy(self._hyper["data"]["dataset"])
 
     def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
         """Select compile hyper-parameter.
@@ -142,7 +134,7 @@ class HyperSelection:
 
     def cross_validation(self):
         if "cross_validation" in self._hyper["training"]:
-            return self.training()["cross_validation"]["config"]
+            return self.training()["cross_validation"]
         else:
             raise ValueError("No cross-validation section in hyper parameter under training found")
 
@@ -175,25 +167,18 @@ class HyperSelection:
         """Only for backward compatibility."""
         return deepcopy(self._hyper["model"])
 
-    def get_hyper(self, section=None):
-        """Only for backward compatibility."""
-        return deepcopy(self.hyper(section))
-
-    def use_scaler(self):
+    def use_scaler(self, use_scaler=False):
         if "scaler" in self.training():
             return True
-        return False
+        return use_scaler
 
-    def data_unit(self):
+    def data_unit(self, data_unit=""):
         if "data_unit" in self.data():
-            return self.data("data_unit")
-        return ""
+            return self.data()["data_unit"]
+        return data_unit
 
     def scaler(self):
-        if "scaler" in self.training():
-            return self.training("scaler")["config"]
-        else:
-            raise ValueError("ERROR: Can not find scaler config.")
+        return self.training()["scaler"]
 
     def k_fold(self, n_splits: int = 5, shuffle: bool = None, random_state: int = None):
         """Select k-fold hyper-parameter.
@@ -211,16 +196,17 @@ class HyperSelection:
             k_fold_info.update(self._hyper["training"]["KFold"])
         return k_fold_info
 
-    def execute_splits(self, splits=np.inf):
+    def execute_splits(self, execute_splits=np.inf):
         if "execute_splits" in self.training():
             return int(self.training("execute_splits"))
         if "execute_folds" in self.training():
             return int(self.training("execute_folds"))
-        return splits
+        return execute_splits
 
-    def multi_target_indices(self):
+    def multi_target_indices(self, multi_target_indices=None):
         if "multi_target_indices" in self.training():
-            return self.training("multi_target_indices")
+            return self.training()["multi_target_indices"]
+        return multi_target_indices
 
 
 # Only for backward compatibility.

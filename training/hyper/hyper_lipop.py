@@ -45,8 +45,12 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
-            "set_edge_indices_reverse": {}
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+                "set_edge_indices_reverse": {}
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -84,7 +88,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -133,7 +141,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_range": {"max_distance": 3, "max_neighbours": 10000}
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 3, "max_neighbours": 10000}
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -173,7 +185,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix" : "",
@@ -221,7 +237,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -267,7 +287,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -313,7 +337,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "set_attributes": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_attributes": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
@@ -368,8 +396,12 @@ hyper = {
             }
         },
         "data": {
-            "set_range": {"max_distance": 4, "max_neighbours": 20},
-            "set_angle": {},
+            "dataset": {"class_name": "LipopDataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 4, "max_neighbours": 20},
+                "set_angle": {},
+            },
+            "data_unit": ""
         },
         "info": {
             "postfix": "",
