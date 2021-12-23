@@ -37,37 +37,43 @@ class HyperSelection:
 
         self._hyper = None
         # If model and training section in hyper-dictionary, then this is a valid hyper setting.
+        # If hyper is itself a dictionary with many models, pick the right model if model name is given.
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
-        # If hyper is itself a dictionary with many models, pick the right model if model name is given.
         elif model_name is not None and model_name in self._hyper_all:
             self._hyper = self._hyper_all[model_name]
-        # If hyper is itself a dictionary with many datasets, pick the right dataset if dataset name is given
         elif dataset_name is not None and dataset_name in self._hyper_all:
             self._hyper = self._hyper_all[dataset_name]
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
     def hyper(self):
+        """Return copy of all hyper-parameters"""
         return deepcopy(self._hyper)
 
     def model(self):
+        """Return copy of model section of hyper-parameters"""
         return deepcopy(self._hyper["model"])
 
     def data(self):
+        """Return copy of data section of hyper-parameters"""
         return deepcopy(self._hyper["data"])
 
     def training(self):
+        """Return copy of training section of hyper-parameters"""
         return deepcopy(self._hyper["training"])
 
     def inputs(self):
+        """Return copy of model/inputs section of hyper-parameters"""
         return deepcopy(self._hyper["model"]["inputs"])
 
     def dataset(self):
+        """Return copy of data/dataset section of hyper-parameters"""
         return deepcopy(self._hyper["data"]["dataset"])
 
     def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
-        """Select compile hyper-parameter.
+        """Select compile hyper-parameter. Additional default values for the training scripts are given as
+        functional kwargs. Functional kwargs are overwritten by hyper-parameters.
 
         Args:
             loss: Loss for fit.
@@ -76,7 +82,7 @@ class HyperSelection:
             weighted_metrics (list): List of weighted_metrics
 
         Returns:
-            dict: de-serialized hyper-parameter
+            dict: de-serialized compile kwargs from hyper-parameters.
         """
         hyper_compile = deepcopy(self._hyper["training"]["compile"])
         reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics", "metrics"]
@@ -103,7 +109,8 @@ class HyperSelection:
         return out
 
     def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
-        """Select fit hyper-parameter.
+        """Select fit hyper-parameter. Additional default values for the training scripts are given as
+        functional kwargs. Functional kwargs are overwritten by hyper-parameters.
 
         Args:
             epochs (int): Number of epochs.
@@ -112,9 +119,8 @@ class HyperSelection:
             callbacks (list): Callbacks
 
         Returns:
-            dict: de-serialized hyper-parameters.
+            dict: de-serialized fit kwargs from hyper-parameters.
         """
-
         hyper_fit = deepcopy(self._hyper["training"]["fit"])
         reserved_fit_arguments = ["callbacks", "batch_size", "validation_freq", "epochs"]
         hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
@@ -139,13 +145,22 @@ class HyperSelection:
         return out
 
     def cross_validation(self):
-        if "cross_validation" in self._hyper["training"]:
-            return self.training()["cross_validation"]
-        else:
-            raise ValueError("No cross-validation section in hyper parameter under training found")
+        """Configuration for cross-validation. At the moment no de-serialization is used, but the hyper-parameters
+        can be set with keras-like serialization.
+
+        Returns:
+            dict: Cross-validation configuration from hyper-parameters.
+        """
+        return self.training()["cross_validation"]
 
     def results_file_path(self):
-        """Make output folder for results based on hyper-parameter and return path to that folder."""
+        r"""Make output folder for results based on hyper-parameter and return path to that folder.
+        The folder is set up as `'results'/dataset/model_name + post_fix`. Where model and dataset name must be set by
+        this class. Postfix can be in hyper-parameters setting.
+
+        Returns:
+            str: File-path or path object to result folder.
+        """
         hyper_info = deepcopy(self._hyper["info"])
         post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
         os.makedirs("results", exist_ok=True)
@@ -156,7 +171,11 @@ class HyperSelection:
         return filepath
 
     def postfix_file(self):
-        """Return a postfix for naming files in the fit results section."""
+        """Return a postfix for naming files in the fit results section.
+
+        Returns:
+            str: Postfix for naming output files.
+        """
         hyper_info = deepcopy(self._hyper["info"])
         return str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 
@@ -170,24 +189,52 @@ class HyperSelection:
         save_json_file(self._hyper, file_path)
 
     def make_model(self):
-        """Only for backward compatibility."""
+        r"""Dictionary of model kwargs. Can be nested.
+
+        Returns:
+            dict: Model kwargs for :obj:`make_model()` function from hyper-parameters.
+        """
         return deepcopy(self._hyper["model"])
 
     def use_scaler(self, use_scaler=False):
+        r"""Use scaler. Functional kwargs are overwritten by hyper-parameters.
+
+        Args:
+            use_scaler (bool): Whether to use scaler as default. Default is False.
+
+        Returns:
+            bool: Flag for using scaler from hyper-parameters.
+        """
         if "scaler" in self.training():
             return True
         return use_scaler
 
     def data_unit(self, data_unit=""):
+        """Optional unit for targets or the data in general. Functional kwargs are overwritten by hyper-parameters.
+        Alternatively the units can be defined by the dataset directly. Mostly relevant for plotting or annotate stats.
+
+        Args:
+            data_unit (str): Default unit for the dataset. Default is "".
+
+        Returns:
+            str: Units for the data from hyper-parameters.
+        """
         if "data_unit" in self.data():
             return self.data()["data_unit"]
         return data_unit
 
     def scaler(self):
+        """Configuration for standard scaler. At the moment no de-serialization is used, but the hyper-parameters
+        can be set with keras-like serialization.
+
+        Returns:
+            dict: Cross-validation configuration from hyper-parameters.
+        """
         return self.training()["scaler"]
 
     def k_fold(self, n_splits: int = 5, shuffle: bool = None, random_state: int = None):
-        """Select k-fold hyper-parameter.
+        """Select k-fold hyper-parameter. Not used anymore for current training scripts. Functional kwargs
+        are overwritten by hyper-parameters.
 
         Args:
             n_splits (int): Number of splits
@@ -195,7 +242,7 @@ class HyperSelection:
             random_state (int): Random state for shuffle.
 
         Returns:
-            dict: Dictionary of kwargs for sklearn KFold() class.
+            dict: Dictionary of kwargs for sklearn KFold() class from hyper-parameters.
         """
         k_fold_info = {"n_splits": n_splits, "shuffle": shuffle, "random_state": random_state}
         if "KFold" in self._hyper["training"]:
@@ -203,13 +250,30 @@ class HyperSelection:
         return k_fold_info
 
     def execute_splits(self, execute_splits=np.inf):
+        """The number of splits to execute apart form the settings in cross-validation. Could be used if not all
+        splits should be fitted for cost reasons. Functional kwargs are overwritten by hyper-parameters.
+
+        Args:
+            execute_splits (int): The default number of splits. Default is inf.
+
+        Returns:
+            int: The number of splits to run from hyper-parameters.
+        """
         if "execute_splits" in self.training():
-            return int(self.training("execute_splits"))
+            return int(self.training()["execute_splits"])
         if "execute_folds" in self.training():
-            return int(self.training("execute_folds"))
+            return int(self.training()["execute_folds"])
         return execute_splits
 
     def multi_target_indices(self, multi_target_indices=None):
+        """Get list of target indices for multi-target training. Functional kwargs are overwritten by hyper-parameters.
+
+        Args:
+            multi_target_indices (list): T
+
+        Returns:
+            list: List of target indices from hyper-parameters.
+        """
         if "multi_target_indices" in self.training():
             return self.training()["multi_target_indices"]
         return multi_target_indices
