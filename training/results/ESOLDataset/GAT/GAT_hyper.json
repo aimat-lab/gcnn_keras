@@ -9,7 +9,7 @@
             "units": 64, "use_bias": true, "use_edge_features": true, "use_final_activation": false,
             "has_self_loops": true
         }, "pooling_nodes_args": {"pooling_method": "sum"}, "depth": 4, "attention_heads_num": 10,
-        "attention_heads_concat": false, "verbose": 1, "output_embedding": "graph",
+        "attention_heads_concat": false, "verbose": 10, "output_embedding": "graph",
         "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]}
     }, "training": {
     "fit": {

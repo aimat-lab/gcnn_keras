@@ -15,7 +15,7 @@ hyper = {
             "concat_args": {"axis": -1},
             "use_edge_features": True,
             "pooling_nodes_args": {"pooling_method": "mean"},
-            "depth": 3, "verbose": 1,
+            "depth": 3, "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                            "activation": ["relu", "relu", "sigmoid"]},

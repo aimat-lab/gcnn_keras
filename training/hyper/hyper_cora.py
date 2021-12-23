@@ -9,7 +9,7 @@ hyper = {
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 10, "output_dim": 64}},
             "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
-            "depth": 3, "verbose": 1,
+            "depth": 3, "verbose": 10,
             "output_embedding": "node",
             "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
                            "activation": ["relu", "relu", "softmax"]},

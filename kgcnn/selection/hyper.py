@@ -16,7 +16,8 @@ class HyperSelection:
     """
 
     def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):
-        """Make a hyper-parameter class instance.
+        """Make a hyper-parameter class instance. Required is the hyper-parameter dictionary or path to a config
+        file containing the hyper-parameters. Furthermore name of the dataset and model can be provided.
 
         Args:
             hyper_info (str, dict): Hyper-parameters dictionary or path to file.
@@ -35,10 +36,15 @@ class HyperSelection:
             raise TypeError("`HyperSelection` requires valid hyper dictionary or path to file.")
 
         self._hyper = None
+        # If model and training section in hyper-dictionary, then this is a valid hyper setting.
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
-        elif model_name is not None:
+        # If hyper is itself a dictionary with many models, pick the right model if model name is given.
+        elif model_name is not None and model_name in self._hyper_all:
             self._hyper = self._hyper_all[model_name]
+        # If hyper is itself a dictionary with many datasets, pick the right dataset if dataset name is given
+        elif dataset_name is not None and dataset_name in self._hyper_all:
+            self._hyper = self._hyper_all[dataset_name]
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 

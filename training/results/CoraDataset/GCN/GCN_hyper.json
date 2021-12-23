@@ -6,7 +6,7 @@
             {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}
         ],
         "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}, "edge": {"input_dim": 10, "output_dim": 64}},
-        "gcn_args": {"units": 140, "use_bias": true, "activation": "relu"}, "depth": 3, "verbose": 1,
+        "gcn_args": {"units": 140, "use_bias": true, "activation": "relu"}, "depth": 3, "verbose": 10,
         "output_embedding": "node", "output_mlp": {
             "use_bias": [true, true, false], "units": [140, 70, 70], "activation": ["relu", "relu", "softmax"]
         }

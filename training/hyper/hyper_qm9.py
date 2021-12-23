@@ -17,7 +17,7 @@ hyper = {
             },
             "node_pooling_args": {"pooling_method": "sum"},
             "depth": 4,
-            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1,
+            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
             "output_embedding": "graph",
             "use_output_mlp": False,
             "output_mlp": None,
@@ -49,7 +49,10 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
-            "set_range": {"max_distance": 4, "max_neighbours": 30},
+            "dataset": {"class_name": "QM9Dataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            },
         },
         "info": {
             "postfix": "",
@@ -77,13 +80,14 @@ hyper = {
             "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2",
                               "input_tensor_type": "tensor"},
             "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
-            "verbose": 1,
+            "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 3],
                            "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
         },
         "training": {
-            "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -98,17 +102,26 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
                 "loss": "mean_absolute_error"
-            }
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}},
+                           {"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": [5, 6]
         },
         "data": {
-            "set_range": {"max_distance": 4, "max_neighbours": 30},
-            "data_points_to_use": 133885,
-            "target_indices": [5, 6, 7]
+            "dataset": {"class_name": "QM9Dataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.1.0"
+            "postfix_file": "_orbitals",
+            "kgcnn_version": "2.0.0"
         }
     },
     "NMPN": {
@@ -119,19 +132,20 @@ hyper = {
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 5, "output_dim": 64}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 3],
-                           "activation": ["selu", "selu", "linear"]},
             "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
             "pooling_args": {"pooling_method": "segment_mean"},
             "edge_dense": {"use_bias": True, "activation": "selu"},
             "use_set2set": True,
             "depth": 3,
             "node_dim": 128,
-            "verbose": 1
+            "verbose": 10,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 3],
+                           "activation": ["selu", "selu", "linear"]},
         },
         "training": {
-            "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -143,19 +157,29 @@ hyper = {
                      }
                 ]
             },
-            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                        "loss": "mean_absolute_error"
-                        }
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}},
+                           {"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": [5, 6]
         },
         "data": {
-            "set_range": {"max_distance": 4, "max_neighbours": 30},
-            "data_points_to_use": 133885,
-            "target_indices": [5, 6, 7]
+            "dataset": {"class_name": "QM9Dataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.1.0"
+            "postfix_file": "_orbitals",
+            "kgcnn_version": "2.0.0"
         }
     },
     "PAiNN": {
@@ -167,14 +191,15 @@ hyper = {
                 {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
             ],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [128, 3], "activation": ["swish", "linear"]},
             "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
             "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
-            "update_args": {"units": 128}, "depth": 3, "verbose": 1
+            "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True], "units": [128, 3], "activation": ["swish", "linear"]},
         },
         "training": {
-            "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
@@ -196,17 +221,26 @@ hyper = {
                     }
                 },
                 "loss": "mean_absolute_error"
-            }
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}},
+                           {"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": [5, 6]
         },
         "data": {
-            "set_range": {"max_distance": 5, "max_neighbours": 10000},
-            "data_points_to_use": 133885,
-            "target_indices": [5, 6, 7]
+            "dataset": {"class_name": "QM9Dataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 5, "max_neighbours": 10000},
+            },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.1.0"
+            "postfix_file": "_orbitals",
+            "kgcnn_version": "2.0.0"
         }
     },
     "DimeNetPP": {
@@ -220,17 +254,18 @@ hyper = {
                                          "embeddings_initializer": {"class_name": "RandomUniform",
                                                                     "config": {"minval": -1.7320508075688772,
                                                                                "maxval": 1.7320508075688772}}}},
-            "output_embedding": "graph",
-            "output_mlp": None,
             "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
             "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
             "cutoff": 5.0, "envelope_exponent": 5,
             "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
-            "num_targets": 3, "extensive": False, "output_init": "zeros",
-            "activation": "swish", "verbose": 1
+            "num_targets": 2, "extensive": False, "output_init": "zeros",
+            "activation": "swish", "verbose": 10,
+            "output_embedding": "graph",
+            "output_mlp": None,
         },
         "training": {
-            "KFold": {"n_splits": 10, "random_state": None, "shuffle": True},
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []

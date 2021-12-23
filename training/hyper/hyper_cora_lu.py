@@ -13,7 +13,7 @@ hyper = {
                             "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "mean"},
             "depth": 3, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1,
+            "attention_heads_concat": False, "verbose": 10,
             "output_embedding": "node",
             "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 7],
                            "activation": ["relu", "relu", "softmax"]},

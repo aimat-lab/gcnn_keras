@@ -10,7 +10,7 @@
         "edge_initialize": {"units": 128, "use_bias": true, "activation": "relu"},
         "edge_dense": {"units": 128, "use_bias": true, "activation": "linear"},
         "edge_activation": {"activation": "relu"}, "node_dense": {"units": 128, "use_bias": true, "activation": "relu"},
-        "verbose": 1, "depth": 5, "dropout": {"rate": 0.1}, "output_embedding": "graph",
+        "verbose": 10, "depth": 5, "dropout": {"rate": 0.1}, "output_embedding": "graph",
         "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]}
     }, "training": {
     "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []}, "compile": {

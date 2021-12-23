@@ -15,7 +15,7 @@ hyper = {
             "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
             "edge_activation": {"activation": "relu"},
             "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
-            "verbose": 1, "depth": 5,
+            "verbose": 10, "depth": 5,
             "dropout": {"rate": 0.1},
             "output_embedding": "graph",
             "output_mlp": {
@@ -106,7 +106,7 @@ hyper = {
             "attention_args": {"units": 200},
             "depth": 2,
             "dropout": 0.2,
-            "verbose": 1,
+            "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True], "units": [200, 1],
                            "activation": ["kgcnn>leaky_relu", "linear"]}
@@ -148,7 +148,7 @@ hyper = {
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
             "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
             "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
-            "update_args": {"units": 128}, "depth": 3, "verbose": 1,
+            "update_args": {"units": 128}, "depth": 3, "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
         },
@@ -207,7 +207,7 @@ hyper = {
             "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
             "pooling_args": {"pooling_method": "segment_sum"},
-            "depth": 3, "use_set2set": False, "verbose": 1,
+            "depth": 3, "use_set2set": False, "verbose": 10,
             "gather_args": {},
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
@@ -259,7 +259,7 @@ hyper = {
                                "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "sum"},
             "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1,
+            "attention_heads_concat": False, "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                            "activation": ["relu", "relu", "linear"]}
@@ -309,7 +309,7 @@ hyper = {
                                "use_final_activation": False, "has_self_loops": True},
             "pooling_nodes_args": {"pooling_method": "sum"},
             "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 1,
+            "attention_heads_concat": False, "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                            "activation": ["relu", "relu", "linear"]},
@@ -363,7 +363,7 @@ hyper = {
             },
             "node_pooling_args": {"pooling_method": "sum"},
             "depth": 4,
-            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 1
+            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -415,7 +415,7 @@ hyper = {
             "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
             "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
             "make_distance": True, "expand_distance": True,
-            "verbose": 1,
+            "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
                            "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
@@ -461,16 +461,16 @@ hyper = {
             "input_embedding": {
                 "node": {"input_dim": 95, "output_dim": 64},
                 "edge": {"input_dim": 32, "output_dim": 32}},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
             "node_mlp_args": {"units": [64, 32], "use_bias": True, "activation": ["relu", "linear"]},
             "edge_mlp_args": {"units": 64, "use_bias": True, "activation": "relu"},
             "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {},
             "concat_args": {"axis": -1},
             "use_edge_features": True,
             "pooling_nodes_args": {"pooling_method": "sum"},
-            "depth": 3, "verbose": 1
+            "depth": 3, "verbose": 10,
+            "output_embedding": "graph",
+            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                           "activation": ["relu", "relu", "linear"]},
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
@@ -486,7 +486,11 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
-            "set_attributes": {}
+            "dataset": {"class_name": "ESOLDataset", "config": {}},
+            "methods": {
+                "set_attributes": {}
+            },
+            "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
@@ -503,7 +507,7 @@ hyper = {
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 10, "output_dim": 64}},
             "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
-            "depth": 5, "verbose": 1,
+            "depth": 5, "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
                            "activation": ["relu", "relu", "linear"]},
@@ -559,7 +563,7 @@ hyper = {
             "cutoff": 5.0, "envelope_exponent": 5,
             "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
             "num_targets": 128, "extensive": False, "output_init": "zeros",
-            "activation": "swish", "verbose": 1,
+            "activation": "swish", "verbose": 10,
             "output_embedding": "graph",
             "output_mlp": {"use_bias": [True, False], "units": [128, 1],
                            "activation": ["swish", "linear"]}
@@ -618,7 +622,7 @@ hyper = {
             'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64]},
             'use_set2set': True, 'depth': 3, 'node_dim': 128,
             "geometric_edge": False, "make_distance": False, "expand_distance": False,
-            'verbose': 1,
+            'verbose': 10,
             'output_embedding': 'graph',
             'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
                            "activation": ['swish', 'swish', 'linear']},

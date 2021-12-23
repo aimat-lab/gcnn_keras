@@ -9,7 +9,7 @@
             "units": 32, "use_bias": true, "use_edge_features": true, "use_final_activation": false,
             "has_self_loops": true
         }, "pooling_nodes_args": {"pooling_method": "mean"}, "depth": 3, "attention_heads_num": 10,
-        "attention_heads_concat": false, "verbose": 1, "output_embedding": "node",
+        "attention_heads_concat": false, "verbose": 10, "output_embedding": "node",
         "output_mlp": {"use_bias": [true, true, false], "units": [64, 32, 7], "activation": ["relu", "relu", "softmax"]}
     }, "training": {
     "fit": {
