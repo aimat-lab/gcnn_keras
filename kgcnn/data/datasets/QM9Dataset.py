@@ -117,7 +117,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         if os.path.exists(os.path.join(path, self.file_name)) and not overwrite:
             self.info("Single xyz-file %s for molecules already created." % self.file_name)
         else:
-            self.info("Reading dataset...", end='', flush=True)
+            self.info("Reading dataset...")
             if os.path.exists(os.path.join(path, "qm9.pickle")):
                 with open(os.path.join(path, "qm9.pickle"), 'rb') as f:
                     qm9 = pickle.load(f)
