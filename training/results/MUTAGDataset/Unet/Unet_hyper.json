@@ -7,7 +7,7 @@
         ], "input_embedding": {"node": {"input_dim": 60, "output_dim": 128}, "edge": {"input_dim": 5, "output_dim": 5}},
         "hidden_dim": {"units": 32, "use_bias": true, "activation": "linear"},
         "top_k_args": {"k": 0.3, "kernel_initializer": "ones"}, "activation": "relu", "use_reconnect": true, "depth": 4,
-        "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {}, "verbose": 1,
+        "pooling_args": {"pooling_method": "segment_mean"}, "gather_args": {}, "verbose": 10,
         "output_embedding": "graph",
         "output_mlp": {"use_bias": [true, false], "units": [25, 1], "activation": ["relu", "sigmoid"]}
     }, "training": {
@@ -23,5 +23,6 @@
         "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}}, "loss": "binary_crossentropy",
         "metrics": ["accuracy"]
     }, "cross_validation": {"class_name": "KFold", "config": {"n_splits": 5, "random_state": null, "shuffle": true}}
-}, "data": {}, "info": {"postfix": "", "kgcnn_version": "2.0.0"}
+}, "data": {"dataset": {"class_name": "MUTAGDataset", "config": {}}, "methods": {}, "data_unit": ""},
+    "info": {"postfix": "", "kgcnn_version": "2.0.0"}
 }
