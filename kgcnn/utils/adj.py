@@ -15,7 +15,7 @@ def precompute_adjacency_scaled(adj_matrix, add_identity: bool = True):
         array-like: Scaled adjacency matrix after :math:`A_{s} = D^{-0.5} (A + I) D^{-0.5}`.
     """
     if isinstance(adj_matrix, np.ndarray):
-        adj_matrix = np.array(adj_matrix, dtype=np.float)
+        adj_matrix = np.array(adj_matrix, dtype="float")
         if add_identity:
             adj_matrix = adj_matrix + np.identity(adj_matrix.shape[0])
         rowsum = np.sum(adj_matrix, axis=-1)
@@ -92,7 +92,7 @@ def convert_scaled_adjacency_to_list(adj_scaled):
             - edge_weight (np.ndarray): Entries of Adjacency matrix of shape `(N, )`.
     """
     if isinstance(adj_scaled, np.ndarray):
-        a = np.array(adj_scaled > 0, dtype=np.bool)
+        a = np.array(adj_scaled > 0, dtype="bool")
         edge_weight = adj_scaled[a]
         index1 = np.tile(np.expand_dims(np.arange(0, a.shape[0]), axis=1), (1, a.shape[1]))
         index2 = np.tile(np.expand_dims(np.arange(0, a.shape[1]), axis=0), (a.shape[0], 1))
@@ -101,8 +101,8 @@ def convert_scaled_adjacency_to_list(adj_scaled):
         return edge_index, edge_weight
     elif isinstance(adj_scaled, (sp.bsr.bsr_matrix, sp.csc.csc_matrix, sp.coo.coo_matrix, sp.csr.csr_matrix)):
         adj_scaled = adj_scaled.tocoo()
-        ei1 = np.array(adj_scaled.row.tolist(), dtype=np.int)
-        ei2 = np.array(adj_scaled.col.tolist(), dtype=np.int)
+        ei1 = np.array(adj_scaled.row.tolist(), dtype="int")
+        ei2 = np.array(adj_scaled.col.tolist(), dtype="int")
         edge_index = np.concatenate([np.expand_dims(ei1, axis=-1), np.expand_dims(ei2, axis=-1)], axis=-1)
         edge_weight = np.array(adj_scaled.data)
         return edge_index, edge_weight
@@ -152,7 +152,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
     """
     clean_edge = [x for x in args]
     max_ind = np.max(edge_indices)
-    self_loops = np.arange(max_ind + 1, dtype=np.int)
+    self_loops = np.arange(max_ind + 1, dtype="int")
     self_loops = np.concatenate([np.expand_dims(self_loops, axis=-1), np.expand_dims(self_loops, axis=-1)], axis=-1)
     added_loops = np.concatenate([edge_indices, self_loops], axis=0)
     clean_index = added_loops
@@ -163,7 +163,7 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
         clean_edge[i] = np.concatenate([x, edge_loops], axis=0)
     if remove_duplicates:
         un, unis = np.unique(clean_index, return_index=True, axis=0)
-        mask_all = np.zeros(clean_index.shape[0], dtype=np.bool)
+        mask_all = np.zeros(clean_index.shape[0], dtype="bool")
         mask_all[unis] = True
         mask_all[:edge_indices.shape[0]] = True  # keep old indices untouched
         # clean_index = clean_index[unis]
@@ -210,7 +210,7 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = Tru
 
     if remove_duplicates:
         un, unis = np.unique(clean_index, return_index=True, axis=0)
-        mask_all = np.zeros(clean_index.shape[0], dtype=np.bool)
+        mask_all = np.zeros(clean_index.shape[0], dtype="bool")
         mask_all[unis] = True
         mask_all[:edge_indices.shape[0]] = True  # keep old indices untouched
         clean_index = clean_index[mask_all]
@@ -298,6 +298,10 @@ def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = 
         - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
         - idx_ijk_ij (np.ndarray): Indices for angle pairs referring to edges of shape `(M, 2)`.
     """
+    if idx is None:
+        return None, None, None
+    if len(idx) == 0:
+        return np.array([]), np.array([]), np.array([])
     # Can swap here
     idx_i = idx[:, 0]
     idx_j = idx[:, 1]
@@ -356,6 +360,10 @@ def get_angle(coord, indices):
     Returns:
         np.ndarray: List of angles matching indices `(M, 1)`.
     """
+    if coord is None or indices is None:
+        return
+    if len(indices) == 0:
+        return np.array([])
     xi = coord[indices[:, 0]]
     xj = coord[indices[:, 1]]
     xk = coord[indices[:, 2]]
