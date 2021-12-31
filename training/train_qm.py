@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib as mpl
+# mpl.use('Agg')
 import time
 import os
 import kgcnn.utils.learning
@@ -105,6 +107,10 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     if splits_done >= execute_splits:
         break
 
+    # Make the model for current split using model kwargs from hyper-parameters.
+    # The are always updated on top of the models default kwargs.
+    model = make_model(**hyper.make_model())
+
     # First select training and test graphs from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
     # kwargs of the keras `Input` layers ('name' and 'ragged').
@@ -113,10 +119,6 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Also keep the same information for atomic numbers of the molecules.
     atoms_test = [atoms[i] for i in test_index]
     atoms_train = [atoms[i] for i in train_index]
-
-    # Make the model for current split using model kwargs from hyper-parameters.
-    # The are always updated on top of the models default kwargs.
-    model = make_model(**hyper.make_model())
 
     # Normalize training and test targets. For QM datasets this training script uses the `QMGraphLabelScaler` class.
     # Note that the QMGraphLabelScaler must receive a (serialized) list of individual scalers, one per each target.
