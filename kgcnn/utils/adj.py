@@ -328,10 +328,10 @@ def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = 
         combos_label = np.concatenate(
             [np.expand_dims(np.repeat(np.expand_dims(label_i, axis=1), len(label_k), axis=1), axis=-1),
              np.expand_dims(np.repeat(np.expand_dims(label_k, axis=0), len(label_i), axis=0), axis=-1)], axis=-1)
-        if allow_multi_edges:
-            mask_combos = np.ones(combos_label.shape[:2], dtype="bool")
-        else:
-            mask_combos = np.array(combos_ik[:, :, 0] != combos_ik[:, :, 1], dtype="bool")
+
+        mask_combos = np.ones(combos_label.shape[:2], dtype="bool")
+        if not allow_multi_edges:
+            mask_combos = np.array(combos_ik[:, :, 0] != combos_ik[:, :, -1], dtype="bool")
         idx_ijk.append(combos_ik[mask_combos])
         idx_ijk_ij.append(combos_label[mask_combos])
     idx_ijk = np.concatenate(idx_ijk, axis=0)

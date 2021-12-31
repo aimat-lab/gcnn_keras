@@ -183,12 +183,12 @@ class QM9Dataset(QMDataset, DownloadDataset):
         actual_labels = self.label_unit_conversion*labels[:, 1:]
         actual_labels = [x for x in actual_labels]
 
-        self.graph_number = ids
-        self.node_coordinates = coord
-        self.graph_labels = actual_labels
-        self.node_symbol = atoms
-        self.node_number = nodes
-        self.graph_attributes = [x for x in mmw]
+        self.assign_property("graph_number", ids)
+        self.assign_property("node_coordinates", coord)
+        self.assign_property("graph_labels", actual_labels)
+        self.assign_property("node_symbol", atoms)
+        self.assign_property("node_number", nodes)
+        self.assign_property("graph_attributes", [x for x in mmw])
 
         # Try to read mol information
         self.read_in_memory_sdf()

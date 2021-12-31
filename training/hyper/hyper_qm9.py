@@ -150,7 +150,7 @@ hyper = {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 1000,
                         "verbose": 0
                     }
                      }
@@ -268,7 +268,7 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 5, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
@@ -300,7 +300,7 @@ hyper = {
         "data": {
  	    "dataset": {"class_name": "QM9Dataset", "config": {}},
             "methods": {
-                "set_range": {"max_distance": 5, "max_neighbours": 10000},
+                "set_range": {"max_distance": 5, "max_neighbours": 1000},
 	        "set_angle": {},
             },
         },
