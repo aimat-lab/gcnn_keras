@@ -81,7 +81,7 @@ hyper = {
             "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
             "verbose": 10,
             "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 3],
+            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 2],
                            "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
         },
         "training": {
@@ -126,20 +126,20 @@ hyper = {
     "NMPN": {
         "model": {
             "name": "NMPN",
-            "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 1], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+            "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                       {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 5, "output_dim": 64}},
             "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-            "pooling_args": {"pooling_method": "segment_mean"},
-            "edge_dense": {"use_bias": True, "activation": "selu"},
+            "pooling_args": {"pooling_method": "segment_sum"},
             "use_set2set": True,
             "depth": 3,
             "node_dim": 128,
             "verbose": 10,
+            "geometric_edge": True, "make_distance": True, "expand_distance": True,
             "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 3],
+            "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 2],
                            "activation": ["selu", "selu", "linear"]},
         },
         "training": {
@@ -194,7 +194,7 @@ hyper = {
             "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
             "update_args": {"units": 128}, "depth": 3, "verbose": 10,
             "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [128, 3], "activation": ["swish", "linear"]},
+            "output_mlp": {"use_bias": [True, True], "units": [128, 2], "activation": ["swish", "linear"]},
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -260,7 +260,8 @@ hyper = {
             "num_targets": 2, "extensive": False, "output_init": "zeros",
             "activation": "swish", "verbose": 10,
             "output_embedding": "graph",
-            "output_mlp": None,
+            "use_output_mlp": False,
+            "output_mlp": {},
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -286,18 +287,27 @@ hyper = {
                     }
                 },
                 "loss": "mean_absolute_error"
-            }
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}},
+                           {"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": [5, 6]
         },
         "data": {
-            "set_range": {"max_distance": 5, "max_neighbours": 10000},
-            "angle": {},
-            "data_points_to_use": 133885,
-            "target_indices": [5, 6, 7]
+ 	    "dataset": {"class_name": "QM9Dataset", "config": {}},
+            "methods": {
+                "set_range": {"max_distance": 5, "max_neighbours": 10000},
+	        "set_angle": {},
+            },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_homo_lumo_gap",
-            "kgcnn_version": "1.1.0"
+            "postfix_file": "_orbitals",
+            "kgcnn_version": "2.0.0"
         }
     }
 }
