@@ -28,7 +28,7 @@ model_default = {"name": "DimeNetPP",
                  "cutoff": 5.0, "envelope_exponent": 5,
                  "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
                  "num_targets": 64, "extensive": True, "output_init": "zeros",
-                 "activation": "swish", "verbose": 1,
+                 "activation": "swish", "verbose": 10,
                  "use_output_mlp": True,
                  "output_embedding": "graph",
                  "output_mlp": {"use_bias": [True, False],
@@ -126,7 +126,8 @@ def make_model(inputs=None,
                               envelope_exponent=envelope_exponent)([d, a, adi])
 
     # Embedding block
-    rbf_emb = DenseEmbedding(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
+    rbf_emb = DenseEmbedding(emb_size, use_bias=True, activation=activation,
+                             kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
     n_pairs = GatherNodes()([n, edi])
     x = LazyConcatenate(axis=-1)([n_pairs, rbf_emb])
     x = DenseEmbedding(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
