@@ -20,9 +20,6 @@ model_default = {'name': "NMPN",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['selu', 'selu', 'sigmoid']},
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
                                   "init_qstar": "0"},
@@ -30,7 +27,10 @@ model_default = {'name': "NMPN",
                  'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64, 64]},
                  'use_set2set': True, 'depth': 3, 'node_dim': 64,
                  "geometric_edge": False, "make_distance": False, "expand_distance": False,
-                 'verbose': 1
+                 'verbose': 10,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['selu', 'selu', 'sigmoid']},
                  }
 
 
@@ -87,6 +87,8 @@ def make_model(inputs=None,
     n0 = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
     if not geometric_edge:
         ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+    else:
+        ed = edge_input
 
     # If coordinates are in place of edges
     if make_distance:
