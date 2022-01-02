@@ -172,7 +172,7 @@ Create and store a general dataset via:
 ```python
 from kgcnn.data.base import MemoryGraphDataset
 import numpy as np
-dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example", length=1)
+dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example")
 dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
 dataset.edge_labels = [np.array([[0], [1]])]
 dataset.save()
