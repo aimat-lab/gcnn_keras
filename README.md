@@ -6,7 +6,7 @@
 [![DOI](https://img.shields.io/badge/DOI-10.1016%2Fj.simpa.2021.100095%20-blue)](https://doi.org/10.1016/j.simpa.2021.100095)
 ![GitHub](https://img.shields.io/github/license/aimat-lab/gcnn_keras)
 ![GitHub issues](https://img.shields.io/github/issues/aimat-lab/gcnn_keras)
-![Maintenance](https://img.shields.io/maintenance/yes/2021)
+![Maintenance](https://img.shields.io/maintenance/yes/2022)
 
 # Keras Graph Convolution Neural Networks
 <p align="left">
