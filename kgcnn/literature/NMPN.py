@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate
+from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -84,9 +84,11 @@ def make_model(inputs=None,
     edi = edge_index_input
 
     # embedding, if no feature dimension
-    n0 = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    n0 = OptionalInputEmbedding(**input_embedding['node'],
+                                use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     if not geometric_edge:
-        ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+        ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                    use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     else:
         ed = edge_input
 

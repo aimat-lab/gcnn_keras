@@ -3,7 +3,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.modules import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -79,7 +79,8 @@ def make_model(inputs=None,
     edge_index_input = ks.layers.Input(**inputs[2])
 
     # embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     edi = edge_index_input
 
     if make_distance:
