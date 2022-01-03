@@ -3,7 +3,7 @@ try:
     import pymatgen
     import pymatgen.io.cif
 except ImportError:
-    print("ERROR:kgcnn: This module needs pymatgen to be installed.")
+    print("This module needs pymatgen to be installed.")
 
 from kgcnn.utils.adj import sort_edge_indices
 

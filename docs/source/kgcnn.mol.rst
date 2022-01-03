@@ -60,14 +60,6 @@ kgcnn.mol.methods module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.mol.pymatgen module
--------------------------
-
-.. automodule:: kgcnn.mol.pymatgen
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
