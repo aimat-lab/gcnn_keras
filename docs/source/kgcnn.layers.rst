@@ -45,14 +45,6 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.modules module
--------------------------
-
-.. automodule:: kgcnn.layers.modules
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.layers.mlp module
 -----------------------
 
@@ -61,8 +53,24 @@ kgcnn.layers.mlp module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.layers.gather module
---------------------------
+kgcnn.layers.modules module
+---------------------------
+
+.. automodule:: kgcnn.layers.modules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.norm module
+------------------------
+
+.. automodule:: kgcnn.layers.norm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.pooling module
+---------------------------
 
 .. automodule:: kgcnn.layers.pooling
    :members:

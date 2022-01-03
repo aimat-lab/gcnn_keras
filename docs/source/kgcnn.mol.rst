@@ -1,11 +1,51 @@
 kgcnn.mol package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   kgcnn.mol.gen
+
 Submodules
 ----------
 
-kgcnn.mol.io module
+kgcnn.mol.base module
+---------------------
+
+.. automodule:: kgcnn.mol.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.enocder module
 ------------------------
+
+.. automodule:: kgcnn.mol.enocder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.graphBabel module
+---------------------------
+
+.. automodule:: kgcnn.mol.graphBabel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.graphRD module
+------------------------
+
+.. automodule:: kgcnn.mol.graphRD
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.io module
+-------------------
 
 .. automodule:: kgcnn.mol.io
    :members:
@@ -20,10 +60,10 @@ kgcnn.mol.methods module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.mol.rdkit module
+kgcnn.mol.pymatgen module
 -------------------------
 
-.. automodule:: kgcnn.mol.rdkit
+.. automodule:: kgcnn.mol.pymatgen
    :members:
    :undoc-members:
    :show-inheritance:

@@ -20,6 +20,14 @@ kgcnn.data.base module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.crystal module
+-------------------------
+
+.. automodule:: kgcnn.data.crystal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.download module
 --------------------------
 

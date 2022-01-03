@@ -5,10 +5,12 @@ channels:
 dependencies:
   - python=3.8
   - openbabel=3.1.1
+  - mock
+  - pillow
+  - sphinx==3.4.3
+  - sphinx_rtd_theme
   - pip>=20.1  # pip is needed as dependency
   - pip:
-    - sphinx==3.4.3
-    - sphinx_rtd_theme
     - numpy
     - tensorflow-cpu
     - scipy
@@ -16,3 +18,4 @@ dependencies:
     - pandas
     - scikit-learn
     - pyyaml
+    - rdkit-pypi  # Or via channels rdkit and conda rdkit
