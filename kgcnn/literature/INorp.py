@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding
+from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -79,9 +79,12 @@ def make_model(inputs=None,
     env_input = ks.Input(**inputs[3])
 
     # embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
-    uenv = generate_embedding(env_input, inputs[3]['shape'], input_embedding['graph'], embedding_rank=0)
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
+    uenv = OptionalInputEmbedding(**input_embedding['graph'],
+                                  use_embedding=len(inputs[3]['shape']) < 1)(env_input)
     edi = edge_index_input
 
     # Model

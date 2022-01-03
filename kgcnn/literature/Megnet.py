@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition
-from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding
+from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -92,8 +92,10 @@ def make_model(inputs=None,
     env_input = ks.Input(**inputs[3])
 
     # embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    uenv = generate_embedding(env_input, inputs[3]['shape'], input_embedding['graph'], embedding_rank=0)
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    uenv = OptionalInputEmbedding(**input_embedding['graph'],
+                                  use_embedding=len(inputs[3]['shape']) < 1)(env_input)
     edi = edge_index_input
 
     # Edge distance as Gauss-Basis

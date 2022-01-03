@@ -20,3 +20,4 @@ dependencies:
     - pyyaml
     - rdkit-pypi  # Or via channels rdkit and conda rdkit
     - tensorflow_addons
+    - pymatgen
