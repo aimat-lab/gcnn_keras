@@ -3,7 +3,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGAT
-from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding
+from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding, \
+    OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
@@ -65,9 +66,12 @@ def make_model(inputs=None,
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
+
     # Embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
     # Model

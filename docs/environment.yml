@@ -19,3 +19,5 @@ dependencies:
     - scikit-learn
     - pyyaml
     - rdkit-pypi  # Or via channels rdkit and conda rdkit
+    - tensorflow_addons
+    - haste_tf

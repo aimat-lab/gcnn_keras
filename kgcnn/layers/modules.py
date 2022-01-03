@@ -150,6 +150,7 @@ class LazyConcatenate(GraphBaseLayer):
         self.axis = axis
 
     def build(self, input_shape):
+        """Build layer from input shape."""
         super(LazyConcatenate, self).build(input_shape)
         if not isinstance(input_shape, (tuple, list)) or len(input_shape) < 1:
             raise ValueError(
@@ -164,6 +165,14 @@ class LazyConcatenate(GraphBaseLayer):
             self.axis = get_positive_axis(self.axis, len(input_shape[0]))
 
     def call(self, inputs, **kwargs):
+        """Forward pass. Concatenate possibly ragged tensors.
+
+        Args:
+            inputs (list): List of tensors to concatenate.
+
+        Returns:
+            tf.tensor: Single concatenated tensor.
+        """
         return self.call_on_values_tensor_of_ragged(tf.concat, inputs, axis=self.axis)
 
     def get_config(self):

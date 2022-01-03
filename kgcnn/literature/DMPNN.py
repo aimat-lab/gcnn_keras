@@ -2,7 +2,8 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding
+from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding, \
+    OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
@@ -79,8 +80,10 @@ def make_model(name=None,
     ed_pairs = edge_pair_input
 
     # Embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
     # Make first edge hidden h0
