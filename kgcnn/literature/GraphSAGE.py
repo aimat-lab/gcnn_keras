@@ -28,7 +28,7 @@ hyper_model_default = {'name': "GraphSAGE",
                        'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
                        'concat_args': {"axis": -1},
                        'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
-                       'depth': 3, 'verbose': 1
+                       'depth': 3, 'verbose': 10
                        }
 
 

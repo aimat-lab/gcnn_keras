@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
-from kgcnn.layers.modules import LazyAdd, LazySubtract
+from kgcnn.layers.modules import LazyAdd, LazySubtract, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -27,7 +27,7 @@ model_default = {"name": "PAiNN",
                  "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                  "update_args": {"units": 128},
                  "depth": 3,
-                 "verbose": 1
+                 "verbose": 10
                  }
 
 
@@ -67,7 +67,8 @@ def make_model(inputs=None,
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
     bond_index_input = ks.layers.Input(**inputs[2])
-    z = generate_embedding(node_input, inputs[0]["shape"], input_embedding["node"])
+    z = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
 
     if len(inputs) > 3:
         equiv_input = ks.layers.Input(**inputs[3])

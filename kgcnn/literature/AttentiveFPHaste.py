@@ -27,7 +27,7 @@ model_default = {'name': "AttentiveFP",
                  'attention_args': {"units": 32},
                  'depth': 3,
                  'dropout': 0.1,
-                 'verbose': 1
+                 'verbose': 10
                  }
 
 

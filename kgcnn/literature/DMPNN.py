@@ -30,7 +30,7 @@ model_default = {'name': "DMPNN",
                  'edge_dense': {"units": 128, 'use_bias': True, 'activation': 'linear'},
                  "edge_activation": {"activation": "relu"},
                  "node_dense": {"units": 128, 'use_bias': True, 'activation': 'relu'},
-                 'verbose': 1, "depth": 5, "dropout": {"rate": 0.1}
+                 'verbose': 10, "depth": 5, "dropout": {"rate": 0.1}
                  }
 
 

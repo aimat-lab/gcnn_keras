@@ -27,7 +27,7 @@ model_default = {'name': "Unet",
                  'depth': 4,
                  'pooling_args': {"pooling_method": 'segment_mean'},
                  'gather_args': {"node_indexing": 'sample'},
-                 'verbose': 1
+                 'verbose': 10
                  }
 
 

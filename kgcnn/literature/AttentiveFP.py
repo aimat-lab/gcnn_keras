@@ -4,7 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
-from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding
+from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import generate_embedding, update_model_kwargs
 
@@ -27,7 +27,7 @@ model_default = {'name': "AttentiveFP",
                  'attention_args': {"units": 32},
                  'depth': 3,
                  'dropout': 0.1,
-                 'verbose': 1
+                 'verbose': 10
                  }
 
 
@@ -66,8 +66,10 @@ def make_model(inputs=None,
     edge_index_input = ks.layers.Input(**inputs[2])
 
     # Embedding, if no feature dimension
-    n = generate_embedding(node_input, inputs[0]['shape'], input_embedding['node'])
-    ed = generate_embedding(edge_input, inputs[1]['shape'], input_embedding['edge'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
     # Model

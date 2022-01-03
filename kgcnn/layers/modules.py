@@ -4,6 +4,7 @@ import tensorflow.keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
 
+
 # There are limitations for RaggedTensor working with standard Keras layers. Here are some simple surrogates.
 # This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
 # Since most kgcnn layers work with ragged_rank = 1 and defined inner dimension, this case can be caught explicitly.
@@ -255,4 +256,57 @@ class ReduceSum(GraphBaseLayer):
     def get_config(self):
         config = super(ReduceSum, self).get_config()
         config.update({"axis": self.axis})
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='OptionalInputEmbedding')
+class OptionalInputEmbedding(GraphBaseLayer):
+    """Optional Embedding layer."""
+
+    def __init__(self,
+                 input_dim,
+                 output_dim,
+                 use_embedding=False,
+                 embeddings_initializer='uniform',
+                 embeddings_regularizer=None,
+                 activity_regularizer=None,
+                 embeddings_constraint=None,
+                 mask_zero=False,
+                 input_length=None,
+                 **kwargs):
+        """Initialize layer."""
+        super(OptionalInputEmbedding, self).__init__(**kwargs)
+        self.use_embedding = use_embedding
+
+        if use_embedding:
+            self._layer_embed = ks.layers.Embedding(input_dim=input_dim, output_dim=output_dim,
+                                                    embeddings_initializer=embeddings_initializer,
+                                                    embeddings_regularizer=embeddings_regularizer,
+                                                    activity_regularizer=activity_regularizer,
+                                                    embeddings_constraint=embeddings_constraint,
+                                                    mask_zero=mask_zero, input_length=input_length)
+            self._add_layer_config_to_self = {"_layer_embed": ["input_dim", "output_dim", "embeddings_initializer",
+                                                               "embeddings_regularizer", "activity_regularizer",
+                                                               "embeddings_constraint", "mask_zero", "input_length"]}
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(OptionalInputEmbedding, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor): Tensor of number or embeddings of shape (batch, [N]) or (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Zero-like tensor of input.
+        """
+        if self.use_embedding:
+            return self._layer_embed(inputs)
+        return inputs
+
+    def get_config(self):
+        config = super(OptionalInputEmbedding, self).get_config()
+        config.update({"use_embedding": self.use_embedding})
         return config

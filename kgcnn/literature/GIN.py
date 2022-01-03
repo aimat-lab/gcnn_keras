@@ -22,7 +22,7 @@ model_default = {'name': "GIN",
                               "activation": ['relu', 'relu', 'linear']},
                  'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
                               "use_normalization": True, "normalization_technique": "batch"},
-                 'depth': 3, "dropout": 0.0, 'verbose': 1,
+                 'depth': 3, "dropout": 0.0, 'verbose': 10,
                  }
 
 

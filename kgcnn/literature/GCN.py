@@ -23,7 +23,7 @@ model_default = {'name': "GCN",
                                 "activation": ['relu', 'relu', 'sigmoid']},
                  'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
                               "is_sorted": False, "has_unconnected": True},
-                 'depth': 3, 'verbose': 1
+                 'depth': 3, 'verbose': 10
                  }
 
 

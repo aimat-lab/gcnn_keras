@@ -30,7 +30,7 @@ hyper_model_default = {'name': "INorp",
                        'edge_mlp_args': {"units": [100, 100, 100, 100, 50],
                                          "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
                        'pooling_args': {'pooling_method': "segment_mean"},
-                       'depth': 3, 'use_set2set': False, 'verbose': 1,
+                       'depth': 3, 'use_set2set': False, 'verbose': 10,
                        'gather_args': {}
                        }
 

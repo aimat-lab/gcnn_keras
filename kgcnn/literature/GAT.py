@@ -25,7 +25,7 @@ model_default = {'name': "GAT",
                                     "has_self_loops": True, "activation": "kgcnn>leaky_relu", 'use_bias': True},
                  'pooling_nodes_args': {'pooling_method': 'mean'},
                  'depth': 3, 'attention_heads_num': 5,
-                 'attention_heads_concat': False, 'verbose': 1
+                 'attention_heads_concat': False, 'verbose': 10
                  }
 
 

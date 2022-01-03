@@ -1,6 +1,11 @@
 import tensorflow.keras as ks
 import functools
-import pprint
+import logging
+
+# Module logger
+logging.basicConfig()
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
 
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
@@ -19,7 +24,7 @@ def generate_embedding(inputs, input_shape: list, embedding_args: dict, embeddin
         tf.Tensor: Tensor embedding dependent on the input shape.
     """
     if len(kwargs) > 0:
-        print("WARNING:kgcnn: Unknown embedding kwargs {0}. Will be reserved for future versions.".format(kwargs))
+        module_logger.warning("Unknown embedding kwargs {0}. Will be reserved for future versions.".format(kwargs))
 
     if len(input_shape) == embedding_rank:
         n = ks.layers.Embedding(**embedding_args)(inputs)
@@ -57,7 +62,7 @@ def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = N
     def _nested_update(dict1, dict2):
         for key, values in dict2.items():
             if key not in dict1:
-                print("WARNING:kgcnn: Unknown model kwarg {0} with value {1}".format(key, values))
+                module_logger.warning("Unknown model kwarg {0} with value {1}".format(key, values))
                 dict1[key] = values
             else:
                 if isinstance(dict1[key], dict) and isinstance(values, dict):
@@ -85,8 +90,8 @@ def update_model_kwargs(model_default):
             if 'verbose' in updated_kwargs:
                 if updated_kwargs['verbose'] > 0:
                     # Print out the full updated kwargs
-                    print("INFO:kgcnn: Updated model kwargs:")
-                    pprint.pprint(updated_kwargs)
+                    module_logger.info("Updated model kwargs:")
+                    module_logger.info(updated_kwargs)
 
             return func(*args, **updated_kwargs)
 

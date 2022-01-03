@@ -33,7 +33,7 @@ model_default = {'name': "Megnet",
                  'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
                  'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
                  'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                 'verbose': 1, "make_distance": True, "expand_distance": True
+                 'verbose': 10, "make_distance": True, "expand_distance": True
                  }
 
 
