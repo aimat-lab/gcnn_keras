@@ -13,6 +13,7 @@ dependencies:
   - pip:
     - numpy
     - tensorflow-cpu
+    - tensorflow-gpu
     - scipy
     - matplotlib
     - pandas

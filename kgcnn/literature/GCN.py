@@ -2,7 +2,7 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
-from kgcnn.layers.modules import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
@@ -66,8 +66,10 @@ def make_model(inputs=None,
     edge_index_input = ks.layers.Input(**inputs[2])
 
     # Embedding, if no feature dimension
-    n = generate_embedding(node_input, input_node_shape, input_embedding['node'])
-    ed = generate_embedding(edge_input, input_edge_shape, input_embedding['edge'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(input_node_shape) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(input_edge_shape) < 2)(edge_input)
     edi = edge_index_input
 
     # Model
