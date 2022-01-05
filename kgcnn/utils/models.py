@@ -88,10 +88,9 @@ def update_model_kwargs(model_default):
         def update_wrapper(*args, **kwargs):
             updated_kwargs = update_model_kwargs_logic(model_default, kwargs)
             if 'verbose' in updated_kwargs:
-                if updated_kwargs['verbose'] > 0:
-                    # Print out the full updated kwargs
-                    module_logger.info("Updated model kwargs:")
-                    module_logger.info(updated_kwargs)
+                module_logger.setLevel(updated_kwargs["verbose"])
+            module_logger.info("Updated model kwargs:")
+            module_logger.info(updated_kwargs)
 
             return func(*args, **updated_kwargs)
 
