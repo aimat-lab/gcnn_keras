@@ -58,7 +58,12 @@ class GraphNumpyContainer(dict):
         if name_props is None:
             return []
         elif isinstance(name_props, str):
-            return [x for x in self if re.match(name_props, x).group() == x]
+            match_props = []
+            for x in self:
+                if re.match(name_props, x):
+                    if re.match(name_props, x).group() == x:
+                        match_props.append(x)
+            return match_props
         elif isinstance(name_props, (list, tuple)):
             return [x for x in name_props if x in self]
         raise TypeError("Can not find keys of properties for type %s" % name_props)
