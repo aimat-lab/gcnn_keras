@@ -303,25 +303,25 @@ class MoleculeNetDataset(MemoryGraphDataset):
             if i % 1000 == 0:
                 self.info(" ... read molecules {0} from {1}".format(i, num_mols))
 
-        self.graph_size = [len(x) for x in node_attributes]
-        self.graph_attributes = graph_attributes
-        self.node_attributes = node_attributes
-        self.edge_attributes = edge_attributes
-        self.edge_indices = edge_indices
-        self.node_coordinates = node_coordinates
-        self.node_symbol = node_symbol
-        self.node_number = node_number
+        self.assign_property("graph_size", [len(x) for x in node_attributes])
+        self.assign_property("graph_attributes", graph_attributes)
+        self.assign_property("node_attributes", node_attributes)
+        self.assign_property("edge_attributes", edge_attributes)
+        self.assign_property("edge_indices", edge_indices)
+        self.assign_property("node_coordinates", node_coordinates)
+        self.assign_property("node_symbol", node_symbol)
+        self.assign_property("node_number", node_number)
 
-        if verbose > 0:
+        if verbose < 20:
             for key, value in encoder_nodes.items():
-                if hasattr(value, "found_values"):
-                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "report"):
+                    value.report(name=key)
             for key, value in encoder_edges.items():
-                if hasattr(value, "found_values"):
-                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "report"):
+                    value.report(name=key)
             for key, value in encoder_graph.items():
-                if hasattr(value, "found_values"):
-                    print("INFO:kgcnn: OneHotEncoder", key, "found", value.found_values)
+                if hasattr(value, "report"):
+                    value.report(name=key)
 
         return self
 

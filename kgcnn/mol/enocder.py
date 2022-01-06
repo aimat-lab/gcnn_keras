@@ -1,3 +1,11 @@
+import logging
+
+# Module logger
+logging.basicConfig()
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
+
+
 class OneHotEncoder:
     """Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
     value. The translated values must support ``__eq__()`` operator. The list of possible values must be set beforehand.
@@ -21,12 +29,11 @@ class OneHotEncoder:
         self.found_values = []
         self.add_unknown = add_unknown
 
-    def __call__(self, value, **kwargs):
+    def __call__(self, value):
         r"""Encode a single feature or value, mapping it to a one-hot python list. E.g. `[0, 0, 1, 0]`
 
         Args:
             value: Any object that can be compared to items in ``self.one_hot_values``.
-            **kwargs: Additional kwargs. Not used atm.
 
         Returns:
             list: Python list with 1 at value match. E.g. `[0, 0, 1, 0]`
@@ -48,3 +55,6 @@ class OneHotEncoder:
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
+    def report(self, name=""):
+        module_logger.info("OneHotEncoder %s found %s" % (name, self.found_values))

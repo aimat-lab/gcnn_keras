@@ -21,13 +21,13 @@ model_default = {'name': "AttentiveFP",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']},
                  'attention_args': {"units": 32},
                  'depth': 3,
                  'dropout': 0.1,
-                 'verbose': 10
+                 'verbose': 20,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['relu', 'relu', 'sigmoid']},
                  }
 
 
