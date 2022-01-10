@@ -8,8 +8,8 @@ module_logger.setLevel(logging.INFO)
 
 class MolGraphInterface:
     r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph. The method implementation
-    to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
-    of a chemical informatics package like `rdkit` is treated via composition. The interface is designed to
+    to generate a mol-instance from smiles etc. can be obtained from different backends like `RDkit`. The mol-instance
+    of a chemical informatics package like `RDkit` is treated via composition. The interface is designed to
     extract a graph from a mol instance not to make a mol object from a graph.
 
     """
@@ -27,6 +27,9 @@ class MolGraphInterface:
         """
         self.mol = mol
         self._add_hydrogen = add_hydrogen
+        self._make_directed = make_directed
+        self._make_conformer = make_conformer
+        self._optimize_conformer = optimize_conformer
 
     def from_smiles(self, smile: str, **kwargs):
         """Main method to generate a molecule from smiles string representation.

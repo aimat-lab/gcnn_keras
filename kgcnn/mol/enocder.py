@@ -7,9 +7,10 @@ module_logger.setLevel(logging.INFO)
 
 
 class OneHotEncoder:
-    """Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
-    value. The translated values must support ``__eq__()`` operator. The list of possible values must be set beforehand.
-    Is used as a basic encoder example for ``MolecularGraphRDKit``. There can not be different dtypes in categories.
+    r"""Simple One-Hot-Encoding for python lists. Uses a list of possible values for a one-hot encoding of a single
+    value. The translated values must support :obj:``__eq__`` operator.
+    The list of possible values must be set beforehand. Is used as a basic encoder example for
+    :obj:``MolecularGraphRDKit``. There can not be different dtypes in categories.
     """
     _dtype_translate = {"int": int, "float": float, "str": str}
 
@@ -19,6 +20,7 @@ class OneHotEncoder:
         Args:
             categories (list): List of possible values, matching the one-hot encoding.
             add_unknown (bool): Whether to add a unknown bit. Default is True.
+            dtype (str): Data type to cast value into before comparing to category entries. Default is "int".
         """
         assert isinstance(dtype, str)
         if dtype not in ["str", "int", "float"]:

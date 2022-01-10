@@ -208,7 +208,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        encoder_graph: dict = None,
                        add_hydrogen: bool = False,
                        has_conformers: bool = True,
-                       verbose: int = 1):
+                       ):
         r"""Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
         Reset edges and nodes with new attributes and edge indices. Default values are features that has been used
         by `Luo et al (2019) <https://doi.org/10.1021/acs.jmedchem.9b00959>`_.
@@ -222,7 +222,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to remove hydrogen.
             has_conformers (bool): If molecules needs 3D coordinates pre-computed.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
 
         Returns:
             self
@@ -312,7 +311,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.assign_property("node_symbol", node_symbol)
         self.assign_property("node_number", node_number)
 
-        if verbose < 20:
+        if self.logger.getEffectiveLevel() < 20:
             for key, value in encoder_nodes.items():
                 if hasattr(value, "report"):
                     value.report(name=key)

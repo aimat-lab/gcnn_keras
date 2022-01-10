@@ -18,7 +18,7 @@ module_logger.setLevel(logging.INFO)
 
 class MolecularGraphRDKit(MolGraphInterface):
     r"""A graph object representing a strict molecular graph, e.g. only chemical bonds using a mol-object from `RDkit`
-    cheminformatics package. Generate attributes for nodes, edges, and graph which are in a molecular graph atoms,
+    chemical informatics package. Generate attributes for nodes, edges, and graph which are in a molecular graph atoms,
     bonds and the molecule itself. Naming should
 
     """

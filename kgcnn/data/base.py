@@ -46,6 +46,9 @@ class GraphNumpyContainer(dict):
             sub_dict = {key: np.array(value) for key, value in sub_dict.items()}
         super(GraphNumpyContainer, self).__init__(sub_dict)
 
+    def to_dict(self):
+        return {key: value for key, value in self.items()}
+
     def assign_property(self, key, value):
         if value is not None:
             self.update({key: np.array(value)})
@@ -625,7 +628,7 @@ class MemoryGraphDataset(MemoryGraphList):
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Pickle dataset...")
-        save_pickle_file([x._dict for x in self._list], filepath)
+        save_pickle_file([x.to_dict() for x in self._list], filepath)
         return self
 
     def load(self, filepath: str = None):
@@ -639,7 +642,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
-        self._list = [GraphNumpyContainer(graph=x) for x in in_list]
+        self._list = [GraphNumpyContainer(x) for x in in_list]
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
