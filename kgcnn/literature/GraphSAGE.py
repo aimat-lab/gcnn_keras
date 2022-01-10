@@ -7,7 +7,7 @@ from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.utils.models import update_model_kwargs
 
 # 'Inductive Representation Learning on Large Graphs'
 # William L. Hamilton and Rex Ying and Jure Leskovec
@@ -20,23 +20,21 @@ hyper_model_default = {'name': "GraphSAGE",
                                   {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                        'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                            "edge": {"input_dim": 5, "output_dim": 64}},
-                       'output_embedding': 'graph',
-                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                      "activation": ['relu', 'relu', 'sigmoid']},
                        'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                        'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
                        'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
                        'concat_args': {"axis": -1},
                        'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
-                       'depth': 3, 'verbose': 10
+                       'depth': 3, 'verbose': 10,
+                       'output_embedding': 'graph',
+                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                      "activation": ['relu', 'relu', 'sigmoid']}
                        }
 
 
 @update_model_kwargs(hyper_model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                node_mlp_args=None,
                edge_mlp_args=None,
                pooling_args=None,
@@ -46,16 +44,15 @@ def make_model(inputs=None,
                use_edge_features=None,
                depth=None,
                name=None,
-               verbose=None
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
     """Make GraphSAGE graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         node_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for node updates.
         edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalMessages` layer.
@@ -66,6 +63,9 @@ def make_model(inputs=None,
         depth (int): Number of graph embedding units or depth of the network.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

@@ -2,10 +2,10 @@ import tensorflow.keras as ks
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
-from kgcnn.layers.modules import DropoutEmbedding, DenseEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.utils.models import update_model_kwargs
 
 # How Powerful are Graph Neural Networks?
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
@@ -15,43 +15,43 @@ model_default = {'name': "GIN",
                  'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": True, "units": 1,
-                                "activation": "softmax"},
-                 'last_mlp': {"use_bias": [True, True, True], "units": [64, 64, 64],
-                              "activation": ['relu', 'relu', 'linear']},
                  'gin_args': {"units": [64, 64], "use_bias": True, "activation": ['relu', 'linear'],
                               "use_normalization": True, "normalization_technique": "batch"},
                  'depth': 3, "dropout": 0.0, 'verbose': 10,
+                 'last_mlp': {"use_bias": [True, True, True], "units": [64, 64, 64],
+                              "activation": ['relu', 'relu', 'linear']},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": True, "units": 1,
+                                "activation": "softmax"}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                depth=None,
                gin_args=None,
                last_mlp=None,
                dropout=None,
                name=None,
-               verbose=None
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
     """Make GIN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         gin_args (dict): Dictionary of layer arguments unpacked in `GIN` convolutional layer.
         last_mlp (dict): Dictionary of layer arguments unpacked in last `MLP` layer before output or pooling.
         dropout (float): Dropout to use.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

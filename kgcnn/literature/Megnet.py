@@ -6,7 +6,7 @@ from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding, Opti
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 
 # from kgcnn.layers.casting import ChangeTensorType, ChangeIndexing
 
@@ -22,9 +22,7 @@ model_default = {'name': "Megnet",
                             {'shape': [], 'name': "graph_attributes", 'dtype': 'float32', 'ragged': False}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "graph": {"input_dim": 100, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                                "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']},
+                 "make_distance": True, "expand_distance": True,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
                                     'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
@@ -33,15 +31,18 @@ model_default = {'name': "Megnet",
                  'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
                  'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
                  'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                 'verbose': 10, "make_distance": True, "expand_distance": True
+                 'verbose': 10,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
+                                "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
+               expand_distance=None,
+               make_distance=None,
                gauss_args=None,
                meg_block_args=None,
                set2set_args=None,
@@ -52,19 +53,19 @@ def make_model(inputs=None,
                nblocks=None,
                has_ff=None,
                dropout=None,
-               expand_distance=None,
-               make_distance=None,
                name=None,
                verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
-    """Make Megnet graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    """Make MegNet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
+        make_distance (bool): Whether input is distance or coordinates at in place of edges.
+        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
+            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         meg_block_args (dict): Dictionary of layer arguments unpacked in `MEGnetBlock` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
@@ -77,9 +78,9 @@ def make_model(inputs=None,
         dropout (int): Dropout to use. Default is None.
         name (str): Name of the model.
         verbose (int): Verbosity level of print.
-        make_distance (bool): Whether input is distance or coordinates at in place of edges.
-        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
-            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

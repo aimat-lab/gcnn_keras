@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.conv.haste import HasteLayerNormGRUUpdate, HastePoolingNodesAttentiveLayerNorm
 
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -27,36 +27,37 @@ model_default = {'name': "AttentiveFP",
                  'verbose': 20,
                  'output_embedding': 'graph',
                  'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']},
+                                "activation": ['relu', 'relu', 'sigmoid']}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model_haste(inputs=None,
+                     input_embedding=None,
                      depth=None,
                      dropout=None,
-                     input_embedding=None,
-                     output_embedding=None,
-                     output_mlp=None,
                      attention_args=None,
                      name=None,
-                     verbose=None):
+                     verbose=None,
+                     output_embedding=None,
+                     output_mlp=None
+                     ):
     """Make AttentiveFP graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Note: This implementation uses GRU-cells from haste.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
         dropout (float): Dropout to use.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         attention_args (dict): Dictionary of layer arguments unpacked in `AttentiveHeadFP` layer. Units parameter
             is also used in GRU-update and `PoolingNodesAttentive`.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

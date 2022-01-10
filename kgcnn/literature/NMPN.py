@@ -7,7 +7,7 @@ from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, OptionalInputE
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer
 
 # Neural Message Passing for Quantum Chemistry
@@ -20,13 +20,13 @@ model_default = {'name': "NMPN",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
+                 "geometric_edge": False, "make_distance": False, "expand_distance": False,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                  'set2set_args': {'channels': 32, 'T': 3, "pooling_method": "sum",
                                   "init_qstar": "0"},
                  'pooling_args': {'pooling_method': "segment_sum"},
                  'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64, 64]},
                  'use_set2set': True, 'depth': 3, 'node_dim': 64,
-                 "geometric_edge": False, "make_distance": False, "expand_distance": False,
                  'verbose': 10,
                  'output_embedding': 'graph',
                  'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
@@ -37,8 +37,9 @@ model_default = {'name': "NMPN",
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
+               geometric_edge=None,
+               make_distance=None,
+               expand_distance=None,
                gauss_args=None,
                set2set_args=None,
                pooling_args=None,
@@ -46,19 +47,20 @@ def make_model(inputs=None,
                use_set2set=None,
                node_dim=None,
                depth=None,
-               geometric_edge=None,
-               make_distance=None,
-               expand_distance=None,
                verbose=None,
-               name=None):
+               name=None,
+               output_embedding=None,
+               output_mlp=None
+               ):
     """Make NMPN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
+        geometric_edge (bool): Whether the edges are geometric, like distance or coordinates.
+        make_distance (bool): Whether input is distance or coordinates at in place of edges.
+        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
+            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
@@ -66,12 +68,11 @@ def make_model(inputs=None,
         use_set2set (bool): Whether to use `PoolingSet2Set` layer.
         node_dim (int): Dimension of hidden node embedding.
         depth (int): Number of graph embedding units or depth of the network.
-        geometric_edge (bool): Whether the edges are geometric, like distance or coordinates.
-        make_distance (bool): Whether input is distance or coordinates at in place of edges.
-        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
-            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

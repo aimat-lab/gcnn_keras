@@ -18,37 +18,37 @@ model_default = {'name': "GCN",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 10, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']},
                  'gcn_args': {"units": 100, "use_bias": True, "activation": 'relu', "pooling_method": 'sum',
                               "is_sorted": False, "has_unconnected": True},
-                 'depth': 3, 'verbose': 10
+                 'depth': 3, 'verbose': 10,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['relu', 'relu', 'sigmoid']}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                depth=None,
                gcn_args=None,
                name=None,
-               verbose=None
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
     """Make GCN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         gcn_args (dict): Dictionary of layer arguments unpacked in `GCN` convolutional layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

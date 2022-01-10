@@ -7,7 +7,7 @@ from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbe
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 
 # Analyzing Learned Molecular Representations for Property Prediction
 # by Kevin Yang, Kyle Swanson, Wengong Jin, Connor Coley, Philipp Eiden, Hua Gao,
@@ -23,15 +23,15 @@ model_default = {'name': "DMPNN",
                      {'shape': (None, 1), 'name': "edge_indices_reverse", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
-                                "activation": ['relu', 'relu', 'linear']},
                  'pooling_args': {'pooling_method': "sum"},
                  "edge_initialize": {"units": 128, 'use_bias': True, 'activation': 'relu'},
                  'edge_dense': {"units": 128, 'use_bias': True, 'activation': 'linear'},
                  "edge_activation": {"activation": "relu"},
                  "node_dense": {"units": 128, 'use_bias': True, 'activation': 'relu'},
-                 'verbose': 10, "depth": 5, "dropout": {"rate": 0.1}
+                 'verbose': 10, "depth": 5, "dropout": {"rate": 0.1},
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
+                                "activation": ['relu', 'relu', 'linear']}
                  }
 
 
@@ -39,8 +39,6 @@ model_default = {'name': "DMPNN",
 def make_model(name=None,
                inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                pooling_args=None,
                edge_initialize=None,
                edge_dense=None,
@@ -49,6 +47,8 @@ def make_model(name=None,
                dropout=None,
                depth=None,
                verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
     """Make DMPNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -56,9 +56,6 @@ def make_model(name=None,
         name (str): Name of the model. Should be "DMPNN".
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
         edge_initialize (dict): Dictionary of layer arguments unpacked in `Dense` layer for first edge embedding.
         edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge embedding.
@@ -67,6 +64,9 @@ def make_model(name=None,
         depth (int): Number of graph embedding units or depth of the network.
         dropout (dict): Dictionary of layer arguments unpacked in `Dropout`.
         verbose (int): Level for print information.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

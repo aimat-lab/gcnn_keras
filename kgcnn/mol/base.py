@@ -1,3 +1,11 @@
+import logging
+
+# Module logger
+logging.basicConfig()
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
+
+
 class MolGraphInterface:
     r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph. The method implementation
     to generate a mol-instance from smiles etc. can be obtained from different backends like `rdkit`. The mol-instance
@@ -6,12 +14,16 @@ class MolGraphInterface:
 
     """
 
-    def __init__(self, mol=None, add_hydrogen: bool = False):
+    def __init__(self, mol=None, add_hydrogen: bool = True, make_directed: bool = False,
+                 make_conformer: bool = True, optimize_conformer: bool = True):
         """Set the mol attribute for composition. This mol instances will be the backends molecule class.
 
         Args:
             mol: Instance of a molecule from chemical informatics package.
-            add_hydrogen (bool): Whether to add or ignore hydrogen in the molecule.
+            add_hydrogen (bool): Whether to add hydrogen. Default is True.
+            make_directed (bool): Whether the edges are directed. Default is False.
+            make_conformer (bool): Whether to make conformers. Default is True.
+            optimize_conformer (bool): Whether to optimize the conformer with standard force field.
         """
         self.mol = mol
         self._add_hydrogen = add_hydrogen
@@ -25,7 +37,7 @@ class MolGraphInterface:
         Returns:
             self
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def to_smiles(self):
         """Return a smile string representation of the mol instance.
@@ -33,7 +45,7 @@ class MolGraphInterface:
         Returns:
             smile (str): Smile string.
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def from_mol_block(self, mol_block: str):
         """Set mol-instance from a more extensive string representation containing coordinates and bond information.
@@ -44,7 +56,7 @@ class MolGraphInterface:
         Returns:
             self
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def to_mol_block(self):
         """Make a more extensive string representation containing coordinates and bond information from self.
@@ -52,32 +64,32 @@ class MolGraphInterface:
         Returns:
             mol_block (str): Mol-block representation of a molecule.
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property
     def node_number(self):
         """Return list of node numbers which is the atomic number of atoms in the molecule"""
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property
     def node_symbol(self):
         """Return a list of atomic symbols of the molecule."""
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property
     def node_coordinates(self):
         """Return a list of atomic coordinates of the molecule."""
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property
     def edge_indices(self):
         """Return a list of edge indices of the molecule."""
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property
     def edge_number(self):
         """Return a list of edge number that represents the bond order."""
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def edge_attributes(self, properties: list, encoder: dict):
         """Make edge attributes.
@@ -89,7 +101,7 @@ class MolGraphInterface:
         Returns:
             list: List of attributes after processed by the encoder.
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def node_attributes(self, properties: list, encoder: dict):
         """Make node attributes.
@@ -101,7 +113,7 @@ class MolGraphInterface:
         Returns:
             list: List of attributes after processed by the encoder.
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def graph_attributes(self, properties: list, encoder: dict):
         """Make graph attributes.
@@ -113,48 +125,73 @@ class MolGraphInterface:
         Returns:
             list: List of attributes after processed by the encoder.
         """
-        raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @staticmethod
-    def _check_encoder(encoder: dict, possible_keys: list):
+    def _check_encoder(encoder: dict, possible_keys: list, raise_error: bool = False):
         """Verify and check if encoder dictionary inputs is within possible properties. If a key has to be removed,
         a warning is issued.
 
         Args:
             encoder (dict): Dictionary of callable encoder function or class. Key matches properties.
             possible_keys (list): List of allowed keys for encoder.
+            raise_error (bool): Whether to raise an error on wrong identifier.
 
         Returns:
             dict: Cleaned encoder dictionary.
         """
         if encoder is None:
-            encoder = {}
-        else:
-            encoder_unknown = [x for x in encoder if x not in possible_keys]
-            if len(encoder_unknown) > 0:
-                print("WARNING: Encoder property not known", encoder_unknown)
-            encoder = {key: value for key, value in encoder.items() if key not in encoder_unknown}
+            return {}
+        # Check if encoder is given for unknown identifier.
+        # Encoder is only intended for string-based properties.
+        encoder_unknown = [x for x in encoder if x not in possible_keys]
+        if len(encoder_unknown) > 0:
+            msg = "Encoder property not known %s" % encoder_unknown
+            if raise_error:
+                module_logger.error(msg)
+                raise ValueError(msg)
+            else:
+                module_logger.warning(msg)
+        encoder = {key: value for key, value in encoder.items() if key not in encoder_unknown}
         return encoder
 
     @staticmethod
-    def _check_properties_list(properties: list, possible_properties: list, attribute_name: str):
+    def _check_properties_list(properties: list,
+                               possible_properties: list,
+                               attribute_name: str,
+                               raise_error: bool = False):
         """Verify and check if list of string identifier match expected properties. If an identifier has to be removed,
-        a warning is issued.
+        a warning is issued. Non-string properties i.e. class or functions to extract properties are ignored.
 
         Args:
             properties (list): List of requested string identifier. Key matches properties.
             possible_properties (list): List of allowed string identifier for properties.
-            attribute_name(str): A name for the properties.
+            attribute_name(str): A name for the properties. E.g. bond, node or graph.
+            raise_error (bool): Whether to raise an error on wrong identifier.
 
         Returns:
             dict: Cleaned encoder dictionary.
         """
         if properties is None:
-            props = [x for x in possible_properties]
-        else:
-            props_unknown = [x for x in properties if x not in possible_properties]
-            if len(props_unknown) > 0:
-                print("WARNING: %s property is not defined, ignore following keys:" % attribute_name,
-                      props_unknown)
-            props = [x for x in properties if x in possible_properties]
+            return []
+        # Check if string identifier match the list of possible keys.
+        props_unknown = []
+        for x in properties:
+            if isinstance(x, str):
+                if x not in possible_properties:
+                    props_unknown.append(x)
+        if len(props_unknown) > 0:
+            msg = "%s properties are not defined, ignore following keys: %s" % (attribute_name, props_unknown)
+            if raise_error:
+                module_logger.error(msg)
+                raise ValueError(msg)
+            else:
+                module_logger.warning(msg)
+        props = []
+        for x in properties:
+            if isinstance(x, str):
+                if x in possible_properties:
+                    props.append(x)
+            else:
+                props.append(x)
         return props

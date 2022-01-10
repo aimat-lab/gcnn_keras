@@ -6,7 +6,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePositi
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.utils.models import update_model_kwargs
 
 # Model Schnet as defined
 # by Schuett et al. 2018
@@ -20,55 +20,57 @@ model_default = {'name': "Schnet",
                             {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                 "make_distance": True, 'expand_distance': True,
                  'interaction_args': {"units": 128, "use_bias": True,
                                       "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
                  'node_pooling_args': {"pooling_method": "sum"},
                  'depth': 4,
                  'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                 "make_distance": True, 'expand_distance': True, 'verbose': 10,
-                 "use_output_mlp": True,
+                 'verbose': 10,
+                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
+                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
                  'output_embedding': 'graph',
+                 "use_output_mlp": True,
                  'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                                "activation": ['kgcnn>shifted_softplus', "linear"]},
+                                "activation": ['kgcnn>shifted_softplus', "linear"]}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
+               make_distance=None,
+               expand_distance=None,
+               gauss_args=None,
                interaction_args=None,
-               output_mlp=None,
-               last_mlp=None,
-               output_embedding=None,
                node_pooling_args=None,
                depth=None,
-               gauss_args=None,
-               expand_distance=None,
-               make_distance=None,
-               use_output_mlp=None,
                name=None,
-               verbose=None):
+               verbose=None,
+               last_mlp=None,
+               output_embedding=None,
+               use_output_mlp=None,
+               output_mlp=None
+               ):
     r"""Make SchNet graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
-        depth (int): Number of graph embedding units or depth of the network.
-        interaction_args (dict): Dictionary of layer arguments unpacked in final `SchNetInteraction` layers.
-        last_mlp (dict): Dictionary of layer arguments unpacked in last `MLP` layer before output or pooling.
-        node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
-        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
             form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
+        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
+        depth (int): Number of graph embedding units or depth of the network.
+        interaction_args (dict): Dictionary of layer arguments unpacked in final `SchNetInteraction` layers.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layers.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        last_mlp (dict): Dictionary of layer arguments unpacked in last `MLP` layer before output or pooling.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

@@ -6,7 +6,7 @@ from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyAdd, O
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 
 # Graph U-Nets
 # by Hongyang Gao, Shuiwang Ji
@@ -18,8 +18,6 @@ model_default = {'name': "Unet",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']},
                  'hidden_dim': {'units': 32, 'use_bias': True, 'activation': 'linear'},
                  'top_k_args': {'k': 0.3, 'kernel_initializer': 'ones'},
                  'activation': 'relu',
@@ -27,15 +25,15 @@ model_default = {'name': "Unet",
                  'depth': 4,
                  'pooling_args': {"pooling_method": 'segment_mean'},
                  'gather_args': {"node_indexing": 'sample'},
-                 'verbose': 10
+                 'verbose': 10,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                pooling_args=None,
                gather_args=None,
                top_k_args=None,
@@ -44,15 +42,15 @@ def make_model(inputs=None,
                hidden_dim=None,
                activation=None,
                name=None,
-               verbose=None):
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
+               ):
     r"""Make U-Net graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges` layers.
         gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodesOutgoing` layers.
@@ -62,6 +60,9 @@ def make_model(inputs=None,
         activation (dict, str): Activation to use.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

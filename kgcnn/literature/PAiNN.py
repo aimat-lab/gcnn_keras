@@ -5,10 +5,10 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, NodePosition
-from kgcnn.layers.modules import LazyAdd, LazySubtract, OptionalInputEmbedding
+from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.utils.models import update_model_kwargs
 
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
@@ -19,15 +19,14 @@ model_default = {"name": "PAiNN",
                             {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                             {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
                  "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-                 "output_mlp": {"use_bias": [True, True], "units": [128, 1],
-                                "activation": ["swish", "linear"]},
-                 "output_embedding": "graph",
                  "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                  "pooling_args": {"pooling_method": "sum"},
                  "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                  "update_args": {"units": 128},
                  "depth": 3,
-                 "verbose": 10
+                 "verbose": 10,
+                 "output_embedding": "graph",
+                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
                  }
 
 
@@ -36,13 +35,14 @@ def make_model(inputs=None,
                input_embedding=None,
                bessel_basis=None,
                depth=None,
-               output_embedding=None,
                pooling_args=None,
-               output_mlp=None,
                conv_args=None,
                update_args=None,
                name=None,
-               verbose=None):
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
+               ):
     """Make PAiNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
@@ -50,14 +50,14 @@ def make_model(inputs=None,
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final `BesselBasisLayer` layer.
         depth (int): Number of graph embedding units or depth of the network.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         conv_args (dict): Dictionary of layer arguments unpacked in `PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in `PAiNNUpdate` layer.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

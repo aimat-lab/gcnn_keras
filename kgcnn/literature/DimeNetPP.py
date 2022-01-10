@@ -29,17 +29,16 @@ model_default = {"name": "DimeNetPP",
                  "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
                  "num_targets": 64, "extensive": True, "output_init": "zeros",
                  "activation": "swish", "verbose": 10,
-                 "use_output_mlp": True,
                  "output_embedding": "graph",
+                 "use_output_mlp": True,
                  "output_mlp": {"use_bias": [True, False],
-                                "units": [64, 12], "activation": ["swish", "linear"]},
+                                "units": [64, 12], "activation": ["swish", "linear"]}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
                emb_size=None,
                out_emb_size=None,
                int_emb_size=None,
@@ -56,10 +55,11 @@ def make_model(inputs=None,
                activation=None,
                extensive=None,
                output_init=None,
-               output_mlp=None,
                verbose=None,
                name=None,
-               use_output_mlp=None
+               output_embedding=None,
+               use_output_mlp=None,
+               output_mlp=None
                ):
     """Make DimeNetPP graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
@@ -69,11 +69,6 @@ def make_model(inputs=None,
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation. Note that DimeNetPP originally defines the output dimension
-            via `num_targets`. But this can be set to `out_emb_size` and the `output_mlp`  be used for more
-            specific control.
         emb_size (int): Overall embedding size used for the messages.
         out_emb_size (int): Embedding size for output of `DimNetOutputBlock`.
         int_emb_size (int): Embedding size used for interaction triplets.
@@ -92,7 +87,12 @@ def make_model(inputs=None,
         output_init (str, dict): Output initializer for kernel.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation. Note that DimeNetPP originally defines the output dimension
+            via `num_targets`. But this can be set to `out_emb_size` and the `output_mlp`  be used for more
+            specific control.
 
     Returns:
         tf.keras.models.Model

@@ -7,7 +7,7 @@ from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, A
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import generate_embedding, update_model_kwargs
+from kgcnn.utils.models import update_model_kwargs
 
 # Graph Attention Networks by Veličković et al. (2018)
 # https://arxiv.org/abs/1710.10903
@@ -21,37 +21,35 @@ model_default = {'name': "GATv2",
                             {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                  'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']},
                  'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
                                     "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
                  'pooling_nodes_args': {'pooling_method': 'mean'},
                  'depth': 3, 'attention_heads_num': 5,
-                 'attention_heads_concat': False, 'verbose': 10
+                 'attention_heads_concat': False, 'verbose': 10,
+                 'output_embedding': 'graph',
+                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ['relu', 'relu', 'sigmoid']}
                  }
 
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                attention_args=None,
                pooling_nodes_args=None,
                depth=None,
                attention_heads_num=None,
                attention_heads_concat=None,
                name=None,
-               verbose=None):
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
+               ):
     """Make GATv2 graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         attention_args (dict): Dictionary of layer arguments unpacked in `AttentionHeadGATV2` layer.
         pooling_nodes_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
         depth (int): Number of graph embedding units or depth of the network.
@@ -59,6 +57,9 @@ def make_model(inputs=None,
         attention_heads_concat (bool): Whether to concat attention heads. Otherwise average heads.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model

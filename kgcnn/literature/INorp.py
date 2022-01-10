@@ -6,7 +6,7 @@ from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, OptionalInputE
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.utils.models import update_model_kwargs
 
 # 'Interaction Networks for Learning about Objects,Relations and Physics'
 # by Peter W. Battaglia, Razvan Pascanu, Matthew Lai, Danilo Rezende, Koray Kavukcuoglu
@@ -21,9 +21,6 @@ hyper_model_default = {'name': "INorp",
                        'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                            "edge": {"input_dim": 5, "output_dim": 64},
                                            "graph": {"input_dim": 100, "output_dim": 64}},
-                       'output_embedding': 'graph',
-                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                      "activation": ['relu', 'relu', 'sigmoid']},
                        'set2set_args': {"channels": 32, "T": 3, "pooling_method": "mean",
                                         "init_qstar": "mean"},
                        'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
@@ -31,15 +28,16 @@ hyper_model_default = {'name': "INorp",
                                          "activation": ['relu', 'relu', 'relu', 'relu', "linear"]},
                        'pooling_args': {'pooling_method': "segment_mean"},
                        'depth': 3, 'use_set2set': False, 'verbose': 10,
-                       'gather_args': {}
+                       'gather_args': {},
+                       'output_embedding': 'graph',
+                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                      "activation": ['relu', 'relu', 'sigmoid']}
                        }
 
 
 @update_model_kwargs(hyper_model_default)
 def make_model(inputs=None,
                input_embedding=None,
-               output_embedding=None,
-               output_mlp=None,
                depth=None,
                gather_args=None,
                edge_mlp_args=None,
@@ -48,16 +46,15 @@ def make_model(inputs=None,
                pooling_args=None,
                use_set2set=None,
                name=None,
-               verbose=None
+               verbose=None,
+               output_embedding=None,
+               output_mlp=None
                ):
     """Make INorp graph network via functional API. Default parameters can be found in :obj:`model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
-            Defines number of model outputs and activation.
         depth (int): Number of graph embedding units or depth of the network.
         gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
         edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
@@ -67,6 +64,9 @@ def make_model(inputs=None,
         use_set2set (bool): Whether to use `PoolingSet2Set` layer.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         tf.keras.models.Model
