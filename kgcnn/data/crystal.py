@@ -1,14 +1,15 @@
 import os
 import logging
 import numpy as np
+
 try:
     import pymatgen.core.structure
 except ModuleNotFoundError:
-    print("ERROR:kgcnn: Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
+    print("Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy
-from kgcnn.mol.pymatgen import parse_cif_file_to_structures, structure_get_properties, \
+from kgcnn.mol.graphPyMat import parse_cif_file_to_structures, structure_get_properties, \
     structure_get_range_neighbors
 
 
@@ -16,7 +17,7 @@ class CrystalDataset(MemoryGraphDataset):
     """Class for making graph properties from periodic structures such as crystals.
 
     .. warning::
-        Currently under construction.
+        Currently under construction. Not working at the moment.
 
     """
 
@@ -197,5 +198,5 @@ class CrystalDataset(MemoryGraphDataset):
         # Since coordinates are periodic.
         assert not compute_angles, "Can not compute angles for periodic systems."
         assert allow_multi_edges, "Require multi edges for periodic structures."
-        super(CrystalDataset, self).set_angle(prefix_indices=prefix_indices, compute_angles=compute_angles,
-                                              allow_multi_edges=allow_multi_edges)
+        super(CrystalDataset, self).map_list("set_angle", prefix_indices=prefix_indices, compute_angles=compute_angles,
+                                             allow_multi_edges=allow_multi_edges)

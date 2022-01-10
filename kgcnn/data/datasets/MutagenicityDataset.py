@@ -23,23 +23,10 @@ class MutagenicityDataset(GraphTUDataset2020):
         """
         super(MutagenicityDataset, self).read_in_memory()
 
-        node_translate = np.array([6, 8, 17, 1, 7, 9, 35, 16, 15, 53, 11, 19, 3, 20], dtype=np.int)
+        node_translate = np.array([6, 8, 17, 1, 7, 9, 35, 16, 15, 53, 11, 19, 3, 20], dtype="int")
         atoms_translate = ['C', 'O', 'Cl', 'H', 'N', 'F', 'Br', 'S', 'P', 'I', 'Na', 'ksb', 'Li', 'Ca']
         z_translate = {node_translate[i]: atoms_translate[i] for i in range(len(node_translate))}
-        # nodes = [node_translate[x] for x in nodes0123]
-        # atoms = [[atoms_translate[y] for y in x] for x in nodes0123]
 
-        # edge_indicator
-        # graph_id_edge = mutag_gi[mutag_a[:, 0]]  # is the same for adj_matrix[:,1]
-        # graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
-        # edgelen = np.zeros(n_data, dtype=np.int)
-        # edgelen[graph_id2] = counts_edge
-        # edges = np.split(mutag_e + 1, np.cumsum(edgelen)[:-1])
-
-        # edge_indices
-        # node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
-        # edge_indices = node_index[mutag_a]
-        # edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
         edge_indices = self.edge_indices
         nodes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
         atoms = [[atoms_translate[int(y[0])] for y in x] for x in self.node_labels]
@@ -59,7 +46,7 @@ class MutagenicityDataset(GraphTUDataset2020):
             nats = nodes[i]
             cons = np.arange(len(nodes[i]))
             test_cons = np.sort(np.unique(edge_indices[i].flatten()))
-            is_cons = np.zeros_like(cons, dtype=np.bool)
+            is_cons = np.zeros_like(cons, dtype="bool")
             is_cons[test_cons] = True
             is_cons[nats == 20] = True  # Allow to be unconnected
             is_cons[nats == 3] = True  # Allow to be unconnected
@@ -75,7 +62,7 @@ class MutagenicityDataset(GraphTUDataset2020):
                 # Need to correct edge_indices
                 indices_used = cons[is_cons]
                 indices_new = np.arange(len(indices_used))
-                indices_old = np.zeros(len(nodes[i]), dtype=np.int)
+                indices_old = np.zeros(len(nodes[i]), dtype="int")
                 indices_old[indices_used] = indices_new
                 edge_idx_new = indices_old[edge_indices[i]]
                 edge_indices_clean.append(edge_idx_new)
@@ -89,17 +76,15 @@ class MutagenicityDataset(GraphTUDataset2020):
         self.info("Database still has unconnected Na+, Li+, ksb+ etc.")
 
         # Since no attributes in graph dataset, we use labels as attributes
-        self.graph_labels = labels_clean
-        self.edge_indices = edge_indices_clean
-        self.node_attributes = nodes_clean
-        self.edge_attributes = edges_clean
-        self.node_labels = nodes_clean
-        self.edge_labels = edges_clean
-
-        self.node_symbol = atoms_clean
-        self.node_number = nodes_clean
-        self.graph_attributes = None  # make better graph attribute here
-        self.graph_size = [len(x) for x in self.node_attributes]
+        self.assign_property("graph_labels", labels_clean)
+        self.assign_property("edge_indices", edge_indices_clean)
+        self.assign_property("node_attributes", nodes_clean)
+        self.assign_property("edge_attributes", edges_clean)
+        self.assign_property("node_labels", nodes_clean)
+        self.assign_property("edge_labels", edges_clean)
+        self.assign_property("node_symbol", atoms_clean)
+        self.assign_property("node_number", nodes_clean)
+        self.assign_property("graph_size", [len(x) for x in self.node_attributes])
 
         # return labels,nodes,edge_indices,edges,atoms
         return self
