@@ -175,8 +175,6 @@ import numpy as np
 dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example")
 dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
 dataset.edge_labels = [np.array([[0], [1]])]
-dataset.save()
-dataset.load()
 ```
 
 The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset to convert and load files such as ".txt", ".sdf", ".xyz" etc. via `prepare_data()` and `read_in_memory()`.
