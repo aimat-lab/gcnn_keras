@@ -173,8 +173,8 @@ Create and store a general dataset via:
 from kgcnn.data.base import MemoryGraphDataset
 import numpy as np
 dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example")
-dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
-dataset.edge_labels = [np.array([[0], [1]])]
+dataset.assign_property("edge_indices", [np.array([[1, 0], [0, 1]])])
+dataset.assign_property("edge_labels", [np.array([[0], [1]])])
 ```
 
 The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset to convert and load files such as ".txt", ".sdf", ".xyz" etc. via `prepare_data()` and `read_in_memory()`.
