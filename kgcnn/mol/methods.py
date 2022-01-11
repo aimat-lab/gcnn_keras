@@ -110,7 +110,7 @@ class ExtensiveMolecularScaler:
         """Fit atomic number to the molecular properties.
 
         Args:
-            atomic_number (list): List of array of atomic numbers. Shape is `(n_samples, <#atoms>)`.
+            atomic_number (list): List of array of atomic numbers. Shape is `(n_samples, #atoms)`.
             molecular_property (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
@@ -169,6 +169,7 @@ class ExtensiveMolecularScaler:
 
     def _plot_predict(self, atomic_number, molecular_property):
         """Debug function to check prediction."""
+        molecular_property = np.array(molecular_property)
         if len(molecular_property.shape) <= 1:
             molecular_property = np.expand_dims(molecular_property, axis=-1)
         predict_prop = self.predict(atomic_number)

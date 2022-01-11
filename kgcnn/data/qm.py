@@ -94,6 +94,10 @@ class QMDataset(MemoryGraphDataset):
             if xyz_column_name is None:
                 raise ValueError("Please specify column for csv file which contains file names.")
 
+            if xyz_column_name not in self.data_frame.columns:
+                raise ValueError(
+                    "Can not find file-names of column %s in %s" % (xyz_column_name, self.data_frame.columns))
+
             xyz_file_list = self.data_frame[xyz_column_name].values
             num_molecules = len(xyz_file_list)
 
@@ -107,7 +111,7 @@ class QMDataset(MemoryGraphDataset):
                 xyz_info = read_xyz_file(os.path.join(self.data_directory, self.file_directory, x))
                 xyz_list.append(xyz_info[0])
                 if i % 1000 == 0:
-                    self.info(" Read structure {0} from {1}".format(i, num_molecules))
+                    self.info("... Read structure {0} from {1}".format(i, num_molecules))
             # Make single file for later loading, which is faster.
             write_list_to_xyz_file(self.file_path_xyz, xyz_list)
 
@@ -142,9 +146,9 @@ class QMDataset(MemoryGraphDataset):
         """
         # Try to read xyz file here.
         xyz_list = read_xyz_file(self.file_path_xyz)
-        symbol = [np.array([x[0] for x in y]) for y in xyz_list]
-        coord = [np.array([x[1:4] for x in y], dtype="float") for y in xyz_list]
-        nodes = [np.array([self._global_proton_dict[x[0]] for x in y], dtype="int") for y in xyz_list]
+        symbol = [np.array(x[0]) for x in xyz_list]
+        coord = [np.array(x[1], dtype="float")[:, :3] for x in xyz_list]
+        nodes = [np.array([self._global_proton_dict[x] for x in y[0]], dtype="int") for y in xyz_list]
 
         self.assign_property("node_coordinates", coord)
         self.assign_property("node_symbol", symbol)
@@ -157,7 +161,7 @@ class QMDataset(MemoryGraphDataset):
         self.read_in_table_file()
         if self.data_frame is not None and label_column_name is not None:
             labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
-            self.assign_property("graph_labels", labels)
+            self.assign_property("graph_labels", [x for x in labels])
         return self
 
     def read_in_memory_sdf(self):
