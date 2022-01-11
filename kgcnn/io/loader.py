@@ -5,10 +5,10 @@ from kgcnn.utils.data import ragged_tensor_from_nested_numpy
 
 
 class NumpyTensorList:
-    r"""An utility class to keep lists of numpy arrays. Multiple lists are handled in parallel and therefore should
+    r"""An utility class to keep lists of arrays. Multiple lists are handled in parallel and therefore should
     have the same size. The behavior should be similar to :obj:`train_test_split` from scikit-learn.
     The length of each list should match the length of the dataset and
-    each list-item be a numpy-tensor for a data-point. The lists could be X, y or different graph attributes.
+    each list-item be e.g. a numpy-tensor for a data-point. The lists could be X, y or different graph attributes.
     This class is intentionally kept simple but can be built on in the future.
 
     """
@@ -27,8 +27,8 @@ class NumpyTensorList:
         """
         self._tensor_list = [x for x in args]
         if len(self._tensor_list) <= 0:
-            print("WARNING:kgcnn: Received empty list input for `NumpyTensorList`. \
-                Expected one or more list of numpy arrays.")
+            print("Received empty list input for `NumpyTensorList`. \
+                   Expected one or more list of numpy arrays.")
 
         # check that all have same length
         self._length_test()
@@ -37,7 +37,7 @@ class NumpyTensorList:
         length_test = np.array([len(x) for x in self._tensor_list], dtype="int")
         if len(length_test) > 0:
             if not np.all(length_test == length_test[0]):
-                print("WARNING:kgcnn: Length of list input to `NumpyTensorList` are different.")
+                print("Length of list input to `NumpyTensorList` are different.")
 
     def __getitem__(self, item):
         r"""Indexing or getitem method to apply to each list and return a new :obj:`NumpyTensorList`.

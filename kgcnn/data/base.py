@@ -347,9 +347,9 @@ class GraphNumpyContainer(dict):
 
 
 class MemoryGraphList:
-    r"""Class to store a list of graph dictionaries in memory. Contains a python list as :obj:`_list`.
+    r"""Class to store a list of graph dictionaries in memory. Contains a python list as property :obj:`_list`.
     The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
-    They are distributed form of a list of numpy arrays to each graph in the list via :obj:`assign_property`.
+    They are distributed from of a list of numpy arrays to each graph in the list via :obj:`assign_property`.
 
     A list of numpy arrays can also be passed to class instances that have a reserved prefix, which is essentially
     a shortcut to :obj:`assign_property` and must match the length of the list.
@@ -363,13 +363,16 @@ class MemoryGraphList:
         import numpy as np
         from kgcnn.data.base import MemoryGraphList
         data = MemoryGraphList()
-        data.edge_indices = [np.array([[0, 1], [1, 0]])]
-        data.node_labels = [np.array([[0], [1]])]
-        print(data.edge_indices, data.node_labels)
-        data.node_coordinates = [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])]
-        print(data.node_coordinates)
+        data.empty(1)
+        data.assign_property("edge_indices", [np.array([[0, 1], [1, 0]])])
+        data.assign_property("node_labels", [np.array([[0], [1]])])
+        print(data.obtain_property("edge_indices"))
+        data.assign_property("node_coordinates", [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])])
+        print(data.obtain_property("node_coordinates"))
         data.map_list("set_range", max_distance=1.5, max_neighbours=10, self_loops=False)
+        # Shortcut of reserved attributes
         print(data.range_indices, data.range_attributes)
+        print(data[0])
     """
 
     def __init__(self):
@@ -534,22 +537,17 @@ class MemoryGraphDataset(MemoryGraphList):
         shape `(Num_edges, 2)` with the indices of node connections.
         The node attributes in :obj:`node_attributes` are numpy arrays of shape `(Num_nodes, Num_features)`.
 
-    The Memory Dataset class inherits from :obj:`MemoryGeometricGraphList` and has further information
+    The Memory Dataset class inherits from :obj:`MemoryGraphList` and has further information
     about a location on disk, i.e. a file directory and a file name as well as a name of the dataset.
 
     .. code-block:: python
 
         from kgcnn.data.base import MemoryGraphDataset
-        dataset = MemoryGraphDataset(data_directory="", dataset_name="Example", length=1)
-        dataset.edge_indices = [np.array([[1, 0], [0, 1]])]
-        dataset.edge_labels = [np.array([[0], [1]])]
-        print(dataset.edge_indices, dataset.edge_labels)
-        dataset.sort_edge_indices()
-        print(dataset.edge_indices, dataset.edge_labels)
+        dataset = MemoryGraphDataset(data_directory="", dataset_name="Example")
+        dataset.assign_property("edge_indices", [np.array([[1, 0], [0, 1]])])
+        dataset.assign_property("edge_labels", [np.array([[0], [1]])])
 
-    The file directory and file name are not used directly. However, for :obj:`load()` and :obj:`safe()`,
-    the default is constructed from the data directory and dataset name. File name and file directory is reserved for
-    child classes.
+    The file directory and file name are used in child classes and in :obj:`save` and :obj:`load`.
     """
 
     fits_in_memory = True
