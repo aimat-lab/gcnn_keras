@@ -34,7 +34,6 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
 Some models are given as an example.
 A [documentation](https://kgcnn.readthedocs.io/en/latest/index.html) is generated in [docs](docs).
-This repo is still under construction.
 Any comments, suggestions or help are very welcome!
 
 <a name="requirements"></a>
@@ -188,7 +187,7 @@ dataset.read_in_memory()
 ```
 
 In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
-TUDatasets or MoleculeNet and directly processed and loaded. They are stored at `~/.kgcnn/datasets`.
+TUDatasets or MoleculeNet and directly processed and loaded. They are downloaded and stored at `~/.kgcnn/datasets` on your computer.
 
 ```python
 from kgcnn.data.datasets.MUTAGDataset import MUTAGDataset
@@ -199,7 +198,7 @@ print(dataset.edge_indices[0])
 <a name="examples"></a>
 # Examples
 
-A set of example training can be found in [training](training).
+A set of example training can be found in [training](training). Training scripts are configurable with a hyperparameter config file and command line arguments regarding model and dataset.
 
 # Issues
 
