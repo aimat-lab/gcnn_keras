@@ -399,10 +399,23 @@ class MemoryGraphList:
         return self
 
     def obtain_property(self, key):
+        r"""Returns a list with the values of all the graphs defined for the string property name `key`. If none of
+        the graphs in the list have this property, returns None.
+
+        Args:
+            key (str): The string name of the property to be retrieved for all the graphs contained in this list
+        """
+        # "_list" is a list of GraphNumpyContainers, which means "prop_list" here will be a list of all the property
+        # values for teach of the graphs which make up this list.
         prop_list = [x.obtain_property(key) for x in self._list]
+
+        # If a certain string property is not set for a GraphNumpyContainer, it will still return None. Here we check:
+        # If all the items for our given property name are None then we know that this property is generally not
+        # defined for any of the graphs in the list.
         if all([x is None for x in prop_list]):
             self.logger.warning("Property %s is not set on any graph." % key)
             return None
+
         return prop_list
 
     def __setattr__(self, key, value):
@@ -494,6 +507,14 @@ class MemoryGraphList:
         return self
 
     def clean(self, inputs: list):
+        """Given a list of property names, this method removes all elements from the internal list of
+        GraphNumpyContainers, which do not define at least one of those properties. Aka only those graphs remain in
+        the list which definitely define all of the properties.
+
+        Args:
+            inputs (list): A list of strings, where each string is supposed to be a property name, which the graphs
+                in this list may possess.
+        """
         invalid_graphs = []
         for item in inputs:
             if isinstance(item, dict):
