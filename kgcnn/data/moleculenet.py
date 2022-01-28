@@ -193,7 +193,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.assign_property("node_symbol", node_symbol)
         self.assign_property("node_coordinates",  node_coordinates)
         self.assign_property("node_number", node_number)
-        self.assign_property("graph_size", [len(x) for x in node_number])
+        self.assign_property("graph_size", [None if x is None else len(x) for x in node_number])
         self.assign_property("edge_indices", edge_indices)
         self.assign_property("graph_labels", graph_labels)
         self.assign_property("edge_number", edge_number)
@@ -302,7 +302,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             if i % 1000 == 0:
                 self.info(" ... read molecules {0} from {1}".format(i, num_mols))
 
-        self.assign_property("graph_size", [len(x) for x in node_attributes])
+        self.assign_property("graph_size", [None if x is None else len(x) for x in node_number])
         self.assign_property("graph_attributes", graph_attributes)
         self.assign_property("node_attributes", node_attributes)
         self.assign_property("edge_attributes", edge_attributes)
