@@ -1,12 +1,15 @@
 import unittest
 import tempfile
 import os
+import random
+from pprint import pprint
 
 import numpy as np
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
 from kgcnn.data.moleculenet import MoleculeNetDataset
+from kgcnn.mol.enocder import OneHotEncoder
 
 
 SIMPLE_SMILES_CSV = """
@@ -75,7 +78,7 @@ class TestMoleculeNetDataset(unittest.TestCase):
         self.assertEqual(len(molnet), 4)
 
         # Basic tests for one of the entries
-        data = molnet[1]
+        data = molnet[random.randint(0, 3)]
         self.assertIsInstance(data, dict)
         # These are the basic fields which every entry is supposed to have and all of them need to be
         # numpy arrays
@@ -85,6 +88,55 @@ class TestMoleculeNetDataset(unittest.TestCase):
             self.assertIn(key, data)
             print(type(data[key]))
             self.assertIsInstance(data[key], np.ndarray)
+
+    def test_setting_attributes_works(self):
+        self.write_string(SIMPLE_SMILES_CSV)
+        molnet = MoleculeNetDataset(data_directory=self.temp_path, file_name=self.file_name, dataset_name='test')
+
+        # This is list the keys which the dataset as a whole should contain after they have been read
+        # to the memory
+        default_keys = ['graph_size', 'graph_labels', 'node_coordinates', 'node_number',
+                        'node_symbol', 'edge_indices']
+        # This is the list of keys, which the data set should contain after the "set_attributes" has been
+        # called
+        attribute_keys = ['graph_attributes', 'node_attributes', 'edge_attributes']
+
+        molnet.prepare_data(
+            overwrite=False,
+            smiles_column_name='smiles'
+        )
+
+        molnet.read_in_memory(
+            label_column_name='label',
+            add_hydrogen=False,
+        )
+        pprint(molnet.__dict__.keys())
+
+        data = molnet[random.randint(0, 3)]
+        # At this point, the default keys should be present but not the attribute keys
+        for key in default_keys:
+            self.assertIn(key, data)
+
+        for key in attribute_keys:
+            self.assertNotIn(key, data)
+
+        molnet.set_attributes(
+            nodes=['Symbol'],
+            encoder_nodes={'Symbol': OneHotEncoder(['C', 'O'], dtype='str', add_unknown=True)},
+            edges=['BondType'],
+            encoder_edges={'BondType': int}
+        )
+
+        # We know that this csv data has 4 entries
+        self.assertEqual(len(molnet), 4)
+
+        data = molnet[random.randint(0, 3)]
+        # Now also the attribute keys should be present.
+        for key in default_keys:
+            self.assertIn(key, data)
+
+        for key in attribute_keys:
+            self.assertIn(key, data)
 
     def test_faulty_smiles_do_not_cause_exception(self):
         self.write_string(FAULTY_SMILES_CSV)
@@ -99,5 +151,7 @@ class TestMoleculeNetDataset(unittest.TestCase):
             label_column_name='label',
             add_hydrogen=False,
         )
-        self.assertEqual(len(molnet), 8)
+
+        # At this point the test is successful if there was no error...
+        self.assertEqual(len(molnet), 4)
 

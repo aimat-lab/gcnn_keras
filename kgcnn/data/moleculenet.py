@@ -324,6 +324,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         return self
 
+    # def _map_molecule_attributes(self, callbacks: ):
+
     @staticmethod
     def _deserialize_encoder(encoder_identifier):
         """Serialization. Will maybe include keras in the future.
