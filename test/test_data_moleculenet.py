@@ -5,6 +5,7 @@ import random
 from pprint import pprint
 
 import numpy as np
+import pandas as pd
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
@@ -155,3 +156,79 @@ class TestMoleculeNetDataset(unittest.TestCase):
         # At this point the test is successful if there was no error...
         self.assertEqual(len(molnet), 4)
 
+    def test_pandas_from_csv(self):
+        """
+        Simply test if pandas data frame indexing works as expected.
+        """
+        self.write_string(SIMPLE_SMILES_CSV)
+        data = pd.read_csv(os.path.join(self.temp_path, self.file_name))
+
+        row_index = 0
+        # This line is supposed to return a dict for the values of the row of the CSV file with the specified
+        # index
+        row_dict = dict(data.loc[row_index])
+        self.assertEqual(len(row_dict), 4)
+        self.assertIn('index', row_dict.keys())
+        self.assertIn('label', row_dict.keys())
+        self.assertIn('smiles', row_dict.keys())
+        self.assertIn('name', row_dict.keys())
+
+        self.assertFalse(True)
+
+    def test_map_molecule_attributes_basically_works(self):
+        """
+        Tests if the new method "._map_molecule_attributes" works on a simple example
+        """
+        self.write_string(SIMPLE_SMILES_CSV)
+        molnet = MoleculeNetDataset(data_directory=self.temp_path, file_name=self.file_name, dataset_name='test')
+
+        callbacks = {
+            'name': lambda mg, dd: np.array(dd['name'], dtype='str'),
+            'label': lambda mg, dd: np.array(dd['label'], dtype='str')
+        }
+
+        # Before we can call the method, the data needs to be prepared because we need to make sure that the molecule
+        # file exists before attempting to read from it.
+        molnet.prepare_data(
+            overwrite=False,
+            smiles_column_name='smiles'
+        )
+        # This method will automatically add properties with the string key names of the "callbacks" dict to the
+        # underlying GraphList based on the transformations defined by the callback functions.
+        molnet._map_molecule_attributes(callbacks)
+
+        molecule = molnet[1]
+        self.assertIn('name', molecule)
+        self.assertIn('label', molecule)
+
+        # But the other default attributes are not part of it, since we did not specify those in the
+        # callbacks dict
+        self.assertNotIn('node_symbol', molecule)
+
+    def test_graph_labels_is_one_dimensional_array(self):
+        self.write_string(SIMPLE_SMILES_CSV)
+
+        # In this first setting we pass a single string as the label name. The corresponding "graph_labels"
+        # attribute of the dataset elements should be a one-dim np array regardless (and not zero dim)
+        molnet = MoleculeNetDataset(data_directory=self.temp_path, file_name=self.file_name, dataset_name='test')
+        molnet.prepare_data()
+        molnet.read_in_memory(label_column_name='label')
+        molnet.set_attributes()
+
+        molecule = molnet[0]
+        self.assertIsInstance(molecule['graph_labels'], np.ndarray)
+        self.assertEqual(len(molecule['graph_labels'].shape), 1)
+
+        # But it should also be possible to pass a list of column names in to get a true np array of
+        # multiple labels
+        molnet = MoleculeNetDataset(data_directory=self.temp_path, file_name=self.file_name, dataset_name='test')
+        molnet.prepare_data()
+        molnet.read_in_memory(label_column_name=['label', 'name'])
+        molnet.set_attributes()
+
+        molecule = molnet[0]
+        self.assertIsInstance(molecule['graph_labels'], np.ndarray)
+        self.assertEqual(len(molecule['graph_labels'].shape), 1)
+        self.assertEqual(len(molecule['graph_labels']), 2)
+        # Testing if it is the correct value as well
+        self.assertEqual(molecule['graph_labels'][1], 'Propanolol')

@@ -1,7 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
-import logging
+
+from typing import Dict, Callable
+from collections import defaultdict
 
 from kgcnn.mol.gen.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
@@ -27,6 +29,26 @@ class MoleculeNetDataset(MemoryGraphDataset):
     the methods :obj:`prepare_data` and :obj:`read_in_memory`, see the documentation of the methods
     for further details.
     """
+
+    DEFAULT_NODE_ATTRIBUTES = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
+                               'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
+    DEFAULT_NODE_ENCODERS = {
+        'Symbol': OneHotEncoder(
+                    ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
+                    dtype="str"
+        ),
+        'Hybridization': OneHotEncoder([2, 3, 4, 5, 6]),
+        'TotalDegree': OneHotEncoder([0, 1, 2, 3, 4, 5], add_unknown=False),
+        'TotalNumHs': OneHotEncoder([0, 1, 2, 3, 4], add_unknown=False),
+        'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str')
+    }
+    DEFAULT_EDGE_ATTRIBUTES = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
+    DEFAULT_EDGE_ENCODERS = {
+        'BondType': OneHotEncoder([1, 2, 3, 12], add_unknown=False),
+        'Stereo': OneHotEncoder([0, 1, 2, 3], add_unknown=False)
+    }
+    DEFAULT_GRAPH_ATTRIBUTES = ['ExactMolWt', 'NumAtoms']
+    DEFAULT_GRAPH_ENCODERS = {}
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10):
@@ -127,7 +149,235 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def read_in_memory(self,  label_column_name: str = None, has_conformers: bool = True,
+    def _map_molecule_attributes(self,
+                                 callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]],
+                                 add_hydrogen: bool = False):
+        """
+        This method loads the list of molecules from the sdf file, as well as the data of the original CSV file.
+        It then iterates over all the molecules / csv rows and invokes all of the defines callbacks for each.
+
+        The "callbacks" parameter is supposed to be a dictionary whose keys are string names of attributes which are
+        supposed to be derived from the molecule / csv data and the values are function objects which define how to
+        derive that data. Those callback functions get passed two parameters:
+        - mg: The MolecularGraphRDKit instance for the current molecule
+        - dd: A dictionary, whose keys are the string names of the CSV columns and the values are the corresponding
+          values for the csv row of the current molecule.
+        The string keys of the "callbacks" directory are also the string names which are later used to assign the
+        properties of the underlying "GraphList". This means that each element of the dataset will then have a
+        field with the same name.
+
+        .. note::
+
+            If a molecule cannot be properly loaded by MolecularGraphRDKit, then for all attributes "None" is added
+            without invoking the callback!
+
+
+        Before calling this function, the ".sdf" molecule data file needs to exist, which means it is important to
+        have called the "prepare_data" method before.
+
+        Example:
+
+        .. code-block:: python
+
+            molnet = MoleculeNetDataset()
+            molnet.prepare_data()
+
+            molnet._map_molecule_attributes(callbacks={
+                'graph_size': lambda mg, dd: len(mg.node_number),
+                'index': lambda mg, dd: dd['index']
+            })
+
+            mol: dict = molnet[0]
+            assert 'graph_size' in mol.keys()
+            assert 'index' in mol.keys()
+
+
+        Args:
+            callbacks:
+            add_hydrogen:
+
+        Returns:
+
+        """
+
+        if not os.path.exists(self.file_path_mol):
+            raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
+
+        # Loading the molecules and the csv data
+        mols = read_mol_list_from_sdf_file(self.file_path_mol)
+        data = pd.read_csv(os.path.join(self.data_directory, self.file_name))
+
+        # This dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
+        # lists corresponds to one molecule in the dataset.
+        value_lists = defaultdict(list)
+        for index, sm in enumerate(mols):
+            mg = MolecularGraphRDKit(add_hydrogen=add_hydrogen).from_mol_block(sm, sanitize=True)
+
+            for name, callback in callbacks.items():
+                if mg.mol is None:
+                    value_lists[name].append(None)
+                else:
+                    data_dict = dict(data.loc[index])
+                    value = callback(mg, data_dict)
+                    value_lists[name].append(value)
+
+        # The string key names of the original "callbacks" dict are also used as the names of the properties which are
+        # assigned
+        for name, values in value_lists.items():
+            self.assign_property(name, values)
+
+    def read_in_memory(self,
+                       label_column_name: str = None,
+                       has_conformers: bool = True,
+                       add_hydrogen: bool = True):
+        """
+        Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
+        path information in the constructor of this class. Extract basic graph information from mol-blocks.
+        No further attributes are computed as default. Use :obj:`set_attributes` for this purpose.
+        It further checks the csv-file for graph labels specified by :obj:`label_column_name`.
+        Labels that do not have valid smiles or molecule in the SDF-file are also skipped.
+        The assignment to original IDs is stored in :obj:`valid_molecule_id`.
+
+        Args:
+            label_column_name (str): Column name in the csv-file where to take graph labels from.
+            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is True.
+            has_conformers (bool): If molecules has 3D coordinates pre-computed.
+                For multi-targets you can supply a list of column names or positions. Also a slice can be provided
+                for selecting columns as graph labels. Default is None.
+
+        Returns:
+            self
+        """
+        def get_graph_labels(mg, dd):
+            if isinstance(label_column_name, list):
+                return [dd[label] for label in label_column_name]
+            else:
+                return [dd[label_column_name]]
+
+        callbacks = {
+            'node_symbol': lambda mg, dd: mg.node_symbol,
+            'node_number': lambda mg, dd: mg.node_number,
+            'node_coordinates': lambda mg, dd: mg.node_coordinates,
+            'edge_indices': lambda mg, dd: mg.edge_number[0],
+            'edge_number': lambda mg, dd: np.array(mg.edge_number[1], dtype='int'),
+            'graph_labels': get_graph_labels,
+            'graph_size': lambda mg, dd: len(mg.node_number)
+        }
+        self._map_molecule_attributes(callbacks, add_hydrogen=add_hydrogen)
+
+        return self
+
+    def set_attributes(self,
+                       nodes: list = DEFAULT_NODE_ATTRIBUTES,
+                       edges: list = DEFAULT_EDGE_ATTRIBUTES,
+                       graph: list = DEFAULT_GRAPH_ATTRIBUTES,
+                       encoder_nodes: dict = DEFAULT_NODE_ENCODERS,
+                       encoder_edges: dict = DEFAULT_EDGE_ENCODERS,
+                       encoder_graph: dict = DEFAULT_GRAPH_ENCODERS,
+                       add_hydrogen: bool = False,
+                       has_conformers: bool = True,
+                       additional_callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]] = {}
+                       ):
+        """
+        Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
+        Reset edges and nodes with new attributes and edge indices. Default values are features that has been used
+        by `Luo et al (2019) <https://doi.org/10.1021/acs.jmedchem.9b00959>`_.
+
+        The argument :obj:`additional_callbacks` allows to add custom properties to each element of the dataset. It is
+        a dictionary whose string keys are the names of the properties and the values are callable function objects
+        which define how the property is derived from either the :obj:`MolecularGraphRDKit` or the corresponding
+        row of the original CSV file. Those callback functions accept two parameters:
+        - mg: The :obj:`MolecularGraphRDKit` instance of the molecule
+        - dd: A dictionary, whose keys are the string names of the CSV columns and the values are the corresponding
+          values for the csv row of the current molecule.
+
+        Example:
+
+        .. code-block:: python
+
+            csv = "index,name,label,smiles\n1,Propanolol,1,[Cl].CC(C)NCC(O)COc1cccc2ccccc12"
+            with open('/tmp/moleculenet_example.csv', mode='w') as file:
+                file.write(csv)
+
+            dataset = MoleculeNetDataset('/tmp', 'example', 'moleculenet_example.csv')
+            dataset.prepare_data(smiles_column_name='smiles')
+            dataset.read_in_memory(label_column_name='label')
+            dataset.set_attributes(
+                nodes=['Symbol'],
+                encoder_nodes={'Symbol': OneHotEncoder(['C', 'O'], dtype='str'),
+                edges=['BondType'],
+                encoder_edges={'BondType': int},
+                additional_callbacks: {
+                    # It is important that the callbacks return a numpy array, even if it is just a single element.
+                    'name': lambda mg, dd: np.array(dd['name'], dtype='str')
+                }
+            )
+
+            mol: dict = dataset[0]
+            mol['node_attributes']  # np array of one hot encoded atom type per node
+            mol['edge_attributes']  # int value representing the bond type
+            mol['name']  # Array of a single string which is the name from the original CSV data
+
+
+        Args:
+            nodes (list): A list of node attributes
+            edges (list): A list of edge attributes
+            graph (list): A list of graph attributes.
+            encoder_nodes (dict): A dictionary of callable encoder where the key matches the attribute.
+            encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
+            encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
+            add_hydrogen (bool): Whether to remove hydrogen.
+            has_conformers (bool): If molecules needs 3D coordinates pre-computed.
+            additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
+                dataset are supposed to have and the elements are callback function objects which implement how those
+                attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the the
+                row of the CSV file.
+
+        Returns:
+            self
+        """
+        # Deserializing encoders
+        for encoder in [encoder_nodes, encoder_edges, encoder_graph]:
+            for key, value in encoder.items():
+                encoder[key] = self._deserialize_encoder(value)
+
+        callbacks = {
+            'node_symbol': lambda mg, dd: mg.node_symbol,
+            'node_number': lambda mg, dd: mg.node_number,
+            'node_coordinates': lambda mg, dd: mg.node_coordinates,
+            'node_attributes': lambda mg, dd: np.array(mg.node_attributes(nodes, encoder_nodes), dtype='float32'),
+            'edge_indices': lambda mg, dd: mg.edge_number[0],
+            'edge_number': lambda mg, dd: np.array(mg.edge_number[1], dtype='int'),
+            'edge_attributes': lambda mg, dd: np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype='float32'),
+            'graph_size': lambda mg, dd: len(mg.node_number),
+            'graph_attributes': lambda mg, dd: np.array(mg.graph_attributes(graph, encoder_graph), dtype='float32'),
+            **additional_callbacks
+        }
+        self._map_molecule_attributes(callbacks, add_hydrogen=add_hydrogen)
+
+        return self
+
+    @staticmethod
+    def _deserialize_encoder(encoder_identifier):
+        """Serialization. Will maybe include keras in the future.
+
+        Args:
+            encoder_identifier: Identifier, class or function of an encoder.
+
+        Returns:
+            obj: Deserialized encoder.
+        """
+        if isinstance(encoder_identifier, dict):
+            if encoder_identifier["class_name"] == "OneHotEncoder":
+                return OneHotEncoder.from_config(encoder_identifier["config"])
+        elif hasattr(encoder_identifier, "__call__"):
+            return encoder_identifier
+        else:
+            raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
+
+    # -- DEPRECATED METHODS
+
+    def _read_in_memory(self,  label_column_name: str = None, has_conformers: bool = True,
                        add_hydrogen: bool = True):
         r"""Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
         path information in the constructor of this class. Extract basic graph information from mol-blocks.
@@ -199,7 +449,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.assign_property("edge_number", edge_number)
         return self
 
-    def set_attributes(self,
+    def _set_attributes(self,
                        nodes: list = None,
                        edges: list = None,
                        graph: list = None,
@@ -323,23 +573,3 @@ class MoleculeNetDataset(MemoryGraphDataset):
                     value.report(name=key)
 
         return self
-
-    # def _map_molecule_attributes(self, callbacks: ):
-
-    @staticmethod
-    def _deserialize_encoder(encoder_identifier):
-        """Serialization. Will maybe include keras in the future.
-
-        Args:
-            encoder_identifier: Identifier, class or function of an encoder.
-
-        Returns:
-            obj: Deserialized encoder.
-        """
-        if isinstance(encoder_identifier, dict):
-            if encoder_identifier["class_name"] == "OneHotEncoder":
-                return OneHotEncoder.from_config(encoder_identifier["config"])
-        elif hasattr(encoder_identifier, "__call__"):
-            return encoder_identifier
-        else:
-            raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
