@@ -10,54 +10,91 @@ from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, in
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map
 from kgcnn.utils.data import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 
-# Module logger
-logging.basicConfig()
+logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class GraphNumpyContainer(dict):
-    r"""Container to store named numpy arrays in a dictionary to represent a graph.
+class GraphDict(dict):
+    r"""Dictionary container to store graph information in tensor-form. At the moment only numpy-arrays are supported.
     The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
-    In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into numpy
-    arrays, when assigning a named value. Graph operations like modify edges or sort indices are methods of this class.
+    In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
+    when assigning a named value.
+    Graph operations that modify edges or sort indices are methods of this class. Note that the graph-tensors name
+    must follow a standard-convention or be provided to member functions (see documentation of class-methods).
 
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.data.base import GraphNumpyContainer
-        graph_array = GraphNumpyContainer({"edge_indices": np.array([[1, 0], [1, 0]])})
-        graph_array.add_edge_self_loops().sort_edge_indices()
-        print(graph_array["edge_indices"])
+        from kgcnn.data.base import GraphDict
+        g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
+        g.add_edge_self_loops().sort_edge_indices()
+        print(g)
     """
 
+    # Implementation details: Inherits from python-dict at the moment but can be changed if this causes problems,
+    # alternatives would be: collections.UserDict or collections.abc.MutableMapping
+
     def __init__(self, sub_dict: dict = None):
-        r"""Initialize a new :obj:`GraphNumpyContainer` instance.
+        r"""Initialize a new :obj:`GraphDict` instance.
 
         Args:
             sub_dict: Dictionary or key-value pair of numpy arrays.
         """
+        self._tensor_conversion = np.array
         if sub_dict is None:
             sub_dict = {}
         elif isinstance(sub_dict, (dict, list)):
             in_dict = dict(sub_dict)
-            sub_dict = {key: np.array(value) for key, value in in_dict.items()}
-        elif isinstance(sub_dict, GraphNumpyContainer):
-            sub_dict = {key: np.array(value) for key, value in sub_dict.items()}
-        super(GraphNumpyContainer, self).__init__(sub_dict)
+            sub_dict = {key: self._tensor_conversion(value) for key, value in in_dict.items()}
+        elif isinstance(sub_dict, GraphDict):
+            sub_dict = {key: self._tensor_conversion(value) for key, value in sub_dict.items()}
+        super(GraphDict, self).__init__(sub_dict)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """Returns a python-dictionary of self.
+
+        Returns:
+            dict: Dictionary of graph tensor objects.
+        """
         return {key: value for key, value in self.items()}
 
-    def assign_property(self, key, value):
-        if value is not None:
-            self.update({key: np.array(value)})
+    def assign_property(self, key: str, value):
+        r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
+        Similar to assign-item default method :obj:`__setitem__`, but ignores `None` values and casts to tensor.
 
-    def obtain_property(self, key):
+        Args:
+            key (str): Name of the graph tensor to add to self.
+            value: Array or tensor value to add. Can also be None.
+
+        Returns:
+            None.
+        """
+        if value is not None:
+            self.update({key: self._tensor_conversion(value)})
+
+    def obtain_property(self, key: str):
+        """Get tensor item by name. If key is not found, `None` is returned.
+
+        Args:
+            key (str): Name of the key to get value for.
+
+        Returns:
+            self[key].
+        """
         if key in self:
             return self[key]
 
-    def _find_graph_properties(self, name_props):
+    def _find_graph_properties(self, name_props: str) -> list:
+        r"""Search for properties in self. This includes a list of possible names or a pattern-matching of a single
+        string.
+
+        Args:
+            name_props (str, list): Pattern matching string or list of strings to search for
+
+        Returns:
+            list: List of names in self that match :obj:`name_props`.
+        """
         if name_props is None:
             return []
         elif isinstance(name_props, str):
@@ -69,31 +106,45 @@ class GraphNumpyContainer(dict):
             return match_props
         elif isinstance(name_props, (list, tuple)):
             return [x for x in name_props if x in self]
-        raise TypeError("Can not find keys of properties for type %s" % name_props)
+        raise TypeError("Can not find keys of properties for input type %s" % name_props)
+
+    def _assert_has_key(self, key: str):
+        """Check if the property is found in self.
+
+        Args:
+            key (str): Name of property that must be defined.
+
+        Returns:
+            None.
+        """
+        if key not in self or self[key] is None:
+            raise ValueError("Can not operate on %s, as it is not found." % key)
 
     def _operate_on_edges(self, operation,
-                          name_edge_indices: str = "edge_indices",
-                          name_edge_attributes: str = "^edge_.*",
+                          edge_indices: str = "edge_indices",
+                          edge_attributes: str = "^edge_.*",
                           **kwargs):
         r"""General wrapper to run a certain function on an array of edge-indices and all edge related properties
         in the dictionary of self.
-        The name of the key for indices must be defined in :obj:`name_indices`.
-        Related value or attribute arrays are searched by :obj:`name_attributes`.
+        The name of the key for indices must be defined in :obj:`edge_indices`. Related value or attribute tensors
+        are searched by :obj:`edge_attributes`, since they must behave accordingly.
 
         Args:
               operation (callable): Function to apply to a list of all edge arrays.
                 First entry is assured to be indices.
-              name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-              name_edge_attributes (str): Name of related edge values or attributes.
+              edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+              edge_attributes (str): Name of related edge values or attributes.
                 This can be a match-string or list of names. Default is "^edge_.*".
               kwargs: Kwargs for operation function call.
+
+        Returns:
+            self
         """
-        if name_edge_indices not in self or self[name_edge_indices] is None:
-            raise ValueError("Can not operate on %s, as indices are not defined." % name_edge_indices)
+        self._assert_has_key(edge_indices)
         # Determine all linked edge attributes, that are not None.
-        edge_linked = self._find_graph_properties(name_edge_attributes)
+        edge_linked = self._find_graph_properties(edge_attributes)
         # Edge indices is always at first position!
-        edge_linked = [name_edge_indices] + [x for x in edge_linked if x != name_edge_indices]
+        edge_linked = [edge_indices] + [x for x in edge_linked if x != edge_indices]
         no_nan_edge_prop = [x for x in edge_linked if self[x] is not None]
         non_nan_edge = [self[x] for x in no_nan_edge_prop]
         new_edges = operation(*non_nan_edge, **kwargs)
@@ -106,10 +157,9 @@ class GraphNumpyContainer(dict):
             self[at] = new_edges[i]
         return self
 
-    def set_edge_indices_reverse(self,
-                                 name_edge_indices: str = "edge_indices",
-                                 name_edge_indices_reverse: str = "edge_indices_reverse"):
-        r"""Computes the index map of the reverse edge for each of the edges if available. This can be used by a model
+    def set_edge_indices_reverse(self, edge_indices: str = "edge_indices",
+                                 edge_indices_reverse: str = "edge_indices_reverse"):
+        r"""Computes the index map of the reverse edge for each of the edges, if available. This can be used by a model
         to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
         Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
         pair get a `nan` as map index. If there are multiple edges, the first encounter is assigned.
@@ -118,21 +168,19 @@ class GraphNumpyContainer(dict):
             Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
 
         Returns:
             self
         """
-        if name_edge_indices not in self or self[name_edge_indices] is None:
-            raise ValueError("Can not operate on %s, as indices are not defined." % name_edge_indices)
-        self[name_edge_indices_reverse] = np.expand_dims(
-            compute_reverse_edges_index_map(self[name_edge_indices_reverse]), axis=-1)
+        self._assert_has_key(edge_indices)
+        self[edge_indices_reverse] = np.expand_dims(
+            compute_reverse_edges_index_map(self[edge_indices]), axis=-1)
         return self
 
-    def make_undirected_edges(self,
-                              name_edge_indices: str = "edge_indices",
-                              name_edge_attributes: str = "^edge_.*",
+    def make_undirected_edges(self, edge_indices: str = "edge_indices",
+                              edge_attributes: str = "^edge_.*",
                               remove_duplicates: bool = True,
                               sort_indices: bool = True):
         r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
@@ -141,8 +189,8 @@ class GraphNumpyContainer(dict):
         Requires that :obj:`edge_indices` property is assigned.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_edge_attributes (str): Name of related edge values or attributes.
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_attributes (str): Name of related edge values or attributes.
                 This can be a match-string or list of names. Default is "^edge_.*".
             remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
             sort_indices (bool): Sort indices after adding edges. Default is True.
@@ -150,14 +198,13 @@ class GraphNumpyContainer(dict):
         Returns:
             self
         """
-        self._operate_on_edges(add_edges_reverse_indices, name_edge_indices=name_edge_indices,
-                               name_edge_attributes=name_edge_attributes,
+        self._operate_on_edges(add_edges_reverse_indices, edge_indices=edge_indices,
+                               edge_attributes=edge_attributes,
                                remove_duplicates=remove_duplicates, sort_indices=sort_indices)
         return self
 
-    def add_edge_self_loops(self,
-                            name_edge_indices: str = "edge_indices",
-                            name_edge_attributes: str = "^edge_.*",
+    def add_edge_self_loops(self, edge_indices: str = "edge_indices",
+                            edge_attributes: str = "^edge_.*",
                             remove_duplicates: bool = True,
                             sort_indices: bool = True,
                             fill_value: int = 0):
@@ -166,8 +213,8 @@ class GraphNumpyContainer(dict):
         All other edge properties are filled with :obj:`fill_value`.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_edge_attributes (str): Name of related edge values or attributes.
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_attributes (str): Name of related edge values or attributes.
                 This can be a match-string or list of names. Default is "^edge_.*".
             remove_duplicates (bool): Whether to remove duplicates. Default is True.
             sort_indices (bool): To sort indices after adding self-loops. Default is True.
@@ -176,101 +223,97 @@ class GraphNumpyContainer(dict):
         Returns:
             self
         """
-        self._operate_on_edges(add_self_loops_to_edge_indices, name_edge_indices=name_edge_indices,
-                               name_edge_attributes=name_edge_attributes,
+        self._assert_has_key(edge_indices)
+        self._operate_on_edges(add_self_loops_to_edge_indices, edge_indices=edge_indices,
+                               edge_attributes=edge_attributes,
                                remove_duplicates=remove_duplicates, sort_indices=sort_indices, fill_value=fill_value)
         return self
 
-    def sort_edge_indices(self,
-                          name_edge_indices: str = "edge_indices",
-                          name_edge_attributes: str = "^edge_.*"):
+    def sort_edge_indices(self, edge_indices: str = "edge_indices",
+                          edge_attributes: str = "^edge_.*"):
         r"""Sort edge indices and all edge-related properties. The index list is sorted for the first entry.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_edge_attributes (str): Name of related edge values or attributes.
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_attributes (str): Name of related edge values or attributes.
                 This can be a match-string or list of names. Default is "^edge_.*".
 
         Returns:
             self
         """
-        self._operate_on_edges(sort_edge_indices, name_edge_indices=name_edge_indices,
-                               name_edge_attributes=name_edge_attributes)
+        self._assert_has_key(edge_indices)
+        self._operate_on_edges(sort_edge_indices, edge_indices=edge_indices,
+                               edge_attributes=edge_attributes)
         return self
 
-    def normalize_edge_weights_sym(self,
-                                   name_edge_indices: str = "edge_indices",
-                                   name_edge_weights: str = "edge_weights"):
+    def normalize_edge_weights_sym(self, edge_indices: str = "edge_indices",
+                                   edge_weights: str = "edge_weights"):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
         Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
         The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
         Does not affect other edge-properties and only sets :obj:`edge_weights`.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_edge_weights (str): Name of edge weights indices to set in dictionary. Default is "edge_weights".
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_weights (str): Name of edge weights indices to set in dictionary. Default is "edge_weights".
 
         Returns:
             self
         """
-        if name_edge_indices not in self or self[name_edge_indices] is None:
-            raise ValueError("Can not operate on %s, as indices are not defined." % name_edge_indices)
-        if name_edge_weights not in self or self.obtain_property(name_edge_weights) is None:
-            self[name_edge_weights] = np.ones((len(self.obtain_property(name_edge_indices)), 1))
-        self[name_edge_weights] = rescale_edge_weights_degree_sym(
-            self[name_edge_indices], self[name_edge_weights])
+        self._assert_has_key(edge_indices)
+        # If weights is not set, initialize with weight one.
+        if edge_weights not in self or self.obtain_property(edge_weights) is None:
+            self[edge_weights] = np.ones((len(self.obtain_property(edge_indices)), 1))
+        self[edge_weights] = rescale_edge_weights_degree_sym(
+            self[edge_indices], self[edge_weights])
         return self
 
-    def set_range_from_edges(self,
-                             name_edge_indices: str = "edge_indices",
-                             name_range_indices: str = "range_indices",
-                             name_node_coordinates: str = "node_coordinates",
-                             name_range_attributes: str = "range_attributes",
+    def set_range_from_edges(self, edge_indices: str = "edge_indices",
+                             range_indices: str = "range_indices",
+                             node_coordinates: str = "node_coordinates",
+                             range_attributes: str = "range_attributes",
                              do_invert_distance: bool = False):
         r"""Assigns range indices and attributes (distance) from the definition of edge indices. This operations
         requires the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
         :obj:`range_indices` will be equal to :obj:`edge_indices`.
 
         Args:
-            name_edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            name_range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
-            name_node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
-            name_range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
+            node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
+            range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
 
         Returns:
             self
         """
-        if name_edge_indices not in self or self[name_edge_indices] is None:
-            raise ValueError("Can not operate on %s, as indices are not defined." % name_edge_indices)
-        self[name_range_indices] = np.array(self[name_edge_indices], dtype="int")  # We make a copy.
+        self._assert_has_key(edge_indices)
+        self[range_indices] = np.array(self[edge_indices], dtype="int")  # We make a copy.
 
-        if name_node_coordinates not in self or self[name_node_coordinates] is None:
-            print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
+        if node_coordinates not in self or self[node_coordinates] is None:
+            module_logger.error("Coordinates are not set. Can not calculate range values.")
             return self
-        xyz = self[name_node_coordinates]
-        idx = self[name_range_indices]
+        xyz = self[node_coordinates]
+        idx = self[range_indices]
         dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
         if do_invert_distance:
             dist = invert_distance(dist)
-        self[name_range_attributes] = dist
+        self[range_attributes] = dist
         return self
 
-    def set_range(self,
-                  name_range_indices: str = "range_indices",
-                  name_node_coordinates: str = "node_coordinates",
-                  name_range_attributes: str = "range_attributes",
+    def set_range(self, range_indices: str = "range_indices",
+                  node_coordinates: str = "node_coordinates",
+                  range_attributes: str = "range_attributes",
                   max_distance: float = 4.0, max_neighbours: int = 15,
                   do_invert_distance: bool = False, self_loops: bool = False, exclusive: bool = True):
         r"""Define range in euclidean space for interaction or edge-like connections. The number of connection is
         determines based on a cutoff radius and a maximum number of neighbours or both.
-        Requires :obj:`node_coordinates` and :obj:`edge_indices` to be set.
-        The distance is stored in :obj:`range_attributes`.
+        Requires :obj:`node_coordinates` to be set. The distance is stored in :obj:`range_attributes`.
 
         Args:
-            name_range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
-            name_node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
-            name_range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
+            range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
+            node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
+            range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             max_distance (float): Maximum distance or cutoff radius for connections. Default is 4.0.
             max_neighbours (int): Maximum number of allowed neighbours for a node. Default is 15.
             do_invert_distance (bool): Whether to invert the the distance. Default is False.
@@ -280,11 +323,11 @@ class GraphNumpyContainer(dict):
         Returns:
             self
         """
-        if name_node_coordinates not in self or self[name_node_coordinates] is None:
-            print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
+        if node_coordinates not in self or self[node_coordinates] is None:
+            module_logger.error("Coordinates are not set. Can not compute range.")
             return self
         # Compute distance matrix here. May be problematic for too large graphs.
-        dist = coordinates_to_distancematrix(self[name_node_coordinates])
+        dist = coordinates_to_distancematrix(self[node_coordinates])
         cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
                                                        max_neighbours=max_neighbours,
                                                        exclusive=exclusive, self_loops=self_loops)
@@ -296,33 +339,32 @@ class GraphNumpyContainer(dict):
         if len(dist_masked.shape) <= 1:
             dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self[name_range_attributes] = dist_masked
-        self[name_range_indices] = indices
+        self[range_attributes] = dist_masked
+        self[range_indices] = indices
         return self
 
-    def set_angle(self,
-                  name_range_indices: str = "range_indices",
-                  name_node_coordinates: str = "node_coordinates",
-                  name_angle_indices: str = "angle_indices",
-                  name_angle_indices_nodes: str = "angle_indices_nodes",
-                  name_angle_attributes: str = "angle_attributes",
+    def set_angle(self, range_indices: str = "range_indices",
+                  node_coordinates: str = "node_coordinates",
+                  angle_indices: str = "angle_indices",
+                  angle_indices_nodes: str = "angle_indices_nodes",
+                  angle_attributes: str = "angle_attributes",
                   allow_multi_edges: bool = False,
                   compute_angles: bool = True):
         r"""Find possible angles between geometric range connections defined by :obj:`range_indices`.
         Which edges form angles is stored in :obj:`angle_indices`.
-        One can also change :obj:`prefix_indices` to `edge` to compute angles between edges instead
+        One can also change :obj:`range_indices` to `edge_indices` to compute angles between edges instead
         of range connections.
 
         .. warning::
-            Angles are not recomputed if you use :obj:`set_range` or redefine edges.
+            Angles are not recomputed if you use :obj:`set_range` or redefine range or edges.
 
         Args:
-            name_range_indices (str): Name of range indices in dictionary. Default is "range_indices".
-            name_node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
-            name_angle_indices (str): Name of angle (edge) indices to set in dictionary. Default is "angle_indices".
-            name_angle_indices_nodes (str): Name of angle (node) indices to set in dictionary.
+            range_indices (str): Name of range indices in dictionary. Default is "range_indices".
+            node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
+            angle_indices (str): Name of angle (edge) indices to set in dictionary. Default is "angle_indices".
+            angle_indices_nodes (str): Name of angle (node) indices to set in dictionary.
                 Index triplets referring to nodes. Default is "angle_indices_nodes".
-            name_angle_attributes (str): Name of angle values to set in dictionary. Default is "angle_attributes".
+            angle_attributes (str): Name of angle values to set in dictionary. Default is "angle_attributes".
             allow_multi_edges (bool): Whether to allow angles between 'i<-j<-i', which gives 0 degree angle, if the
                 the nodes are unique. Default is False.
             compute_angles (bool): Whether to also compute angles.
@@ -330,20 +372,22 @@ class GraphNumpyContainer(dict):
         Returns:
             self
         """
-        if name_range_indices not in self or self[name_range_indices] is None:
-            raise ValueError("Can not operate on %s, as indices are not defined." % name_range_indices)
+        self._assert_has_key(range_indices)
         # Compute angles
-        _, a_triples, a_indices = get_angle_indices(self[name_range_indices],
+        _, a_triples, a_indices = get_angle_indices(self[range_indices],
                                                     allow_multi_edges=allow_multi_edges)
-        self[name_angle_indices] = a_indices
-        self[name_angle_indices_nodes] = a_triples
+        self[angle_indices] = a_indices
+        self[angle_indices_nodes] = a_triples
         # Also compute angles
         if compute_angles:
-            if name_node_coordinates not in self or self[name_node_coordinates] is None:
-                print("Coordinates are not set in `GraphNumpyContainer`. Can not make graph.")
+            if node_coordinates not in self or self[node_coordinates] is None:
+                module_logger.error("Coordinates are not set. Can not compute angle values.")
                 return self
-            self[name_angle_attributes] = get_angle(self[name_node_coordinates], a_triples)
+            self[angle_attributes] = get_angle(self[node_coordinates], a_triples)
         return self
+
+
+GraphNumpyContainer = GraphDict
 
 
 class MemoryGraphList:
