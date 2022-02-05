@@ -84,7 +84,7 @@ A major issue for graphs is their flexible size and shape, when using mini-batch
 
 Graph tensors for edge-indices or attributes for multiple graphs is passed to the model in form of ragged tensors 
 of shape `(batch, None, Dim)` where `Dim` denotes a fixed feature or index dimension.
-Such a ragged tensor has `ragged_rank=1` with one ragged dimension indicated by `None` and is build from a value and partition tensor.
+Such a ragged tensor has `ragged_rank=1` with one ragged dimension indicated by `None` and is build from a value plus partition tensor.
 For example, the graph structure is represented by an index-list of shape `(batch, None, 2)` with index of incoming or receiving node `i` and outgoing or sending node `j` as `(i, j)`.
 Note, an additional edge with `(j, i)` is required for undirected graphs. 
 A ragged constant can be easily created and passed to a model:
@@ -145,7 +145,7 @@ class MyMessageNN(MessagePassingBase):
 
 <a name="literature"></a>
 # Literature
-A version of the following models are implemented in [literature](kgcnn/literature):
+A version of the following models is implemented in [literature](kgcnn/literature):
 * **[GCN](kgcnn/literature/GCN.py)**: [Semi-Supervised Classification with Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al. (2016)
 * **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](https://arxiv.org/abs/1612.00222) by Battaglia et al. (2016)
 * **[Megnet](kgcnn/literature/Megnet.py)**: [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)

@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import tensorflow as tf
+import networkx as nx
 import pandas as pd
 import os
 import re
@@ -52,12 +53,93 @@ class GraphDict(dict):
         super(GraphDict, self).__init__(sub_dict)
 
     def to_dict(self) -> dict:
-        """Returns a python-dictionary of self.
+        """Returns a python-dictionary of self. Does not copy values.
 
         Returns:
             dict: Dictionary of graph tensor objects.
         """
         return {key: value for key, value in self.items()}
+
+    def from_networkx(self, graph,
+                      node_number: str = "node_number",
+                      edge_indices: str = "edge_indices",
+                      node_attributes: str = None,
+                      edge_attributes: str = None,
+                      node_labels: str = None):
+        r"""Convert a networkx graph instance into a dictionary of graph-tensors. The networkx graph is always converted
+        into integer node labels. The former node IDs can be hold in :obj:`node_labels`. Furthermore, node or edge
+        data can be cast into attributes via :obj:`node_attributes` and :obj:`edge_attributes`.
+
+        Args:
+            graph (nx.Graph): A networkx graph instance to convert.
+            node_number (str): The name that the node numbers are assigned to. Default is "node_number".
+            edge_indices (str): The name that the edge indices are assigned to. Default is "edge_indices".
+            node_attributes (str, list): Name of node attributes to add from node data. Can also be a list of names.
+                Default is None.
+            edge_attributes (str, list): Name of edge attributes to add from edge data. Can also be a list of names.
+                Default is None.
+            node_labels (str): Name of the labels of nodes to store former node IDs into. Default is None.
+
+        Returns:
+            self.
+        """
+        assert node_labels is None or isinstance(node_labels, str), "Please provide name of node labels or `None`"
+        graph_int = nx.convert_node_labels_to_integers(graph, label_attribute=node_labels)
+        graph_size = len(graph_int)
+
+        def _attr_to_list(attr):
+            if attr is None:
+                attr = []
+            elif isinstance(attr, str):
+                attr = [attr]
+            if not isinstance(attr, list):
+                raise TypeError("Attribute name is neither list or string.")
+            return attr
+
+        # Loop over nodes in graph.
+        node_attr = _attr_to_list(node_attributes)
+        if node_labels is not None:
+            node_attr += [node_labels]
+        node_attr_dict = {x: [None]*graph_size for x in node_attr}
+        nodes_id = []
+        for i, x in enumerate(graph_int.nodes.data()):
+            nodes_id.append(x[0])
+            for d in node_attr:
+                if d not in x[1]:
+                    raise KeyError("Node does not have property %s" % d)
+                node_attr_dict[d][i] = x[1][d]
+
+        edge_id = []
+        edges_attr = _attr_to_list(edge_attributes)
+        edges_attr_dict = {x: [None]*graph_size for x in edges_attr}
+        for i, x in enumerate(graph_int.edges.data()):
+            edge_id.append(x[:2])
+            for d in edges_attr:
+                if d not in x[2]:
+                    raise KeyError("Edge does not have property %s" % d)
+                edges_attr_dict[d][i] = x[2][d]
+
+        # Storing graph tensors in self.
+        self.assign_property(node_number, self._tensor_conversion(nodes_id))
+        self.assign_property(edge_indices, self._tensor_conversion(edge_id))
+        for key, value in node_attr_dict.items():
+            self.assign_property(key, self._tensor_conversion(value))
+        for key, value in edges_attr_dict.items():
+            self.assign_property(key, self._tensor_conversion(value))
+        return self
+
+    def to_networkx(self, edge_indices="edge_indices"):
+        """Function draft to make a networkx graph. No attributes or data is supported at the moment.
+
+        Args:
+            edge_indices (str): Name of edge index tensors to make graph with. Default is "edge_indices".
+
+        Returns:
+            nx.DiGraph: Directed networkx graph instance.
+        """
+        graph = nx.DiGraph()
+        graph.add_edges_from(self.obtain_property(edge_indices))
+        return graph
 
     def assign_property(self, key: str, value):
         r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
