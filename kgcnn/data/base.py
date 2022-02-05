@@ -93,7 +93,7 @@ class GraphDict(dict):
             elif isinstance(attr, str):
                 attr = [attr]
             if not isinstance(attr, list):
-                raise TypeError("Attribute name is neither list or string.")
+                raise TypeError("Attribute name is neither list nor string.")
             return attr
 
         # Loop over nodes in graph.

@@ -159,15 +159,15 @@ class CrystalDataset(MemoryGraphDataset):
             node_occ.append(occ)
             node_oxidation.append(oxi)
 
-        self.node_attributes = node_occ
-        self.node_oxidation = node_oxidation
-        self.node_number = [np.argmax(x, axis=-1) for x in node_occ]  # Only takes maximum occupation here!!!
-        self.node_symbol = node_symbol
-        self.node_coordinates = node_coordinates
-        self.graph_lattice_matrix = graph_lattice_matrix
-        self.graph_abc = graph_abc
-        self.graph_charge = graph_charge
-        self.graph_volume = graph_volume
+        self.assign_property("node_attributes", node_occ)
+        self.assign_property("node_oxidation", node_oxidation)
+        self.assign_property("node_number", [np.argmax(x, axis=-1) for x in node_occ])  # Only takes maximum occupation here!!!
+        self.assign_property("node_symbol", node_symbol)
+        self.assign_property("node_coordinates", node_coordinates)
+        self.assign_property("graph_lattice_matrix", graph_lattice_matrix)
+        self.assign_property("graph_abc", graph_abc)
+        self.assign_property("graph_charge", graph_charge)
+        self.assign_property("graph_volume", graph_volume)
 
         return self
 
@@ -183,9 +183,9 @@ class CrystalDataset(MemoryGraphDataset):
             range_indices.append(ridx)
             range_image.append(rimg)
             range_distance.append(rd)
-        self.range_indices = range_indices
-        self.range_image = range_image
-        self.range_attributes = range_distance
+        self.assign_property("range_indices", range_indices)
+        self.assign_property("range_image", range_image)
+        self.assign_property("range_attributes", range_distance)
 
     def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
                   self_loops=True, exclusive=True):
