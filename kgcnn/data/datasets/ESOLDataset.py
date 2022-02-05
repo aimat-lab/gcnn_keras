@@ -15,3 +15,4 @@ class ESOLDataset(MoleculeNetDataset2018):
 
 
 # data = ESOLDataset()
+# data.set_attributes()

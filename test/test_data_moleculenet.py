@@ -177,7 +177,7 @@ class TestMoleculeNetDataset(unittest.TestCase):
 
     def test_map_molecule_attributes_basically_works(self):
         """
-        Tests if the new method "._map_molecule_attributes" works on a simple example
+        Tests if the new method "._map_molecule_callbacks" works on a simple example
         """
         self.write_string(SIMPLE_SMILES_CSV)
         molnet = MoleculeNetDataset(data_directory=self.temp_path, file_name=self.file_name, dataset_name='test')
@@ -195,7 +195,7 @@ class TestMoleculeNetDataset(unittest.TestCase):
         )
         # This method will automatically add properties with the string key names of the "callbacks" dict to the
         # underlying GraphList based on the transformations defined by the callback functions.
-        molnet._map_molecule_attributes(callbacks)
+        molnet._map_molecule_callbacks(callbacks)
 
         molecule = molnet[1]
         self.assertIn('name', molecule)
