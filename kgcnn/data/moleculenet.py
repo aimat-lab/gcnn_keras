@@ -114,7 +114,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                      external_program: dict = None, num_workers: int = None):
         r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
         from the csv-file given by :obj:`file_name` and creates a SDF File of generated mol-blocks with the same
-        file name. The class requires RDKit and OpenBabel.
+        file name. The class requires `RDKit` and `OpenBabel`.
         Smiles that are not compatible with both RDKit and OpenBabel result in an empty mol-block in the SDF file to
         keep the number of molecules the same.
 
@@ -334,7 +334,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        # May put this in a decorater with a copy or just leave as default arguments.
+        # May put this in a decorator with a copy or just leave as default arguments.
         # If e.g. nodes is not modified there is no problem with having mutable defaults.
         nodes = nodes if nodes is not None else self.DEFAULT_NODE_ATTRIBUTES
         edges = edges if edges is not None else self.DEFAULT_EDGE_ATTRIBUTES
@@ -389,6 +389,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
 
     # -- DEPRECATED METHODS
+    # Will remove before next larger release
 
     def _deprecated_read_in_memory(self, label_column_name: str = None, has_conformers: bool = True,
                                    add_hydrogen: bool = True):
