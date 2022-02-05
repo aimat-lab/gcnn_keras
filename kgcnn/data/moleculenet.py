@@ -232,8 +232,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     @staticmethod
     def _graph_label_callback(mg, ds, label_column_name):
-        # Should be improved at his point to be more stable in the future.
-        return pandas_data_frame_columns_to_numpy(ds, label_column_name)
+        return ds[label_column_name]
 
     def read_in_memory(self, label_column_name: str = None,
                        has_conformers: bool = True,
