@@ -79,7 +79,7 @@ Graphs can be represented by an index list of connections plus feature informati
  
 A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using `RaggedTensor`s.
 
-
+<a name="implementation-details-input"></a>
 ### Input
 
 Graph tensors for edge-indices or attributes for multiple graphs is passed to the model in form of ragged tensors 
@@ -165,9 +165,20 @@ A version of the following models is implemented in [literature](kgcnn/literatur
 <a name="datasets"></a>
 # Datasets
 
-The base class is `MemoryGraphDataset` which holds a lists of graph properties in tensor-like numpy arrays.
-Each property that starts with `node_`, `edge_`, `graph_` holds a list with length of the dataset that fit into memory. 
-Furthermore, file information on disk can be provided in the constructor, that points to a `data_directory` for the dataset.
+How to construct ragged tensors is shown [above](#implementation-details-input). 
+Moreover, some data handling classes are given in `kgcnn.data`.
+Graphs are represented by a dictionary of (numpy) tensors `GraphDict` and are stored in a list `MemoryGraphList`. 
+Both must fit into memory and are supposed to be handled just like a python dict or list, respectively.
+
+```python
+import numpy as np
+from kgcnn.data.base import GraphDict, MemoryGraphList
+
+
+```
+
+The `MemoryGraphDataset` inherits from `MemoryGraphList` but must be initialized with file information on disk that points to a `data_directory` for the dataset.
+The `data_directory` can have a subdirectory for files and/or single file such as a CSV file: 
 
 ```bash
 ├── data_directory
@@ -177,34 +188,43 @@ Furthermore, file information on disk can be provided in the constructor, that p
     ├── file_name
     └── dataset_name.pickle
 ```
-Create and store a general dataset via:
+A base dataset class is created with path and name information:
 
 ```python
 from kgcnn.data.base import MemoryGraphDataset
-import numpy as np
-dataset = MemoryGraphDataset(data_directory="ExampleDir", dataset_name="Example")
-dataset.assign_property("edge_indices", [np.array([[1, 0], [0, 1]])])
-dataset.assign_property("edge_labels", [np.array([[0], [1]])])
+dataset = MemoryGraphDataset(data_directory="ExampleDir/", 
+                             dataset_name="Example",
+                             file_name=None, file_directory=None)
 ```
 
-The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset to convert and load files such as ".txt", ".sdf", ".xyz" etc. via `prepare_data()` and `read_in_memory()`.
+The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
+Most subclasses implement `prepare_data()` and `read_in_memory()` with dataset dependent arguments.
+An example for `MoleculeNetDataset` is shown below. 
+For mote details find tutorials in [notebooks](notebooks).
 
 ```python
-from kgcnn.data.qm import QMDataset
-dataset = QMDataset(data_directory="ExampleDir", dataset_name="methane", 
-                    file_name="geom.xyz", file_directory=None)
-dataset.prepare_data()  # Also make .sdf
-dataset.read_in_memory()
+from kgcnn.data.moleculenet import MoleculeNetDataset
+# File directory and files must exist. 
+# Here 'ExampleDir' and 'ExampleDir/data.csv' with columns "smiles" and "label".
+dataset = MoleculeNetDataset(dataset_name="Example",
+                             data_directory="ExampleDir/",
+                             file_name="data.csv")
+dataset.prepare_data(overwrite=True, smiles_column_name="smiles", add_hydrogen=True,
+                     make_conformers=True, optimize_conformer=True, num_workers=None)
+dataset.read_in_memory(label_column_name="label",  add_hydrogen=False, 
+                       has_conformers=True)
 ```
 
-In [data.datasets](kgcnn/data/datasets) there are graph learning datasets as subclasses which are being downloaded from e.g. 
-TUDatasets or MoleculeNet and directly processed and loaded. They are downloaded and stored at `~/.kgcnn/datasets` on your computer.
+In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/) or [MoleculeNet](). 
+The subclasses `GraphTUDataset2020` and `MoleculeNetDataset2018` download and read the available datasets by name.
+There are also specific dataset subclass for each dataset to handle additional processing or downloading from somewhere else:
 
 ```python
 from kgcnn.data.datasets.MUTAGDataset import MUTAGDataset
-dataset = MUTAGDataset()
-print(dataset.edge_indices[0])
+dataset = MUTAGDataset()  # inherits from GraphTUDataset2020
 ```
+
+Downloaded datasets are stored in `~/.kgcnn/datasets` on your computer. Please remove them manually, if no longer required.
 
 <a name="examples"></a>
 # Examples

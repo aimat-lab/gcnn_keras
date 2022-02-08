@@ -633,9 +633,9 @@ class MemoryGraphList:
         return self
 
     def clean(self, inputs: list):
-        """Given a list of property names, this method removes all elements from the internal list of
-        GraphNumpyContainers, which do not define at least one of those properties. Aka only those graphs remain in
-        the list which definitely define all of the properties.
+        r"""Given a list of property names, this method removes all elements from the internal list of
+        `GraphDict` items, which do not define at least one of those properties. Aka only those graphs remain in
+        the list which definitely define all properties.
 
         Args:
             inputs (list): A list of strings, where each string is supposed to be a property name, which the graphs
