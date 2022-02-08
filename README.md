@@ -177,9 +177,9 @@ graph = GraphDict({"edge_indices": [[0, 1], [1, 0]]})
 print(graph)
 # List of graph dicts.
 graph_list = MemoryGraphList([graph, {"edge_indices": [[0, 0]]}, {}])
-graph_list.clean("edge_indices")  # Remove graphs without property
+graph_list.clean(["edge_indices"])  # Remove graphs without property
 graph_list.obtain_property("edge_indices")  # opposite is assign_property()
-graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input
+graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input; makes copy.
 ```
 
 The `MemoryGraphDataset` inherits from `MemoryGraphList` but must be initialized with file information on disk that points to a `data_directory` for the dataset.

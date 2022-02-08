@@ -501,14 +501,22 @@ class MemoryGraphList:
         print(data[0])
     """
 
-    def __init__(self):
+    def __init__(self, input_list: list = None):
         r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
         namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
 
+        Args:
+            input_list (list, MemoryGraphList): A list or :obj:`MemoryGraphList` of :obj:`GraphDict` items.
         """
         self._list = []
         self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
         self.logger = module_logger
+        if input_list is None:
+            input_list = []
+        if isinstance(input_list, list):
+            self._list = [GraphDict(x) for x in input_list]
+        if isinstance(input_list, MemoryGraphList):
+            self._list = [GraphDict(x) for x in input_list._list]
 
     def assign_property(self, key, value):
         if value is None:
@@ -531,11 +539,11 @@ class MemoryGraphList:
         Args:
             key (str): The string name of the property to be retrieved for all the graphs contained in this list
         """
-        # "_list" is a list of GraphNumpyContainers, which means "prop_list" here will be a list of all the property
+        # "_list" is a list of GraphDicts, which means "prop_list" here will be a list of all the property
         # values for teach of the graphs which make up this list.
         prop_list = [x.obtain_property(key) for x in self._list]
 
-        # If a certain string property is not set for a GraphNumpyContainer, it will still return None. Here we check:
+        # If a certain string property is not set for a GraphDict, it will still return None. Here we check:
         # If all the items for our given property name are None then we know that this property is generally not
         # defined for any of the graphs in the list.
         if all([x is None for x in prop_list]):
@@ -549,6 +557,8 @@ class MemoryGraphList:
         if not hasattr(self, "_reserved_graph_property_prefix") or not hasattr(self, "_list"):
             return super(MemoryGraphList, self).__setattr__(key, value)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
+            module_logger.warning(
+                "Reserved properties are deprecated and will be removed. Please use `assign_property()`.")
             self.assign_property(key, value)
         else:
             return super(MemoryGraphList, self).__setattr__(key, value)
@@ -558,6 +568,8 @@ class MemoryGraphList:
         if key in ["_reserved_graph_property_prefix", "_list"]:
             return super(MemoryGraphList, self).__getattribute__(key)
         if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
+            module_logger.warning(
+                "Reserved properties are deprecated and will be removed. Please use `obtain_property()`.")
             return self.obtain_property(key)
         else:
             return super().__getattribute__(key)
@@ -586,8 +598,8 @@ class MemoryGraphList:
         return self
 
     def __setitem__(self, key, value):
-        if not isinstance(value, GraphNumpyContainer):
-            raise TypeError("Require a GraphNumpyContainer as list item.")
+        if not isinstance(value, GraphDict):
+            raise TypeError("Require a GraphDict as list item.")
         self._list[key] = value
 
     def clear(self):
@@ -598,7 +610,7 @@ class MemoryGraphList:
             return self
         if length < 0:
             raise ValueError("Length of empty list must be >=0.")
-        self._list = [GraphNumpyContainer() for _ in range(length)]
+        self._list = [GraphDict() for _ in range(length)]
         return self
 
     @property
@@ -641,6 +653,8 @@ class MemoryGraphList:
             inputs (list): A list of strings, where each string is supposed to be a property name, which the graphs
                 in this list may possess.
         """
+        if isinstance(inputs, str):
+            inputs = [inputs]
         invalid_graphs = []
         for item in inputs:
             if isinstance(item, dict):
@@ -787,7 +801,7 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
-        self._list = [GraphNumpyContainer(x) for x in in_list]
+        self._list = [GraphDict(x) for x in in_list]
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
