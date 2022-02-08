@@ -173,8 +173,7 @@ Both must fit into memory and are supposed to be handled just like a python dict
 ```python
 import numpy as np
 from kgcnn.data.base import GraphDict, MemoryGraphList
-
-
+# -> Example usage here...
 ```
 
 The `MemoryGraphDataset` inherits from `MemoryGraphList` but must be initialized with file information on disk that points to a `data_directory` for the dataset.
