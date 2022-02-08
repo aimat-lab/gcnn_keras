@@ -220,9 +220,9 @@ dataset.read_in_memory(label_column_name="label",  add_hydrogen=False,
                        has_conformers=True)
 ```
 
-In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/) or [MoleculeNet](). 
+In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/) or [MoleculeNet](https://moleculenet.org/). 
 The subclasses `GraphTUDataset2020` and `MoleculeNetDataset2018` download and read the available datasets by name.
-There are also specific dataset subclass for each dataset to handle additional processing or downloading from somewhere else:
+There are also specific dataset subclass for each dataset to handle additional processing or downloading from individual sources:
 
 ```python
 from kgcnn.data.datasets.MUTAGDataset import MUTAGDataset
