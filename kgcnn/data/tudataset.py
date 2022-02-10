@@ -16,10 +16,9 @@ class GraphTUDataset(MemoryGraphDataset):
     need further processing via e.g. `prepare data`.
 
     .. note::
-        Note that sub-classes of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
+        Note that subclasses of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
         There are also further TU-datasets in :obj:`kgcnn.data.datasets`, if further processing is used in literature.
         Not all datasets can provide all types of graph properties like `edge_attributes` etc.
-
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,

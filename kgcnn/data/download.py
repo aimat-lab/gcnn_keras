@@ -13,11 +13,11 @@ module_logger.setLevel(logging.INFO)
 
 class DownloadDataset:
     r"""Download class for datasets. Provides static-methods and functions for download and unzip of the data.
-    They are intentionally kept general and could also be used outside of this class definition.
+    They are intentionally kept general and could also be used without this class definition.
     Dataset-specific functions like :obj:`prepare_data` must be implemented in subclasses.
     Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
     as default. Classes in :obj:`kgcnn.data.datasets` inherit from this class, but :obj:`DownloadDataset` can also be
-    used as a member.
+    used as a member via composition.
     """
 
     def __init__(self,
@@ -139,14 +139,16 @@ class DownloadDataset:
         Returns:
             os.path: Filepath of downloaded file.
         """
-        if os.path.exists(os.path.join(path, filename)) is False or overwrite:
+        def logg_info(msg):
             if logger is not None:
-                logger.info("Downloading dataset... ")
+                logger.info(msg)
+
+        if os.path.exists(os.path.join(path, filename)) is False or overwrite:
+            logg_info("Downloading dataset... ")
             r = requests.get(download_url, allow_redirects=True)
             open(os.path.join(path, filename), 'wb').write(r.content)
         else:
-            if logger is not None:
-                logger.info("Dataset found. Done.")
+            logg_info("Dataset found. Done.")
         return os.path.join(path, filename)
 
     @staticmethod
@@ -163,25 +165,24 @@ class DownloadDataset:
         Returns:
             os.path: Filepath of the extracted dataset folder.
         """
-        if not os.path.exists(os.path.join(path, unpack_directory)):
+        def logg_info(msg):
             if logger is not None:
-                logger.info("Creating directory... ")
+                logger.info(msg)
+
+        if not os.path.exists(os.path.join(path, unpack_directory)):
+            logg_info("Creating directory... ")
             os.mkdir(os.path.join(path, unpack_directory))
         else:
-            if logger is not None:
-                logger.info("Directory for extraction exists. Done.")
+            logg_info("Directory for extraction exists. Done.")
             if not overwrite:
-                if logger is not None:
-                    logger.info("Not extracting tar File. Stopped.")
+                logg_info("Not extracting tar File. Stopped.")
                 return os.path.join(path, unpack_directory)  # Stop extracting here
 
-        if logger is not None:
-            logger.info("Read tar file... ")
+        logg_info("Read tar file... ")
         archive = tarfile.open(os.path.join(path, filename), "r")
         # Filelistnames = archive.getnames()
 
-        if logger is not None:
-            logger.info("Extracting tar file... ")
+        logg_info("Extracting tar file... ")
         archive.extractall(os.path.join(path, unpack_directory))
         archive.close()
         return os.path.join(path, unpack_directory)
@@ -200,20 +201,20 @@ class DownloadDataset:
         Returns:
             os.path: Filepath of the extracted dataset folder.
         """
-        if os.path.exists(os.path.join(path, unpack_directory)):
+        def logg_info(msg):
             if logger is not None:
-                logger.info("Directory for extraction exists. Done.")
+                logger.info(msg)
+
+        if os.path.exists(os.path.join(path, unpack_directory)):
+            logg_info("Directory for extraction exists. Done.")
             if not overwrite:
-                if logger is not None:
-                    logger.info("Not extracting zip file. Stopped.")
+                logg_info("Not extracting zip file. Stopped.")
                 return os.path.join(path, unpack_directory)
 
-        if logger is not None:
-            logger.info("Read zip file ... ")
+        logg_info("Read zip file ... ")
         archive = zipfile.ZipFile(os.path.join(path, filename), "r")
         # Filelistnames = archive.getnames()
-        if logger is not None:
-            logger.info("Extracting zip file...")
+        logg_info("Extracting zip file...")
         archive.extractall(os.path.join(path, unpack_directory))
         archive.close()
         return os.path.join(path, unpack_directory)
@@ -233,19 +234,20 @@ class DownloadDataset:
         Returns:
             os.path: Filepath of the extracted file.
         """
+        def logg_info(msg):
+            if logger is not None:
+                logger.info(msg)
+
         if out_filename is None:
             out_filename = filename.replace(".gz", "")
 
         if os.path.exists(os.path.join(path, out_filename)):
-            if logger is not None:
-                logger.info("Extracted file exists. Done.")
+            logg_info("Extracted file exists. Done.")
             if not overwrite:
-                if logger is not None:
-                    logger.info("Not extracting gz-file. Stopped.")
+                logg_info("Not extracting gz-file. Stopped.")
                 return os.path.join(path, out_filename)
 
-        if logger is not None:
-            logger.info("Extract gz-file ... ")
+        logg_info("Extract gz-file ... ")
 
         with gzip.open(os.path.join(path, filename), 'rb') as f_in:
             with open(os.path.join(path, out_filename), 'wb') as f_out:
