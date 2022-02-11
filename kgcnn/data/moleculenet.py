@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from typing import Dict, Callable
+from typing import Dict, Callable, Union
 from collections import defaultdict
 
 from kgcnn.mol.gen.base import smile_to_mol
@@ -234,7 +234,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     def _graph_label_callback(mg, ds, label_column_name):
         return ds[label_column_name]
 
-    def read_in_memory(self, label_column_name: str = None,
+    def read_in_memory(self, label_column_name: Union[str, list] = None,
                        has_conformers: bool = True,
                        add_hydrogen: bool = True):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and

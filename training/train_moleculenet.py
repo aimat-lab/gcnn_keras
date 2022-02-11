@@ -62,7 +62,7 @@ except NotImplementedError:
     dataset = MoleculeNetDataset(**hyper.dataset()["config"])
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
+# This is only done, if there is an entry with functional kwargs in hyper-parameters in the 'data' section.
 # The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
 # methods listed by name below.
 data_selection.perform_methods_on_dataset(

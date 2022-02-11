@@ -108,7 +108,7 @@ def make_model(inputs=None,
         out = GraphMLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for mode `GraphSAGE`")
+        raise ValueError("Unsupported graph embedding for `GraphSAGE`")
 
     model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
