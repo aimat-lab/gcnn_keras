@@ -9,7 +9,8 @@ module_logger.setLevel(logging.INFO)
 
 
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
-    """Optional embedding for tensor input. If there is no feature dimension, an embedding layer can be used.
+    """Deprecated. Optional embedding for tensor input.
+    If there is no feature dimension, an embedding layer can be used.
     If the input tensor has without batch dimension the shape of e.g. `(None, F)` and `F` is the feature dimension,
     no embedding layer is required. However, for shape `(None, )` an embedding with `output_dim` assures a vector
     representation.

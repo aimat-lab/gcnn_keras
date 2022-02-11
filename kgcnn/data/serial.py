@@ -19,8 +19,8 @@ global_dataset_register = {
 
 
 def deserialize(dataset: dict):
-    """Deserialize a dataset class from dictionary including "class_name" and "config" keys. At the moment no loading
-    of the data via methods is supported.
+    r"""Deserialize a dataset class from dictionary including "class_name" and "config" keys.
+    Furthermore "prepare_data", "read_in_memory" and "set_attributes" are possible for deserialization.
 
     Args:
         dataset (dict): Dictionary of the dataset serialization.
@@ -29,8 +29,20 @@ def deserialize(dataset: dict):
         MemoryGraphDataset: Deserialized dataset.
     """
     global global_dataset_register
+    # Requires dict. If already deserialized, nothing to do.
     if not isinstance(dataset, dict):
         module_logger.warning("Can not deserialize dataset %s." % dataset)
         return dataset
+
+    # Find dataset class in register.
     ds_class = global_dataset_register[dataset["class_name"]]
-    return ds_class(**dataset["config"])
+    config = dataset["config"] if "config" in dataset else {}
+    ds_instance = ds_class(**config)
+
+    # Call class methods to load data.
+    method_list = ["prepare_data", "read_in_memory", "set_attributes"]
+    for x in method_list:  # Order is important here.
+        if x in dataset and hasattr(ds_instance, x):
+            getattr(ds_instance, x)(**dataset[x])
+
+    return ds_instance

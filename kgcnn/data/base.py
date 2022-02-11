@@ -496,9 +496,6 @@ class MemoryGraphList:
         data.assign_property("node_coordinates", [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])])
         print(data.obtain_property("node_coordinates"))
         data.map_list("set_range", max_distance=1.5, max_neighbours=10, self_loops=False)
-        # Shortcut of reserved attributes
-        print(data.range_indices, data.range_attributes)
-        print(data[0])
     """
 
     def __init__(self, input_list: list = None):
