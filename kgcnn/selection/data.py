@@ -45,7 +45,7 @@ class DatasetSelection:
             {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
 
         Args:
-            dataset: Dataset to validate model input against.
+            dataset (MemoryGraphDataset): Dataset to validate model input against.
             hyper_input (list): List of properties that need to be available to a model for training.
             raise_error_on_fail (bool): Whether to raise an error if assertion failed.
         """
@@ -78,32 +78,55 @@ class DatasetSelection:
         return
 
     @staticmethod
-    def perform_methods_on_dataset(dataset, methods_supported: list, hyper_data):
-        r"""An interface to hyper-parameters to run further class methods on a :obj:`MemoryGraphDataset`.
+    def perform_methods_on_dataset(dataset, methods_supported: list, hyper_data: dict,
+                                   ignore_unsupported: bool = True):
+        r"""An interface to hyper-parameters to run further methods with :obj:`MemoryGraphDataset`.
 
         Args:
-            dataset: An instance of a :obj:`MemoryGraphDataset`.
+            dataset (MemoryGraphDataset): An instance of a :obj:`MemoryGraphDataset`.
             methods_supported (list): List of methods that can be performed on the dataset. The order is respected.
             hyper_data (dict): Dictionary of the 'data' section of hyper-parameters for the dataset.
+            ignore_unsupported (bool): Ignore methods that are not in `methods_supported`.
 
         Returns:
             MemoryGraphDataset: Modified :obj:`MemoryGraphDataset` from input.
         """
         hyper_data_methods = hyper_data["methods"]
+        unsupported_methods = []
 
-        for method in methods_supported:
-            if method in hyper_data_methods:
+        methods_to_run = []
+        # Case where "methods": {"method": {...}, ...}
+        if isinstance(hyper_data_methods, dict):
+            # First append supported methods in order of methods_supported.
+            for method_item in methods_supported:
+                if method_item in hyper_data_methods:
+                    methods_to_run.append({method_item: hyper_data_methods[method_item]})
+            # Append methods that are not in methods_supported.
+            for method, kwargs in hyper_data_methods.items():
+                if method not in methods_supported:
+                    methods_to_run.append({method: kwargs})
+        # Case where "methods": [{"method": {...}}, {...}, ...]
+        elif isinstance(hyper_data_methods, list):
+            methods_to_run = hyper_data_methods
+        else:
+            dataset.error("Methods defined in hyper must be list or dict but got %s" % type(hyper_data_methods))
+            TypeError("Wrong type of method list for dataset.")
+
+        # Try to call all methods in methods_to_run.
+        for method_item in methods_to_run:
+            for method, kwargs in method_item.items():
+                if method not in methods_supported:
+                    unsupported_methods.append(method)
+                    if ignore_unsupported:
+                        continue
+                # Check if dataset has method.
                 if hasattr(dataset, method):
-                    getattr(dataset, method)(**hyper_data_methods[method])
+                    getattr(dataset, method)(**kwargs)
+                # Else pass along to each graph in list via map_list.
                 else:
-                    # Try if the list is method is on graphs instead on the list.
-                    dataset.map_list(method, **hyper_data_methods[method])
+                    dataset.map_list(method, **kwargs)
 
-        additional_keys = []
-        for key, value in hyper_data_methods.items():
-            if key not in methods_supported:
-                additional_keys.append(key)
-        if len(additional_keys) > 0:
+        if len(unsupported_methods) > 0:
             dataset.warning(
-                "Additional method(s) found, which do not match a suitable dataset method: %s" % additional_keys)
+                "Additional method(s) found, which do not match a suitable dataset method: %s" % unsupported_methods)
         return
