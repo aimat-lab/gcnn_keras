@@ -56,7 +56,7 @@ def deserialize(dataset: dict):
             raise NotImplementedError(
                 "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
 
-    # Call class methods to load data.
+    # Call class methods to load or process data.
     # Order is important here.
     if "methods" in dataset:
         method_list = dataset["methods"]
