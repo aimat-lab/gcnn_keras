@@ -9,7 +9,7 @@ class DatasetSelection:
         r"""Set-up of :obj:`DatasetSelection` with a name of the dataset.
 
         Args:
-            dataset_name (str, dict): Name of the dataset. Default is None.
+            dataset_name (str): Name of the dataset. Default is None.
         """
         super(DatasetSelection, self).__init__()
         self.dataset_name = dataset_name
