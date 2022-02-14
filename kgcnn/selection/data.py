@@ -1,43 +1,42 @@
-import importlib
+from typing import Union
+from kgcnn.data.serial import deserialize as deserialize_dataset
 
 
 class DatasetSelection:
     r"""Helper class to load datasets from :obj:`kgcnn.data.datasets`"""
 
     def __init__(self, dataset_name: str = None):
-        r"""Set-up of the :obj:`DatasetSelection` with a name of the dataset to make and modify.
+        r"""Set-up of :obj:`DatasetSelection` with a name of the dataset.
 
         Args:
-            dataset_name (str): Name of the dataset. Default is None.
+            dataset_name (str, dict): Name of the dataset. Default is None.
         """
         super(DatasetSelection, self).__init__()
         self.dataset_name = dataset_name
 
     def dataset(self, **kwargs):
-        r"""Generate a dataset with kwargs for constructor of the dataset. The name of the dataset is passed to this
-        class via :obj:`dataset_name`. The actual dataset class if dynamically loaded from a module in
+        r"""Generate a dataset with kwargs for construction of the dataset. The name of the dataset is stored in
+        class property :obj:`dataset_name`. The actual dataset class is dynamically loaded from a module in
         :obj:`kgcnn.data.datasets`.
 
         Args:
-            kwargs: Kwargs for the dataset constructor.
+            kwargs: Kwargs for the dataset config.
 
         Returns:
             MemoryGraphDataset: Sub-classed :obj:`MemoryGraphDataset`.
         """
-        dataset_name = self.dataset_name
-        if dataset_name is None:
+        if self.dataset_name is None:
             raise ValueError("A name of the dataset in kgcnn.data.datasets must be provided.")
-
-        try:
-            dataset = getattr(importlib.import_module("kgcnn.data.datasets.%s" % dataset_name), str(dataset_name))
-            return dataset(**kwargs)
-        except ModuleNotFoundError:
-            raise NotImplementedError(
-                "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
+        dataset_config = {"class_name": self.dataset_name}
+        if "config" in kwargs:
+            dataset_config.update(kwargs)
+        else:
+            dataset_config.update({"config": kwargs})
+        return deserialize_dataset(dataset_config)
 
     @staticmethod
     def assert_valid_model_input(dataset, hyper_input: list, raise_error_on_fail: bool = True):
-        r"""Interface to hyper-parameters. Check whether dataset has graph (tensor) properties requested
+        r"""Interface to hyper-parameters. Check whether dataset has graph-properties (tensor format) requested
         by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
 
         Example:
