@@ -58,9 +58,11 @@ def deserialize(dataset: dict):
 
     # Call class methods to load data.
     # Order is important here.
-    method_list = ["prepare_data", "read_in_memory", "set_attributes"]
-    for x in method_list:
-        if x in dataset and hasattr(ds_instance, x):
-            getattr(ds_instance, x)(**dataset[x])
+    if "methods" in dataset:
+        method_list = dataset["methods"]
+        for method_item in method_list:
+            for method, kwargs in method_item.items():
+                if hasattr(ds_instance, method):
+                    getattr(ds_instance, method)(**kwargs)
 
     return ds_instance
