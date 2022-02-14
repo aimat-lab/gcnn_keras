@@ -3,7 +3,10 @@ from kgcnn.data.serial import deserialize as deserialize_dataset
 
 
 class DatasetSelection:
-    r"""Helper class to load datasets from :obj:`kgcnn.data.datasets`"""
+    r"""Helper class to load datasets from :obj:`kgcnn.data.datasets`. Note that datasets can be deserialized via
+    `kgcnn.data.serial.deserialize`. This class is used for accessing datasets in training scripts.
+
+    """
 
     def __init__(self, dataset_name: str = None):
         r"""Set-up of :obj:`DatasetSelection` with a name of the dataset.
@@ -20,7 +23,8 @@ class DatasetSelection:
         :obj:`kgcnn.data.datasets`.
 
         Args:
-            kwargs: Kwargs for the dataset config.
+            kwargs: Kwargs for the dataset config. This can be either directly the kwargs of "config" or the dictionary
+                of {"config": {...}, ...} itself, which is preferred.
 
         Returns:
             MemoryGraphDataset: Sub-classed :obj:`MemoryGraphDataset`.

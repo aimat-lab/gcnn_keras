@@ -64,5 +64,7 @@ def deserialize(dataset: dict):
             for method, kwargs in method_item.items():
                 if hasattr(ds_instance, method):
                     getattr(ds_instance, method)(**kwargs)
+                else:
+                    ds_instance.error("Dataset class does not have property %s" % method)
 
     return ds_instance
