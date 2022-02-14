@@ -62,9 +62,13 @@ except NotImplementedError:
 # This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
 # The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
 # methods listed by name below.
-data_selection.perform_methods_on_dataset(
-    dataset, ["prepare_data", "read_in_memory", "set_range", "set_angle",
-              "normalize_edge_weights_sym", "set_edge_indices_reverse"], hyper.data())
+methods_supported = ["prepare_data", "read_in_memory", "set_range", "set_angle",
+                     "normalize_edge_weights_sym", "set_edge_indices_reverse"]
+data_selection.perform_methods_on_dataset(dataset, methods_supported, hyper.data())
+
+# Check if dataset has the required properties for model input. This includes a quick shape comparison.
+# The name of the keras `Input` layer of the model is directly connected to property of the dataset.
+# Example 'edge_indices' or 'node_attributes'. This couples the keras model to the dataset.
 data_selection.assert_valid_model_input(dataset, hyper.inputs())
 
 # Filter the dataset for invalid graphs. At the moment invalid graphs are graphs which do not have the property set,
