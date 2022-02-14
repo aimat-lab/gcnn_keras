@@ -29,6 +29,7 @@ class DatasetSelection:
             raise ValueError("A name of the dataset in kgcnn.data.datasets must be provided.")
         dataset_config = {"class_name": self.dataset_name}
         if "config" in kwargs:
+            # Could potentially overwrite class_name.
             dataset_config.update(kwargs)
         else:
             dataset_config.update({"config": kwargs})
@@ -85,7 +86,8 @@ class DatasetSelection:
         Args:
             dataset (MemoryGraphDataset): An instance of a :obj:`MemoryGraphDataset`.
             methods_supported (list): List of methods that can be performed on the dataset. The order is respected.
-            hyper_data (dict): Dictionary of the 'data' section of hyper-parameters for the dataset.
+            hyper_data (dict): Dictionary of the 'data' section of hyper-parameters for the dataset. Must contain an
+                item "methods".
             ignore_unsupported (bool): Ignore methods that are not in `methods_supported`.
 
         Returns:
@@ -101,7 +103,7 @@ class DatasetSelection:
             for method_item in methods_supported:
                 if method_item in hyper_data_methods:
                     methods_to_run.append({method_item: hyper_data_methods[method_item]})
-            # Append methods that are not in methods_supported.
+            # Append methods that are not in methods_supported afterwards.
             for method, kwargs in hyper_data_methods.items():
                 if method not in methods_supported:
                     methods_to_run.append({method: kwargs})
