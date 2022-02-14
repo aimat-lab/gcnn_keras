@@ -24,7 +24,7 @@ class DatasetSelection:
 
         Args:
             kwargs: Kwargs for the dataset config. This can be either directly the kwargs of "config" or the dictionary
-                of {"config": {...}, ...} itself, which is preferred.
+                of {"config": {...}, "methods": [...], ...} itself, which is preferred.
 
         Returns:
             MemoryGraphDataset: Sub-classed :obj:`MemoryGraphDataset`.
@@ -41,7 +41,7 @@ class DatasetSelection:
 
     @staticmethod
     def assert_valid_model_input(dataset, hyper_input: list, raise_error_on_fail: bool = True):
-        r"""Interface to hyper-parameters. Check whether dataset has graph-properties (tensor format) requested
+        r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
         by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
 
         Example:
@@ -85,7 +85,9 @@ class DatasetSelection:
     @staticmethod
     def perform_methods_on_dataset(dataset, methods_supported: list, hyper_data: dict,
                                    ignore_unsupported: bool = True):
-        r"""An interface to hyper-parameters to run further methods with :obj:`MemoryGraphDataset`.
+        r"""An interface to hyperparameter to run further methods with :obj:`MemoryGraphDataset`.
+        This method is deprecated and will not be used for further development in favor of
+        `kgcnn.data.serial.deserialize`.
 
         Args:
             dataset (MemoryGraphDataset): An instance of a :obj:`MemoryGraphDataset`.

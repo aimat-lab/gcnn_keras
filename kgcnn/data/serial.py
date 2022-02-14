@@ -68,3 +68,5 @@ def deserialize(dataset: dict):
                     ds_instance.error("Dataset class does not have property %s" % method)
 
     return ds_instance
+
+
