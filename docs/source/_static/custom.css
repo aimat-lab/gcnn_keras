@@ -4,5 +4,9 @@
 
 .wy-side-nav-search {
     /* GhostWhite */
-    background-color: #F8F8FF;
+    background: #F8F8FF;
+}
+
+.wy-side-nav-search > div.version {
+  color: black;
 }
