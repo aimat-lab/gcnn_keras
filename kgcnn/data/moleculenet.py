@@ -286,8 +286,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
         which define how the property is derived from either the :obj:`MolecularGraphRDKit` or the corresponding
         row of the original CSV file. Those callback functions accept two parameters:
 
-            - mg: The :obj:`MolecularGraphRDKit` instance of the molecule
-            - ds: A pandas data series that match data in the CSV file for the specific molecule.
+            * mg: The :obj:`MolecularGraphRDKit` instance of the molecule
+            * ds: A pandas data series that match data in the CSV file for the specific molecule.
 
         Example:
 

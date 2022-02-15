@@ -74,7 +74,7 @@ html_theme_options = {
 # a list of builtin themes.
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_logo = "_static/img/icon.svg"
+html_logo = "_static/icon.svg"
 html_css_files = [
     'custom.css',
 ]
