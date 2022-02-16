@@ -69,7 +69,7 @@ However, note that the python file will be executed, and a serialization after m
 Literature
 ----------
 
-A version of the following models is implemented in [literature](kgcnn/literature):
+A version of the following models is implemented in `literature <https://github.com/aimat-lab/gcnn_keras/tree/master/kgcnn/literature>`_:
 
 * `GCN <https://github.com/aimat-lab/gcnn_keras/blob/master/kgcnn/literature/GCN.py>`_: `Semi-Supervised Classification with Graph Convolutional Networks <https://arxiv.org/abs/1609.02907>`_ by Kipf et al. (2016)
 * `INorp <https://github.com/aimat-lab/gcnn_keras/blob/master/kgcnn/literature/INorp.py>`_: `Interaction Networks for Learning about Objects,Relations and Physics <https://arxiv.org/abs/1612.00222>`_ by Battaglia et al. (2016)
