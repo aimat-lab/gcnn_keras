@@ -8,6 +8,7 @@ from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding, DenseEmbedding, ActivationEmbedding
 from kgcnn.layers.pooling import PoolingNodes, PoolingEmbeddingAttention
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
+from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator
 
 # Model by
 # HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks
@@ -51,26 +52,21 @@ def make_model(name: str = None,
     edi = edge_index_input
 
     # Second part of HamNet. Fingerprint generator. Very Similar to AttentiveFP.
-    n = GraphMLP()(n)
-    ed = GraphMLP()(ed)
+    n, ed, p, q
     for i in range(depth):
-        uv = GatherNodes()([n, edi])
-        nbf = GraphMLP()(uv)
-        a = DenseEmbedding(1)(ed)
-        m = PoolingEmbeddingAttention()([n, nbf, a, edi])
-        m = ActivationEmbedding("elu")(m)
-        n = GRUUpdate()([n, m])
+        nu, eu = HamNaiveDynMessage()([n, ed, p, q, edi])
+        n = GRUUpdate()([n, nu])
+        ed = GRUUpdate()([ed, eu])
         # New edge, in original version MLP, later also GRU.
-        ed = GraphMLP()(uv)
 
     if output_embedding == 'graph':
-        h0 = PoolingNodes()(n)
-
+        out = HamNetFingerprintGenerator()(n)
         out = ks.layers.Flatten()(out)  # will be tensor
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        main_output = ChangeTensorType(input_tensor_type='ragged',
+                                       output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for `HamNet`")
 
