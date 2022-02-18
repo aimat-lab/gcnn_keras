@@ -98,8 +98,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         self.info("Generating molecules and store %s to disk..." % self.file_path_mol)
         molecule_list = []
-        for i in range(0, len(smiles), 1000):
-            mg = smile_to_mol(smiles[i:i + 1000], self.data_directory,
+        for i in range(0, len(smiles), self.DEFAULT_LOOP_UPDATE_INFO):
+            mg = smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO], self.data_directory,
                               add_hydrogen=add_hydrogen, sanitize=sanitize,
                               make_conformers=make_conformers, optimize_conformer=optimize_conformer,
                               external_program=external_program, num_workers=num_workers)
@@ -151,7 +151,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def _map_molecule_callbacks(self, callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]],
+    def _map_molecule_callbacks(self, callbacks: Dict[str, Callable[[MolecularGraphRDKit, pd.DataSeries], None]],
                                 add_hydrogen: bool = False):
         r"""This method loads the list of molecules from the SDF file, as well as the data of the original CSV file.
         It then iterates over all the molecules / csv rows and invokes all of the defines callbacks for each.

@@ -73,7 +73,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index]
+            inputs (list): [position, edge_index, lattice]
 
                 - position (tf.RaggedTensor): Positions of shape (batch, [M], 3)
                 - edge_image (tf.RaggedTensor): Position in which image to shift of shape (batch, [M], 3)

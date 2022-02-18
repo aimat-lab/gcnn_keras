@@ -7,17 +7,17 @@ from kgcnn.utils.data import load_hyper_file, save_json_file
 
 
 class HyperSelection:
-    r"""A class to store hyper-parameters for a specific dataset and model, exposing them for model training scripts.
+    r"""A class to store hyperparameter for a specific dataset and model, exposing them for model training scripts.
     This includes training parameters and a set of general information like a path for output of the training stats
     or the expected version of `kgcnn`. The class methods will extract and possibly serialize or deserialized the
-    necessary kwargs from the hyper-parameter dictionary with additional default values. Also changes in the
-    hyper-parameter definition can be made without affecting training scripts and made compatible with previous
+    necessary kwargs from the hyperparameter dictionary with additional default values. Also changes in the
+    hyperparameter definition can be made without affecting training scripts and made compatible with previous
     versions.
     """
 
     def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):
-        """Make a hyper-parameter class instance. Required is the hyper-parameter dictionary or path to a config
-        file containing the hyper-parameters. Furthermore name of the dataset and model can be provided.
+        """Make a hyperparameter class instance. Required is the hyperparameter dictionary or path to a config
+        file containing the hyperparameter. Furthermore, name of the dataset and model can be provided.
 
         Args:
             hyper_info (str, dict): Hyper-parameters dictionary or path to file.
@@ -109,8 +109,8 @@ class HyperSelection:
         return out
 
     def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
-        """Select fit hyper-parameter. Additional default values for the training scripts are given as
-        functional kwargs. Functional kwargs are overwritten by hyper-parameters.
+        """Select fit hyperparameter. Additional default values for the training scripts are given as
+        functional kwargs. Functional kwargs are overwritten by hyperparameters.
 
         Args:
             epochs (int): Default number of epochs. Default is 1.
@@ -119,7 +119,7 @@ class HyperSelection:
             callbacks (list): Default Callbacks. Default is None.
 
         Returns:
-            dict: de-serialized fit kwargs from hyper-parameters.
+            dict: de-serialized fit kwargs from hyperparameters.
         """
         hyper_fit = deepcopy(self._hyper["training"]["fit"])
         reserved_fit_arguments = ["callbacks", "batch_size", "validation_freq", "epochs"]
@@ -145,18 +145,18 @@ class HyperSelection:
         return out
 
     def cross_validation(self):
-        """Configuration for cross-validation. At the moment no de-serialization is used, but the hyper-parameters
+        """Configuration for cross-validation. At the moment no de-serialization is used, but the hyperparameters
         can be set with keras-like serialization.
 
         Returns:
-            dict: Cross-validation configuration from hyper-parameters.
+            dict: Cross-validation configuration from hyperparameters.
         """
         return self.training()["cross_validation"]
 
     def results_file_path(self):
-        r"""Make output folder for results based on hyper-parameter and return path to that folder.
+        r"""Make output folder for results based on hyperparameter and return path to that folder.
         The folder is set up as `'results'/dataset/model_name + post_fix`. Where model and dataset name must be set by
-        this class. Postfix can be in hyper-parameters setting.
+        this class. Postfix can be in hyperparameters setting.
 
         Returns:
             str: File-path or path object to result folder.
@@ -180,10 +180,10 @@ class HyperSelection:
         return str(hyper_info["postfix_file"]) if "postfix_file" in hyper_info else ""
 
     def save(self, file_path: str):
-        """Save the hyper-parameter to path.
+        """Save the hyperparameter to path.
 
         Args:
-            file_path (str): Full file path to save hyper-parameters to.
+            file_path (str): Full file path to save hyperparameter to.
         """
         # Must make more refined saving and serialization here.
         save_json_file(self._hyper, file_path)
@@ -192,12 +192,12 @@ class HyperSelection:
         r"""Dictionary of model kwargs. Can be nested.
 
         Returns:
-            dict: Model kwargs for :obj:`make_model()` function from hyper-parameters.
+            dict: Model kwargs for :obj:`make_model()` function from hyperparameter.
         """
         return deepcopy(self._hyper["model"])
 
     def use_scaler(self, use_scaler=False):
-        r"""Use scaler. Functional kwargs are overwritten by hyper-parameters.
+        r"""Use scaler. Functional kwargs are overwritten by hyperparameter.
 
         Args:
             use_scaler (bool): Whether to use scaler as default. Default is False.
