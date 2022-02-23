@@ -151,7 +151,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def _map_molecule_callbacks(self, callbacks: Dict[str, Callable[[MolecularGraphRDKit, pd.DataSeries], None]],
+    def _map_molecule_callbacks(self, callbacks: Dict[str, Callable[[MolecularGraphRDKit, pd.Series], None]],
                                 add_hydrogen: bool = False):
         r"""This method loads the list of molecules from the SDF file, as well as the data of the original CSV file.
         It then iterates over all the molecules / csv rows and invokes all of the defines callbacks for each.
