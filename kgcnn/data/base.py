@@ -636,9 +636,9 @@ class MemoryGraphList:
         else:
             raise TypeError("Wrong type, expected e.g. [{'name': 'edge_indices', 'ragged': True}, {...}, ...]")
 
-    def map_list(self, fun, **kwargs):
+    def map_list(self, method, **kwargs):
         for x in self._list:
-            getattr(x, fun)(**kwargs)
+            getattr(x, method)(**kwargs)
         return self
 
     def clean(self, inputs: list):
@@ -746,7 +746,7 @@ class MemoryGraphDataset(MemoryGraphList):
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
-        if not os.path.exists(self.data_directory):
+        if not os.path.exists(os.path.realpath(self.data_directory)):
             self.error("Data directory does not exist.")
         if self.file_name is None:
             self.warning("Can not determine file path.")

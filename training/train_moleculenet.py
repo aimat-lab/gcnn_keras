@@ -81,7 +81,7 @@ data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For `MoleculeNetDataset`, always train on `graph_labels`.
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
-labels = np.array(dataset.graph_labels)
+labels = np.array(dataset.obtain_property("graph_labels"))
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
