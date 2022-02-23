@@ -11,7 +11,7 @@ class MLPBase(GraphBaseLayer):
     r"""Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
     If not list, then the single argument is used for each layer.
     The number of layers is given by units, which should be list.
-    Additionally this base class holds arguments for batch-normalization which should be applied between kernel
+    Additionally, this base class holds arguments for batch-normalization which should be applied between kernel
     and activation. And dropout after the kernel output and before normalization.
     This base class does not initialize any sub-layers or implements :obj:`call()`. Only for managing arguments.
 
@@ -76,30 +76,66 @@ class MLPBase(GraphBaseLayer):
                  # Normalization
                  use_normalization=False,
                  normalization_technique="batch",
-                 axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
-                 beta_initializer='zeros', gamma_initializer='ones',
+                 axis=-1,
+                 momentum=0.99,
+                 epsilon=0.001,
+                 center=True,
+                 scale=True,
+                 beta_initializer='zeros',
+                 gamma_initializer='ones',
                  moving_mean_initializer='zeros',
-                 moving_variance_initializer='ones', beta_regularizer=None,
-                 gamma_regularizer=None, beta_constraint=None, gamma_constraint=None,
+                 moving_variance_initializer='ones',
+                 beta_regularizer=None,
+                 gamma_regularizer=None,
+                 beta_constraint=None,
+                 gamma_constraint=None,
                  # Dropout
                  use_dropout=False,
-                 rate=None, noise_shape=None, seed=None,
+                 rate=None,
+                 noise_shape=None,
+                 seed=None,
                  **kwargs):
         """Initialize MLP as for dense."""
         super(MLPBase, self).__init__(**kwargs)
-        # everything should be defined by units.
+        local_kw = locals()
+
+        # List for groups of arguments.
+        key_list_act = ["activation", "activity_regularizer"]
+        key_list_dense = [
+            "units", "use_bias", "kernel_regularizer", "bias_regularizer",
+            "kernel_initializer", "bias_initializer", "kernel_constraint", "bias_constraint"]
+        key_list_norm = [
+            "axis", "momentum", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+            "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer", "gamma_regularizer",
+            "beta_constraint", "gamma_constraint"]
+        key_list_dropout = ["rate", "noise_shape", "seed"]
+        key_list_use = ["use_dropout", "use_normalization", "normalization_technique"]
+
+        # Dictionary of kwargs for MLP.
+        key_list = key_list_act + key_list_dense + key_list_norm + key_list_dropout + key_list_use
+        mlp_kwargs = {key: local_kw[key] for key in key_list}
+
+        # Everything should be defined by units.
         if isinstance(units, int):
             units = [units]
         if not isinstance(units, list):
             raise ValueError("Units must be a list or a single int for `MLP`.")
-
         self._depth = len(units)
+        # Special case, if axis is supposed to be multiple axis, use tuple here.
+        if not isinstance(axis, list):
+            axis = [axis for _ in units]
+        # Special case, for shape, use tuple here.
+        if not isinstance(noise_shape, list):
+            noise_shape = [noise_shape for _ in units]
 
         # Assert matching number of args
         def assert_args_is_list(args):
             if not isinstance(args, (list, tuple)):
                 return [args for _ in range(self._depth)]
             return args
+
+        for key, value in mlp_kwargs.items():
+            mlp_kwargs[key] = assert_args_is_list(value)
 
         # Dense
         use_bias = assert_args_is_list(use_bias)
@@ -114,8 +150,6 @@ class MLPBase(GraphBaseLayer):
         # Normalization
         use_normalization = assert_args_is_list(use_normalization)
         normalization_technique = assert_args_is_list(normalization_technique)
-        if not isinstance(axis, list):  # Special case, if axis is supposed to be multiple axis, use tuple here.
-            axis = [axis for _ in units]
         momentum = assert_args_is_list(momentum)
         epsilon = assert_args_is_list(epsilon)
         center = assert_args_is_list(center)
@@ -132,8 +166,6 @@ class MLPBase(GraphBaseLayer):
         use_dropout = assert_args_is_list(use_dropout)
         rate = assert_args_is_list(rate)
         seed = assert_args_is_list(seed)
-        if not isinstance(noise_shape, list):  # Special case, for shape, use tuple here.
-            noise_shape = [noise_shape for _ in units]
 
         for x in [activation, kernel_regularizer, bias_regularizer, activity_regularizer, kernel_initializer,
                   bias_initializer, kernel_constraint, bias_constraint, use_bias, axis, momentum, epsilon,
@@ -141,11 +173,7 @@ class MLPBase(GraphBaseLayer):
                   moving_variance_initializer, beta_regularizer, gamma_regularizer, beta_constraint,
                   gamma_constraint, rate, seed, noise_shape, use_dropout, use_normalization, normalization_technique]:
             if len(x) != len(units):
-                raise ValueError("Error: Provide matching list of units", units, "and", x, "or simply a single value.")
-
-        for x in normalization_technique:
-            if x not in ["batch", "layer", "group", "instance"]:
-                raise ValueError("ERROR Unknown normalization method, choose: batch, layer, group, instance, ...")
+                raise ValueError("Provide matching list of units", units, "and", x, "or simply a single value.")
 
         # Deserialized args
         self._conf_units = list(units)
@@ -369,7 +397,7 @@ class MLP(MLPBase):
                         **self._conf_mlp_norm_layer_kwargs[i])
                 else:
                     raise NotImplementedError(
-                        "ERROR: Normalization via %s not supported." % self._conf_normalization_technique[i])
+                        "Normalization via %s not supported." % self._conf_normalization_technique[i])
 
     def build(self, input_shape):
         """Build layer."""
