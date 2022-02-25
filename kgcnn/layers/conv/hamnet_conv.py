@@ -35,8 +35,8 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
         self.gather_state = GatherState()
         if self.use_dropout:
             self.dropout_layer = DropoutEmbedding(rate=rate, noise_shape=noise_shape, seed=seed)
-        self.dense_attend = DenseEmbedding(units=units, activation=activation, **kernel_args)
-        self.dense_align = DenseEmbedding(1, activation="linear", **kernel_args)
+        self.dense_attend = DenseEmbedding(units=units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.dense_align = DenseEmbedding(1, activation="linear", use_bias=use_bias, **kernel_args)
         self.lay_concat = LazyConcatenate(axis=-1)
         self.pool_attention = PoolingNodesAttention()
         self.final_activ = ActivationEmbedding(activation=activation_last,
@@ -251,9 +251,9 @@ class HamNaiveDynMessage(GraphBaseLayer):
         self.lay_concat_edge = LazyConcatenate(axis=-1)
         if self.use_dropout:
             self.dropout_layer = DropoutEmbedding(rate=rate, noise_shape=noise_shape, seed=seed)
-        self.dense_attend = DenseEmbedding(units=units, activation=activation, **kernel_args)
-        self.dense_align = DenseEmbedding(1, activation="linear", **kernel_args)
-        self.dense_e = DenseEmbedding(units=units_edge, activation=activation, **kernel_args)
+        self.dense_attend = DenseEmbedding(units=units, use_bias=use_bias, activation=activation, **kernel_args)
+        self.dense_align = DenseEmbedding(1, activation="linear", use_bias=use_bias, **kernel_args)
+        self.dense_e = DenseEmbedding(units=units_edge, activation=activation, use_bias=use_bias, **kernel_args)
         self.lay_concat = LazyConcatenate(axis=-1)
         self.pool_attention = PoolingLocalEdgesAttention()
         self.final_activ = ActivationEmbedding(activation=activation_last,
@@ -312,4 +312,56 @@ class HamNaiveDynMessage(GraphBaseLayer):
                 config.update({x: conf_drop[x]})
         conf_last = self.final_activ.get_config()
         config.update({"activation_last": conf_last["activation"]})
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
+class HamiltonEngine(GraphBaseLayer):
+    def __init__(self,
+                 units,
+                 activation="kgcnn>leaky_relu",
+                 use_bias=True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 **kwargs):
+        """Initialize layer."""
+        super(HamiltonEngine, self).__init__(**kwargs)
+        self.units = int(units)
+        self.use_bias = bool(use_bias)
+        kernel_args = {"kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+        self.dense_atom = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+        self.dense_edge = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(HamiltonEngine, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, edge, edge_indices]
+
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
+        """
+        atom_ftr, bond_ftr, edge_idx = inputs
+        hv_ftr = self.dense_atom(atom_ftr, **kwargs)
+        he_ftr = self.dense_edge(bond_ftr, **kwargs)
+        return
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(HamiltonEngine, self).get_config()
+        config.update({"use_bias": self.use_bias, "units": self.units,})
         return config

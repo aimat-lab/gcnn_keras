@@ -99,7 +99,7 @@ class DatasetSelection:
         Returns:
             MemoryGraphDataset: Modified :obj:`MemoryGraphDataset` from input.
         """
-        hyper_data_methods = hyper_data["methods"]
+        hyper_data_methods = hyper_data["methods"] if "methods" in hyper_data else {}
         unsupported_methods = []
 
         methods_to_run = []

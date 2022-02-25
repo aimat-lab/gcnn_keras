@@ -28,13 +28,13 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Get name for model, dataset, and path to a hyper-parameter file.
+# Get name for model, dataset, and path to a hyperparameter file.
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 
-# A class `HyperSelection` is used to expose and verify hyper-parameters.
-# The hyper-parameters are stores as a dictionary with section 'model', 'data' and 'training'.
+# A class `HyperSelection` is used to expose and verify hyperparameter.
+# The hyperparameter are stored as a dictionary with section 'model', 'data' and 'training'.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.

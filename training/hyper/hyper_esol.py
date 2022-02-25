@@ -24,7 +24,7 @@ hyper = {
                 "callbacks": []
             },
             "compile": {
-                "optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.0031622776601683794,
+                "optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.001,
                                                                        "weight_decay": 1e-05}},
                 "loss": "mean_squared_error"
             },
@@ -34,16 +34,15 @@ hyper = {
                        "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
-                "set_edge_indices_reverse": {}
+            "dataset": {"class_name": "ESOLDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "DMPNN": {
