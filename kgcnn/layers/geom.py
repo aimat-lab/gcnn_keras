@@ -431,7 +431,7 @@ class BesselBasisLayer(GraphBaseLayer):
         if self.envelope_type not in ["poly"]:
             raise ValueError("Unknown envelope type %s in BesselBasisLayer" % self.envelope_type)
 
-        # Initialize frequencies at canonical positions
+        # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):
             return tf.constant(np.pi * np.arange(1, shape + 1, dtype=np.float32), dtype=dtype)
 

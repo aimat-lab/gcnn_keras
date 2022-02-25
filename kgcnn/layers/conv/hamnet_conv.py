@@ -59,13 +59,12 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
             tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
         """
         hm_ftr, hv_ftr = inputs
-        hm_v_ftr = self.lay_gather_s([hm_ftr, hv_ftr], **kwargs)
+        hm_v_ftr = self.gather_state([hm_ftr, hv_ftr], **kwargs)
 
         attend_ftr = hv_ftr
         if self.use_dropout:
             attend_ftr = self.dropout_layer(attend_ftr, **kwargs)
         attend_ftr = self.dense_attend(attend_ftr, **kwargs)
-
         align_ftr = self.lay_concat([hm_v_ftr, hv_ftr], **kwargs)
         if self.use_dropout:
             align_ftr = self.dropout_layer(align_ftr, **kwargs)
@@ -140,6 +139,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
         self.units = int(units)
         self.units_attend = int(units_attend)
         self.use_bias = bool(use_bias)
+        self.use_dropout = use_dropout
         self.depth = int(depth)
         self.pooling_method = pooling_method
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
@@ -186,9 +186,9 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
         hm_ftr = self.pool_nodes(hm_ftr, **kwargs)
         alignments = []
         for i in range(self.depth):
-            mm_ftr, align = self.readouts[i](hm_ftr, hv_ftr, **kwargs)
+            mm_ftr, align = self.readouts[i]([hm_ftr, hv_ftr], **kwargs)
             # alignments.append(align)
-            hm_ftr = self.unions[i](mm_ftr, hm_ftr, **kwargs)
+            hm_ftr, _ = self.unions[i](mm_ftr, hm_ftr, **kwargs)
             hm_ftr = self.final_activ(hm_ftr, **kwargs)
         return hm_ftr
 
@@ -241,9 +241,9 @@ class HamNaiveDynMessage(GraphBaseLayer):
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        self.gather_v = GatherNodes(concat_axis=None)
-        self.gather_p = GatherNodes(concat_axis=None)
-        self.gather_q = GatherNodes(concat_axis=None)
+        self.gather_v = GatherNodes(concat_axis=None, split_axis=2)
+        self.gather_p = GatherNodes(concat_axis=None, split_axis=2)
+        self.gather_q = GatherNodes(concat_axis=None, split_axis=2)
         self.lazy_sub_p = LazySubtract()
         self.lazy_sub_q = LazySubtract()
         self.lay_concat = LazyConcatenate(axis=-1)

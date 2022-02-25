@@ -20,7 +20,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="DMPNN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="HamNet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
@@ -50,19 +50,19 @@ data_selection = DatasetSelection(dataset_name)
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `ESOLDataset`
 try:
-    dataset = data_selection.dataset(**hyper.dataset()["config"])
+    dataset = data_selection.dataset(**hyper.dataset())
 
 # If no name is given, a general `MoleculeNetDataset` is constructed.
-# However, the construction then must be fully defined in the data section of the hyper-parameters,
-# including all methods to run on the dataset. Information required in hyper-parameters are for example 'file_path',
-# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyper-parameters can be
+# However, the construction then must be fully defined in the data section of the hyperparameter,
+# including all methods to run on the dataset. Information required in hyperparameter are for example 'file_path',
+# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyperparameter can be
 # more convenient.
 except NotImplementedError:
     print("ERROR: Dataset not found, try general `MoleculeNetDataset`...")
     dataset = MoleculeNetDataset(**hyper.dataset()["config"])
 
 # Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is an entry with functional kwargs in hyper-parameters in the 'data' section.
+# This is only done, if there is an entry with functional kwargs in hyperparameter in the 'data' section.
 # The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
 # methods listed by name below.
 methods_supported = ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_angle",
@@ -120,12 +120,12 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
         print("Not using StandardScaler.")
         metrics = None
 
-    # Make the model for current split using model kwargs from hyper-parameters.
-    # The are always updated on top of the models default kwargs.
+    # Make the model for current split using model kwargs from hyperparameter.
+    # They are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
-    # Compile model with optimizer and loss from hyper-parameters. The metrics from this script is added to the hyper-
-    # parameter entry for metrics.
+    # Compile model with optimizer and loss from hyperparameter.
+    # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
     print(model.summary())
 
@@ -142,7 +142,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
 
-# Make output directory. This can further modified in hyper-parameters.
+# Make output directory. This can further be adapted in hyperparameter.
 filepath = hyper.results_file_path()
 postfix_file = hyper.postfix_file()
 
@@ -173,6 +173,6 @@ model.save(os.path.join(filepath, "model"))
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
-# Save hyper-parameter again, which were used for this fit. Format is '.json'
-# If non-serialized parameters were in the hyper-parameter config file, this operation may fail.
+# Save hyperparameter again, which were used for this fit. Format is '.json'
+# If non-serialized parameters were in the hyperparameter config file, this operation may fail.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))

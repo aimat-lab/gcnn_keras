@@ -7,31 +7,43 @@ from kgcnn.ops.axis import get_positive_axis
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbedding')
 class GatherEmbedding(GraphBaseLayer):
-    r"""Gather node or edge embedding by index list, e.g. that define an edge. The embeddings for multiple indices
-    are concatenated.
+    r"""Gather node or edge embedding from an index list. The embeddings for multiple indices
+    are concatenated or split. Default is concatenation. An edge is defined by index tuple :math:`(i,j)`.
+    In the default definition for this layer index :math:`i` is expected to be the receiving or target node
+    (case of directed edges).
 
-    An edge is defined by index tuple :math:`(i,j)`.
-    In the default definition for this layer index :math:`i` is expected to be the
-    receiving or target node (in standard case of directed edges).
+    .. code-block:: python
 
-    Args:
-        axis (int): The axis to gather embeddings from. Default is 1.
-        concat_axis (int): The axis which concatenates embeddings. Default is 2.
+        nodes = tf.ragged.constant([[[0.0],[1.0]],[[2.0],[3.0],[4.0]]], ragged_rank=1)
+        edge_idx = tf.ragged.constant([[[0,1],[1,0]],[[0,2],[1,2]]], ragged_rank=1)
+        print(GatherEmbedding()([nodes, edge_idx]))
     """
 
     def __init__(self,
                  axis: int = 1,
                  concat_axis: int = 2,
+                 split_axis: int = None,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            axis (int): The axis to gather embeddings from. Default is 1.
+            concat_axis (int): The axis which concatenates embeddings. Default is 2.
+            split_axis (int): The axis to split the gathered embeddings. Default is None.
+        """
         super(GatherEmbedding, self).__init__(**kwargs)
         self.concat_axis = concat_axis
         self.axis = axis
+        self.split_axis = split_axis
+
+        if split_axis is not None and concat_axis is not None:
+            raise ValueError("Can not both split and concatenate new index axis. One must be `None`.")
 
     def build(self, input_shape):
         super(GatherEmbedding, self).build(input_shape)
+
         if len(input_shape) != 2:
-            print("WARNING: Number of inputs for layer", self.name, "is expected to be 2.")
+            print("Number of inputs for layer %s is expected to be 2." % self.name)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -48,7 +60,7 @@ class GatherEmbedding(GraphBaseLayer):
         # The primary case for aggregation of nodes from node feature list. Case from doc-string.
         # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.concat_axis in [None, 2]:
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.concat_axis in [None, 2] and self.split_axis in [None, 2]:
                 node, node_part = inputs[0].values, inputs[0].row_splits
                 edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
                 disjoint_list = partition_row_indexing(edge_index, node_part, edge_part,
@@ -58,8 +70,10 @@ class GatherEmbedding(GraphBaseLayer):
                 out = tf.gather(node, disjoint_list, axis=0)
                 if self.concat_axis == 2:
                     out = tf.concat([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
-                out = tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-                return out
+                    return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
+                if self.split_axis == 2:
+                    return [tf.RaggedTensor.from_row_lengths(out[:, i], edge_part, validate=self.ragged_validate) for i in range(edge_index.shape[-1])]
+                return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
         # Works in tf.__version__>=2.4 now!
@@ -67,11 +81,13 @@ class GatherEmbedding(GraphBaseLayer):
         if self.concat_axis is not None:
             out = tf.concat([tf.gather(out, i, axis=self.concat_axis) for i in range(out.shape[self.concat_axis])],
                             axis=self.concat_axis)
+        if self.split_axis is not None:
+            out = [tf.gather(out, i, axis=self.split_axis) for i in range(out.shape[self.split_axis])]
         return out
 
     def get_config(self):
         config = super(GatherEmbedding, self).get_config()
-        config.update({"concat_axis": self.concat_axis, "axis": self.axis})
+        config.update({"concat_axis": self.concat_axis, "axis": self.axis, "split_axis": self.split_axis})
         return config
 
 
@@ -100,7 +116,7 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         self.axis_indices = axis_indices
 
         if not isinstance(selection_index, (list, tuple, int)):
-            raise ValueError("Indices for selection must be list or tuple for layer `GatherNodesSelection`.")
+            raise ValueError("Indices for selection must be list or tuple for layer `GatherEmbeddingSelection`.")
 
         if isinstance(selection_index, int):
             self.selection_index = [selection_index]
