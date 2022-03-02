@@ -45,16 +45,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
-                "set_edge_indices_reverse": {}
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_indices_reverse"}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "AttentiveFP": {
@@ -88,15 +91,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "PAiNN": {
@@ -141,15 +147,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 3, "max_neighbours": 10000}
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GIN": {
@@ -185,15 +195,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
-            "postfix" : "",
-            "kgcnn_version": "2.0.0"
+            "postfix": "",
+            "kgcnn_version": "2.0.2"
         }
     },
     "INorp": {
@@ -237,15 +250,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GAT": {
@@ -287,15 +303,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GATv2": {
@@ -337,15 +356,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "DimeNetPP": {
@@ -396,17 +418,21 @@ hyper = {
             }
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 20},
-                "set_angle": {},
+            "dataset": {
+                "class_name": "LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 20}},
+                    {"map_list": {"method": "set_angle"}}
+                ]
             },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
 }

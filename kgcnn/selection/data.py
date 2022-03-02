@@ -24,7 +24,7 @@ class DatasetSelection:
 
         Args:
             kwargs: Kwargs for the dataset config. This can be either directly the kwargs of "config" or the dictionary
-                of {"config": {...}, "methods": [...], ...} itself, which is preferred.
+                of {"config": {...}, "methods": [...], ...} itself unpacked, which is preferred.
 
         Returns:
             MemoryGraphDataset: Sub-classed :obj:`MemoryGraphDataset`.
@@ -32,8 +32,11 @@ class DatasetSelection:
         if self.dataset_name is None:
             raise ValueError("A name of the dataset in kgcnn.data.datasets must be provided.")
         dataset_config = {"class_name": self.dataset_name}
+        # kwargs can be directly config of dataset or within the parameter config.
         if "config" in kwargs:
-            # Could potentially overwrite class_name.
+            if "class_name" in kwargs:
+                if kwargs["class_name"] != self.dataset_name:
+                    raise ValueError("Specified dataset does not match with kwargs %s" % self.dataset_name)
             dataset_config.update(kwargs)
         else:
             dataset_config.update({"config": kwargs})
@@ -82,6 +85,7 @@ class DatasetSelection:
                 message_error("Can not check shape for %s." % x["name"])
         return
 
+    # Deprecated. Keep for compatibility.
     @staticmethod
     def perform_methods_on_dataset(dataset, methods_supported: list, hyper_data: dict,
                                    ignore_unsupported: bool = True):
@@ -92,7 +96,7 @@ class DatasetSelection:
         Args:
             dataset (MemoryGraphDataset): An instance of a :obj:`MemoryGraphDataset`.
             methods_supported (list): List of methods that can be performed on the dataset. The order is respected.
-            hyper_data (dict): Dictionary of the 'data' section of hyper-parameters for the dataset. Must contain an
+            hyper_data (dict): Dictionary of the 'data' section of hyperparameter for the dataset. Must contain an
                 item "methods".
             ignore_unsupported (bool): Ignore methods that are not in `methods_supported`.
 

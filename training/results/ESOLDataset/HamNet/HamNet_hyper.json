@@ -1,6 +1,6 @@
 {
   "model": {
-    "name": "AttentiveFP",
+    "name": "HamNet",
     "inputs": [
       {
         "shape": [
@@ -28,44 +28,69 @@
         "name": "edge_indices",
         "dtype": "int64",
         "ragged": true
+      },
+      {
+        "shape": [
+          null,
+          3
+        ],
+        "name": "node_coordinates",
+        "dtype": "float32",
+        "ragged": true
       }
     ],
     "input_embedding": {
-      "node_attributes": {
+      "node": {
         "input_dim": 95,
         "output_dim": 64
       },
-      "edge_attributes": {
+      "edge": {
         "input_dim": 5,
         "output_dim": 64
       }
     },
-    "attention_args": {
-      "units": 200
+    "message_kwargs": {
+      "units": 160,
+      "units_edge": 160,
+      "rate": 0.2,
+      "use_dropout": true
     },
-    "depth": 2,
-    "dropout": 0.2,
+    "fingerprint_kwargs": {
+      "units": 160,
+      "units_attend": 160,
+      "rate": 0.2,
+      "use_dropout": true,
+      "depth": 3
+    },
+    "gru_kwargs": {
+      "units": 160
+    },
     "verbose": 10,
+    "depth": 3,
+    "use_coordinates": true,
     "output_embedding": "graph",
     "output_mlp": {
       "use_bias": [
         true,
-        true
+        true,
+        false
       ],
       "units": [
-        200,
+        160,
+        80,
         1
       ],
       "activation": [
-        "kgcnn>leaky_relu",
+        "relu",
+        "relu",
         "linear"
       ]
     }
   },
   "training": {
     "fit": {
-      "batch_size": 200,
-      "epochs": 200,
+      "batch_size": 16,
+      "epochs": 800,
       "validation_freq": 1,
       "verbose": 2,
       "callbacks": []
@@ -74,11 +99,11 @@
       "optimizer": {
         "class_name": "Addons>AdamW",
         "config": {
-          "lr": 0.0031622776601683794,
+          "lr": 0.001,
           "weight_decay": 1e-05
         }
       },
-      "loss": "mean_absolute_error"
+      "loss": "mean_squared_error"
     },
     "cross_validation": {
       "class_name": "KFold",
@@ -99,7 +124,7 @@
   },
   "data": {
     "dataset": {
-      "class_name": "LipopDataset",
+      "class_name": "ESOLDataset",
       "config": {},
       "methods": [
         {
@@ -107,7 +132,7 @@
         }
       ]
     },
-    "data_unit": ""
+    "data_unit": "mol/L"
   },
   "info": {
     "postfix": "",

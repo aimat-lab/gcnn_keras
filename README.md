@@ -247,7 +247,7 @@ Some known issues to be aware of, if using and making new models or layers with 
 <a name="citing"></a>
 # Citing
 
-If you want to cite this repo, refer to our paper:
+If you want to cite this repo, refer to our [paper](https://doi.org/10.1016/j.simpa.2021.100095):
 
 ```
 @article{REISER2021100095,

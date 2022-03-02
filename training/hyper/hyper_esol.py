@@ -86,16 +86,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
-                "set_edge_indices_reverse": {}
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_indices_reverse"}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GIN": {
@@ -130,15 +133,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "AttentiveFP": {
@@ -172,15 +178,14 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
-            },
+            "dataset": {"class_name": "ESOLDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]},
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "PAiNN": {
@@ -226,15 +231,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 3, "max_neighbours": 10000},
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "INorp": {
@@ -279,15 +288,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GAT": {
@@ -329,15 +341,15 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
-            },
+            "dataset": {"class_name": "ESOLDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]
+                        },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GATv2": {
@@ -379,15 +391,15 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
-            },
+            "dataset": {"class_name": "ESOLDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]
+                        },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "Schnet": {
@@ -430,15 +442,18 @@ hyper = {
             }
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 100},
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
+                ]
             },
-            "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "Megnet": {
@@ -485,16 +500,19 @@ hyper = {
             }
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
-                "set_range": {"max_distance": 4, "max_neighbours": 100},
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GraphSAGE": {
@@ -532,15 +550,18 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "GCN": {
@@ -581,16 +602,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {},
-                "normalize_edge_weights_sym": {}
+
+            "dataset": {"class_name": "ESOLDataset",
+                        "config": {},
+                        "methods": [
+                            {"set_attributes": {}},
+                            {"map_list": {"method": "normalize_edge_weights_sym"}}
+                        ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "DimeNetPP": {
@@ -641,17 +665,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 20},
-                "set_angle": {},
+            "dataset": {
+                "class_name": "ESOLDataset", "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 20}},
+                    {"map_list": {"method": "set_angle"}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "NMPN": {
@@ -697,15 +723,19 @@ hyper = {
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
-            "dataset": {"class_name": "ESOLDataset", "config": {}},
-            "methods": {
-                "set_attributes": {}
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                ]
             },
             "data_unit": "mol/L"
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     }
 }

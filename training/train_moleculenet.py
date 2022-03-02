@@ -17,14 +17,14 @@ from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line with default values from example.
-# From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
+# From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="HamNet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GATv2")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="ESOLDataset")
+                    default="LipopDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_esol.py")
+                    default="hyper/hyper_lipop.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -49,25 +49,7 @@ data_selection = DatasetSelection(dataset_name)
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `ESOLDataset`
-try:
-    dataset = data_selection.dataset(**hyper.dataset())
-
-# If no name is given, a general `MoleculeNetDataset` is constructed.
-# However, the construction then must be fully defined in the data section of the hyperparameter,
-# including all methods to run on the dataset. Information required in hyperparameter are for example 'file_path',
-# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyperparameter can be
-# more convenient.
-except NotImplementedError:
-    print("ERROR: Dataset not found, try general `MoleculeNetDataset`...")
-    dataset = MoleculeNetDataset(**hyper.dataset()["config"])
-
-# Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is an entry with functional kwargs in hyperparameter in the 'data' section.
-# The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
-# methods listed by name below.
-methods_supported = ["prepare_data", "read_in_memory", "set_attributes", "set_range", "set_angle",
-                     "normalize_edge_weights_sym", "set_edge_indices_reverse"]
-data_selection.perform_methods_on_dataset(dataset, methods_supported, hyper.data())
+dataset = data_selection.dataset(**hyper.dataset())
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
