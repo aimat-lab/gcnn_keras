@@ -38,16 +38,18 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
-            "dataset": {"class_name": "CoraDataset", "config": {}},
-            "methods": {
-                "make_undirected_edges": {},
-                "add_edge_self_loops": {},
-                "normalize_edge_weights_sym": {}
-            }
+            "dataset": {
+                "class_name": "CoraDataset", "config": {},
+                "methods": [
+                    {"map_list": {"method": "make_undirected_edges"}},
+                    {"map_list": {"method": "add_edge_self_loops"}},
+                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                ]
+            },
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     }
 }

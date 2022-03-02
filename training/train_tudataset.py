@@ -19,11 +19,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a TUDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="PROTEINSDataset")
+                    default="MUTAGDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_proteins.py")
+                    default="hyper/hyper_mutag.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -48,25 +48,7 @@ data_selection = DatasetSelection(dataset_name)
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `PROTEINSDataset`
-try:
-    dataset = data_selection.dataset(**hyper.dataset()["config"])
-
-# If no name is given, a general `GraphTUDataset` is constructed.
-# However, the construction then must be fully defined in the data section of the hyper-parameters,
-# including all methods to run on the dataset. Information required in hyper-parameters are for example 'file_path',
-# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyper-parameters can be
-# more convenient.
-except NotImplementedError:
-    print("ERROR: Dataset not found, try general `GraphTUDataset`...")
-    dataset = GraphTUDataset(**hyper.dataset()["config"])
-
-# Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
-# The `DatasetSelection` class first checks the `GraphTUDataset` and then tries each graph in the list to apply the
-# methods listed by name below.
-methods_supported = ["prepare_data", "read_in_memory", "set_range", "set_angle",
-                     "normalize_edge_weights_sym", "set_edge_indices_reverse"]
-data_selection.perform_methods_on_dataset(dataset, methods_supported, hyper.data())
+dataset = data_selection.dataset(**hyper.dataset())
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
@@ -80,7 +62,7 @@ data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For `GraphTUDataset`, always train on `graph_labels`.
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
-labels = np.array(dataset.graph_labels)
+labels = np.array(dataset.obtain_property("graph_labels"))
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 

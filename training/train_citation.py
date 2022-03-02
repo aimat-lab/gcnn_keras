@@ -15,24 +15,24 @@ from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line with default values from example.
-# From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
+# From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraLuDataset")
+                    default="CoraDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora_lu.py")
+                    default="hyper/hyper_cora.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Get name for model, dataset, and path to a hyper-parameter file.
+# Get name for model, dataset, and path to a hyperparameter file.
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 
-# A class `HyperSelection` is used to expose and verify hyper-parameters.
-# The hyper-parameters are stores as a dictionary with section 'model', 'data' and 'training'.
+# A class `HyperSelection` is used to expose and verify hyperparameter.
+# The hyperparameter are stored as a dictionary with section 'model', 'data' and 'training'.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
@@ -41,24 +41,13 @@ hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_n
 model_selection = ModelSelection(model_name)
 make_model = model_selection.make_model()
 
-# The `DatasetSelection` class is used to create a `MemoryGraphDataset` from config in hyper-parameters.
+# The `DatasetSelection` class is used to create a `MemoryGraphDataset` from config in hyperparameter.
 # The class also has functionality to check the dataset for properties or apply a series of methods on the dataset.
 data_selection = DatasetSelection(dataset_name)
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `CoraLuDataset`
-try:
-    dataset = data_selection.dataset(**hyper.dataset()["config"])
-except NotImplementedError:
-    raise NotImplementedError("ERROR: Dataset not found, no general `CitationDataset` implemented yet...")
-
-# Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
-# The `DatasetSelection` class first checks the `MemoryGraphDataset` and then tries each graph in the list to apply the
-# methods listed by name below.
-methods_supported = ["prepare_data", "read_in_memory", "make_undirected_edges", "add_edge_self_loops",
-                     "normalize_edge_weights_sym", "set_edge_indices_reverse"]
-data_selection.perform_methods_on_dataset(dataset, methods_supported, hyper.data())
+dataset = data_selection.dataset(**hyper.dataset())
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
@@ -72,9 +61,9 @@ data_length = len(dataset)
 
 # For Citation networks, node embedding tasks are assumed. Labels are taken as 'node_labels'.
 # For now, node embedding tasks are restricted to a single graph, e.g. a citation network. Batch-dimension is one.
-labels = dataset.node_labels
+labels = dataset.obtain_property("node_labels")
 
-# The complete graph is converted to a tensor here. Note that we still need a ragged tensor input although it is not
+# The complete graph is converted to a tensor here. Note that we still need a ragged tensor input, although it is not
 # really needed for batch-dimension of one.
 # Which property of the dataset and whether the tensor will be ragged is retrieved from the kwargs of the
 # keras `Input` layers ('name' and 'ragged').
@@ -89,11 +78,11 @@ kf = KFold(**hyper.cross_validation()["config"])
 history_list, test_indices_list, model, hist = [], [], None, None
 for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
 
-    # Make the model for current split using model kwargs from hyper-parameters.
-    # The are always updated on top of the models default kwargs.
+    # Make the model for current split using model kwargs from hyperparameter.
+    # They are always updated on top of the models default kwargs.
     model = model_selection(**hyper.make_model())
 
-    # For semi-supervised learning with keras, revert to masks to hide nodes during training and for validation.
+    # For semi-supervised learning with keras, revert to mask to hide nodes during training and for validation.
     val_mask = np.zeros_like(labels[0][:, 0])
     train_mask = np.zeros_like(labels[0][:, 0])
     val_mask[test_index] = 1
@@ -102,7 +91,7 @@ for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
     val_mask = np.expand_dims(val_mask, axis=0)
     train_mask = np.expand_dims(train_mask, axis=0)
 
-    # Compile model with optimizer and loss from hyper-parameters.
+    # Compile model with optimizer and loss from hyperparameter.
     # Since we use a sample weights for validation, the 'weighted_metrics' parameter has to be used for metrics.
     model.compile(**hyper.compile(weighted_metrics=None))
     print(model.summary())
@@ -121,7 +110,7 @@ for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
 
-# Make output directory. This can further modified in hyper-parameters.
+# Make output directory. This can further be changed in hyperparameter.
 filepath = hyper.results_file_path()
 postfix_file = hyper.postfix_file()
 
@@ -136,5 +125,5 @@ model.save(os.path.join(filepath, "model"))
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
-# Save hyper-parameter again, which were used for this fit.
+# Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
