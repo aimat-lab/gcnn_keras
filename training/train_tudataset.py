@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line with default values from example.
-# From command line, one can specify the model, dataset and the hyper-parameters which contain all configuration
+# From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a TUDataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="INorp")
@@ -27,13 +27,13 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Get name for model, dataset, and path to a hyper-parameter file.
+# Get name for model, dataset, and path to a hyperparameter file.
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 
-# A class `HyperSelection` is used to expose and verify hyper-parameters.
-# The hyper-parameters are stores as a dictionary with section 'model', 'data' and 'training'.
+# A class `HyperSelection` is used to expose and verify hyperparameter.
+# The hyperparameter are stores as a dictionary with section 'model', 'data' and 'training'.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
@@ -42,7 +42,7 @@ hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_n
 model_selection = ModelSelection(model_name)
 make_model = model_selection.make_model()
 
-# The `DatasetSelection` class is used to create a `GraphTUDataset` from config in hyper-parameters.
+# The `DatasetSelection` class is used to create a `GraphTUDataset` from config in hyperparameter.
 # The class also has functionality to check the dataset for properties or apply a series of methods on the dataset.
 data_selection = DatasetSelection(dataset_name)
 
@@ -81,7 +81,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     xtest, ytest = dataset[test_index].tensor(hyper.inputs()), labels[test_index]
 
     # Normalize training and test targets via a sklearn `StandardScaler`. No other scalers are used at the moment.
-    # Scaler is applied to targets if 'scaler' appears in hyper-parameters. Only use for regression.
+    # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     if hyper.use_scaler():
         print("Using Standard scaler")
         scaler = StandardScaler(**hyper.scaler()["config"])
@@ -100,12 +100,12 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
         print("Not using StandardScaler.")
         metrics = None
 
-    # Make the model for current split using model kwargs from hyper-parameters.
+    # Make the model for current split using model kwargs from hyperparameter.
     # The are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
-    # Compile model with optimizer and loss from hyper-parameters. The metrics from this script is added to the hyper-
-    # parameter entry for metrics.
+    # Compile model with optimizer and loss from hyperparameter. The metrics from this script is added to the
+    # hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
     print(model.summary())
 
@@ -121,7 +121,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     history_list.append(hist)
     test_indices_list.append([train_index, test_index])
 
-# Make output directory. This can further modified in hyper-parameters.
+# Make output directory. This can further be modified in hyperparameter.
 filepath = hyper.results_file_path()
 postfix_file = hyper.postfix_file()
 
@@ -152,6 +152,6 @@ model.save(os.path.join(filepath, "model"))
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
-# Save hyper-parameter again, which were used for this fit. Format is '.json'
-# If non-serialized parameters were in the hyper-parameter config file, this operation may fail.
+# Save hyperparameter again, which were used for this fit. Format is '.json'
+# If non-serialized parameters were in the hyperparameter config file, this operation may fail.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
