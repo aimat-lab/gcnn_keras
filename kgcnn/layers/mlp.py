@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.python.keras as ks
 
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, DropoutEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
@@ -150,8 +151,8 @@ class MLPBase(GraphBaseLayer):
 
         # Deserialize initializer, regularizes, constraints and activation.
         for sl, sm in [
-            (self._key_list_init, tf.keras.initializers.get), (self._key_list_reg, tf.keras.regularizers.get),
-            (self._key_list_const, tf.keras.constraints.get), (["activation"], tf.keras.activations.get)
+            (self._key_list_init, ks.initializers.get), (self._key_list_reg, ks.regularizers.get),
+            (self._key_list_const, ks.constraints.get), (["activation"], ks.activations.get)
         ]:
             for key in sl:
                 mlp_kwargs[key] = [sm(x) for x in mlp_kwargs[key]]
@@ -206,8 +207,8 @@ class MLPBase(GraphBaseLayer):
             config.update({key: getattr(self, "_conf_"+key)})
         # Serialize initializer, regularizes, constraints and activation.
         for sl, sm in [
-            (self._key_list_init, tf.keras.initializers.serialize), (self._key_list_reg, tf.keras.regularizers.serialize),
-            (self._key_list_const, tf.keras.constraints.serialize), (["activation"], tf.keras.activations.serialize)
+            (self._key_list_init, ks.initializers.serialize), (self._key_list_reg, ks.regularizers.serialize),
+            (self._key_list_const, ks.constraints.serialize), (["activation"], ks.activations.serialize)
         ]:
             for key in sl:
                 config.update({key: [sm(x) for x in getattr(self, "_conf_" + key)]})
