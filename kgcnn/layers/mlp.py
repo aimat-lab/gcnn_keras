@@ -148,19 +148,13 @@ class MLPBase(GraphBaseLayer):
             if len(units) != len(value):
                 raise ValueError("Provide matching list of units %s and %s or simply a single value." % (units, key))
 
-        # Deserialize initializer.
-        for key in self._key_list_init:
-            mlp_kwargs[key] = [tf.keras.initializers.get(x) for x in mlp_kwargs[key]]
-
-        # Deserialize regularizes.
-        for key in self._key_list_reg:
-            mlp_kwargs[key] = [tf.keras.regularizers.get(x) for x in mlp_kwargs[key]]
-
-        # Deserialize constraints.
-        for key in self._key_list_const:
-            mlp_kwargs[key] = [tf.keras.constraints.get(x) for x in mlp_kwargs[key]]
-
-        mlp_kwargs["activation"] = list([tf.keras.activations.get(x) for x in mlp_kwargs["activation"]])
+        # Deserialize initializer, regularizes, constraints and activation.
+        for sl, sm in [
+            (self._key_list_init, tf.keras.initializers.get), (self._key_list_reg, tf.keras.regularizers.get),
+            (self._key_list_const, tf.keras.constraints.get), (["activation"], tf.keras.activations.get)
+        ]:
+            for key in sl:
+                mlp_kwargs[key] = [sm(x) for x in mlp_kwargs[key]]
 
         # Assign to self as '_conf_'.
         for key, value in mlp_kwargs.items():
