@@ -204,13 +204,13 @@ class MLPBase(GraphBaseLayer):
         config = super(MLPBase, self).get_config()
         for key in self._key_list:
             config.update({key: getattr(self, "_conf_"+key)})
-        for key in self._key_list_const:
-            config.update({key: [tf.keras.constraints.serialize(x) for x in getattr(self, "_conf_" + key)]})
-        for key in self._key_list_reg:
-            config.update({key: [tf.keras.regularizers.serialize(x) for x in getattr(self, "_conf_" + key)]})
-        for key in self._key_list_init:
-            config.update({key: [tf.keras.initializers.serialize(x) for x in getattr(self, "_conf_" + key)]})
-        config.update({"activation": [tf.keras.activations.serialize(x) for x in getattr(self, "_conf_activation")]})
+        # Serialize initializer, regularizes, constraints and activation.
+        for sl, sm in [
+            (self._key_list_init, tf.keras.initializers.serialize), (self._key_list_reg, tf.keras.regularizers.serialize),
+            (self._key_list_const, tf.keras.constraints.serialize), (["activation"], tf.keras.activations.serialize)
+        ]:
+            for key in sl:
+                config.update({key: [sm(x) for x in getattr(self, "_conf_" + key)]})
         return config
 
 
