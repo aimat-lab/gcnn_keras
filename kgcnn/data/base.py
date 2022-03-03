@@ -643,12 +643,16 @@ class MemoryGraphList:
 
     def clean(self, inputs: list):
         r"""Given a list of property names, this method removes all elements from the internal list of
-        `GraphDict` items, which do not define at least one of those properties. Aka only those graphs remain in
-        the list which definitely define all properties.
+        `GraphDict` items, which do not define at least one of those properties. Meaning, only those graphs remain in
+        the list which definitely define all properties specified by :obj:`inputs`.
 
         Args:
             inputs (list): A list of strings, where each string is supposed to be a property name, which the graphs
                 in this list may possess.
+
+        Returns:
+            invalid_graphs (np.ndarray): A list of graph indices that do not have the required properties and which
+                have been removed.
         """
         if isinstance(inputs, str):
             inputs = [inputs]
@@ -680,9 +684,10 @@ class MemoryGraphList:
             self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
         else:
             self.logger.info("No invalid graphs for assigned properties found.")
+        # Remove from the end via pop().
         for i in invalid_graphs:
             self._list.pop(int(i))
-        return self
+        return invalid_graphs
 
 
 class MemoryGraphDataset(MemoryGraphList):

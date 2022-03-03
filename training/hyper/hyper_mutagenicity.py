@@ -33,13 +33,12 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
-            "dataset": {"class_name": "MutagenicityDataset", "config": {}},
-            "methods": {},
+            "dataset": {"class_name": "MutagenicityDataset", "config": {},  "methods": []},
             "data_unit": ""
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     }
 }
