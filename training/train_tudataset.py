@@ -101,7 +101,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
         metrics = None
 
     # Make the model for current split using model kwargs from hyperparameter.
-    # The are always updated on top of the models default kwargs.
+    # There are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
     # Compile model with optimizer and loss from hyperparameter. The metrics from this script is added to the
