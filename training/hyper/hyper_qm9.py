@@ -49,15 +49,18 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
-            "dataset": {"class_name": "QM9Dataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
+                ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "Megnet": {
@@ -112,15 +115,18 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
-            "dataset": {"class_name": "QM9Dataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
+                ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "NMPN": {
@@ -170,15 +176,18 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
-            "dataset": {"class_name": "QM9Dataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 4, "max_neighbours": 30},
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
+                ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "PAiNN": {
@@ -231,15 +240,18 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
-            "dataset": {"class_name": "QM9Dataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 5, "max_neighbours": 10000},
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000}}
+                ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     },
     "DimeNetPP": {
@@ -298,16 +310,19 @@ hyper = {
             "multi_target_indices": [5, 6]
         },
         "data": {
- 	    "dataset": {"class_name": "QM9Dataset", "config": {}},
-            "methods": {
-                "set_range": {"max_distance": 5, "max_neighbours": 1000},
-	        "set_angle": {},
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
+                    {"map_list": {"method": "set_angle"}}
+                ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.0"
+            "kgcnn_version": "2.0.2"
         }
     }
 }

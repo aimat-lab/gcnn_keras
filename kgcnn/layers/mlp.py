@@ -1,10 +1,10 @@
 import tensorflow as tf
-import tensorflow.python.keras as ks
+ks = tf.keras
 
+import kgcnn.ops.activ
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, DropoutEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
-import kgcnn.ops.activ
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPBase')

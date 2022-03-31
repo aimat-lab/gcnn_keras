@@ -31,7 +31,7 @@ model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 
-# HyperSelection is used to store and verify hyper-parameters.
+# HyperSelection is used to store and verify hyperparameter.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # Model Selection to load a model definition from a module in kgcnn.literature
@@ -40,31 +40,18 @@ make_model = model_selection.make_model()
 
 # Loading a dataset from a module in kgcnn.data.datasets.
 # If no name is given, a general QMDataset() is constructed.
-# However, the construction then must be fully defined in the data section of the hyper-parameters,
+# However, the construction then must be fully defined in the data section of the hyperparameter,
 # including all methods to run on the dataset.
 data_selection = DatasetSelection(dataset_name)
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `QM9Dataset`
-try:
-    dataset = data_selection.dataset(**hyper.dataset()["config"])
-
 # If no name is given, a general `QMDataset` is constructed.
-# However, the construction then must be fully defined in the data section of the hyper-parameters,
-# including all methods to run on the dataset. Information required in hyper-parameters are for example 'file_path',
-# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyper-parameters can be
+# However, the construction then must be fully defined in the data section of the hyperparameter,
+# including all methods to run on the dataset. Information required in hyperparameter are for example 'file_path',
+# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyperparameter can be
 # more convenient.
-except NotImplementedError:
-    print("ERROR: Dataset not found, try general `GraphTUDataset`...")
-    dataset = QMDataset(**hyper.dataset()["config"])
-
-# Set methods on the dataset to apply encoders or transformations or reload the data with different parameters.
-# This is only done, if there is a entry with functional kwargs in hyper-parameters in the 'data' section.
-# The `DatasetSelection` class first checks the `MoleculeNetDataset` and then tries each graph in the list to apply the
-# methods listed by name below.
-methods_supported = ["prepare_data", "read_in_memory", "set_range", "set_angle",
-                     "normalize_edge_weights_sym", "set_edge_indices_reverse"]
-data_selection.perform_methods_on_dataset(dataset, methods_supported, hyper.data())
+dataset = data_selection.dataset(**hyper.dataset())
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
@@ -77,10 +64,10 @@ dataset.clean(hyper.inputs())
 data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For `QMDataset`, always train on graph, labels. The `QMDataset` has property 'label_names' and 'label_units', since
-# targets can be in eV, Hartree, Bohr, GHz etc. Must be defined by sub-classes of the dataset.
-labels = np.array(dataset.graph_labels)
-label_names = dataset.label_names
-label_units = dataset.label_units
+# targets can be in eV, Hartree, Bohr, GHz etc. Must be defined by subclasses of the dataset.
+labels = np.array(dataset.obtain_property("graph_labels"))
+label_names = dataset.obtain_property("label_names")
+label_units = dataset.obtain_property("label_units")
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
@@ -111,7 +98,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     if splits_done >= execute_splits:
         break
 
-    # Make the model for current split using model kwargs from hyper-parameters.
+    # Make the model for current split using model kwargs from hyperparameter.
     # The are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
@@ -190,5 +177,5 @@ model.save(os.path.join(filepath, "model" + postfix_file))
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
 
-# Save hyper-parameter again, which were used for this fit.
+# Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))

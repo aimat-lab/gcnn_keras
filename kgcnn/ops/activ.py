@@ -1,6 +1,5 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-import numpy as np
+ks = tf.keras
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')

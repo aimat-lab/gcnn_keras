@@ -2,9 +2,23 @@ import importlib
 import logging
 
 # from typing import Any
-from kgcnn.data.moleculenet import MoleculeNetDataset
-from kgcnn.data.qm import QMDataset
-from kgcnn.data.tudataset import GraphTUDataset
+try:
+    from kgcnn.data.moleculenet import MoleculeNetDataset
+except ModuleNotFoundError as e:
+    logging.error("Can not import `MoleculeNetDataset` for serialization with %s." % e)
+    MoleculeNetDataset = None
+
+try:
+    from kgcnn.data.qm import QMDataset
+except ModuleNotFoundError as e:
+    logging.error("Can not import `QMDataset` for serialization with %s." % e)
+    QMDataset = None
+
+try:
+    from kgcnn.data.tudataset import GraphTUDataset
+except ModuleNotFoundError as e:
+    logging.error("Can not import `GraphTUDataset` for serialization with %s." % e)
+    GraphTUDataset = None
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
