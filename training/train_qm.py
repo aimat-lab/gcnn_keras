@@ -49,7 +49,8 @@ data_selection = DatasetSelection(dataset_name)
 # If no name is given, a general `QMDataset` is constructed.
 # However, the construction then must be fully defined in the data section of the hyperparameter,
 # including all methods to run on the dataset. Information required in hyperparameter are for example 'file_path',
-# 'data_directory' etc. Making a custom training script rather than configuring the dataset via hyperparameter can be
+# 'data_directory' etc.
+# Making a custom training script rather than configuring the dataset via hyperparameter can be
 # more convenient.
 dataset = data_selection.dataset(**hyper.dataset())
 
