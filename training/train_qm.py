@@ -100,7 +100,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
         break
 
     # Make the model for current split using model kwargs from hyperparameter.
-    # The are always updated on top of the models default kwargs.
+    # They are always updated on top of the models default kwargs.
     model = make_model(**hyper.make_model())
 
     # First select training and test graphs from indices, then convert them into tensorflow tensor
