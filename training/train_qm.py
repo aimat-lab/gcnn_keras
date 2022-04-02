@@ -22,7 +22,7 @@ parser.add_argument("--model", required=False, help="Graph model to train.", def
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="QM9Dataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_qm9.py")
+                    default="hyper/hyper_qm9_orbitals.py")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
