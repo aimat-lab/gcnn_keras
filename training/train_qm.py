@@ -67,8 +67,8 @@ data_length = len(dataset)  # Length of the cleaned dataset.
 # For `QMDataset`, always train on graph, labels. The `QMDataset` has property 'label_names' and 'label_units', since
 # targets can be in eV, Hartree, Bohr, GHz etc. Must be defined by subclasses of the dataset.
 labels = np.array(dataset.obtain_property("graph_labels"))
-label_names = dataset.obtain_property("label_names")
-label_units = dataset.obtain_property("label_units")
+label_names = dataset.label_names
+label_units = dataset.label_units
 if len(labels.shape) <= 1:
     labels = np.expand_dims(labels, axis=-1)
 
@@ -82,7 +82,7 @@ if multi_target_indices is not None:
 print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape))
 
 # For QMDataset, also the atomic number is required to properly pre-scale extensive quantities like total energy.
-atoms = dataset.node_number
+atoms = dataset.obtain_property("node_number")
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
 kf = KFold(**hyper.cross_validation()["config"])
