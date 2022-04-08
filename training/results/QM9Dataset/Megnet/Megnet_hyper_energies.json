@@ -113,7 +113,7 @@
       "units": [
         32,
         16,
-        2
+        4
       ],
       "activation": [
         "kgcnn>softplus2",
@@ -164,27 +164,29 @@
       "config": {
         "scaler": [
           {
-            "class_name": "StandardScaler",
-            "config": {
-              "with_std": true,
-              "with_mean": true,
-              "copy": true
-            }
+            "class_name": "ExtensiveMolecularScaler",
+            "config": {}
           },
           {
-            "class_name": "StandardScaler",
-            "config": {
-              "with_std": true,
-              "with_mean": true,
-              "copy": true
-            }
+            "class_name": "ExtensiveMolecularScaler",
+            "config": {}
+          },
+          {
+            "class_name": "ExtensiveMolecularScaler",
+            "config": {}
+          },
+          {
+            "class_name": "ExtensiveMolecularScaler",
+            "config": {}
           }
         ]
       }
     },
     "multi_target_indices": [
-      5,
-      6
+      10,
+      11,
+      12,
+      13
     ]
   },
   "data": {
@@ -204,7 +206,7 @@
   },
   "info": {
     "postfix": "",
-    "postfix_file": "_orbitals",
+    "postfix_file": "_energies",
     "kgcnn_version": "2.0.2"
   }
 }
