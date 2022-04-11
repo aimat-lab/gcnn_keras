@@ -9,7 +9,7 @@ from kgcnn.mol.gen.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.utils.data import save_json_file, load_json_file
 from kgcnn.mol.graphRD import MolecularGraphRDKit
-from kgcnn.mol.enocder import OneHotEncoder
+from kgcnn.mol.encoder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
 

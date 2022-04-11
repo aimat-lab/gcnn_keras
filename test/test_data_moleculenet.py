@@ -10,7 +10,7 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
 from kgcnn.data.moleculenet import MoleculeNetDataset
-from kgcnn.mol.enocder import OneHotEncoder
+from kgcnn.mol.encoder import OneHotEncoder
 
 
 SIMPLE_SMILES_CSV = """
