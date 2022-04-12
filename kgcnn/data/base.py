@@ -111,7 +111,7 @@ class GraphDict(dict):
 
         edge_id = []
         edges_attr = _attr_to_list(edge_attributes)
-        edges_attr_dict = {x: [None]*graph_size for x in edges_attr}
+        edges_attr_dict = {x: [None]*graph.number_of_edges() for x in edges_attr}
         for i, x in enumerate(graph_int.edges.data()):
             edge_id.append(x[:2])
             for d in edges_attr:
