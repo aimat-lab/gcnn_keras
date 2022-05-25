@@ -1,13 +1,104 @@
 import tensorflow as tf
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, DenseEmbedding, DropoutEmbedding, LazyConcatenate, ActivationEmbedding
+from kgcnn.layers.conv.mpnn_conv import GRUUpdate
+# import tensorflow.keras as ks
+# import tensorflow.python.keras as ks
+ks = tf.keras
+
+# Gated recurrent unit update. See MPNN for details.
+HamNetGRUUnion = GRUUpdate
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetNaiveUnion')
+class HamNetNaiveUnion(GraphBaseLayer):
+    """Simple union that concatenates a feature tensor :math:`\mathbf{x}` and its updates :math:`\mathbf{x}_u`
+    and applies a fully connected dense layer,
+    i.e. a linear transformation with weights :math:`\mathbf{W}^{\top}` plus activation :math:`\sigma`.
+
+    .. math::
+        \mathbf{x}^{\prime} = \sigma \left[ \left( \mathbf{x} || \mathbf{x}_u \right) \mathbf{W}^{\top} +
+        \mathbf{b} \right]
+
+    """
+    def __init__(self,
+                 units: int,
+                 activation="kgcnn>leaky_relu",
+                 use_bias: bool = True,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        """Initialize layer with arguments for `ks.layers.Dense`.
+
+        Args:
+            units (int): Positive integer, dimensionality of the output space.
+            activation: Activation function to use.
+                If you don't specify anything, no activation is applied
+                (ie. "linear" activation: `a(x) = x`).
+            use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
+            kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
+            bias_initializer: Initializer for the bias vector. Default is "zeros".
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_regularizer: Regularizer function applied to the bias vector. Default is None.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation"). Default is None.
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_constraint: Constraint function applied to the bias vector. Default is None.
+        """
+        super(HamNetNaiveUnion, self).__init__(**kwargs)
+        self.units = int(units)
+        self.use_bias = use_bias
+        kernel_args = {"kernel_regularizer": kernel_regularizer,
+                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+        self.lay_dense = DenseEmbedding(units=units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_concat = LazyConcatenate()
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(HamNetNaiveUnion, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, node_updates]
+
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - node_updates (tf.RaggedTensor): Node features of shape (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Embedding tensor of updated node features of shape (batch, [N], F).
+        """
+        n, nu = inputs
+        nnu = self.lay_concat([n, nu], **kwargs)
+        n_out = self.lay_dense(nnu, **kwargs)
+        return n_out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(HamNetNaiveUnion, self).get_config()
+        config.update({"units": self.units, "use_bias": self.use_bias})
+        conf_dense = self.lay_dense.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias", "activation"]:
+            config.update({x: conf_dense[x]})
+        return config
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetGlobalReadoutAttend')
 class HamNetGlobalReadoutAttend(GraphBaseLayer):
+
     def __init__(self,
                  units,
                  activation="kgcnn>leaky_relu",
@@ -95,7 +186,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
     r"""Computes readout or fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_ .
 
     Args:
-        units (int): Units for the linear trafo of node features before attention.
+        units (int): Units for the linear transformation of node features before attention.
         units_attend (int): Units fot attention attributes.
         activation (str, dict): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
         use_bias (bool): Use bias. Default is True.
@@ -315,53 +406,53 @@ class HamNaiveDynMessage(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
-class HamiltonEngine(GraphBaseLayer):
-    def __init__(self,
-                 units,
-                 activation="kgcnn>leaky_relu",
-                 use_bias=True,
-                 kernel_regularizer=None,
-                 bias_regularizer=None,
-                 activity_regularizer=None,
-                 kernel_constraint=None,
-                 bias_constraint=None,
-                 kernel_initializer='glorot_uniform',
-                 bias_initializer='zeros',
-                 **kwargs):
-        """Initialize layer."""
-        super(HamiltonEngine, self).__init__(**kwargs)
-        self.units = int(units)
-        self.use_bias = bool(use_bias)
-        kernel_args = {"kernel_regularizer": kernel_regularizer,
-                       "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
-                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
-                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        self.dense_atom = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
-        self.dense_edge = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(HamiltonEngine, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs: [nodes, edge, edge_indices]
-
-                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
-
-        Returns:
-            tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
-        """
-        atom_ftr, bond_ftr, edge_idx = inputs
-        hv_ftr = self.dense_atom(atom_ftr, **kwargs)
-        he_ftr = self.dense_edge(bond_ftr, **kwargs)
-        return
-
-    def get_config(self):
-        """Update layer config."""
-        config = super(HamiltonEngine, self).get_config()
-        config.update({"use_bias": self.use_bias, "units": self.units,})
-        return config
+# @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
+# class HamiltonEngine(GraphBaseLayer):
+#     def __init__(self,
+#                  units,
+#                  activation="kgcnn>leaky_relu",
+#                  use_bias=True,
+#                  kernel_regularizer=None,
+#                  bias_regularizer=None,
+#                  activity_regularizer=None,
+#                  kernel_constraint=None,
+#                  bias_constraint=None,
+#                  kernel_initializer='glorot_uniform',
+#                  bias_initializer='zeros',
+#                  **kwargs):
+#         """Initialize layer."""
+#         super(HamiltonEngine, self).__init__(**kwargs)
+#         self.units = int(units)
+#         self.use_bias = bool(use_bias)
+#         kernel_args = {"kernel_regularizer": kernel_regularizer,
+#                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
+#                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+#                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+#         self.dense_atom = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+#         self.dense_edge = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+#
+#     def build(self, input_shape):
+#         """Build layer."""
+#         super(HamiltonEngine, self).build(input_shape)
+#
+#     def call(self, inputs, **kwargs):
+#         """Forward pass.
+#
+#         Args:
+#             inputs: [nodes, edge, edge_indices]
+#
+#                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+#
+#         Returns:
+#             tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
+#         """
+#         atom_ftr, bond_ftr, edge_idx = inputs
+#         hv_ftr = self.dense_atom(atom_ftr, **kwargs)
+#         he_ftr = self.dense_edge(bond_ftr, **kwargs)
+#         return
+#
+#     def get_config(self):
+#         """Update layer config."""
+#         config = super(HamiltonEngine, self).get_config()
+#         config.update({"use_bias": self.use_bias, "units": self.units,})
+#         return config

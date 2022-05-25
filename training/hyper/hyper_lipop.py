@@ -435,4 +435,60 @@ hyper = {
             "kgcnn_version": "2.0.2"
         }
     },
+    "HamNet": {
+        "model": {
+            "name": "HamNet",
+            "inputs": [
+                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True}
+            ],
+            "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                "edge": {"input_dim": 5, "output_dim": 64}},
+            "message_kwargs": {"units": 200,
+                               "units_edge": 200,
+                               "rate": 0.5, "use_dropout": True},
+            "fingerprint_kwargs": {"units": 200,
+                                   "units_attend": 200,
+                                   "rate": 0.5, "use_dropout": True,
+                                   "depth": 3},
+            "gru_kwargs": {"units": 200},
+            "verbose": 10, "depth": 3,
+            "union_type_node": "gru",
+            "union_type_edge": "None",
+            "given_coordinates": True,
+            'output_embedding': 'graph',
+            'output_mlp': {"use_bias": [True, False], "units": [200, 1],
+                           "activation": ['relu', 'linear'],
+                           "use_dropout": [True, False],
+                           "rate": [0.5, 0.0]}
+        },
+        "training": {
+            "fit": {
+                "batch_size": 64, "epochs": 400, "validation_freq": 1, "verbose": 2,
+                "callbacks": []
+            },
+            "compile": {
+                "optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.001,
+                                                                       "weight_decay": 1e-05}},
+                "loss": "mean_squared_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {"class_name": "LipopDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]
+                        },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "kgcnn_version": "2.0.3"
+        }
+    }
 }

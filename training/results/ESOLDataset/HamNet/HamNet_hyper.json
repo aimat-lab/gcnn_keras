@@ -50,47 +50,54 @@
       }
     },
     "message_kwargs": {
-      "units": 160,
-      "units_edge": 160,
-      "rate": 0.2,
+      "units": 200,
+      "units_edge": 200,
+      "rate": 0.5,
       "use_dropout": true
     },
     "fingerprint_kwargs": {
-      "units": 160,
-      "units_attend": 160,
-      "rate": 0.2,
+      "units": 200,
+      "units_attend": 200,
+      "rate": 0.5,
       "use_dropout": true,
       "depth": 3
     },
     "gru_kwargs": {
-      "units": 160
+      "units": 200
     },
     "verbose": 10,
     "depth": 3,
-    "use_coordinates": true,
+    "union_type_node": "gru",
+    "union_type_edge": "None",
+    "given_coordinates": true,
     "output_embedding": "graph",
     "output_mlp": {
       "use_bias": [
         true,
-        true,
         false
       ],
       "units": [
-        160,
-        80,
+        200,
         1
       ],
       "activation": [
         "relu",
-        "relu",
         "linear"
+      ],
+      "use_dropout": [
+        true,
+        false
+      ],
+      "rate": [
+        0.5,
+        0.0
       ]
     }
   },
   "training": {
     "fit": {
-      "batch_size": 16,
-      "epochs": 800,
+      "batch_size": 40,
+      "epochs": 400,
       "validation_freq": 1,
       "verbose": 2,
       "callbacks": []
@@ -136,6 +143,6 @@
   },
   "info": {
     "postfix": "",
-    "kgcnn_version": "2.0.2"
+    "kgcnn_version": "2.0.3"
   }
 }

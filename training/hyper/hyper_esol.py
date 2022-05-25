@@ -10,17 +10,27 @@ hyper = {
             ],
             "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                 "edge": {"input_dim": 5, "output_dim": 64}},
-            "message_kwargs": {"units": 160, "units_edge": 160, "rate": 0.2, "use_dropout": True},
-            "fingerprint_kwargs": {"units": 160, "units_attend": 160, "rate": 0.2, "use_dropout": True, "depth": 3},
-            "gru_kwargs": {"units": 160},
-            "verbose": 10, "depth": 3, "use_coordinates": True,
+            "message_kwargs": {"units": 200,
+                               "units_edge": 200,
+                               "rate": 0.5, "use_dropout": True},
+            "fingerprint_kwargs": {"units": 200,
+                                   "units_attend": 200,
+                                   "rate": 0.5, "use_dropout": True,
+                                   "depth": 3},
+            "gru_kwargs": {"units": 200},
+            "verbose": 10, "depth": 3,
+            "union_type_node": "gru",
+            "union_type_edge": "None",
+            "given_coordinates": True,
             'output_embedding': 'graph',
-            'output_mlp': {"use_bias": [True, True, False], "units": [160, 80, 1],
-                           "activation": ['relu', 'relu', 'linear']}
+            'output_mlp': {"use_bias": [True, False], "units": [200, 1],
+                           "activation": ['relu', 'linear'],
+                           "use_dropout": [True,  False],
+                           "rate": [0.5, 0.0]}
         },
         "training": {
             "fit": {
-                "batch_size": 16, "epochs": 800, "validation_freq": 1, "verbose": 2,
+                "batch_size": 40, "epochs": 400, "validation_freq": 1, "verbose": 2,
                 "callbacks": []
             },
             "compile": {
@@ -42,7 +52,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "DMPNN": {
