@@ -76,6 +76,14 @@ kgcnn.literature.GraphSAGE module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.literature.HamNet module
+---------------------------------
+
+.. automodule:: kgcnn.literature.HamNet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.INorp module
 -----------------------------
 
