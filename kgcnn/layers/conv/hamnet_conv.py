@@ -16,10 +16,11 @@ HamNetGRUUnion = GRUUpdate
 class HamNetNaiveUnion(GraphBaseLayer):
     r"""Simple union that concatenates a feature tensor :math:`\mathbf{x}` and its updates :math:`\mathbf{x}_u`
     and applies a fully connected dense layer,
-    i.e. a linear transformation with weights :math:`\mathbf{W}^{\top}` plus activation :math:`\sigma`.
+    i.e. a linear transformation with weights :math:`\mathbf{W}^{\top}`, :math:`\mathbf{b}` plus activation
+    :math:`\sigma`.
 
     .. math::
-        \mathbf{x}^{\prime} = \sigma \left[ \left( \mathbf{x} || \mathbf{x}_u \right) \mathbf{W}^{\top} +
+        \mathbf{x}^{\prime} = \sigma \left[ \left( \mathbf{x} \; || \; \mathbf{x}_u \right) \mathbf{W}^{\top} +
         \mathbf{b} \right]
 
     """
@@ -35,13 +36,13 @@ class HamNetNaiveUnion(GraphBaseLayer):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        """Initialize layer with arguments for `ks.layers.Dense`.
+        r"""Initialize layer with arguments for :obj:`ks.layers.Dense`.
 
         Args:
             units (int): Positive integer, dimensionality of the output space.
             activation: Activation function to use.
                 If you don't specify anything, no activation is applied
-                (ie. "linear" activation: `a(x) = x`).
+                (ie. "linear" activation: `a(x) = x`). Default is "kgcnn>leaky_relu".
             use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
             kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
             bias_initializer: Initializer for the bias vector. Default is "zeros".
@@ -72,7 +73,7 @@ class HamNetNaiveUnion(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs: [nodes, node_updates]
+            inputs (list): [nodes, node_updates]
 
                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
                 - node_updates (tf.RaggedTensor): Node features of shape (batch, [N], F)
