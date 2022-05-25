@@ -9,7 +9,7 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingN
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
 class MEGnetBlock(GraphBaseLayer):
-    """Convolutional unit of `MegNet <https://github.com/materialsvirtuallab/megnet>`_ called MegNet Block.
+    r"""Convolutional unit of `MegNet <https://github.com/materialsvirtuallab/megnet>`_ called MegNet Block.
 
     Args:
         node_embed (list, optional): List of node embedding dimension. Defaults to [16,16,16].

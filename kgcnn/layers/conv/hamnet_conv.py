@@ -14,7 +14,7 @@ HamNetGRUUnion = GRUUpdate
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetNaiveUnion')
 class HamNetNaiveUnion(GraphBaseLayer):
-    """Simple union that concatenates a feature tensor :math:`\mathbf{x}` and its updates :math:`\mathbf{x}_u`
+    r"""Simple union that concatenates a feature tensor :math:`\mathbf{x}` and its updates :math:`\mathbf{x}_u`
     and applies a fully connected dense layer,
     i.e. a linear transformation with weights :math:`\mathbf{W}^{\top}` plus activation :math:`\sigma`.
 
