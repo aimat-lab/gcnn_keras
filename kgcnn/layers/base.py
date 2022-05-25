@@ -11,14 +11,9 @@ class GraphBaseLayer(Layer):
 
     Args:
         node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-        partition_type (str): Partition tensor type to assign nodes or edges to batch. Default is "row_length".
-        input_tensor_type (str): Tensor input type. Default is "RaggedTensor".
-        output_tensor_type (str): Tensor output type. Default is "RaggedTensor".
         ragged_validate (bool): Whether to validate ragged tensor. Default is False.
         is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
         has_unconnected (bool): If unconnected nodes are allowed. Default is True.
-        is_directed (bool): If the graph can be considered directed. Default is True.
-            This parameter is not used atm but can be useful for expensive edge computation.
     """
 
     def __init__(self,

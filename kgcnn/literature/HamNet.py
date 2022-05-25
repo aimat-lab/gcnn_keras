@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.mlp import MLP, GraphMLP
@@ -9,12 +7,18 @@ from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding, DenseE
 from kgcnn.layers.pooling import PoolingNodes, PoolingEmbeddingAttention
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator
+# import tensorflow.keras as ks
+# import tensorflow.python.keras as ks
+ks = tf.keras
 
-# Model by
+
+# Implementation of HamNet in `tf.keras` from paper:
 # HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks
-# Ziyao Li, Shuwen Yang, Guojie Song, Lingsheng Cai
-# https://arxiv.org/abs/2105.03688
+# by Ziyao Li, Shuwen Yang, Guojie Song, Lingsheng Cai
+# Link to paper: https://arxiv.org/abs/2105.03688
 # Original implementation: https://github.com/PKUterran/HamNet
+# Later implementation: https://github.com/PKUterran/MoleculeClub
+# Note: the 2. implementation is cleaner than the original code.
 
 
 hyper_model_default = {"name": "HamNet",
@@ -27,7 +31,8 @@ hyper_model_default = {"name": "HamNet",
                        "message_kwargs": {"units": 128, "units_edge": 128},
                        "fingerprint_kwargs": {"units": 128, "units_attend": 128, "depth": 2},
                        "gru_kwargs": {"units": 128},
-                       "verbose": 10, "depth": 1, "use_coordinates": True,
+                       "verbose": 10, "depth": 1,
+                       "use_coordinates": True,
                        'output_embedding': 'graph',
                        'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                       "activation": ['relu', 'relu', 'linear']}
@@ -42,12 +47,31 @@ def make_model(name: str = None,
                message_kwargs: dict = None,
                gru_kwargs: dict = None,
                fingerprint_kwargs: dict = None,
-               use_coordinates: bool = True,
+               use_coordinates: bool = None,
                depth: int = None,
                output_embedding: str = None,
                output_mlp: dict = None
                ):
-    """Under Construction!!!!"""
+    """Make HamNet graph model via functional API. Default parameters can be found in :obj:`hyper_model_default`.
+    At the moment only the Fingerprint Generator for graph embeddings is implemented and coordinates must be provided
+    from e.g. `RDKit`.
+
+    Args:
+        name (str):
+        inputs (list):
+        input_embedding (dict):
+        verbose (int):
+        message_kwargs (dict):
+        gru_kwargs (dict):
+        fingerprint_kwargs (dict):
+        use_coordinates (bool):
+        depth (int):
+        output_embedding (str):
+        output_mlp (dict):
+
+    Returns:
+        tf.keras.models.Model
+    """
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
@@ -74,12 +98,11 @@ def make_model(name: str = None,
         nu, eu = HamNaiveDynMessage(**message_kwargs)([n, ed, p, q, edi])
         n = GRUUpdate(**gru_kwargs)([n, nu])
         ed = GRUUpdate(**gru_kwargs)([ed, eu])
-        # New edge, in original version MLP, later also GRU.
 
     # Fingerprint generator for graph embedding.
     if output_embedding == 'graph':
         out = HamNetFingerprintGenerator(**fingerprint_kwargs)(n)
-        out = ks.layers.Flatten()(out)  # will be tensor
+        out = ks.layers.Flatten()(out)  # will be tensor.
         main_output = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
@@ -88,6 +111,7 @@ def make_model(name: str = None,
     else:
         raise ValueError("Unsupported graph embedding for `HamNet`")
 
+    # Make Model instance.
     if use_coordinates:
         model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr],
                                       outputs=main_output)
