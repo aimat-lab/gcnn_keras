@@ -205,7 +205,7 @@ dataset = MemoryGraphDataset(data_directory="ExampleDir/",
 The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
 Most subclasses implement `prepare_data()` and `read_in_memory()` with dataset dependent arguments.
 An example for `MoleculeNetDataset` is shown below. 
-For mote details find tutorials in [notebooks](notebooks).
+For more details find tutorials in [notebooks](notebooks).
 
 ```python
 from kgcnn.data.moleculenet import MoleculeNetDataset
