@@ -36,7 +36,7 @@ class HamNetNaiveUnion(GraphBaseLayer):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        r"""Initialize layer with arguments for :obj:`ks.layers.Dense`.
+        r"""Initialize layer with arguments of :obj:`ks.layers.Dense`.
 
         Args:
             units (int): Positive integer, dimensionality of the output space.

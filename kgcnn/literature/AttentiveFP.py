@@ -1,6 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
+# import tensorflow.keras as ks
+ks = tf.keras
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
@@ -14,6 +14,7 @@ from kgcnn.utils.models import update_model_kwargs
 # Cite this: J. Med. Chem. 2020, 63, 16, 8749–8760
 # Publication Date:August 13, 2019
 # https://doi.org/10.1021/acs.jmedchem.9b00959
+
 
 model_default = {'name': "AttentiveFP",
                  'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
@@ -32,11 +33,11 @@ model_default = {'name': "AttentiveFP",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               depth=None,
-               dropout=None,
-               attention_args=None,
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               depth: int = None,
+               dropout: float = None,
+               attention_args: dict = None,
                name=None,
                verbose=None,
                output_embedding=None,
@@ -94,5 +95,7 @@ def make_model(inputs=None,
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")
 
-    model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
+
+make_model(output_mlp=None)

@@ -1,6 +1,10 @@
-import tensorflow.keras as ks
+import tensorflow as tf
 import functools
 import logging
+from math import inf
+from copy import deepcopy
+ks = tf.keras
+
 
 # Module logger
 logging.basicConfig()
@@ -34,19 +38,19 @@ def generate_embedding(inputs, input_shape: list, embedding_args: dict, embeddin
     return n
 
 
-def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None):
-    """Make model kwargs dictionary with updated default values. This is essentially a nested version of update()
+def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None, update_recursive: int = inf):
+    r"""Make model kwargs dictionary with updated default values. This is essentially a nested version of update()
     for dicts. This is supposed to be more convenient if the values of kwargs are again layer kwargs to be unpacked,
     and do not need to be fully known to update them.
 
     Args:
         default_kwargs (dict): Dictionary of default values. Default is None.
         user_kwargs (dict): Dictionary of args to update. Default is None.
+        update_recursive (int): Max depth to update mappings like dict. Default is `inf`.
 
     Returns:
         dict: New dict and update with first default and then user args.
     """
-    out = {}
     if default_kwargs is None:
         default_kwargs = {}
     if user_kwargs is None:
@@ -57,37 +61,43 @@ def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = N
         if iter_key not in default_kwargs:
             raise ValueError("Model kwarg {0} not in default arguments {1}".format(iter_key, default_kwargs.keys()))
 
-    out.update(default_kwargs)
+    # Start with default values.
+    out = deepcopy(default_kwargs)
 
     # Nested update of kwargs:
-    def _nested_update(dict1, dict2):
+    def _nested_update(dict1, dict2, max_depth=inf, depth=0):
         for key, values in dict2.items():
             if key not in dict1:
-                module_logger.warning("Unknown model kwarg {0} with value {1}".format(key, values))
+                module_logger.warning("Model kwargs: Unknown key {0} with value {1}".format(key, values))
                 dict1[key] = values
+                continue
+            if not isinstance(dict1[key], dict):
+                dict1[key] = values
+                continue
+            if not isinstance(values, dict):
+                module_logger.warning("Model kwargs: Overwriting dictionary of {0} with {1}".format(key, values))
+                dict1[key] = values
+                continue
+            # Nested update.
+            if depth < max_depth:
+                dict1[key] = _nested_update(dict1[key], values, max_depth=max_depth, depth=depth+1)
             else:
-                if isinstance(dict1[key], dict) and isinstance(values, dict):
-                    # The value is a dict of model arguments itself. Update the same way.
-                    dict1[key] = _nested_update(dict1[key], values)
-                elif isinstance(dict1[key], dict) and not isinstance(values, dict):
-                    # If values is None, means no information, keep dict1 values untouched.
-                    if values is not None:
-                        raise ValueError("Can not overwriting dictionary of {0} with {1}".format(key, values))
-                else:
-                    # Just any other value to update
-                    dict1[key] = values
+                dict1[key] = values
         return dict1
 
-    return _nested_update(out, user_kwargs)
+    return _nested_update(out, user_kwargs, update_recursive, 0)
 
 
-def update_model_kwargs(model_default):
+def update_model_kwargs(model_default, update_recursive=inf):
     """Decorating function for update_model_kwargs_logic() ."""
     def model_update_decorator(func):
 
         @functools.wraps(func)
         def update_wrapper(*args, **kwargs):
-            updated_kwargs = update_model_kwargs_logic(model_default, kwargs)
+
+            updated_kwargs = update_model_kwargs_logic(model_default, kwargs, update_recursive)
+
+            # Logging of updated values.
             if 'verbose' in updated_kwargs:
                 module_logger.setLevel(updated_kwargs["verbose"])
             module_logger.info("Updated model kwargs:")
@@ -98,5 +108,3 @@ def update_model_kwargs(model_default):
         return update_wrapper
 
     return model_update_decorator
-
-

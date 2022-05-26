@@ -1,4 +1,5 @@
 import tensorflow as tf
+from math import inf
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.mlp import MLP, GraphMLP
@@ -40,7 +41,7 @@ hyper_model_default = {"name": "HamNet",
                        }
 
 
-@update_model_kwargs(hyper_model_default)
+@update_model_kwargs(hyper_model_default, update_recursive=inf)
 def make_model(name: str = None,
                inputs: list = None,
                input_embedding: dict = None,
@@ -55,7 +56,8 @@ def make_model(name: str = None,
                output_embedding: str = None,
                output_mlp: dict = None
                ):
-    """Make HamNet graph model via functional API. Default parameters can be found in :obj:`hyper_model_default`.
+    """Make HamNet graph model via functional API. Default parameters can be found in
+    :obj:`kgcnn.literature.HamNet.hyper_model_default`.
     At the moment only the Fingerprint Generator for graph embeddings is implemented and coordinates must be provided
     as model input.
 
