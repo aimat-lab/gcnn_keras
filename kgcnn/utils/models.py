@@ -103,6 +103,9 @@ def update_model_kwargs(model_default, update_recursive=inf):
             module_logger.info("Updated model kwargs:")
             module_logger.info(updated_kwargs)
 
+            if len(args) > 0:
+                module_logger.error("Can only update kwargs, not %s" % args)
+
             return func(*args, **updated_kwargs)
 
         return update_wrapper
