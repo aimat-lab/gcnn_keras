@@ -45,7 +45,8 @@ def make_model(inputs: list = None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make AttentiveFP graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `AttentiveFP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.AttentiveFP.model_default`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
