@@ -69,6 +69,8 @@ def make_model(name: str = None,
               using an embedding layer.
             - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - node_coordinates (tf.RaggedTensor): Euclidean coordinates of nodes of shape `(batch, None, 3)`.
 
     Outputs:
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
