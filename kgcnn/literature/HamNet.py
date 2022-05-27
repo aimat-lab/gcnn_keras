@@ -56,10 +56,16 @@ def make_model(name: str = None,
                output_embedding: str = None,
                output_mlp: dict = None
                ):
-    """Make HamNet graph model via functional API. Default parameters can be found in
+    r"""Make HamNet graph model via functional API. Default parameters can be found in
     :obj:`kgcnn.literature.HamNet.hyper_model_default`.
     At the moment only the Fingerprint Generator for graph embeddings is implemented and coordinates must be provided
     as model input.
+
+    Inputs:
+        - list: [node_attributes, edge_attributes, edge_indices]
+        - list: [node_attributes, edge_attributes, edge_indices, node_coordinates] if :obj:`given_coordinates`
+            - node_attributes (tf.RaggedTensor): Node attributes of shape.
+            - edge_attributes (tf.RaggedTensor):
 
     Args:
         name (str):
