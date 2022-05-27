@@ -62,12 +62,16 @@ def make_model(name: str = None,
     as model input.
 
     Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices]`,
-        | or `[node_attributes, edge_attributes, edge_indices, node_coordinates]` if :obj:`given_coordinates=True`.
+        list: `[node_attributes, edge_attributes, edge_indices]`,\n
+        or `[node_attributes, edge_attributes, edge_indices, node_coordinates]` if :obj:`given_coordinates=True`.
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
                 using an embedding layer.
             - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
                 using an embedding layer.
+
+    Outputs:
+        tf.Tensor:
+        or tf.Tensor:
 
     Args:
         name (str): Name of the model.
