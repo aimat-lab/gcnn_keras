@@ -62,7 +62,7 @@ def make_model(name: str = None,
     as model input.
 
     Inputs:
-        - list: [node_attributes, edge_attributes, edge_indices].
+        list: [node_attributes, edge_attributes, edge_indices].
         - [node_attributes, edge_attributes, edge_indices, node_coordinates] if :obj:`given_coordinates=True`.
             - node_attributes (tf.RaggedTensor): Node attributes of shape.
             - edge_attributes (tf.RaggedTensor):
@@ -70,17 +70,18 @@ def make_model(name: str = None,
     Args:
         name (str): Name of the model.
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict):  Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict):  Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         verbose (int): Level of verbosity. For logging and printing.
         message_kwargs (dict): Dictionary of layer arguments unpacked in message passing layer for node updates.
         gru_kwargs (dict): Dictionary of layer arguments unpacked in gated recurrent unit update layer.
         fingerprint_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`HamNetFingerprintGenerator` layer.
-        given_coordinates (bool):
-        union_type_edge (str):
-        union_type_node (str):
-        depth (int):
-        output_embedding (str):
-        output_mlp (dict):
+        given_coordinates (bool): Whether coordinates are provided as model input, or are computed by the Model.
+        union_type_edge (str): Union type of edge updates. Choose "gru", "naive" or "None".
+        union_type_node (str): Union type of node updates. Choose "gru", "naive" or "None".
+        depth (int): Depth or number of (message passing) layers of the model.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
+            Defines number of model outputs and activation.
 
     Returns:
         :obj:`tf.keras.models.Model`
@@ -142,7 +143,7 @@ def make_model(name: str = None,
         main_output = ChangeTensorType(input_tensor_type='ragged',
                                        output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for `HamNet`")
+        raise ValueError("Unsupported output embedding for `HamNet`")
 
     # Make Model instance.
     if given_coordinates:
