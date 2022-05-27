@@ -62,19 +62,19 @@ def make_model(name: str = None,
     as model input.
 
     Inputs:
-        - list: [node_attributes, edge_attributes, edge_indices]
-        - list: [node_attributes, edge_attributes, edge_indices, node_coordinates] if :obj:`given_coordinates`
+        - list: [node_attributes, edge_attributes, edge_indices].
+        - [node_attributes, edge_attributes, edge_indices, node_coordinates] if :obj:`given_coordinates=True`.
             - node_attributes (tf.RaggedTensor): Node attributes of shape.
             - edge_attributes (tf.RaggedTensor):
 
     Args:
-        name (str):
-        inputs (list):
-        input_embedding (dict):
-        verbose (int):
-        message_kwargs (dict):
-        gru_kwargs (dict):
-        fingerprint_kwargs (dict):
+        name (str): Name of the model.
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict):  Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        verbose (int): Level of verbosity. For logging and printing.
+        message_kwargs (dict): Dictionary of layer arguments unpacked in message passing layer for node updates.
+        gru_kwargs (dict): Dictionary of layer arguments unpacked in gated recurrent unit update layer.
+        fingerprint_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`HamNetFingerprintGenerator` layer.
         given_coordinates (bool):
         union_type_edge (str):
         union_type_node (str):
@@ -83,7 +83,7 @@ def make_model(name: str = None,
         output_mlp (dict):
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
