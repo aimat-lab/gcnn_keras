@@ -1,13 +1,15 @@
 import tensorflow as tf
-# import tensorflow.keras as ks
-ks = tf.keras
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
+# import tensorflow.keras as ks
+ks = tf.keras
 
+
+# Implementation of AttentiveFP in `tf.keras` from paper:
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
 # Zhaoping Xiong, Dingyan Wang, Xiaohong Liu, Feisheng Zhong, Xiaozhe Wan, Xutong Li, Zhaojun Li,
 # Xiaomin Luo, Kaixian Chen, Hualiang Jiang*, and Mingyue Zheng*
@@ -97,5 +99,3 @@ def make_model(inputs: list = None,
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
-
-make_model(output_mlp=None)
