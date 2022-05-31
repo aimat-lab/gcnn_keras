@@ -9,6 +9,7 @@ from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
 from kgcnn.utils.models import update_model_kwargs
 ks = tf.keras
 
+# Implementation of DMPNN in `tf.keras` from paper:
 # Analyzing Learned Molecular Representations for Property Prediction
 # by Kevin Yang, Kyle Swanson, Wengong Jin, Connor Coley, Philipp Eiden, Hua Gao,
 # Angel Guzman-Perez, Timothy Hopper, Brian Kelley, Miriam Mathea, Andrew Palmer,
