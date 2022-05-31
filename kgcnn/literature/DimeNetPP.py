@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, EmbeddingDimeBlock, \
     SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
@@ -9,10 +7,13 @@ from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, LazyAdd, LazyS
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.mlp import MLP
+ks = tf.keras
 
+# Implementation of DimeNet++ in `tf.keras` from paper:
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
 # https://arxiv.org/abs/2011.14115
+# Original code: https://github.com/gasteigerjo/dimenet
 
 model_default = {"name": "DimeNetPP",
                  "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
@@ -61,10 +62,25 @@ def make_model(inputs=None,
                use_output_mlp=None,
                output_mlp=None
                ):
-    """Make DimeNetPP graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    """Make `DimeNetPP <https://arxiv.org/abs/2011.14115>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.DimeNetPP.model_default`.
 
-    Note: DimeNetPP does require a large amount of memory for this implementation, which increase quickly with
+    .. note::
+        DimeNetPP does require a large amount of memory for this implementation, which increase quickly with
         the number of connections in a batch.
+
+    Inputs:
+        list: `[node_attributes, node_coordinates, bond_indices, angle_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - node_coordinates (tf.RaggedTensor): Atomic coordinates of shape `(batch, None, 3)`.
+            - bond_indices (tf.RaggedTensor): Index list for edges or bonds of shape `(batch, None, 2)`.
+            - angle_indices (tf.RaggedTensor): Index list of angles referring to bonds of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
@@ -87,7 +103,7 @@ def make_model(inputs=None,
         output_init (str, dict): Output initializer for kernel.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
             Defines number of model outputs and activation. Note that DimeNetPP originally defines the output dimension
@@ -95,7 +111,7 @@ def make_model(inputs=None,
             specific control.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -152,9 +168,9 @@ def make_model(inputs=None,
         main_output = MLP(**output_mlp)(main_output)
 
     if output_embedding != "graph":
-        raise ValueError("Unsupported graph embedding for mode `DimeNetPP`.")
+        raise ValueError("Unsupported output embedding for mode `DimeNetPP`.")
 
-    model = tf.keras.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
-                                  outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
+                            outputs=main_output)
 
     return model
