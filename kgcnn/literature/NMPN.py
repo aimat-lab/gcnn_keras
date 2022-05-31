@@ -1,5 +1,4 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
@@ -9,7 +8,9 @@ from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer
+ks = tf.keras
 
+# Implementation of NMPN in `tf.keras` from paper:
 # Neural Message Passing for Quantum Chemistry
 # by Justin Gilmer, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, George E. Dahl
 # http://arxiv.org/abs/1704.01212    
@@ -52,30 +53,50 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make NMPN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `NMPN <http://arxiv.org/abs/1704.01212>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.NMPN.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices]`
+        or `[node_attributes, edge_distance, edge_indices]` if :obj:`geometric_edge=True`
+        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
+        optionally :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_distance (tf.RaggedTensor): Edge attributes or distance of shape `(batch, None, D)` expanded
+              in a basis of dimension `D` or `(batch, None, 1)` if using a :obj:`GaussBasisLayer` layer
+              with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         geometric_edge (bool): Whether the edges are geometric, like distance or coordinates.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
         expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
-            form edges with a gauss distance basis given edge indices indices. Expansion uses `gauss_args`.
-        gauss_args (dict): Dictionary of layer arguments unpacked in `GaussBasisLayer` layer.
-        set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
-        edge_mlp (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge matrix.
-        use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+            form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
+        gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
+        set2set_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingSet2Set` layer.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`, `PoolingLocalEdges` layers.
+        edge_mlp (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge matrix.
+        use_set2set (bool): Whether to use :obj:`PoolingSet2Set` layer.
         node_dim (int): Dimension of hidden node embedding.
         depth (int): Number of graph embedding units or depth of the network.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
 
     # Make input
@@ -141,7 +162,7 @@ def make_model(inputs=None,
         # No ragged for distribution supported atm
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
     else:
-        raise ValueError("Unsupported graph embedding for mode `NMPN`")
+        raise ValueError("Unsupported output embedding for mode `NMPN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model

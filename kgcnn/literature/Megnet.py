@@ -69,9 +69,9 @@ def make_model(inputs=None,
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_distance (tf.RaggedTensor): Edge distance of shape `(batch, None, D)` expanded in a basis of
-              dimension `D` or `(batch, None, 1)` if using a :obj:`GaussBasisLayer` layer with model argument
-              :obj:`expand_distance=True` and the numeric distance between nodes.
+            - edge_distance (tf.RaggedTensor): Edge attributes or distance of shape `(batch, None, D)` expanded
+              in a basis of dimension `D` or `(batch, None, 1)` if using a :obj:`GaussBasisLayer` layer
+              with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
             - state_attributes (tf.Tensor): Environment or graph state attributes of shape `(batch, F)` or `(batch,)`
               using an embedding layer.
