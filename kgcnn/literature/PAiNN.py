@@ -48,7 +48,8 @@ def make_model(inputs=None,
 
     Inputs:
         list: `[node_attributes, node_coordinates, bond_indices]`
-        or `[node_attributes, node_coordinates, bond_indices, equiv_initial]`
+        or `[node_attributes, node_coordinates, bond_indices, equiv_initial]` if a custom equivariant initialization is
+        chosen other than zero.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
