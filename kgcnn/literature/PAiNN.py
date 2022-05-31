@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
 from kgcnn.layers.conv.painn_conv import PAiNNconv
@@ -9,7 +7,9 @@ from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
+# Implementation of PAiNN in `tf.keras` from paper:
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
 # https://arxiv.org/pdf/2102.03150.pdf
@@ -43,26 +43,39 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make PAiNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.
+
+    Inputs:
+        list: `[node_attributes, node_coordinates, bond_indices]`
+        or `[node_attributes, node_coordinates, bond_indices, equiv_initial]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - node_coordinates (tf.RaggedTensor): Atomic coordinates of shape `(batch, None, 3)`.
+            - bond_indices (tf.RaggedTensor): Index list for edges or bonds of shape `(batch, None, 2)`.
+            - equiv_initial (tf.RaggedTensor): Equivariant initialization `(batch, None, 3, F)`. Optional.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        bessel_basis (dict): Dictionary of layer arguments unpacked in final `BesselBasisLayer` layer.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        bessel_basis (dict): Dictionary of layer arguments unpacked in final :obj:`BesselBasisLayer` layer.
         depth (int): Number of graph embedding units or depth of the network.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
-        conv_args (dict): Dictionary of layer arguments unpacked in `PAiNNconv` layer.
-        update_args (dict): Dictionary of layer arguments unpacked in `PAiNNUpdate` layer.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
+        conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
+        update_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNUpdate` layer.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
-
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
@@ -105,12 +118,10 @@ def make_model(inputs=None,
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:
-        raise ValueError("Unsupported graph embedding for mode `PAiNN`")
+        raise ValueError("Unsupported output embedding for mode `PAiNN`")
 
     if len(inputs) > 3:
-        model = tf.keras.models.Model(inputs=[node_input, xyz_input, bond_index_input, equiv_input],
-                                      outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, equiv_input], outputs=main_output)
     else:
-        model = tf.keras.models.Model(inputs=[node_input, xyz_input, bond_index_input],
-                                      outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input], outputs=main_output)
     return model

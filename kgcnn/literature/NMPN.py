@@ -98,7 +98,6 @@ def make_model(inputs=None,
     Returns:
         :obj:`tf.keras.models.Model`
     """
-
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])  # Or coordinates
