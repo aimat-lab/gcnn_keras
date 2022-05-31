@@ -1,5 +1,4 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding, \
@@ -8,6 +7,7 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.conv.dmpnn_conv import DMPNNPPoolingEdgesDirected
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
 # Analyzing Learned Molecular Representations for Property Prediction
 # by Kevin Yang, Kyle Swanson, Wengong Jin, Connor Coley, Philipp Eiden, Hua Gao,
@@ -50,26 +50,41 @@ def make_model(name=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make DMPNN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.DMPNN.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices, edge_pairs]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - edge_pairs (tf.RaggedTensor): Pair mappings for reverse edge for each edge `(batch, None, 1)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         name (str): Name of the model. Should be "DMPNN".
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes`, `PoolingLocalEdges` layers.
-        edge_initialize (dict): Dictionary of layer arguments unpacked in `Dense` layer for first edge embedding.
-        edge_dense (dict): Dictionary of layer arguments unpacked in `Dense` layer for edge embedding.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
+            :obj:`PoolingLocalEdges` layers.
+        edge_initialize (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for first edge embedding.
+        edge_dense (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for edge embedding.
         edge_activation (dict): Edge Activation after skip connection.
         node_dense (dict): Dense kwargs for node embedding layer.
         depth (int): Number of graph embedding units or depth of the network.
-        dropout (dict): Dictionary of layer arguments unpacked in `Dropout`.
+        dropout (dict): Dictionary of layer arguments unpacked in :obj:`Dropout`.
         verbose (int): Level for print information.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
 
     # Make input

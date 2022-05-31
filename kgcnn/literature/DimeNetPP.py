@@ -84,19 +84,19 @@ def make_model(inputs=None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         emb_size (int): Overall embedding size used for the messages.
-        out_emb_size (int): Embedding size for output of `DimNetOutputBlock`.
+        out_emb_size (int): Embedding size for output of :obj:`DimNetOutputBlock`.
         int_emb_size (int): Embedding size used for interaction triplets.
         basis_emb_size (int): Embedding size used inside the basis transformation.
         num_blocks (int): Number of graph embedding blocks or depth of the network.
-        num_spherical (int): Number of spherical components in `SphericalBasisLayer`.
+        num_spherical (int): Number of spherical components in :obj:`SphericalBasisLayer`.
         num_radial (int): Number of radial components in basis layer.
         cutoff (float): Distance cutoff for basis layer.
         envelope_exponent (int): Exponent in envelope function for basis layer.
         num_before_skip (int): Number of residual layers in interaction block before skip connection
         num_after_skip (int): Number of residual layers in interaction block after skip connection
-        num_dense_output (int): Number of dense units in output `DimNetOutputBlock`.
+        num_dense_output (int): Number of dense units in output :obj:`DimNetOutputBlock`.
         num_targets (int): Number of targets or output embedding dimension of the model.
         activation (str, dict): Activation to use.
         extensive (bool): Graph output for extensive target to apply sum for pooling or mean otherwise.
@@ -104,10 +104,10 @@ def make_model(inputs=None,
         verbose (int): Level of verbosity.
         name (str): Name of the model.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final :obj:`MLP`.
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation. Note that DimeNetPP originally defines the output dimension
-            via `num_targets`. But this can be set to `out_emb_size` and the `output_mlp`  be used for more
+            via `num_targets`. But this can be set to `out_emb_size` and the `output_mlp` be used for more
             specific control.
 
     Returns:
