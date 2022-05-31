@@ -1,12 +1,13 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
+# Implementation of GIN in `tf.keras` from paper:
 # How Powerful are Graph Neural Networks?
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
 # https://arxiv.org/abs/1810.00826
@@ -38,25 +39,35 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make GIN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `GIN <https://arxiv.org/abs/1810.00826>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GIN.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        gin_args (dict): Dictionary of layer arguments unpacked in `GIN` convolutional layer.
-        last_mlp (dict): Dictionary of layer arguments unpacked in last `MLP` layer before output or pooling.
+        gin_args (dict): Dictionary of layer arguments unpacked in :obj:`GIN` convolutional layer.
+        last_mlp (dict): Dictionary of layer arguments unpacked in last :obj:`MLP` layer before output or pooling.
         dropout (float): Dropout to use.
         name (str): Name of the model.
         verbose (int): Level of print output.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
-
     # Make input
     assert len(inputs) == 2
     node_input = ks.layers.Input(**inputs[0])
@@ -91,7 +102,7 @@ def make_model(inputs=None,
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for mode `GIN`")
+        raise ValueError("Unsupported output embedding for mode `GIN`")
 
     model = ks.models.Model(inputs=[node_input, edge_index_input], outputs=out)
     return model

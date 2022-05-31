@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding
@@ -8,9 +6,11 @@ from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
-# 'Inductive Representation Learning on Large Graphs'
-# William L. Hamilton and Rex Ying and Jure Leskovec
+# Implementation of GraphSAGE in `tf.keras` from paper:
+# Inductive Representation Learning on Large Graphs
+# by William L. Hamilton and Rex Ying and Jure Leskovec
 # http://arxiv.org/abs/1706.02216
 
 
@@ -48,33 +48,46 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make GraphSAGE graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GraphSAGE.hyper_model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        node_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for node updates.
-        edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalMessages` layer.
-        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
-        gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
-        concat_args (dict): Dictionary of layer arguments unpacked in `LazyConcatenate` layer.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        node_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for node updates.
+        edge_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge updates.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalMessages` layer.
+        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
+        gather_args (dict): Dictionary of layer arguments unpacked in :obj:`GatherNodes` layer.
+        concat_args (dict): Dictionary of layer arguments unpacked in :obj:`LazyConcatenate` layer.
         use_edge_features (bool): Whether to add edge features in message step.
         depth (int): Number of graph embedding units or depth of the network.
         name (str): Name of the model.
         verbose (int): Level of print output.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
-
-    # Make input embedding, if no feature dimension
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
+
+    # Make input embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'],
                                use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     ed = OptionalInputEmbedding(**input_embedding['edge'],
@@ -108,7 +121,7 @@ def make_model(inputs=None,
         out = GraphMLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for `GraphSAGE`")
+        raise ValueError("Unsupported output embedding for `GraphSAGE`")
 
-    model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model

@@ -1,4 +1,5 @@
 import tensorflow as tf
+ks = tf.keras
 
 
 class GNNInterface:
@@ -6,6 +7,7 @@ class GNNInterface:
     This class is just an interface, which is used by the `GNNExplainer` and should be implemented in a subclass.
     The implementation of this class could be a wrapper around an existing Tensorflow/Keras GNN.
     The output of the methods `predict` and `masked_predict` should be of same dimension and the output to be explained.
+
     """
 
     def predict(self, gnn_input, **kwargs):
@@ -247,7 +249,7 @@ class GNNExplainer:
         """
         return self.gnn.present_explanation(explanation, **kwargs)
 
-    class InspectionCallback(tf.keras.callbacks.Callback):
+    class InspectionCallback(ks.callbacks.Callback):
         """Callback class to get the inspection information,
         if 'inspection' is set to true for the 'GNNExplainer.explain' method.
         """
@@ -280,7 +282,7 @@ class GNNExplainer:
             self.total_loss.append(logs['loss'])
 
 
-class GNNExplainerOptimizer(tf.keras.Model):
+class GNNExplainerOptimizer(ks.Model):
     """The `GNNExplainerOptimizer` solves the optimization problem which is used to find masks,
     which then can be used to explain decisions by GNNs.
     """
@@ -325,19 +327,19 @@ class GNNExplainerOptimizer(tf.keras.Model):
             graph_instance)
         self.edge_mask = self.add_weight('edge_mask',
                                          shape=[self._edge_mask_dim, 1],
-                                         initializer=tf.keras.initializers.Constant(
+                                         initializer=ks.initializers.Constant(
                                              value=5.),
                                          dtype=tf.float32,
                                          trainable=True)
         self.feature_mask = self.add_weight('feature_mask',
                                             shape=[self._feature_mask_dim, 1],
-                                            initializer=tf.keras.initializers.Constant(
+                                            initializer=ks.initializers.Constant(
                                                 value=5.),
                                             dtype=tf.float32,
                                             trainable=True)
         self.node_mask = self.add_weight('node_mask',
                                          shape=[self._node_mask_dim, 1],
-                                         initializer=tf.keras.initializers.Constant(
+                                         initializer=ks.initializers.Constant(
                                              value=5.),
                                          dtype=tf.float32,
                                          trainable=True)
