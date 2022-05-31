@@ -60,7 +60,7 @@ def make_model(inputs=None,
         list: `[node_attributes, edge_attributes, edge_indices]`
         or `[node_attributes, edge_distance, edge_indices]` if :obj:`geometric_edge=True`
         or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
-        optionally :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
+        :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
