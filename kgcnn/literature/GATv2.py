@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import AttentionHeadGATV2
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding, \
@@ -8,12 +6,16 @@ from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, A
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
-# Graph Attention Networks by Veličković et al. (2018)
+# Implementation of GATv2 in `tf.keras` from paper:
+# Graph Attention Networks
+# by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
 # https://arxiv.org/abs/1710.10903
 # Improved by
 # How Attentive are Graph Attention Networks?
-# by Brody et al. (2021)
+# by Shaked Brody, Uri Alon, Eran Yahav (2021)
+# https://arxiv.org/abs/2105.14491
 
 model_default = {'name': "GATv2",
                  'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
@@ -45,24 +47,37 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make GATv2 graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `GATv2 <https://arxiv.org/abs/2105.14491>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GATv2.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
-        attention_args (dict): Dictionary of layer arguments unpacked in `AttentionHeadGATV2` layer.
-        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in `PoolingNodes` layer.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGATV2` layer.
+        pooling_nodes_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         depth (int): Number of graph embedding units or depth of the network.
         attention_heads_num (int): Number of attention heads to use.
-        attention_heads_concat (bool): Whether to concat attention heads. Otherwise average heads.
+        attention_heads_concat (bool): Whether to concat attention heads, or simply average heads.
         name (str): Name of the model.
         verbose (int): Level of print output.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
 
     # Make input
@@ -96,8 +111,8 @@ def make_model(inputs=None,
         out = GraphMLP(**output_mlp)(n)
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for `GATv2`")
+        raise ValueError("Unsupported output embedding for `GATv2`")
 
     # Define model output
-    model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
     return model
