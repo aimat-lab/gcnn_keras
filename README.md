@@ -15,17 +15,8 @@
 
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
-* [General](#general)
-* [Requirements](#requirements)
-* [Installation](#installation)
-* [Documentation](#documentation)
-* [Implementation details](#implementation-details)
-* [Literature](#literature)
-* [Datasets](#datasets)
-* [Examples](#examples)
-* [Issues](#issues)
-* [Citing](#citing)
-* [References](#references)
+[General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
+ | [Literature](#literature) | [Datasets](#datasets) | [Examples](#examples) | [Issues](#issues) | [Citing](#citing) | [References](#references)
  
 
 <a name="general"></a>
@@ -161,6 +152,7 @@ A version of the following models is implemented in [literature](kgcnn/literatur
 * **[GIN](kgcnn/literature/GIN.py)**: [How Powerful are Graph Neural Networks?](https://arxiv.org/abs/1810.00826) by Xu et al. (2019)
 * **[PAiNN](kgcnn/literature/PAiNN.py)**: [Equivariant message passing for the prediction of tensorial properties and molecular spectra](https://arxiv.org/pdf/2102.03150.pdf) by Schütt et al. (2020)
 * **[DMPNN](kgcnn/literature/DMPNN.py)**: [Analyzing Learned Molecular Representations for Property Prediction](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b00237) by Yang et al. (2019)
+* **[HamNet](kgcnn/literature/HamNet.py)**: [HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks](https://arxiv.org/abs/2105.03688) by Li et al. (2021)
 
 <a name="datasets"></a>
 # Datasets
@@ -239,10 +231,10 @@ A set of example training can be found in [training](training). Training scripts
 # Issues
 
 Some known issues to be aware of, if using and making new models or layers with `kgcnn`.
-* RaggedTensor can not yet be used as a keras model output (https://github.com/tensorflow/tensorflow/issues/42320), which means only padded tensors can be used for batched node embedding tasks.
+* RaggedTensor can not yet be used as a keras model output [(issue)](https://github.com/tensorflow/tensorflow/issues/42320), which has been mostly resolved in TF 2.8.
 * Using `RaggedTensor`'s for arbitrary ragged rank apart from `kgcnn.layers.modules` can cause significant performance decrease. This is due to shape check during add, multiply or concatenate (we think). 
   We therefore use lazy add and concat in the `kgcnn.layers.modules` layers or directly operate on the value tensor for possible rank. 
-* With tensorflow version <=2.5 there is a problem with numpy version >=1.20 also affect `kgcnn` (https://github.com/tensorflow/tensorflow/issues/47691) 
+* With tensorflow version <=2.5 there is a problem with numpy version >=1.20 also affect `kgcnn` [(issue)](https://github.com/tensorflow/tensorflow/issues/47691) 
 
 <a name="citing"></a>
 # Citing

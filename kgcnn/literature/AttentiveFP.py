@@ -49,7 +49,7 @@ def make_model(inputs: list = None,
     Default parameters can be found in :obj:`kgcnn.literature.AttentiveFP.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices]`,
+        list: `[node_attributes, edge_attributes, edge_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
