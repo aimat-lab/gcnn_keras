@@ -1,5 +1,4 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, OptionalInputEmbedding
@@ -7,10 +6,13 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
-# 'Interaction Networks for Learning about Objects,Relations and Physics'
+# Implementation of INorp in `tf.keras` from paper:
+# 'Interaction Networks for Learning about Objects, Relations and Physics'
 # by Peter W. Battaglia, Razvan Pascanu, Matthew Lai, Danilo Rezende, Koray Kavukcuoglu
 # http://papers.nips.cc/paper/6417-interaction-networks-for-learning-about-objects-relations-and-physics
+# https://arxiv.org/abs/1612.00222
 # https://github.com/higgsfield/interaction_network_pytorch
 
 hyper_model_default = {'name': "INorp",
@@ -50,26 +52,42 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make INorp graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `INorp <https://arxiv.org/abs/1612.00222>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.INorp.hyper_model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices, state_attributes]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - state_attributes (tf.Tensor): Environment or graph state attributes of shape `(batch, F)` or `(batch,)`
+              using an embedding layer.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodes` layer.
-        edge_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for edge updates.
-        node_mlp_args (dict): Dictionary of layer arguments unpacked in `MLP` layer for node updates.
-        set2set_args (dict): Dictionary of layer arguments unpacked in `PoolingSet2Set` layer.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges`, `PoolingNodes` layer.
-        use_set2set (bool): Whether to use `PoolingSet2Set` layer.
+        gather_args (dict): Dictionary of layer arguments unpacked in :obj:`GatherNodes` layer.
+        edge_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge updates.
+        node_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for node updates.
+        set2set_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingSet2Set` layer.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalEdges`, :obj:`PoolingNodes`
+            layer.
+        use_set2set (bool): Whether to use :obj:`PoolingSet2Set` layer.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
 
     # Make input
@@ -122,7 +140,7 @@ def make_model(inputs=None,
         main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
         # no ragged for distribution atm
     else:
-        raise ValueError("Unsupported graph embedding for mode `INorp`")
+        raise ValueError("Unsupported output embedding for mode `INorp`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=main_output)
     return model

@@ -18,7 +18,7 @@ ks = tf.keras
 # Link to paper: https://arxiv.org/abs/2105.03688
 # Original implementation: https://github.com/PKUterran/HamNet
 # Later implementation: https://github.com/PKUterran/MoleculeClub
-# Note: the 2. implementation is cleaner than the original code.
+# Note: the 2. implementation is cleaner than the original code and has been used as template.
 
 
 hyper_model_default = {"name": "HamNet",
@@ -157,9 +157,9 @@ def make_model(name: str = None,
 
     # Make Model instance.
     if given_coordinates:
-        model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr],
+        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr],
                                       outputs=main_output)
     else:
-        model = tf.keras.models.Model(inputs=[node_input, edge_input, edge_index_input],
+        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input],
                                       outputs=main_output)
     return model
