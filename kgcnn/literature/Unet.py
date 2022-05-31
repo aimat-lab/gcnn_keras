@@ -1,5 +1,4 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyAdd, OptionalInputEmbedding
@@ -7,7 +6,9 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
+# Implementation of Unet in `tf.keras` from paper:
 # Graph U-Nets
 # by Hongyang Gao, Shuiwang Ji
 # https://arxiv.org/pdf/1905.05178.pdf
@@ -46,28 +47,40 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    r"""Make U-Net graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `U-Net <https://arxiv.org/pdf/1905.05178.pdf>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.Unet.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_attributes, edge_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        pooling_args (dict): Dictionary of layer arguments unpacked in `PoolingLocalEdges` layers.
-        gather_args (dict): Dictionary of layer arguments unpacked in `GatherNodesOutgoing` layers.
-        top_k_args (dict): Dictionary of layer arguments unpacked in `PoolingTopK` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalEdges` layers.
+        gather_args (dict): Dictionary of layer arguments unpacked in :obj:`GatherNodesOutgoing` layers.
+        top_k_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingTopK` layers.
         use_reconnect (bool): Whether to use :math:`A^2` between pooling.
         hidden_dim (dict): Dictionary of layer arguments unpacked in hidden `Dense` layer.
         activation (dict, str): Activation to use.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
-
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])
