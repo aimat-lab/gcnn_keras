@@ -1,13 +1,14 @@
-import tensorflow.keras as ks
-
+import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
+ks = tf.keras
 
-# 'Semi-Supervised Classification with Graph Convolutional Networks'
+# Implementation of GCN in `tf.keras` from paper:
+# Semi-Supervised Classification with Graph Convolutional Networks
 # by Thomas N. Kipf, Max Welling
 # https://arxiv.org/abs/1609.02907
 # https://github.com/tkipf/gcn
@@ -37,28 +38,38 @@ def make_model(inputs=None,
                output_embedding=None,
                output_mlp=None
                ):
-    """Make GCN graph network via functional API. Default parameters can be found in :obj:`model_default`.
+    r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
+
+    Inputs:
+        list: `[node_attributes, edge_weights, edge_indices]`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_weights (tf.RaggedTensor): Edge weights of shape `(batch, None, 1)`, that are entries of a scaled
+              adjacency matrix.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in `Embedding` layers.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        gcn_args (dict): Dictionary of layer arguments unpacked in `GCN` convolutional layer.
+        gcn_args (dict): Dictionary of layer arguments unpacked in :obj:`GCN` convolutional layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
-        output_embedding (str): Main embedding task for graph network. Either "node", ("edge") or "graph".
-        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification `MLP` layer block.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        tf.keras.models.Model
+        :obj:`tf.keras.models.Model`
     """
-    input_node_shape = inputs[0]['shape']
-    input_edge_shape = inputs[1]['shape']
-
-    if input_edge_shape[-1] != 1:
+    if inputs[1]['shape'][-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
-                         must be shape (batch, None, 1), but got (without batch-dimension): ", input_edge_shape)
+                         must be shape (batch, None, 1), but got (without batch-dimension): ", inputs[1]['shape'])
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -67,9 +78,9 @@ def make_model(inputs=None,
 
     # Embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'],
-                               use_embedding=len(input_node_shape) < 2)(node_input)
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     ed = OptionalInputEmbedding(**input_embedding['edge'],
-                                use_embedding=len(input_edge_shape) < 2)(edge_input)
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
     # Model
@@ -87,7 +98,7 @@ def make_model(inputs=None,
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for `GCN`")
+        raise ValueError("Unsupported output embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model
@@ -117,14 +128,39 @@ def make_model_weighted(inputs=None,
                         gcn_args=None,
                         name=None,
                         verbose=None):
-    """Make GCN model with edge weights."""
+    r"""Make weighted `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default_weighted`.
 
-    input_node_shape = inputs[0]['shape']
-    input_edge_shape = inputs[1]['shape']
+    Inputs:
+        list: `[node_attributes, edge_weights, edge_indices, node_weights]`
 
-    if input_edge_shape[-1] != 1:
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - edge_weights (tf.RaggedTensor): Edge weights of shape `(batch, None, 1)`, that are entries of a scaled
+              adjacency matrix.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - node_weights (tf.RaggedTensor): Node weights of shape `(batch, None, 1)` that can be e.g. a node mask.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        depth (int): Number of graph embedding units or depth of the network.
+        gcn_args (dict): Dictionary of layer arguments unpacked in :obj:`GCN` convolutional layer.
+        name (str): Name of the model.
+        verbose (int): Level of print output.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
+            Defines number of model outputs and activation.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    if inputs[1]['shape'][-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
-                         must be shape (batch, None, 1), but got (without batch-dimension): ", input_edge_shape)
+                         must be shape (batch, None, 1), but got (without batch-dimension): ", inputs[1]['shape'])
 
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -133,8 +169,10 @@ def make_model_weighted(inputs=None,
     node_weights_input = ks.layers.Input(**inputs[3])
 
     # Embedding, if no feature dimension
-    n = generate_embedding(node_input, input_node_shape, input_embedding['node'])
-    ed = generate_embedding(edge_input, input_edge_shape, input_embedding['edge'])
+    n = OptionalInputEmbedding(**input_embedding['node'],
+                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'],
+                                use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
     nw = node_weights_input
 
@@ -153,7 +191,7 @@ def make_model_weighted(inputs=None,
         # no ragged for distribution supported atm
         out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
-        raise ValueError("Unsupported graph embedding for `GCN`")
+        raise ValueError("Unsupported output embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, node_weights_input], outputs=out)
     return model
