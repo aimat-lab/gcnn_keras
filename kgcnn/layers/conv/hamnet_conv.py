@@ -75,11 +75,11 @@ class HamNetNaiveUnion(GraphBaseLayer):
         Args:
             inputs (list): [nodes, node_updates]
 
-                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
-                - node_updates (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - nodes (tf.RaggedTensor): Node features of shape `(batch, [N], F)`
+                - node_updates (tf.RaggedTensor): Node features of shape `(batch, [N], F)`
 
         Returns:
-            tf.RaggedTensor: Embedding tensor of updated node features of shape (batch, [N], F).
+            tf.RaggedTensor: Embedding tensor of updated node features of shape `(batch, [N], F)`.
         """
         n, nu = inputs
         nnu = self.lay_concat([n, nu], **kwargs)
@@ -144,8 +144,8 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
         Args:
             inputs: [state, nodes]
 
-                - state (tf.Tensor): Molecular embedding of shape (batch, F)
-                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - state (tf.Tensor): Molecular embedding of shape `(batch, F)`
+                - nodes (tf.RaggedTensor): Node features of shape `(batch, [N], F)`
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
@@ -309,10 +309,10 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+            inputs (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
 
         Returns:
-            tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
+            tf.RaggedTensor: Embedding tensor of pooled node attentions of shape `(batch, F)`
         """
         self.assert_ragged_input_rank(inputs)
         hv_ftr = inputs
@@ -372,6 +372,8 @@ class HamNaiveDynMessage(GraphBaseLayer):
     .. math::
         \mathbf{m}_{e} = \sigma \left[ \left(\; \mathbf{h}_i \; || \; \mathbf{q}_{ij} \; || \;
         \mathbf{h}_j \; \right) \mathbf{W}^T \right]
+
+    the layer returns :math:`\mathbf{m}_{v}` and :math:`\mathbf{m}_{e}`.
 
     """
     def __init__(self,
@@ -450,17 +452,17 @@ class HamNaiveDynMessage(GraphBaseLayer):
         Args:
             inputs: [hv_ftr, he_ftr, p_ftr, q_ftr, edge_index]
 
-                - hv_ftr (tf.RaggedTensor): Node features of shape (batch, [N], F)
-                - he_ftr (tf.RaggedTensor): Edge features of shape (batch, [M], F)
-                - p_ftr (tf.RaggedTensor): Momentum node features of shape (batch, [N], F)
-                - q_ftr (tf.RaggedTensor): Positional node features of shape (batch, [N], F)
-                - edge_index (tf.RaggedTensor): Edge connection index list of shape (batch, [M], 2)
+                - hv_ftr (tf.RaggedTensor): Node features of shape `(batch, [N], F)`
+                - he_ftr (tf.RaggedTensor): Edge features of shape `(batch, [M], F)`
+                - p_ftr (tf.RaggedTensor): Momentum node features of shape `(batch, [N], F)`
+                - q_ftr (tf.RaggedTensor): Positional node features of shape `(batch, [N], F)`
+                - edge_index (tf.RaggedTensor): Edge connection index list of shape `(batch, [M], 2)`
 
         Returns:
             list: [mv_ftr, me_ftr]
 
-                - mv_ftr (tf.RaggedTensor): Node feature updates of shape (batch, [N], F)
-                - me_ftr (tf.RaggedTensor): Edge feature updates of shape (batch, [M], F)
+                - mv_ftr (tf.RaggedTensor): Node feature updates of shape `(batch, [N], F)`
+                - me_ftr (tf.RaggedTensor): Edge feature updates of shape `(batch, [M], F)`
         """
         hv_ftr, he_ftr, p_ftr, q_ftr, edi = inputs
         if self.use_dropout:
