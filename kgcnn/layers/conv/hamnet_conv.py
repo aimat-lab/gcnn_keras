@@ -184,7 +184,22 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetFingerprintGenerator')
 class HamNetFingerprintGenerator(GraphBaseLayer):
-    r"""Computes readout or fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_ .
+    r"""Computes readout or fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_.
+    The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
+    The layer generates a molecular or global message by iteratively updating from node embeddings. Initial state
+    :math:`\mathbf{s}^0 = \frac{1}{n} \sum_i \sigma (\mathbf{h} W^T)` is updated :math:`l=1\dots L` times from
+    messages :math:`\mathbf{m}^l` via a gated recurrent unit and subsequent activation :math:`\sigma`:
+
+    .. math::
+        \mathbf{s}^{l+1} = \sigma \left[\; \text{GRU}(\mathbf{s}^l, \mathbf{m}^{l}) \;\right]
+
+    The message is obtained from an attentive readout function :math:`f` which is implemented here in
+    :obj:`HamNetGlobalReadoutAttend`:
+
+    .. math::
+        \mathbf{m}^{l+1} = f(\mathbf{h}, \mathbf{m}^l)
+
+    The final embedding :math:`\mathbf{s}^L` is used as output or molecular state.
 
     """
 
@@ -231,6 +246,23 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
             kernel_constraint: Constraint function applied to
                 the `kernel` weights matrix. Default is None.
             bias_constraint: Constraint function applied to the bias vector. Default is None.
+            recurrent_activation: Activation function to use for the recurrent step.
+                Default: sigmoid (`sigmoid`). If you pass `None`, no activation is
+                applied (ie. "linear" activation: `a(x) = x`).
+            recurrent_initializer: Initializer for the `recurrent_kernel`
+                weights matrix, used for the linear transformation of the recurrent state.
+                Default: `orthogonal`.
+            recurrent_regularizer: Regularizer function applied to the
+                `recurrent_kernel` weights matrix. Default: `None`.
+            recurrent_constraint: Constraint function applied to the `recurrent_kernel`
+                weights matrix. Default: `None`.
+            dropout: Float between 0 and 1. Fraction of the units to drop for the
+                linear transformation of the inputs. Default: 0.
+            recurrent_dropout: Float between 0 and 1. Fraction of the units to drop for
+                the linear transformation of the recurrent state. Default: 0.
+            reset_after: GRU convention (whether to apply reset gate after or
+                before matrix multiplication). False = "before",
+                True = "after" (default and cuDNN compatible).
             use_dropout (bool): Whether to use dropout on input features. Default is False.
             rate (float): Float between 0 and 1. Fraction of the input units to drop.
             noise_shape: 1D integer tensor representing the shape of the
