@@ -307,6 +307,18 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNaiveDynMessage')
 class HamNaiveDynMessage(GraphBaseLayer):
+    r"""Message passing block from `HamNet <https://arxiv.org/abs/2105.03688>`_ which makes use of attention.
+    The naming follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
+    The layer computes the following, let :math:`\mathbf{h}_v`, :math:`\mathbf{\epsilon}_{ij}` be node, edge features
+    and :math:`\mathbf{q}`, :math:`\mathbf{p}` be (generalized) node coordinates and momentum. With
+    :math:`\mathbf{p}_{ij} = \mathbf{p}_{j} - \mathbf{p}_{i}` and
+    :math:`\mathbf{q}_{ij} = \mathbf{q}_{j} - \mathbf{q}_{i}` the attention coefficients read:
+
+    .. math::
+        \mathbf{alpha_ij} = \mathbf{W}^T \left(\mathbf{p}_{ij} \; || \; \mathbf{q}_{ij} \; ||
+        \mathbf{\epsilon}_{ij} \right)
+
+    """
     def __init__(self,
                  units,
                  units_edge,
@@ -338,7 +350,7 @@ class HamNaiveDynMessage(GraphBaseLayer):
         self.gather_q = GatherNodes(concat_axis=None, split_axis=2)
         self.lazy_sub_p = LazySubtract()
         self.lazy_sub_q = LazySubtract()
-        self.lay_concat = LazyConcatenate(axis=-1)
+        # self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_concat_align = LazyConcatenate(axis=-1)
         self.lay_concat_edge = LazyConcatenate(axis=-1)
         if self.use_dropout:
@@ -346,7 +358,6 @@ class HamNaiveDynMessage(GraphBaseLayer):
         self.dense_attend = DenseEmbedding(units=units, use_bias=use_bias, activation=activation, **kernel_args)
         self.dense_align = DenseEmbedding(1, activation="linear", use_bias=use_bias, **kernel_args)
         self.dense_e = DenseEmbedding(units=units_edge, activation=activation, use_bias=use_bias, **kernel_args)
-        self.lay_concat = LazyConcatenate(axis=-1)
         self.pool_attention = PoolingLocalEdgesAttention()
         self.final_activ = ActivationEmbedding(activation=activation_last,
                                                activity_regularizer=activity_regularizer)
@@ -376,11 +387,10 @@ class HamNaiveDynMessage(GraphBaseLayer):
         p_u_ftr, p_v_ftr = self.gather_q([p_ftr, edi], **kwargs)
         p_uv_ftr = self.lazy_sub_p([p_v_ftr, p_u_ftr], **kwargs)
         q_uv_ftr = self.lazy_sub_p([q_v_ftr, q_u_ftr], **kwargs)
-        he2_ftr = self.lay_concat([he_ftr, he_ftr], **kwargs)
 
         attend_ftr = self.dense_attend(hv_v_ftr, **kwargs)
 
-        align_ftr = self.lay_concat_align([p_uv_ftr, q_uv_ftr, he2_ftr], **kwargs)
+        align_ftr = self.lay_concat_align([p_uv_ftr, q_uv_ftr, he_ftr], **kwargs)
         align_ftr = self.dense_align(align_ftr, **kwargs)
         mv_ftr = self.pool_attention([hv_ftr, attend_ftr, align_ftr, edi], **kwargs)
         mv_ftr = self.final_activ(mv_ftr , **kwargs)

@@ -12,7 +12,7 @@ class PoolingLocalEdges(GraphBaseLayer):
     corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
-    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index_tensor, that has a list of
+    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
     receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
 
