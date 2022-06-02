@@ -186,20 +186,6 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
 class HamNetFingerprintGenerator(GraphBaseLayer):
     r"""Computes readout or fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_ .
 
-    Args:
-        units (int): Units for the linear transformation of node features before attention.
-        units_attend (int): Units fot attention attributes.
-        activation (str, dict): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
-        use_bias (bool): Use bias. Default is True.
-        depth (int): Number of iterations. Default is 4.
-        pooling_method(str): Initial pooling before iteration. Default is "mean".
-        kernel_regularizer: Kernel regularization. Default is None.
-        bias_regularizer: Bias regularization. Default is None.
-        activity_regularizer: Activity regularization. Default is None.
-        kernel_constraint: Kernel constrains. Default is None.
-        bias_constraint: Bias constrains. Default is None.
-        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
-        bias_initializer: Initializer for bias. Default is 'zeros'.
     """
 
     def __init__(self,
@@ -226,7 +212,31 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
                  use_dropout=False,
                  rate=None, noise_shape=None, seed=None,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Units for the linear transformation of node features before attention.
+            units_attend (int): Units for attention attributes.
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
+            depth (int): Number of iterations. Default is 4.
+            pooling_method(str): Initial pooling before iteration. Default is "mean".
+            kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
+            bias_initializer: Initializer for the bias vector. Default is "zeros".
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_regularizer: Regularizer function applied to the bias vector. Default is None.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation"). Default is None.
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_constraint: Constraint function applied to the bias vector. Default is None.
+            use_dropout (bool): Whether to use dropout on input features. Default is False.
+            rate (float): Float between 0 and 1. Fraction of the input units to drop.
+            noise_shape: 1D integer tensor representing the shape of the
+                binary dropout mask that will be multiplied with the input.
+            seed (int): A Python integer to use as random seed.
+        """
         super(HamNetFingerprintGenerator, self).__init__(**kwargs)
         self.units = int(units)
         self.units_attend = int(units_attend)
