@@ -308,7 +308,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNaiveDynMessage')
 class HamNaiveDynMessage(GraphBaseLayer):
     r"""Message passing block from `HamNet <https://arxiv.org/abs/2105.03688>`_ which makes use of attention.
-    The naming follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
+    The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
     The layer computes the following, let :math:`\mathbf{h}`, :math:`\mathbf{\epsilon}_{ij}` be node, edge features
     and :math:`\mathbf{q}`, :math:`\mathbf{p}` be (generalized) node coordinates and momentum. With
     :math:`\mathbf{p}_{ij} = \mathbf{p}_{j} - \mathbf{p}_{i}` and
@@ -348,7 +348,30 @@ class HamNaiveDynMessage(GraphBaseLayer):
                  use_dropout=False,
                  rate=None, noise_shape=None, seed=None,
                  **kwargs):
-        """Initialize layer."""
+        r"""Initialize layer.
+
+        Args:
+            units (int): Units for the linear transformation of node features before attention.
+            units_edge (int): Units for :obj:`Dense` layer for edge updates.
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            activation_last (str, dict): Last activation for messages. Default is "elu".
+            use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
+            kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
+            bias_initializer: Initializer for the bias vector. Default is "zeros".
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_regularizer: Regularizer function applied to the bias vector. Default is None.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation"). Default is None.
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_constraint: Constraint function applied to the bias vector. Default is None.
+            use_dropout (bool): Whether to use dropout on input features. Default is False.
+            rate (float): Float between 0 and 1. Fraction of the input units to drop.
+            noise_shape: 1D integer tensor representing the shape of the
+                binary dropout mask that will be multiplied with the input.
+            seed (int): A Python integer to use as random seed.
+        """
         super(HamNaiveDynMessage, self).__init__(**kwargs)
         self.units = int(units)
         self.units_edge= int(units_edge)
