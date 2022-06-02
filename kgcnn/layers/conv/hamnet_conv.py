@@ -309,14 +309,27 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
 class HamNaiveDynMessage(GraphBaseLayer):
     r"""Message passing block from `HamNet <https://arxiv.org/abs/2105.03688>`_ which makes use of attention.
     The naming follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
-    The layer computes the following, let :math:`\mathbf{h}_v`, :math:`\mathbf{\epsilon}_{ij}` be node, edge features
+    The layer computes the following, let :math:`\mathbf{h}`, :math:`\mathbf{\epsilon}_{ij}` be node, edge features
     and :math:`\mathbf{q}`, :math:`\mathbf{p}` be (generalized) node coordinates and momentum. With
     :math:`\mathbf{p}_{ij} = \mathbf{p}_{j} - \mathbf{p}_{i}` and
     :math:`\mathbf{q}_{ij} = \mathbf{q}_{j} - \mathbf{q}_{i}` the attention coefficients read:
 
     .. math::
-        \mathbf{alpha_ij} = \mathbf{W}^T \left(\mathbf{p}_{ij} \; || \; \mathbf{q}_{ij} \; ||
+        \mathbf{a}_{ij} = \mathbf{w}^T \left(\mathbf{p}_{ij} \; || \; \mathbf{q}_{ij} \; ||
         \mathbf{\epsilon}_{ij} \right)
+
+    and the new node update or message, using the attention coefficients
+    :math:`\alpha_{ij} = \, \text{softmax}(\{\mathbf{a}_{ij} \; | \; j \in \mathcal{N}(i)\})`:
+
+    .. math::
+        \mathbf{m}_{v} = \sigma \; \sum_{j \in \mathcal{N}(i)} \; \alpha_{ij} \;  \sigma
+        \left[ \; \mathbf{h}_j \; \mathbf{W}^T \;  \right]
+
+    and edge updates:
+
+    .. math::
+        \mathbf{m}_{e} = \sigma \left[ \left(\; \mathbf{h}_i \; || \; \mathbf{q}_{ij} \; || \;
+        \mathbf{h}_j \; \right) \mathbf{W}^T \right]
 
     """
     def __init__(self,
@@ -372,11 +385,17 @@ class HamNaiveDynMessage(GraphBaseLayer):
         Args:
             inputs: [hv_ftr, he_ftr, p_ftr, q_ftr, edge_index]
 
-                - state (tf.Tensor): Molecular embedding of shape (batch, F)
-                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - hv_ftr (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - he_ftr (tf.RaggedTensor): Edge features of shape (batch, [M], F)
+                - p_ftr (tf.RaggedTensor): Momentum node features of shape (batch, [N], F)
+                - q_ftr (tf.RaggedTensor): Positional node features of shape (batch, [N], F)
+                - edge_index (tf.RaggedTensor): Edge connection index list of shape (batch, [M], 2)
 
         Returns:
-            tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
+            list: [mv_ftr, me_ftr]
+
+                - mv_ftr (tf.RaggedTensor): Node feature updates of shape (batch, [N], F)
+                - me_ftr (tf.RaggedTensor): Edge feature updates of shape (batch, [M], F)
         """
         hv_ftr, he_ftr, p_ftr, q_ftr, edi = inputs
         if self.use_dropout:
@@ -393,7 +412,7 @@ class HamNaiveDynMessage(GraphBaseLayer):
         align_ftr = self.lay_concat_align([p_uv_ftr, q_uv_ftr, he_ftr], **kwargs)
         align_ftr = self.dense_align(align_ftr, **kwargs)
         mv_ftr = self.pool_attention([hv_ftr, attend_ftr, align_ftr, edi], **kwargs)
-        mv_ftr = self.final_activ(mv_ftr , **kwargs)
+        mv_ftr = self.final_activ(mv_ftr, **kwargs)
 
         me_ftr = self.lay_concat_edge([hv_u_ftr, p_uv_ftr, q_uv_ftr, hv_v_ftr], **kwargs)
         me_ftr = self.dense_e(me_ftr)
