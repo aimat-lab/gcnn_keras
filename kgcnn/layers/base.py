@@ -72,6 +72,9 @@ class GraphBaseLayer(ks.layers.Layer):
         Args:
             inputs: Tensor or list of tensors to assert to be ragged and have given ragged rank.
             ragged_rank (int): Assert ragged tensor to have ragged_rank. Default is 1.
+
+        Returns:
+            inputs: Tensor or list of tensors.
         """
         if isinstance(inputs, (list, tuple)):
             assert all(
@@ -85,6 +88,10 @@ class GraphBaseLayer(ks.layers.Layer):
             if ragged_rank is not None:
                 assert inputs.ragged_rank == ragged_rank, "%s must have input with ragged_rank=%s." % (
                     self.name, ragged_rank)
+
+        # We could further cast to ragged if tensor input.
+        # ...
+        return inputs
 
     def call_on_values_tensor_of_ragged(self, fun, inputs, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor(s) of :obj:`inputs`.

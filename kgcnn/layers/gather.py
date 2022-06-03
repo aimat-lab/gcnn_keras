@@ -7,7 +7,9 @@ from kgcnn.ops.axis import get_positive_axis
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEmbedding')
 class GatherEmbedding(GraphBaseLayer):
-    r"""Gather node or edge embedding from an index list. The embeddings for multiple indices
+    r"""Gather node or edge embedding from an index list.
+
+    The embeddings for multiple indices
     are concatenated or split. Default is concatenation. An edge is defined by index tuple :math:`(i,j)`.
     In the default definition for this layer index :math:`i` is expected to be the receiving or target node
     (case of directed edges).
