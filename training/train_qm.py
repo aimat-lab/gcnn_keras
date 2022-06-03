@@ -23,6 +23,8 @@ parser.add_argument("--dataset", required=False, help="Name of the dataset or le
                     default="QM9Dataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_qm9_orbitals.py")
+parser.add_argument("--make", required=False, help="Name of the make function for model.",
+                    default="make_model")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -30,12 +32,13 @@ print("Input of argparse:", args)
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
+make_function = args["make"]
 
 # HyperSelection is used to store and verify hyperparameter.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # Model Selection to load a model definition from a module in kgcnn.literature
-model_selection = ModelSelection(model_name)
+model_selection = ModelSelection(model_name, make_function)
 make_model = model_selection.make_model()
 
 # Loading a dataset from a module in kgcnn.data.datasets.

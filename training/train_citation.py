@@ -23,6 +23,8 @@ parser.add_argument("--dataset", required=False, help="Name of the dataset or le
                     default="CoraDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_cora.py")
+parser.add_argument("--make", required=False, help="Name of the make function for model.",
+                    default="make_model")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -30,6 +32,7 @@ print("Input of argparse:", args)
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
+make_function = args["make"]
 
 # A class `HyperSelection` is used to expose and verify hyperparameter.
 # The hyperparameter are stored as a dictionary with section 'model', 'data' and 'training'.
@@ -38,7 +41,7 @@ hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_n
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
 # At the moment there is a `make_model()` function in each module that sets up a keras model within the functional API
 # of tensorflow-keras.
-model_selection = ModelSelection(model_name)
+model_selection = ModelSelection(model_name, make_function)
 make_model = model_selection.make_model()
 
 # The `DatasetSelection` class is used to create a `MemoryGraphDataset` from config in hyperparameter.
