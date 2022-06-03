@@ -99,6 +99,24 @@ class HamNetNaiveUnion(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetGlobalReadoutAttend')
 class HamNetGlobalReadoutAttend(GraphBaseLayer):
+    r"""Computes attentive updates for fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_.
+    The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
+    The layer is used in :obj:`HamNetFingerprintGenerator` and computes the attentive state updates.
+    The node features are first transformed by a :obj:`Dense` layer:
+    :math:`\mathbf{h}' = \sigma\;(\mathbf{h} \mathbf{W}^T)` which yields the attention coefficients from state
+    :math:`\mathbf{s}`:
+
+    .. math::
+        a_i = w^T [\mathbf{h}_i' \; || \; \mathbf{s}]
+
+    with :math:`\alpha_i = \text{softmax}({a_i \; | \; i \in V})` the final state update :math:`\mathbf{m}`:
+
+    .. math::
+        \mathbf{m} = \sigma \; \sum_i \alpha_i \mathbf{h}'_i
+
+    Update :math:`\mathbf{m}` is returned by the layer. Here, :math:`\sigma` denotes an activation function.
+
+    """
 
     def __init__(self,
                  units,
