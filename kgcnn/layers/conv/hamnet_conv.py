@@ -12,7 +12,7 @@ ks = tf.keras
 HamNetGRUUnion = GRUUpdate
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetNaiveUnion')
+@ks.utils.register_keras_serializable(package='kgcnn', name='HamNetNaiveUnion')
 class HamNetNaiveUnion(GraphBaseLayer):
     r"""Simple union that concatenates a feature tensor :math:`\mathbf{x}` and its updates :math:`\mathbf{x}_u`
     and applies a fully connected dense layer,
@@ -97,7 +97,7 @@ class HamNetNaiveUnion(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetGlobalReadoutAttend')
+@ks.utils.register_keras_serializable(package='kgcnn', name='HamNetGlobalReadoutAttend')
 class HamNetGlobalReadoutAttend(GraphBaseLayer):
     r"""Computes attentive updates for fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_.
     The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
@@ -222,7 +222,7 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNetFingerprintGenerator')
+@ks.utils.register_keras_serializable(package='kgcnn', name='HamNetFingerprintGenerator')
 class HamNetFingerprintGenerator(GraphBaseLayer):
     r"""Computes readout or fingerprint generation according to `HamNet <https://arxiv.org/abs/2105.03688>`_.
     The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
@@ -336,7 +336,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
             use_dropout=use_dropout, rate=rate, noise_shape=noise_shape, seed=seed,
             **kernel_args) for _ in range(self.depth)]
 
-        self.unions = [tf.keras.layers.GRUCell(
+        self.unions = [ks.layers.GRUCell(
             units=units, activation="tanh", **gru_args) for _ in range(self.depth)]
         self.final_activ = ActivationEmbedding(activation=activation,
                                                activity_regularizer=activity_regularizer)
@@ -387,7 +387,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamNaiveDynMessage')
+@ks.utils.register_keras_serializable(package='kgcnn', name='HamNaiveDynMessage')
 class HamNaiveDynMessage(GraphBaseLayer):
     r"""Message passing block from `HamNet <https://arxiv.org/abs/2105.03688>`_ which makes use of attention.
     The naming convention follows the authors `implementation <https://github.com/PKUterran/MoleculeClub>`_.
@@ -543,7 +543,7 @@ class HamNaiveDynMessage(GraphBaseLayer):
         return config
 
 
-# @tf.keras.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
+# @ks.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
 # class HamiltonEngine(GraphBaseLayer):
 #     def __init__(self,
 #                  units,
