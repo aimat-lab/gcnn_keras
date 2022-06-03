@@ -99,8 +99,8 @@ def make_model(inputs=None,
         out = n
         out = GraphMLP(**last_mlp)(out)
         out = GraphMLP(**output_mlp)(out)
-        # no ragged for distribution supported atm
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `GIN`")
 

@@ -124,6 +124,7 @@ def make_model(name: str = None,
 
     # Message passing.
     for i in range(depth):
+        # Message step
         nu, eu = HamNaiveDynMessage(**message_kwargs)([n, ed, p, q, edi])
 
         # Node updates
@@ -146,20 +147,17 @@ def make_model(name: str = None,
     if output_embedding == 'graph':
         out = HamNetFingerprintGenerator(**fingerprint_kwargs)(n)
         out = ks.layers.Flatten()(out)  # will be tensor.
-        main_output = MLP(**output_mlp)(out)
-
+        out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type='ragged',
-                                       output_tensor_type="tensor")(out)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for `HamNet`")
 
     # Make Model instance.
     if given_coordinates:
-        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr],
-                                      outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr], outputs=out)
     else:
-        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input],
-                                      outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model

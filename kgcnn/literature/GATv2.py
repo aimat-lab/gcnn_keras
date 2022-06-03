@@ -106,13 +106,14 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)(n)
-        main_output = MLP(**output_mlp)(out)
+        out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for `GATv2`")
 
     # Define model output
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model

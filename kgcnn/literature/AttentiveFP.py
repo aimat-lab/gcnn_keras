@@ -103,12 +103,13 @@ def make_model(inputs: list = None,
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodesAttentive(units=attention_args['units'])(n)
-        main_output = MLP(**output_mlp)(out)
-    elif output_embedding == 'node':  # node embedding
+        out = MLP(**output_mlp)(out)
+    elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model

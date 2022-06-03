@@ -93,10 +93,9 @@ def make_model(inputs=None,
         out = PoolingNodes()(n)  # will return tensor
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
-        out = n
-        out = GraphMLP(**output_mlp)(out)
-        # no ragged for distribution supported atm
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        out = GraphMLP(**output_mlp)(n)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for `GCN`")
 
@@ -186,10 +185,9 @@ def make_model_weighted(inputs=None,
         out = PoolingWeightedNodes()([n, nw])  # will return tensor
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
-        out = n
-        out = GraphMLP(**output_mlp)(out)
-        # no ragged for distribution supported atm
-        out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        out = GraphMLP(**output_mlp)(n)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for `GCN`")
 

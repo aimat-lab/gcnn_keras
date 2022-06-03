@@ -160,17 +160,17 @@ def make_model(inputs=None,
         ps = add_xp([ps, p_update])
 
     if extensive:
-        main_output = PoolingNodes(pooling_method="sum")(ps)
+        out = PoolingNodes(pooling_method="sum")(ps)
     else:
-        main_output = PoolingNodes(pooling_method="mean")(ps)
+        out = PoolingNodes(pooling_method="mean")(ps)
 
     if use_output_mlp:
-        main_output = MLP(**output_mlp)(main_output)
+        out = MLP(**output_mlp)(out)
 
     if output_embedding != "graph":
         raise ValueError("Unsupported output embedding for mode `DimeNetPP`.")
 
     model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
-                            outputs=main_output)
+                            outputs=out)
 
     return model

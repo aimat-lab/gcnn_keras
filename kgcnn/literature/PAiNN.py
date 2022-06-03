@@ -112,17 +112,16 @@ def make_model(inputs=None,
     # Output embedding choice
     if output_embedding == "graph":
         out = PoolingNodes(**pooling_args)(n)
-        main_output = MLP(**output_mlp)(out)
+        out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
-        out = n
-        main_output = GraphMLP(**output_mlp)(out)
-        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(main_output)
-        # no ragged for distribution atm
+        out = GraphMLP(**output_mlp)(n)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `PAiNN`")
 
     if len(inputs) > 3:
-        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, equiv_input], outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, equiv_input], outputs=out)
     else:
-        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input], outputs=main_output)
+        model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input], outputs=out)
     return model

@@ -125,15 +125,14 @@ def make_model(inputs=None,
         out = PoolingNodes(**node_pooling_args)(n)
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
-        main_output = out
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
             out = GraphMLP(**output_mlp)(out)
-        # no ragged for distribution atm
-        main_output = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
-    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out)
     return model

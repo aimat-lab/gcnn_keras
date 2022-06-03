@@ -128,15 +128,13 @@ def make_model(name=None,
     n = hv
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_args)(n)
-        # final dense layers
-        main_output = MLP(**output_mlp)(out)
+        out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
-        out = n
-        main_output = GraphMLP(**output_mlp)(out)
-        # no ragged for distribution supported atm
-        main_output = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(main_output)
+        out = GraphMLP(**output_mlp)(n)
+        # For tf version < 2.8 cast to tensor below.
+        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `DMPNN`")
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, edge_pair_input], outputs=main_output)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, edge_pair_input], outputs=out)
     return model
