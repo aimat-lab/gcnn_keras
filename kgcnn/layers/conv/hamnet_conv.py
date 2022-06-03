@@ -133,7 +133,29 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
                  use_dropout=False,
                  rate=None, noise_shape=None, seed=None,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            units (int): Units for the linear transformation of node features before attention.
+            activation (str, dict): Activation. Default is "kgcnn>leaky_relu".
+            activation_last (str, dict): Last activation for messages. Default is "elu".
+            use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
+            kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
+            bias_initializer: Initializer for the bias vector. Default is "zeros".
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_regularizer: Regularizer function applied to the bias vector. Default is None.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation"). Default is None.
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix. Default is None.
+            bias_constraint: Constraint function applied to the bias vector. Default is None.
+            use_dropout (bool): Whether to use dropout on input features. Default is False.
+            rate (float): Float between 0 and 1. Fraction of the input units to drop.
+            noise_shape: 1D integer tensor representing the shape of the
+                binary dropout mask that will be multiplied with the input.
+            seed (int): A Python integer to use as random seed.
+        """
         super(HamNetGlobalReadoutAttend, self).__init__(**kwargs)
         self.units = int(units)
         self.use_bias = use_bias
