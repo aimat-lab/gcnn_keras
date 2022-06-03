@@ -7,13 +7,11 @@ ks = tf.keras
 
 class GraphBaseLayer(ks.layers.Layer):
     r"""Base layer for graph layers used in :obj:`kgcnn` that holds some additional information about the graph, which
-    could improve performance for some layers, if set differently.
+    could improve performance for some layers, if set differently like e.g. `is_sorted`, but which are not handed down
+    to sub-layers for now.
+    Moreover, some useful utility functions are methods of this class like e.g. :obj:`assert_ragged_input_rank` that
+    can be used in graph layers for convenience.
 
-    Args:
-        node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
-        ragged_validate (bool): Whether to validate ragged tensor. Default is False.
-        is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
-        has_unconnected (bool): If unconnected nodes are allowed. Default is True.
     """
 
     def __init__(self,
@@ -22,7 +20,14 @@ class GraphBaseLayer(ks.layers.Layer):
                  is_sorted=False,
                  has_unconnected=True,
                  **kwargs):
-        """Initialize layer."""
+        r"""Initialize layer.
+
+        Args:
+            node_indexing (str): Indices referring to 'sample' or to the continuous 'batch'.
+            ragged_validate (bool): Whether to validate ragged tensor. Default is False.
+            is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+            has_unconnected (bool): If unconnected nodes are allowed. Default is True.
+        """
         super(GraphBaseLayer, self).__init__(**kwargs)
         self.node_indexing = node_indexing
         self.ragged_validate = ragged_validate
@@ -39,6 +44,7 @@ class GraphBaseLayer(ks.layers.Layer):
         self._add_layer_config_to_self = {}
 
     def get_config(self):
+        """Update layer config."""
         config = super(GraphBaseLayer, self).get_config()
         config.update({"node_indexing": self.node_indexing,
                        "ragged_validate": self.ragged_validate,
@@ -61,7 +67,7 @@ class GraphBaseLayer(ks.layers.Layer):
         super(GraphBaseLayer, self).build(input_shape)
 
     def assert_ragged_input_rank(self, inputs, ragged_rank: int = 1):
-        """Assert input to be ragged with a given ragged_rank.
+        r"""Assert input to be ragged with a given ragged_rank.
 
         Args:
             inputs: Tensor or list of tensors to assert to be ragged and have given ragged rank.
@@ -81,14 +87,14 @@ class GraphBaseLayer(ks.layers.Layer):
                     self.name, ragged_rank)
 
     def call_on_values_tensor_of_ragged(self, fun, inputs, **kwargs):
-        r"""This is a helper function that attempts to call :obj:`fun` on the value tensor of :obj:`inputs`.
-        For ragged rank of one, the values is a tf.Tensor.
-        Function :obj:`inputs` must be a ragged tensors with ragged rank of one, or a list of ragged tensors.
+        r"""This is a helper function that attempts to call :obj:`fun` on the value tensor(s) of :obj:`inputs`.
+        For ragged rank of one, the values is a :obj:`tf.Tensor` itself.
+        The argument :obj:`inputs` must be a ragged tensors with ragged rank of one, or a list of ragged tensors.
         The fallback is to call :obj:`fun` directly on inputs.
-        For list input assumes lazy operation if :obj:`ragged_validate` is set to :obj:`False`, which means it is not
-        checked if splits are equal.
+        For list input, this corresponds to a "lazy operation" which requires :obj:`ragged_validate` is set to
+        :obj:`False`, which means it is not checked if splits are equal.
         For the output of :obj:`fun` it is always assumed that the ragged partition does not change in :obj:`fun`.
-        If `axis` is found in kwargs, the axis argument of adapted for the values tensor if possible, otherwise
+        If `axis` is found in `kwargs`, the axis argument is adapted for the :obj:`values` tensor if possible, otherwise
         the tensor is passed as fallback to :obj:`fun` directly.
 
         Args:
@@ -97,7 +103,7 @@ class GraphBaseLayer(ks.layers.Layer):
             kwargs: Additional kwargs for fun.
 
         Returns:
-            tf.RaggedTensor: Output of fun only on the values tensor of the ragged input.
+            tf.RaggedTensor: Output of fun only on the :obj:`values` tensor of the ragged input.
         """
         if "axis" in kwargs:
             axis = kwargs["axis"]

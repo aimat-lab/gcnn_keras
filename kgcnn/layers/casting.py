@@ -1,36 +1,36 @@
 import tensorflow as tf
-# import tensorflow.keras as ks
-
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.ragged import partition_from_ragged_tensor_by_name
 from kgcnn.layers.base import GraphBaseLayer
-
+# import tensorflow.keras as ks
 ks = tf.keras
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
 class ChangeTensorType(GraphBaseLayer):
-    """Layer to change the ragged tensor representation into tensor type information.
+    r"""Layer to change the ragged tensor representation into tensor type information.
 
     The tensor representation can be tf.RaggedTensor, tf.Tensor or a list of (values, partition).
     The RaggedTensor has shape (batch, None, F). The dense tensor in case of equal sized graphs or zero padded
     graphs has shape (batch, N, F).
     For disjoint representation (values, partition), the embeddings are given by
-    a flatten value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
+    a flattened value tensor of shape (batch*None, F) and a partition tensor of either "row_length",
     "row_splits" or "value_rowids" that matches the tf.RaggedTensor partition information, which effectively keeps
     the batch assignment.
 
-    Args:
-        partition_type (str): Partition tensor type. Default is "row_length".
-        input_tensor_type (str): Input type of the tensors for call(). Default is "RaggedTensor".
-        output_tensor_type (str): Input type of the tensors for call(). Default is "RaggedTensor".
     """
     def __init__(self,
                  partition_type="row_length",
                  input_tensor_type="RaggedTensor",
                  output_tensor_type="RaggedTensor",
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            partition_type (str): Partition tensor type. Default is "row_length".
+            input_tensor_type (str): Input type of the tensors for call(). Default is "RaggedTensor".
+            output_tensor_type (str): Output type of the tensors for call(). Default is "RaggedTensor".
+        """
         super(ChangeTensorType, self).__init__(**kwargs)
         self.partition_type = partition_type
         self.input_tensor_type = input_tensor_type
@@ -47,7 +47,7 @@ class ChangeTensorType(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Graph tensor.
+            inputs (tf.RaggedTensor): Ragged tensor.
 
         Returns:
             tensor: Changed tensor type.
