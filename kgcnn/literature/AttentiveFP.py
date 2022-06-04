@@ -18,19 +18,19 @@ ks = tf.keras
 # https://doi.org/10.1021/acs.jmedchem.9b00959
 
 
-model_default = {'name': "AttentiveFP",
-                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+model_default = {"name": "AttentiveFP",
+                 "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                            {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
-                 'attention_args': {"units": 32},
-                 'depth': 3,
-                 'dropout': 0.1,
-                 'verbose': 10,
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']}
+                 "attention_args": {"units": 32},
+                 "depth": 3,
+                 "dropout": 0.1,
+                 "verbose": 10,
+                 "output_embedding": "graph", "output_to_tensor": True,
+                 "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
+                                "activation": ["relu", "relu", "sigmoid"]}
                  }
 
 
@@ -40,10 +40,11 @@ def make_model(inputs: list = None,
                depth: int = None,
                dropout: float = None,
                attention_args: dict = None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_mlp=None
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `AttentiveFP <https://doi.org/10.1021/acs.jmedchem.9b00959>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.AttentiveFP.model_default`.
@@ -70,6 +71,7 @@ def make_model(inputs: list = None,
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
@@ -102,12 +104,12 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodesAttentive(units=attention_args['units'])(n)
+        out = PoolingNodesAttentive(units=attention_args['units'])(n)  # Tensor output.
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        # For tf version < 2.8 cast to tensor below.
-        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
+            out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported graph embedding for mode `AttentiveFP`")
 

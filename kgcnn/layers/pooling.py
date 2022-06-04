@@ -178,7 +178,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
         return config
 
 
-PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now they are synonyms
+PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now, they are synonyms
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbedding')

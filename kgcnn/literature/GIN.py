@@ -21,7 +21,7 @@ model_default = {'name': "GIN",
                  'depth': 3, "dropout": 0.0, 'verbose': 10,
                  'last_mlp': {"use_bias": [True, True, True], "units": [64, 64, 64],
                               "activation": ['relu', 'relu', 'linear']},
-                 'output_embedding': 'graph',
+                 'output_embedding': 'graph', "output_to_tensor": True,
                  'output_mlp': {"use_bias": True, "units": 1,
                                 "activation": "softmax"}
                  }
@@ -37,6 +37,7 @@ def make_model(inputs=None,
                name=None,
                verbose=None,
                output_embedding=None,
+               output_to_tensor=None,
                output_mlp=None
                ):
     r"""Make `GIN <https://arxiv.org/abs/1810.00826>`_ graph network via functional API.
@@ -62,6 +63,7 @@ def make_model(inputs=None,
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
@@ -99,8 +101,8 @@ def make_model(inputs=None,
         out = n
         out = GraphMLP(**last_mlp)(out)
         out = GraphMLP(**output_mlp)(out)
-        # For tf version < 2.8 cast to tensor below.
-        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
+            out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `GIN`")
 

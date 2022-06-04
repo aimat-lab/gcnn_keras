@@ -29,7 +29,7 @@ model_default = {'name': "NMPN",
                  'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64, 64]},
                  'use_set2set': True, 'depth': 3, 'node_dim': 64,
                  'verbose': 10,
-                 'output_embedding': 'graph',
+                 'output_embedding': 'graph', "output_to_tensor": True,
                  'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
                                 "activation": ['selu', 'selu', 'sigmoid']},
                  }
@@ -51,6 +51,7 @@ def make_model(inputs=None,
                verbose=None,
                name=None,
                output_embedding=None,
+               output_to_tensor: bool =None,
                output_mlp=None
                ):
     r"""Make `NMPN <http://arxiv.org/abs/1704.01212>`_ graph network via functional API.
@@ -92,6 +93,7 @@ def make_model(inputs=None,
         verbose (int): Level of verbosity.
         name (str): Name of the model.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
@@ -156,8 +158,8 @@ def make_model(inputs=None,
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
-        # For tf version < 2.8 cast to tensor below.
-        # out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
+        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
+            out = ChangeTensorType(input_tensor_type='ragged', output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `NMPN`")
 

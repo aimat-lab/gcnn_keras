@@ -75,13 +75,14 @@ def load_hyper_file(file_name):
     return {}
 
 
-def ragged_tensor_from_nested_numpy(numpy_list: list):
-    """Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
-    with exception of the first dimension.
+def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
+    r"""Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
+    except the first dimension.
     This will result in a ragged tensor with ragged dimension only at first axis (ragged_rank=1), like
     shape `(batch, None, ...)`. This way a tensor can be generated faster than tf.ragged.constant().
 
-    Warning: The data will be copied for this operation.
+    .. warning::
+        The data will be copied for this operation.
 
     .. code-block:: python
 
@@ -100,7 +101,7 @@ def ragged_tensor_from_nested_numpy(numpy_list: list):
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
     """
     return tf.RaggedTensor.from_row_lengths(np.concatenate(numpy_list, axis=0),
-                                            np.array([len(x) for x in numpy_list], dtype="int"))
+                                            np.array([len(x) for x in numpy_list], dtype=dtype))
 
 
 def pandas_data_frame_columns_to_numpy(data_frame, label_column_name, print_context: str = ""):

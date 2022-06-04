@@ -30,7 +30,7 @@ model_default = {'name': "Schnet",
                  'verbose': 10,
                  'last_mlp': {"use_bias": [True, True], "units": [128, 64],
                               "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-                 'output_embedding': 'graph',
+                 'output_embedding': 'graph', "output_to_tensor": True,
                  "use_output_mlp": True,
                  'output_mlp': {"use_bias": [True, True], "units": [64, 1],
                                 "activation": ['kgcnn>shifted_softplus', "linear"]}
@@ -51,6 +51,7 @@ def make_model(inputs=None,
                last_mlp=None,
                output_embedding=None,
                use_output_mlp=None,
+               output_to_tensor: bool =None,
                output_mlp=None
                ):
     r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`_ graph network via functional API.
@@ -87,6 +88,7 @@ def make_model(inputs=None,
         last_mlp (dict): Dictionary of layer arguments unpacked in last :obj:`MLP` layer before output or pooling.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
@@ -129,8 +131,8 @@ def make_model(inputs=None,
         out = n
         if use_output_mlp:
             out = GraphMLP(**output_mlp)(out)
-        # For tf version < 2.8 cast to tensor below.
-        # out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
+            out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
