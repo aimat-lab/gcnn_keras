@@ -27,11 +27,15 @@ class MutagenicityDataset(GraphTUDataset2020):
         atoms_translate = ['C', 'O', 'Cl', 'H', 'N', 'F', 'Br', 'S', 'P', 'I', 'Na', 'ksb', 'Li', 'Ca']
         z_translate = {node_translate[i]: atoms_translate[i] for i in range(len(node_translate))}
 
-        edge_indices = self.edge_indices
-        nodes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
-        atoms = [[atoms_translate[int(y[0])] for y in x] for x in self.node_labels]
-        edges = [x[:, 0]+1 for x in self.edge_labels]
-        labels = self.graph_labels
+        edge_indices = self.obtain_property("edge_indices")
+        node_labels = self.obtain_property("node_labels")
+        edge_labels = self.obtain_property("edge_labels")
+        graph_labels = self.obtain_property("graph_labels")
+
+        nodes = [node_translate[np.array(x, dtype="int")][:, 0] for x in node_labels]
+        atoms = [[atoms_translate[int(y[0])] for y in x] for x in node_labels]
+        edges = [x[:, 0]+1 for x in edge_labels]
+        labels = graph_labels
 
         # Require cleaning steps
         labels_clean = []
