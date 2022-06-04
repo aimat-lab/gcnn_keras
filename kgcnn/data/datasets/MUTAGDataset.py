@@ -20,6 +20,9 @@ class MUTAGDataset(GraphTUDataset2020):
         r"""Load MUTAG data into memory and already split into items."""
         super(MUTAGDataset, self).read_in_memory()
 
+        edge_labels = self.obtain_property("edge_labels")
+        node_labels = self.obtain_property("node_labels")
+        graph_labels = self.obtain_property("graph_labels")
         # split into separate graphs
         # graph_id, counts = np.unique(mutag_gi, return_counts=True)
         # graphlen = np.zeros(n_data, dtype=np.int)
@@ -27,18 +30,18 @@ class MUTAGDataset(GraphTUDataset2020):
         # nodes0123 = np.split(mutag_n, np.cumsum(graphlen)[:-1])
         node_translate = np.array([6, 7, 8, 9, 53, 17, 35], dtype=np.int)
         atoms_translate = ['C', 'N', 'O', 'F', 'I', 'Cl', 'Br']
-        self.node_attributes = [node_translate[np.array(x, dtype="int")][:, 0] for x in self.node_labels]
+        node_attributes = [node_translate[np.array(x, dtype="int")][:, 0] for x in node_labels]
         # nodes = [node_translate[x] for x in nodes0123]
-        atoms = [[atoms_translate[int(y)] for y in x] for x in self.node_labels]
-        graph_labels = np.array(self.graph_labels)
+        atoms = [[atoms_translate[int(y)] for y in x] for x in node_labels]
+        graph_labels = np.array(graph_labels)
         graph_labels[graph_labels < 0] = 0
 
-        self.edge_attributes = [x[:, 0] for x in self.edge_labels]
-        self.node_symbol = atoms
-        self.node_number = self.node_attributes
-        self.graph_labels = [x for x in graph_labels]
-        self.graph_attributes = None  # We make a better graph attributes here
-        self.graph_size = [len(x) for x in self.node_attributes]
+        self.assign_property("node_attributes", node_attributes)
+        self.assign_property("edge_attributes", [x[:, 0] for x in edge_labels])
+        self.assign_property("node_symbol", atoms)
+        self.assign_property("node_number", node_attributes)
+        self.assign_property("graph_labels", [x for x in graph_labels])
+        self.assign_property("graph_size", [len(x) for x in node_attributes])
 
         return self
 
