@@ -52,7 +52,7 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
         nodes = [x.strip().split('\t')[0:-1] for x in lines]
         nodes = np.array([[int(y) for y in x] for x in nodes], dtype=np.int)
         open_file.close()
-        # Match edge_indices not wiht ids but with edge_indices in nodes
+        # Match edge_indices not with ids but with edge_indices in nodes
         node_map = np.zeros(np.max(nodes[:, 0]) + 1, dtype=np.int)
         idx_new = np.arange(len(nodes))
         node_map[nodes[:, 0]] = idx_new
@@ -75,12 +75,12 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
         labels = np.expand_dims(label_id, axis=-1)
         labels = np.array(labels == np.arange(7), dtype=np.float)
 
-        self.node_attributes = [nodes[:, 1:]]
-        self.edge_indices = [indices]
-        self.edge_attributes = [np.ones_like(indices)[:, :1]]
-        self.node_labels = [labels]
-        self.node_number = [label_id]
-        self.edge_weights = [np.ones_like(indices)[:, :1]]
+        self.assign_property("node_attributes", [nodes[:, 1:]])
+        self.assign_property("edge_indices", [indices])
+        self.assign_property("edge_attributes", [np.ones_like(indices)[:, :1]])
+        self.assign_property("node_labels", [labels])
+        self.assign_property("node_number", [label_id])
+        self.assign_property("edge_weights", [np.ones_like(indices)[:, :1]])
         # self.graph_adjacency = make_adjacency_from_edge_indices(indices, np.ones_like(indices)[:, 0])
 
         return self

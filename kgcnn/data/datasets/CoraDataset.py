@@ -56,16 +56,16 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         labels = loader.get('labels')
         labels = np.expand_dims(labels, axis=-1)
         labels = np.array(labels == np.arange(70), dtype="float")
-        self.node_labels = [labels]  # One graph
+        self.assign_property("node_labels", [labels])  # One graph
 
         # Node attributes
-        self.node_attributes = [x.toarray()]
+        self.assign_property("node_attributes", [x.toarray()])
 
         # Set edges and indices.
         edi, ed = convert_scaled_adjacency_to_list(a)
-        self.edge_indices = [edi]
-        self.edge_attributes = [np.expand_dims(ed, axis=-1)]
-        self.edge_weights = [np.expand_dims(ed, axis=-1)]
+        self.assign_property("edge_indices", [edi])
+        self.assign_property("edge_attributes", [np.expand_dims(ed, axis=-1)])
+        self.assign_property("edge_weights", [np.expand_dims(ed, axis=-1)])
 
         # Information
         self.data_keys = loader.get('idx_to_class')
