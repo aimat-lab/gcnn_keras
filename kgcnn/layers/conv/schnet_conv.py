@@ -1,5 +1,4 @@
 import tensorflow as tf
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import LazyMultiply, DenseEmbedding, LazyAdd
 from kgcnn.layers.pooling import PoolingLocalEdges

@@ -74,7 +74,8 @@ class GatherEmbedding(GraphBaseLayer):
                     out = tf.concat([out[:, i] for i in range(edge_index.shape[-1])], axis=1)
                     return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
                 if self.split_axis == 2:
-                    return [tf.RaggedTensor.from_row_lengths(out[:, i], edge_part, validate=self.ragged_validate) for i in range(edge_index.shape[-1])]
+                    return [tf.RaggedTensor.from_row_lengths(out[:, i], edge_part, validate=self.ragged_validate) for i
+                            in range(edge_index.shape[-1])]
                 return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.

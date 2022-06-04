@@ -88,7 +88,7 @@ class MutagenicityDataset(GraphTUDataset2020):
         self.assign_property("edge_labels", edges_clean)
         self.assign_property("node_symbol", atoms_clean)
         self.assign_property("node_number", nodes_clean)
-        self.assign_property("graph_size", [len(x) for x in self.obtain_property("node_attributes")])
+        self.assign_property("graph_size", [len(x) for x in nodes_clean])
 
         # return labels,nodes,edge_indices,edges,atoms
         return self

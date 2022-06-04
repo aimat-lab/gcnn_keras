@@ -1,10 +1,8 @@
 import tensorflow as tf
 import kgcnn.ops.activ
-
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, DropoutEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
-
 ks = tf.keras
 
 
