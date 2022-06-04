@@ -28,7 +28,7 @@ class MUTAGDataset(GraphTUDataset2020):
         # graphlen = np.zeros(n_data, dtype=np.int)
         # graphlen[graph_id] = counts
         # nodes0123 = np.split(mutag_n, np.cumsum(graphlen)[:-1])
-        node_translate = np.array([6, 7, 8, 9, 53, 17, 35], dtype=np.int)
+        node_translate = np.array([6, 7, 8, 9, 53, 17, 35], dtype="int")
         atoms_translate = ['C', 'N', 'O', 'F', 'I', 'Cl', 'Br']
         node_attributes = [node_translate[np.array(x, dtype="int")][:, 0] for x in node_labels]
         # nodes = [node_translate[x] for x in nodes0123]
