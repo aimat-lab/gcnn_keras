@@ -61,9 +61,9 @@ class GatherEmbedding(GraphBaseLayer):
         r"""Forward pass.
 
         Args:
-            inputs (list): [nodes, tensor_index]
+            inputs (list): [embeddings, tensor_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - embeddings (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
                 - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
 
         Returns:
@@ -114,7 +114,7 @@ class GatherEmbeddingSelection(GraphBaseLayer):
 
     The embeddings are gather from a ragged index tensor for a list of specific indices which are given by
     :obj:`selection_index`. This can be used for ingoing or outgoing nodes or angles.
-    Returns a list of embeddings for each :obj:`selection_index`. An edge is defined by index tuple :math:`(i ,j)`.
+    Returns a list of embeddings for each :obj:`selection_index`. An edge is defined by index tuple :math:`(i, j)`.
     In the default definition, index :math:`i` is expected to be the receiving or target node.
     Effectively, the layer simply does:
 
@@ -162,13 +162,13 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         r"""Forward pass.
 
         Args:
-            inputs (list): [nodes, tensor_index]
+            inputs (list): [embeddings, tensor_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - embeddings (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
 
         Returns:
-            list: Gathered node embeddings that match the number of edges of shape (batch, [M], F) for selection_index.
+            list: Gathered node embeddings matching the number of edges of shape `(batch, [M], F)` for selection_index.
         """
         # The primary case for aggregation of nodes from node feature list. Case from doc-string.
         # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
@@ -201,49 +201,93 @@ class GatherEmbeddingSelection(GraphBaseLayer):
 GatherNodesSelection = GatherEmbeddingSelection
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='GatherNodesOutgoing')
-class GatherNodesOutgoing(GatherEmbeddingSelection):
-    r"""Gather nodes by index :math:`j`, here defined as sending or outgoing.
-
-    An edge is defined by index tuple :math:`(i,j)`.
-    In the default definition for this layer index :math:`i` is expected to be the
-    receiving or target node (in standard case of directed edges).
-
-    Args:
-        selection_index (list): Which index to gather embeddings for. Default is 1.
-    """
-
-    def __init__(self, selection_index: int = 1, **kwargs):
-        super(GatherNodesOutgoing, self).__init__(selection_index=selection_index, **kwargs)
-
-    def call(self, inputs, **kwargs):
-        return super(GatherNodesOutgoing, self).call(inputs, **kwargs)[0]
-
-
 @ks.utils.register_keras_serializable(package='kgcnn', name='GatherNodesIngoing')
 class GatherNodesIngoing(GatherEmbeddingSelection):
-    r"""Gather nodes by index :math:`i`, here defined as receiving or ingoing.
+    r"""Gather receiving or ingoing nodes of edges with index :math:`i`.
 
-    An edge is defined by index tuple :math:`(i,j)`.
-    In the default definition for this layer index :math:`i` is expected to be the
-    receiving or target node (in standard case of directed edges).
+    An edge is defined by index tuple :math:`(i, j)`.
+    In the default definition, index :math:`i` is expected to be the receiving or target node.
+    The layer inherits from :obj:`GatherEmbeddingSelection` and effectively does:
 
-    Args:
-        selection_index (list): Which index to gather embeddings for. Default is 0.
+    .. code-block:: python
+        GatherEmbeddingSelection(selection_index=0)(inputs)[0]
+
     """
 
     def __init__(self, selection_index: int = 0, **kwargs):
+        r"""Initialize layer.
+
+        Args:
+            selection_index (list, int): Which index to gather embeddings for. Default is 0.
+        """
         super(GatherNodesIngoing, self).__init__(selection_index=selection_index, **kwargs)
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [nodes, tensor_index]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
+
+        Returns:
+            tf.RaggedTensor: Gathered node embeddings for ingoing nodes of edges of shape `(batch, [M], F)`
+        """
         return super(GatherNodesIngoing, self).call(inputs, **kwargs)[0]
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='GatherNodesOutgoing')
+class GatherNodesOutgoing(GatherEmbeddingSelection):
+    r"""Gather sending or outgoing nodes of edges with index :math:`j`.
+
+    An edge is defined by index tuple :math:`(i, j)`.
+    In the default definition, index :math:`j` is expected to be the sending or source node.
+    The layer inherits from :obj:`GatherEmbeddingSelection` and effectively does:
+
+    .. code-block:: python
+        GatherEmbeddingSelection(selection_index=1)(inputs)[0]
+
+    """
+
+    def __init__(self, selection_index: int = 1, **kwargs):
+        r"""Initialize layer.
+
+        Args:
+            selection_index (list, int): Which index to gather embeddings for. Default is 1.
+        """
+        super(GatherNodesOutgoing, self).__init__(selection_index=selection_index, **kwargs)
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [nodes, tensor_index]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
+
+        Returns:
+            tf.RaggedTensor: Gathered node embeddings for outgoing nodes of edges of shape `(batch, [M], F)`
+        """
+        return super(GatherNodesOutgoing, self).call(inputs, **kwargs)[0]
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GatherState')
 class GatherState(GraphBaseLayer):
-    r"""Layer to repeat environment or global state for a specific node or edge list.
+    r"""Layer to repeat environment or global state for a specific embeddings (ragged) tensor like node or edge lists.
     
-    To repeat the correct environment for each sample, a tensor with the target length/partition is required.
+    To repeat the correct global state (like an environment feature vector) for each sample,
+    a tensor with the target shape or length, partition in case of ragged target tensors is required.
+
+    Mostly used to concatenate a global state :math:`\mathbf{s}` with node embeddings :math:`\mathbf{h}_i`
+    like for example:
+
+    .. math::
+        \mathbf{s}_i = \mathbf{s}_i || \mathbf{s}
+
+    where this layer only repeats :math:`\mathbf{s}` to match a ragged embedding tensor :math:`\mathbf{h}_i`.
+
     """
 
     def __init__(self, **kwargs):
@@ -260,11 +304,11 @@ class GatherState(GraphBaseLayer):
         Args:
             inputs: [state, target]
 
-                - state (tf.Tensor): Graph specific embedding tensor. This is tensor of shape (batch, F)
-                - target (tf.RaggedTensor): Target to collect state for [N] of shape (batch, [N], F)
+                - state (tf.Tensor): Graph specific embedding tensor. This is tensor of shape `(batch, F)`
+                - target (tf.RaggedTensor): Target to collect state for [N] of shape `(batch, [N], F)`
 
         Returns:
-            tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape (batch, [N], F).
+            tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape `(batch, [N], F)´.
         """
         env = inputs[0]
         dyn_inputs = inputs[1]
@@ -279,5 +323,6 @@ class GatherState(GraphBaseLayer):
         return out
 
     def get_config(self):
+        """Update layer config."""
         config = super(GatherState, self).get_config()
         return config
