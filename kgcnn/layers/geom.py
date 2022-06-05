@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
 from kgcnn.layers.modules import LazySubtract, LazyMultiply

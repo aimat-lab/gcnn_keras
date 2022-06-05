@@ -14,6 +14,7 @@ class GatherEmbedding(GraphBaseLayer):
     Effectively, the layer simply does:
 
     .. code-block:: python
+
         tf.gather(embedding, indices, batch_dims=1, axis=1)
 
     Additionally, the gathered embeddings can be split or concatenated along the index dimension after gather,
@@ -22,7 +23,7 @@ class GatherEmbedding(GraphBaseLayer):
     .. note:
         Default of this layer is concatenation with :obj:`concat_axis=2`.
 
-    Example of usage for :obj`GatherEmbedding`:
+    Example of usage for :obj:`GatherEmbedding`:
 
     .. code-block:: python
 
@@ -119,6 +120,7 @@ class GatherEmbeddingSelection(GraphBaseLayer):
     Effectively, the layer simply does:
 
     .. code-block:: python
+
         tf.gather(embedding, indices[:, :, selection_index], batch_dims=1, axis=1)
 
     Additionally, the axis for gather can be specified for target and index tensor via :obj:`axis` and
@@ -132,6 +134,7 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         nodes = tf.ragged.constant([[[0.0],[1.0]],[[2.0],[3.0],[4.0]]], ragged_rank=1)
         edge_idx = tf.ragged.constant([[[0,1],[1,0]],[[0,2],[1,2]]], ragged_rank=1)
         print(GatherEmbeddingSelection([0, 1])([nodes, edge_idx]))
+
     """
 
     def __init__(self, selection_index, axis: int = 1, axis_indices: int = 2, **kwargs):
@@ -210,6 +213,7 @@ class GatherNodesIngoing(GatherEmbeddingSelection):
     The layer inherits from :obj:`GatherEmbeddingSelection` and effectively does:
 
     .. code-block:: python
+
         GatherEmbeddingSelection(selection_index=0)(inputs)[0]
 
     """
@@ -246,6 +250,7 @@ class GatherNodesOutgoing(GatherEmbeddingSelection):
     The layer inherits from :obj:`GatherEmbeddingSelection` and effectively does:
 
     .. code-block:: python
+
         GatherEmbeddingSelection(selection_index=1)(inputs)[0]
 
     """
