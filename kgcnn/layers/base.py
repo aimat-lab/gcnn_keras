@@ -9,6 +9,7 @@ class GraphBaseLayer(ks.layers.Layer):
     r"""Base layer for graph layers used in :obj:`kgcnn` that holds some additional information about the graph, which
     could improve performance for some layers, if set differently like e.g. `is_sorted`, but which are not handed down
     to sub-layers for now.
+
     Moreover, some useful utility functions are methods of this class like e.g. :obj:`assert_ragged_input_rank` that
     can be used in graph layers for convenience.
 
