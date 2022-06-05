@@ -313,7 +313,7 @@ class GatherState(GraphBaseLayer):
                 - target (tf.RaggedTensor): Target to collect state for [N] of shape `(batch, [N], F)`
 
         Returns:
-            tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape `(batch, [N], F)´.
+            tf.RaggedTensor: Graph embedding with repeated single state for each graph of shape `(batch, [N], F)`.
         """
         env = inputs[0]
         dyn_inputs = inputs[1]
