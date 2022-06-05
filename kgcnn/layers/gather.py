@@ -289,7 +289,7 @@ class GatherState(GraphBaseLayer):
     like for example:
 
     .. math::
-        \mathbf{s}_i = \mathbf{s}_i || \mathbf{s}
+        \mathbf{h}_i = \mathbf{h}_i \oplus \mathbf{s}
 
     where this layer only repeats :math:`\mathbf{s}` to match a ragged embedding tensor :math:`\mathbf{h}_i`.
 
