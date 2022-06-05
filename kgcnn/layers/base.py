@@ -16,10 +16,10 @@ class GraphBaseLayer(ks.layers.Layer):
     """
 
     def __init__(self,
-                 node_indexing="sample",
-                 ragged_validate=False,
-                 is_sorted=False,
-                 has_unconnected=True,
+                 node_indexing: str = "sample",
+                 ragged_validate: bool = False,
+                 is_sorted: bool = False,
+                 has_unconnected: bool = True,
                  **kwargs):
         r"""Initialize layer.
 

@@ -21,9 +21,9 @@ class ChangeTensorType(GraphBaseLayer):
     """
 
     def __init__(self,
-                 partition_type="row_length",
-                 input_tensor_type="RaggedTensor",
-                 output_tensor_type="RaggedTensor",
+                 partition_type: str = "row_length",
+                 input_tensor_type: str = "RaggedTensor",
+                 output_tensor_type: str = "RaggedTensor",
                  **kwargs):
         r"""Initialize layer.
 
@@ -92,8 +92,8 @@ class ChangeIndexing(GraphBaseLayer):
     """
 
     def __init__(self,
-                 to_indexing='batch',
-                 from_indexing='sample',
+                 to_indexing: str = 'batch',
+                 from_indexing: str = 'sample',
                  **kwargs):
         r"""Initialize layer.
 
