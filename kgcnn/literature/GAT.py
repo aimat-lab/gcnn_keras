@@ -31,18 +31,18 @@ model_default = {'name': "GAT",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               attention_args=None,
-               pooling_nodes_args=None,
-               depth=None,
-               attention_heads_num=None,
-               attention_heads_concat=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor=None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               attention_args: dict = None,
+               pooling_nodes_args: dict = None,
+               depth: int = None,
+               attention_heads_num: int = None,
+               attention_heads_concat: bool = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.

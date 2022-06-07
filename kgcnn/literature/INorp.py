@@ -38,20 +38,20 @@ hyper_model_default = {'name': "INorp",
 
 
 @update_model_kwargs(hyper_model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               depth=None,
-               gather_args=None,
-               edge_mlp_args=None,
-               node_mlp_args=None,
-               set2set_args=None,
-               pooling_args=None,
-               use_set2set=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor: bool =None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               depth: int = None,
+               gather_args: dict = None,
+               edge_mlp_args: dict = None,
+               node_mlp_args: dict = None,
+               set2set_args: dict = None,
+               pooling_args: dict = None,
+               use_set2set: dict = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `INorp <https://arxiv.org/abs/1612.00222>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.INorp.hyper_model_default`.

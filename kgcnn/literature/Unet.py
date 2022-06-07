@@ -33,20 +33,20 @@ model_default = {'name': "Unet",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               pooling_args=None,
-               gather_args=None,
-               top_k_args=None,
-               depth=None,
-               use_reconnect=None,
-               hidden_dim=None,
-               activation=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor: bool =None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               pooling_args: dict = None,
+               gather_args: dict = None,
+               top_k_args: dict = None,
+               depth: int = None,
+               use_reconnect: bool = None,
+               hidden_dim: dict = None,
+               activation: str = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `U-Net <https://arxiv.org/pdf/1905.05178.pdf>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.Unet.model_default`.

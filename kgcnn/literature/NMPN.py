@@ -36,23 +36,23 @@ model_default = {'name': "NMPN",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               geometric_edge=None,
-               make_distance=None,
-               expand_distance=None,
-               gauss_args=None,
-               set2set_args=None,
-               pooling_args=None,
-               edge_mlp=None,
-               use_set2set=None,
-               node_dim=None,
-               depth=None,
-               verbose=None,
-               name=None,
-               output_embedding=None,
-               output_to_tensor: bool =None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               geometric_edge: bool = None,
+               make_distance: bool = None,
+               expand_distance: bool = None,
+               gauss_args: dict = None,
+               set2set_args: dict = None,
+               pooling_args: dict = None,
+               edge_mlp: dict = None,
+               use_set2set: bool = None,
+               node_dim: int = None,
+               depth: int = None,
+               verbose: int = None,
+               name: str = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `NMPN <http://arxiv.org/abs/1704.01212>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.NMPN.model_default`.

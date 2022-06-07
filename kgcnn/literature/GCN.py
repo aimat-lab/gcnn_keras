@@ -29,15 +29,15 @@ model_default = {"name": "GCN",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               depth=None,
-               gcn_args=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor=None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               depth: int = None,
+               gcn_args: dict = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
@@ -121,15 +121,15 @@ model_default_weighted = {"name": "GCN_weighted",
 
 
 @update_model_kwargs(model_default_weighted)
-def make_model_weighted(inputs=None,
-                        input_embedding=None,
-                        depth=None,
-                        gcn_args=None,
-                        name=None,
-                        verbose=None,
-                        output_embedding=None,
-                        output_to_tensor=None,
-                        output_mlp=None,
+def make_model_weighted(inputs: list = None,
+                        input_embedding: dict = None,
+                        depth: int = None,
+                        gcn_args: dict = None,
+                        name: str = None,
+                        verbose: int = None,
+                        output_embedding: str = None,
+                        output_to_tensor: bool = None,
+                        output_mlp: dict = None,
                         ):
     r"""Make weighted `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default_weighted`.

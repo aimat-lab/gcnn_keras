@@ -37,20 +37,20 @@ model_default = {'name': "DMPNN",
 
 
 @update_model_kwargs(model_default)
-def make_model(name=None,
-               inputs=None,
-               input_embedding=None,
-               pooling_args=None,
-               edge_initialize=None,
-               edge_dense=None,
-               edge_activation=None,
-               node_dense=None,
-               dropout=None,
-               depth=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor=None,
-               output_mlp=None
+def make_model(name: str = None,
+               inputs: list = None,
+               input_embedding: dict = None,
+               pooling_args: dict = None,
+               edge_initialize: dict = None,
+               edge_dense: dict = None,
+               edge_activation: dict = None,
+               node_dense: dict = None,
+               dropout: dict = None,
+               depth: int = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.DMPNN.model_default`.

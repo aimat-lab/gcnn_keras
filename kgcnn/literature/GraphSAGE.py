@@ -33,21 +33,21 @@ hyper_model_default = {'name': "GraphSAGE",
 
 
 @update_model_kwargs(hyper_model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               node_mlp_args=None,
-               edge_mlp_args=None,
-               pooling_args=None,
-               pooling_nodes_args=None,
-               gather_args=None,
-               concat_args=None,
-               use_edge_features=None,
-               depth=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor=None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               node_mlp_args: dict = None,
+               edge_mlp_args: dict = None,
+               pooling_args: dict = None,
+               pooling_nodes_args: dict = None,
+               gather_args: dict = None,
+               concat_args: dict = None,
+               use_edge_features: bool = None,
+               depth: int = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GraphSAGE.hyper_model_default`.

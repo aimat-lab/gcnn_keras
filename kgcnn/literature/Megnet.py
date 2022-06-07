@@ -40,24 +40,24 @@ model_default = {'name': "Megnet",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               expand_distance=None,
-               make_distance=None,
-               gauss_args=None,
-               meg_block_args=None,
-               set2set_args=None,
-               node_ff_args=None,
-               edge_ff_args=None,
-               state_ff_args=None,
-               use_set2set=None,
-               nblocks=None,
-               has_ff=None,
-               dropout=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               expand_distance: bool = None,
+               make_distance: bool = None,
+               gauss_args: dict = None,
+               meg_block_args: dict = None,
+               set2set_args: dict = None,
+               node_ff_args: dict = None,
+               edge_ff_args: dict = None,
+               state_ff_args: dict = None,
+               use_set2set: bool = None,
+               nblocks: int = None,
+               has_ff: bool = None,
+               dropout: float = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_mlp: dict = None
                ):
     r"""Make `MegNet <https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.Megnet.model_default`.

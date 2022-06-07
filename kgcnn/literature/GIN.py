@@ -28,17 +28,17 @@ model_default = {'name': "GIN",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               depth=None,
-               gin_args=None,
-               last_mlp=None,
-               dropout=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor=None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               depth: int = None,
+               gin_args: dict = None,
+               last_mlp: dict = None,
+               dropout: float = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `GIN <https://arxiv.org/abs/1810.00826>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GIN.model_default`.

@@ -31,18 +31,18 @@ model_default = {"name": "PAiNN",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               bessel_basis=None,
-               depth=None,
-               pooling_args=None,
-               conv_args=None,
-               update_args=None,
-               name=None,
-               verbose=None,
-               output_embedding=None,
-               output_to_tensor: bool =None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               bessel_basis: dict = None,
+               depth: int = None,
+               pooling_args: dict = None,
+               conv_args: dict = None,
+               update_args: dict = None,
+               name: str = None,
+               verbose: int = None,
+               output_embedding: str = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.

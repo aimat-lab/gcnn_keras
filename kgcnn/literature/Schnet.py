@@ -38,21 +38,21 @@ model_default = {'name': "Schnet",
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs=None,
-               input_embedding=None,
-               make_distance=None,
-               expand_distance=None,
-               gauss_args=None,
-               interaction_args=None,
-               node_pooling_args=None,
-               depth=None,
-               name=None,
-               verbose=None,
-               last_mlp=None,
-               output_embedding=None,
-               use_output_mlp=None,
-               output_to_tensor: bool =None,
-               output_mlp=None
+def make_model(inputs: list = None,
+               input_embedding: dict = None,
+               make_distance: bool = None,
+               expand_distance: bool = None,
+               gauss_args: dict = None,
+               interaction_args: dict = None,
+               node_pooling_args: dict = None,
+               depth: int = None,
+               name: str = None,
+               verbose: int = None,
+               last_mlp: dict = None,
+               output_embedding: str = None,
+               use_output_mlp: bool = None,
+               output_to_tensor: bool = None,
+               output_mlp: dict = None
                ):
     r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default`.
