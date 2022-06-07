@@ -194,6 +194,14 @@ class ScalarProduct(GraphBaseLayer):
 
     .. math::
         <\vec{a}, \vec{b}> = \vec{a} \cdot \vec{b} = \sum_i a_i b_i
+
+    Code example:
+
+    .. code-block:: python
+
+        position = tf.ragged.constant([[[0.0, -1.0, 0.0], [1.0, 1.0, 0.0]], [[2.0, 1.0, 0.0]]], ragged_rank=1)
+        out = ScalarProduct()([position, position])
+        print(out, out.shape)
     """
 
     def __init__(self, axis=-1, **kwargs):
@@ -204,6 +212,10 @@ class ScalarProduct(GraphBaseLayer):
     def build(self, input_shape):
         """Build layer."""
         super(ScalarProduct, self).build(input_shape)
+
+    @staticmethod
+    def _scalar_product(inputs, axis, **kwargs):
+        return tf.reduce_sum(inputs[0] * inputs[1], axis=axis)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -223,10 +235,10 @@ class ScalarProduct(GraphBaseLayer):
             assert axis2 == axis
             if all([x.ragged_rank == 1 for x in inputs]) and axis > 1:
                 v1, v2 = inputs[0].values, inputs[1].values
-                out = tf.reduce_sum(v1 * v2, axis=axis - 1)
+                out = self._scalar_product([v1, v2], axis=self.axis)
                 return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
         # Default
-        out = tf.reduce_sum(inputs[0] * inputs[1], axis=self.axis)
+        out = self._scalar_product(inputs, axis=self.axis)
         return out
 
     def get_config(self):
@@ -296,16 +308,16 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         super(EdgeDirectionNormalized, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs (list): [position_1, position_2]
 
-                - position_1 (tf.RaggedTensor): Stop node positions of shape (batch, [N], 3)
-                - position_2 (tf.RaggedTensor): Start node positions of shape (batch, [N], 3)
+                - position_1 (tf.RaggedTensor): Stop node positions of shape `(batch, [N], 3)`
+                - position_2 (tf.RaggedTensor): Start node positions of shape `(batch, [N], 3)`
 
         Returns:
-            tf.RaggedTensor: Normalized vector distance of shape (batch, [M], 3).
+            tf.RaggedTensor: Normalized vector distance of shape `(batch, [M], 3)`.
         """
         diff = self.layer_subtract(inputs)
         norm = self.layer_euclidean_norm(diff)
@@ -465,10 +477,10 @@ class BesselBasisLayer(GraphBaseLayer):
         envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
     """
 
-    def __init__(self, num_radial,
-                 cutoff,
-                 envelope_exponent=5,
-                 envelope_type="poly",
+    def __init__(self, num_radial: int,
+                 cutoff: float,
+                 envelope_exponent: int = 5,
+                 envelope_type: str = "poly",
                  **kwargs):
         super(BesselBasisLayer, self).__init__(**kwargs)
         # Layer variables
