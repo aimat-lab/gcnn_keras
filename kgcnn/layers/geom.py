@@ -99,12 +99,12 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         Args:
             inputs (list): [position, edge_image, lattice]
 
-                - position (tf.RaggedTensor): Positions of shape (batch, [M], 3)
-                - edge_image (tf.RaggedTensor): Position in which image to shift of shape (batch, [M], 3)
-                - lattice (tf.tensor): Lattice vector matrix of shape (batch, 3, 3)
+                - position (tf.RaggedTensor): Positions of shape `(batch, [M], 3)`
+                - edge_image (tf.RaggedTensor): Position in which image to shift of shape `(batch, [M], 3)`
+                - lattice (tf.tensor): Lattice vector matrix of shape `(batch, 3, 3)`
 
         Returns:
-            tf.RaggedTensor: Gathered node position number of indices of shape (batch, [M], 1)
+            tf.RaggedTensor: Gathered node position number of indices of shape `(batch, [M], 1)`
         """
         inputs_ragged = self.assert_ragged_input_rank(inputs[:2])
         lattice_rep = self.layer_state([inputs[2], inputs_ragged[1]], **kwargs)  # Should be (batch, None, 3, 3)
@@ -193,7 +193,7 @@ class ScalarProduct(GraphBaseLayer):
     The layer simply does for positions :
 
     .. math::
-        <\vec{a}, \vec{b}> = \vec{a} \cdot \vec{b} = \sqrt{\sum_i a_i b_i}
+        <\vec{a}, \vec{b}> = \vec{a} \cdot \vec{b} = \sum_i a_i b_i
     """
 
     def __init__(self, axis=-1, **kwargs):
@@ -206,16 +206,16 @@ class ScalarProduct(GraphBaseLayer):
         super(ScalarProduct, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs (list): [vec1, vec2]
 
-                - vec1 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
-                - vec2 (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
+                - vec1 (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
+                - vec2 (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
 
         Returns:
-            tf.RaggedTensor: Scalar product of shape (batch, [N], ...)
+            tf.RaggedTensor: Scalar product of shape `(batch, [N], ...)`
         """
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             axis = get_positive_axis(self.axis, inputs[0].shape.rank)
@@ -240,17 +240,17 @@ class ScalarProduct(GraphBaseLayer):
 class NodeDistanceEuclidean(GraphBaseLayer):
     r"""Compute euclidean distance between two node coordinate tensors.
 
-    Let the :math:`\vec{x}_1` and :math:`\vec{x}_2` be the position of two nodes, then the output is given by:
+    Let :math:`\vec{x}_1` and :math:`\vec{x}_2` be the position of two nodes, then the output is given by:
 
     .. math::
         || \vec{x}_1 - \vec{x}_2 ||_2.
 
     Calls :obj:`EuclideanNorm` on the difference of the inputs.
-    The number of node positions must not be connected to the number of nodes, but can also match edges.
+
     """
 
     def __init__(self, **kwargs):
-        """Initialize layer instance of `NodeDistanceEuclidean`."""
+        r"""Initialize layer instance of :obj:`NodeDistanceEuclidean`. """
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
         self.layer_subtract = LazySubtract()
         self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True)
