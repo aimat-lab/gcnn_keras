@@ -257,7 +257,8 @@ class NodeDistanceEuclidean(GraphBaseLayer):
     .. math::
         || \vec{x}_1 - \vec{x}_2 ||_2.
 
-    Calls :obj:`EuclideanNorm` on the difference of the inputs.
+    Calls :obj:`EuclideanNorm` on the difference of the inputs, which are position of nodes in space and for example
+    the output of :obj:`NodePosition`.
 
     """
 
@@ -272,16 +273,16 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         super(NodeDistanceEuclidean, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs (list): [position_start, position_stop]
 
-                - position_start (tf.RaggedTensor): Node positions of shape (batch, [M], 3)
-                - position_stop (tf.RaggedTensor): Node positions of shape (batch, [M], 3)
+                - position_start (tf.RaggedTensor): Node positions of shape `(batch, [M], 3)`
+                - position_stop (tf.RaggedTensor): Node positions of shape `(batch, [M], 3)`
 
         Returns:
-            tf.RaggedTensor: Distances as edges that match the number of indices of shape (batch, [M], 1)
+            tf.RaggedTensor: Distances as edges that match the number of indices of shape `(batch, [M], 1)`
         """
         diff = self.layer_subtract(inputs)
         return self.layer_euclidean_norm(diff)
@@ -291,7 +292,8 @@ class NodeDistanceEuclidean(GraphBaseLayer):
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
-    :math:`\frac{\vec{r}_{ij}}{||{r_ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}`.
+    .. math::
+        \frac{\vec{r}_{ij}}{||{r_ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}.
 
     Note that the difference is defined here as :math:`\vec{r}_{i} - \vec{r}_{j}`.
     As the first index defines the incoming edge.
