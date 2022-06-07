@@ -80,7 +80,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         \vec{x} = \vec{x_0} + n_1\vec{a}_1 + n_2\vec{a}_2 + n_3\vec{a}_3 = \vec{x_0} + \mathbf{a} \vec{n}
 
     The layer expects ragged tensor input for :math:`\vec{x_0}` and :math:`\vec{n}` with multiple positions and their
-    images but a single (tensor) lattice matrix.
+    images but a single (tensor) lattice matrix per sample.
 
     """
 
@@ -122,7 +122,7 @@ class EuclideanNorm(GraphBaseLayer):
     This amounts for a specific :obj:`axis` along which to sum the coordinates:
 
     .. math::
-        `||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}`
+        ||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}
 
     Vector based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension `D`.
     You can choose to collapse or keep this dimension with :obj:`keepdims` and to optionally invert the resulting norm
@@ -293,7 +293,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
     .. math::
-        \frac{\vec{r}_{ij}}{||{r_ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}.
+        \frac{\vec{r}_{ij}}{||r_{ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}.
 
     Note that the difference is defined here as :math:`\vec{r}_{i} - \vec{r}_{j}`.
     As the first index defines the incoming edge.
