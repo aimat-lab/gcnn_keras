@@ -8,16 +8,30 @@ from kgcnn.ops.axis import get_positive_axis
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodePosition')
 class NodePosition(GraphBaseLayer):
-    """Get node position for edges. Directly calls `GatherNodesSelection` with provided index tensor.
-    Returns separate node position tensor for each of the indices. Index selection must be provided
-    in the constructor. Defaults to first two indices of an edge.
+    r"""Get node position for directed edges via node indices.
 
-    A distance based edge is defined by two bond indices of the index list of shape (batch, [M], 2) with last dimension
-    of incoming and outgoing node (message passing framework).
+    Directly calls :obj:`GatherNodesSelection` with provided index tensor.
+    Returns separate node position tensor for each of the indices. Index selection must be provided
+    in the constructor. Defaults to first two indices of an edge. This layer simply implements:
+
+    .. code-block:: python
+
+        GatherNodesSelection([0,1])([position, indices])
+
+    A distance based edge is defined by two bond indices of the index list of shape `(batch, [M], 2)`
+    with last dimension of incoming and outgoing node (message passing framework).
+    Example usage:
+
+    .. code-block:: python
+
+        position = tf.ragged.constant([[[0.0, -1.0, 0.0],[1.0, 1.0, 0.0]]], ragged_rank=1)
+        indices = tf.ragged.constant([[[0,1],[1,0]]], ragged_rank=1)
+        x_in, x_out = NodePosition()([position, indices])
+        print(x_in - x_out)
     """
 
     def __init__(self, selection_index: list = None, **kwargs):
-        """Initialize layer instance of `NodePosition`.
+        r"""Initialize layer instance of :obj:`NodePosition`.
 
         Args:
             selection_index (list): List of positions (last dimension of the index tensor) to return node coordinates.
@@ -34,17 +48,17 @@ class NodePosition(GraphBaseLayer):
         super(NodePosition, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass of `NodePosition`.
+        r"""Forward pass of :obj:`NodePosition`.
 
         Args:
             inputs (list): [position, edge_index]
 
-                - position (tf.RaggedTensor): Node positions of shape (batch, [N], 3).
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2).
+                - position (tf.RaggedTensor): Node positions of shape `(batch, [N], 3)`.
+                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`.
 
         Returns:
-            list: List of node positions (ragged) tensors for each of the `selection_index`. Position tensors have
-                shape (batch, [M], 3).
+            list: List of node positions (ragged) tensors for each of the :obj:`selection_index`. Position tensors have
+                shape `(batch, [M], 3)`.
         """
         return self.layer_gather(inputs, **kwargs)
 
@@ -56,7 +70,18 @@ class NodePosition(GraphBaseLayer):
 
 
 class ShiftPeriodicLattice(GraphBaseLayer):
-    """Node position periodic.
+    r"""Shift position tensor by multiples of the lattice constant of a periodic lattice in 3D.
+
+    Let an atom have position :math:`\vec{x_0}` in the unit cell and be in a periodic lattice with lattice vectors
+    :math:`\mathbf{a} = (\vec{a}_1, \vec{a}_2, \vec{a}_3)` and further be located in its image with indices
+    :math:`\vec{n} = (n_1, n_2, n_3)`, then this layer is supposed to return:
+
+    .. math::
+        \vec{x} = \vec{x_0} + n_1\vec{a}_1 + n_2\vec{a}_2 + n_3\vec{a}_3 = \vec{x_0} + \mathbf{a} \vec{n}
+
+    The layer expects ragged tensor input for :math:`\vec{x_0}` and :math:`\vec{n}` with multiple positions and their
+    images but a single (tensor) lattice matrix.
+
     """
 
     def __init__(self, **kwargs):
@@ -72,7 +97,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_index, lattice]
+            inputs (list): [position, edge_image, lattice]
 
                 - position (tf.RaggedTensor): Positions of shape (batch, [M], 3)
                 - edge_image (tf.RaggedTensor): Position in which image to shift of shape (batch, [M], 3)
@@ -81,27 +106,37 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape (batch, [M], 1)
         """
-        self.assert_ragged_input_rank(inputs[:2])
-        lattice_rep = self.layer_state([inputs[2], inputs[1]], **kwargs)  # Should be (batch, None, 3, 3)
-        x = inputs[0]
+        inputs_ragged = self.assert_ragged_input_rank(inputs[:2])
+        lattice_rep = self.layer_state([inputs[2], inputs_ragged[1]], **kwargs)  # Should be (batch, None, 3, 3)
+        x = inputs_ragged[0]
         xj = x.values
         xj = xj + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=xj.dtype) * tf.expand_dims(
-            tf.cast(inputs[1].values, dtype=xj.dtype), axis=-1), axis=1)
-        return tf.RaggedTensor.from_row_splits(xj, inputs[1].row_splits, validate=self.ragged_validate)
+            tf.cast(inputs_ragged[1].values, dtype=xj.dtype), axis=-1), axis=1)
+        return tf.RaggedTensor.from_row_splits(xj, inputs_ragged[1].row_splits, validate=self.ragged_validate)
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
 class EuclideanNorm(GraphBaseLayer):
-    """Compute euclidean norm for edge or node vectors. This amounts for a specific axis to
+    r"""Compute euclidean norm for edge or node vectors.
 
-    :math:`||x||_2 = \sqrt{\sum_i x_i^2}`
+    This amounts for a specific :obj:`axis` along which to sum the coordinates:
 
-    Vector based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
-    You can choose to collapse or keep the dimension.
+    .. math::
+        `||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}`
+
+    Vector based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension `D`.
+    You can choose to collapse or keep this dimension with :obj:`keepdims` and to optionally invert the resulting norm
+    with :obj:`invert_norm` layer arguments.
     """
 
     def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            axis (int): Axis of coordinates. Defaults to -1.
+            keepdims (bool): Whether to keep the axis for sum. Defaults to False.
+            invert_norm (bool): Whether to invert the results. Defaults to False.
+        """
         super(EuclideanNorm, self).__init__(**kwargs)
         self.axis = axis
         self.keepdims = keepdims
@@ -113,20 +148,27 @@ class EuclideanNorm(GraphBaseLayer):
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False):
-        """Function to compute euclidean norm for inputs."""
+        """Function to compute euclidean norm for inputs.
+
+        Args:
+            inputs: Input to compute norm for.
+            axis (int): Axis of coordinates. Defaults to -1.
+            keepdims (bool): Whether to keep the axis for sum. Defaults to False.
+            invert_norm (bool): Whether to invert the results. Defaults to False.
+        """
         out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims)))
         if invert_norm:
             out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
         return out
 
     def call(self, inputs, **kwargs):
-        """Forward pass for `EuclideanNorm`.
+        r"""Forward pass for :obj:`EuclideanNorm`.
 
         Args:
-            inputs (tf.RaggedTensor): Positions of shape (batch, [N], ..., D, ...)
+            inputs (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
 
         Returns:
-            tf.RaggedTensor: Euclidean norm computed for specific axis of shape (batch, [N], ...)
+            tf.RaggedTensor: Euclidean norm computed for specific axis of shape `(batch, [N], ...)`
         """
         # Possibly faster
         if isinstance(inputs, tf.RaggedTensor):
@@ -145,9 +187,13 @@ class EuclideanNorm(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScalarProduct')
 class ScalarProduct(GraphBaseLayer):
-    """Compute geometric scalar product for edge or node coordinates.
+    r"""Compute geometric scalar product for edge or node coordinates.
 
-    A distance based edge or node coordinates are defined by (batch, [N], ..., D) with last dimension D.
+    A distance based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension D.
+    The layer simply does for positions :
+
+    .. math::
+        <\vec{a}, \vec{b}> = \vec{a} \cdot \vec{b} = \sqrt{\sum_i a_i b_i}
     """
 
     def __init__(self, axis=-1, **kwargs):
@@ -192,10 +238,15 @@ class ScalarProduct(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeDistanceEuclidean')
 class NodeDistanceEuclidean(GraphBaseLayer):
-    r"""Compute euclidean distance between two node coordinate tensors. Let the :math:`\vec{x}_1` and :math:`\vec{x}_2`
-    be two nodes, then the output is given by :math:`|| \vec{x}_1 - \vec{x}_2 ||_2`. Calls :obj:`EuclideanNorm` on
-    the difference of the inputs. The number of node positions must not be connected to the number of nodes, but can
-    also match edges.
+    r"""Compute euclidean distance between two node coordinate tensors.
+
+    Let the :math:`\vec{x}_1` and :math:`\vec{x}_2` be the position of two nodes, then the output is given by:
+
+    .. math::
+        || \vec{x}_1 - \vec{x}_2 ||_2.
+
+    Calls :obj:`EuclideanNorm` on the difference of the inputs.
+    The number of node positions must not be connected to the number of nodes, but can also match edges.
     """
 
     def __init__(self, **kwargs):
