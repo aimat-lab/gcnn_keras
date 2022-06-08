@@ -151,7 +151,7 @@ class EuclideanNorm(GraphBaseLayer):
         """Function to compute euclidean norm for inputs.
 
         Args:
-            inputs (tf.Tensor): Tensor input to compute norm for.
+            inputs (tf.Tensor, tf.RaggedTensor): Tensor input to compute norm for.
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
