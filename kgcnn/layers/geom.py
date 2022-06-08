@@ -405,9 +405,21 @@ class VectorAngle(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeAngle')
 class EdgeAngle(GraphBaseLayer):
-    """Compute geometric edge angles.
+    r"""Compute geometric angles between two vectors that represent an edge of a graph.
 
-    The geometric angle is computed between edge tuple of index (i,j), where i,j refer to two edges.
+    The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` span an angles as:
+
+    .. math::
+        \theta = \tan^{-1} \; \frac{\vec{v}_1 \cdot \vec{v}_2}{|| \vec{v}_1 \times \vec{v}_2 ||}
+
+    The geometric angle is computed between edge tuples of index :math:`(i, j)`, where :math`:i, j` refer to two edges.
+    The edge features are consequently a geometric vector (3D-space) for each edge.
+
+    .. note::
+        Here, the indices :math:`(i, j)` refer to edges and not to node positions!
+
+    The layer uses :obj:`GatherEmbeddingSelection` and :obj:`VectorAngle` to compute angles.
+
     """
 
     def __init__(self, **kwargs):
@@ -421,16 +433,16 @@ class EdgeAngle(GraphBaseLayer):
         super(EdgeAngle, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs (list): [vector, angle_index]
 
-                - vector (tf.RaggedTensor): Node or Edge directions of shape (batch, [N], 3)
-                - angle_index (tf.RaggedTensor): Angle indices of vector pairs of shape (batch, [K], 2).
+                - vector (tf.RaggedTensor): Node or Edge directions of shape `(batch, [N], 3)`
+                - angle_index (tf.RaggedTensor): Angle indices of vector pairs of shape `(batch, [K], 2)`.
 
         Returns:
-            tf.RaggedTensor: Edge angles between edges that match the indices. Shape is (batch, [K], 1)
+            tf.RaggedTensor: Edge angles between edges that match the indices. Shape is `(batch, [K], 1)`.
         """
         v1, v2 = self.layer_gather_vectors(inputs)
         return self.layer_angle([v1, v2])
@@ -443,10 +455,21 @@ class EdgeAngle(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
 class GaussBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Gauss Basis with :math:`\sgima`, according to Schuett et al."""
+    r"""Expand a distance into a Gaussian Basis, according to `Schuett et al. <https://arxiv.org/abs/1706.08566>`_.
 
-    def __init__(self, bins=20, distance=4.0, sigma=0.4, offset=0.0,
+
+    """
+
+    def __init__(self, bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0,
                  **kwargs):
+        r"""Initialize :obj:`GaussBasisLayer` layer.
+
+        Args:
+            bins (int):
+            distance (float):
+            sigma (float):
+            offset (float):
+        """
         super(GaussBasisLayer, self).__init__(**kwargs)
         # Layer variables
         self.bins = int(bins)
@@ -458,7 +481,15 @@ class GaussBasisLayer(GraphBaseLayer):
 
     @staticmethod
     def _compute_gauss_basis(inputs, offset, gamma, bins, distance):
-        """expand into gaussian basis."""
+        """Expand into gaussian basis.
+
+        Args:
+            inputs: Tensor-like input to with distance to expand into Gaussian basis.
+            bins (int):
+            distance (float):
+            gamma (float):
+            offset (float):
+        """
         gbs = tf.range(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
         out = inputs - offset
         out = tf.square(out - gbs) * gamma
@@ -466,7 +497,7 @@ class GaussBasisLayer(GraphBaseLayer):
         return out
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: distance
@@ -495,9 +526,10 @@ class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
 
     Args:
-        num_radial (int): Number of radial radial basis functions
+        num_radial (int): Number of radial basis functions
         cutoff (float): Cutoff distance c
         envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
+        envelope_type (str):
     """
 
     def __init__(self, num_radial: int,
