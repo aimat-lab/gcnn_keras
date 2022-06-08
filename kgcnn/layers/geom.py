@@ -292,6 +292,9 @@ class NodeDistanceEuclidean(GraphBaseLayer):
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
+    Let two points have position :math`:\vec{r}_{i}` and :math:`\vec{r}_{j}` for an edge :math:`e_{ij}`, then
+    the normalized distance is given by:
+
     .. math::
         \frac{\vec{r}_{ij}}{||r_{ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}.
 
@@ -307,6 +310,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         self.layer_multiply = LazyMultiply()
 
     def build(self, input_shape):
+        """Build layer."""
         super(EdgeDirectionNormalized, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
@@ -333,10 +337,23 @@ class EdgeDirectionNormalized(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
 class VectorAngle(GraphBaseLayer):
-    r"""Compute geometric angles between vectors in euclidean space. The vectors would be obtained from the points
-    :math:`x_i` from :math:`v_1 = x_i - x_j` and :math:`v_2 = x_j - x_k`.
+    r"""Compute geometric angles between two vectors in euclidean space.
 
-    The geometric angle is computed between i<-j,j<-k for index tuple (i,j,k) in (batch, None, 3) last dimension.
+    The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` could be obtained from three points
+    :math:`\vec{x}_i, \vec{x}_j, \vec{x}_k` spanning an angle from :math:`\vec{v}_1= \vec{x}_i - \vec{x}_j` and
+    :math:`\vec{v}_2= \vec{x}_j - \vec{x}_k`.
+
+    Those points can be defined with an index tuple `(i, j, k)` in a ragged tensor of shape `(batch, None, 3)` that
+    mark vector directions of :math:`i\leftarrow j, j \leftarrow k`.
+
+    .. note::
+        However, this layer directly takes the vector :math:`\vec{v}_1` and :math:`\vec{v}_2` as input.
+
+    The angle :math:`\theta` is computed via:
+
+    .. math::
+        \theta = \tan^{-1} \; \frac{\vec{v}_1 \cdot \vec{v}_2}{|| \vec{v}_1 \times \vec{v}_2 ||}
+
     """
 
     def __init__(self, **kwargs):
@@ -348,8 +365,12 @@ class VectorAngle(GraphBaseLayer):
         super(VectorAngle, self).build(input_shape)
 
     @staticmethod
-    def _compute_vector_angle(inputs):
-        """Function to compute angles between v1 and v2"""
+    def _compute_vector_angle(inputs: list):
+        """Function to compute angles between two vectors v1 and v2.
+
+        Args:
+            inputs (list): List or tuple of two vectors v1, v2.
+        """
         v1, v2 = inputs[0], inputs[1]
         x = tf.reduce_sum(v1 * v2, axis=-1)
         y = tf.linalg.cross(v1, v2)
@@ -359,16 +380,16 @@ class VectorAngle(GraphBaseLayer):
         return out
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs (list): [vector_1, vector_2]
 
-                - vector_1 (tf.RaggedTensor): Node positions or vectors of shape (batch, [M], 3)
-                - vector_2 (tf.RaggedTensor): Node positions or vectors of shape (batch, [M], 3)
+                - vector_1 (tf.RaggedTensor): Node positions or vectors of shape `(batch, [M], 3)`
+                - vector_2 (tf.RaggedTensor): Node positions or vectors of shape `(batch, [M], 3)`
 
         Returns:
-            tf.RaggedTensor: Calculate Angle between vector 1 and 2 of shape (batch, [M], 1)
+            tf.RaggedTensor: Calculated Angle between vector 1 and 2 of shape `(batch, [M], 1)`.
         """
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
             if all([x.ragged_rank == 1 for x in inputs]):
