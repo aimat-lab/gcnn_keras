@@ -58,7 +58,7 @@ class NodePosition(GraphBaseLayer):
 
         Returns:
             list: List of node positions (ragged) tensors for each of the :obj:`selection_index`. Position tensors have
-                shape `(batch, [M], 3)`.
+            shape `(batch, [M], 3)`.
         """
         return self.layer_gather(inputs, **kwargs)
 
@@ -292,7 +292,7 @@ class NodeDistanceEuclidean(GraphBaseLayer):
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
-    Let two points have position :math`:\vec{r}_{i}` and :math:`\vec{r}_{j}` for an edge :math:`e_{ij}`, then
+    Let two points have position :math:`\vec{r}_{i}` and :math:`\vec{r}_{j}` for an edge :math:`e_{ij}`, then
     the normalized distance is given by:
 
     .. math::
