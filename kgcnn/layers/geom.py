@@ -217,11 +217,11 @@ class ScalarProduct(GraphBaseLayer):
         super(ScalarProduct, self).build(input_shape)
 
     @staticmethod
-    def _scalar_product(inputs, axis: int, **kwargs):
+    def _scalar_product(inputs: list, axis: int, **kwargs):
         """Compute scalar product.
 
         Args:
-            inputs (tf.Tensor): Tensor input.
+            inputs (list): Tensor input.
             axis (int): Axis along which to sum.
 
         Returns:
@@ -499,7 +499,7 @@ class GaussBasisLayer(GraphBaseLayer):
         """Expand into gaussian basis.
 
         Args:
-            inputs (tf.Tensor): Tensor input with distance to expand into Gaussian basis.
+            inputs: Tensor input with distance to expand into Gaussian basis.
             bins (int):
             distance (float):
             gamma (float):
