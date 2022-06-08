@@ -151,10 +151,13 @@ class EuclideanNorm(GraphBaseLayer):
         """Function to compute euclidean norm for inputs.
 
         Args:
-            inputs: Input to compute norm for.
+            inputs (tf.Tensor): Tensor input to compute norm for.
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
+
+        Returns:
+            tf.Tensor: Euclidean norm of inputs.
         """
         out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims)))
         if invert_norm:
@@ -214,7 +217,16 @@ class ScalarProduct(GraphBaseLayer):
         super(ScalarProduct, self).build(input_shape)
 
     @staticmethod
-    def _scalar_product(inputs, axis, **kwargs):
+    def _scalar_product(inputs, axis: int, **kwargs):
+        """Compute scalar product.
+
+        Args:
+            inputs (tf.Tensor): Tensor input.
+            axis (int): Axis along which to sum.
+
+        Returns:
+            tf.Tensor: Scalr product of inputs.
+        """
         return tf.reduce_sum(inputs[0] * inputs[1], axis=axis)
 
     def call(self, inputs, **kwargs):
@@ -369,7 +381,10 @@ class VectorAngle(GraphBaseLayer):
         """Function to compute angles between two vectors v1 and v2.
 
         Args:
-            inputs (list): List or tuple of two vectors v1, v2.
+            inputs (list): List or tuple of two tensor v1, v2.
+
+        Returns:
+            tf.Tensor: Angle between inputs.
         """
         v1, v2 = inputs[0], inputs[1]
         x = tf.reduce_sum(v1 * v2, axis=-1)
@@ -484,11 +499,14 @@ class GaussBasisLayer(GraphBaseLayer):
         """Expand into gaussian basis.
 
         Args:
-            inputs: Tensor-like input to with distance to expand into Gaussian basis.
+            inputs (tf.Tensor): Tensor input with distance to expand into Gaussian basis.
             bins (int):
             distance (float):
             gamma (float):
             offset (float):
+
+        Returns:
+            tf.Tensor: Distance tensor expanded in Gaussian.
         """
         gbs = tf.range(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
         out = inputs - offset
@@ -598,16 +616,26 @@ class BesselBasisLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
 class CosCutOffEnvelope(GraphBaseLayer):
-    r"""Calculate cos-cutoff envelope according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
-    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]`
+    r"""Calculate cosine cutoff envelope according to
+    `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
 
-    Args:
-        cutoff (float): Cutoff distance :math:`R_c`.
+    For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
+
+    .. math::
+        f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
+
+    This layer only computes the cutoff envelope but does not apply it.
+
     """
 
     def __init__(self,
                  cutoff,
                  **kwargs):
+        r"""Initialize layer.
+
+        Args:
+            cutoff (float): Cutoff distance :math:`R_c`.
+        """
         super(CosCutOffEnvelope, self).__init__(**kwargs)
         self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
@@ -641,7 +669,8 @@ class CosCutOffEnvelope(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
-    r"""Apply cos-cutoff according to Behler et al. https://aip.scitation.org/doi/10.1063/1.3553717
+    r"""Apply cosine cutoff according to `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
+
     :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]` by simply multiplying with the envelope.
 
     Args:
