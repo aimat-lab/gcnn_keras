@@ -516,7 +516,7 @@ class GaussBasisLayer(GraphBaseLayer):
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with distance to expand into Gaussian basis.
             bins (int): Number of bins for basis.
             distance (float): Maximum distance to for Gaussian.
-            gamma (float): Gamma pre-factor which is :math:`1/(2\sigma^2)` for Gaussian of width :math:`sigma`.
+            gamma (float): Gamma pre-factor which is :math:`1/(2\sigma^2)` for Gaussian of width :math:`\sigma`.
             offset (float): Shift of zero position for basis.
 
         Returns:
@@ -558,6 +558,13 @@ class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
     `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`_.
 
+    For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
+    :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
+    on :math:`[0,c]` and :math:`j_0(d) = \sin{(d)}/d` yields :math:`\tilde{e}_{\text{RBF}} \in `:
+
+    .. math::
+        \tilde{e}_{\text{RBF}, n} (d) = \sqrt{\frac{2}{c}} \frac{\sin{\left(\frac{n\pi}{c} d\right)}}{d}
+
     """
 
     def __init__(self, num_radial: int,
@@ -571,7 +578,7 @@ class BesselBasisLayer(GraphBaseLayer):
             num_radial (int): Number of radial basis functions to use.
             cutoff (float): Cutoff distance.
             envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
-            envelope_type (str):
+            envelope_type (str): Type of envelope to use. Default is "poly".
         """
         super(BesselBasisLayer, self).__init__(**kwargs)
         # Layer variables
@@ -582,7 +589,7 @@ class BesselBasisLayer(GraphBaseLayer):
         self.envelope_type = str(envelope_type)
 
         if self.envelope_type not in ["poly"]:
-            raise ValueError("Unknown envelope type %s in BesselBasisLayer" % self.envelope_type)
+            raise ValueError("Unknown envelope type %s in BesselBasisLayer." % self.envelope_type)
 
         # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):
@@ -607,15 +614,15 @@ class BesselBasisLayer(GraphBaseLayer):
         return out
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape (batch, [K], 1)
+                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #Radial)
+            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], num_radial)`.
         """
         # Possibly faster RaggedRank==1
         if isinstance(inputs, tf.RaggedTensor):
