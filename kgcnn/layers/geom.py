@@ -471,7 +471,8 @@ class EdgeAngle(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
 class GaussBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Gaussian Basis, according to `Schuett et al. <https://arxiv.org/abs/1706.08566>`_.
+    r"""Expand a distance into a Gaussian Basis, according to
+    `Schuett et al. (2017) <https://arxiv.org/abs/1706.08566>`_.
 
     The distance :math:`d_{ij} = || \mathbf{r}_i - \mathbf{r}_j ||` is expanded in radial basis functions:
 
@@ -556,7 +557,7 @@ class GaussBasisLayer(GraphBaseLayer):
 @ks.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
-    `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`_.
+    `Klicpera et al. (2020) <https://arxiv.org/abs/2011.14115>`_.
 
     For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
     :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
@@ -564,6 +565,13 @@ class BesselBasisLayer(GraphBaseLayer):
 
     .. math::
         \tilde{e}_{\text{RBF}, n} (d) = \sqrt{\frac{2}{c}} \frac{\sin{\left(\frac{n\pi}{c} d\right)}}{d}
+
+    Additionally, applies an envelope function :math:`u(d)` for continuous differentiability on the basis
+    :math:`e_{\text{RBF} = u(d)\tilde{e}_{\text{RBF}`.
+    By Default this is a polynomial:
+
+    .. math::
+        u(d)
 
     """
 
