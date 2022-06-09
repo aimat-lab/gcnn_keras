@@ -650,7 +650,7 @@ class BesselBasisLayer(GraphBaseLayer):
 @ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
 class CosCutOffEnvelope(GraphBaseLayer):
     r"""Calculate cosine cutoff envelope according to
-    `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
+    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
 
     For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
@@ -702,17 +702,26 @@ class CosCutOffEnvelope(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
-    r"""Apply cosine cutoff according to `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
+    r"""Apply cosine cutoff according to
+    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
 
-    :math:`f_c(R_{ij}) = 0.5 [ \cos{\frac{\pi R_{ij}}{R_c}} + 1]` by simply multiplying with the envelope.
+    For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
-    Args:
-        cutoff (float): Cutoff distance :math:`R_c`.
+    .. math::
+        f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
+
+    This layer computes the cutoff envelope and applies it to the input by simply multiplying with the envelope.
+
     """
 
     def __init__(self,
                  cutoff,
                  **kwargs):
+        r"""Initialize layer.
+
+        Args:
+            cutoff (float): Cutoff distance :math:`R_c`.
+        """
         super(CosCutOff, self).__init__(**kwargs)
         self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
@@ -725,15 +734,15 @@ class CosCutOff(GraphBaseLayer):
         return out
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], D)
+                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [M], D)`
 
         Returns:
-            tf.RaggedTensor: Cutoff applied to input of shape (batch, [M], D)
+            tf.RaggedTensor: Cutoff applied to input of shape `(batch, [M], D)`.
         """
         return self.call_on_values_tensor_of_ragged(self._compute_cutoff, inputs, cutoff=self.cutoff)
 
