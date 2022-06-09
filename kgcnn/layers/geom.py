@@ -561,17 +561,17 @@ class BesselBasisLayer(GraphBaseLayer):
 
     For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
     :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
-    on :math:`[0,c]` and :math:`j_0(d) = \sin{(d)}/d` yields :math:`\tilde{e}_{\text{RBF}} \in `:
+    on :math:`[0,c]` and :math:`j_0(d) = \sin{(d)}/d` yields :math:`\tilde{e}_{\text{RBF}} \in R^{N_{\text{RBF}}}`:
 
     .. math::
         \tilde{e}_{\text{RBF}, n} (d) = \sqrt{\frac{2}{c}} \frac{\sin{\left(\frac{n\pi}{c} d\right)}}{d}
 
     Additionally, applies an envelope function :math:`u(d)` for continuous differentiability on the basis
-    :math:`e_{\text{RBF} = u(d)\tilde{e}_{\text{RBF}`.
-    By Default this is a polynomial:
+    :math:`e_{\text{RBF}} = u(d)\tilde{e}_{\text{RBF}}`.
+    By Default this is a polynomial of the form:
 
     .. math::
-        u(d)
+        u(d) =
 
     """
 
