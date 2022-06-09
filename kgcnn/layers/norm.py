@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras as ks
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
 

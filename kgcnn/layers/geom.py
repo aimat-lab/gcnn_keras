@@ -472,6 +472,18 @@ class EdgeAngle(GraphBaseLayer):
 class GaussBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Gaussian Basis, according to `Schuett et al. <https://arxiv.org/abs/1706.08566>`_.
 
+    The distance :math:`d_{ij} = || \mathbf{r}_i - \mathbf{r}_j ||` is expanded in radial basis functions:
+
+    .. math::
+        e_k(\mathbf{r}_i - \mathbf{r}_j) = \exp{(- \gamma || d_{ij} - \mu_k ||^2 )}
+
+    where :math:`\mu_k` represents centers located at originally :math:`0\le \mu_k \le 30 \AA` every :math:`0.1\AA`
+    with :math:`\gamma=10\AA`
+
+    For this layer the arguments refer directly to Gaussian of width :math:`\sigma` that connects to
+    :math:`\gamma = \frac{1}{2\sigma^2}`. The Gaussian, or the :math:`\mu_k`, is placed equally
+    between :obj:`offset` and :obj:`distance` and the spacing can be defined by the number of :obj:`bins` that is
+    simply '(distance-offset)/bins'. The width is controlled by the layer argument :obj:`sigma`.
 
     """
 
@@ -480,10 +492,10 @@ class GaussBasisLayer(GraphBaseLayer):
         r"""Initialize :obj:`GaussBasisLayer` layer.
 
         Args:
-            bins (int):
-            distance (float):
-            sigma (float):
-            offset (float):
+            bins (int): Number of bins for basis.
+            distance (float): Maximum distance to for Gaussian.
+            sigma (float): Width of Gaussian for bins.
+            offset (float): Shift of zero position for basis.
         """
         super(GaussBasisLayer, self).__init__(**kwargs)
         # Layer variables
@@ -491,26 +503,27 @@ class GaussBasisLayer(GraphBaseLayer):
         self.distance = float(distance)
         self.offset = float(offset)
         self.sigma = float(sigma)
-        self.gamma = 1 / sigma / sigma * (-1) / 2
+        self.gamma = 1 / sigma / sigma / 2
+
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
     def _compute_gauss_basis(inputs, offset, gamma, bins, distance):
-        """Expand into gaussian basis.
+        r"""Expand into gaussian basis.
 
         Args:
-            inputs: Tensor input with distance to expand into Gaussian basis.
-            bins (int):
-            distance (float):
-            gamma (float):
-            offset (float):
+            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with distance to expand into Gaussian basis.
+            bins (int): Number of bins for basis.
+            distance (float): Maximum distance to for Gaussian.
+            gamma (float): Gamma pre-factor which is :math:`1/(2\sigma^2)` for Gaussian of width :math:`sigma`.
+            offset (float): Shift of zero position for basis.
 
         Returns:
             tf.Tensor: Distance tensor expanded in Gaussian.
         """
         gbs = tf.range(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
         out = inputs - offset
-        out = tf.square(out - gbs) * gamma
+        out = tf.square(out - gbs) * (gamma * (-1.0))
         out = tf.exp(out)
         return out
 
@@ -520,10 +533,10 @@ class GaussBasisLayer(GraphBaseLayer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape (batch, [K], 1)
+                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
 
         Returns:
-            tf.RaggedTensor: Expanded distance. Shape is (batch, [K], #bins)
+            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
         # Possibly faster RaggedRank==1
         if isinstance(inputs, tf.RaggedTensor):
@@ -541,7 +554,8 @@ class GaussBasisLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to Klicpera et al. 2020
+    r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
+    `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`_.
 
     Args:
         num_radial (int): Number of radial basis functions
@@ -696,6 +710,7 @@ class CosCutOff(GraphBaseLayer):
 
         Args:
             inputs: distance
+
                 - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], D)
 
         Returns:
