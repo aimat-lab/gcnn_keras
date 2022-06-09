@@ -561,7 +561,8 @@ class BesselBasisLayer(GraphBaseLayer):
 
     For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
     :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
-    on :math:`[0,c]` and :math:`j_0(d) = \sin{(d)}/d` yields :math:`\tilde{e}_{\text{RBF}} \in R^{N_{\text{RBF}}}`:
+    on :math:`[0,c]` and :math:`j_0(d) = \sin{(d)}/d` yields
+    :math:`\tilde{e}_{\text{RBF}} \in \mathbb{R}^{N_{\text{RBF}}}`:
 
     .. math::
         \tilde{e}_{\text{RBF}, n} (d) = \sqrt{\frac{2}{c}} \frac{\sin{\left(\frac{n\pi}{c} d\right)}}{d}
@@ -571,7 +572,9 @@ class BesselBasisLayer(GraphBaseLayer):
     By Default this is a polynomial of the form:
 
     .. math::
-        u(d) =
+        u(d) = 1 − \frac{(p + 1)(p + 2)}{2} d^p + p(p + 2)d^{p+1} − \frac{p(p + 1)}{2} d^{p+2},
+
+    where :math:`p \in \mathbb{N}_0` and typically :math:`p=6`.
 
     """
 
@@ -681,15 +684,15 @@ class CosCutOffEnvelope(GraphBaseLayer):
         return fc
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape (batch, [M], 1)
+                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [M], 1)`.
 
         Returns:
-            tf.RaggedTensor: Cutoff envelope of shape (batch, [M], 1)
+            tf.RaggedTensor: Cutoff envelope of shape `(batch, [M], 1)`.
         """
         return self.call_on_values_tensor_of_ragged(self._compute_cutoff_envelope, inputs, cutoff=self.cutoff)
 
