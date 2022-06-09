@@ -4,9 +4,10 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
 from kgcnn.layers.modules import LazySubtract, LazyMultiply
 from kgcnn.ops.axis import get_positive_axis
+ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodePosition')
+@ks.utils.register_keras_serializable(package='kgcnn', name='NodePosition')
 class NodePosition(GraphBaseLayer):
     r"""Get node position for directed edges via node indices.
 
@@ -115,7 +116,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         return tf.RaggedTensor.from_row_splits(xj, inputs_ragged[1].row_splits, validate=self.ragged_validate)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
+@ks.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
 class EuclideanNorm(GraphBaseLayer):
     r"""Compute euclidean norm for edge or node vectors.
 
@@ -188,7 +189,7 @@ class EuclideanNorm(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScalarProduct')
+@ks.utils.register_keras_serializable(package='kgcnn', name='ScalarProduct')
 class ScalarProduct(GraphBaseLayer):
     r"""Compute geometric scalar product for edge or node coordinates.
 
@@ -260,7 +261,7 @@ class ScalarProduct(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='NodeDistanceEuclidean')
+@ks.utils.register_keras_serializable(package='kgcnn', name='NodeDistanceEuclidean')
 class NodeDistanceEuclidean(GraphBaseLayer):
     r"""Compute euclidean distance between two node coordinate tensors.
 
@@ -300,7 +301,7 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         return self.layer_euclidean_norm(diff)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
+@ks.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
 class EdgeDirectionNormalized(GraphBaseLayer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
@@ -347,7 +348,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
+@ks.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
 class VectorAngle(GraphBaseLayer):
     r"""Compute geometric angles between two vectors in euclidean space.
 
@@ -418,7 +419,7 @@ class VectorAngle(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='EdgeAngle')
+@ks.utils.register_keras_serializable(package='kgcnn', name='EdgeAngle')
 class EdgeAngle(GraphBaseLayer):
     r"""Compute geometric angles between two vectors that represent an edge of a graph.
 
@@ -468,7 +469,7 @@ class EdgeAngle(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
+@ks.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
 class GaussBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Gaussian Basis, according to `Schuett et al. <https://arxiv.org/abs/1706.08566>`_.
 
@@ -552,16 +553,11 @@ class GaussBasisLayer(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
+@ks.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
     `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`_.
 
-    Args:
-        num_radial (int): Number of radial basis functions
-        cutoff (float): Cutoff distance c
-        envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
-        envelope_type (str):
     """
 
     def __init__(self, num_radial: int,
@@ -569,6 +565,14 @@ class BesselBasisLayer(GraphBaseLayer):
                  envelope_exponent: int = 5,
                  envelope_type: str = "poly",
                  **kwargs):
+        r"""Initialize :obj:`BesselBasisLayer` layer.
+
+        Args:
+            num_radial (int): Number of radial basis functions to use.
+            cutoff (float): Cutoff distance.
+            envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
+            envelope_type (str):
+        """
         super(BesselBasisLayer, self).__init__(**kwargs)
         # Layer variables
         self.num_radial = num_radial
@@ -628,7 +632,7 @@ class BesselBasisLayer(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
+@ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
 class CosCutOffEnvelope(GraphBaseLayer):
     r"""Calculate cosine cutoff envelope according to
     `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
@@ -681,7 +685,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
+@ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
 class CosCutOff(GraphBaseLayer):
     r"""Apply cosine cutoff according to `Behler et al. <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
 
