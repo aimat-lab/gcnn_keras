@@ -478,8 +478,8 @@ class GaussBasisLayer(GraphBaseLayer):
     .. math::
         e_k(\mathbf{r}_i - \mathbf{r}_j) = \exp{(- \gamma || d_{ij} - \mu_k ||^2 )}
 
-    where :math:`\mu_k` represents centers located at originally :math:`0\le \mu_k \le 30 \AA` every :math:`0.1\AA`
-    with :math:`\gamma=10\AA`
+    where :math:`\mu_k` represents centers located at originally :math:`0\le \mu_k \le 30  \mathring{A}`
+    every :math:`0.1 \mathring{A}` with :math:`\gamma=10 \mathring{A}`
 
     For this layer the arguments refer directly to Gaussian of width :math:`\sigma` that connects to
     :math:`\gamma = \frac{1}{2\sigma^2}`. The Gaussian, or the :math:`\mu_k`, is placed equally
