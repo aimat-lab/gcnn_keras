@@ -6,7 +6,7 @@ from kgcnn.layers.base import GraphBaseLayer
 ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPBase')
+@ks.utils.register_keras_serializable(package='kgcnn', name='MLPBase')
 class MLPBase(GraphBaseLayer):
     r"""Base class for multilayer perceptron that consist of multiple feed-forward networks.
 
@@ -223,7 +223,7 @@ class MLPBase(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
 class GraphMLP(MLPBase):
     r"""Multilayer perceptron that consist of multiple :obj:`DenseEmbedding` layers for ragged graph tensors input.
 
@@ -300,7 +300,7 @@ class GraphMLP(MLPBase):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
+@ks.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(MLPBase):
     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
 
@@ -315,28 +315,28 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
 
-        self.mlp_dense_layer_list = [tf.keras.layers.Dense(
+        self.mlp_dense_layer_list = [ks.layers.Dense(
             **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
 
-        self.mlp_activation_layer_list = [tf.keras.layers.Activation(
+        self.mlp_activation_layer_list = [ks.layers.Activation(
             **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
 
         self.mlp_dropout_layer_list = [
-            tf.keras.layers.Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
+            ks.layers.Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
             in range(self._depth)]
 
         self.mlp_norm_layer_list = [None] * self._depth
         for i in range(self._depth):
             if self._conf_use_normalization[i]:
                 if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = tf.keras.layers.BatchNormalization(
+                    self.mlp_norm_layer_list[i] = ks.layers.BatchNormalization(
                         **self._conf_mlp_norm_layer_kwargs[i],
                         momentum=self._conf_momentum[i],
                         moving_mean_initializer=self._conf_moving_mean_initializer[i],
                         moving_variance_initializer=self._conf_moving_variance_initializer[i])
                 elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization",
                                                                "GraphLayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = tf.keras.layers.LayerNormalization(
+                    self.mlp_norm_layer_list[i] = ks.layers.LayerNormalization(
                         **self._conf_mlp_norm_layer_kwargs[i])
                 else:
                     raise NotImplementedError(
