@@ -307,7 +307,9 @@ class MLP(MLPBase):
     .. note::
         Please see layer arguments of :obj:`MLPBase` for configuration!
 
-    This layer adds normalization and dropout for normal tensor input.
+    This layer adds normalization and dropout for normal tensor input. Please, see keras
+    `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
+    :obj:`Dense`, :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
 
     """
 
