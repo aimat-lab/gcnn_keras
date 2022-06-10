@@ -47,7 +47,7 @@ Clone [repository](https://github.com/aimat-lab/gcnn_keras) or latest [release](
 ```bash
 pip install -e ./gcnn_keras
 ```
-or latest release via Python Package Index.
+or latest release via [Python Package Index](https://pypi.org/project/kgcnn/).
 ```bash
 pip install kgcnn
 ```
@@ -136,23 +136,28 @@ class MyMessageNN(MessagePassingBase):
 
 <a name="literature"></a>
 # Literature
-A version of the following models is implemented in [literature](kgcnn/literature):
+A version of the following models and variants thereof are implemented in [literature](kgcnn/literature):
 * **[GCN](kgcnn/literature/GCN.py)**: [Semi-Supervised Classification with Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al. (2016)
+* **[Schnet](kgcnn/literature/Schnet.py)**: [SchNet – A deep learning architecture for molecules and materials ](https://aip.scitation.org/doi/10.1063/1.5019779) by Schütt et al. (2017)
+* **[GAT](kgcnn/literature/GAT.py)**: [Graph Attention Networks](https://arxiv.org/abs/1710.10903) by Veličković et al. (2018)
+* **[GraphSAGE](kgcnn/literature/GraphSAGE.py)**: [Inductive Representation Learning on Large Graphs](http://arxiv.org/abs/1706.02216) by Hamilton et al. (2017)
+* **[DimeNetPP](kgcnn/literature/DimeNetPP.py)**: [Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://arxiv.org/abs/2011.14115) by Klicpera et al. (2020)
+* **[GNNExplainer](kgcnn/literature/GNNExplain.py)**: [GNNExplainer: Generating Explanations for Graph Neural Networks](https://arxiv.org/abs/1903.03894) by Ying et al. (2019)
+* **[AttentiveFP](kgcnn/literature/AttentiveFP.py)**: [Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism](https://pubs.acs.org/doi/10.1021/acs.jmedchem.9b00959) by Xiong et al. (2019)
+
+<details open>
+<summary> <b>...</b> and many more (click to expand).</summary>
+
 * **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](https://arxiv.org/abs/1612.00222) by Battaglia et al. (2016)
 * **[Megnet](kgcnn/literature/Megnet.py)**: [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)
 * **[NMPN](kgcnn/literature/NMPN.py)**: [Neural Message Passing for Quantum Chemistry](http://arxiv.org/abs/1704.01212) by Gilmer et al. (2017)
-* **[Schnet](kgcnn/literature/Schnet.py)**: [SchNet – A deep learning architecture for molecules and materials ](https://aip.scitation.org/doi/10.1063/1.5019779) by Schütt et al. (2017)
 * **[Unet](kgcnn/literature/Unet.py)**: [Graph U-Nets](http://proceedings.mlr.press/v97/gao19a/gao19a.pdf) by H. Gao and S. Ji (2019)
-* **[GNNExplainer](kgcnn/literature/GNNExplain.py)**: [GNNExplainer: Generating Explanations for Graph Neural Networks](https://arxiv.org/abs/1903.03894) by Ying et al. (2019)
-* **[GraphSAGE](kgcnn/literature/GraphSAGE.py)**: [Inductive Representation Learning on Large Graphs](http://arxiv.org/abs/1706.02216) by Hamilton et al. (2017)
-* **[GAT](kgcnn/literature/GAT.py)**: [Graph Attention Networks](https://arxiv.org/abs/1710.10903) by Veličković et al. (2018)
 * **[GATv2](kgcnn/literature/GATv2.py)**: [How Attentive are Graph Attention Networks?](https://arxiv.org/abs/2105.14491) by Brody et al. (2021)
-* **[DimeNetPP](kgcnn/literature/DimeNetPP.py)**: [Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules](https://arxiv.org/abs/2011.14115) by Klicpera et al. (2020)
-* **[AttentiveFP](kgcnn/literature/AttentiveFP.py)**: [Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism](https://pubs.acs.org/doi/10.1021/acs.jmedchem.9b00959) by Xiong et al. (2019)
 * **[GIN](kgcnn/literature/GIN.py)**: [How Powerful are Graph Neural Networks?](https://arxiv.org/abs/1810.00826) by Xu et al. (2019)
 * **[PAiNN](kgcnn/literature/PAiNN.py)**: [Equivariant message passing for the prediction of tensorial properties and molecular spectra](https://arxiv.org/pdf/2102.03150.pdf) by Schütt et al. (2020)
 * **[DMPNN](kgcnn/literature/DMPNN.py)**: [Analyzing Learned Molecular Representations for Property Prediction](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b00237) by Yang et al. (2019)
 * **[HamNet](kgcnn/literature/HamNet.py)**: [HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks](https://arxiv.org/abs/2105.03688) by Li et al. (2021)
+</details>
 
 <a name="datasets"></a>
 # Datasets
@@ -239,7 +244,7 @@ Some known issues to be aware of, if using and making new models or layers with 
 <a name="citing"></a>
 # Citing
 
-If you want to cite this repo, refer to our [paper](https://doi.org/10.1016/j.simpa.2021.100095):
+If you want to cite this repo, please refer to our [paper](https://doi.org/10.1016/j.simpa.2021.100095):
 
 ```
 @article{REISER2021100095,

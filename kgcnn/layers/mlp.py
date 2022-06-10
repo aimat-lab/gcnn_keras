@@ -8,7 +8,9 @@ ks = tf.keras
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPBase')
 class MLPBase(GraphBaseLayer):
-    r"""Multilayer perceptron that consist of N dense keras layers. Supply list in place of arguments for each layer.
+    r"""Multilayer perceptron that consist of multiple feed-forward networks.
+
+    Supply list in place of arguments for each layer.
     If not list, then the single argument is used for each layer.
     The number of layers is given by units, which should be list.
     Additionally, this base class holds arguments for batch-normalization which should be applied between kernel
@@ -49,7 +51,7 @@ class MLPBase(GraphBaseLayer):
                  noise_shape=None,
                  seed=None,
                  **kwargs):
-        r"""Initialize parameter for MLP layer with multiple :obj:`Dense` layer, including :obj:`Dropout` and
+        r"""Initialize with parameter for MLP layer that match :obj:`Dense` layer, including :obj:`Dropout` and
         :obj:`BatchNormalization` or :obj:`LayerNormalization`.
 
         Args:
@@ -216,11 +218,14 @@ class MLPBase(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
 class GraphMLP(MLPBase):
-    r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
+    r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers for ragged graph tensors.
+
     See layer arguments of :obj:`MLPBase` for configuration.
+
     This layer adds normalization for embeddings tensors of node or edge embeddings represented by a ragged tensor.
     The definition of graph, batch or layer normalization is different from the standard keras definition.
-    See :obj:`kgcnn.layers.norm` for more information.
+    Please find ::`` and ::`` in :obj:`kgcnn.layers.norm` for more information.
+
     """
 
     def __init__(self, units, **kwargs):
