@@ -147,6 +147,7 @@ A version of the following models and variants thereof are implemented in [liter
 
 <details open>
 <summary> <b>...</b> and many more (click to expand).</summary>
+<br>
 
 * **[INorp](kgcnn/literature/INorp.py)**: [Interaction Networks for Learning about Objects,Relations and Physics](https://arxiv.org/abs/1612.00222) by Battaglia et al. (2016)
 * **[Megnet](kgcnn/literature/Megnet.py)**: [Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals](https://doi.org/10.1021/acs.chemmater.9b01294) by Chen et al. (2019)
