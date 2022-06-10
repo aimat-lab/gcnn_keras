@@ -8,14 +8,20 @@ ks = tf.keras
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLPBase')
 class MLPBase(GraphBaseLayer):
-    r"""Multilayer perceptron that consist of multiple feed-forward networks.
+    r"""Base class for multilayer perceptron that consist of multiple feed-forward networks.
 
-    Supply list in place of arguments for each layer.
-    If not list, then the single argument is used for each layer.
-    The number of layers is given by units, which should be list.
-    Additionally, this base class holds arguments for batch-normalization which should be applied between kernel
+    This base class simply manages layer arguments for :obj:`MLP`. They contain arguments for :obj:`Dense`,
+    :obj:`Dropout` and :obj:`BatchNormalization` or :obj:`LayerNormalization`,
+    since MLP is made up of stacked :obj:`Dense` layers with optional normalization and
+    dropout to improve stability or regularization. Here, a list in place of arguments must be provided that applies
+    to each layer. If not a list is given, then the single argument is used for each layer.
+    The number of layers is determined by :obj:`units` argument, which should be list.
+
+    Hence, this base class holds arguments for batch-normalization which should be applied between kernel
     and activation. And dropout after the kernel output and before normalization.
-    This base class does not initialize any sub-layers or implements :obj:`call()`. Only for managing arguments.
+
+    This base class does not initialize any sub-layers or implements :obj:`call`, only for managing arguments.
+
     """
 
     def __init__(self,
@@ -206,6 +212,7 @@ class MLPBase(GraphBaseLayer):
         config = super(MLPBase, self).get_config()
         for key in self._key_list:
             config.update({key: getattr(self, "_conf_"+key)})
+
         # Serialize initializer, regularizes, constraints and activation.
         for sl, sm in [
             (self._key_list_init, ks.initializers.serialize), (self._key_list_reg, ks.regularizers.serialize),
@@ -218,13 +225,17 @@ class MLPBase(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
 class GraphMLP(MLPBase):
-    r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers for ragged graph tensors.
+    r"""Multilayer perceptron that consist of multiple :obj:`DenseEmbedding` layers for ragged graph tensors input.
 
-    See layer arguments of :obj:`MLPBase` for configuration.
+    .. note::
+        Please see layer arguments of :obj:`MLPBase` for configuration!
 
+    In principle :obj:`GraphMLP` is identical and also interchangeable with :obj:`MLP` with exception to the
+    normalization.
     This layer adds normalization for embeddings tensors of node or edge embeddings represented by a ragged tensor.
     The definition of graph, batch or layer normalization is different from the standard keras definition.
-    Please find ::`` and ::`` in :obj:`kgcnn.layers.norm` for more information.
+    Please find :obj:`GraphLayerNormalization` and :obj:`GraphBatchNormalization` in :obj:`kgcnn.layers.norm`
+    for more information.
 
     """
 
@@ -264,13 +275,13 @@ class GraphMLP(MLPBase):
         super(GraphMLP, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Input tensor with last dimension not None.
+            inputs (tf.RaggedTensor): Input tensor with last dimension must not be `None`.
 
         Returns:
-            tf.Tensor: MLP pass.
+            tf.RaggedTensor: MLP forward pass.
         """
         x = inputs
         for i in range(len(self._conf_units)):
@@ -291,9 +302,13 @@ class GraphMLP(MLPBase):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MLP')
 class MLP(MLPBase):
-    r"""Multilayer perceptron that consist of N dense layers for ragged embedding tensors.
-    See layer arguments of :obj:`MLPBase` for configuration.
+    r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
+
+    .. note::
+        Please see layer arguments of :obj:`MLPBase` for configuration!
+
     This layer adds normalization and dropout for normal tensor input.
+
     """
 
     def __init__(self, units, **kwargs):
@@ -332,13 +347,13 @@ class MLP(MLPBase):
         super(MLP, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
-            inputs (tf.Tensor): Input tensor with last dimension not None.
+            inputs (tf.Tensor): Input tensor with last dimension not `None`.
 
         Returns:
-            tf.Tensor: MLP pass.
+            tf.Tensor: MLP forward pass.
         """
         x = inputs
         for i in range(len(self._conf_units)):
