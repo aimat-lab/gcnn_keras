@@ -207,7 +207,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "INorp": {

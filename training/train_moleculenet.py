@@ -22,9 +22,9 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="ESOLDataset")
+                    default="LipopDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_esol.py")
+                    default="hyper/hyper_lipop.py")
 parser.add_argument("--make", required=False, help="Name of the make function for model.",
                     default="make_model")
 args = vars(parser.parse_args())
@@ -134,7 +134,7 @@ postfix_file = hyper.postfix_file()
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=hyper.data_unit(), dataset_name=dataset_name,
-                     filepath=filepath, file_name="loss" + postfix_file + ".svg")
+                     filepath=filepath, file_name="loss" + postfix_file + ".png")
 
 # Plot prediction for the last split.
 predicted_y = model.predict(xtest)
@@ -150,7 +150,7 @@ if hyper.use_scaler():
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=hyper.data_unit(),
                   model_name=model_name, dataset_name=dataset_name,
-                  file_name="predict" + postfix_file + ".svg")
+                  file_name="predict" + postfix_file + ".png")
 
 # Save last keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))

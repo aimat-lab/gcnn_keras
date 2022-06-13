@@ -27,6 +27,22 @@
         "output_dim": 64
       }
     },
+    "depth": 5,
+    "dropout": 0.05,
+    "gin_mlp": {
+      "units": [
+        64,
+        64
+      ],
+      "use_bias": true,
+      "activation": [
+        "relu",
+        "linear"
+      ],
+      "use_normalization": true,
+      "normalization_technique": "batch"
+    },
+    "gin_args": {},
     "last_mlp": {
       "use_bias": true,
       "units": [
@@ -39,21 +55,6 @@
         "relu",
         "linear"
       ]
-    },
-    "depth": 5,
-    "dropout": 0.05,
-    "gin_args": {
-      "units": [
-        64,
-        64
-      ],
-      "use_bias": true,
-      "activation": [
-        "relu",
-        "relu"
-      ],
-      "use_normalization": true,
-      "normalization_technique": "batch"
     },
     "output_embedding": "graph",
     "output_mlp": {
@@ -117,6 +118,6 @@
   },
   "info": {
     "postfix": "",
-    "kgcnn_version": "2.0.2"
+    "kgcnn_version": "2.0.3"
   }
 }
