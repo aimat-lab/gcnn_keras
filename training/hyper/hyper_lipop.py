@@ -41,7 +41,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                     "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -168,11 +168,12 @@ hyper = {
             "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
             "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
-            "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
             "depth": 5,
             "dropout": 0.05,
-            "gin_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "relu"],
-                         "use_normalization": True, "normalization_technique": "batch"},
+            "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                        "use_normalization": True, "normalization_technique": "batch"},
+            "gin_args": {},
+            "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
             "output_embedding": "graph",
             "output_mlp": {"activation": "linear", "units": 1},
         },
