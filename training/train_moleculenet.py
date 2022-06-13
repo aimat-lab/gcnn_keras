@@ -46,7 +46,7 @@ hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_n
 model_selection = ModelSelection(model_name, make_function)
 make_model = model_selection.make_model()
 
-# The `DatasetSelection` class is used to create a `MemoryGraphDataset` from config in hyper-parameters.
+# The `DatasetSelection` class is used to create a `MemoryGraphDataset` from config in hyperparameter.
 # The class also has functionality to check the dataset for properties or apply a series of methods on the dataset.
 data_selection = DatasetSelection(dataset_name)
 
@@ -85,8 +85,8 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     xtrain, ytrain = dataset[train_index].tensor(hyper.inputs()), labels[train_index]
     xtest, ytest = dataset[test_index].tensor(hyper.inputs()), labels[test_index]
 
-    # Normalize training and test targets via a sklearn `StandardScaler`. No other scalers are used at the moment.
-    # Scaler is applied to targets if 'scaler' appears in hyper-parameters. Only use for regression.
+    # Normalize training and test targets via a sklearn `StandardScaler`. No other scaler are used at the moment.
+    # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     if hyper.use_scaler():
         print("Using StandardScaler.")
         scaler = StandardScaler(**hyper.scaler()["config"])
