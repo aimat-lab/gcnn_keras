@@ -12,8 +12,8 @@ def save_pickle_file(obj, file_path: str):
     """Save pickle file.
 
     Args:
-        obj: Python data to dump.
-        file_path (string): File path or name to save 'obj' to.
+        obj: Python-object to dump.
+        file_path (str): File path or name to save 'obj' to.
 
     Returns:
         None.
@@ -23,18 +23,25 @@ def save_pickle_file(obj, file_path: str):
 
 
 def load_pickle_file(file_path: str):
-    """Load pickle file."""
+    """Load pickle file.
+
+    Args:
+        file_path (str): File path or name to load.
+
+    Returns:
+        obj: Python-object of file.
+    """
     with open(file_path, 'rb') as f:
         obj = pickle.load(f)
     return obj
 
 
-def save_json_file(obj, file_path):
+def save_json_file(obj, file_path: str):
     """Save json file.
 
     Args:
-        obj: Python data to dump.
-        file_path (string): File path or name to save 'obj' to.
+        obj: Python-object to dump.
+        file_path (str): File path or name to save 'obj' to.
 
     Returns:
         None.
@@ -43,26 +50,40 @@ def save_json_file(obj, file_path):
         json.dump(obj, json_file)
 
 
-def load_json_file(file_path):
-    """Load json file."""
+def load_json_file(file_path: str):
+    """Load json file.
+
+    Args:
+        file_path (str): File path or name to load.
+
+    Returns:
+        obj: Python-object of file.
+    """
     with open(file_path, 'r') as json_file:
         file_read = json.load(json_file)
     return file_read
 
 
-def load_yaml_file(file_path):
-    """Load yaml file."""
+def load_yaml_file(file_path: str):
+    """Load yaml file.
+
+    Args:
+        file_path (str): File path or name to load.
+
+    Returns:
+        obj: Python-object of file.
+    """
     with open(file_path, 'r') as stream:
         obj = yaml.safe_load(stream)
     return obj
 
 
-def save_yaml_file(obj, file_path, default_flow_style: bool = False):
+def save_yaml_file(obj, file_path: str, default_flow_style: bool = False):
     """Save yaml file.
 
     Args:
-        obj: Python data to dump.
-        file_path (string): File path or name to save 'obj' to.
+        obj: Python-object to dump.
+        file_path (str): File path or name to save 'obj' to.
         default_flow_style (bool): Flag for flow style. Default to False.
 
     Returns:
@@ -131,7 +152,7 @@ def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
 
 
 def pandas_data_frame_columns_to_numpy(data_frame, label_column_name, print_context: str = ""):
-    """Convert a selection of columns from a pandas data frame to a single numpy array.
+    """Convert a selection of columns from a pandas' data frame to a single numpy array.
 
     Args:
         data_frame (pd.DataFrame): Pandas Data Frame.
