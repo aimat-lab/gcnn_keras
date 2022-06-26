@@ -128,7 +128,7 @@ class GraphDict(dict):
             self.assign_property(key, self._tensor_conversion(value))
         return self
 
-    def to_networkx(self, edge_indices="edge_indices"):
+    def to_networkx(self, edge_indices: str = "edge_indices"):
         """Function draft to make a networkx graph. No attributes or data is supported at the moment.
 
         Args:
