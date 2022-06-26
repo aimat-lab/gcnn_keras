@@ -115,8 +115,8 @@ class GraphMethodsAdapter:
                             remove_duplicates: bool = True,
                             sort_indices: bool = True,
                             fill_value: int = 0):
-        r"""Add self loops to the each graph property. The function expects the property :obj:`edge_indices`
-        to be defined. By default the edges are also sorted after adding the self-loops.
+        r"""Add self loops to each graph property. The function expects the property :obj:`edge_indices`
+        to be defined. By default, the edges are also sorted after adding the self-loops.
         All other edge properties are filled with :obj:`fill_value`.
 
         Args:
@@ -182,8 +182,8 @@ class GraphMethodsAdapter:
                              node_coordinates: str = "node_coordinates",
                              range_attributes: str = "range_attributes",
                              do_invert_distance: bool = False):
-        r"""Assigns range indices and attributes (distance) from the definition of edge indices. This operations
-        requires the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
+        r"""Assigns range indices and attributes (distance) from the definition of edge indices. These operations
+        require the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
         :obj:`range_indices` will be equal to :obj:`edge_indices`.
 
         Args:
@@ -197,17 +197,19 @@ class GraphMethodsAdapter:
             self
         """
         self.assert_has_key(edge_indices)
-        self[range_indices] = np.array(self[edge_indices], dtype="int")  # We make a copy.
-
-        if node_coordinates not in self or self[node_coordinates] is None:
+        self.assign_property(
+            range_indices,
+            np.array(self.obtain_property(edge_indices), dtype="int")  # We make a copy.
+        )
+        if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
             module_logger.error("Coordinates are not set. Can not calculate range values.")
             return self
-        xyz = self[node_coordinates]
-        idx = self[range_indices]
+        xyz = self.obtain_property(node_coordinates)
+        idx = self.obtain_property(range_indices)
         dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
         if do_invert_distance:
             dist = invert_distance(dist)
-        self[range_attributes] = dist
+        self.assign_property(range_attributes, dist)
         return self
 
     def set_range(self, range_indices: str = "range_indices",
@@ -225,18 +227,18 @@ class GraphMethodsAdapter:
             range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             max_distance (float): Maximum distance or cutoff radius for connections. Default is 4.0.
             max_neighbours (int): Maximum number of allowed neighbours for a node. Default is 15.
-            do_invert_distance (bool): Whether to invert the the distance. Default is False.
+            do_invert_distance (bool): Whether to invert the distance. Default is False.
             self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
             exclusive (bool): Whether both max_neighbours and max_distance must be fulfilled. Default is True.
 
         Returns:
             self
         """
-        if node_coordinates not in self or self[node_coordinates] is None:
+        if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
             module_logger.error("Coordinates are not set. Can not compute range.")
             return self
         # Compute distance matrix here. May be problematic for too large graphs.
-        dist = coordinates_to_distancematrix(self[node_coordinates])
+        dist = coordinates_to_distancematrix(self.obtain_property(node_coordinates))
         cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
                                                        max_neighbours=max_neighbours,
                                                        exclusive=exclusive, self_loops=self_loops)
@@ -248,8 +250,8 @@ class GraphMethodsAdapter:
         if len(dist_masked.shape) <= 1:
             dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self[range_attributes] = dist_masked
-        self[range_indices] = indices
+        self.assign_property(range_attributes, dist_masked)
+        self.assign_property(range_indices, indices)
         return self
 
     def set_angle(self, range_indices: str = "range_indices",
@@ -274,7 +276,7 @@ class GraphMethodsAdapter:
             angle_indices_nodes (str): Name of angle (node) indices to set in dictionary.
                 Index triplets referring to nodes. Default is "angle_indices_nodes".
             angle_attributes (str): Name of angle values to set in dictionary. Default is "angle_attributes".
-            allow_multi_edges (bool): Whether to allow angles between 'i<-j<-i', which gives 0 degree angle, if the
+            allow_multi_edges (bool): Whether to allow angles between 'i<-j<-i', which gives 0-degree angle, if
                 the nodes are unique. Default is False.
             compute_angles (bool): Whether to also compute angles.
 
@@ -283,14 +285,17 @@ class GraphMethodsAdapter:
         """
         self.assert_has_key(range_indices)
         # Compute angles
-        _, a_triples, a_indices = get_angle_indices(self[range_indices],
+        _, a_triples, a_indices = get_angle_indices(self.obtain_property(range_indices),
                                                     allow_multi_edges=allow_multi_edges)
-        self[angle_indices] = a_indices
-        self[angle_indices_nodes] = a_triples
+        self.assign_property(angle_indices, a_indices)
+        self.assign_property(angle_indices_nodes, a_triples)
         # Also compute angles
         if compute_angles:
-            if node_coordinates not in self or self[node_coordinates] is None:
+            if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
                 module_logger.error("Coordinates are not set. Can not compute angle values.")
                 return self
-            self[angle_attributes] = get_angle(self[node_coordinates], a_triples)
+            self.assign_property(
+                angle_attributes,
+                get_angle(self.obtain_property(node_coordinates), a_triples)
+            )
         return self
