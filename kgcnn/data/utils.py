@@ -8,53 +8,78 @@ import os
 from importlib.machinery import SourceFileLoader
 
 
-def save_pickle_file(outlist, filepath):
-    """Save to pickle file."""
-    with open(filepath, 'wb') as f:
-        pickle.dump(outlist, f)
+def save_pickle_file(obj, file_path: str):
+    """Save pickle file.
+
+    Args:
+        obj: Python data to dump.
+        file_path (string): File path or name to save 'obj' to.
+
+    Returns:
+        None.
+    """
+    with open(file_path, 'wb') as f:
+        pickle.dump(obj, f)
 
 
-def load_pickle_file(filepath):
+def load_pickle_file(file_path: str):
     """Load pickle file."""
-    with open(filepath, 'rb') as f:
-        outlist = pickle.load(f)
-    return outlist
+    with open(file_path, 'rb') as f:
+        obj = pickle.load(f)
+    return obj
 
 
-def save_json_file(outlist, filepath):
-    """Save to json file."""
-    with open(filepath, 'w') as json_file:
-        json.dump(outlist, json_file)
+def save_json_file(obj, file_path):
+    """Save json file.
+
+    Args:
+        obj: Python data to dump.
+        file_path (string): File path or name to save 'obj' to.
+
+    Returns:
+        None.
+    """
+    with open(file_path, 'w') as json_file:
+        json.dump(obj, json_file)
 
 
-def load_json_file(filepath):
+def load_json_file(file_path):
     """Load json file."""
-    with open(filepath, 'r') as json_file:
+    with open(file_path, 'r') as json_file:
         file_read = json.load(json_file)
     return file_read
 
 
-def load_yaml_file(fname):
+def load_yaml_file(file_path):
     """Load yaml file."""
-    with open(fname, 'r') as stream:
-        outlist = yaml.safe_load(stream)
-    return outlist
+    with open(file_path, 'r') as stream:
+        obj = yaml.safe_load(stream)
+    return obj
 
 
-def save_yaml_file(outlist, fname):
-    """Save to yaml file."""
-    with open(fname, 'w') as yaml_file:
-        yaml.dump(outlist, yaml_file, default_flow_style=False)
-
-
-def load_hyper_file(file_name):
-    """Load hyper-parameters from file. File type can be '.yaml', '.json', '.pickle' or '.py'
+def save_yaml_file(obj, file_path, default_flow_style: bool = False):
+    """Save yaml file.
 
     Args:
-        file_name (str): Path or name of the file containing hyper-parameter.
+        obj: Python data to dump.
+        file_path (string): File path or name to save 'obj' to.
+        default_flow_style (bool): Flag for flow style. Default to False.
 
     Returns:
-        hyper (dict): Dictionary of hyper-parameters.
+        None.
+    """
+    with open(file_path, 'w') as yaml_file:
+        yaml.dump(obj, yaml_file, default_flow_style=default_flow_style)
+
+
+def load_hyper_file(file_name: str) -> dict:
+    """Load hyperparameter from file. File type can be '.yaml', '.json', '.pickle' or '.py'
+
+    Args:
+        file_name (str): Path or name of the file containing hyperparameter.
+
+    Returns:
+        hyper (dict): Dictionary of hyperparameter.
     """
     if "." not in file_name:
         print("ERROR:kgcnn: Can not determine file-type.")
@@ -96,6 +121,7 @@ def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
 
     Args:
         numpy_list (list): List of numpy arrays of different length but else identical shape.
+        dtype (str): Data type of partition array. Defaults to 'int64'.
 
     Returns:
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
