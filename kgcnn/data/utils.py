@@ -1,4 +1,5 @@
 import pickle
+import logging
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -6,6 +7,11 @@ import yaml
 import json
 import os
 from importlib.machinery import SourceFileLoader
+
+
+logging.basicConfig()  # Module logger
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
 
 def save_pickle_file(obj, file_path: str):
@@ -103,7 +109,7 @@ def load_hyper_file(file_name: str) -> dict:
         hyper (dict): Dictionary of hyperparameter.
     """
     if "." not in file_name:
-        print("ERROR:kgcnn: Can not determine file-type.")
+        module_logger.error("Can not determine file-type.")
         return {}
     type_ending = file_name.split(".")[-1]
     if type_ending == "json":
@@ -117,7 +123,7 @@ def load_hyper_file(file_name: str) -> dict:
         hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(), "hyper")
         return hyper
     else:
-        print("ERROR:kgcnn: Unsupported file type %s" % type_ending)
+        module_logger.error("Unsupported file type %s" % type_ending)
     return {}
 
 
