@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from typing import Union
 
 from kgcnn.utils.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
@@ -16,6 +17,12 @@ class GraphMethodsAdapter:
         raise NotImplementedError("Must be implemented by container class")
 
     def assert_has_key(self, key: str) -> None:
+        raise NotImplementedError("Must be implemented by container class")
+
+    def obtain_property(self, key: str) -> Union[np.ndarray, None]:
+        raise NotImplementedError("Must be implemented by container class")
+
+    def assign_property(self, key: str, value: np.ndarray):
         raise NotImplementedError("Must be implemented by container class")
 
     def _operate_on_edges(self, operation,
@@ -43,16 +50,16 @@ class GraphMethodsAdapter:
         edge_linked = self.find_graph_properties(edge_attributes)
         # Edge indices is always at first position!
         edge_linked = [edge_indices] + [x for x in edge_linked if x != edge_indices]
-        no_nan_edge_prop = [x for x in edge_linked if self[x] is not None]
-        non_nan_edge = [self[x] for x in no_nan_edge_prop]
+        no_nan_edge_prop = [x for x in edge_linked if self.obtain_property(x) is not None]
+        non_nan_edge = [self.obtain_property(x) for x in no_nan_edge_prop]
         new_edges = operation(*non_nan_edge, **kwargs)
         # If dataset only has edge indices, operation is expected to only return array not list!
         # This restricts the type of operation used with this method.
         if len(no_nan_edge_prop) == 1:
             new_edges = [new_edges]
         # Set all new edge attributes.
-        for i, at in enumerate(no_nan_edge_prop):
-            self[at] = new_edges[i]
+        for at, value in zip(no_nan_edge_prop, new_edges):
+            self.assign_property(at, value)
         return self
 
     def set_edge_indices_reverse(self, edge_indices: str = "edge_indices",
@@ -73,8 +80,10 @@ class GraphMethodsAdapter:
             self
         """
         self.assert_has_key(edge_indices)
-        self[edge_indices_reverse] = np.expand_dims(
-            compute_reverse_edges_index_map(self[edge_indices]), axis=-1)
+        self.assign_property(
+            edge_indices_reverse,
+            np.expand_dims(compute_reverse_edges_index_map(self.obtain_property(edge_indices)), axis=-1)
+        )
         return self
 
     def make_undirected_edges(self, edge_indices: str = "edge_indices",
@@ -161,9 +170,11 @@ class GraphMethodsAdapter:
         self.assert_has_key(edge_indices)
         # If weights is not set, initialize with weight one.
         if edge_weights not in self or self.obtain_property(edge_weights) is None:
-            self[edge_weights] = np.ones((len(self.obtain_property(edge_indices)), 1))
-        self[edge_weights] = rescale_edge_weights_degree_sym(
-            self[edge_indices], self[edge_weights])
+            self.assign_property(edge_weights, np.ones((len(self.obtain_property(edge_indices)), 1)))
+        self.assign_property(
+            edge_weights,
+            rescale_edge_weights_degree_sym(self.obtain_property(edge_indices), self.obtain_property(edge_weights))
+        )
         return self
 
     def set_range_from_edges(self, edge_indices: str = "edge_indices",
