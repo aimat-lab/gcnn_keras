@@ -1,14 +1,13 @@
 import os
 import numpy as np
-import logging
 
 from kgcnn.mol.methods import ExtensiveMolecularScaler
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
-    write_mol_block_list_to_sdf, parse_mol_str, read_mol_list_from_sdf_file, write_list_to_xyz_file
+    write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.graphBabel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
-from kgcnn.utils.data import pandas_data_frame_columns_to_numpy
+from kgcnn.data.utils import pandas_data_frame_columns_to_numpy
 from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
 
 

@@ -1,5 +1,4 @@
 import os
-import logging
 import numpy as np
 
 try:
@@ -8,7 +7,7 @@ except ModuleNotFoundError:
     print("Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
 
 from kgcnn.data.base import MemoryGraphDataset
-from kgcnn.utils.data import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy
+from kgcnn.data.utils import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy
 from kgcnn.mol.graphPyMat import parse_cif_file_to_structures, structure_get_properties, \
     structure_get_range_neighbors
 

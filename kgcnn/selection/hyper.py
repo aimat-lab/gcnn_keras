@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from copy import deepcopy
-from kgcnn.utils.data import load_hyper_file, save_json_file
+from kgcnn.data.utils import load_hyper_file, save_json_file
 
 
 class HyperSelection:

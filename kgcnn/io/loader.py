@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.utils.data import ragged_tensor_from_nested_numpy
+from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
 
 class NumpyTensorList:
