@@ -5,6 +5,7 @@ try:
     import pymatgen.core.structure
 except ModuleNotFoundError:
     print("Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
+    import pymatgen.core.structure
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy

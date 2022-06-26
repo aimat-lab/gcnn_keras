@@ -2,6 +2,7 @@ import tensorflow as tf
 import functools
 import logging
 from math import inf
+from typing import Union
 from copy import deepcopy
 ks = tf.keras
 
@@ -38,7 +39,8 @@ def generate_embedding(inputs, input_shape: list, embedding_args: dict, embeddin
     return n
 
 
-def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None, update_recursive: int = inf):
+def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None,
+                              update_recursive: Union[int, float] = inf):
     r"""Make model kwargs dictionary with updated default values. This is essentially a nested version of update()
     for dicts. This is supposed to be more convenient if the values of kwargs are again layer kwargs to be unpacked,
     and do not need to be fully known to update them.
