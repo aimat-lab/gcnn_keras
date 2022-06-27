@@ -133,7 +133,7 @@ class LazyAdd(GraphBaseLayer):
     Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
 
     .. math::
-        \mathbf{x}' = \sum_i (\mathbf{x}_i)
+        \mathbf{x}' = \sum_i \; \mathbf{x}_i
     """
 
     def __init__(self, **kwargs):
@@ -155,6 +155,15 @@ class LazyAdd(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazySubtract')
 class LazySubtract(GraphBaseLayer):
+    r"""Layer that subtracts two inputs of e.g. geometric or graph tensor such as node or edge embeddings.
+    It takes as input a list of two tensors, both the same shape, and returns a single tensor (also of the same shape).
+    For :obj:`RaggedTensor` the subtraction is directly performed on the `values` tensor of the ragged
+    input if both tensor in the list have `ragged_rank=1` and if `ragged_validate` is set to `False`.
+    Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
+
+    .. math::
+        \mathbf{x}' = \mathbf{x}_0 - \mathbf{x}_1
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -162,12 +171,29 @@ class LazySubtract(GraphBaseLayer):
         self._layer_subtract = ks.layers.Subtract()
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding layer."""
+        r"""Forward pass corresponding to keras :obj:`Subtract` layer.
+
+        Args:
+            inputs (list): List of two input tensor of same shape.
+
+        Returns:
+            tf.RaggedTensor: Single output tensor which is (inputs[0] - inputs[1]).
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_subtract, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyAverage')
 class LazyAverage(GraphBaseLayer):
+    r"""Layer that averages a list of inputs element-wise of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    It takes as input a list of tensors, all the same shape, and returns a single tensor (also of the same shape).
+    For :obj:`RaggedTensor` the average is directly performed on the `values` tensor of the ragged
+    input if all tensor in the list have `ragged_rank=1` and if `ragged_validate` is set to `False`.
+    Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
+
+    .. math::
+        \mathbf{x}' = \frac{1}{N} \sum_{i=0,\dots,N} \;\; \mathbf{x}_i
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -175,7 +201,14 @@ class LazyAverage(GraphBaseLayer):
         self._layer_avg = ks.layers.Average()
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Average layer."""
+        r"""Forward pass corresponding to keras :obj:`Average` layer.
+
+        Args:
+            inputs (list): List of input tensor of same shape.
+
+        Returns:
+            tf.RaggedTensor: Single output tensor with same shape.
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_avg, inputs, **kwargs)
 
 
