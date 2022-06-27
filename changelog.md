@@ -6,3 +6,5 @@ v2.0.3
 * Added ragged node/edge embedding output for TF > 2.8 via "output_to_tensor" model config.
 * Added make_function option to training scripts.
 * Refactored GraphDict methods into ``kgcnn.data.adapter.GraphMethodsAdapter``.
+* Removed ``kgcnn.layers.modules.ReduceSum`` as it has not been used and may be problematic.
+* Moved ``kgcnn.utils.data`` to ``kgcnn.data.utils``. 
