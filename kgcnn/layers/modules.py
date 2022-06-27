@@ -1,20 +1,28 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
+ks = tf.keras  # import tensorflow.keras as ks
+
+# There are limitations for RaggedTensor working with standard Keras layers, but which are successively reduced with
+# more recent tensorflow versions (tf-version >= 2.2).
+# For backward compatibility we keep keras layer replacements to work with RaggedTensor in this module.
+# For example with tf-version==2.8, DenseEmbedding is equivalent to ks.layers.Dense.
+# Note that here are LazyAdd and LazyConcatenate etc. layers which are slightly different from keras layer, which also
+# work on RaggedTensor, but neglect shape check if 'ragged_validate' is set to False.
 
 
-# There are limitations for RaggedTensor working with standard Keras layers. Here are some simple surrogates.
-# This is a temporary solution until future versions of TensorFlow support more RaggedTensor arguments.
-# Since most kgcnn layers work with ragged_rank = 1 and defined inner dimension, this case can be caught explicitly.
-
-
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
 class DenseEmbedding(GraphBaseLayer):
     r"""Dense layer for ragged tensors representing a geometric or graph tensor such as node or edge embeddings.
-    Current tensorflow version now support ragged input for :obj:`tf.keras.layers.Dense` with defined inner dimension.
-    This layer is kept for backward compatibility and but does not necessarily have to be used in models anymore.
+    Latest tensorflow version now support ragged input for :obj:`ks.layers.Dense` with defined inner dimension.
+    This layer is kept for backward compatibility but does not necessarily have to be used in models anymore.
+    A :obj:`DenseEmbedding` layer computes a densely-connected NN layer, i.e. a linear transformation of the input
+    :math:`\mathbf{x}` with the kernel weights matrix :math:`\mathbf{W}` and bias :math:`\mathbf{b}`
+    plus activation :math:`\sigma`.
+
+    .. math::
+        \mathbf{x}' = \sigma (\mathbf{x} \mathbf{W} + \mathbf{b})
+
     """
 
     def __init__(self,
@@ -29,7 +37,25 @@ class DenseEmbedding(GraphBaseLayer):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        """Initialize layer as tf.keras.Dense."""
+        r"""Initialize layer like :obj:`ks.layers.Dense`.
+
+         Args:
+            units: Positive integer, dimensionality of the output space.
+            activation: Activation function to use.
+                If you don't specify anything, no activation is applied
+                (ie. "linear" activation: `a(x) = x`).
+            use_bias: Boolean, whether the layer uses a bias vector.
+            kernel_initializer: Initializer for the `kernel` weights matrix.
+            bias_initializer: Initializer for the bias vector.
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix.
+            bias_regularizer: Regularizer function applied to the bias vector.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation").
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix.
+            bias_constraint: Constraint function applied to the bias vector.
+        """
         super(DenseEmbedding, self).__init__(**kwargs)
         self._layer_dense = ks.layers.Dense(units=units, activation=activation,
                                             use_bias=use_bias, kernel_initializer=kernel_initializer,
@@ -45,14 +71,22 @@ class DenseEmbedding(GraphBaseLayer):
                              "kernel_constraint", "bias_constraint"]}
 
     def call(self, inputs, **kwargs):
-        """Forward pass using Dense on flat values."""
+        r"""Forward pass using :obj:`ks.layers.Dense` on :obj:`map_flat_values`.
+
+        Args:
+            inputs (tf.RaggedTensor): Input tensor with last dimension must be defined, e.g. not be `None`.
+
+        Returns:
+            tf.RaggedTensor: NN output N-D tensor with shape: `(batch_size, ..., units)`.
+        """
         # For Dense can call on flat values.
         if isinstance(inputs, tf.RaggedTensor):
             return tf.ragged.map_flat_values(self._layer_dense, inputs, **kwargs)
+        # Else try call dense layer directly.
         return self._layer_dense(inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ActivationEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='ActivationEmbedding')
 class ActivationEmbedding(GraphBaseLayer):
 
     def __init__(self,
@@ -61,7 +95,7 @@ class ActivationEmbedding(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(ActivationEmbedding, self).__init__(**kwargs)
-        self._layer_act = tf.keras.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
+        self._layer_act = ks.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
@@ -69,7 +103,7 @@ class ActivationEmbedding(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_act, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
+@ks.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
 class LazyAdd(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -82,7 +116,7 @@ class LazyAdd(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_add, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazySubtract')
+@ks.utils.register_keras_serializable(package='kgcnn', name='LazySubtract')
 class LazySubtract(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -95,7 +129,7 @@ class LazySubtract(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_subtract, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyAverage')
+@ks.utils.register_keras_serializable(package='kgcnn', name='LazyAverage')
 class LazyAverage(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -108,7 +142,7 @@ class LazyAverage(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_avg, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyMultiply')
+@ks.utils.register_keras_serializable(package='kgcnn', name='LazyMultiply')
 class LazyMultiply(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -121,7 +155,7 @@ class LazyMultiply(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_mult, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DropoutEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='DropoutEmbedding')
 class DropoutEmbedding(GraphBaseLayer):
 
     def __init__(self,
@@ -139,7 +173,7 @@ class DropoutEmbedding(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_drop, inputs, **kwargs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LazyConcatenate')
+@ks.utils.register_keras_serializable(package='kgcnn', name='LazyConcatenate')
 class LazyConcatenate(GraphBaseLayer):
 
     def __init__(self,
@@ -181,7 +215,7 @@ class LazyConcatenate(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ExpandDims')
+@ks.utils.register_keras_serializable(package='kgcnn', name='ExpandDims')
 class ExpandDims(GraphBaseLayer):
 
     def __init__(self,
@@ -200,7 +234,7 @@ class ExpandDims(GraphBaseLayer):
         self.axis = get_positive_axis(self.axis, len(input_shape) + 1)
 
     def call(self, inputs, **kwargs):
-        """Forward pass wrapping tf.keras layer."""
+        """Forward pass wrapping ks layer."""
         return self.call_on_values_tensor_of_ragged(tf.expand_dims, inputs, axis=self.axis)
 
     def get_config(self):
@@ -209,7 +243,7 @@ class ExpandDims(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ZerosLike')
+@ks.utils.register_keras_serializable(package='kgcnn', name='ZerosLike')
 class ZerosLike(GraphBaseLayer):
     """Make a zero-like graph tensor. Calls tf.zeros_like()."""
 
@@ -233,7 +267,7 @@ class ZerosLike(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(tf.zeros_like, inputs)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ReduceSum')
+@ks.utils.register_keras_serializable(package='kgcnn', name='ReduceSum')
 class ReduceSum(GraphBaseLayer):
     """Make a zero-like graph tensor. Calls tf.zeros_like()."""
 
@@ -268,7 +302,7 @@ class ReduceSum(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='OptionalInputEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='OptionalInputEmbedding')
 class OptionalInputEmbedding(GraphBaseLayer):
     """Optional Embedding layer."""
 

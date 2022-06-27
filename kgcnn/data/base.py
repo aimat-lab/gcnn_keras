@@ -18,15 +18,18 @@ class GraphDict(dict, GraphMethodsAdapter):
     The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
     In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
     when assigning a named value.
-    Graph operations that modify edges or sort indices are methods of this class. Note that the graph-tensors name
-    must follow a standard-convention or be provided to member functions (see documentation of class-methods).
+
+    Graph operations that modify edges or sort indices are methods of this class supported by
+    :obj:`kgcnn.data.adapter.GraphMethodsAdapter`.
+    Note that the graph-tensors name must follow a standard-convention or be provided to member functions
+    (see documentation of :obj:`kgcnn.data.adapter.GraphMethodsAdapter`).
 
     .. code-block:: python
 
         import numpy as np
         from kgcnn.data.base import GraphDict
         g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
-        g.add_edge_self_loops().sort_edge_indices()
+        g.add_edge_self_loops().sort_edge_indices()  # from GraphMethodsAdapter
         print(g)
     """
 
@@ -163,6 +166,7 @@ class GraphDict(dict, GraphMethodsAdapter):
         """
         if key in self:
             return self[key]
+        return None
 
     def find_graph_properties(self, name_props: str) -> list:
         r"""Search for properties in self. This includes a list of possible names or a pattern-matching of a single
