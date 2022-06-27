@@ -256,7 +256,7 @@ class DropoutEmbedding(GraphBaseLayer):
                  noise_shape=None,
                  seed: int = None,
                  **kwargs):
-        """Initialize layer.
+        r"""Initialize layer like :obj:`ks.layers.Dropout`.
 
         Args:
             rate (float): Float between 0 and 1. Fraction of the input units to drop.
