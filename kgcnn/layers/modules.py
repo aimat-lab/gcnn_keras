@@ -4,7 +4,7 @@ from kgcnn.ops.axis import get_positive_axis
 ks = tf.keras  # import tensorflow.keras as ks
 
 # There are limitations for RaggedTensor working with standard Keras layers, but which are successively reduced with
-# more recent tensorflow versions (tf-version >= 2.2).
+# more recent tensorflow/keras versions (tf-version >= 2.2).
 # For backward compatibility we keep keras layer replacements to work with RaggedTensor in this module.
 # For example with tf-version==2.8, DenseEmbedding is equivalent to ks.layers.Dense.
 # Note that here are LazyAdd and LazyConcatenate etc. layers which are slightly different from keras layer, which also

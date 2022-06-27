@@ -8,7 +8,7 @@ from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 # import tensorflow.python.keras as ks
 ks = tf.keras
 
-# Gated recurrent unit update. See MPNN for details.
+# Gated recurrent unit update. See kgcnn.layers.conv.mpnn_conv for details.
 HamNetGRUUnion = GRUUpdate
 
 

@@ -1,10 +1,10 @@
 import tensorflow as tf
-from tensorflow import keras as ks
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
+ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphLayerNormalization')
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphLayerNormalization')
 class GraphLayerNormalization(GraphBaseLayer):
 
     def __init__(self,
@@ -83,7 +83,7 @@ class GraphLayerNormalization(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphBatchNormalization')
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphBatchNormalization')
 class GraphBatchNormalization(GraphBaseLayer):
 
     def __init__(self,
