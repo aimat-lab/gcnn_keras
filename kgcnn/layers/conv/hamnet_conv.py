@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherNodes
+from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherEmbeddingSelection
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, DenseEmbedding, DropoutEmbedding, LazyConcatenate, ActivationEmbedding
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
@@ -458,16 +458,16 @@ class HamNaiveDynMessage(GraphBaseLayer):
         """
         super(HamNaiveDynMessage, self).__init__(**kwargs)
         self.units = int(units)
-        self.units_edge= int(units_edge)
+        self.units_edge = int(units_edge)
         self.use_bias = use_bias
         self.use_dropout = use_dropout
         kernel_args = {"kernel_regularizer": kernel_regularizer,
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        self.gather_v = GatherNodes(concat_axis=None, split_axis=2)
-        self.gather_p = GatherNodes(concat_axis=None, split_axis=2)
-        self.gather_q = GatherNodes(concat_axis=None, split_axis=2)
+        self.gather_v = GatherEmbeddingSelection(selection_index= [0, 1])
+        self.gather_p = GatherEmbeddingSelection(selection_index= [0, 1])
+        self.gather_q = GatherEmbeddingSelection(selection_index= [0, 1])
         self.lazy_sub_p = LazySubtract()
         self.lazy_sub_q = LazySubtract()
         # self.lay_concat = LazyConcatenate(axis=-1)

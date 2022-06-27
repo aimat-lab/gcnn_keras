@@ -214,6 +214,16 @@ class LazyAverage(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyMultiply')
 class LazyMultiply(GraphBaseLayer):
+    r"""Layer that multiplies a list of inputs element-wise of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    It takes as input a list of tensors, all the same shape, and returns a single tensor (also of the same shape).
+    For :obj:`RaggedTensor` the multiplication is directly performed on the `values` tensor of the ragged
+    input if all tensor in the list have `ragged_rank=1` and if `ragged_validate` is set to `False`.
+    Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
+
+    .. math::
+        \mathbf{x}' =  \Pi_i \; \mathbf{x}_i
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -221,40 +231,91 @@ class LazyMultiply(GraphBaseLayer):
         self._layer_mult = ks.layers.Multiply()
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Multiply layer."""
+        r"""Forward pass corresponding to keras :obj:`Multiply` layer.
+
+        Args:
+            inputs (list): List of input tensor of same shape.
+
+        Returns:
+            tf.RaggedTensor: Single output tensor with same shape.
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_mult, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='DropoutEmbedding')
 class DropoutEmbedding(GraphBaseLayer):
+    r"""Layer that applies Dropout to the input of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    The layer behaves as :obj:`ks.layers.Dropout` but is directly performed on the `values` tensor of the ragged
+    input if it has `ragged_rank=1` and if `ragged_validate` is set to `False`.
+
+    """
 
     def __init__(self,
-                 rate,
+                 rate: float,
                  noise_shape=None,
-                 seed=None,
+                 seed: int = None,
                  **kwargs):
-        """Initialize layer same as Activation."""
+        """Initialize layer.
+
+        Args:
+            rate (float): Float between 0 and 1. Fraction of the input units to drop.
+            noise_shape: 1D integer tensor representing the shape of the
+                binary dropout mask that will be multiplied with the input.
+                For instance, if your inputs have shape
+                `(batch_size, timesteps, features)` and
+                you want the dropout mask to be the same for all timesteps,
+                you can use `noise_shape=(batch_size, 1, features)`.
+            seed (int): A Python integer to use as random seed.
+        """
         super(DropoutEmbedding, self).__init__(**kwargs)
         self._layer_drop = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
         self._add_layer_config_to_self = {"_layer_drop": ["rate", "noise_shape", "seed"]}
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Dropout layer."""
+        r"""Forward pass using :obj:`ks.layers.Dropout`.
+
+        Args:
+            inputs (tf.RaggedTensor): Input tensor (of any rank).
+
+        Returns:
+            tf.RaggedTensor: Output tensor of same shape.
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_drop, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyConcatenate')
 class LazyConcatenate(GraphBaseLayer):
+    r"""Layer that concatenates a list of inputs of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    It takes as input a list of tensors, all the same shape except for the concatenation axis,
+    and returns a single tensor (that is the concatenation of all inputs).
+    For :obj:`RaggedTensor` the concatenation is directly performed on the `values` tensor of the ragged
+    input if all tensor in the list have `ragged_rank=1` and if `ragged_validate` is set to `False` and
+    the concatenation axis is larger than the ragged axis, which requires `axis>1`.
+    Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
+
+    .. math::
+        \mathbf{x}' =  \oplus_i \; \mathbf{x}_i
+    """
 
     def __init__(self,
                  axis=-1,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            axis (int): Axis to concatenate.
+        """
         super(LazyConcatenate, self).__init__(**kwargs)
         self.axis = axis
 
-    def build(self, input_shape):
-        """Build layer from input shape."""
+    def build(self, input_shape: list):
+        """Build layer from input shape.
+
+        Args:
+            input_shape (tuple, list): List of input shapes of input tensors.
+        """
         super(LazyConcatenate, self).build(input_shape)
         if not isinstance(input_shape, (tuple, list)) or len(input_shape) < 1:
             raise ValueError(
@@ -269,7 +330,7 @@ class LazyConcatenate(GraphBaseLayer):
             self.axis = get_positive_axis(self.axis, len(input_shape[0]))
 
     def call(self, inputs, **kwargs):
-        """Forward pass. Concatenate possibly ragged tensors.
+        r"""Forward pass. Concatenate possibly ragged tensors.
 
         Args:
             inputs (list): List of tensors to concatenate.
@@ -280,6 +341,7 @@ class LazyConcatenate(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(tf.concat, inputs, axis=self.axis)
 
     def get_config(self):
+        """Get config of layer."""
         config = super(LazyConcatenate, self).get_config()
         config.update({"axis": self.axis})
         return config
@@ -287,15 +349,32 @@ class LazyConcatenate(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='ExpandDims')
 class ExpandDims(GraphBaseLayer):
+    r"""Layer that expands the dimension of input of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    For :obj:`RaggedTensor` the expansion via :obj:`tf.expand_dims` is directly performed on the `values` tensor
+    of the ragged input if it has `ragged_rank=1` and if `ragged_validate` is set to `False` and
+    axis is larger than the ragged axis, which requires `axis>1`.
+
+    """
 
     def __init__(self,
-                 axis=-1,
+                 axis: int = -1,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            axis (int): Integer specifying the dimension index at which to expand the shape of input.
+                Given an input of D dimensions, axis must be in range [-(D+1), D] (inclusive).
+        """
         super(ExpandDims, self).__init__(**kwargs)
         self.axis = axis
 
     def build(self, input_shape):
+        """Build layer from input shape.
+
+        Args:
+            input_shape (tf.TensorShape): Shape of input tensors.
+        """
         super(ExpandDims, self).build(input_shape)
         # If rank is not defined can't call on values, if axis does not happen to be positive.
         if len(input_shape) == 0:
@@ -304,10 +383,18 @@ class ExpandDims(GraphBaseLayer):
         self.axis = get_positive_axis(self.axis, len(input_shape) + 1)
 
     def call(self, inputs, **kwargs):
-        """Forward pass wrapping ks layer."""
+        r"""Forward pass. Expand dimension of possibly ragged tensor.
+
+        Args:
+            inputs (list): A single Tensors.
+
+        Returns:
+            tf.tensor: Single tensor with inserted dimension.
+        """
         return self.call_on_values_tensor_of_ragged(tf.expand_dims, inputs, axis=self.axis)
 
     def get_config(self):
+        """Get config of layer."""
         config = super(ExpandDims, self).get_config()
         config.update({"axis": self.axis})
         return config
@@ -315,7 +402,13 @@ class ExpandDims(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='ZerosLike')
 class ZerosLike(GraphBaseLayer):
-    """Make a zero-like graph tensor. Calls tf.zeros_like()."""
+    r"""Layer to make a zero tensor like input of e.g. geometric or graph tensor such as node or
+    edge embeddings.
+    For :obj:`RaggedTensor` the function :obj:`tf.zeros_like` is directly performed on the `values` tensor
+    of the ragged input if it has `ragged_rank=1` and if `ragged_validate` is set to `False` and the partition tensor
+    is just copied from the input.
+
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -337,44 +430,15 @@ class ZerosLike(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(tf.zeros_like, inputs)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='ReduceSum')
-class ReduceSum(GraphBaseLayer):
-    """Make a zero-like graph tensor. Calls tf.zeros_like()."""
-
-    def __init__(self, axis=-1, **kwargs):
-        """Initialize layer."""
-        super(ReduceSum, self).__init__(**kwargs)
-        self.axis = axis
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(ReduceSum, self).build(input_shape)
-        # If rank is not defined can't call on values, if axis does not happen to be positive.
-        if len(input_shape) == 0:
-            return
-        # Set axis to be positive for defined rank to call on values.
-        self.axis = get_positive_axis(self.axis, len(input_shape))
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (tf.RaggedTensor): Tensor of node or edge embeddings of shape (batch, [N], F)
-
-        Returns:
-            tf.RaggedTensor: Zero-like tensor of input.
-        """
-        return self.call_on_values_tensor_of_ragged(tf.reduce_sum, inputs, axis=self.axis)
-
-    def get_config(self):
-        config = super(ReduceSum, self).get_config()
-        config.update({"axis": self.axis})
-        return config
-
-
 @ks.utils.register_keras_serializable(package='kgcnn', name='OptionalInputEmbedding')
 class OptionalInputEmbedding(GraphBaseLayer):
-    """Optional Embedding layer."""
+    r"""Layer that optionally applies an :obj:`Embedding` layer to input tensor.
+    This layer can only be used on positive integer inputs of a fixed range.
+    Just like :obj:`ks.layers.Embedding` the layer accepts :obj:`tf.Tensor` and :obj:`tf.RaggedTensor` inputs.
+    It cannot be called with tf.SparseTensor input.
+    The layer parameter :obj:`use_embedding` decides whether to actually use the embedding layer.
+
+    """
 
     def __init__(self,
                  input_dim,
@@ -387,7 +451,35 @@ class OptionalInputEmbedding(GraphBaseLayer):
                  mask_zero=False,
                  input_length=None,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            input_dim: Integer. Size of the vocabulary,
+                i.e. maximum integer index + 1.
+            output_dim: Integer. Dimension of the dense embedding.
+            use_embedding (bool): Whether to actually apply the embedding.
+            embeddings_initializer: Initializer for the `embeddings`
+                matrix (see `keras.initializers`).
+            embeddings_regularizer: Regularizer function applied to
+                the `embeddings` matrix (see `keras.regularizers`).
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation").
+            embeddings_constraint: Constraint function applied to
+                the `embeddings` matrix (see `keras.constraints`).
+            mask_zero: Boolean, whether or not the input value 0 is a special "padding"
+                value that should be masked out.
+                This is useful when using recurrent layers
+                which may take variable length input.
+                If this is `True`, then all subsequent layers
+                in the model need to support masking or an exception will be raised.
+                If mask_zero is set to True, as a consequence, index 0 cannot be
+                used in the vocabulary (input_dim should equal size of
+                vocabulary + 1).
+            input_length: Length of input sequences, when it is constant.
+                This argument is required if you are going to connect
+                `Flatten` then `Dense` layers upstream
+                (without it, the shape of the dense outputs cannot be computed).
+        """
         super(OptionalInputEmbedding, self).__init__(**kwargs)
         self.use_embedding = use_embedding
 
@@ -407,19 +499,20 @@ class OptionalInputEmbedding(GraphBaseLayer):
         super(OptionalInputEmbedding, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass of embedding layer if `use_embedding=True`.
 
         Args:
-            inputs (tf.RaggedTensor): Tensor of number or embeddings of shape (batch, [N]) or (batch, [N], F)
+            inputs (tf.RaggedTensor): Tensor of indices of shape `(batch, [N])`.
 
         Returns:
-            tf.RaggedTensor: Zero-like tensor of input.
+            tf.RaggedTensor: Embeddings of shape `(batch, [N], F)`.
         """
         if self.use_embedding:
             return self._layer_embed(inputs)
         return inputs
 
     def get_config(self):
+        """Get config of layer."""
         config = super(OptionalInputEmbedding, self).get_config()
         config.update({"use_embedding": self.use_embedding})
         return config
