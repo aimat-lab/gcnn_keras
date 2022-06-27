@@ -18,7 +18,7 @@ class DenseEmbedding(GraphBaseLayer):
     This layer is kept for backward compatibility but does not necessarily have to be used in models anymore.
     A :obj:`DenseEmbedding` layer computes a densely-connected NN layer, i.e. a linear transformation of the input
     :math:`\mathbf{x}` with the kernel weights matrix :math:`\mathbf{W}` and bias :math:`\mathbf{b}`
-    plus activation :math:`\sigma`.
+    plus (possibly non-linear) activation function :math:`\sigma`.
 
     .. math::
         \mathbf{x}' = \sigma (\mathbf{x} \mathbf{W} + \mathbf{b})
@@ -26,9 +26,9 @@ class DenseEmbedding(GraphBaseLayer):
     """
 
     def __init__(self,
-                 units,
+                 units: int,
                  activation=None,
-                 use_bias=True,
+                 use_bias: bool = True,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
                  kernel_regularizer=None,
@@ -88,23 +88,53 @@ class DenseEmbedding(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='ActivationEmbedding')
 class ActivationEmbedding(GraphBaseLayer):
+    r"""Activation layer for ragged tensors representing a geometric or graph tensor such as node or edge embeddings.
+    A :obj:`ActivationEmbedding` applies an activation function to an output, i.e. a transformation of the input
+    :math:`\mathbf{x}` via activation function :math:`\sigma`.
+
+    .. math::
+        \mathbf{x}' = \sigma (\mathbf{x})
+
+    """
 
     def __init__(self,
                  activation,
                  activity_regularizer=None,
                  **kwargs):
-        """Initialize layer."""
+        """Initialize layer.
+
+        Args:
+            activation: Activation function, such as `tf.nn.relu`, or string name of
+                built-in activation function, such as "relu".
+            activity_regularizer: Regularizer function applied to the output of the layer (its "activation").
+        """
         super(ActivationEmbedding, self).__init__(**kwargs)
         self._layer_act = ks.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Activation layer."""
+        r"""Forward pass corresponding to keras :obj:`Activation` layer.
+
+        Args:
+            inputs (tf.RaggedTensor): Input tensor of arbitrary shape.
+
+        Returns:
+            tf.RaggedTensor: Output tensor with activation applied.
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_act, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
 class LazyAdd(GraphBaseLayer):
+    r"""Layer that adds a list of inputs of e.g. geometric or graph tensor such as node or edge embeddings.
+    It takes as input a list of tensors, all the same shape, and returns a single tensor (also of the same shape).
+    For :obj:`RaggedTensor` the addition is directly performed on the `values` tensor of the ragged
+    input if all tensor in the list have `ragged_rank=1` and if `ragged_validate` is set to `False`.
+    Apart from debugging, this can imply a significant performance boost if ragged shape checks can be avoided.
+
+    .. math::
+        \mathbf{x}' = \sum_i (\mathbf{x}_i)
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -112,7 +142,14 @@ class LazyAdd(GraphBaseLayer):
         self._layer_add = ks.layers.Add()
 
     def call(self, inputs, **kwargs):
-        """Forward pass corresponding to keras Add layer."""
+        r"""Forward pass corresponding to keras :obj:`Add` layer.
+
+        Args:
+            inputs (list): List of input tensor of same shape.
+
+        Returns:
+            tf.RaggedTensor: Single output tensor with same shape.
+        """
         return self.call_on_values_tensor_of_ragged(self._layer_add, inputs, **kwargs)
 
 
