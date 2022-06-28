@@ -4,8 +4,8 @@ import uuid
 
 from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
 # Different backends to convert smiles
-from kgcnn.mol.gen.default import smile_to_mol_parallel
-from kgcnn.mol.gen.ballloon import BalloonInterface
+from kgcnn.mol.external.default import smile_to_mol_parallel
+from kgcnn.mol.external.ballloon import BalloonInterface
 
 
 def smile_to_mol(smile_list: list,

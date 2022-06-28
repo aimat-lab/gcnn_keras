@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Callable, Union
 from collections import defaultdict
 
-from kgcnn.mol.gen.base import smile_to_mol
+from kgcnn.mol.external.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.graphRD import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder

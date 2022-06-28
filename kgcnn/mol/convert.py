@@ -3,7 +3,7 @@ import logging
 import uuid
 from typing import Callable
 from concurrent.futures import ThreadPoolExecutor  # ,ProcessPoolExecutor
-from kgcnn.mol.gen.ballloon import BalloonInterface
+from kgcnn.mol.external.ballloon import BalloonInterface
 from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
 
 logging.basicConfig()  # Module logger
