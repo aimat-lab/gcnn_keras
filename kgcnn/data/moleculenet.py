@@ -5,7 +5,6 @@ import pandas as pd
 from typing import Dict, Callable, Union
 from collections import defaultdict
 
-from kgcnn.mol.external.base import smile_to_mol
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.graphRD import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder
@@ -102,10 +101,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
                             make_conformers=make_conformers, optimize_conformer=optimize_conformer,
                             external_program=external_program, num_workers=num_workers)
         for i in range(0, len(smiles), self.DEFAULT_LOOP_UPDATE_INFO):
-            # mg = smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO], self.data_directory,
-            #                   add_hydrogen=add_hydrogen, sanitize=sanitize,
-            #                   make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-            #                   external_program=external_program, num_workers=num_workers)
             mg = conv.smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO])
             molecule_list = molecule_list + mg
             self.info(" ... converted molecules {0} from {1}".format(i + len(mg), len(smiles)))
