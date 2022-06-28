@@ -60,7 +60,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
-        """Initialize a `GraphTUDataset` instance from string identifier.
+        """Initialize a `MoleculeNetDataset2018` instance from string identifier.
 
         Args:
             dataset_name (str): Name of a dataset.
