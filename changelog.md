@@ -8,4 +8,4 @@ v2.0.3
 * Refactored GraphDict methods into ``kgcnn.data.adapter.GraphMethodsAdapter``.
 * Removed ``kgcnn.layers.modules.ReduceSum`` as it has not been used and may be problematic.
 * Moved ``kgcnn.utils.data`` to ``kgcnn.data.utils``. 
-* Refactored smile to mol generation into ``kgcnn.mol.convert``
+* Refactored smile to mol generation into ``kgcnn.mol.convert`` and renamed `kgcnn.mol.gen`
