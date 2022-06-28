@@ -1,7 +1,10 @@
 import os
 import logging
+import uuid
 from typing import Callable
 from concurrent.futures import ThreadPoolExecutor  # ,ProcessPoolExecutor
+from kgcnn.mol.gen.ballloon import BalloonInterface
+from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -113,3 +116,26 @@ class MolConverter:
             # Check success
             self._check_is_correct_length(smile_list, mol_list)
             return mol_list
+
+        # External programs
+
+        # Write out temporary smiles file.
+        smile_file = os.path.join(self.base_path, str(uuid.uuid4()) + ".smi")
+        mol_file = os.path.splitext(smile_file)[0] + ".sdf"
+
+        write_smiles_file(smile_file, smile_list)
+
+        if self.external_program["class_name"] == "balloon":
+            ext_program = BalloonInterface(**self.external_program["config"])
+            ext_program.run(input_file=smile_file, output_file=mol_file, output_format="sdf")
+        else:
+            raise ValueError("Unknown program for conversion of smiles %s" % self.external_program)
+
+        mol_list = read_mol_list_from_sdf_file(mol_file)
+        # Clean up
+        os.remove(mol_file)
+        os.remove(smile_file)
+
+        # Check success
+        self._check_is_correct_length(smile_list, mol_list)
+        return mol_list
