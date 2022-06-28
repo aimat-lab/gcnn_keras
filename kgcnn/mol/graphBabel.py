@@ -4,6 +4,48 @@ from openbabel import openbabel
 from kgcnn.mol.base import MolGraphInterface
 
 
+def convert_smile_to_mol_openbabel(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
+                                   make_conformers: bool = True, optimize_conformer: bool = True,
+                                   stop_logging: bool = False):
+    if stop_logging:
+        openbabel.obErrorLog.StopLogging()
+
+    try:
+        m = openbabel.OBMol()
+        ob_conversion = openbabel.OBConversion()
+        format_okay = ob_conversion.SetInAndOutFormats("smi", "mol")
+        read_okay = ob_conversion.ReadString(m, smile)
+        is_okay = {"format_okay": format_okay, "read_okay": read_okay}
+        if make_conformers:
+            # We need to make conformer with builder
+            builder = openbabel.OBBuilder()
+            build_okay = builder.Build(m)
+            is_okay.update({"build_okay": build_okay})
+        if add_hydrogen:
+            # it seems h's are made after build, an get embedded too
+            m.AddHydrogens()
+        if optimize_conformer and make_conformers:
+            ff = openbabel.OBForceField.FindType("mmff94")
+            ff_setup_okay = ff.Setup(m)
+            ff.SteepestDescent(100)  # defaults are 50-500 in pybel
+            ff.GetCoordinates(m)
+            is_okay.update({"ff_setup_okay": ff_setup_okay})
+        all_okay = all(list(is_okay.values()))
+        if not all_okay:
+            print("WARNING: Openbabel returned false flag %s" % [key for key, value in is_okay.items() if not value])
+    except:
+        m = None
+        ob_conversion = None
+
+    # Set back to default
+    if stop_logging:
+        openbabel.obErrorLog.StartLogging()
+
+    if m is not None:
+        return ob_conversion.WriteString(m)
+    return None
+
+
 def convert_xyz_to_mol_openbabel(xyz_string: str, stop_logging: bool = False):
     """Convert xyz-string to mol-string.
 

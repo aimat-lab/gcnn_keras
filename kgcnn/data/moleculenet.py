@@ -10,6 +10,7 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.graphRD import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
+from kgcnn.mol.convert import MolConverter
 
 
 class MoleculeNetDataset(MemoryGraphDataset):
@@ -96,11 +97,16 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         self.info("Generating molecules and store %s to disk..." % self.file_path_mol)
         molecule_list = []
+        conv = MolConverter(base_path=self.data_directory,
+                            add_hydrogen=add_hydrogen, sanitize=sanitize,
+                            make_conformers=make_conformers, optimize_conformer=optimize_conformer,
+                            external_program=external_program, num_workers=num_workers)
         for i in range(0, len(smiles), self.DEFAULT_LOOP_UPDATE_INFO):
-            mg = smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO], self.data_directory,
-                              add_hydrogen=add_hydrogen, sanitize=sanitize,
-                              make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-                              external_program=external_program, num_workers=num_workers)
+            # mg = smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO], self.data_directory,
+            #                   add_hydrogen=add_hydrogen, sanitize=sanitize,
+            #                   make_conformers=make_conformers, optimize_conformer=optimize_conformer,
+            #                   external_program=external_program, num_workers=num_workers)
+            mg = conv.smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO])
             molecule_list = molecule_list + mg
             self.info(" ... converted molecules {0} from {1}".format(i + len(mg), len(smiles)))
 

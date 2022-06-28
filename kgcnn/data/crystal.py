@@ -9,7 +9,7 @@ except ModuleNotFoundError:
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy
-from kgcnn.mol.graphPyMat import parse_cif_file_to_structures, structure_get_properties, \
+from kgcnn.mol.module_pymatgen import parse_cif_file_to_structures, structure_get_properties, \
     structure_get_range_neighbors
 
 
