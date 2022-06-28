@@ -75,5 +75,4 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         self.data = load_json_file(self.file_path)
 
 
-
 data = MatBenchDataset2020("matbench_steels")
