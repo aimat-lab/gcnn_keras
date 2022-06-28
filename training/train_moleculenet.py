@@ -20,11 +20,11 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="HamNet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="LipopDataset")
+                    default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_lipop.py")
+                    default="hyper/hyper_esol.py")
 parser.add_argument("--make", required=False, help="Name of the make function for model.",
                     default="make_model")
 args = vars(parser.parse_args())
