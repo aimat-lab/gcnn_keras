@@ -1,8 +1,9 @@
 import os
+import pandas as pd
 
 from kgcnn.data.crystal import CrystalDataset
 from kgcnn.data.download import DownloadDataset
-from kgcnn.data.utils import load_json_file
+from kgcnn.data.utils import load_json_file, save_json_file
 
 
 class MatBenchDataset2020(CrystalDataset, DownloadDataset):
@@ -19,20 +20,80 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
                             "data_directory_name": "matbench_jdft2d", "extract_gz": True,
                             "extract_file_name": 'matbench_jdft2d.json'},
         "matbench_phonons": {"dataset_name": "matbench_phonons",
-                            "download_file_name": 'matbench_phonons.json.gz',
-                            "data_directory_name": "matbench_phonons", "extract_gz": True,
-                            "extract_file_name": 'matbench_phonons.json'},
+                             "download_file_name": 'matbench_phonons.json.gz',
+                             "data_directory_name": "matbench_phonons", "extract_gz": True,
+                             "extract_file_name": 'matbench_phonons.json'},
+        "matbench_expt_gap": {"dataset_name": "matbench_expt_gap",
+                              "download_file_name": 'matbench_expt_gap.json.gz',
+                              "data_directory_name": "matbench_expt_gap", "extract_gz": True,
+                              "extract_file_name": 'matbench_expt_gap.json'},
+        "matbench_dielectric": {"dataset_name": "matbench_dielectric",
+                                "download_file_name": 'matbench_dielectric.json.gz',
+                                "data_directory_name": "matbench_dielectric", "extract_gz": True,
+                                "extract_file_name": 'matbench_dielectric.json'},
+        "matbench_expt_is_metal": {"dataset_name": "matbench_expt_is_metal",
+                                   "download_file_name": 'matbench_expt_is_metal.json.gz',
+                                   "data_directory_name": "matbench_expt_is_metal", "extract_gz": True,
+                                   "extract_file_name": 'matbench_expt_is_metal.json'},
+        "matbench_glass": {"dataset_name": "matbench_glass",
+                           "download_file_name": 'matbench_glass.json.gz',
+                           "data_directory_name": "matbench_glass", "extract_gz": True,
+                           "extract_file_name": 'matbench_glass.json'},
+        "matbench_log_gvrh": {"dataset_name": "matbench_log_gvrh",
+                              "download_file_name": 'matbench_log_gvrh.json.gz',
+                              "data_directory_name": "matbench_log_gvrh", "extract_gz": True,
+                              "extract_file_name": 'matbench_log_gvrh.json'},
+        "matbench_log_kvrh": {"dataset_name": "matbench_log_kvrh",
+                              "download_file_name": 'matbench_log_kvrh.json.gz',
+                              "data_directory_name": "matbench_log_kvrh", "extract_gz": True,
+                              "extract_file_name": 'matbench_log_kvrh.json'},
+        "matbench_perovskites": {"dataset_name": "matbench_perovskites",
+                                 "download_file_name": 'matbench_perovskites.json.gz',
+                                 "data_directory_name": "matbench_perovskites", "extract_gz": True,
+                                 "extract_file_name": 'matbench_perovskites.json'},
+        "matbench_mp_gap": {"dataset_name": "matbench_mp_gap",
+                            "download_file_name": 'matbench_mp_gap.json.gz',
+                            "data_directory_name": "matbench_mp_gap", "extract_gz": True,
+                            "extract_file_name": 'matbench_mp_gap.json'},
+        "matbench_mp_is_metal": {"dataset_name": "matbench_mp_is_metal",
+                                 "download_file_name": 'matbench_mp_is_metal.json.gz',
+                                 "data_directory_name": "matbench_mp_is_metal", "extract_gz": True,
+                                 "extract_file_name": 'matbench_mp_is_metal.json'},
+        "matbench_mp_e_form": {"dataset_name": "matbench_mp_e_form",
+                               "download_file_name": 'matbench_mp_e_form.json.gz',
+                               "data_directory_name": "matbench_mp_e_form", "extract_gz": True,
+                               "extract_file_name": 'matbench_mp_e_form.json'},
 
     }
     datasets_prepare_data_info = {
         "matbench_steels": {},
         "matbench_jdft2d": {},
-        "matbench_phonons": {}
+        "matbench_phonons": {},
+        "matbench_expt_gap": {},
+        "matbench_dielectric": {},
+        "matbench_expt_is_metal": {},
+        "matbench_glass": {},
+        "matbench_log_gvrh": {},
+        "matbench_log_kvrh": {},
+        "matbench_perovskites": {},
+        "matbench_mp_gap": {},
+        "matbench_mp_is_metal": {},
+        "matbench_mp_e_form": {},
     }
     datasets_read_in_memory_info = {
         "matbench_steels": {},
         "matbench_jdft2d": {},
-        "matbench_phonons": {}
+        "matbench_phonons": {},
+        "matbench_expt_gap": {},
+        "matbench_dielectric": {},
+        "matbench_expt_is_metal": {},
+        "matbench_glass": {},
+        "matbench_log_gvrh": {},
+        "matbench_log_kvrh": {},
+        "matbench_perovskites": {},
+        "matbench_mp_gap": {},
+        "matbench_mp_is_metal": {},
+        "matbench_mp_e_form": {},
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
@@ -73,6 +134,16 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
         self.data = load_json_file(self.file_path)
+        file_name_base = os.path.splitext(self.file_name)[0]
+        data = self.data
+        print(data.keys())
+        py_mat_list = data["data"][cif_column_name]
+        save_json_file(py_mat_list, os.path.join(self.data_directory, "%s.pymatgen.json" % file_name_base))
+        df_dict = {}
+        df_dict.update()
+        df = pd.DataFrame(data)
+        df.to_csv(os.path.join(self.data_directory, "%s.csv" % file_name_base))
 
 
-data = MatBenchDataset2020("matbench_steels")
+dataset = MatBenchDataset2020("matbench_mp_is_metal")
+print(dataset.data)
