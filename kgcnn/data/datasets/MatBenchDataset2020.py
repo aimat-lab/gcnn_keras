@@ -77,7 +77,7 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         "matbench_log_kvrh": {},
         "matbench_perovskites": {},
         "matbench_mp_gap": {},
-        "matbench_mp_is_metal": {},
+        "matbench_mp_is_metal": {"cif_column_name": "structure"},
         "matbench_mp_e_form": {},
     }
     datasets_read_in_memory_info = {
@@ -133,17 +133,32 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
             self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
-        self.data = load_json_file(self.file_path)
+
         file_name_base = os.path.splitext(self.file_name)[0]
-        data = self.data
-        print(data.keys())
-        py_mat_list = data["data"][cif_column_name]
+        if all([os.path.exists(os.path.join(self.data_directory, "%s.pymatgen.json" % file_name_base)),
+               os.path.exists(os.path.join(self.data_directory, "%s.csv" % file_name_base)),
+               not overwrite]):
+            return self
+
+        data = load_json_file(self.file_path)
+        # print(data.keys())
+        # print(data["columns"])
+        data_columns = data["columns"]
+        index_structure = 0
+        for i, col in enumerate(data_columns):
+            if col == cif_column_name:
+                index_structure = i
+                break
+        py_mat_list = [x[index_structure] for x in data["data"]]
         save_json_file(py_mat_list, os.path.join(self.data_directory, "%s.pymatgen.json" % file_name_base))
-        df_dict = {}
-        df_dict.update()
-        df = pd.DataFrame(data)
+        df_dict = {"index": data["index"]}
+        for i, col in enumerate(data_columns):
+            if i != index_structure:
+                df_dict[col] = [x[i] for x in data["data"]]
+        df = pd.DataFrame(df_dict)
         df.to_csv(os.path.join(self.data_directory, "%s.csv" % file_name_base))
+        return self
 
 
 dataset = MatBenchDataset2020("matbench_mp_is_metal")
-print(dataset.data)
+print()
