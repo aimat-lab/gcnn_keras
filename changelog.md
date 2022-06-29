@@ -9,3 +9,4 @@ v2.0.3
 * Removed ``kgcnn.layers.modules.ReduceSum`` as it has not been used and may be problematic.
 * Moved ``kgcnn.utils.data`` to ``kgcnn.data.utils``. 
 * Refactored smile to mol generation into ``kgcnn.mol.convert`` and renamed `kgcnn.mol.gen`
+* fixed bug for `GatherEmbedding` to have correct concat axis if index tensor happens to be of rank>3 but ragged_rank=1.
