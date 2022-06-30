@@ -66,34 +66,34 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
 
     }
     datasets_prepare_data_info = {
-        "matbench_steels": {},
-        "matbench_jdft2d": {},
-        "matbench_phonons": {},
-        "matbench_expt_gap": {},
-        "matbench_dielectric": {},
-        "matbench_expt_is_metal": {},
-        "matbench_glass": {},
-        "matbench_log_gvrh": {},
-        "matbench_log_kvrh": {},
-        "matbench_perovskites": {},
-        "matbench_mp_gap": {},
+        "matbench_steels": {"cif_column_name": "composition"},
+        "matbench_jdft2d": {"cif_column_name": "structure"},
+        "matbench_phonons": {"cif_column_name": "structure"},
+        "matbench_expt_gap": {"cif_column_name": "composition"},
+        "matbench_dielectric": {"cif_column_name": "structure"},
+        "matbench_expt_is_metal": {"cif_column_name": "composition"},
+        "matbench_glass": {"cif_column_name": "composition"},
+        "matbench_log_gvrh": {"cif_column_name": "structure"},
+        "matbench_log_kvrh": {"cif_column_name": "structure"},
+        "matbench_perovskites": {"cif_column_name": "structure"},
+        "matbench_mp_gap": {"cif_column_name": "structure"},
         "matbench_mp_is_metal": {"cif_column_name": "structure"},
-        "matbench_mp_e_form": {},
+        "matbench_mp_e_form": {"cif_column_name": "structure"},
     }
     datasets_read_in_memory_info = {
-        "matbench_steels": {},
-        "matbench_jdft2d": {},
-        "matbench_phonons": {},
-        "matbench_expt_gap": {},
-        "matbench_dielectric": {},
-        "matbench_expt_is_metal": {},
-        "matbench_glass": {},
-        "matbench_log_gvrh": {},
-        "matbench_log_kvrh": {},
-        "matbench_perovskites": {},
-        "matbench_mp_gap": {},
-        "matbench_mp_is_metal": {},
-        "matbench_mp_e_form": {},
+        "matbench_steels": {"label_column_name": "yield strength"},
+        "matbench_jdft2d": {"label_column_name": "exfoliation_en"},
+        "matbench_phonons": {"label_column_name": "last phdos peak"},
+        "matbench_expt_gap": {"label_column_name": "gap expt"},
+        "matbench_dielectric": {"label_column_name": "n"},
+        "matbench_expt_is_metal": {"label_column_name": "is_metal"},
+        "matbench_glass": {"label_column_name": "gfa"},
+        "matbench_log_gvrh": {"label_column_name": "log10(G_VRH)"},
+        "matbench_log_kvrh": {"label_column_name": "log10(K_VRH)"},
+        "matbench_perovskites": {"label_column_name": "e_form"},
+        "matbench_mp_gap": {"label_column_name": "gap pbe"},
+        "matbench_mp_is_metal": {"label_column_name": "is_metal"},
+        "matbench_mp_e_form": {"label_column_name": "e_form"},
     }
 
     def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
@@ -122,10 +122,11 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
-        self.file_name = self.download_file_name if self.extract_file_name is None else self.extract_file_name
+        file_name_download = self.download_file_name if self.extract_file_name is None else self.extract_file_name
+        self.file_name = "%s.csv" % os.path.splitext(file_name_download)[0]
         self.dataset_name = dataset_name
         self.require_prepare_data = True
-        self.fits_in_memory = False
+        self.fits_in_memory = True
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload, **self.datasets_prepare_data_info[self.dataset_name])
@@ -134,15 +135,18 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
 
-        file_name_base = os.path.splitext(self.file_name)[0]
-        if all([os.path.exists(os.path.join(self.data_directory, "%s.pymatgen.json" % file_name_base)),
-               os.path.exists(os.path.join(self.data_directory, "%s.csv" % file_name_base)),
+        file_name_download = self.download_file_name if self.extract_file_name is None else self.extract_file_name
+        # file_name_base = os.path.splitext(self.file_name)[0]
+
+        if all([os.path.exists(os.path.join(self.data_directory, self._get_pymatgen_file_name())),
+               os.path.exists(os.path.join(self.data_directory, self.file_name)),
                not overwrite]):
             return self
 
-        data = load_json_file(self.file_path)
-        # print(data.keys())
-        # print(data["columns"])
+        self.info("Load dataset '%s' to memory..." % self.dataset_name)
+        data = load_json_file(os.path.join(self.data_directory, file_name_download))
+
+        self.info("Process database with %s and columns %s" % (data.keys(), data["columns"]))
         data_columns = data["columns"]
         index_structure = 0
         for i, col in enumerate(data_columns):
@@ -150,15 +154,19 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
                 index_structure = i
                 break
         py_mat_list = [x[index_structure] for x in data["data"]]
-        save_json_file(py_mat_list, os.path.join(self.data_directory, "%s.pymatgen.json" % file_name_base))
+
+        self.info("Write structures or compositions '%s' to file." % self._get_pymatgen_file_name())
+        save_json_file(py_mat_list, os.path.join(self.data_directory, self._get_pymatgen_file_name()))
         df_dict = {"index": data["index"]}
         for i, col in enumerate(data_columns):
             if i != index_structure:
                 df_dict[col] = [x[i] for x in data["data"]]
         df = pd.DataFrame(df_dict)
-        df.to_csv(os.path.join(self.data_directory, "%s.csv" % file_name_base))
+
+        self.info("Write dataset table '%s' to file." % self.file_name)
+        df.to_csv(self.file_path)
         return self
 
 
-dataset = MatBenchDataset2020("matbench_mp_is_metal")
-print()
+# dataset = MatBenchDataset2020("matbench_mp_e_form", reload=True)
+# print("Okay.")
