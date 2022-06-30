@@ -135,11 +135,12 @@ class CrystalDataset(MemoryGraphDataset):
 
         # We can try to get labels here.
         if self.data_frame is not None and label_column_name is not None:
-            self.graph_labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
+            self.assign_property("graph_labels",
+                                 pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name).tolist())
 
         # Read pymatgen JSON file from file.
         structs = self._read_pymatgen_json_in_memory()
-        self.info("Making node features ...")
+        self.info("Making node features from structure...")
         node_symbol = []
         node_coordinates = []
         graph_lattice_matrix = []

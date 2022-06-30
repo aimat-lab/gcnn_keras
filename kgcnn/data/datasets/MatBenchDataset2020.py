@@ -168,5 +168,5 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         return self
 
 
-# dataset = MatBenchDataset2020("matbench_mp_e_form", reload=True)
+# dataset = MatBenchDataset2020("matbench_mp_e_form", reload=False)
 # print("Okay.")
