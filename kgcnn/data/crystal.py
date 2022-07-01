@@ -1,25 +1,33 @@
 import os
 import numpy as np
-
-try:
-    import pymatgen.core.structure
-except ModuleNotFoundError:
-    print("Can not find `pymatgen`, but required for this module. Please install `pymatgen`!")
-    import pymatgen.core.structure
+from collections import defaultdict
+from typing import Dict, Callable
+import pandas as pd
+import pymatgen.core.structure
+import pymatgen.symmetry.structure
 
 from kgcnn.data.base import MemoryGraphDataset
-from kgcnn.data.utils import save_json_file, load_json_file, pandas_data_frame_columns_to_numpy
-from kgcnn.mol.module_pymatgen import parse_cif_file_to_structures, structure_get_properties, \
-    structure_get_range_neighbors
+from kgcnn.data.utils import save_json_file, load_json_file
+from kgcnn.mol.module_pymatgen import parse_cif_file_to_structures
+from kgcnn.mol.base import CrystalPreprocessor
 
 
 class CrystalDataset(MemoryGraphDataset):
-    """Class for making graph properties from periodic structures such as crystals.
+    r"""Class for making graph properties from periodic structures such as crystals.
+    The dataset class requires a :obj:`data_directory` to store a table '.csv' file containing labels and information
+    of the structures stored in either a single '.cif' file or multiple single files in :obj:`file_directory`.
+    In the latter case, the file names must be included in the '.csv' table.
 
-    .. warning::
-        Currently under construction. Not working at the moment.
+    .. code::
+        --
+
+    This class uses :obj:`pymatgen.core.structure.Structure` and therefore requires :obj:`pymatgen` to be installed.
+    A '.pymatgen.json' serialized file is generated to store a list of structures from '.cif' file format via
+    :obj:`prepare_data()`.
 
     """
+
+    DEFAULT_LOOP_UPDATE_INFO = 5000
 
     def __init__(self,
                  data_directory: str = None,
@@ -50,8 +58,8 @@ class CrystalDataset(MemoryGraphDataset):
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
         r"""Try to load all crystal structures from CIF files and save them as a pymatgen json serialization.
-        Can load single CIF file with multiple structures (maybe unstable), or multiple CIF files from a table
-        that keeps file names and possible values.
+        Can load a single CIF file with multiple structures (maybe unstable), or multiple CIF files from a table
+        that keeps file names and possible labels or additional information.
 
         Args:
             cif_column_name (str): Name of the column that has file names found in file_directory. Default is None.
@@ -75,7 +83,13 @@ class CrystalDataset(MemoryGraphDataset):
             self.info("Start to read many structures form cif-file via pymatgen ...")
             structs = parse_cif_file_to_structures(file_path)
             self.info("Exporting as dict for pymatgen ...")
-            dicts = [s.as_dict() for s in structs]
+            dicts = []
+            for s in structs:
+                # We add @module and @class by hand here.
+                d = s.as_dict()
+                d["@module"] = type(s).__module__
+                d["@class"] = type(s).__name__
+                dicts.append(d)
             self.info("Saving structures as .json ...")
             out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
             save_json_file(dicts, out_path)
@@ -111,13 +125,47 @@ class CrystalDataset(MemoryGraphDataset):
 
     def _read_pymatgen_json_in_memory(self):
         file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
+
         if not os.path.exists(file_path):
             raise FileNotFoundError("Cannot find .json file for `CrystalDataset`. Please prepare_data().")
 
         self.info("Reading structures from .json ...")
+
         dicts = load_json_file(file_path)
-        structs = [pymatgen.core.structure.Structure.from_dict(x) for x in dicts]
+        structs = []
+        for x in dicts:
+            # We could check symmetry or @module, @class items in dict.
+            structs.append(pymatgen.core.structure.Structure.from_dict(x))
         return structs
+
+    def _map_callbacks(self, callbacks: Dict[str, Callable[[pymatgen.core.structure.Structure, pd.Series], None]]):
+
+        # Read pymatgen JSON file from file.
+        structs = self._read_pymatgen_json_in_memory()
+        self.structs = structs
+
+        # Try to read table file
+        self.read_in_table_file(file_path=self.file_path)
+        data = self.data_frame
+
+        # The dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
+        # lists corresponds to one structure in the dataset.
+        value_lists = defaultdict(list)
+        for index, st in enumerate(structs):
+            for name, callback in callbacks.items():
+                if st is None:
+                    value_lists[name].append(None)
+                else:
+                    data_dict = data.loc[index]
+                    value = callback(st, data_dict)
+                    value_lists[name].append(value)
+            if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+                self.info(" ... read structures {0} from {1}".format(index, len(structs)))
+
+        # The string key names of the original "callbacks" dict are also used as the names of the properties which are
+        # assigned
+        for name, values in value_lists.items():
+            self.assign_property(name, values)
 
     def read_in_memory(self, label_column_name: str = None):
         """Read structures from pymatgen json serialization and convert them into graph information.
@@ -128,76 +176,20 @@ class CrystalDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        file_path = os.path.join(self.data_directory, self.file_name)
 
-        # Try to read table file
-        self.read_in_table_file(file_path=file_path)
-
-        # We can try to get labels here.
-        if self.data_frame is not None and label_column_name is not None:
-            self.assign_property("graph_labels",
-                                 pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name).tolist())
-
-        # Read pymatgen JSON file from file.
-        structs = self._read_pymatgen_json_in_memory()
         self.info("Making node features from structure...")
-        node_symbol = []
-        node_coordinates = []
-        graph_lattice_matrix = []
-        graph_abc = []
-        graph_charge = []
-        graph_volume = []
-        node_occ = []
-        node_oxidation = []
-        for x in structs:
-            coords, lat_matrix, abc, tot_chg, volume, occ, oxi, symb = structure_get_properties(x)
-            node_coordinates.append(coords)
-            graph_lattice_matrix.append(lat_matrix)
-            graph_abc.append(abc)
-            graph_charge.append(tot_chg)
-            graph_volume.append(volume)
-            node_symbol.append(symb)
-            node_occ.append(occ)
-            node_oxidation.append(oxi)
+        callbacks = {"graph_label": lambda st, ds: ds[label_column_name] if label_column_name is not None else None,
+                     "node_coordinates": lambda st, ds: np.array(st.cart_coords, dtype="float"),
+                     "lattice_matrix": lambda st, ds: np.ascontiguousarray(np.array(st.lattice.matrix), dtype="float"),
+                     "abc": lambda st, ds: np.array(st.lattice.abc),
+                     "charge": lambda st, ds: np.array([st.charge], dtype="float"),
+                     "volume": lambda st, ds: np.array([st.lattice.volume], dtype="float"),
+                     "node_number": lambda st, ds: np.array(st.atomic_numbers, dtype="int")
+                     }
 
-        self.assign_property("node_attributes", node_occ)
-        self.assign_property("node_oxidation", node_oxidation)
-        self.assign_property("node_number", [np.argmax(x, axis=-1) for x in node_occ])  # Only takes maximum occupation here!!!
-        self.assign_property("node_symbol", node_symbol)
-        self.assign_property("node_coordinates", node_coordinates)
-        self.assign_property("graph_lattice_matrix", graph_lattice_matrix)
-        self.assign_property("graph_abc", graph_abc)
-        self.assign_property("graph_charge", graph_charge)
-        self.assign_property("graph_volume", graph_volume)
+        self._map_callbacks(callbacks)
 
         return self
 
-    def _set_dataset_range_from_structures(self, structs, radius: float = 4.0, numerical_tol: float = 1e-08,
-                                           max_neighbours: int = 100000000):
-        self.info("Setting range ...")
-        range_indices = []
-        range_image = []
-        range_distance = []
-        for x in structs:
-            ridx, rimg, rd = structure_get_range_neighbors(x, radius=radius, numerical_tol=numerical_tol,
-                                                           max_neighbours=max_neighbours)
-            range_indices.append(ridx)
-            range_image.append(rimg)
-            range_distance.append(rd)
-        self.assign_property("range_indices", range_indices)
-        self.assign_property("range_image", range_image)
-        self.assign_property("range_attributes", range_distance)
-
-    def set_range(self, max_distance: float = 4.0, max_neighbours=15, do_invert_distance=False,
-                  self_loops=True, exclusive=True):
-        assert exclusive, "Range in `CrystalDataset` must have exclusive=True."
-        structs = self._read_pymatgen_json_in_memory()
-        self._set_dataset_range_from_structures(structs=structs, radius=max_distance, max_neighbours=max_neighbours)
-        return self
-
-    def set_angle(self, prefix_indices: str = "range", compute_angles: bool = False, allow_multi_edges=True):
-        # Since coordinates are periodic.
-        assert not compute_angles, "Can not compute angles for periodic systems."
-        assert allow_multi_edges, "Require multi edges for periodic structures."
-        super(CrystalDataset, self).map_list("set_angle", prefix_indices=prefix_indices, compute_angles=compute_angles,
-                                             allow_multi_edges=allow_multi_edges)
+    def set_representation(self, pre_processor: CrystalPreprocessor):
+        pass
