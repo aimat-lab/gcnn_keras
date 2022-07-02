@@ -13,13 +13,13 @@ module_logger.setLevel(logging.INFO)
 try:
     from kgcnn.mol.graphRD import convert_smile_to_mol_rdkit as rdkit_smile_to_mol
 except ImportError:
-    module_logger.warning("Can not import RDKit module for conversion.")
+    module_logger.error("Can not import RDKit module for conversion.")
     rdkit_smile_to_mol = None
 
 try:
     from kgcnn.mol.graphBabel import convert_smile_to_mol_openbabel as openbabel_smile_to_mol
 except ImportError:
-    module_logger.warning("Can not import OpenBabel module for conversion.")
+    module_logger.error("Can not import OpenBabel module for conversion.")
     openbabel_smile_to_mol = None
 
 

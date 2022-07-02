@@ -167,15 +167,21 @@ class CrystalDataset(MemoryGraphDataset):
         for name, values in value_lists.items():
             self.assign_property(name, values)
 
-    def read_in_memory(self, label_column_name: str = None):
+    def read_in_memory(self, label_column_name: str = None,
+                       additional_callbacks: Dict[
+                           str, Callable[[pymatgen.core.structure.Structure, pd.Series], None]] = None
+                       ):
         """Read structures from pymatgen json serialization and convert them into graph information.
 
         Args:
             label_column_name (str): Columns of labels for graph. Default is None.
+            additional_callbacks (dict): Callbacks to add during read into memory.
 
         Returns:
             self
         """
+        if additional_callbacks is None:
+            additional_callbacks = {}
 
         self.info("Making node features from structure...")
         callbacks = {"graph_label": lambda st, ds: ds[label_column_name] if label_column_name is not None else None,
@@ -184,7 +190,8 @@ class CrystalDataset(MemoryGraphDataset):
                      "abc": lambda st, ds: np.array(st.lattice.abc),
                      "charge": lambda st, ds: np.array([st.charge], dtype="float"),
                      "volume": lambda st, ds: np.array([st.lattice.volume], dtype="float"),
-                     "node_number": lambda st, ds: np.array(st.atomic_numbers, dtype="int")
+                     "node_number": lambda st, ds: np.array(st.atomic_numbers, dtype="int"),
+                     **additional_callbacks
                      }
 
         self._map_callbacks(callbacks)
