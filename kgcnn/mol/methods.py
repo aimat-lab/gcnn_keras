@@ -34,7 +34,7 @@ def get_connectivity_from_inverse_distance_matrix(inv_dist_mat, protons, radii_d
         protons (np.ndarray): An array of atomic numbers matching the inv_dist_mat `(..., N)`,
             for which the radii are to be computed.
         radii_dict (np.ndarray): Covalent radii for each element. If ``None``, stored values are used.
-            Otherwise expected numpy array with covalent bonding radii.
+            Otherwise, expected numpy array with covalent bonding radii.
             Example: ``np.array([0, 0.34, 0.46, 1.2, ...])`` for atomic number ``np.array([0, 1, 2, ...])``
             that would match ``[None, 'H', 'He', 'Li', ...]``.
         k1 (float): K1-value. Defaults to 16

@@ -112,7 +112,13 @@ class CrystalDataset(MemoryGraphDataset):
                 if i % 1000 == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_structs))
             self.info("Exporting as dict for pymatgen ...")
-            dicts = [s.as_dict() for s in structs]
+            dicts = []
+            for s in structs:
+                # We add @module and @class by hand here.
+                d = s.as_dict()
+                d["@module"] = type(s).__module__
+                d["@class"] = type(s).__name__
+                dicts.append(d)
             self.info("Saving structures as .json ...")
             out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
             save_json_file(dicts, out_path)

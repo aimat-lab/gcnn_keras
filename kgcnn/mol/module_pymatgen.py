@@ -1,9 +1,6 @@
 import numpy as np
-try:
-    import pymatgen
-    import pymatgen.io.cif
-except ImportError:
-    print("This module needs pymatgen to be installed.")
+import pymatgen
+import pymatgen.io.cif
 
 from kgcnn.utils.adj import sort_edge_indices
 

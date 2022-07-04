@@ -17,7 +17,7 @@ class MolGraphInterface:
 
     def __init__(self, mol=None, add_hydrogen: bool = True, make_directed: bool = False,
                  make_conformer: bool = True, optimize_conformer: bool = True):
-        """Set the mol attribute for composition. This mol instances will be the backends molecule class.
+        """Set the mol attribute for composition. This mol instances will be the backend molecule class.
 
         Args:
             mol: Instance of a molecule from chemical informatics package.
@@ -203,7 +203,7 @@ class MolGraphInterface:
 
 class CrystalPreprocessor:
 
-    def __call__(self, structure):
+    def __call__(self, structure) -> dict:
         raise NotImplementedError()
 
     def get_config(self):
@@ -219,3 +219,5 @@ class CrystalPreprocessor:
 
     def __eq__(self, other):
         return hash(self) == hash(other)
+
+

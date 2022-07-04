@@ -10,3 +10,5 @@ v2.0.3
 * Moved ``kgcnn.utils.data`` to ``kgcnn.data.utils``. 
 * Refactored smile to mol generation into ``kgcnn.mol.convert`` and renamed `kgcnn.mol.gen` to `kgcnn.mol.external`
 * fixed bug for `GatherEmbedding` to have correct concat axis if index tensor happens to be of rank>3 but ragged_rank=1.
+* Refactored `kgcnn.mol` methods into modules and renamed `graphRD` and `graphBabel`.
+* 

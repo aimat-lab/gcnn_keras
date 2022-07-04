@@ -6,7 +6,7 @@ from typing import Dict, Callable, Union
 from collections import defaultdict
 
 from kgcnn.data.base import MemoryGraphDataset
-from kgcnn.mol.graphRD import MolecularGraphRDKit
+from kgcnn.mol.module_rdkit import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.mol.convert import MolConverter

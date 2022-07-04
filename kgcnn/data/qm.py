@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
-from kgcnn.mol.graphBabel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
+from kgcnn.mol.module_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
 from kgcnn.data.utils import pandas_data_frame_columns_to_numpy
 from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
 
