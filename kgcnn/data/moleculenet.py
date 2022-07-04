@@ -327,7 +327,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             has_conformers (bool): If molecules needs 3D coordinates pre-computed.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
-                attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the the
+                attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
                 row of the CSV file.
 
         Returns:
