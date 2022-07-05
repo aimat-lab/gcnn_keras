@@ -12,9 +12,6 @@ class StandardScaler(StandardScalerSklearn):
     def set_config(self):
         pass
 
-    def from_config(self):
-        pass
-
     def save_weights(self):
         pass
 

@@ -1,7 +1,7 @@
 import importlib
 import logging
+from typing import Union
 
-# from typing import Any
 try:
     from kgcnn.data.moleculenet import MoleculeNetDataset
 except ModuleNotFoundError as e:
@@ -31,10 +31,10 @@ global_dataset_register = {
 }
 
 
-# Add all modules from datasets dynamically here
-def deserialize(dataset: dict):
+def deserialize(dataset: Union[str, dict]):
     r"""Deserialize a dataset class from dictionary including "class_name" and "config" keys.
-    Furthermore, "prepare_data", "read_in_memory" and "set_attributes" are possible for deserialization.
+    Furthermore, `prepare_data`, `read_in_memory` and `map_list` are possible for deserialization if manually
+    set in 'methods' key as list.
 
     Args:
         dataset (str, dict): Dictionary of the dataset serialization.
@@ -62,8 +62,9 @@ def deserialize(dataset: dict):
     # Or load dynamically from datasets folder.
     else:
         dataset_name = dataset["class_name"]
+        module_name = dataset["module_name"] if "module_name" in dataset else "kgcnn.data.datasets.%s" % dataset_name
         try:
-            ds_class = getattr(importlib.import_module("kgcnn.data.datasets.%s" % dataset_name), str(dataset_name))
+            ds_class = getattr(importlib.import_module(str(module_name)), str(dataset_name))
             config = dataset["config"] if "config" in dataset else {}
             ds_instance = ds_class(**config)
         except ModuleNotFoundError:
@@ -82,5 +83,3 @@ def deserialize(dataset: dict):
                     ds_instance.error("Dataset class does not have property %s" % method)
 
     return ds_instance
-
-
