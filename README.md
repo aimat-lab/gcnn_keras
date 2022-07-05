@@ -34,10 +34,10 @@ For kgcnn, usually the latest version of tensorflow is required, but is listed a
 Additional python packages are placed in the `setup.py` requirements and are installed automatically. 
 Packages which must be installed manually for full functionality:
 
-* tensorflow>=2.4.1
-* rdkit>=2020.03.4
-* openbabel>=3.0.1
-* pymatgen>=??.??.??
+* [tensorflow](https://www.tensorflow.org/install) >=2.4.1
+* [rdkit](https://www.rdkit.org/docs/Install.html) >=2020.03.4
+* [openbabel](http://openbabel.org/wiki/Main_Page) >=3.0.1
+* [pymatgen](https://pymatgen.org/installation.html) >=2022.0.12
 
 <a name="installation"></a>
 # Installation
