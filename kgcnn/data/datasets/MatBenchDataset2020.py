@@ -141,6 +141,7 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         if all([os.path.exists(os.path.join(self.data_directory, self._get_pymatgen_file_name())),
                os.path.exists(os.path.join(self.data_directory, self.file_name)),
                not overwrite]):
+            self.info("Found %s of structures." % self._get_pymatgen_file_name())
             return self
 
         self.info("Load dataset '%s' to memory..." % self.dataset_name)

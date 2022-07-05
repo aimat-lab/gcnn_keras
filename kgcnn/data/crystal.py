@@ -148,7 +148,7 @@ class CrystalDataset(MemoryGraphDataset):
 
         # Read pymatgen JSON file from file.
         structs = self._read_pymatgen_json_in_memory()
-        self.structs = structs
+        # self.structs = structs
 
         # Try to read table file
         self.read_in_table_file(file_path=self.file_path)
@@ -190,7 +190,7 @@ class CrystalDataset(MemoryGraphDataset):
             additional_callbacks = {}
 
         self.info("Making node features from structure...")
-        callbacks = {"graph_label": lambda st, ds: ds[label_column_name] if label_column_name is not None else None,
+        callbacks = {"graph_labels": lambda st, ds: ds[label_column_name] if label_column_name is not None else None,
                      "node_coordinates": lambda st, ds: np.array(st.cart_coords, dtype="float"),
                      "lattice_matrix": lambda st, ds: np.ascontiguousarray(np.array(st.lattice.matrix), dtype="float"),
                      "abc": lambda st, ds: np.array(st.lattice.abc),
@@ -204,5 +204,21 @@ class CrystalDataset(MemoryGraphDataset):
 
         return self
 
-    def set_representation(self, pre_processor: CrystalPreprocessor):
-        pass
+    def set_representation(self, pre_processor: CrystalPreprocessor, reset_graphs: bool = False):
+
+        if reset_graphs:
+            self.clear()
+        # Read pymatgen JSON file from file.
+        structs = self._read_pymatgen_json_in_memory()
+        if reset_graphs:
+            self.empty(len(structs))
+
+        for index, s in enumerate(structs):
+            g = pre_processor(s)
+            for key, value in g.items():
+                self[index].assign_property(key, value)
+
+            if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+                self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
+
+        return self
