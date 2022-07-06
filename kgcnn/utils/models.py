@@ -13,6 +13,10 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
+def get_model_class(module_name: str, model_name: str):
+    pass
+
+
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
     """Deprecated. Optional embedding for tensor input.
     If there is no feature dimension, an embedding layer can be used.
