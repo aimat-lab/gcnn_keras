@@ -46,6 +46,11 @@ class HyperParameter:
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
+        # Check hyperparameter
+        if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
+            self._hyper["model"] = {"config": deepcopy(self._hyper["model"])}
+
+
     def __getitem__(self, item):
         return deepcopy(self._hyper[item])
 

@@ -13,17 +13,17 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64}
                 },
-                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "interaction_args": {
                     "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
                 },
                 "node_pooling_args": {"pooling_method": "sum"},
                 "depth": 4,
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
+                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "output_embedding": "graph",
                 "use_output_mlp": False,
-                "output_mlp": None,
+                "output_mlp": None,  # Last MLP sets output dimension if None.
             }
         },
         "training": {
@@ -129,5 +129,4 @@ hyper = {
             "kgcnn_version": "2.0.3"
         }
     },
-
 }
