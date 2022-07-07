@@ -1,13 +1,11 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.ops.axis import get_positive_axis
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.modules import LazyAdd, LazyMultiply, DenseEmbedding, LazyConcatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
+ks = tf.keras
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='PAiNNconv')
