@@ -35,8 +35,8 @@ dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
 
-# HyperSelection is used to store and verify hyperparameter.
-hyper = HyperParameter(hyper_path, model_name=model_name, dataset_name=dataset_name)
+# HyperParameter is used to store and verify hyperparameter.
+hyper = HyperParameter(hyper_path, model_name=model_name, model_generation=make_function, dataset_name=dataset_name)
 
 # Model Selection to load a model definition from a module in kgcnn.literature
 make_model = get_model_class(model_name, make_function)
@@ -86,7 +86,7 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 execute_splits = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
-model, hist, xtest, ytest, scaler, atoms_test = None, None, None, None, None, None
+model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
 for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
 
     # Only do execute_splits out of the k-folds of cross-validation.
@@ -151,8 +151,8 @@ plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      filepath=filepath, file_name="loss" + postfix_file + ".png")
 
 # Plot prediction
-predicted_y = model.predict(xtest)
-true_y = ytest
+predicted_y = model.predict(x_test)
+true_y = y_test
 
 if scaler:
     predicted_y = scaler.inverse_transform(predicted_y, atoms_test)

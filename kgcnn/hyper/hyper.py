@@ -1,9 +1,13 @@
 import tensorflow as tf
 import os
-import numpy as np
-
+import logging
+from typing import Union
 from copy import deepcopy
 from kgcnn.data.utils import load_hyper_file, save_json_file
+
+logging.basicConfig()  # Module logger
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
 
 class HyperParameter:
@@ -14,18 +18,22 @@ class HyperParameter:
 
     """
 
-    def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):
+    def __init__(self, hyper_info: Union[str, dict],
+                 model_name: str = None, dataset_name: str = None, model_generation: str = None):
         """Make a hyperparameter class instance. Required is the hyperparameter dictionary or path to a config
         file containing the hyperparameter. Furthermore, name of the dataset and model can be provided.
 
         Args:
             hyper_info (str, dict): Hyperparameter dictionary or path to file.
-            model_name (str): Name of the model.
+            model_name (str): Name or module of the model.
+            model_generation (str): Class name or make function for model.
             dataset_name (str): Name of the dataset.
         """
-
+        self._hyper = None
         self.dataset_name = dataset_name
         self.model_name = model_name
+        self.model_module = model_name
+        self.model_generation = model_generation
 
         if isinstance(hyper_info, str):
             self._hyper_all = load_hyper_file(hyper_info)
@@ -34,22 +42,34 @@ class HyperParameter:
         else:
             raise TypeError("`HyperParameter` requires valid hyper dictionary or path to file.")
 
-        self._hyper = None
         # If model and training section in hyper-dictionary, then this is a valid hyper setting.
         # If hyper is itself a dictionary with many models, pick the right model if model name is given.
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
         elif model_name is not None and model_name in self._hyper_all:
             self._hyper = self._hyper_all[model_name]
-        elif dataset_name is not None and dataset_name in self._hyper_all:
-            self._hyper = self._hyper_all[dataset_name]
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
         # Check hyperparameter
         if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
+            module_logger.warning("Hyperparameter {'model': ...} changed to {'model': {'config': {...}}}")
             self._hyper["model"] = {"config": deepcopy(self._hyper["model"])}
-
+        if "class_name" not in self._hyper["model"] and self.model_generation is not None:
+            module_logger.info("Adding model class to 'model': {'class_name': %s}" % self.model_generation)
+            self._hyper["model"].update({"class_name": self.model_generation})
+        if "info" not in self._hyper:
+            self._hyper.update({"info": {}})
+            module_logger.info("Adding 'info' category to hyperparameter.")
+        if "postfix_file" not in self._hyper["info"]:
+            module_logger.info("Adding 'postfix_file' to 'info' category in hyperparameter.")
+            self._hyper["info"].update({"postfix_file": ""})
+        if "multi_target_indices" not in self._hyper["training"]:
+            module_logger.info("Adding 'multi_target_indices' to 'training' category in hyperparameter.")
+            self._hyper["training"].update({"multi_target_indices": None})
+        if "data_unit" not in self._hyper["data"]:
+            module_logger.info("Adding 'data_unit' to 'data' category in hyperparameter.")
+            self._hyper["data"].update({"data_unit": ""})
 
     def __getitem__(self, item):
         return deepcopy(self._hyper[item])
@@ -152,8 +172,3 @@ class HyperParameter:
         """
         # Must make more refined saving and serialization here.
         save_json_file(self._hyper, file_path)
-
-
-# Only for backward compatibility.
-HyperSelection = HyperParameter
-HyperSelectionTraining = HyperParameter
