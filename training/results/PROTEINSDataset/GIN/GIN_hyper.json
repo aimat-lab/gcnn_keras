@@ -1,61 +1,66 @@
 {
   "model": {
-    "name": "GIN",
-    "inputs": [
-      {
-        "shape": [
-          null,
-          3
-        ],
-        "name": "node_labels",
-        "dtype": "float32",
-        "ragged": true
+    "class_name": "make_model",
+    "module_name": "kgcnn.literature.GIN",
+    "config": {
+      "name": "GIN",
+      "inputs": [
+        {
+          "shape": [
+            null,
+            3
+          ],
+          "name": "node_labels",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            2
+          ],
+          "name": "edge_indices",
+          "dtype": "int64",
+          "ragged": true
+        }
+      ],
+      "input_embedding": {
+        "node": {
+          "input_dim": 800,
+          "output_dim": 64
+        }
       },
-      {
-        "shape": [
-          null,
+      "last_mlp": {
+        "use_bias": [
+          true
+        ],
+        "units": [
           2
         ],
-        "name": "edge_indices",
-        "dtype": "int64",
-        "ragged": true
+        "activation": [
+          "linear"
+        ]
+      },
+      "depth": 5,
+      "dropout": 0.5,
+      "gin_mlp": {
+        "units": [
+          64,
+          64
+        ],
+        "use_bias": true,
+        "activation": [
+          "relu",
+          "relu"
+        ]
+      },
+      "gin_args": {},
+      "output_embedding": "graph",
+      "output_mlp": {
+        "use_bias": true,
+        "units": 2,
+        "activation": "softmax"
       }
-    ],
-    "input_embedding": {
-      "node": {
-        "input_dim": 800,
-        "output_dim": 64
-      }
-    },
-    "last_mlp": {
-      "use_bias": [
-        true
-      ],
-      "units": [
-        2
-      ],
-      "activation": [
-        "linear"
-      ]
-    },
-    "depth": 5,
-    "dropout": 0.5,
-    "gin_args": {
-      "units": [
-        64,
-        64
-      ],
-      "use_bias": true,
-      "activation": [
-        "relu",
-        "relu"
-      ]
-    },
-    "output_embedding": "graph",
-    "output_mlp": {
-      "use_bias": true,
-      "units": 2,
-      "activation": "softmax"
     }
   },
   "training": {
@@ -93,11 +98,13 @@
         "random_state": null,
         "shuffle": true
       }
-    }
+    },
+    "multi_target_indices": null
   },
   "data": {
     "dataset": {
       "class_name": "PROTEINSDataset",
+      "module_name": "kgcnn.data.datasets.PROTEINSDataset",
       "config": {},
       "methods": []
     },
@@ -105,6 +112,7 @@
   },
   "info": {
     "postfix": "",
-    "kgcnn_version": "2.0.2"
+    "postfix_file": "",
+    "kgcnn_version": "2.0.3"
   }
 }

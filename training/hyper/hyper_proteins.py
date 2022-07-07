@@ -1,6 +1,8 @@
 hyper = {
     "GIN": {
         "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GIN",
             "config": {
                 "name": "GIN",
                 "inputs": [{"shape": [None, 3], "name": "node_labels", "dtype": "float32", "ragged": True},
@@ -32,7 +34,8 @@ hyper = {
                 "metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "multi_target_indices": None
         },
         "data": {
             "dataset": {"class_name": "PROTEINSDataset",
