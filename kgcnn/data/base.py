@@ -570,5 +570,48 @@ class MemoryGraphDataset(MemoryGraphList):
         self.warning("Unsupported data extension of %s for table file." % file_path)
         return self
 
+    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
+        r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
+        by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
+
+        Example:
+            [{"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
+            {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
+            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+
+        Args:
+            hyper_input (list): List of properties that need to be available to a model for training.
+            raise_error_on_fail (bool): Whether to raise an error if assertion failed.
+        """
+        dataset = self
+
+        def message_error(msg):
+            if raise_error_on_fail:
+                raise ValueError(msg)
+            else:
+                dataset.error(msg)
+
+        for x in hyper_input:
+            if "name" not in x:
+                message_error("Can not infer name from %s for model input." % x)
+            data = [dataset[i].obtain_property(x["name"]) for i in range(len(dataset))]
+            if any([y is None for y in data]):
+                message_error("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
+            # we also will check shape here but only with first element.
+            if hasattr(data[0], "shape") and "shape" in x:
+                shape_element = data[0].shape
+                shape_input = x["shape"]
+                if len(shape_input) != len(shape_element):
+                    message_error(
+                        "Mismatch in rank for model input {} vs. {}".format(shape_element, shape_input))
+                for i, dim in enumerate(shape_input):
+                    if dim is not None:
+                        if shape_element[i] != dim:
+                            message_error(
+                                "Mismatch in shape for model input {} vs. {}".format(shape_element, shape_input))
+            else:
+                message_error("Can not check shape for %s." % x["name"])
+        return
+
 
 MemoryGeometricGraphDataset = MemoryGraphDataset

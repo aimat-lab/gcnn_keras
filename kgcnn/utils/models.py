@@ -4,6 +4,7 @@ import logging
 from math import inf
 from typing import Union
 from copy import deepcopy
+import importlib
 ks = tf.keras
 
 
@@ -13,8 +14,27 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-def get_model_class(module_name: str, model_name: str):
-    pass
+def get_model_class(module_name: str, class_name: str):
+    r"""Helper function to get model class by string identifier.
+
+    Args:
+        module_name (str): Name of the module of the model.
+        class_name (str): Name of the model class.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    if module_name[:4] != "kgcnn":
+        module_name = "kgcnn.literature.%s" % module_name
+    if class_name is None or class_name == "":
+        class_name = "make_model"
+
+    try:
+        make_model = getattr(importlib.import_module(module_name), class_name)
+    except ModuleNotFoundError:
+        raise NotImplementedError("Unknown model identifier %s for a model in kgcnn.literature." % class_name)
+
+    return make_model
 
 
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):

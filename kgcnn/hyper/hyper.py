@@ -9,10 +9,9 @@ from kgcnn.data.utils import load_hyper_file, save_json_file
 class HyperParameter:
     r"""A class to store hyperparameter for a specific dataset and model, exposing them for model training scripts.
     This includes training parameters and a set of general information like a path for output of the training stats
-    or the expected version of `kgcnn`. The class methods will extract and possibly serialize or deserialized the
-    necessary kwargs from the hyperparameter dictionary with additional default values. Also changes in the
-    hyperparameter definition can be made without affecting training scripts and made compatible with previous
-    versions.
+    or the expected version of :obj:`kgcnn`. The class methods will extract and possibly serialize or deserialized the
+    necessary kwargs from the hyperparameter dictionary.
+
     """
 
     def __init__(self, hyper_info: str, model_name: str = None, dataset_name: str = None):
@@ -126,7 +125,7 @@ class HyperParameter:
     def results_file_path(self):
         r"""Make output folder for results based on hyperparameter and return path to that folder.
         The folder is set up as `'results'/dataset/model_name + post_fix`. Where model and dataset name must be set by
-        this class. Postfix can be in hyperparameters setting.
+        this class. Postfix can be in hyperparameter setting.
 
         Returns:
             str: File-path or path object to result folder.

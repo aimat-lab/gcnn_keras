@@ -248,7 +248,7 @@ class ScalarProduct(GraphBaseLayer):
             assert axis2 == axis
             if all([x.ragged_rank == 1 for x in inputs]) and axis > 1:
                 v1, v2 = inputs[0].values, inputs[1].values
-                out = self._scalar_product([v1, v2], axis=self.axis)
+                out = self._scalar_product([v1, v2], axis=axis-1)
                 return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
         # Default
         out = self._scalar_product(inputs, axis=self.axis)
