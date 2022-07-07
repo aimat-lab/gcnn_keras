@@ -6,6 +6,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirec
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.utils.models import update_model_kwargs
 ks = tf.keras
 
@@ -23,6 +24,7 @@ model_default = {"name": "PAiNN",
                  "pooling_args": {"pooling_method": "sum"},
                  "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                  "update_args": {"units": 128},
+                 "equiv_normalization": False,
                  "depth": 3,
                  "verbose": 10,
                  "output_embedding": "graph", "output_to_tensor": True,
@@ -38,6 +40,7 @@ def make_model(inputs: list = None,
                pooling_args: dict = None,
                conv_args: dict = None,
                update_args: dict = None,
+               equiv_normalization: bool = None,
                name: str = None,
                verbose: int = None,
                output_embedding: str = None,
@@ -69,6 +72,8 @@ def make_model(inputs: list = None,
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNUpdate` layer.
+        equiv_normalization (bool): Whether to apply :obj:`GraphLayerNormalization` to equivariant tensor after
+            each update.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
@@ -106,10 +111,14 @@ def make_model(inputs: list = None,
         ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
+        if equiv_normalization:
+            v = GraphLayerNormalization(axis=2)(v)
         # Update
         ds, dv = PAiNNUpdate(**update_args)([z, v])
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
+        if equiv_normalization:
+            v = GraphLayerNormalization(axis=2)(v)
     n = z
     # Output embedding choice
     if output_embedding == "graph":
