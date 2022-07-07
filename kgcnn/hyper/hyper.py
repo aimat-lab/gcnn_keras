@@ -159,7 +159,7 @@ class HyperParameter:
         post_fix = str(hyper_info["postfix"]) if "postfix" in hyper_info else ""
         os.makedirs("results", exist_ok=True)
         os.makedirs(os.path.join("results", self.dataset_name), exist_ok=True)
-        model_name = self._hyper['model']['name']
+        model_name = self._hyper['model']['config']['name']
         filepath = os.path.join("results", self.dataset_name, model_name + post_fix)
         os.makedirs(filepath, exist_ok=True)
         return filepath
