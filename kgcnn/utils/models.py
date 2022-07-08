@@ -24,9 +24,11 @@ def get_model_class(module_name: str, class_name: str):
     Returns:
         :obj:`tf.keras.models.Model`
     """
-    if module_name[:4] != "kgcnn":
+    if module_name[:6] != "kgcnn.":
+        # Assume that is simply the module name in kgcnn.literature.
         module_name = "kgcnn.literature.%s" % module_name
     if class_name is None or class_name == "":
+        # Assume that "make_model" function is used.
         class_name = "make_model"
 
     try:

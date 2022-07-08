@@ -4,12 +4,11 @@ import matplotlib as mpl
 import time
 import os
 import argparse
-
 from datetime import timedelta
 from tensorflow_addons import optimizers
 from kgcnn.data.qm import QMGraphLabelScaler
-from kgcnn.training.schedule import LinearWarmupExponentialDecay
-from kgcnn.training.scheduler import LinearWarmupExponentialLearningRateScheduler, LinearLearningRateScheduler
+import kgcnn.training.schedule
+import kgcnn.training.scheduler
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true

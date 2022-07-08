@@ -4,12 +4,11 @@ import numpy as np
 import time
 import os
 import argparse
-
 from datetime import timedelta
 from tensorflow_addons import optimizers
 from kgcnn.scaler.scaler import StandardScaler
-from kgcnn.training.schedule import LinearWarmupExponentialDecay
-from kgcnn.training.scheduler import LinearWarmupExponentialLearningRateScheduler, LinearLearningRateScheduler
+import kgcnn.training.schedule
+import kgcnn.training.scheduler
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.hyper.hyper import HyperParameter

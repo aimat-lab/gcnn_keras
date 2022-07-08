@@ -1,18 +1,22 @@
 hyper = {
     "GCN": {
         "model": {
-            "name": "GCN",
-            "inputs": [
-                {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                "edge": {"input_dim": 10, "output_dim": 64}},
-            "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
-            "depth": 3, "verbose": 10,
-            "output_embedding": "node",
-            "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
-                           "activation": ["relu", "relu", "softmax"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GCN",
+            "config": {
+                "name": "GCN",
+                "inputs": [
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 10, "output_dim": 64}},
+                "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
+                "depth": 3, "verbose": 10,
+                "output_embedding": "node",
+                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                               "activation": ["relu", "relu", "softmax"]},
+            }
         },
         "training": {
             "fit": {
@@ -36,10 +40,13 @@ hyper = {
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "CoraDataset", "config": {},
+                "class_name": "CoraDataset",
+                "module_name": "kgcnn.data.datasets.CoraDataset",
+                "config": {},
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
@@ -49,7 +56,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     }
 }

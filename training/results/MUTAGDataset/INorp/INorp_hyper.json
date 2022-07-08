@@ -1,104 +1,108 @@
 {
   "model": {
-    "name": "INorp",
-    "inputs": [
-      {
-        "shape": [
-          null
-        ],
-        "name": "node_attributes",
-        "dtype": "float32",
-        "ragged": true
+    "class_name": "make_model",
+    "module_name": "kgcnn.literature.INorp",
+    "config": {
+      "name": "INorp",
+      "inputs": [
+        {
+          "shape": [
+            null
+          ],
+          "name": "node_attributes",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null
+          ],
+          "name": "edge_attributes",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            2
+          ],
+          "name": "edge_indices",
+          "dtype": "int64",
+          "ragged": true
+        },
+        {
+          "shape": [],
+          "name": "graph_size",
+          "dtype": "float32",
+          "ragged": false
+        }
+      ],
+      "input_embedding": {
+        "node": {
+          "input_dim": 60,
+          "output_dim": 16
+        },
+        "edge": {
+          "input_dim": 4,
+          "output_dim": 8
+        },
+        "graph": {
+          "input_dim": 30,
+          "output_dim": 16
+        }
       },
-      {
-        "shape": [
-          null
-        ],
-        "name": "edge_attributes",
-        "dtype": "float32",
-        "ragged": true
+      "set2set_args": {
+        "channels": 32,
+        "T": 3,
+        "pooling_method": "mean",
+        "init_qstar": "mean"
       },
-      {
-        "shape": [
-          null,
-          2
+      "node_mlp_args": {
+        "units": [
+          16,
+          16
         ],
-        "name": "edge_indices",
-        "dtype": "int64",
-        "ragged": true
+        "use_bias": true,
+        "activation": [
+          "relu",
+          "linear"
+        ]
       },
-      {
-        "shape": [],
-        "name": "graph_size",
-        "dtype": "float32",
-        "ragged": false
+      "edge_mlp_args": {
+        "units": [
+          16,
+          16
+        ],
+        "activation": [
+          "relu",
+          "linear"
+        ]
+      },
+      "pooling_args": {
+        "pooling_method": "segment_mean"
+      },
+      "depth": 3,
+      "use_set2set": false,
+      "verbose": 10,
+      "gather_args": {},
+      "output_embedding": "graph",
+      "output_mlp": {
+        "use_bias": [
+          true,
+          true,
+          false
+        ],
+        "units": [
+          16,
+          8,
+          1
+        ],
+        "activation": [
+          "relu",
+          "relu",
+          "sigmoid"
+        ]
       }
-    ],
-    "input_embedding": {
-      "node": {
-        "input_dim": 60,
-        "output_dim": 16
-      },
-      "edge": {
-        "input_dim": 4,
-        "output_dim": 8
-      },
-      "graph": {
-        "input_dim": 30,
-        "output_dim": 16
-      }
-    },
-    "set2set_args": {
-      "channels": 32,
-      "T": 3,
-      "pooling_method": "mean",
-      "init_qstar": "mean"
-    },
-    "node_mlp_args": {
-      "units": [
-        16,
-        16
-      ],
-      "use_bias": true,
-      "activation": [
-        "relu",
-        "linear"
-      ]
-    },
-    "edge_mlp_args": {
-      "units": [
-        16,
-        16
-      ],
-      "activation": [
-        "relu",
-        "linear"
-      ]
-    },
-    "pooling_args": {
-      "pooling_method": "segment_mean"
-    },
-    "depth": 3,
-    "use_set2set": false,
-    "verbose": 10,
-    "gather_args": {},
-    "output_embedding": "graph",
-    "output_mlp": {
-      "use_bias": [
-        true,
-        true,
-        false
-      ],
-      "units": [
-        16,
-        8,
-        1
-      ],
-      "activation": [
-        "relu",
-        "relu",
-        "sigmoid"
-      ]
     }
   },
   "training": {
@@ -139,11 +143,13 @@
         "random_state": null,
         "shuffle": true
       }
-    }
+    },
+    "multi_target_indices": null
   },
   "data": {
     "dataset": {
       "class_name": "MUTAGDataset",
+      "module_name": "kgcnn.data.datasets.MUTAGDataset",
       "config": {},
       "methods": []
     },
@@ -151,6 +157,7 @@
   },
   "info": {
     "postfix": "",
-    "kgcnn_version": "2.0.2"
+    "postfix_file": "",
+    "kgcnn_version": "2.0.3"
   }
 }

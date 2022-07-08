@@ -25,14 +25,14 @@ class HyperParameter:
 
         Args:
             hyper_info (str, dict): Hyperparameter dictionary or path to file.
-            model_name (str): Name or module of the model.
+            model_name (str): Name or module of the model, provided module is named after the model.
             model_generation (str): Class name or make function for model.
             dataset_name (str): Name of the dataset.
         """
         self._hyper = None
         self.dataset_name = dataset_name
-        self.model_name = model_name
-        self.model_module = model_name
+        self.model_name = model_name if model_name[:6] != "kgcnn." else model_name.split(".")[-1]
+        self.model_module = model_name if model_name[:6] == "kgcnn." else "kgcnn.literature.%s" % model_name
         self.model_generation = model_generation
 
         if isinstance(hyper_info, str):
@@ -51,7 +51,10 @@ class HyperParameter:
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
-        # Check hyperparameter
+        self.verify()
+
+    def verify(self):
+        """Verify hyperparameter."""
         if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
             module_logger.warning("Hyperparameter {'model': ...} changed to {'model': {'config': {...}}}")
             self._hyper["model"] = {"config": deepcopy(self._hyper["model"])}
@@ -70,6 +73,22 @@ class HyperParameter:
         if "data_unit" not in self._hyper["data"]:
             module_logger.info("Adding 'data_unit' to 'data' category in hyperparameter.")
             self._hyper["data"].update({"data_unit": ""})
+        # Errors
+        if "class_name" in self._hyper["data"]["dataset"] and self.dataset_name is not None:
+            if self.dataset_name != self._hyper["data"]["dataset"]["class_name"]:
+                raise ValueError(
+                    "%s does not agree with hyperparameter %s" % (
+                        self.dataset_name, self._hyper["data"]["dataset"]["class_name"]))
+        if "class_name" in self._hyper["model"] and self.model_generation is not None:
+            if self._hyper["model"]["class_name"] != self.model_generation:
+                raise ValueError(
+                    "%s does not agree with hyperparameter %s" % (
+                        self.model_generation, self._hyper["model"]["class_name"]))
+        if "module_name" in self._hyper["model"] and self.model_module is not None:
+            if self._hyper["model"]["module_name"] != self.model_module:
+                raise ValueError(
+                    "%s does not agree with hyperparameter %s" % (
+                        self.model_module, self._hyper["model"]["module_name"]))
 
     def __getitem__(self, item):
         return deepcopy(self._hyper[item])

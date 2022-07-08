@@ -37,7 +37,7 @@ hyper_path = args["hyper"]
 make_function = args["make"]
 
 # A class `HyperSelection` is used to expose and verify hyperparameter.
-# The hyperparameter are stored as a dictionary with section 'model', 'data' and 'training'.
+# The hyperparameter stored as a dictionary with section 'model', 'data' and 'training'.
 hyper = HyperSelection(hyper_path, model_name=model_name, dataset_name=dataset_name)
 
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
