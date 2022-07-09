@@ -8,4 +8,4 @@ from kgcnn.training.callbacks import *
 
 # For old reference. Moved to kgcnn.training module.
 logging.error(
-    "This module is deprecated and will be removed in future versions. Please move to 'kgcnn.training'.")
+    "Module '%s' is deprecated and will be removed in future versions. Please move to 'kgcnn.training'." % __name__)
