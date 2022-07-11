@@ -23,7 +23,7 @@ parser.add_argument("--dataset", required=False, help="Name of the dataset or le
                     default="MatProjectEFormDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mp_e_form.py")
-parser.add_argument("--make", required=False, help="Name of the make function for model.",
+parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
@@ -35,7 +35,7 @@ hyper_path = args["hyper"]
 make_function = args["make"]
 
 # HyperParameter is used to store and verify hyperparameter.
-hyper = HyperParameter(hyper_path, model_name=model_name, model_generation=make_function, dataset_name=dataset_name)
+hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
 
 # Model Selection to load a model definition from a module in kgcnn.literature
 make_model = get_model_class(model_name, make_function)

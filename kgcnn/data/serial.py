@@ -20,6 +20,13 @@ except ModuleNotFoundError as e:
     logging.error("Can not import `GraphTUDataset` for serialization with %s." % e)
     GraphTUDataset = None
 
+try:
+    from kgcnn.data.crystal import CrystalDataset
+except ModuleNotFoundError as e:
+    logging.error("Can not import `CrystalDataset` for serialization with %s." % e)
+    CrystalDataset = None
+
+
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
@@ -27,7 +34,8 @@ module_logger.setLevel(logging.INFO)
 global_dataset_register = {
     "MoleculeNetDataset": MoleculeNetDataset,
     "QMDataset": QMDataset,
-    "GraphTUDataset": GraphTUDataset
+    "GraphTUDataset": GraphTUDataset,
+    "CrystalDataset": CrystalDataset
 }
 
 

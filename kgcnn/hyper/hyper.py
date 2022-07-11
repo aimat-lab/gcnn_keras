@@ -19,21 +19,23 @@ class HyperParameter:
     """
 
     def __init__(self, hyper_info: Union[str, dict],
-                 model_name: str = None, dataset_name: str = None, model_generation: str = None):
+                 model_name: str = None, model_module: str = None,
+                 model_class: str = "make_model", dataset_name: str = None):
         """Make a hyperparameter class instance. Required is the hyperparameter dictionary or path to a config
         file containing the hyperparameter. Furthermore, name of the dataset and model can be provided.
 
         Args:
             hyper_info (str, dict): Hyperparameter dictionary or path to file.
-            model_name (str): Name or module of the model, provided module is named after the model.
-            model_generation (str): Class name or make function for model.
+            model_name (str): Name of the model.
+            model_module (str): Name of the module of the model. Defaults 'kgcnn.literature.model_name'.
+            model_class (str): Class name or make function for model.
             dataset_name (str): Name of the dataset.
         """
         self._hyper = None
         self.dataset_name = dataset_name
-        self.model_name = model_name if model_name[:6] != "kgcnn." else model_name.split(".")[-1]
-        self.model_module = model_name if model_name[:6] == "kgcnn." else "kgcnn.literature.%s" % model_name
-        self.model_generation = model_generation
+        self.model_name = model_name
+        self.model_module = "kgcnn.literature.%s" % model_name if model_name and model_module is None else None
+        self.model_class = model_class
 
         if isinstance(hyper_info, str):
             self._hyper_all = load_hyper_file(hyper_info)
@@ -44,23 +46,31 @@ class HyperParameter:
 
         # If model and training section in hyper-dictionary, then this is a valid hyper setting.
         # If hyper is itself a dictionary with many models, pick the right model if model name is given.
+        model_name_class = "%s.%s" % (model_name, model_class)
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
-        elif model_name is not None and model_name in self._hyper_all:
+        elif model_name is not None and model_class == "make_model" and model_name in self._hyper_all:
             self._hyper = self._hyper_all[model_name]
+        elif model_name is not None and model_class != "make_model" and model_name_class in self._hyper_all:
+            self._hyper = self._hyper_all[model_name_class]
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
 
         self.verify()
 
     def verify(self):
-        """Verify hyperparameter."""
+        """Logic to verify hyperparameter dictionary."""
+        # Update some optional parameters in hyper.
         if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
+            # Older model config setting.
             module_logger.warning("Hyperparameter {'model': ...} changed to {'model': {'config': {...}}}")
             self._hyper["model"] = {"config": deepcopy(self._hyper["model"])}
-        if "class_name" not in self._hyper["model"] and self.model_generation is not None:
-            module_logger.info("Adding model class to 'model': {'class_name': %s}" % self.model_generation)
-            self._hyper["model"].update({"class_name": self.model_generation})
+        if "class_name" not in self._hyper["model"] and self.model_class is not None:
+            module_logger.info("Adding model class from self to 'model': {'class_name': %s}" % self.model_class)
+            self._hyper["model"].update({"class_name": self.model_class})
+        if "module_name" not in self._hyper["model"] and self.model_module is not None:
+            module_logger.info("Adding model module from self to 'model': {'module_name': %s}" % self.model_module)
+            self._hyper["model"].update({"module_name": self.model_module})
         if "info" not in self._hyper:
             self._hyper.update({"info": {}})
             module_logger.info("Adding 'info' category to hyperparameter.")
@@ -73,22 +83,29 @@ class HyperParameter:
         if "data_unit" not in self._hyper["data"]:
             module_logger.info("Adding 'data_unit' to 'data' category in hyperparameter.")
             self._hyper["data"].update({"data_unit": ""})
-        # Errors
+
+        # Errors if missmatch is found between class definition and information in hyper-dictionary.
+        # In principle all information regarding model and dataset can be stored in hyper-dictionary.
         if "class_name" in self._hyper["data"]["dataset"] and self.dataset_name is not None:
             if self.dataset_name != self._hyper["data"]["dataset"]["class_name"]:
                 raise ValueError(
-                    "%s does not agree with hyperparameter %s" % (
+                    "Dataset '%s' does not agree with hyperparameter '%s'" % (
                         self.dataset_name, self._hyper["data"]["dataset"]["class_name"]))
-        if "class_name" in self._hyper["model"] and self.model_generation is not None:
-            if self._hyper["model"]["class_name"] != self.model_generation:
+        if "class_name" in self._hyper["model"] and self.model_class is not None:
+            if self._hyper["model"]["class_name"] != self.model_class:
                 raise ValueError(
-                    "%s does not agree with hyperparameter %s" % (
-                        self.model_generation, self._hyper["model"]["class_name"]))
+                    "Model generation '%s' does not agree with hyperparameter '%s'" % (
+                        self.model_class, self._hyper["model"]["class_name"]))
         if "module_name" in self._hyper["model"] and self.model_module is not None:
             if self._hyper["model"]["module_name"] != self.model_module:
                 raise ValueError(
-                    "%s does not agree with hyperparameter %s" % (
+                    "Model module '%s' does not agree with hyperparameter '%s'" % (
                         self.model_module, self._hyper["model"]["module_name"]))
+        if "name" in self._hyper["model"]["config"] and self.model_name is not None:
+            if self._hyper["model"]["config"]["name"] != self.model_name:
+                module_logger.error(
+                    "Model name '%s' does not agree with hyperparameter '%s'" % (
+                        self.model_name, self._hyper["model"]["config"]["name"]))
 
     def __getitem__(self, item):
         return deepcopy(self._hyper[item])
@@ -179,6 +196,10 @@ class HyperParameter:
         os.makedirs("results", exist_ok=True)
         os.makedirs(os.path.join("results", self.dataset_name), exist_ok=True)
         model_name = self._hyper['model']['config']['name']
+        if "class_name" in self._hyper['model']:
+            class_name = self._hyper['model']["class_name"]
+            if class_name != "make_model":
+                model_name = "%s_%s" % (model_name, class_name)
         filepath = os.path.join("results", self.dataset_name, model_name + post_fix)
         os.makedirs(filepath, exist_ok=True)
         return filepath
