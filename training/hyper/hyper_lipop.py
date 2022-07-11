@@ -1,29 +1,33 @@
 hyper = {
     "DMPNN": {
         "model": {
-            "name": "DMPNN",
-            "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-                {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {
-                "node": {"input_dim": 95, "output_dim": 64},
-                "edge": {"input_dim": 5, "output_dim": 64}
-            },
-            "pooling_args": {"pooling_method": "sum"},
-            "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
-            "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
-            "edge_activation": {"activation": "relu"},
-            "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
-            "verbose": 10, "depth": 5,
-            "dropout": {"rate": 0.1},
-            "output_embedding": "graph",
-            "output_mlp": {
-                "use_bias": [True, True, False], "units": [64, 32, 1],
-                "activation": ["relu", "relu", "linear"]
-            },
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.DMPNN",
+            "config": {
+                "name": "DMPNN",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64},
+                    "edge": {"input_dim": 5, "output_dim": 64}
+                },
+                "pooling_args": {"pooling_method": "sum"},
+                "edge_initialize": {"units": 128, "use_bias": True, "activation": "relu"},
+                "edge_dense": {"units": 128, "use_bias": True, "activation": "linear"},
+                "edge_activation": {"activation": "relu"},
+                "node_dense": {"units": 128, "use_bias": True, "activation": "relu"},
+                "verbose": 10, "depth": 5,
+                "dropout": {"rate": 0.1},
+                "output_embedding": "graph",
+                "output_mlp": {
+                    "use_bias": [True, True, False], "units": [64, 32, 1],
+                    "activation": ["relu", "relu", "linear"]
+                },
+            }
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
@@ -47,6 +51,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
@@ -57,24 +62,29 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "AttentiveFP": {
         "model": {
-            "name": "AttentiveFP",
-            "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
-                                "edge_attributes": {"input_dim": 5, "output_dim": 64}},
-            "attention_args": {"units": 200},
-            "depth": 2,
-            "dropout": 0.2,
-            "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                           "activation": ["kgcnn>leaky_relu", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.AttentiveFP",
+            "config": {
+                "name": "AttentiveFP",
+                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
+                                    "edge_attributes": {"input_dim": 5, "output_dim": 64}},
+                "attention_args": {"units": 200},
+                "depth": 2,
+                "dropout": 0.2,
+                "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True], "units": [200, 1],
+                               "activation": ["kgcnn>leaky_relu", "linear"]},
+            }
         },
         "training": {
             "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []
@@ -93,6 +103,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}}
@@ -102,23 +113,28 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "PAiNN": {
         "model": {
-            "name": "PAiNN",
-            "inputs": [
-                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-            "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
-            "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
-            "update_args": {"units": 128}, "depth": 3, "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.PAiNN",
+            "config": {
+                "name": "PAiNN",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+                "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+                "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
+                "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
+            }
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 250, "validation_freq": 10, "verbose": 2,
@@ -149,6 +165,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
@@ -159,23 +176,28 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "GIN": {
         "model": {
-            "name": "GIN",
-            "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
-            "depth": 5,
-            "dropout": 0.05,
-            "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
-                        "use_normalization": True, "normalization_technique": "batch"},
-            "gin_args": {},
-            "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
-            "output_embedding": "graph",
-            "output_mlp": {"activation": "linear", "units": 1},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GIN",
+            "config": {
+                "name": "GIN",
+                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "depth": 5,
+                "dropout": 0.05,
+                "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                            "use_normalization": True, "normalization_technique": "batch"},
+                "gin_args": {},
+                "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
+                "output_embedding": "graph",
+                "output_mlp": {"activation": "linear", "units": 1},
+            }
         },
         "training": {
             "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
@@ -198,6 +220,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}}
@@ -207,30 +230,35 @@ hyper = {
         },
         "info": {
             "postfix": "",
+            "postfix_file": "",
             "kgcnn_version": "2.0.3"
         }
     },
     "INorp": {
         "model": {
-            "name": "INorp",
-            "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-                {"shape": [], "name": "graph_size", "dtype": "float32", "ragged": False}
-            ],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
-                                "edge": {"input_dim": 15, "output_dim": 32},
-                                "graph": {"input_dim": 30, "output_dim": 32}},
-            "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
-            "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
-            "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
-            "pooling_args": {"pooling_method": "segment_sum"},
-            "depth": 3, "use_set2set": False, "verbose": 10,
-            "gather_args": {},
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.INorp",
+            "config": {
+                "name": "INorp",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [], "name": "graph_size", "dtype": "float32", "ragged": False}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
+                                    "edge": {"input_dim": 15, "output_dim": 32},
+                                    "graph": {"input_dim": 30, "output_dim": 32}},
+                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
+                "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
+                "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
+                "pooling_args": {"pooling_method": "segment_sum"},
+                "depth": 3, "use_set2set": False, "verbose": 10,
+                "gather_args": {},
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
+                               "activation": ["relu", "relu", "linear"]},
+            }
         },
         "training": {
             "fit": {
@@ -253,6 +281,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}}
@@ -262,28 +291,33 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "GAT": {
         "model": {
-            "name": "GAT",
-            "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {
-                "node": {"input_dim": 95, "output_dim": 64},
-                "edge": {"input_dim": 8, "output_dim": 64}},
-            "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
-                               "use_final_activation": False, "has_self_loops": True},
-            "pooling_nodes_args": {"pooling_method": "sum"},
-            "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GAT",
+            "config": {
+                "name": "GAT",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64},
+                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "use_final_activation": False, "has_self_loops": True},
+                "pooling_nodes_args": {"pooling_method": "sum"},
+                "depth": 4, "attention_heads_num": 10,
+                "attention_heads_concat": False, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                               "activation": ["relu", "relu", "linear"]},
+            }
         },
         "training": {
             "fit": {
@@ -306,6 +340,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}}
@@ -315,28 +350,33 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "GATv2": {
         "model": {
-            "name": "GATv2",
-            "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {
-                "node": {"input_dim": 95, "output_dim": 64},
-                "edge": {"input_dim": 8, "output_dim": 64}},
-            "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
-                               "use_final_activation": False, "has_self_loops": True},
-            "pooling_nodes_args": {"pooling_method": "sum"},
-            "depth": 4, "attention_heads_num": 10,
-            "attention_heads_concat": False, "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                           "activation": ["relu", "relu", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GATv2",
+            "config": {
+                "name": "GATv2",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64},
+                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "use_final_activation": False, "has_self_loops": True},
+                "pooling_nodes_args": {"pooling_method": "sum"},
+                "depth": 4, "attention_heads_num": 10,
+                "attention_heads_concat": False, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                               "activation": ["relu", "relu", "linear"]},
+            }
         },
         "training": {
             "fit": {
@@ -359,6 +399,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}}
@@ -368,29 +409,34 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "kgcnn_version": "2.0.2"
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
         }
     },
     "DimeNetPP": {
         "model": {
-            "name": "DimeNetPP",
-            "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                       {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
-                                         "embeddings_initializer": {"class_name": "RandomUniform",
-                                                                    "config": {"minval": -1.7320508075688772,
-                                                                               "maxval": 1.7320508075688772}}}},
-            "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
-            "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
-            "cutoff": 5.0, "envelope_exponent": 5,
-            "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
-            "num_targets": 128, "extensive": False, "output_init": "zeros",
-            "activation": "swish", "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, False], "units": [128, 1],
-                           "activation": ["swish", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.DimeNetPP",
+            "config": {
+                "name": "DimeNetPP",
+                "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
+                                             "embeddings_initializer": {"class_name": "RandomUniform",
+                                                                        "config": {"minval": -1.7320508075688772,
+                                                                                   "maxval": 1.7320508075688772}}}},
+                "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
+                "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
+                "cutoff": 5.0, "envelope_exponent": 5,
+                "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
+                "num_targets": 128, "extensive": False, "output_init": "zeros",
+                "activation": "swish", "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, False], "units": [128, 1],
+                               "activation": ["swish", "linear"]},
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -421,6 +467,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
@@ -433,37 +480,41 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "HamNet": {
         "model": {
-            "name": "HamNet",
-            "inputs": [
-                {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True}
-            ],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                "edge": {"input_dim": 5, "output_dim": 64}},
-            "message_kwargs": {"units": 200,
-                               "units_edge": 200,
-                               "rate": 0.5, "use_dropout": True},
-            "fingerprint_kwargs": {"units": 200,
-                                   "units_attend": 200,
-                                   "rate": 0.5, "use_dropout": True,
-                                   "depth": 3},
-            "gru_kwargs": {"units": 200},
-            "verbose": 10, "depth": 3,
-            "union_type_node": "gru",
-            "union_type_edge": "None",
-            "given_coordinates": True,
-            'output_embedding': 'graph',
-            'output_mlp': {"use_bias": [True, False], "units": [200, 1],
-                           "activation": ['relu', 'linear'],
-                           "use_dropout": [True, False],
-                           "rate": [0.5, 0.0]}
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.HamNet",
+            "config": {
+                "name": "HamNet",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "message_kwargs": {"units": 200,
+                                   "units_edge": 200,
+                                   "rate": 0.5, "use_dropout": True},
+                "fingerprint_kwargs": {"units": 200,
+                                       "units_attend": 200,
+                                       "rate": 0.5, "use_dropout": True,
+                                       "depth": 3},
+                "gru_kwargs": {"units": 200},
+                "verbose": 10, "depth": 3,
+                "union_type_node": "gru",
+                "union_type_edge": "None",
+                "given_coordinates": True,
+                'output_embedding': 'graph',
+                'output_mlp': {"use_bias": [True, False], "units": [200, 1],
+                               "activation": ['relu', 'linear'],
+                               "use_dropout": [True, False],
+                               "rate": [0.5, 0.0]}
+            }
         },
         "training": {
             "fit": {
@@ -481,14 +532,17 @@ hyper = {
                        "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
-            "dataset": {"class_name": "LipopDataset",
-                        "config": {},
-                        "methods": [{"set_attributes": {}}]
-                        },
+            "dataset": {
+                "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
+                "config": {},
+                "methods": [{"set_attributes": {}}]
+            },
             "data_unit": ""
         },
         "info": {
             "postfix": "",
+            "postfix_file": "",
             "kgcnn_version": "2.0.3"
         }
     }
