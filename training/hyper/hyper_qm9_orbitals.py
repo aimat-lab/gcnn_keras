@@ -1,26 +1,30 @@
 hyper = {
     "Schnet": {
         "model": {
-            "name": "Schnet",
-            "inputs": [
-                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {
-                "node": {"input_dim": 95, "output_dim": 64}
-            },
-            "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 2],
-                         "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
-            "interaction_args": {
-                "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
-            },
-            "node_pooling_args": {"pooling_method": "sum"},
-            "depth": 4,
-            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
-            "output_embedding": "graph",
-            "use_output_mlp": False,
-            "output_mlp": None,
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.Schnet",
+            "config": {
+                "name": "Schnet",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64}
+                },
+                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 2],
+                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                "interaction_args": {
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                },
+                "node_pooling_args": {"pooling_method": "sum"},
+                "depth": 4,
+                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                "output_embedding": "graph",
+                "use_output_mlp": False,
+                "output_mlp": None,
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -51,6 +55,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -60,32 +65,36 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "Megnet": {
         "model": {
-            "name": "Megnet",
-            "inputs": [
-                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                {"shape": [2], "name": "graph_attributes", "dtype": "float32", "ragged": False}
-            ],
-            "input_embedding": {"node": {"input_dim": 10, "output_dim": 16},
-                                "graph": {"input_dim": 100, "output_dim": 64}},
-            "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-            "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
-                               "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
-            "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-            "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-            "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-            "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
-            "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
-            "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 2],
-                           "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.Megnet",
+            "config": {
+                "name": "Megnet",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [2], "name": "graph_attributes", "dtype": "float32", "ragged": False}
+                ],
+                "input_embedding": {"node": {"input_dim": 10, "output_dim": 16},
+                                    "graph": {"input_dim": 100, "output_dim": 64}},
+                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
+                                   "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+                "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+                "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
+                "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 2],
+                               "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -117,6 +126,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -126,27 +136,31 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "NMPN": {
         "model": {
-            "name": "NMPN",
-            "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                "edge": {"input_dim": 5, "output_dim": 64}},
-            "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-            "pooling_args": {"pooling_method": "segment_sum"},
-            "use_set2set": True,
-            "depth": 3,
-            "node_dim": 128,
-            "verbose": 10,
-            "geometric_edge": True, "make_distance": True, "expand_distance": True,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 2],
-                           "activation": ["selu", "selu", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.NMPN",
+            "config": {
+                "name": "NMPN",
+                "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+                "pooling_args": {"pooling_method": "segment_sum"},
+                "use_set2set": True,
+                "depth": 3,
+                "node_dim": 128,
+                "verbose": 10,
+                "geometric_edge": True, "make_distance": True, "expand_distance": True,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 2],
+                               "activation": ["selu", "selu", "linear"]},
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -178,6 +192,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -187,23 +202,27 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "PAiNN": {
         "model": {
-            "name": "PAiNN",
-            "inputs": [
-                {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
-            ],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-            "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
-            "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
-            "update_args": {"units": 128}, "depth": 3, "verbose": 10,
-            "output_embedding": "graph",
-            "output_mlp": {"use_bias": [True, True], "units": [128, 2], "activation": ["swish", "linear"]},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.PAiNN",
+            "config": {
+                "name": "PAiNN",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+                "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+                "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
+                "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True], "units": [128, 2], "activation": ["swish", "linear"]},
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -242,6 +261,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000}}
@@ -251,29 +271,33 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     },
     "DimeNetPP": {
         "model": {
-            "name": "DimeNetPP",
-            "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                       {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                       {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
-            "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
-                                         "embeddings_initializer": {"class_name": "RandomUniform",
-                                                                    "config": {"minval": -1.7320508075688772,
-                                                                               "maxval": 1.7320508075688772}}}},
-            "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
-            "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
-            "cutoff": 5.0, "envelope_exponent": 5,
-            "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
-            "num_targets": 2, "extensive": False, "output_init": "zeros",
-            "activation": "swish", "verbose": 10,
-            "output_embedding": "graph",
-            "use_output_mlp": False,
-            "output_mlp": {},
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.DimeNetPP",
+            "config": {
+                "name": "DimeNetPP",
+                "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
+                                             "embeddings_initializer": {"class_name": "RandomUniform",
+                                                                        "config": {"minval": -1.7320508075688772,
+                                                                                   "maxval": 1.7320508075688772}}}},
+                "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
+                "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
+                "cutoff": 5.0, "envelope_exponent": 5,
+                "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
+                "num_targets": 2, "extensive": False, "output_init": "zeros",
+                "activation": "swish", "verbose": 10,
+                "output_embedding": "graph",
+                "use_output_mlp": False,
+                "output_mlp": {},
+            }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
@@ -312,6 +336,7 @@ hyper = {
         "data": {
             "dataset": {
                 "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
@@ -322,7 +347,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_orbitals",
-            "kgcnn_version": "2.0.2"
+            "kgcnn_version": "2.0.3"
         }
     }
 }
