@@ -54,10 +54,13 @@ def deserialize(obj_dict: dict) -> Any:
     # Order is important here.
     if "methods" in obj_dict:
         method_list = obj_dict["methods"]
-        for method_item in method_list:
-            for method, kwargs in method_item.items():
-                if hasattr(obj, method):
-                    getattr(obj, method)(**kwargs)
-                else:
-                    logging.error("Class for deserialization does not have method %s" % method)
+        if hasattr(obj, "set_methods"):
+            obj.set_methods(method_list)
+        else:
+            for method_item in method_list:
+                for method, kwargs in method_item.items():
+                    if hasattr(obj, method):
+                        getattr(obj, method)(**kwargs)
+                    else:
+                        logging.error("Class for deserialization does not have method %s" % method)
     return obj

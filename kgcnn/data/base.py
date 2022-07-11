@@ -613,5 +613,13 @@ class MemoryGraphDataset(MemoryGraphList):
                 message_error("Can not check shape for %s." % x["name"])
         return
 
+    def set_methods(self, method_list: list):
+        for method_item in method_list:
+            for method, kwargs in method_item.items():
+                if hasattr(self, method):
+                    getattr(self, method)(**kwargs)
+                else:
+                    self.error("Class does not have method %s" % method)
+
 
 MemoryGeometricGraphDataset = MemoryGraphDataset
