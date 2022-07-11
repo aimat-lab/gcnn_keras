@@ -60,6 +60,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 20}}
                 ]
             },
+            "data_unit": "eV/atom"
         },
         "info": {
             "postfix": "",
@@ -122,6 +123,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10}}
                 ]
             },
+            "data_unit": "eV/atom"
         },
         "info": {
             "postfix": "",

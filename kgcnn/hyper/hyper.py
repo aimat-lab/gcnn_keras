@@ -149,7 +149,7 @@ class HyperParameter:
 
     def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
         """Select fit hyperparameter. Additional default values for the training scripts are given as
-        functional kwargs. Functional kwargs are overwritten by hyperparameters.
+        functional kwargs. Functional kwargs are overwritten by hyperparameter.
 
         Args:
             epochs (int): Default number of epochs. Default is 1.
@@ -158,7 +158,7 @@ class HyperParameter:
             callbacks (list): Default Callbacks. Default is None.
 
         Returns:
-            dict: de-serialized fit kwargs from hyperparameters.
+            dict: de-serialized fit kwargs from hyperparameter.
         """
         hyper_fit = deepcopy(self._hyper["training"]["fit"])
         reserved_fit_arguments = ["callbacks", "batch_size", "validation_freq", "epochs"]
