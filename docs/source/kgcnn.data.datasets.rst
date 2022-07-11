@@ -52,6 +52,22 @@ kgcnn.data.datasets.MUTAGDataset module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.MatBenchDataset2020 module
+----------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatBenchDataset2020
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectEFormDataset module
+-------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectEFormDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.MoleculeNetDataset2018 module
 -------------------------------------------------
 
