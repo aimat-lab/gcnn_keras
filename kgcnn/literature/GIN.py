@@ -219,5 +219,5 @@ def make_model_edge(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `GIN`")
 
-    model = ks.models.Model(inputs=[node_input, edge_index_input], outputs=out)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
     return model
