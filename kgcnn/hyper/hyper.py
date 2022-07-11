@@ -59,7 +59,7 @@ class HyperParameter:
         self.verify()
 
     def verify(self):
-        """Logic to verify hyperparameter dictionary."""
+        """Logic to verify and optionally update hyperparameter dictionary."""
         # Update some optional parameters in hyper.
         if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
             # Older model config setting.
