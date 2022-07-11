@@ -12,6 +12,14 @@ Subpackages
 Submodules
 ----------
 
+kgcnn.data.adapter module
+-------------------------
+
+.. automodule:: kgcnn.data.adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.base module
 ----------------------
 
@@ -52,10 +60,26 @@ kgcnn.data.qm module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.serial module
+------------------------
+
+.. automodule:: kgcnn.data.serial
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.tudataset module
 ---------------------------
 
 .. automodule:: kgcnn.data.tudataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.utils module
+-----------------------
+
+.. automodule:: kgcnn.data.utils
    :members:
    :undoc-members:
    :show-inheritance:

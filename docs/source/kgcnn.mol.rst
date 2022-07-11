@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   kgcnn.mol.gen
+   kgcnn.mol.external
 
 Submodules
 ----------
@@ -20,10 +20,18 @@ kgcnn.mol.base module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.mol.enocder module
+kgcnn.mol.convert module
 ------------------------
 
-.. automodule:: kgcnn.mol.enocder
+.. automodule:: kgcnn.mol.convert
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.encoder module
+------------------------
+
+.. automodule:: kgcnn.mol.encoder
    :members:
    :undoc-members:
    :show-inheritance:
@@ -56,6 +64,38 @@ kgcnn.mol.methods module
 ------------------------
 
 .. automodule:: kgcnn.mol.methods
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.module\_babel module
+------------------------------
+
+.. automodule:: kgcnn.mol.module_babel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.module\_pymatgen module
+---------------------------------
+
+.. automodule:: kgcnn.mol.module_pymatgen
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.module\_pyxtal module
+-------------------------------
+
+.. automodule:: kgcnn.mol.module_pyxtal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.module\_rdkit module
+------------------------------
+
+.. automodule:: kgcnn.mol.module_rdkit
    :members:
    :undoc-members:
    :show-inheritance:

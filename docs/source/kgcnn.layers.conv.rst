@@ -45,7 +45,7 @@ kgcnn.layers.conv.gin\_conv module
    :show-inheritance:
 
 kgcnn.layers.conv.hamnet\_conv module
-----------------------------------
+-------------------------------------
 
 .. automodule:: kgcnn.layers.conv.hamnet_conv
    :members:

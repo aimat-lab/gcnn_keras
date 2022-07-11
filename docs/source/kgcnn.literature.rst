@@ -77,7 +77,7 @@ kgcnn.literature.GraphSAGE module
    :show-inheritance:
 
 kgcnn.literature.HamNet module
----------------------------------
+------------------------------
 
 .. automodule:: kgcnn.literature.HamNet
    :members:
