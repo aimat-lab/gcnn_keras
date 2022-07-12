@@ -180,7 +180,7 @@ class GraphMethodsAdapter:
             module_logger.error("Can not set 'normalize_edge_weights_sym', missing '%s'." % edge_indices)
             return self
         # If weights is not set, initialize with weight one.
-        if edge_weights not in self or self.obtain_property(edge_weights) is None:
+        if not self.assert_has_key(edge_weights):
             self.assign_property(edge_weights, np.ones((len(self.obtain_property(edge_indices)), 1)))
         self.assign_property(
             edge_weights,
@@ -214,8 +214,8 @@ class GraphMethodsAdapter:
             range_indices,
             np.array(self.obtain_property(edge_indices), dtype="int")  # We make a copy.
         )
-        if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
-            module_logger.error("Coordinates are not set. Can not calculate range values.")
+        if not self.assert_has_key(node_coordinates):
+            module_logger.error("Coordinates '%s' are not set. Can not calculate range values." % node_coordinates)
             return self
         xyz = self.obtain_property(node_coordinates)
         idx = self.obtain_property(range_indices)
