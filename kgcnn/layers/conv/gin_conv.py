@@ -120,7 +120,8 @@ class GINE(GraphBaseLayer):
         self.layer_gather = GatherNodesOutgoing()
         self.layer_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.layer_add = LazyAdd()
-        self.layer_act = ActivationEmbedding(activation=activation, activity_regularizer=activity_regularizer)
+        self.layer_act = ActivationEmbedding(activation=activation,
+                                             activity_regularizer=activity_regularizer)
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,

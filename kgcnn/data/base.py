@@ -198,10 +198,12 @@ class GraphDict(dict, GraphMethodsAdapter):
             key (str): Name of property that must be defined.
 
         Returns:
-            None.
+            bool: Whether key in self.
         """
-        if key not in self or self[key] is None:
-            raise ValueError("Can not use %s, as it is not found." % key)
+        if key not in self or self.obtain_property(key) is None:
+            module_logger.error("Can not use '%s', as it is not found." % key)
+            return False
+        return True
 
 
 GraphNumpyContainer = GraphDict

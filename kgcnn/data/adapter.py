@@ -45,7 +45,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not operate on edges, missing '%s'." % edge_indices)
+            return self
         # Determine all linked edge attributes, that are not None.
         edge_linked = self.find_graph_properties(edge_attributes)
         # Edge indices is always at first position!
@@ -79,7 +81,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not set 'set_edge_indices_reverse', missing '%s'." % edge_indices)
+            return self
         self.assign_property(
             edge_indices_reverse,
             np.expand_dims(compute_reverse_edges_index_map(self.obtain_property(edge_indices)), axis=-1)
@@ -130,7 +134,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not set 'add_edge_self_loops', missing '%s'." % edge_indices)
+            return self
         self._operate_on_edges(add_self_loops_to_edge_indices, edge_indices=edge_indices,
                                edge_attributes=edge_attributes,
                                remove_duplicates=remove_duplicates, sort_indices=sort_indices, fill_value=fill_value)
@@ -148,12 +154,15 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not set 'sort_edge_indices', missing '%s'." % edge_indices)
+            return self
         self._operate_on_edges(sort_edge_indices, edge_indices=edge_indices,
                                edge_attributes=edge_attributes)
         return self
 
-    def normalize_edge_weights_sym(self, edge_indices: str = "edge_indices",
+    def normalize_edge_weights_sym(self,
+                                   edge_indices: str = "edge_indices",
                                    edge_weights: str = "edge_weights"):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
         Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
@@ -167,7 +176,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not set 'normalize_edge_weights_sym', missing '%s'." % edge_indices)
+            return self
         # If weights is not set, initialize with weight one.
         if edge_weights not in self or self.obtain_property(edge_weights) is None:
             self.assign_property(edge_weights, np.ones((len(self.obtain_property(edge_indices)), 1)))
@@ -196,7 +207,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(edge_indices)
+        if not self.assert_has_key(edge_indices):
+            module_logger.error("Can not set 'set_range_from_edges', missing '%s'." % edge_indices)
+            return self
         self.assign_property(
             range_indices,
             np.array(self.obtain_property(edge_indices), dtype="int")  # We make a copy.
@@ -234,8 +247,8 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
-            module_logger.error("Coordinates are not set. Can not compute range.")
+        if not self.assert_has_key(node_coordinates):
+            module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
             return self
         # Compute distance matrix here. May be problematic for too large graphs.
         dist = coordinates_to_distancematrix(self.obtain_property(node_coordinates))
@@ -283,7 +296,9 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        self.assert_has_key(range_indices)
+        if not self.assert_has_key(range_indices):
+            module_logger.error("Can not set 'set_angle', missing '%s'." % range_indices)
+            return self
         # Compute angles
         _, a_triples, a_indices = get_angle_indices(self.obtain_property(range_indices),
                                                     allow_multi_edges=allow_multi_edges)
