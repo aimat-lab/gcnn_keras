@@ -123,6 +123,13 @@ class ActivationEmbedding(GraphBaseLayer):
         """
         return self.call_on_values_tensor_of_ragged(self._layer_act, inputs, **kwargs)
 
+    def get_config(self):
+        """Get config of layer."""
+        config = super(ActivationEmbedding, self).get_config()
+        act_reg = ks.regularizers.serialize(self._layer_act.activity_regularizer)
+        config.update({"activity_regularizer": act_reg})
+        return config
+
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
 class LazyAdd(GraphBaseLayer):
