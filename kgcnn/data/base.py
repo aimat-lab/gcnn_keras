@@ -191,17 +191,21 @@ class GraphDict(dict, GraphMethodsAdapter):
             return [x for x in name_props if x in self]
         raise TypeError("Can not find keys of properties for input type %s" % name_props)
 
-    def assert_has_key(self, key: str):
+    def assert_has_key(self, key: str, raise_error: bool = False):
         """Check if the property is found in self.
 
         Args:
             key (str): Name of property that must be defined.
+            raise_error (bool): Whether to raise error. Default is False.
 
         Returns:
-            bool: Whether key in self.
+            bool: Key is valid.
         """
         if key not in self or self.obtain_property(key) is None:
-            module_logger.error("Can not use '%s', as it is not found." % key)
+            if raise_error:
+                raise ValueError("Can not use '%s', as it is not found." % key)
+            else:
+                module_logger.error("Can not use '%s', as it is not found." % key)
             return False
         return True
 
