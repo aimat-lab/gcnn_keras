@@ -204,8 +204,6 @@ class GraphDict(dict, GraphMethodsAdapter):
         if key not in self or self.obtain_property(key) is None:
             if raise_error:
                 raise ValueError("Can not use '%s', as it is not found." % key)
-            else:
-                module_logger.error("Can not use '%s', as it is not found." % key)
             return False
         return True
 
