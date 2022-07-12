@@ -571,7 +571,7 @@ class MemoryGraphDataset(MemoryGraphList):
                 self.data_frame = pd.read_excel(file_path_base + file_extension, **kwargs)
                 return self
 
-        self.warning("Unsupported data extension of %s for table file." % file_path)
+        self.warning("Unsupported data extension of '%s' for table file." % file_path)
         return self
 
     def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
@@ -597,7 +597,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
         for x in hyper_input:
             if "name" not in x:
-                message_error("Can not infer name from %s for model input." % x)
+                message_error("Can not infer name from '%s' for model input." % x)
             data = [dataset[i].obtain_property(x["name"]) for i in range(len(dataset))]
             if any([y is None for y in data]):
                 message_error("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
@@ -614,7 +614,7 @@ class MemoryGraphDataset(MemoryGraphList):
                             message_error(
                                 "Mismatch in shape for model input {} vs. {}".format(shape_element, shape_input))
             else:
-                message_error("Can not check shape for %s." % x["name"])
+                message_error("Can not check shape for '%s'." % x["name"])
         return
 
     def set_methods(self, method_list: list):
@@ -623,7 +623,7 @@ class MemoryGraphDataset(MemoryGraphList):
                 if hasattr(self, method):
                     getattr(self, method)(**kwargs)
                 else:
-                    self.error("Class does not have method %s" % method)
+                    self.error("Class does not have method '%s'." % method)
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset
