@@ -1,3 +1,8 @@
+v2.0.4
+
+* Add ``get_weights`` and ``get_config`` to `kgcnn.scaler` 
+
+
 v2.0.3
 
 * fix typo to read `kgcnn.mol.encoder`

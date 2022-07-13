@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setup(
     name="kgcnn",
-    version="2.0.3",
+    version="2.0.4",
     author="Patrick Reiser",
     author_email="patrick.reiser@kit.edu",
     description="General Base Layers for Graph Convolutions with tensorflow.keras",
