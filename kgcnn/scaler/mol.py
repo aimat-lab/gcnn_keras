@@ -12,7 +12,8 @@ class ExtensiveMolecularScaler:
     interactions into account, e.g. as energy contribution.
 
     """
-
+    _attributes_list_sklearn = ["coef_", "intercept_", "n_iter_", "n_features_in_", "feature_names_in_"]
+    _attributes_list_mol = ["scale_", "_fit_atom_selection", "_fit_atom_selection_mask"]
     max_atomic_number = 95
 
     def __init__(self, alpha: float = 1e-9, fit_intercept: bool = False, **kwargs):
@@ -28,12 +29,10 @@ class ExtensiveMolecularScaler:
 
         self._fit_atom_selection_mask = None
         self._fit_atom_selection = None
-        self._fit_coef = None
-        self._fit_intercept = None
         self.scale_ = None
 
     def fit(self, atomic_number, molecular_property, sample_weight=None):
-        """Fit atomic number to the molecular properties.
+        r"""Fit atomic number to the molecular properties.
 
         Args:
             atomic_number (list): List of array of atomic numbers. Shape is `(n_samples, #atoms)`.
@@ -63,8 +62,6 @@ class ExtensiveMolecularScaler:
             total_number.append(positives)
         total_number = np.array(total_number)
         self.ridge.fit(total_number, molecular_property, sample_weight=sample_weight)
-        self._fit_coef = self.ridge.coef_
-        self._fit_intercept = self.ridge.intercept_
         diff = molecular_property - self.ridge.predict(total_number)
         self.scale_ = np.std(diff, axis=0, keepdims=True)
         return self
@@ -79,7 +76,7 @@ class ExtensiveMolecularScaler:
             np.ndarray: Offset of atomic properties fitted previously. Shape is `(n_samples, n_properties)`.
         """
         if self._fit_atom_selection_mask is None:
-            raise ValueError("ERROR:kgcnn: `ExtensiveMolecularScaler` has not been fitted yet. Can not predict.")
+            raise ValueError("ERROR: `ExtensiveMolecularScaler` has not been fitted yet. Can not predict.")
         unique_number = [np.unique(x, return_counts=True) for x in atomic_number]
         total_number = []
         for unique_per_mol, num_unique in unique_number:
@@ -151,6 +148,18 @@ class ExtensiveMolecularScaler:
         """
         return molecular_property * self.scale_ + self.predict(atomic_number)
 
+    def get_config(self):
+        return self.ridge.get_params()
+
+    def get_weights(self) -> dict:
+        weights = dict()
+        for x in self._attributes_list_mol:
+            weights.update({x: np.array(getattr(self, x))})
+        for x in self._attributes_list_sklearn:
+            if hasattr(self.ridge, x):
+                weights.update({x: np.array(getattr(self.ridge, x))})
+        return weights
+
 
 class QMGraphLabelScaler:
     """A scaler that scales QM targets differently. For now, the main difference is that intensive and extensive
@@ -169,7 +178,7 @@ class QMGraphLabelScaler:
             if hasattr(x, "fit") and hasattr(x, "transform") and hasattr(x, "inverse_transform"):
                 self.scaler_list.append(x)
                 continue
-            # Otherwise must be serialized version of a scaler.
+            # Otherwise, must be serialized version of a scaler.
             if not isinstance(x, dict):
                 raise TypeError("Single scaler for `QMGraphLabelScaler` must be dict, got %s." % x)
 
