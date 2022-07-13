@@ -188,3 +188,24 @@ def pandas_data_frame_columns_to_numpy(data_frame, label_column_name, print_cont
     else:
         raise ValueError(print_context + "Column definition must be list or string, got %s" % label_column_name)
     return out_array
+
+
+def pad_np_array_list_batch_dim(values: list):
+    r"""Pad a list of numpy arrays along first dimension.
+
+    Args:
+        values (list): List of :obj:`np.ndarray` s.
+
+    Returns:
+        tuple: Padded and mask :obj:`np.ndarray` of values.
+    """
+    max_shape = np.amax([x.shape for x in values], axis=0)
+    final_shape = np.concatenate([np.array([len(values)]), max_shape])
+    padded = np.zeros(final_shape, dtype=values[0].dtype)
+    mask = np.zeros(final_shape, dtype="bool")
+    for i, x in enumerate(values):
+        # noinspection PyTypeChecker
+        index = [i] + [slice(0, int(j)) for j in x.shape]
+        padded[tuple(index)] = x
+        mask[tuple(index)] = True
+    return padded, mask
