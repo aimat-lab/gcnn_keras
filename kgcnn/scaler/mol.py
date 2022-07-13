@@ -149,6 +149,7 @@ class ExtensiveMolecularScaler:
         return molecular_property * self.scale_ + self.predict(atomic_number)
 
     def get_config(self):
+        """Get configuration for scaler."""
         return self.ridge.get_params()
 
     def get_weights(self) -> dict:
