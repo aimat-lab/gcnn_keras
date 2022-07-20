@@ -176,7 +176,7 @@ print(graph)
 # List of graph dicts.
 graph_list = MemoryGraphList([graph, {"edge_indices": [[0, 0]]}, {}])
 graph_list.clean(["edge_indices"])  # Remove graphs without property
-graph_list.obtain_property("edge_indices")  # opposite is assign_property()
+graph_list.get("edge_indices")  # opposite is assign_property()
 graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input; makes copy.
 ```
 
