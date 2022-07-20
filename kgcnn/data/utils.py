@@ -194,7 +194,7 @@ def pad_np_array_list_batch_dim(values: list):
     r"""Pad a list of numpy arrays along first dimension.
 
     Args:
-        values (list): List of :obj:`np.ndarray` s.
+        values (list): List of :obj:`np.ndarray`.
 
     Returns:
         tuple: Padded and mask :obj:`np.ndarray` of values.

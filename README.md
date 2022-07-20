@@ -120,6 +120,7 @@ from kgcnn.layers.conv.message import MessagePassingBase
 from kgcnn.layers.modules import DenseEmbedding, LazyAdd
 
 class MyMessageNN(MessagePassingBase):
+
   def __init__(self, units, **kwargs):
     super(MyMessageNN, self).__init__(**kwargs)
     self.dense = DenseEmbedding(units)

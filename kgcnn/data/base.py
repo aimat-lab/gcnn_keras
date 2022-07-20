@@ -207,6 +207,10 @@ class GraphDict(dict, GraphMethodsAdapter):
             return False
         return True
 
+    # Alias of internal assign and obtain property.
+    set = assign_property
+    # get = obtain_property
+
 
 GraphNumpyContainer = GraphDict
 
@@ -427,6 +431,10 @@ class MemoryGraphList:
         for i in invalid_graphs:
             self._list.pop(int(i))
         return invalid_graphs
+
+    # Alias of internal assign and obtain property.
+    set = assign_property
+    get = obtain_property
 
 
 class MemoryGraphDataset(MemoryGraphList):
