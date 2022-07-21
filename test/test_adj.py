@@ -1,8 +1,8 @@
 import numpy as np
 import unittest
 
-from kgcnn.utils.adj import add_edges_reverse_indices, add_self_loops_to_edge_indices
-from kgcnn.utils.adj import get_angle_indices, get_angle, get_angle_between_edges
+from kgcnn.graph.adj import add_edges_reverse_indices, add_self_loops_to_edge_indices
+from kgcnn.graph.adj import get_angle_indices, get_angle, get_angle_between_edges
 
 
 class ReverseEdges(unittest.TestCase):

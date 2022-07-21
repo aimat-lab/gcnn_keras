@@ -1,6 +1,8 @@
 v2.0.4
 
 * Add ``get_weights`` and ``get_config`` to `kgcnn.scaler` 
+* Add ``get`` and ``set`` alias to `GraphDict` and `MemoryGraphList`
+* Refactored ``GraphDict`` and `adj` into `kgcnn.graph`
 
 
 v2.0.3

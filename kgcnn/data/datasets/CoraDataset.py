@@ -5,7 +5,7 @@ import scipy.sparse as sp
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.download import DownloadDataset
-from kgcnn.utils.adj import convert_scaled_adjacency_to_list
+from kgcnn.graph.adj import convert_scaled_adjacency_to_list
 
 
 class CoraDataset(DownloadDataset, MemoryGraphDataset):

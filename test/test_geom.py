@@ -6,8 +6,8 @@ from scipy.optimize import brentq
 from scipy import special as sp
 
 import tensorflow as tf
-from kgcnn.utils.adj import get_angle_indices
-from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition, EdgeAngle2
+from kgcnn.graph.adj import get_angle_indices
+from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition
 from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
 from kgcnn.layers.geom import BesselBasisLayer
 from kgcnn.layers.modules import LazySubtract
