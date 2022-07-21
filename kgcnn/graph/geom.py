@@ -134,13 +134,12 @@ def rigid_transform(a: np.ndarray, b: np.ndarray, correct_reflection: bool = Fal
 
 def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = None, dim: int = 3):
     r"""Compute list of coordinates from a distance matrix of shape `(N, N)`.
-
+    May also work for input of shape `(..., N, N)` but is not tested.
     Uses vectorized Alogrithm:
     http://scripts.iucr.org/cgi-bin/paper?S0567739478000522
     https://www.researchgate.net/publication/252396528_Stable_calculation_of_coordinates_from_distance_information
     no check of positive semi-definite or possible k-dim >= 3 is done here
     performs svd from numpy
-    may even wok for (...,N,N) but not tested
 
     Args:
         distance (np.ndarray): distance matrix of shape (N,N) with Dij = abs(ri-rj)

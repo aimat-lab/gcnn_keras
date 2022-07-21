@@ -11,9 +11,9 @@ class GraphDict(dict, GraphMethodsAdapter):
     when assigning a named value.
 
     Graph operations that modify edges or sort indices are methods of this class supported by
-    :obj:`kgcnn.data.adapter.GraphMethodsAdapter`.
+    :obj:`kgcnn.graph.adapter.GraphMethodsAdapter`.
     Note that the graph-tensors name must follow a standard-convention or be provided to member functions
-    (see documentation of :obj:`kgcnn.data.adapter.GraphMethodsAdapter`).
+    (see documentation of :obj:`kgcnn.graph.adapter.GraphMethodsAdapter`).
 
     .. code-block:: python
 

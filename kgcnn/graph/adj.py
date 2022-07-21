@@ -507,9 +507,9 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
     Returns:
         tuple: graph_adjacency, graph_indices
 
-        - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type `np.bool`.
-        - graph_indices (np.array): Flatten indices from former array that have `True` as entry in the
-            returned adjacency matrix.
+            - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type `np.bool`.
+            - graph_indices (np.array): Flatten indices from former array that have `True` as entry in the
+                returned adjacency matrix.
     """
     distance_matrix = np.array(distance_matrix)
     num_atoms = distance_matrix.shape[-1]
