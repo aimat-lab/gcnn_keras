@@ -130,3 +130,38 @@ def rigid_transform(a: np.ndarray, b: np.ndarray, correct_reflection: bool = Fal
     t = np.expand_dims(centroid_b - np.dot(r, centroid_a), axis=0)
     t = t.T
     return bout, r, t
+
+
+def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = None, dim: int = 3):
+    r"""Compute list of coordinates from a distance matrix of shape `(N, N)`.
+
+    Uses vectorized Alogrithm:
+    http://scripts.iucr.org/cgi-bin/paper?S0567739478000522
+    https://www.researchgate.net/publication/252396528_Stable_calculation_of_coordinates_from_distance_information
+    no check of positive semi-definite or possible k-dim >= 3 is done here
+    performs svd from numpy
+    may even wok for (...,N,N) but not tested
+
+    Args:
+        distance (np.ndarray): distance matrix of shape (N,N) with Dij = abs(ri-rj)
+        use_center (int): which atom should be the center, dafault = None means center of mass
+        dim (int): the dimension of embedding, 3 is default
+
+    Return:
+        np.ndarray: List of Atom coordinates [[x_1,x_2,x_3],[x_1,x_2,x_3],...]
+    """
+    distance = np.array(distance)
+    dim_in = distance.shape[-1]
+    if use_center is None:
+        # Take Center of mass (slightly changed for vectorization assuming d_ii = 0)
+        di2 = np.square(distance)
+        di02 = 1 / 2 / dim_in / dim_in * (2 * dim_in * np.sum(di2, axis=-1) - np.sum(np.sum(di2, axis=-1), axis=-1))
+        mat_m = (np.expand_dims(di02, axis=-2) + np.expand_dims(di02, axis=-1) - di2) / 2  # broadcasting
+    else:
+        di2 = np.square(distance)
+        mat_m = (np.expand_dims(di2[..., use_center], axis=-2) + np.expand_dims(di2[..., use_center],
+                                                                                axis=-1) - di2) / 2
+    u, s, v = np.linalg.svd(mat_m)
+    vecs = np.matmul(u, np.sqrt(np.diag(s)))  # EV are sorted by default
+    distout = vecs[..., 0:dim]
+    return distout
