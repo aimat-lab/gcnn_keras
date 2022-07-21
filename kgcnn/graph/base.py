@@ -18,7 +18,7 @@ class GraphDict(dict, GraphMethodsAdapter):
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.data.base import GraphDict
+        from kgcnn.graph.base import GraphDict
         g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
         g.add_edge_self_loops().sort_edge_indices()  # from GraphMethodsAdapter
         print(g)
