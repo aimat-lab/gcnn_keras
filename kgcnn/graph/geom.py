@@ -164,3 +164,90 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
     vecs = np.matmul(u, np.sqrt(np.diag(s)))  # EV are sorted by default
     distout = vecs[..., 0:dim]
     return distout
+
+
+def range_neighbour_lattice(frac_coordinates: np.ndarray = None, lattice: np.ndarray = None,
+                            max_distance=5.0, max_neighbours=np.inf, exclusive=True,
+                            self_loops=False
+                            ):
+    # Label each node in center from frac_coordinates.
+    node_index = np.expand_dims(np.arange(0, len(frac_coordinates)), axis=1)  # Nx1
+
+    # Find required number of outer images cells: C.
+    num_cells = np.array([3, 3, 3])
+    pos = [np.arange(-x, x+1, 1) for x in num_cells]
+    images = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)  # C+1
+    images = images[np.logical_not(np.all(images == np.array([[0, 0, 0]]), axis=-1))]  # Remove center cell.
+    images = np.expand_dims(images, axis=0)  # 1xCx3
+    images = np.repeat(images, len(frac_coordinates), axis=0)  # NxCx3
+    indices = np.repeat(node_index, images.shape[1], axis=1)  # NxC
+    indices = np.expand_dims(indices, axis=-1)  # NxCx1
+    frac_coord_images = np.expand_dims(frac_coordinates, axis=1) + images  # NxCx3
+
+    # Flatten NxC but keep image and index info in sync.
+    images = np.reshape(images, (-1, 3))  # (NxC)x3
+    frac_coord_images = np.reshape(frac_coord_images, (-1, 3))  # (NxC)x3
+    indices = np.reshape(indices, (-1, 1))  # (NxC)x1
+
+    # Center indices
+    center_indices = np.indices((len(node_index), len(node_index)))
+    center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
+    center_frac_dist = np.expand_dims(frac_coordinates, axis=0) - np.expand_dims(frac_coordinates, axis=1)  # NxNx3
+    center_image = np.zeros(center_frac_dist.shape)
+    if not self_loops:
+        def remove_self_loops(x):
+            m = np.logical_not(np.eye(len(x), dtype="bool"))
+            x_shape = np.array(x.shape)
+            x_shape[1] -= 1
+            return np.reshape(x[m], x_shape)
+        center_indices = remove_self_loops(center_indices)
+        center_image = remove_self_loops(center_image)
+        center_frac_dist = remove_self_loops(center_frac_dist)
+
+    # Make arrays of Nx(NxC)
+    frac_dist = np.expand_dims(frac_coord_images, axis=0) - np.expand_dims(frac_coordinates, axis=1)  # Nx(NxC)x3
+    dist_indices = np.concatenate(
+        [np.repeat(np.expand_dims(node_index, axis=1), len(indices), axis=1),
+         np.repeat(np.expand_dims(indices, axis=0), len(node_index), axis=0)], axis=-1)  # Nx(NxC)x2
+    dist_images = np.repeat(np.expand_dims(images, axis=0), len(node_index), axis=0)  # Nx(NxC)x3
+
+    # Adding Center image as matrix for shape Nx(NxC+1)
+    dist_indices = np.concatenate([center_indices, dist_indices], axis=1)  # Nx(NxC+1)x2
+    dist_images = np.concatenate([center_image, dist_images], axis=1)  # Nx(NxC+1)x2
+    frac_dist = np.concatenate([center_frac_dist, frac_dist], axis=1)  # Nx(NxC+1)x3
+
+    # Distance in real space. More expensive now than calculating real coordinates first.
+    dist = np.matmul(np.expand_dims(np.expand_dims(lattice, axis=0), axis=0), np.expand_dims(frac_dist, axis=-1))
+    dist = np.squeeze(dist, axis=-1)
+    dist = np.sqrt(np.sum(np.square(dist), axis=-1))  # Nx(NxC+1)
+
+    # Sorting for distance in real space
+    arg_sort = np.argsort(dist, axis=-1)
+    dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
+    frac_dist_sort = np.take_along_axis(
+        frac_dist, np.repeat(np.expand_dims(arg_sort, axis=2), frac_dist.shape[2], axis=2), axis=1)
+    dist_indices_sort = np.take_along_axis(
+        dist_indices, np.repeat(np.expand_dims(arg_sort, axis=2), dist_indices.shape[2], axis=2), axis=1)
+    dist_images_sort = np.take_along_axis(
+        dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
+    mask_distance = dist_sort < max_distance
+    mask_neighbours = np.zeros_like(mask_distance, dtype="bool")
+
+    if max_neighbours is not None:
+        max_neighbours = min(max_neighbours, dist_sort.shape[-1])
+        mask_neighbours[:, :max_neighbours] = True
+    if exclusive:
+        mask = np.logical_and(mask_neighbours, mask_distance)
+    else:
+        mask = np.logical_or(mask_neighbours, mask_distance)
+
+    # Selected atoms
+    out_dist = dist_sort[mask]
+    out_images = dist_images_sort[mask]
+    out_indices = dist_indices_sort[mask]
+    out_frac = frac_dist_sort[mask]
+
+    return out_indices, out_images, out_frac, out_dist
+
+
+out_indices, out_images, out_frac, out_dist = range_neighbour_lattice(np.array([[0,0,0.0], [0.1, 0.0, 0.2], [0.0, 0.5, 0.4]]), lattice=np.array([[0,0,1],[0,2,0],[1.0,0,0]]))
