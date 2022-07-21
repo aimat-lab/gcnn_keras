@@ -167,14 +167,32 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
 
 
 def range_neighbour_lattice(frac_coordinates: np.ndarray = None, lattice: np.ndarray = None,
-                            max_distance=5.0, max_neighbours=np.inf, exclusive=True,
+                            max_distance=4.0, max_neighbours=np.inf, exclusive=True,
                             self_loops=False
                             ):
+    """Generate range connections for fractional coordinates of a periodic lattice.
+
+    Args:
+        frac_coordinates (np.ndarray): Fractional coordinate of unit cell.
+        lattice (np.ndarray): Lattice matrix of real space lattice vectors.
+        max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
+        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to `np.inf`.
+        exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
+        self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
+
+    Returns:
+        list: [indices, images, frac, dist]
+    """
+    # Distance in real space should be > 0.
+    max_distance = np.abs(max_distance)
+
     # Label each node in center from frac_coordinates.
     node_index = np.expand_dims(np.arange(0, len(frac_coordinates)), axis=1)  # Nx1
 
     # Find required number of outer images cells: C.
-    num_cells = np.array([3, 3, 3])
+    num_cells = np.ceil(np.sum(np.abs(np.linalg.inv(lattice))*max_distance, axis=1)).astype("int")
+
+    # Make images
     pos = [np.arange(-x, x+1, 1) for x in num_cells]
     images = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)  # C+1
     images = images[np.logical_not(np.all(images == np.array([[0, 0, 0]]), axis=-1))]  # Remove center cell.
@@ -248,6 +266,3 @@ def range_neighbour_lattice(frac_coordinates: np.ndarray = None, lattice: np.nda
     out_frac = frac_dist_sort[mask]
 
     return out_indices, out_images, out_frac, out_dist
-
-
-out_indices, out_images, out_frac, out_dist = range_neighbour_lattice(np.array([[0,0,0.0], [0.1, 0.0, 0.2], [0.0, 0.5, 0.4]]), lattice=np.array([[0,0,1],[0,2,0],[1.0,0,0]]))
