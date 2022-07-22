@@ -1,14 +1,16 @@
 hyper = {
-    "Schnet": {
+    "Schnet.make_crystal_model": {
         "model": {
             "module_name": "kgcnn.literature.Schnet",
-            "class_name": "make_model",
+            "class_name": "make_crystal_model",
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                    {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                    {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                    {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                 ],
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64}
@@ -18,7 +20,7 @@ hyper = {
                 },
                 "node_pooling_args": {"pooling_method": "sum"},
                 "depth": 4,
-                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "output_embedding": "graph",
@@ -56,8 +58,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    # Does not take into account periodic structure!
-                    {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 20}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5, "max_neighbours": 25}}
                 ]
             },
             "data_unit": "eV/atom"
@@ -65,7 +66,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.0.4"
         }
     },
     "PAiNN": {

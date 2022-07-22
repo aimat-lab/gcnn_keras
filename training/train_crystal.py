@@ -24,7 +24,7 @@ parser.add_argument("--dataset", required=False, help="Name of the dataset or le
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mp_e_form.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_model")
+                    default="make_crystal_model")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
