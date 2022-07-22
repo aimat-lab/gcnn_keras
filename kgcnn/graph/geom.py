@@ -166,7 +166,7 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
     return distout
 
 
-def range_neighbour_lattice(frac_coordinates: np.ndarray = None, lattice: np.ndarray = None,
+def range_neighbour_lattice(frac_coordinates: np.ndarray, lattice: np.ndarray,
                             max_distance=4.0, max_neighbours=np.inf, exclusive=True,
                             self_loops=False
                             ):
@@ -174,7 +174,8 @@ def range_neighbour_lattice(frac_coordinates: np.ndarray = None, lattice: np.nda
 
     Args:
         frac_coordinates (np.ndarray): Fractional coordinate of unit cell.
-        lattice (np.ndarray): Lattice matrix of real space lattice vectors.
+        lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
+            The lattice vectors must be given in columns of the matrix!
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
         max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to `np.inf`.
         exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.

@@ -333,6 +333,7 @@ class GraphMethodsAdapter:
             node_frac_coordinates (str): Name of fractional coordinates in dictionary.
                 Default is "node_frac_coordinates".
             graph_lattice (str): Name of the lattice matrix. Default is "graph_lattice".
+                The lattice vectors must be given in columns of the matrix!
             range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             range_image (str): Name of range image indices to set in dictionary. Default is "range_image".
             max_distance (float): Maximum distance or cutoff radius for connections. Default is 4.0.
