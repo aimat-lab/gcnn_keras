@@ -143,7 +143,7 @@ def make_model(inputs: list = None,
 
 model_crystal_default = {
     'name': "Schnet",
-    'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+    'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
                {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
                {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
                {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},

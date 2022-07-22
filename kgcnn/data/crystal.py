@@ -193,7 +193,7 @@ class CrystalDataset(MemoryGraphDataset):
         callbacks = {"graph_labels": lambda st, ds: ds[label_column_name] if label_column_name is not None else None,
                      "node_coordinates": lambda st, ds: np.array(st.cart_coords, dtype="float"),
                      "node_frac_coordinates": lambda st, ds: np.array(st.frac_coords, dtype="float"),
-                     "lattice_matrix": lambda st, ds: np.ascontiguousarray(np.array(st.lattice.matrix), dtype="float"),
+                     "graph_lattice": lambda st, ds: np.ascontiguousarray(np.array(st.lattice.matrix).T, dtype="float"),
                      "abc": lambda st, ds: np.array(st.lattice.abc),
                      "charge": lambda st, ds: np.array([st.charge], dtype="float"),
                      "volume": lambda st, ds: np.array([st.lattice.volume], dtype="float"),
