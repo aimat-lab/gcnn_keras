@@ -175,7 +175,7 @@ def range_neighbour_lattice(frac_coordinates: np.ndarray, lattice: np.ndarray,
     Args:
         frac_coordinates (np.ndarray): Fractional coordinate of unit cell.
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
-            The lattice vectors must be given in columns of the matrix!
+            The lattice vectors must be given in rows of the matrix!
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
         max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to `np.inf`.
         exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
@@ -184,6 +184,9 @@ def range_neighbour_lattice(frac_coordinates: np.ndarray, lattice: np.ndarray,
     Returns:
         list: [indices, images, frac, dist]
     """
+    # We want lattice vectors as columns
+    lattice = np.transpose(lattice)
+
     # Distance in real space should be > 0.
     max_distance = np.abs(max_distance)
 
