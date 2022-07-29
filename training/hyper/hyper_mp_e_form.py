@@ -33,7 +33,7 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 64, "epochs": 300, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 300, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
@@ -88,7 +88,7 @@ hyper = {
                 "interaction_args": {
                     "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
                 },
-                "node_pooling_args": {"pooling_method": "sum"},
+                "node_pooling_args": {"pooling_method": "mean"},
                 "depth": 4,
                 "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
