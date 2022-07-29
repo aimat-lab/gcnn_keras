@@ -58,7 +58,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5, "max_neighbours": 25}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
                 ]
             },
             "data_unit": "eV/atom"
