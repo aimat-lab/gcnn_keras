@@ -354,7 +354,7 @@ class GraphMethodsAdapter:
         xyz = self.obtain_property(node_coordinates)
         lattice_mat = self.obtain_property(graph_lattice)
 
-        indices, images, frac, dist = range_neighbour_lattice(
+        indices, images, dist = range_neighbour_lattice(
             xyz, lattice_mat,
             max_distance=max_distance, sort_distance=sort_distance, self_loops=self_loops)
 
