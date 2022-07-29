@@ -1,4 +1,74 @@
 hyper = {
+    "Megnet.make_crystal_model": {
+        "model": {
+            "module_name": "kgcnn.literature.Megnet",
+            "class_name": "make_crystal_model",
+            "config": {
+                'name': "Megnet",
+                'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+                           {'shape': [1], 'name': "charge", 'dtype': 'float32', 'ragged': False},
+                           {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+                           {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}],
+                'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                                    "graph": {"input_dim": 100, "output_dim": 64}},
+                "make_distance": True, "expand_distance": True,
+                'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
+                                   'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
+                'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
+                'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
+                'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
+                'verbose': 10,
+                'output_embedding': 'graph',
+                'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
+                               "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 64, "epochs": 300, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MatProjectEFormDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
+                ]
+            },
+            "data_unit": "eV/atom"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.0.4"
+        }
+    },
     "Schnet.make_crystal_model": {
         "model": {
             "module_name": "kgcnn.literature.Schnet",
