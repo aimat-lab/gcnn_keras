@@ -33,10 +33,10 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 32, "epochs": 300, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 1500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1500,
                         "verbose": 0}
                      }
                 ]
@@ -103,16 +103,16 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 64, "epochs": 300, "validation_freq": 10, "verbose": 2,
+                "batch_size": 64, "epochs": 1200, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
+                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 600, "epo": 1200,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.001}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {
