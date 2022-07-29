@@ -166,107 +166,121 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
     return distout
 
 
-def range_neighbour_lattice(frac_coordinates: np.ndarray, lattice: np.ndarray,
-                            max_distance=4.0, max_neighbours=np.inf, exclusive=True,
-                            self_loops=False
-                            ):
-    """Generate range connections for fractional coordinates of a periodic lattice.
+def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
+                            max_distance: float = 4.0, self_loops: bool = False, sort_distance: bool = True
+                            ) -> list:
+    """Generate range connections for a periodic lattice. The function generates a super-cell of required radius
+    and computes connections of neighbouring nodes from the primitive centered unit cell.
 
     Args:
-        frac_coordinates (np.ndarray): Fractional coordinate of unit cell.
+        coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
             The lattice vectors must be given in rows of the matrix!
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
-        max_neighbours (int, optional): Maximum number of neighbours, can also be None. Defaults to `np.inf`.
-        exclusive (bool, optional): Whether both max distance and Neighbours must be fulfilled. Defaults to True.
-        self_loops (bool, optional): Allow self-loops on diagonal. Defaults to False.
+        self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
+        sort_distance (bool, optional): Whether to sort distance for each central node. Default is True.
 
     Returns:
-        list: [indices, images, frac, dist]
+        list: [indices, images, dist]
     """
-    # We want lattice vectors as columns
-    lattice = np.transpose(lattice)
+    lattice_col = np.transpose(lattice)
+    lattice_row = lattice
 
-    # Distance in real space should be > 0.
-    max_distance = np.abs(max_distance)
+    # Index list for nodes
+    node_index = np.expand_dims(np.arange(0, len(coordinates)), axis=1)  # Nx1
 
-    # Label each node in center from frac_coordinates.
-    node_index = np.expand_dims(np.arange(0, len(frac_coordinates)), axis=1)  # Nx1
+    # Mesh Grid list
+    def mesh_grid_list(bound_left, bound_right):
+        pos = [np.arange(i, j+1, 1) for i, j in zip(bound_left, bound_right)]
+        grid_list = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)
+        return grid_list
 
-    # Find required number of outer images cells: C.
-    num_cells = np.ceil(np.sum(np.abs(np.linalg.inv(lattice))*max_distance, axis=1)).astype("int")
+    # Diagonals of unit cell
+    center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
+    max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
+    # print(center_unit_cell, max_radius_cell)
 
-    # Make images
-    pos = [np.arange(-x, x+1, 1) for x in num_cells]
-    images = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)  # C+1
-    images = images[np.logical_not(np.all(images == np.array([[0, 0, 0]]), axis=-1))]  # Remove center cell.
+    # Bounding box of real space unit cell in index space
+    bounding_box_index = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1) * (max_distance + max_radius_cell)
+    # print(bounding_box_index)
+    bounding_box_index = np.ceil(bounding_box_index).astype("int")
+
+    bounding_grid = mesh_grid_list(-bounding_box_index, bounding_box_index)
+    bounding_grid = bounding_grid[
+        np.logical_not(np.all(bounding_grid == np.array([[0, 0, 0]]), axis=-1))]  # Remove center cell
+    bounding_grid_real = np.dot(bounding_grid, lattice_row)
+    dist_centers = np.sqrt(np.sum(np.square(bounding_grid_real), axis=-1))
+    mask_centers = dist_centers <= max_distance + max_radius_cell
+    images = bounding_grid[mask_centers]
+    shifts = bounding_grid_real[mask_centers]
+
+    # Plotting supercell for debugging
+    # dims = 0, 1
+    # fig, ax = plt.subplots(figsize=None)
+    # ax.set_aspect('equal')
+    # ax.scatter(bounding_grid_real[:, dims[0]], bounding_grid_real[:, dims[1]], s=0.5)
+    # ax.scatter(shifts[:, dims[0]], shifts[:, dims[1]], s=0.5)
+    # circle = plt.Circle((0, 0), max_distance, color='r', fill=False)
+    # ax.add_patch(circle)
+    # plt.show()
+
+    num_images = images.shape[0]
     images = np.expand_dims(images, axis=0)  # 1xCx3
-    images = np.repeat(images, len(frac_coordinates), axis=0)  # NxCx3
-    indices = np.repeat(node_index, images.shape[1], axis=1)  # NxC
-    indices = np.expand_dims(indices, axis=-1)  # NxCx1
-    frac_coord_images = np.expand_dims(frac_coordinates, axis=1) + images  # NxCx3
+    images = np.repeat(images, len(coordinates), axis=0)  # NxCx3
+    coord_images = np.expand_dims(coordinates, axis=1) + shifts  # NxCx3
+    coord_images = np.reshape(coord_images, (-1, 3))  # (N*C)x3
+    images = np.reshape(images, (-1, 3))  # (N*C)x3
+    indices = np.expand_dims(np.repeat(node_index, num_images), axis=-1)  # (N*C)x1
 
-    # Flatten NxC but keep image and index info in sync.
-    images = np.reshape(images, (-1, 3))  # (NxC)x3
-    frac_coord_images = np.reshape(frac_coord_images, (-1, 3))  # (NxC)x3
-    indices = np.reshape(indices, (-1, 1))  # (NxC)x1
-
-    # Center indices
+    # Center cell distance
     center_indices = np.indices((len(node_index), len(node_index)))
     center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
-    center_frac_dist = np.expand_dims(frac_coordinates, axis=0) - np.expand_dims(frac_coordinates, axis=1)  # NxNx3
-    center_image = np.zeros(center_frac_dist.shape)
+    center_dist = np.expand_dims(coordinates, axis=0) - np.expand_dims(coordinates, axis=1)  # NxNx3
+    center_image = np.zeros(center_dist.shape)
     if not self_loops:
         def remove_self_loops(x):
             m = np.logical_not(np.eye(len(x), dtype="bool"))
             x_shape = np.array(x.shape)
             x_shape[1] -= 1
             return np.reshape(x[m], x_shape)
+
         center_indices = remove_self_loops(center_indices)
         center_image = remove_self_loops(center_image)
-        center_frac_dist = remove_self_loops(center_frac_dist)
+        center_dist = remove_self_loops(center_dist)
 
     # Make arrays of Nx(NxC)
-    frac_dist = np.expand_dims(frac_coord_images, axis=0) - np.expand_dims(frac_coordinates, axis=1)  # Nx(NxC)x3
+    dist = np.expand_dims(coord_images, axis=0) - np.expand_dims(coordinates, axis=1)  # Nx(N*C)x3
     dist_indices = np.concatenate(
         [np.repeat(np.expand_dims(node_index, axis=1), len(indices), axis=1),
-         np.repeat(np.expand_dims(indices, axis=0), len(node_index), axis=0)], axis=-1)  # Nx(NxC)x2
-    dist_images = np.repeat(np.expand_dims(images, axis=0), len(node_index), axis=0)  # Nx(NxC)x3
+         np.repeat(np.expand_dims(indices, axis=0), len(node_index), axis=0)], axis=-1)  # Nx(N*C)x2
+    dist_images = np.repeat(np.expand_dims(images, axis=0), len(node_index), axis=0)  # Nx(N*C)x3
 
     # Adding Center image as matrix for shape Nx(NxC+1)
-    dist_indices = np.concatenate([center_indices, dist_indices], axis=1)  # Nx(NxC+1)x2
-    dist_images = np.concatenate([center_image, dist_images], axis=1)  # Nx(NxC+1)x2
-    frac_dist = np.concatenate([center_frac_dist, frac_dist], axis=1)  # Nx(NxC+1)x3
+    dist_indices = np.concatenate([center_indices, dist_indices], axis=1)  # Nx(N*C+1)x2
+    dist_images = np.concatenate([center_image, dist_images], axis=1)  # Nx(N*C+1)x2
+    dist = np.concatenate([center_dist, dist], axis=1)  # Nx(N*C+1)x3
 
-    # Distance in real space. More expensive now than calculating real coordinates first.
-    dist = np.matmul(np.expand_dims(np.expand_dims(lattice, axis=0), axis=0), np.expand_dims(frac_dist, axis=-1))
-    dist = np.squeeze(dist, axis=-1)
-    dist = np.sqrt(np.sum(np.square(dist), axis=-1))  # Nx(NxC+1)
+    # Distance in real space.
+    dist = np.sqrt(np.sum(np.square(dist), axis=-1))  # Nx(N*C+1)
 
     # Sorting for distance in real space
-    arg_sort = np.argsort(dist, axis=-1)
-    dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
-    frac_dist_sort = np.take_along_axis(
-        frac_dist, np.repeat(np.expand_dims(arg_sort, axis=2), frac_dist.shape[2], axis=2), axis=1)
-    dist_indices_sort = np.take_along_axis(
-        dist_indices, np.repeat(np.expand_dims(arg_sort, axis=2), dist_indices.shape[2], axis=2), axis=1)
-    dist_images_sort = np.take_along_axis(
-        dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
-    mask_distance = dist_sort < max_distance
-    mask_neighbours = np.zeros_like(mask_distance, dtype="bool")
-
-    if max_neighbours is not None:
-        max_neighbours = min(max_neighbours, dist_sort.shape[-1])
-        mask_neighbours[:, :max_neighbours] = True
-    if exclusive:
-        mask = np.logical_and(mask_neighbours, mask_distance)
+    if sort_distance:
+        arg_sort = np.argsort(dist, axis=-1)
+        dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
+        dist_indices_sort = np.take_along_axis(
+            dist_indices, np.repeat(np.expand_dims(arg_sort, axis=2), dist_indices.shape[2], axis=2), axis=1)
+        dist_images_sort = np.take_along_axis(
+            dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
     else:
-        mask = np.logical_or(mask_neighbours, mask_distance)
+        dist_sort = dist
+        dist_images_sort = dist_images
+        dist_indices_sort = dist_indices
+
+    mask = dist_sort <= max_distance
 
     # Selected atoms
     out_dist = dist_sort[mask]
     out_images = dist_images_sort[mask]
     out_indices = dist_indices_sort[mask]
-    out_frac = frac_dist_sort[mask]
 
-    return out_indices, out_images, out_frac, out_dist
+    return [out_indices, out_images, out_dist]
