@@ -317,12 +317,12 @@ class GraphMethodsAdapter:
         return self
 
     def set_range_periodic(self, range_indices: str = "range_indices",
-                           node_frac_coordinates: str = "node_frac_coordinates",
+                           node_coordinates: str = "node_coordinates",
                            graph_lattice: str = "graph_lattice",
                            range_image: str = "range_image",
                            range_attributes: str = "range_attributes",
-                           max_distance: float = 4.0, max_neighbours: int = 15,
-                           do_invert_distance: bool = False, self_loops: bool = False, exclusive: bool = True):
+                           max_distance: float = 4.0, sort_distance: bool = True,
+                           do_invert_distance: bool = False, self_loops: bool = False):
         r"""Define range in euclidean space for interaction or edge-like connections on a periodic lattice.
         The number of connection is determines based on a cutoff radius and a maximum number of neighbours or both.
         Requires :obj:`node_coordinates`, :obj:`graph_lattice` to be set.
@@ -330,34 +330,33 @@ class GraphMethodsAdapter:
 
         Args:
             range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
-            node_frac_coordinates (str): Name of fractional coordinates in dictionary.
-                Default is "node_frac_coordinates".
+            node_coordinates (str): Name of coordinates in dictionary.
+                Default is "node_coordinates".
             graph_lattice (str): Name of the lattice matrix. Default is "graph_lattice".
                 The lattice vectors must be given in rows of the matrix!
             range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             range_image (str): Name of range image indices to set in dictionary. Default is "range_image".
             max_distance (float): Maximum distance or cutoff radius for connections. Default is 4.0.
-            max_neighbours (int): Maximum number of allowed neighbours for a node. Default is 15.
+            sort_distance (bool): Whether to sort distance per node. Default is True.
             do_invert_distance (bool): Whether to invert the distance. Default is False.
             self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
-            exclusive (bool): Whether both max_neighbours and max_distance must be fulfilled. Default is True.
 
         Returns:
             self
         """
-        if not self.assert_has_key(node_frac_coordinates):
-            module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_frac_coordinates)
+        if not self.assert_has_key(node_coordinates):
+            module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
             return self
         if not self.assert_has_key(graph_lattice):
             module_logger.error("Lattice '%s' is not set. Can not compute range." % graph_lattice)
             return self
 
-        xyz = self.obtain_property(node_frac_coordinates)
+        xyz = self.obtain_property(node_coordinates)
         lattice_mat = self.obtain_property(graph_lattice)
 
         indices, images, frac, dist = range_neighbour_lattice(
-            xyz, lattice_mat, max_distance=max_distance, max_neighbours=max_neighbours, self_loops=self_loops,
-            exclusive=exclusive)
+            xyz, lattice_mat,
+            max_distance=max_distance, sort_distance=sort_distance, self_loops=self_loops)
 
         if do_invert_distance:
             dist = invert_distance(dist)
