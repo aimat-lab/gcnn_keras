@@ -2,7 +2,9 @@ v2.0.4
 
 * Add ``get_weights`` and ``get_config`` to `kgcnn.scaler` 
 * Add ``get`` and ``set`` alias to `GraphDict` and `MemoryGraphList`
-* Refactored ``GraphDict`` and `adj` into `kgcnn.graph`
+* Refactored ``GraphDict`` and `adj` into `kgcnn.graph`.
+* Add a simple ``set_range_periodic`` function to `GraphDict`.
+* Add ``make_crystal_model`` functions to Schnet, Megnet, DimeNetPP.
 
 
 v2.0.3
