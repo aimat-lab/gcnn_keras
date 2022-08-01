@@ -96,7 +96,8 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
 
-# data = MoleculeNetDataset2018("ESOL", reload=False).set_attributes()
+# data = MoleculeNetDataset2018("ESOL", reload=True).set_attributes()
 # data = MoleculeNetDataset2018("PCBA", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()
-# data = MoleculeNetDataset2018("Tox21", reload=False).set_attributes()
+# data = MoleculeNetDataset2018("Tox21", reload=True).set_attributes()
+# data = MoleculeNetDataset2018("HIV", reload=True).set_attributes()
