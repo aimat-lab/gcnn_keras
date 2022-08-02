@@ -41,6 +41,16 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         """Set the scale from numpy array. Usually used with broadcasting."""
         ks.backend.set_value(self.scale, scale)
 
+    def merge_state(self, metrics):
+        assign_add_ops = []
+        for metric in metrics:
+            if len(self.weights) != len(metric.weights):
+                raise ValueError(f'Metric {metric} is not compatible with {self}')
+            for weight, weight_to_add in zip(self.weights, metric.weights):
+                if weight.name != 'kgcnn_scale_mae':
+                    assign_add_ops.append(weight.assign_add(weight_to_add))
+        return assign_add_ops
+
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
 class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
