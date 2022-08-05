@@ -1,17 +1,21 @@
 import tensorflow as tf
-import tensorflow.keras as ks
+ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
-class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
+@ks.utils.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
+class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
     """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets. Only intended as
     metric this allows to info the MAE with correct units or absolute values during fit."""
 
     def __init__(self, scaling_shape=(), name='mean_absolute_error', **kwargs):
         super(ScaledMeanAbsoluteError, self).__init__(name=name, **kwargs)
         self.scale = self.add_weight(shape=scaling_shape,
-                                     initializer=tf.keras.initializers.Ones(), name='kgcnn_scale_mae',
-                                     dtype=tf.keras.backend.floatx())
+                                     initializer=ks.initializers.Ones(),
+                                     name='kgcnn_scale_mae',
+                                     dtype=ks.backend.floatx(),
+                                     synchronization=tf.VariableSynchronization.AUTO,
+                                     aggregation=tf.VariableAggregation.ONLY_FIRST_REPLICA,
+                                     )
         self.scaling_shape = scaling_shape
 
     def reset_state(self):
@@ -52,16 +56,20 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         return assign_add_ops
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
-class ScaledRootMeanSquaredError(tf.keras.metrics.RootMeanSquaredError):
+@ks.utils.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
+class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
     """Metric for a scaled root mean squared error (RMSE), which can undo a pre-scaling of the targets.
     Only intended as metric this allows to info the MAE with correct units or absolute values during fit."""
 
     def __init__(self, scaling_shape=(), name='root_mean_squared_error', **kwargs):
         super(ScaledRootMeanSquaredError, self).__init__(name=name, **kwargs)
         self.scale = self.add_weight(shape=scaling_shape,
-                                     initializer=tf.keras.initializers.Ones(), name='kgcnn_scale_rmse',
-                                     dtype=tf.keras.backend.floatx())
+                                     initializer=ks.initializers.Ones(),
+                                     name='kgcnn_scale_rmse',
+                                     dtype=ks.backend.floatx(),
+                                     synchronization=tf.VariableSynchronization.AUTO,
+                                     aggregation=tf.VariableAggregation.ONLY_FIRST_REPLICA,
+                                     )
         self.scaling_shape = scaling_shape
 
     def reset_state(self):
