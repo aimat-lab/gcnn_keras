@@ -268,7 +268,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 3.5}},
                     {"map_list": {"method": "set_angle", "allow_multi_edges": True}}
                 ]
             },
