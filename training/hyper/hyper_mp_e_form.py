@@ -235,7 +235,7 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 16, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
