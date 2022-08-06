@@ -212,7 +212,7 @@ hyper = {
                            {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                            {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
-                           {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+                           {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
                            {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                            ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
