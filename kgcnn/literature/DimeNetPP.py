@@ -183,7 +183,10 @@ model_crystal_default = {
     "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
                {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
-               {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
+               {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
+               {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+               {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+               ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
                                  "embeddings_initializer": {"class_name": "RandomUniform",
                                                             "config": {"minval": -1.7320508075688772,

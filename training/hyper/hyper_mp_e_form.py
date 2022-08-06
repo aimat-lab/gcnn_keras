@@ -202,4 +202,81 @@ hyper = {
             "kgcnn_version": "2.0.3"
         }
     },
+    "DimeNetPP.make_crystal_model": {
+        "model": {
+            "class_name": "make_crystal_model",
+            "module_name": "kgcnn.literature.DimeNetPP",
+            "config": {
+                "name": "DimeNetPP",
+                "inputs": [{"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
+                           {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
+                           {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+                           ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
+                                             "embeddings_initializer": {"class_name": "RandomUniform",
+                                                                        "config": {"minval": -1.7320508075688772,
+                                                                                   "maxval": 1.7320508075688772}}}},
+                "emb_size": 128, "out_emb_size": 256, "int_emb_size": 64, "basis_emb_size": 8,
+                "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
+                "cutoff": 5.0, "envelope_exponent": 5,
+                "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
+                "num_targets": 1, "extensive": False, "output_init": "zeros",
+                "activation": "swish", "verbose": 10,
+                "output_embedding": "graph",
+                "use_output_mlp": False,
+                "output_mlp": {},
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+            "execute_folds": 1,
+            "fit": {
+                "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+            },
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": True
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MatProjectEFormDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5}},
+                    {"map_list": {"method": "set_angle", "allow_multi_edges": True}}
+                ]
+            },
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.0.4"
+        }
+    }
 }
