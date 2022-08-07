@@ -235,7 +235,8 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 16, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 16, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": [],
+                "validation_batch_size": 8
             },
             "compile": {
                 "optimizer": {
@@ -268,7 +269,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 3.5}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 3.65}},
                     {"map_list": {"method": "set_angle", "allow_multi_edges": True}}
                 ]
             },
