@@ -100,4 +100,4 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
 # data = MoleculeNetDataset2018("PCBA", reload=False).set_attributes()
 # data = MoleculeNetDataset2018("ClinTox", reload=True).set_attributes()
 # data = MoleculeNetDataset2018("Tox21", reload=True).set_attributes()
-# data = MoleculeNetDataset2018("HIV", reload=True).set_attributes()
+data = MoleculeNetDataset2018("HIV", reload=True).set_attributes()
