@@ -221,7 +221,7 @@ class MolecularGraphOpenBabel(MolGraphInterface):
                 xyz.append([ats.GetX(), ats.GetY(), ats.GetZ()])
             return xyz
         else:
-            return []
+            return None
 
     @property
     def edge_indices(self):
