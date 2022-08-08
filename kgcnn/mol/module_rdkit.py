@@ -155,7 +155,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         m = self.mol
         if len(m.GetConformers()) > 0:
             return np.array(self.mol.GetConformers()[0].GetPositions())
-        return []
+        return None
 
     def to_smiles(self):
         """Return a smile string representation of the mol instance.
