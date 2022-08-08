@@ -18,7 +18,8 @@ except ImportError:
 
 try:
     from kgcnn.mol.module_babel import convert_smile_to_mol_openbabel as openbabel_smile_to_mol
-    module_logger.warning("Openbabel for conversion is disabled for current openbabel 3.1.1.")
+    module_logger.warning(
+        "Openbabel for conversion is disabled since error in conversion can not be caught in openbabel 3.1.1.")
 except ImportError:
     module_logger.error("Can not import OpenBabel module for conversion.")
     openbabel_smile_to_mol = None
