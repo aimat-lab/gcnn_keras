@@ -219,7 +219,7 @@ class MolecularGraphOpenBabel(MolGraphInterface):
                 ats = self.mol.GetAtomById(i)
                 # ats = mol.GetAtom(i+1)
                 xyz.append([ats.GetX(), ats.GetY(), ats.GetZ()])
-            return xyz
+            return np.array(xyz)
         else:
             return None
 
