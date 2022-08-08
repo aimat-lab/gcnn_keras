@@ -7,6 +7,7 @@ from kgcnn.mol.base import MolGraphInterface
 def convert_smile_to_mol_openbabel(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
                                    make_conformers: bool = True, optimize_conformer: bool = True,
                                    stop_logging: bool = False):
+
     if stop_logging:
         openbabel.obErrorLog.StopLogging()
 
