@@ -280,6 +280,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         }
         if has_conformers:
             callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})
+
         self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
                                      make_directed=make_directed)
 
