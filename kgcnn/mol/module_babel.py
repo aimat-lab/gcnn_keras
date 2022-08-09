@@ -87,17 +87,10 @@ class MolecularGraphOpenBabel(MolGraphInterface):
 
         Args:
             mol (openbabel.OBMol): OpenBabel molecule.
-            add_hydrogen (bool): Whether to add hydrogen. Default is True.
             make_directed (bool): Whether the edges are directed. Default is False.
-            make_conformer (bool): Whether to make conformers. Default is True.
-            optimize_conformer (bool): Whether to FF optimize the conformer.
         """
-        super().__init__(mol=mol, add_hydrogen=add_hydrogen)
+        super().__init__(mol=mol, make_directed=make_directed)
         self.mol = mol
-        self._add_hydrogen = add_hydrogen
-        self._make_directed = make_directed
-        self._make_conformer = make_conformer
-        self._optimize_conformer = optimize_conformer
 
     def make_conformer(self):
         if self.mol is None:
@@ -115,6 +108,9 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         ff.GetCoordinates(self.mol)
         return ff_setup_okay
 
+    def add_hs(self):
+        self.mol.AddHydrogens()
+
     def from_smiles(self, smile: str, sanitize: bool = True):
         """Make molecule from smile.
 
@@ -126,12 +122,6 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         ob_conversion.SetInFormat("smiles")
         self.mol = openbabel.OBMol()
         ob_conversion.ReadString(self.mol, smile)
-        if self._add_hydrogen:
-            self.mol.AddHydrogens()
-        if self._make_conformer:
-            self.make_conformer()
-        if self._optimize_conformer and self._make_conformer:
-            self.optimize_conformer()
         return self
 
     def to_smiles(self):
@@ -144,12 +134,13 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         ob_conversion.SetOutFormat("smiles")
         return ob_conversion.WriteString(self.mol)
 
-    def from_mol_block(self, mol_block: str):
+    def from_mol_block(self, mol_block: str, keep_hs: bool = True):
         """Set mol-instance from a string representation containing coordinates and bond information that is MDL mol
         format equivalent.
 
         Args:
             mol_block (str): Mol-block representation of a molecule.
+            keep_hydrogen (bool): Whether to keep hydrogen.
 
         Returns:
             self
@@ -158,12 +149,8 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         ob_conversion.SetInFormat("mol")
         self.mol = openbabel.OBMol()
         ob_conversion.ReadString(self.mol, mol_block)
-        if not self.mol.HasHydrogensAdded() and self._add_hydrogen:
-            self.mol.AddHydrogens()
-        if not self.mol.Has3D() and self._make_conformer:
-            self.make_conformer()
-            if self._optimize_conformer:
-                self.optimize_conformer()
+        if self.mol.HasHydrogensAdded() and not keep_hs:
+            self.mol.DeleteHydrogens()
         return self
 
     def from_xyz(self, xyz_string):
