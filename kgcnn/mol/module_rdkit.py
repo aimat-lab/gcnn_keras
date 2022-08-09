@@ -25,24 +25,37 @@ class MolecularGraphRDKit(MolGraphInterface):
 
     # Dictionary of predefined atom or node properties
     atom_fun_dict = {
+        "NumBonds": lambda atom: len(atom.GetBonds()),
         "AtomicNum": lambda atom: atom.GetAtomicNum(),
+        "AtomMapNum": lambda atom: atom.GetAtomMapNum(),
+        "Idx": lambda atom: atom.GetIdx(),
+        "Degree": lambda atom: atom.GetDegree(),
+        "TotalDegree": lambda atom: atom.GetTotalDegree(),
         "Symbol": lambda atom: atom.GetSymbol(),
         "NumExplicitHs": lambda atom: atom.GetNumExplicitHs(),
         "NumImplicitHs": lambda atom: atom.GetNumImplicitHs(),
         "TotalNumHs": lambda atom: atom.GetTotalNumHs(),
         "IsAromatic": lambda atom: atom.GetIsAromatic(),
-        "TotalDegree": lambda atom: atom.GetTotalDegree(),
+        "Isotope": lambda atom: atom.GetIsotope(),
         "TotalValence": lambda atom: atom.GetTotalValence(),
         "Mass": lambda atom: atom.GetMass(),
         "IsInRing": lambda atom: atom.IsInRing(),
         "Hybridization": lambda atom: atom.GetHybridization(),
+        "NoImplicit": lambda atom: atom.GetNoImplicit(),
         "ChiralTag": lambda atom: atom.GetChiralTag(),
         "FormalCharge": lambda atom: atom.GetFormalCharge(),
+        "ExplicitValence": lambda atom: atom.GetExplicitValence(),
         "ImplicitValence": lambda atom: atom.GetImplicitValence(),
         "NumRadicalElectrons": lambda atom: atom.GetNumRadicalElectrons(),
-        "Idx": lambda atom: atom.GetIdx(),
-        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else False,
-        "ChiralityPossible": lambda atom: atom.HasProp('_ChiralityPossible')
+        "HasOwningMol": lambda atom: atom.HasOwningMol(),
+        "PDBResidueInfo": lambda atom: atom.GetPDBResidueInfo(),
+        "MonomerInfo": lambda atom: atom.GetMonomerInfo(),
+        "Smarts": lambda atom: atom.GetSmarts(),
+        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else None,
+        "CIPRank": lambda atom: atom.GetProp('_CIPRank') if atom.HasProp('_CIPRank') else None,
+        "ChiralityPossible": lambda atom: atom.GetProp('_ChiralityPossible') if atom.HasProp(
+            '_ChiralityPossible') else None,
+        "MolFileRLabel": lambda atom: atom.GetProp('_MolFileRLabel') if atom.HasProp('_MolFileRLabel') else None,
     }
 
     # Dictionary of predefined bond or edge properties

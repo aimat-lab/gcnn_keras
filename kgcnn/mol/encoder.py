@@ -38,7 +38,7 @@ class OneHotEncoder:
             value: Any object that can be compared to items in ``self.one_hot_values``.
 
         Returns:
-            list: Python list with 1 at value match. E.g. `[0, 0, 1, 0]`
+            list: Python List with 1 at value match. E.g. `[0, 0, 1, 0]`
         """
         encoded_list = [1 if x == self.dtype(value) else 0 for x in self.categories]
         if self.add_unknown:
