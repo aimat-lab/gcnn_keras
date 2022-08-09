@@ -186,7 +186,7 @@ class MolecularGraphRDKit(MolGraphInterface):
 
         return self
 
-    def from_mol_block(self, mol_block, sanitize: bool = False, keep_hs: bool = True):
+    def from_mol_block(self, mol_block, sanitize: bool = True, keep_hs: bool = True):
         r"""Set mol-instance from a mol-block string.
 
         Args:
