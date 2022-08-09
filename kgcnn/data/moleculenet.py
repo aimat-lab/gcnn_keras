@@ -221,7 +221,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         value_lists = defaultdict(list)
         for index, sm in enumerate(mols):
             mg = MolecularGraphRDKit(make_directed=make_directed).from_mol_block(
-                sm, sanitize=False, keep_hs=add_hydrogen)
+                sm, keep_hs=add_hydrogen)
 
             if custom_transform is not None:
                 mg = custom_transform(mg)
