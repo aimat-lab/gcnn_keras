@@ -247,7 +247,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     def read_in_memory(self, label_column_name: Union[str, list] = None,
                        add_hydrogen: bool = True,
                        make_directed: bool = False,
-                       has_conformers: bool = None,
+                       has_conformers: bool = True,
                        custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
         path information in the constructor of this class. Extract basic graph information from mol-blocks.
@@ -261,7 +261,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 For multi-targets you can supply a list of column names or positions. A slice can be provided
                 for selecting columns as graph labels. Default is None.
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is True.
-            has_conformers (bool): Not used.
+            has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             custom_transform (Callable): Custom transformation function to modify the generated
                 :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
@@ -273,12 +273,13 @@ class MoleculeNetDataset(MemoryGraphDataset):
         callbacks = {
             'node_symbol': lambda mg, ds: mg.node_symbol,
             'node_number': lambda mg, ds: mg.node_number,
-            'node_coordinates': lambda mg, ds: mg.node_coordinates,
             'edge_indices': lambda mg, ds: mg.edge_number[0],
             'edge_number': lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
             'graph_labels': lambda mg, ds: ds[label_column_name],
             'graph_size': lambda mg, ds: len(mg.node_number)
         }
+        if has_conformers:
+            callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})
         self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
                                      make_directed=make_directed)
 
@@ -292,7 +293,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        encoder_graph: dict = None,
                        add_hydrogen: bool = False,
                        make_directed: bool = False,
-                       has_conformers: bool = None,
+                       has_conformers: bool = True,
                        additional_callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]] = None,
                        custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None
                        ):
@@ -345,7 +346,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to remove hydrogen.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False
-            has_conformers (bool): Not used.
+            has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -375,15 +376,17 @@ class MoleculeNetDataset(MemoryGraphDataset):
         callbacks = {
             'node_symbol': lambda mg, ds: mg.node_symbol,
             'node_number': lambda mg, ds: mg.node_number,
-            'node_coordinates': lambda mg, ds: mg.node_coordinates,
             'node_attributes': lambda mg, ds: np.array(mg.node_attributes(nodes, encoder_nodes), dtype='float32'),
             'edge_indices': lambda mg, ds: mg.edge_number[0],
             'edge_number': lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
             'edge_attributes': lambda mg, ds: np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype='float32'),
             'graph_size': lambda mg, ds: len(mg.node_number),
             'graph_attributes': lambda mg, ds: np.array(mg.graph_attributes(graph, encoder_graph), dtype='float32'),
-            **additional_callbacks
         }
+        if has_conformers:
+            callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})
+        callbacks.update(additional_callbacks)
+
         self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
                                      make_directed=make_directed)
 
