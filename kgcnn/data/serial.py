@@ -5,25 +5,25 @@ from typing import Union
 try:
     from kgcnn.data.moleculenet import MoleculeNetDataset
 except ModuleNotFoundError as e:
-    logging.error("Can not import `MoleculeNetDataset` for serialization with %s." % e)
+    logging.error("Can not import `MoleculeNetDataset` for serialization with '%s'." % e)
     MoleculeNetDataset = None
 
 try:
     from kgcnn.data.qm import QMDataset
 except ModuleNotFoundError as e:
-    logging.error("Can not import `QMDataset` for serialization with %s." % e)
+    logging.error("Can not import `QMDataset` for serialization with '%s'." % e)
     QMDataset = None
 
 try:
     from kgcnn.data.tudataset import GraphTUDataset
 except ModuleNotFoundError as e:
-    logging.error("Can not import `GraphTUDataset` for serialization with %s." % e)
+    logging.error("Can not import `GraphTUDataset` for serialization with '%s'." % e)
     GraphTUDataset = None
 
 try:
     from kgcnn.data.crystal import CrystalDataset
 except ModuleNotFoundError as e:
-    logging.error("Can not import `CrystalDataset` for serialization with %s." % e)
+    logging.error("Can not import `CrystalDataset` for serialization with '%s'." % e)
     CrystalDataset = None
 
 
