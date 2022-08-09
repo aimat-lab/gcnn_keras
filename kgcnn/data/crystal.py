@@ -9,7 +9,7 @@ import pymatgen.symmetry.structure
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file
 from kgcnn.crystal.module_pymatgen import parse_cif_file_to_structures
-from kgcnn.mol.base import CrystalPreprocessor
+from kgcnn.crystal.base import CrystalPreprocessor
 
 
 class CrystalDataset(MemoryGraphDataset):
