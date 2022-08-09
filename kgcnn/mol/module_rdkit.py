@@ -55,7 +55,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else None,
         "CIPRank": lambda atom: atom.GetProp('_CIPRank') if atom.HasProp('_CIPRank') else None,
         "ChiralityPossible": lambda atom: atom.GetProp('_ChiralityPossible') if atom.HasProp(
-            '_ChiralityPossible') else False,
+            '_ChiralityPossible') else None,
         "MolFileRLabel": lambda atom: atom.GetProp('_MolFileRLabel') if atom.HasProp('_MolFileRLabel') else None,
         "GasteigerCharge": lambda atom: atom.GetProp('_GasteigerCharge') if atom.HasProp(
             '_GasteigerCharge') else None,

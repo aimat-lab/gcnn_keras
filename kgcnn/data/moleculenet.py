@@ -41,7 +41,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
         'Hybridization': OneHotEncoder([2, 3, 4, 5, 6]),
         'TotalDegree': OneHotEncoder([0, 1, 2, 3, 4, 5], add_unknown=False),
         'TotalNumHs': OneHotEncoder([0, 1, 2, 3, 4], add_unknown=False),
-        'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str')
+        'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str'),
+        "ChiralityPossible": OneHotEncoder([True], add_unknown=False, dtype='bool'),
     }
     DEFAULT_EDGE_ATTRIBUTES = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
     DEFAULT_EDGE_ENCODERS = {

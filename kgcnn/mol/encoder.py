@@ -12,7 +12,7 @@ class OneHotEncoder:
     The list of possible values must be set beforehand. Is used as a basic encoder example for
     :obj:``MolecularGraphRDKit``. There can not be different dtypes in categories.
     """
-    _dtype_translate = {"int": int, "float": float, "str": str}
+    _dtype_translate = {"int": int, "float": float, "str": str, "bool": bool}
 
     def __init__(self, categories: list, add_unknown: bool = True, dtype: str = "int"):
         """Initialize the encoder beforehand with a set of all possible values to encounter.
