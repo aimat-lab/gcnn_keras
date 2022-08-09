@@ -4,7 +4,6 @@ import rdkit.Chem
 import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
 import rdkit.Chem.rdMolDescriptors
-import rdkit.Chem.rdchem.Mol
 import logging
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
@@ -91,7 +90,7 @@ class MolecularGraphRDKit(MolGraphInterface):
     }
 
     def __init__(self,
-                 mol: rdkit.Chem.rdchem.Mol = None,
+                 mol = None,
                  make_directed: bool = False):
         r"""Initialize :obj:`MolecularGraphRDKit` with mol object.
 

@@ -81,8 +81,7 @@ def convert_xyz_to_mol_openbabel(xyz_string: str, stop_logging: bool = False):
 class MolecularGraphOpenBabel(MolGraphInterface):
     r"""A graph object representing a strict molecular graph, e.g. only chemical bonds. """
 
-    def __init__(self, mol=None, add_hydrogen: bool = True, make_directed: bool = False,
-                 make_conformer: bool = True, optimize_conformer: bool = True):
+    def __init__(self, mol=None, make_directed: bool = False):
         """Set the mol attribute for composition. This mol instances will be the backends molecule class.
 
         Args:
@@ -140,7 +139,7 @@ class MolecularGraphOpenBabel(MolGraphInterface):
 
         Args:
             mol_block (str): Mol-block representation of a molecule.
-            keep_hydrogen (bool): Whether to keep hydrogen.
+            keep_hs (bool): Whether to keep hydrogen.
 
         Returns:
             self
