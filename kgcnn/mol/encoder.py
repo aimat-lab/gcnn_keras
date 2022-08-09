@@ -23,7 +23,7 @@ class OneHotEncoder:
             dtype (str): Data type to cast value into before comparing to category entries. Default is "int".
         """
         assert isinstance(dtype, str)
-        if dtype not in ["str", "int", "float"]:
+        if dtype not in list(self._dtype_translate.keys()):
             raise ValueError("Unsupported dtype for OneHotEncoder %s" % dtype)
         self.dtype_identifier = dtype
         self.dtype = self._dtype_translate[dtype]
