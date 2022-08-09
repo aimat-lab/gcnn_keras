@@ -20,7 +20,7 @@ try:
     from kgcnn.mol.module_babel import convert_smile_to_mol_openbabel as openbabel_smile_to_mol
     # There are problems with openbabel error handling and openbabel may not be fully threadsafe.
     module_logger.warning(
-        "Openbabel for conversion is disabled since error in conversion can not be caught in openbabel 3.1.1.")
+        "Openbabel for conversion error, to disable set `kgcnn.mol.convert.openbabel_smile_to_mol` to `None`.")
 except ImportError:
     module_logger.error("Can not import OpenBabel module for conversion.")
     openbabel_smile_to_mol = None
@@ -97,11 +97,11 @@ class MolConverter:
             if mol is not None:
                 return mol
 
-        # if openbabel_smile_to_mol is not None:
-        #     mol = openbabel_smile_to_mol(smile=smile, sanitize=sanitize, add_hydrogen=add_hydrogen,
-        #                                  make_conformers=make_conformers, optimize_conformer=optimize_conformer)
-        #     if mol is not None:
-        #         return mol
+        if openbabel_smile_to_mol is not None:
+            mol = openbabel_smile_to_mol(smile=smile, sanitize=sanitize, add_hydrogen=add_hydrogen,
+                                         make_conformers=make_conformers, optimize_conformer=optimize_conformer)
+            if mol is not None:
+                return mol
 
         module_logger.warning("Failed conversion for smile %s" % smile)
         return None
