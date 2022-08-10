@@ -6,7 +6,7 @@ import tensorflow as tf
 from kgcnn.layers.gather import GatherNodes
 
 
-class TestTopKLayerDisjoint(unittest.TestCase):
+class TestGather(unittest.TestCase):
 
     n1 = [[[1.0], [6.0], [1.0], [6.0], [1.0], [1.0], [6.0], [6.0]],
           [[6.0], [1.0], [1.0], [1.0], [7.0], [1.0], [6.0], [8.0], [6.0], [1.0], [6.0], [7.0], [1.0], [1.0], [1.0]]]
