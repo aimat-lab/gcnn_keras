@@ -12,7 +12,7 @@ class OneHotEncoder:
     The list of possible values must be set beforehand. Is used as a basic encoder example for
     :obj:``MolecularGraphRDKit``. There can not be different dtypes in categories.
     """
-    _dtype_translate = {"int": int, "float": float, "str": str}
+    _dtype_translate = {"int": int, "float": float, "str": str, "bool": bool}
 
     def __init__(self, categories: list, add_unknown: bool = True, dtype: str = "int"):
         """Initialize the encoder beforehand with a set of all possible values to encounter.
@@ -23,7 +23,7 @@ class OneHotEncoder:
             dtype (str): Data type to cast value into before comparing to category entries. Default is "int".
         """
         assert isinstance(dtype, str)
-        if dtype not in ["str", "int", "float"]:
+        if dtype not in list(self._dtype_translate.keys()):
             raise ValueError("Unsupported dtype for OneHotEncoder %s" % dtype)
         self.dtype_identifier = dtype
         self.dtype = self._dtype_translate[dtype]
@@ -38,7 +38,7 @@ class OneHotEncoder:
             value: Any object that can be compared to items in ``self.one_hot_values``.
 
         Returns:
-            list: Python list with 1 at value match. E.g. `[0, 0, 1, 0]`
+            list: Python List with 1 at value match. E.g. `[0, 0, 1, 0]`
         """
         encoded_list = [1 if x == self.dtype(value) else 0 for x in self.categories]
         if self.add_unknown:

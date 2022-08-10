@@ -3,6 +3,7 @@ import rdkit
 import rdkit.Chem
 import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
+import rdkit.Chem.rdMolDescriptors
 import logging
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
@@ -17,32 +18,51 @@ module_logger.setLevel(logging.INFO)
 
 
 class MolecularGraphRDKit(MolGraphInterface):
-    r"""A graph object representing a strict molecular graph, e.g. only chemical bonds using a mol-object from `RDkit`
-    chemical informatics package. Generate attributes for nodes, edges, and graph which are in a molecular graph atoms,
-    bonds and the molecule itself. Naming should
+    r"""A graph object representing a strict molecular graph, e.g. only chemical bonds using a mol-object from
+    :obj:`rdkit` chemical informatics package.
+
+    Generate attributes for nodes, edges, and graph which are in a molecular graph atoms, bonds and the molecule itself.
 
     """
-
     # Dictionary of predefined atom or node properties
     atom_fun_dict = {
+        "NumBonds": lambda atom: len(atom.GetBonds()),
         "AtomicNum": lambda atom: atom.GetAtomicNum(),
+        "AtomMapNum": lambda atom: atom.GetAtomMapNum(),
+        "Idx": lambda atom: atom.GetIdx(),
+        "Degree": lambda atom: atom.GetDegree(),
+        "TotalDegree": lambda atom: atom.GetTotalDegree(),
         "Symbol": lambda atom: atom.GetSymbol(),
         "NumExplicitHs": lambda atom: atom.GetNumExplicitHs(),
         "NumImplicitHs": lambda atom: atom.GetNumImplicitHs(),
         "TotalNumHs": lambda atom: atom.GetTotalNumHs(),
         "IsAromatic": lambda atom: atom.GetIsAromatic(),
-        "TotalDegree": lambda atom: atom.GetTotalDegree(),
+        "Isotope": lambda atom: atom.GetIsotope(),
         "TotalValence": lambda atom: atom.GetTotalValence(),
         "Mass": lambda atom: atom.GetMass(),
         "IsInRing": lambda atom: atom.IsInRing(),
         "Hybridization": lambda atom: atom.GetHybridization(),
+        "NoImplicit": lambda atom: atom.GetNoImplicit(),
         "ChiralTag": lambda atom: atom.GetChiralTag(),
         "FormalCharge": lambda atom: atom.GetFormalCharge(),
+        "ExplicitValence": lambda atom: atom.GetExplicitValence(),
         "ImplicitValence": lambda atom: atom.GetImplicitValence(),
         "NumRadicalElectrons": lambda atom: atom.GetNumRadicalElectrons(),
-        "Idx": lambda atom: atom.GetIdx(),
-        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else False,
-        "ChiralityPossible": lambda atom: atom.HasProp('_ChiralityPossible')
+        "HasOwningMol": lambda atom: atom.HasOwningMol(),
+        "PDBResidueInfo": lambda atom: atom.GetPDBResidueInfo(),
+        "MonomerInfo": lambda atom: atom.GetMonomerInfo(),
+        "Smarts": lambda atom: atom.GetSmarts(),
+        "CIPCode": lambda atom: atom.GetProp('_CIPCode') if atom.HasProp('_CIPCode') else None,
+        "CIPRank": lambda atom: atom.GetProp('_CIPRank') if atom.HasProp('_CIPRank') else None,
+        "ChiralityPossible": lambda atom: atom.GetProp('_ChiralityPossible') if atom.HasProp(
+            '_ChiralityPossible') else None,
+        "MolFileRLabel": lambda atom: atom.GetProp('_MolFileRLabel') if atom.HasProp('_MolFileRLabel') else None,
+        "GasteigerCharge": lambda atom: atom.GetProp('_GasteigerCharge') if atom.HasProp(
+            '_GasteigerCharge') else None,
+        "GasteigerHCharge": lambda atom: atom.GetProp('_GasteigerHCharge') if atom.HasProp(
+            '_GasteigerHCharge') else None,
+        "AtomFeatures": lambda atom: rdkit.Chem.rdMolDescriptors.GetAtomFeatures(atom.GetOwningMol(), atom.GetIdx()),
+        "DescribeQuery": lambda atom: atom.DescribeQuery(),
     }
 
     # Dictionary of predefined bond or edge properties
@@ -51,32 +71,35 @@ class MolecularGraphRDKit(MolGraphInterface):
         "IsAromatic": lambda bond: bond.GetIsAromatic(),
         "IsConjugated": lambda bond: bond.GetIsConjugated(),
         "IsInRing": lambda bond: bond.IsInRing(),
-        "Stereo": lambda bond: bond.GetStereo()
+        "Stereo": lambda bond: bond.GetStereo(),
+        "Idx": lambda bond: bond.GetIdx(),
+        "BeginAtom": lambda bond: bond.GetBeginAtom(),
+        "BeginAtomIdx": lambda bond: bond.GetBeginAtomIdx(),
+        "BondDir": lambda bond: bond.GetBondDir(),
+        "BondTypeAsDouble": lambda bond: bond.GetBondTypeAsDouble(),
+        "EndAtom": lambda bond: bond.GetEndAtom(),
+        "EndAtomIdx": lambda bond: bond.GetEndAtomIdx(),
+        "Smarts": lambda bond: bond.GetSmarts(),
+        "DescribeQuery": lambda bond: bond.DescribeQuery(),
     }
 
-    # Dictionary of predefined molecule or graph-level properties
+    # Dictionary of predefined molecule or graph-level properties and features.
     mol_fun_dict = {
         "ExactMolWt": rdkit.Chem.Descriptors.ExactMolWt,
         "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
     }
 
-    def __init__(self, mol=None, add_hydrogen: bool = True, make_directed: bool = False,
-                 make_conformer: bool = True, optimize_conformer: bool = True):
-        """Initialize MolecularGraphRDKit with mol object.
+    def __init__(self,
+                 mol = None,
+                 make_directed: bool = False):
+        r"""Initialize :obj:`MolecularGraphRDKit` with mol object.
 
         Args:
             mol (rdkit.Chem.rdchem.Mol): Mol object from rdkit. Default is None.
-            add_hydrogen (bool): Whether to add hydrogen. Default is True.
             make_directed (bool): Whether the edges are directed. Default is False.
-            make_conformer (bool): Whether to make conformers. Default is True.
-            optimize_conformer (bool): Whether to optimize the conformer with standard force field.
+
         """
-        super().__init__(mol=mol, add_hydrogen=add_hydrogen)
-        self.mol = mol
-        self._add_hydrogen = add_hydrogen
-        self._make_directed = make_directed
-        self._make_conformer = make_conformer
-        self._optimize_conformer = optimize_conformer
+        super().__init__(mol=mol, make_directed=make_directed)
 
     def make_conformer(self, useRandomCoords: bool = True):
         """Make conformer for mol-object.
@@ -96,11 +119,11 @@ class MolecularGraphRDKit(MolGraphInterface):
             rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=useRandomCoords)
             return True
         except ValueError:
-            logging.warning("Rdkit could not embed molecule %s" % m.GetProp("_Name"))
+            logging.warning("`RDkit` could not embed molecule %s" % m.GetProp("_Name"))
             return False
 
     def optimize_conformer(self):
-        r"""Optimize conformer. Requires a initial conformer. See :obj:`make_conformer`.
+        r"""Optimize conformer. Requires an initial conformer. See :obj:`make_conformer`.
 
         Returns:
             bool: Whether conformer generation was successful
@@ -118,9 +141,32 @@ class MolecularGraphRDKit(MolGraphInterface):
             module_logger.error("`RDkit` could not optimize conformer %s" % m.GetProp("_Name"))
             return False
 
+    def add_hs(self):
+        if self.mol is None:
+            module_logger.error("Mol reference is `None`. Can not `add_hs`.")
+            return self
+        self.mol = rdkit.Chem.AddHs(self.mol)  # add H's to the molecule
+        return self
+
+    def remove_hs(self):
+        if self.mol is None:
+            module_logger.error("Mol reference is `None`. Can not `remove_hs`.")
+            return self
+        self.mol = rdkit.Chem.RemoveHs(self.mol)  # add H's to the molecule
+        return self
+
+    def clean(self):
+        rdkit.Chem.SanitizeMol(self.mol)
+
+    def compute_charge(self):
+        if self.mol is None:
+            module_logger.error("Mol reference is `None`. Can not `compute_charge`.")
+            return self
+        rdkit.Chem.AllChem.ComputeGasteigerCharges(self.mol)
+        return self
+
     def from_smiles(self, smile, sanitize: bool = True):
-        r"""Make molecule from smile. Adding of hydrogen and generating and optimizing a conformer is determined by
-        flags in initialization of this class via :obj:`_add_hydrogen` etc.
+        r"""Make molecule from smile.
 
         Args:
             smile (str): Smile string for the molecule.
@@ -130,32 +176,33 @@ class MolecularGraphRDKit(MolGraphInterface):
             self
         """
         # Make molecule from smile via rdkit
-        m = rdkit.Chem.MolFromSmiles(smile)
+        m = rdkit.Chem.MolFromSmiles(smile, sanitize=sanitize)
         if m is None:
             module_logger.error("Rdkit can not convert smile %s" % smile)
             return self
 
-        if sanitize:
-            rdkit.Chem.SanitizeMol(m)
-        if self._add_hydrogen:
-            m = rdkit.Chem.AddHs(m)  # add H's to the molecule
-
         m.SetProp("_Name", smile)
         self.mol = m
 
-        if self._make_conformer:
-            self.make_conformer()
-        if self._optimize_conformer:
-            self.optimize_conformer()
         return self
 
-    @property
-    def node_coordinates(self):
-        """Return a list or array of atomic coordinates of the molecule."""
-        m = self.mol
-        if len(m.GetConformers()) > 0:
-            return np.array(self.mol.GetConformers()[0].GetPositions())
-        return None
+    def from_mol_block(self, mol_block, sanitize: bool = True, keep_hs: bool = True):
+        r"""Set mol-instance from a mol-block string.
+
+        Args:
+            mol_block (str): Mol-block representation of a molecule.
+            sanitize (bool): Whether to sanitize the mol-object.
+            keep_hs (bool): Whether to keep hydrogen.
+
+        Returns:
+            self
+        """
+        if mol_block is None or len(mol_block) == 0:
+            module_logger.error("Can not make mol-object for mol string %s" % mol_block)
+            return self
+        self.mol = rdkit.Chem.MolFromMolBlock(mol_block, removeHs=(not keep_hs), sanitize=sanitize)
+
+        return self
 
     def to_smiles(self):
         """Return a smile string representation of the mol instance.
@@ -167,23 +214,6 @@ class MolecularGraphRDKit(MolGraphInterface):
             return
         return rdkit.Chem.MolToSmiles(self.mol)
 
-    def from_mol_block(self, mol_block, sanitize: bool = False):
-        r"""Set mol-instance from a mol-block string. Removing hydrogen is controlled by flags defined by the
-        initialization of this instance via :obj:`_add_hydrogen`.
-
-        Args:
-            mol_block (str): Mol-block representation of a molecule.
-            sanitize (bool): Whether to sanitize the mol-object.
-
-        Returns:
-            self
-        """
-        if mol_block is None or len(mol_block) == 0:
-            module_logger.error("Can not make mol-object for mol string %s" % mol_block)
-            return self
-        self.mol = rdkit.Chem.MolFromMolBlock(mol_block, removeHs=(not self._add_hydrogen), sanitize=sanitize)
-        return self
-
     def to_mol_block(self):
         """Make mol-block from mol-object.
 
@@ -194,6 +224,14 @@ class MolecularGraphRDKit(MolGraphInterface):
             module_logger.error("Can not make mol string %s" % self.mol)
             return None
         return rdkit.Chem.MolToMolBlock(self.mol)
+
+    @property
+    def node_coordinates(self):
+        """Return a list or array of atomic coordinates of the molecule."""
+        m = self.mol
+        if len(m.GetConformers()) > 0:
+            return np.array(self.mol.GetConformers()[0].GetPositions())
+        return None
 
     @property
     def node_symbol(self):
@@ -260,7 +298,12 @@ class MolecularGraphRDKit(MolGraphInterface):
         for i, x in enumerate(m.GetBonds()):
             attr = []
             for k in edges:
-                temp = encoder[k](self.bond_fun_dict[k](x)) if k in encoder else self.bond_fun_dict[k](x)
+                if isinstance(k, str):
+                    temp = encoder[k](self.bond_fun_dict[k](x)) if k in encoder else self.bond_fun_dict[k](x)
+                else:
+                    temp = k(x)
+                if isinstance(temp, np.ndarray):
+                    temp = temp.tolist()
                 if isinstance(temp, (list, tuple)):
                     attr += list(temp)
                 else:
@@ -309,6 +352,8 @@ class MolecularGraphRDKit(MolGraphInterface):
                     temp = encoder[k](self.atom_fun_dict[k](atm)) if k in encoder else self.atom_fun_dict[k](atm)
                 else:
                     temp = k(atm)
+                if isinstance(temp, np.ndarray):
+                    temp = temp.tolist()
                 if isinstance(temp, (list, tuple)):
                     attr += list(temp)
                 else:
@@ -325,7 +370,7 @@ class MolecularGraphRDKit(MolGraphInterface):
             encoder (dict): A dictionary of optional encoders for each string identifier.
 
         Returns:
-            list: List of atomic properties.
+            list: List of molecular graph-level properties.
         """
         graph = self._check_properties_list(properties, sorted(self.mol_fun_dict.keys()), "Molecule")
         m = self.mol
@@ -337,6 +382,8 @@ class MolecularGraphRDKit(MolGraphInterface):
                 temp = encoder[k](self.mol_fun_dict[k](m)) if k in encoder else self.mol_fun_dict[k](m)
             else:
                 temp = k(m)
+            if isinstance(temp, np.ndarray):
+                temp = temp.tolist()
             if isinstance(temp, (list, tuple)):
                 attr += list(temp)
             else:

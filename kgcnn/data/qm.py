@@ -186,8 +186,7 @@ class QMDataset(MemoryGraphDataset):
         edge_attr = []
         for x in mol_list:
             # Must not change number of atoms or coordinates here.
-            mol = MolecularGraphOpenBabel(add_hydrogen=False, make_conformer=False,
-                                          optimize_conformer=False).from_mol_block(x)
+            mol = MolecularGraphOpenBabel().from_mol_block(x, keep_hs=True)
             if mol is None:
                 bond_number.append(None)
                 edge_index.append(None)

@@ -4,9 +4,9 @@ from hashlib import md5
 from networkx import MultiDiGraph
 from . import graph_builder
 
-class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
+class CrystalPreprocessor:
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def __call__(self, structure) -> dict:
         raise NotImplementedError()
 
     def get_config(self):

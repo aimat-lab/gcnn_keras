@@ -2,7 +2,7 @@
 *.mat
 *.txt
 *.zip
-*.npz
+/training/results/*/*/*.npz
 /develop/
 build
 dist

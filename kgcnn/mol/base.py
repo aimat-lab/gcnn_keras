@@ -1,5 +1,4 @@
 import logging
-from hashlib import md5
 
 # Module logger
 logging.basicConfig()
@@ -15,22 +14,32 @@ class MolGraphInterface:
 
     """
 
-    def __init__(self, mol=None, add_hydrogen: bool = True, make_directed: bool = False,
-                 make_conformer: bool = True, optimize_conformer: bool = True):
+    def __init__(self, mol=None, make_directed: bool = False):
         """Set the mol attribute for composition. This mol instances will be the backend molecule class.
 
         Args:
             mol: Instance of a molecule from chemical informatics package.
-            add_hydrogen (bool): Whether to add hydrogen. Default is True.
             make_directed (bool): Whether the edges are directed. Default is False.
-            make_conformer (bool): Whether to make conformers. Default is True.
-            optimize_conformer (bool): Whether to optimize the conformer with standard force field.
+
         """
         self.mol = mol
-        self._add_hydrogen = add_hydrogen
         self._make_directed = make_directed
-        self._make_conformer = make_conformer
-        self._optimize_conformer = optimize_conformer
+
+    def add_hs(self):
+        """Add hydrogen to molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def remove_hs(self):
+        """Remove hydrogen from molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def make_conformer(self, **kwargs):
+        """Generate a conformer guess for molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def optimize_conformer(self, **kwargs):
+        """Optimize conformer of molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     def from_smiles(self, smile: str, **kwargs):
         """Main method to generate a molecule from smiles string representation.
@@ -51,11 +60,12 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def from_mol_block(self, mol_block: str):
+    def from_mol_block(self, mol_block: str, keep_hs: bool = True, **kwargs):
         """Set mol-instance from a more extensive string representation containing coordinates and bond information.
 
         Args:
             mol_block (str): Mol-block representation of a molecule.
+            keep_hs (str): Whether to keep hydrogen in mol-block. Default is True.
 
         Returns:
             self
@@ -199,25 +209,3 @@ class MolGraphInterface:
             else:
                 props.append(x)
         return props
-
-
-class CrystalPreprocessor:
-
-    def __call__(self, structure) -> dict:
-        raise NotImplementedError()
-
-    def get_config(self):
-        config = vars(self)
-        config['preprocessor'] = self.__class__.__name__
-        return config
-
-    def hash(self):
-        return md5(str(self.get_config()).encode()).hexdigest()
-
-    def __hash__(self):
-        return int(self.hash(), 16)
-
-    def __eq__(self, other):
-        return hash(self) == hash(other)
-
-

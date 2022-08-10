@@ -5,6 +5,9 @@ v2.0.4
 * Refactored ``GraphDict`` and `adj` into `kgcnn.graph`.
 * Add a simple ``set_range_periodic`` function to `GraphDict`.
 * Add ``make_crystal_model`` functions to Schnet, Megnet, DimeNetPP.
+* Add ``custom_transform`` to `MoleculeNetDataset`.
+* Removed ``add_hydrogen``, `make_conformer`, and `optimize_conformer` from constructor of `MolGraphInterface`.
+* Added ``add_hs``, `make_conformer` and `optimize_conformer` to `MolGraphInterface`.
 
 
 v2.0.3
