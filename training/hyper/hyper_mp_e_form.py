@@ -139,16 +139,18 @@ hyper = {
             "kgcnn_version": "2.0.4"
         }
     },
-    "PAiNN": {
+    "PAiNN.make_crystal_model": {
         "model": {
             "module_name": "kgcnn.literature.PAiNN",
-            "class_name": "make_model",
+            "class_name": "make_crystal_model",
             "config": {
                 "name": "PAiNN",
                 "inputs": [
                     {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
+                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
@@ -165,10 +167,10 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 32, "epochs": 300, "validation_freq": 10, "verbose": 1,
+                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
                         "verbose": 0}
                      }
                 ]
@@ -190,8 +192,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    # Does not take into account periodic structure!
-                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
             "data_unit": "eV/atom"
@@ -199,7 +200,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.0.4"
         }
     },
     "DimeNetPP.make_crystal_model": {
