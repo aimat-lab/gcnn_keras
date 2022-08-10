@@ -6,7 +6,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirec
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.layers.norm import GraphLayerNormalization
+from kgcnn.layers.norm import GraphLayerNormalization, GraphBatchNormalization
 from kgcnn.utils.models import update_model_kwargs
 ks = tf.keras
 
@@ -15,21 +15,24 @@ ks = tf.keras
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
 # https://arxiv.org/pdf/2102.03150.pdf
 
-model_default = {"name": "PAiNN",
-                 "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
-                 "pooling_args": {"pooling_method": "sum"},
-                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
-                 "update_args": {"units": 128},
-                 "equiv_normalization": False,
-                 "depth": 3,
-                 "verbose": 10,
-                 "output_embedding": "graph", "output_to_tensor": True,
-                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
-                 }
+model_default = {
+    "name": "PAiNN",
+    "inputs": [
+        {"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
+    ],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+    "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+    "pooling_args": {"pooling_method": "sum"},
+    "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
+    "update_args": {"units": 128},
+    "equiv_normalization": False, "node_normalization": False,
+    "depth": 3,
+    "verbose": 10,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
+}
 
 
 @update_model_kwargs(model_default)
@@ -41,6 +44,7 @@ def make_model(inputs: list = None,
                conv_args: dict = None,
                update_args: dict = None,
                equiv_normalization: bool = None,
+               node_normalization: bool = None,
                name: str = None,
                verbose: int = None,
                output_embedding: str = None,
@@ -73,6 +77,8 @@ def make_model(inputs: list = None,
         conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
         update_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNUpdate` layer.
         equiv_normalization (bool): Whether to apply :obj:`GraphLayerNormalization` to equivariant tensor after
+            each update.
+        node_normalization (bool): Whether to apply :obj:`GraphBatchNormalization` to node tensor after
             each update.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
@@ -109,16 +115,21 @@ def make_model(inputs: list = None,
     for i in range(depth):
         # Message
         ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
+        if equiv_normalization:
+            dv = GraphLayerNormalization(axis=2)(dv)
+        if node_normalization:
+            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
-        if equiv_normalization:
-            v = GraphLayerNormalization(axis=2)(v)
         # Update
         ds, dv = PAiNNUpdate(**update_args)([z, v])
+        if equiv_normalization:
+            dv = GraphLayerNormalization(axis=2)(dv)
+        if node_normalization:
+            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
-        if equiv_normalization:
-            v = GraphLayerNormalization(axis=2)(v)
+
     n = z
     # Output embedding choice
     if output_embedding == "graph":

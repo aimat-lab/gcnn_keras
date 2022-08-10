@@ -18,9 +18,11 @@ except ImportError:
 
 try:
     from kgcnn.mol.module_babel import convert_smile_to_mol_openbabel as openbabel_smile_to_mol
-    # There are problems with openbabel error handling and openbabel may not be fully threadsafe.
-    module_logger.warning(
-        "Openbabel for conversion error, to disable set `kgcnn.mol.convert.openbabel_smile_to_mol` to `None`.")
+    # There are problems with openbabel if system variable is not set.
+    # Openbabel may not be fully threadsafe, but is improved in version 3.0.
+    if "BABEL_DATADIR" not in os.environ:
+        module_logger.warning(
+            "In case openbabel fails, you can set `kgcnn.mol.convert.openbabel_smile_to_mol` to `None` for disable.")
 except ImportError:
     module_logger.error("Can not import OpenBabel module for conversion.")
     openbabel_smile_to_mol = None

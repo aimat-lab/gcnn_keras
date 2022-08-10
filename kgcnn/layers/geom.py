@@ -73,12 +73,12 @@ class NodePosition(GraphBaseLayer):
 class ShiftPeriodicLattice(GraphBaseLayer):
     r"""Shift position tensor by multiples of the lattice constant of a periodic lattice in 3D.
 
-    Let an atom have position :math:`\vec{x_0}` in the unit cell and be in a periodic lattice with lattice vectors
+    Let an atom have position :math:`\vec{x}_0` in the unit cell and be in a periodic lattice with lattice vectors
     :math:`\mathbf{a} = (\vec{a}_1, \vec{a}_2, \vec{a}_3)` and further be located in its image with indices
     :math:`\vec{n} = (n_1, n_2, n_3)`, then this layer is supposed to return:
 
     .. math::
-        \vec{x} = \vec{x_0} + n_1\vec{a}_1 + n_2\vec{a}_2 + n_3\vec{a}_3 = \vec{x_0} + \mathbf{a} \vec{n}
+        \vec{x} = \vec{x_0} + n_1\vec{a}_1 + n_2\vec{a}_2 + n_3\vec{a}_3 = \vec{x_0} + \vec{n} \mathbf{a}
 
     The layer expects ragged tensor input for :math:`\vec{x_0}` and :math:`\vec{n}` with multiple positions and their
     images but a single (tensor) lattice matrix per sample.
@@ -110,10 +110,14 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         inputs_ragged = self.assert_ragged_input_rank(inputs[:2])
         lattice_rep = self.layer_state([inputs[2], inputs_ragged[1]], **kwargs)  # Should be (batch, None, 3, 3)
         x = inputs_ragged[0]
-        xj = x.values
-        xj = xj + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=xj.dtype) * tf.expand_dims(
-            tf.cast(inputs_ragged[1].values, dtype=xj.dtype), axis=-1), axis=1)
-        return tf.RaggedTensor.from_row_splits(xj, inputs_ragged[1].row_splits, validate=self.ragged_validate)
+        ei = inputs_ragged[1]
+        x_val = x.values
+        # 1. Implementation: Manual multiplication.
+        x_val = x_val + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=x_val.dtype) * tf.expand_dims(
+            tf.cast(ei.values, dtype=x_val.dtype), axis=-1), axis=1)
+        # 2. Implementation: Matrix multiplication.
+        # xv = xv + ks.batch_dot(tf.cast(ei.values, dtype=x_val.dtype), tf.cast(lattice_rep.values, dtype=x_val.dtype))
+        return tf.RaggedTensor.from_row_splits(x_val, ei.row_splits, validate=self.ragged_validate)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')

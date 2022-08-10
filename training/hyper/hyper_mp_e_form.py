@@ -155,7 +155,7 @@ hyper = {
                 "pooling_args": {"pooling_method": "mean"},
                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "mean"},
                 "update_args": {"units": 128}, "depth": 2, "verbose": 10,
-                "equiv_normalization": True,
+                "equiv_normalization": True, "node_normalization": True,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
             }
@@ -165,7 +165,7 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 32, "epochs": 300, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 300, "validation_freq": 10, "verbose": 1,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,

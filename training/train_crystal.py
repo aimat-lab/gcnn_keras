@@ -18,13 +18,13 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="MatProjectEFormDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mp_e_form.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_crystal_model")
+                    default="make_model")
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 

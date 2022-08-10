@@ -25,6 +25,22 @@ class MolGraphInterface:
         self.mol = mol
         self._make_directed = make_directed
 
+    def add_hs(self):
+        """Add hydrogen to molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def remove_hs(self):
+        """Remove hydrogen from molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def make_conformer(self, **kwargs):
+        """Generate a conformer guess for molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def optimize_conformer(self, **kwargs):
+        """Optimize conformer of molecule instance."""
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
     def from_smiles(self, smile: str, **kwargs):
         """Main method to generate a molecule from smiles string representation.
 
@@ -44,11 +60,12 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def from_mol_block(self, mol_block: str):
+    def from_mol_block(self, mol_block: str, keep_hs: bool = True, **kwargs):
         """Set mol-instance from a more extensive string representation containing coordinates and bond information.
 
         Args:
             mol_block (str): Mol-block representation of a molecule.
+            keep_hs (str): Whether to keep hydrogen in mol-block. Default is True.
 
         Returns:
             self
