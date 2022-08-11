@@ -40,6 +40,18 @@ class CGCNNLayer(MessagePassingBase):
         self.lazy_concat = LazyConcatenate()
 
     def message_function(self, inputs, **kwargs):
+        r"""Prepare messages.
+
+        Args:
+            inputs: [nodes_in, nodes_out, edges]
+
+                - nodes_in (tf.RaggedTensor): Embedding of sending nodes of shape `(batch, [M], F)`
+                - nodes_out (tf.RaggedTensor): Embedding of sending nodes of shape `(batch, [M], F)`
+                - edges (tf.RaggedTensor): Embedding of edges of shape `(batch, [M], E)`
+
+        Returns:
+            tf.RaggedTensor: Messages for updates of shape `(batch, [M], units)`.
+        """
 
         nodes_in = inputs[0]  # shape: (batch_size, M, F)
         nodes_out = inputs[1]  # shape: (batch_size, M, F)
