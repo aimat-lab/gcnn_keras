@@ -232,7 +232,7 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None
                        ):
     r"""Make `MegNet <https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.Megnet.model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.Megnet.model_crystal_default`.
 
     Inputs:
         list: `[node_attributes, edge_distance, edge_indices, state_attributes, edge_image, lattice]`

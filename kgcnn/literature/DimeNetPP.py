@@ -230,7 +230,7 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None
                        ):
     """Make `DimeNetPP <https://arxiv.org/abs/2011.14115>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.DimeNetPP.model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.DimeNetPP.model_crystal_default`.
 
     .. note::
         DimeNetPP does require a large amount of memory for this implementation, which increase quickly with

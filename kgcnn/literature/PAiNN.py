@@ -188,7 +188,7 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None
                        ):
     r"""Make `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.PAiNN.model_crystal_default`.
 
     Inputs:
         list: `[node_attributes, node_coordinates, bond_indices, edge_image, lattice]`
