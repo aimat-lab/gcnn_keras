@@ -760,6 +760,7 @@ class CosCutOff(GraphBaseLayer):
         return config
 
 
+@ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsASU')
 class DisplacementVectorsASU(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -797,6 +798,7 @@ class DisplacementVectorsASU(GraphBaseLayer):
         return tf.RaggedTensor.from_row_splits(offset, edge_indices.row_splits, validate=self.ragged_validate)
 
 
+@ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsUnitCell')
 class DisplacementVectorsUnitCell(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -824,16 +826,17 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         return offset
 
 
-class FracToRealCoords(GraphBaseLayer):
+@ks.utils.register_keras_serializable(package='kgcnn', name='FracToRealCoordinates')
+class FracToRealCoordinates(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer."""
         self.gather_state = GatherState()
-        super(FracToRealCoords, self).__init__(**kwargs)
+        super(FracToRealCoordinates, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
-        super(FracToRealCoords, self).build(input_shape)
+        super(FracToRealCoordinates, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         frac_coords = inputs[0]

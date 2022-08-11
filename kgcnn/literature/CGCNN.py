@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.conv.cgcnn_conv import CGCNNLayer
-from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoords, NodePosition, \
+from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoordinates, NodePosition, \
     EuclideanNorm, GaussBasisLayer
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract
@@ -78,7 +78,7 @@ def make_crystal_model(inputs: list = None,
             x_in, x_out = NodePosition()([frac_coords, edge_indices])
             displacement_vectors = LazySubtract()([x_out, x_in])
 
-        displacement_vectors = FracToRealCoords()([displacement_vectors, lattice_matrix])
+        displacement_vectors = FracToRealCoordinates()([displacement_vectors, lattice_matrix])
 
         edge_distances = EuclideanNorm(axis=2, keepdims=True)(displacement_vectors)
 
