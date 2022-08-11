@@ -1,10 +1,10 @@
+import tensorflow as tf
 from kgcnn.layers.conv.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
+ks = tf.keras
 
-import tensorflow.keras as ks
-import tensorflow as tf
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='CGCNNLayer')
+@ks.utils.register_keras_serializable(package='kgcnn', name='CGCNNLayer')
 class CGCNNLayer(MessagePassingBase):
     r"""Message Passing Layer used in the Crystal Graph Convolutional Neural Network (CGCNN).
 
@@ -18,7 +18,11 @@ class CGCNNLayer(MessagePassingBase):
         batch_normalization (bool): Whether to use batch normalization (GraphBatchNormalization) or not.
     """
 
-    def __init__(self, units=64, activation_s='relu', activation_out='relu', batch_normalization=False, **kwargs):
+    def __init__(self, units=64,
+                 activation_s='relu',
+                 activation_out='relu',
+                 batch_normalization=False,
+                 **kwargs):
         super(CGCNNLayer, self).__init__(**kwargs)
         self.units = units
         self.activation_s = activation_s
@@ -35,9 +39,9 @@ class CGCNNLayer(MessagePassingBase):
 
     def message_function(self, inputs, **kwargs):
 
-        nodes_in = inputs[0] # shape: (batch_size, M, F)
-        nodes_out = inputs[1] # shape: (batch_size, M, F)
-        edge_features = inputs[2] # shape: (batch_size, M, E)
+        nodes_in = inputs[0]  # shape: (batch_size, M, F)
+        nodes_out = inputs[1]  # shape: (batch_size, M, F)
+        edge_features = inputs[2]  # shape: (batch_size, M, E)
 
         x = tf.concat([nodes_in, nodes_out, edge_features], axis=2)
         x_s, x_f = self.s(x), self.f(x)
@@ -58,6 +62,9 @@ class CGCNNLayer(MessagePassingBase):
     def get_config(self):
         """Update layer config."""
         config = super(CGCNNLayer, self).get_config()
-        config.update({"units": self.units, "activation_s": self.activation_s, "activation_out": self.activation_out,
+        config.update({
+            "units": self.units,
+            "activation_s": self.activation_s,
+            "activation_out": self.activation_out,
             "batch_normalization": self.batch_normalization})
         return config

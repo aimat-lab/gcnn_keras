@@ -1,5 +1,5 @@
 import tensorflow as tf
-from kgcnn.layers.conv.cgcnn import CGCNNLayer
+from kgcnn.layers.conv.cgcnn_conv import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoords, NodePosition, \
     EuclideanNorm, GaussBasisLayer
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
@@ -26,6 +26,8 @@ model_crystal_default = {
     'expand_distance': True,
     'make_distances': True,
     'gauss_args': {'bins': 40, 'distance': 8, 'offset': 0.0, 'sigma': 0.4},
+    'depth': 3,
+    "verbose": 10,
     'conv_layer_args': {
         'units': 64,
         'activation_s': 'softplus',
@@ -33,7 +35,7 @@ model_crystal_default = {
         'batch_normalization': True,
     },
     'node_pooling_args': {'pooling_method': 'mean'},
-    'depth': 3,
+    "output_embedding": "graph",
     'output_mlp': {'use_bias': [True, False], 'units': [64, 1],
                    'activation': ['softplus', 'linear']},
 }
@@ -89,7 +91,7 @@ def make_crystal_model(inputs: list = None,
 
     # embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'],
-                               use_embedding=len(inputs['atom_attributes']['shape']) < 2)(atom_attributes)
+                               use_embedding=len(inputs[0]['shape']) < 2)(atom_attributes)
 
     for _ in range(depth):
         n = CGCNNLayer(**conv_layer_args)([n, edge_distances, edge_indices])
