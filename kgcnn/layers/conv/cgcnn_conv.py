@@ -69,9 +69,20 @@ class CGCNNLayer(MessagePassingBase):
         return x_out
 
     def update_nodes(self, inputs, **kwargs):
+        """Update node embeddings.
+
+        Args:
+            inputs: [nodes, nodes_updates]
+
+                - nodes (tf.RaggedTensor): Embedding of nodes of previous layer of shape `(batch, [M], F)`
+                - nodes_updates (tf.RaggedTensor): Node updates of shape `(batch, [M], F)`
+
+        Returns:
+            tf.RaggedTensor: Updated nodes of shape `(batch, [N], F)`.
+        """
         nodes = inputs[0]
         nodes_update = inputs[1]
-        return self.lazy_add(nodes, nodes_update)
+        return self.lazy_add(nodes, nodes_update, **kwargs)
 
     def get_config(self):
         """Update layer config."""
