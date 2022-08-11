@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
-from kgcnn.layers.modules import LazySubtract, LazyMultiply
+from kgcnn.layers.modules import LazySubtract, LazyMultiply, LazyAdd
 from kgcnn.ops.axis import get_positive_axis
 ks = tf.keras
 
@@ -814,13 +814,14 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         frac_coords = inputs[0]
         edge_indices = inputs[1]
         cell_translations = inputs[2]
+
+        # Gather sending and receiving coordinates.
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
         
         # Cell translation
-        out_frac_coords = self.lazy_add([out_frac_coords, cell_translations])
-        
-        offset = in_frac_coords - out_frac_coords
-        return offset    
+        out_frac_coords = self.lazy_add([out_frac_coords, cell_translations], **kwargs)
+        offset = self.lazy_sub([in_frac_coords, out_frac_coords], **kwargs)
+        return offset
 
 
 class FracToRealCoords(GraphBaseLayer):
