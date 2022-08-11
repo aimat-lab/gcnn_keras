@@ -1,7 +1,7 @@
 {
   "model": {
     "module_name": "kgcnn.literature.PAiNN",
-    "class_name": "make_model",
+    "class_name": "make_crystal_model",
     "config": {
       "name": "PAiNN",
       "inputs": [
@@ -30,6 +30,24 @@
           "name": "range_indices",
           "dtype": "int64",
           "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            3
+          ],
+          "name": "range_image",
+          "dtype": "int64",
+          "ragged": true
+        },
+        {
+          "shape": [
+            3,
+            3
+          ],
+          "name": "graph_lattice",
+          "dtype": "float32",
+          "ragged": false
         }
       ],
       "input_embedding": {
@@ -57,6 +75,7 @@
       "depth": 2,
       "verbose": 10,
       "equiv_normalization": true,
+      "node_normalization": true,
       "output_embedding": "graph",
       "output_mlp": {
         "use_bias": [
@@ -86,7 +105,7 @@
     "execute_folds": 1,
     "fit": {
       "batch_size": 32,
-      "epochs": 300,
+      "epochs": 800,
       "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
@@ -96,7 +115,7 @@
             "learning_rate_start": 0.0005,
             "learning_rate_stop": 1e-05,
             "epo_min": 100,
-            "epo": 300,
+            "epo": 800,
             "verbose": 0
           }
         }
@@ -130,18 +149,17 @@
       "methods": [
         {
           "map_list": {
-            "method": "set_range",
-            "max_distance": 5,
-            "max_neighbours": 10
+            "method": "set_range_periodic",
+            "max_distance": 5.0
           }
         }
       ]
     },
-    "data_unit": ""
+    "data_unit": "eV/atom"
   },
   "info": {
     "postfix": "",
     "postfix_file": "",
-    "kgcnn_version": "2.0.3"
+    "kgcnn_version": "2.0.4"
   }
 }

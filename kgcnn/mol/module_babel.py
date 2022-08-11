@@ -1,6 +1,8 @@
 import numpy as np
 import os
 import logging
+from openbabel import openbabel
+from kgcnn.mol.base import MolGraphInterface
 
 # Module logger
 logging.basicConfig()
@@ -10,9 +12,6 @@ module_logger.setLevel(logging.INFO)
 if "BABEL_DATADIR" not in os.environ:
     module_logger.error(
         "System variable 'BABEL_DATADIR' is not set. Please set `os.environ['BABEL_DATADIR'] = ...` manually.")
-
-from openbabel import openbabel
-from kgcnn.mol.base import MolGraphInterface
 
 
 class MolecularGraphOpenBabel(MolGraphInterface):
