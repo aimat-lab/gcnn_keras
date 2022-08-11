@@ -10,6 +10,7 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file
 from kgcnn.crystal.module_pymatgen import parse_cif_file_to_structures
 from kgcnn.crystal.base import CrystalPreprocessor
+from kgcnn.graph.base import GraphDict
 
 
 class CrystalDataset(MemoryGraphDataset):
@@ -216,10 +217,14 @@ class CrystalDataset(MemoryGraphDataset):
 
         for index, s in enumerate(structs):
             g = pre_processor(s)
-            for key, value in g.items():
-                self[index].assign_property(key, value)
-
+            graph_dict = GraphDict()
+            graph_dict.from_networkx(g, node_attributes=pre_processor.node_attributes, edge_attributes=pre_processor.edge_attributes)
+            # TODO: Add graph attributes (label, lattice_matrix, etc.)
+            # TODO: Rename node and edge properties to match kgcnn conventions
+            # TODO: Add GraphDict to dataset
+    
             if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                 self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
+
 
         return self
