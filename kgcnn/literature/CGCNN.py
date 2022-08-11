@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow.keras as ks
 from kgcnn.layers.conv.cgcnn import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoords, NodePosition, \
     EuclideanNorm, GaussBasisLayer
@@ -7,6 +6,7 @@ from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import update_model_kwargs
+ks = tf.keras
 
 model_default = {
     'name': 'CGCNN',
