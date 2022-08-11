@@ -772,20 +772,23 @@ class DisplacementVectorsASU(GraphBaseLayer):
         super(DisplacementVectorsASU, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+
         frac_coords = inputs[0]
         edge_indices = inputs[1]
         symmops = inputs[2].values
+
         cell_translations = inputs[3].values
-        in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices])
+        in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
         in_frac_coords = in_frac_coords.values
         out_frac_coords = out_frac_coords.values
         
         # Affine Transformation
-        out_frac_coords_ = tf.concat([out_frac_coords, tf.expand_dims(tf.ones_like(out_frac_coords[:,0]), axis=1)],
-                                    axis=1)
+        out_frac_coords_ = tf.concat(
+            [out_frac_coords, tf.expand_dims(tf.ones_like(out_frac_coords[:, 0]), axis=1)], axis=1)
         affine_matrices = symmops
-        out_frac_coords = tf.einsum('ij,ikj->ik',out_frac_coords_,affine_matrices)[:,:-1]
-        out_frac_coords = out_frac_coords - tf.floor(out_frac_coords) # All values should be in [0,1) interval
+        out_frac_coords = tf.einsum('ij,ikj->ik', out_frac_coords_, affine_matrices)[:, :-1]
+        out_frac_coords = out_frac_coords - tf.floor(out_frac_coords)  # All values should be in [0,1) interval
         
         # Cell translation
         out_frac_coords = out_frac_coords + cell_translations
@@ -793,11 +796,14 @@ class DisplacementVectorsASU(GraphBaseLayer):
         offset = in_frac_coords - out_frac_coords
         return tf.RaggedTensor.from_row_splits(offset, edge_indices.row_splits, validate=self.ragged_validate)
 
+
 class DisplacementVectorsUnitCell(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer."""
         self.gather_node_positions = NodePosition()
+        self.lazy_add = LazyAdd()
+        self.lazy_sub = LazySubtract()
         super(DisplacementVectorsUnitCell, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -808,14 +814,15 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         frac_coords = inputs[0]
         edge_indices = inputs[1]
         cell_translations = inputs[2]
-        in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices])
+        in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
         
         # Cell translation
-        out_frac_coords = out_frac_coords + cell_translations
+        out_frac_coords = self.lazy_add([out_frac_coords, cell_translations])
         
         offset = in_frac_coords - out_frac_coords
         return offset    
-    
+
+
 class FracToRealCoords(GraphBaseLayer):
 
     def __init__(self, **kwargs):
@@ -833,4 +840,3 @@ class FracToRealCoords(GraphBaseLayer):
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
         real_coords = tf.einsum('ij,ikj->ik', frac_coords.values,  lattice_matrices_)
         return tf.RaggedTensor.from_row_splits(real_coords, frac_coords.row_splits, validate=self.ragged_validate)
-
