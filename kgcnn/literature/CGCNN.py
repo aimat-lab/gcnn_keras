@@ -3,7 +3,7 @@ from kgcnn.layers.conv.cgcnn import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoords, NodePosition, \
     EuclideanNorm, GaussBasisLayer
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.layers.modules import OptionalInputEmbedding
+from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import update_model_kwargs
 
@@ -74,7 +74,7 @@ def make_crystal_model(inputs: list = None,
             displacement_vectors = DisplacementVectorsASU()([frac_coords, edge_indices, symmops, cell_translations])
         else:
             x_in, x_out = NodePosition()([frac_coords, edge_indices])
-            displacement_vectors = x_out - x_in
+            displacement_vectors = LazySubtract()([x_out, x_in])
 
         displacement_vectors = FracToRealCoords()([displacement_vectors, lattice_matrix])
 
@@ -101,7 +101,7 @@ def make_crystal_model(inputs: list = None,
 
     out = MLP(**output_mlp)(out)
 
-    # Only graph embedding for Megnet
+    # Only graph embedding for CGCNN
     if output_embedding != "graph":
         raise ValueError("Unsupported output embedding for mode `CGCNN`.")
 
