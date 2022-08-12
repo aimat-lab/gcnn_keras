@@ -301,17 +301,17 @@ hyper = {
                 'representation': 'unit',  # None, 'asu' or 'unit'
                 'expand_distance': True,
                 'make_distances': True,
-                'gauss_args': {'bins': 40, 'distance': 8, 'offset': 0.0, 'sigma': 0.4},
+                'gauss_args': {'bins': 40, 'distance': 5, 'offset': 0.0, 'sigma': 0.4},
                 'conv_layer_args': {
-                    'units': 64,
-                    'activation_s': 'softplus',
-                    'activation_out': 'softplus',
+                    'units': 128,
+                    'activation_s': 'kgcnn>shifted_softplus',
+                    'activation_out': 'kgcnn>shifted_softplus',
                     'batch_normalization': True,
                 },
                 'node_pooling_args': {'pooling_method': 'mean'},
                 'depth': 3,
-                'output_mlp': {'use_bias': [True, False], 'units': [64, 1],
-                               'activation': ['softplus', 'linear']},
+                'output_mlp': {'use_bias': [True, True, False], 'units': [128, 64, 1],
+                               'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
             }
         },
         "training": {
@@ -319,16 +319,16 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "batch_size": 64, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 1000,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.001}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {
