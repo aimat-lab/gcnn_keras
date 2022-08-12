@@ -87,9 +87,6 @@ class CGCNNLayer(MessagePassingBase):
             x_s, x_f = self.batch_norm_s(x_s, **kwargs), self.batch_norm_f(x_f, **kwargs)
         x_s, x_f = self.activation_s_layer(x_s, **kwargs), self.activation_f_layer(x_f, **kwargs)
         x_out = self.lazy_mult([x_s, x_f], **kwargs)  # shape: (batch_size, M, self.units)
-        if self.batch_normalization:
-            x_out = self.batch_norm_out(x_out, **kwargs)
-        x_out = self.activation_out_layer(x_out, **kwargs)
         return x_out
 
     def update_nodes(self, inputs, **kwargs):
@@ -106,7 +103,11 @@ class CGCNNLayer(MessagePassingBase):
         """
         nodes = inputs[0]
         nodes_update = inputs[1]
-        return self.lazy_add([nodes, nodes_update], **kwargs)
+        nodes_updated = self.lazy_add([nodes, nodes_update], **kwargs)
+        if self.batch_normalization:
+            nodes_updated = self.batch_norm_out(nodes_updated, **kwargs)
+        nodes_updated = self.activation_out_layer(nodes_updated, **kwargs)
+        return nodes_updated
 
     def get_config(self):
         """Update layer config."""
