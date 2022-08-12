@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.conv.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
-from kgcnn.layers.modules import ActivationEmbedding, LazyMultiply, LazyConcatenate, LazyAdd
+from kgcnn.layers.modules import ActivationEmbedding, LazyMultiply, LazyConcatenate, LazyAdd, DenseEmbedding
 ks = tf.keras
 
 
@@ -17,27 +17,51 @@ class CGCNNLayer(MessagePassingBase):
         activation_s (str): Tensorflow activation applied before gating the message.
         activation_out (str): Tensorflow activation applied the very end of the layer (after gating).
         batch_normalization (bool): Whether to use batch normalization (:obj:`GraphBatchNormalization`) or not.
+        use_bias (bool): Boolean, whether the layer uses a bias vector. Default is True.
+        kernel_initializer: Initializer for the `kernel` weights matrix. Default is "glorot_uniform".
+        bias_initializer: Initializer for the bias vector. Default is "zeros".
+        kernel_regularizer: Regularizer function applied to
+            the `kernel` weights matrix. Default is None.
+        bias_regularizer: Regularizer function applied to the bias vector. Default is None.
+        activity_regularizer: Regularizer function applied to
+            the output of the layer (its "activation"). Default is None.
+        kernel_constraint: Constraint function applied to
+            the `kernel` weights matrix. Default is None.
+        bias_constraint: Constraint function applied to the bias vector. Default is None.
     """
 
-    def __init__(self, units=64,
+    def __init__(self, units: int = 64,
                  activation_s='relu',
                  activation_out='relu',
-                 batch_normalization=False,
+                 batch_normalization: bool = False,
+                 use_bias: bool = True,
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
                  **kwargs):
         super(CGCNNLayer, self).__init__(**kwargs)
         self.units = units
+        self.use_bias = use_bias
         self.batch_normalization = batch_normalization
-        self.activation_f_layer = ActivationEmbedding(activation="sigmoid")
-        self.activation_s_layer = ActivationEmbedding(activation_s)
-        self.activation_out_layer = ActivationEmbedding(activation_out)
+        kernel_args = {"kernel_regularizer": kernel_regularizer, "bias_regularizer": bias_regularizer,
+                       "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
+                       "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
+
+        self.activation_f_layer = ActivationEmbedding(activation="sigmoid", activity_regularizer=activity_regularizer)
+        self.activation_s_layer = ActivationEmbedding(activation_s, activity_regularizer=activity_regularizer)
+        self.activation_out_layer = ActivationEmbedding(activation_out, activity_regularizer=activity_regularizer)
         self.batch_norm_f = GraphBatchNormalization()
         self.batch_norm_s = GraphBatchNormalization()
         self.batch_norm_out = GraphBatchNormalization()
-        self.f = ks.layers.Dense(self.units)
-        self.s = ks.layers.Dense(self.units)
+        self.f = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.s = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
         self.lazy_mult = LazyMultiply()
         self.lazy_add = LazyAdd()
-        self.lazy_concat = LazyConcatenate()
+        self.lazy_concat = LazyConcatenate(axis=2)
 
     def message_function(self, inputs, **kwargs):
         r"""Prepare messages.
@@ -57,7 +81,7 @@ class CGCNNLayer(MessagePassingBase):
         nodes_out = inputs[1]  # shape: (batch_size, M, F)
         edge_features = inputs[2]  # shape: (batch_size, M, E)
 
-        x = self.lazy_concat([nodes_in, nodes_out, edge_features], axis=2, **kwargs)
+        x = self.lazy_concat([nodes_in, nodes_out, edge_features], **kwargs)
         x_s, x_f = self.s(x, **kwargs), self.f(x, **kwargs)
         if self.batch_normalization:
             x_s, x_f = self.batch_norm_s(x_s, **kwargs), self.batch_norm_f(x_f, **kwargs)
@@ -88,10 +112,15 @@ class CGCNNLayer(MessagePassingBase):
         """Update layer config."""
         config = super(CGCNNLayer, self).get_config()
         config.update({
-            "units": self.units,
+            "units": self.units, "use_bias": self.use_bias,
             "batch_normalization": self.batch_normalization})
         conf_s = self.activation_s_layer.get_config()
         conf_out = self.activation_out_layer.get_config()
         config.update({"activation_s": conf_s["activation"]})
-        config.update({"activation_out": conf_out["activation"]})
+        config.update({"activation_out": conf_out["activation"],
+                       "activity_regularizer": conf_out["activity_regularizer"]})
+        conf_f = self.f.get_config()
+        for x in ["kernel_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer"]:
+            config.update({x: conf_f[x]})
         return config
