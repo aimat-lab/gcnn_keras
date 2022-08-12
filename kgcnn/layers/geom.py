@@ -762,6 +762,9 @@ class CosCutOff(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsASU')
 class DisplacementVectorsASU(GraphBaseLayer):
+    """TODO: Add docs.
+
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -773,6 +776,18 @@ class DisplacementVectorsASU(GraphBaseLayer):
         super(DisplacementVectorsASU, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [frac_coordinates, edge_indices, symmetry_ops]
+
+                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
+                - edge_indices (tf.RaggedTensor): Edge indices of shape `(batch, [M], 2)`.
+                - symmetry_ops (tf.RaggedTensor): Symmetry operations of shape `(batch, [M], 4, 4)`.
+
+        Returns:
+            tf.RaggedTensor: Displacement vector for edges of shape `(batch, [M], 3)`.
+        """
         inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
 
         frac_coords = inputs[0]
@@ -800,6 +815,9 @@ class DisplacementVectorsASU(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsUnitCell')
 class DisplacementVectorsUnitCell(GraphBaseLayer):
+    """TODO: Add docs.
+
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -813,6 +831,18 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         super(DisplacementVectorsUnitCell, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [frac_coordinates, edge_indices, cell_translations]
+
+                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
+                - edge_indices (tf.RaggedTensor): Edge indices of shape `(batch, [M], 2)`.
+                - cell_translations (tf.RaggedTensor): Displacement across unit cell of shape `(batch, [M], 3)`.
+
+        Returns:
+            tf.RaggedTensor: Displacement vector for edges of shape `(batch, [M], 3)`.
+        """
         frac_coords = inputs[0]
         edge_indices = inputs[1]
         cell_translations = inputs[2]
@@ -828,6 +858,9 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='FracToRealCoordinates')
 class FracToRealCoordinates(GraphBaseLayer):
+    """TODO: Add docs.
+
+    """
 
     def __init__(self, **kwargs):
         """Initialize layer."""
@@ -839,6 +872,17 @@ class FracToRealCoordinates(GraphBaseLayer):
         super(FracToRealCoordinates, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [frac_coordinates, lattice_matrix]
+
+                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
+                - lattice_matrix (tf.Tensor): Lattice matrix of shape `(batch, 3, 3)`.
+
+        Returns:
+            tf.RaggedTensor: Real-space node coordinates of shape `(batch, [N], 3)`.
+        """
         frac_coords = inputs[0]
         lattice_matrices = inputs[1]
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)

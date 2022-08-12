@@ -1,13 +1,12 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
+ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
+@ks.utils.register_keras_serializable(package='kgcnn', name='MEGnetBlock')
 class MEGnetBlock(GraphBaseLayer):
     r"""Convolutional unit of `MegNet <https://github.com/materialsvirtuallab/megnet>`_ called MegNet Block.
 
