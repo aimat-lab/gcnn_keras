@@ -182,7 +182,7 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None
                        ):
     r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_crystal_default`.
 
     Inputs:
         list: `[node_attributes, edge_distance, edge_indices, edge_image, lattice]`

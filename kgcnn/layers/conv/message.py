@@ -1,8 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesIngoing
-from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.pooling import PoolingLocalEdges
 
 
@@ -22,8 +21,7 @@ class MessagePassingBase(GraphBaseLayer):
         """Initialize MessagePassingBase layer."""
         super(MessagePassingBase, self).__init__(**kwargs)
         self.pooling_method = pooling_method
-        self.lay_gather_in = GatherNodesIngoing()
-        self.lay_gather_out = GatherNodesOutgoing()
+        self.lay_gather = GatherEmbeddingSelection([0, 1])
         self.lay_pool_default = PoolingLocalEdges(pooling_method=self.pooling_method)
 
     def message_function(self, inputs, **kwargs):
@@ -90,8 +88,7 @@ class MessagePassingBase(GraphBaseLayer):
             tf.RaggedTensor: Updated node embeddings of shape (batch, [N], F)
         """
         nodes, edges, edge_index = inputs
-        n_in = self.lay_gather_in([nodes, edge_index], **kwargs)
-        n_out = self.lay_gather_out([nodes, edge_index], **kwargs)
+        n_in, n_out = self.lay_gather([nodes, edge_index], **kwargs)
         msg = self.message_function([n_in, n_out, edges], **kwargs)
         pool_n = self.aggregate_message([nodes, msg, edge_index], **kwargs)
         n_new = self.update_nodes([nodes, pool_n], **kwargs)

@@ -158,6 +158,7 @@ A version of the following models and variants thereof are implemented in [liter
 * **[PAiNN](kgcnn/literature/PAiNN.py)**: [Equivariant message passing for the prediction of tensorial properties and molecular spectra](https://arxiv.org/pdf/2102.03150.pdf) by Schütt et al. (2020)
 * **[DMPNN](kgcnn/literature/DMPNN.py)**: [Analyzing Learned Molecular Representations for Property Prediction](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b00237) by Yang et al. (2019)
 * **[HamNet](kgcnn/literature/HamNet.py)**: [HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks](https://arxiv.org/abs/2105.03688) by Li et al. (2021)
+* **[CGCNN](kgcnn/literature/CGCNN.py)**: [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) by Xie et al. (2018)
 </details>
 
 <a name="datasets"></a>
@@ -176,7 +177,7 @@ print(graph)
 # List of graph dicts.
 graph_list = MemoryGraphList([graph, {"edge_indices": [[0, 0]]}, {}])
 graph_list.clean(["edge_indices"])  # Remove graphs without property
-graph_list.get("edge_indices")  # opposite is assign_property()
+graph_list.get("edge_indices")  # opposite is set()
 graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input; makes copy.
 ```
 
@@ -214,7 +215,7 @@ dataset = MoleculeNetDataset(dataset_name="Example",
                              file_name="data.csv")
 dataset.prepare_data(overwrite=True, smiles_column_name="smiles", add_hydrogen=True,
                      make_conformers=True, optimize_conformer=True, num_workers=None)
-dataset.read_in_memory(label_column_name="label",  add_hydrogen=False, 
+dataset.read_in_memory(label_column_name="label", add_hydrogen=False, 
                        has_conformers=True)
 ```
 

@@ -8,6 +8,7 @@ v2.0.4
 * Add ``custom_transform`` to `MoleculeNetDataset`.
 * Removed ``add_hydrogen``, `make_conformer`, and `optimize_conformer` from constructor of `MolGraphInterface`.
 * Added ``add_hs``, `make_conformer` and `optimize_conformer` to `MolGraphInterface`.
+* Add normalization option to PAiNN and ``make_crystal_model``.
 
 
 v2.0.3
