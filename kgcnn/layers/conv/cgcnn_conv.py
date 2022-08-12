@@ -16,7 +16,7 @@ class CGCNNLayer(MessagePassingBase):
         units (int): Units for Dense layer.
         activation_s (str): Tensorflow activation applied before gating the message.
         activation_out (str): Tensorflow activation applied the very end of the layer (after gating).
-        batch_normalization (bool): Whether to use batch normalization (GraphBatchNormalization) or not.
+        batch_normalization (bool): Whether to use batch normalization (:obj:`GraphBatchNormalization`) or not.
     """
 
     def __init__(self, units=64,
