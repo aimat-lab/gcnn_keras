@@ -776,7 +776,7 @@ class DisplacementVectorsASU(GraphBaseLayer):
         super(DisplacementVectorsASU, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: [frac_coordinates, edge_indices, symmetry_ops]
@@ -831,7 +831,7 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         super(DisplacementVectorsUnitCell, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: [frac_coordinates, edge_indices, cell_translations]
@@ -872,7 +872,7 @@ class FracToRealCoordinates(GraphBaseLayer):
         super(FracToRealCoordinates, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
             inputs: [frac_coordinates, lattice_matrix]
