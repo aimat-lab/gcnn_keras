@@ -215,7 +215,7 @@ dataset = MoleculeNetDataset(dataset_name="Example",
                              file_name="data.csv")
 dataset.prepare_data(overwrite=True, smiles_column_name="smiles", add_hydrogen=True,
                      make_conformers=True, optimize_conformer=True, num_workers=None)
-dataset.read_in_memory(label_column_name="label",  add_hydrogen=False, 
+dataset.read_in_memory(label_column_name="label", add_hydrogen=False, 
                        has_conformers=True)
 ```
 
