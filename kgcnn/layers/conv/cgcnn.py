@@ -1,3 +1,4 @@
+from networkx.algorithms.assortativity.pairs import node_attribute_xy
 from kgcnn.layers.conv.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
 
@@ -18,7 +19,7 @@ class CGCNNLayer(MessagePassingBase):
         batch_normalization (bool): Whether to use batch normalization (GraphBatchNormalization) or not.
     """
 
-    def __init__(self, units=64, activation_s='relu', activation_out='relu', batch_normalization=False, **kwargs):
+    def __init__(self, units=64, activation_s='softplus', activation_out='softplus', batch_normalization=False, **kwargs):
         super(CGCNNLayer, self).__init__(**kwargs)
         self.units = units
         self.activation_s = activation_s
@@ -45,15 +46,15 @@ class CGCNNLayer(MessagePassingBase):
             x_s, x_f = self.batch_norm_s(x_s), self.batch_norm_f(x_f)
         x_s, x_f = self.activation_s_layer(x_s), self.activation_f_layer(x_f)
         x_out = x_s * x_f # shape: (batch_size, M, self.units)
-        if self.batch_normalization:
-            x_out = self.batch_norm_out(x_out)
-        x_out = self.activation_out_layer(x_out)
         return x_out
 
     def update_nodes(self, inputs, **kwargs):
-        nodes = inputs[0]
-        nodes_update = inputs[1]
-        return nodes + nodes_update
+        nodes, nodes_update = inputs
+        nodes_updated = nodes + nodes_update
+        if self.batch_normalization:
+            nodes_updated = self.batch_norm_out(nodes_updated)
+        nodes_updated = self.activation_out_layer(nodes_updated)
+        return nodes_updated
 
     def get_config(self):
         """Update layer config."""
