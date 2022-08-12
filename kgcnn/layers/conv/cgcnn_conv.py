@@ -31,8 +31,8 @@ class CGCNNLayer(MessagePassingBase):
     """
 
     def __init__(self, units: int = 64,
-                 activation_s='relu',
-                 activation_out='relu',
+                 activation_s="softplus",
+                 activation_out="softplus",
                  batch_normalization: bool = False,
                  use_bias: bool = True,
                  kernel_regularizer=None,

@@ -9,6 +9,7 @@ v2.0.4
 * Removed ``add_hydrogen``, `make_conformer`, and `optimize_conformer` from constructor of `MolGraphInterface`.
 * Added ``add_hs``, `make_conformer` and `optimize_conformer` to `MolGraphInterface`.
 * Add normalization option to PAiNN and ``make_crystal_model``.
+* Add ``kgcnn.literature.CGCNN`` model.
 
 
 v2.0.3
