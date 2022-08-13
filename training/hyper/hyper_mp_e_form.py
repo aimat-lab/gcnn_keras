@@ -309,7 +309,7 @@ hyper = {
                     'batch_normalization': True,
                 },
                 'node_pooling_args': {'pooling_method': 'mean'},
-                'depth': 3,
+                'depth': 4,
                 'output_mlp': {'use_bias': [True, True, False], 'units': [128, 64, 1],
                                'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
             }
@@ -319,10 +319,10 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 64, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 64, "epochs": 2500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 1000,
+                        "learning_rate_start": 0.001, "learning_rate_stop": 0.5e-05, "epo_min": 250, "epo": 2500,
                         "verbose": 0}
                      }
                 ]
