@@ -3,6 +3,7 @@ import rdkit
 import rdkit.Chem
 import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
+import rdkit.Chem.Fragments
 import rdkit.Chem.rdMolDescriptors
 import logging
 
@@ -85,8 +86,38 @@ class MolecularGraphRDKit(MolGraphInterface):
 
     # Dictionary of predefined molecule or graph-level properties and features.
     mol_fun_dict = {
+        # Atom counts.
+        "C": lambda m: sum([x.GetSymbol() == "C" for x in m.GetAtoms()]),
+        "N": lambda m: sum([x.GetSymbol() == "N" for x in m.GetAtoms()]),
+        "O": lambda m: sum([x.GetSymbol() == "O" for x in m.GetAtoms()]),
+        "H": lambda m: sum([x.GetSymbol() == "H" for x in m.GetAtoms()]),
+        "S": lambda m: sum([x.GetSymbol() == "S" for x in m.GetAtoms()]),
+        "F": lambda m: sum([x.GetSymbol() == "F" for x in m.GetAtoms()]),
+        "Cl": lambda m: sum([x.GetSymbol() == "Cl" for x in m.GetAtoms()]),
+        # Counts general.
+        "NumAtoms": lambda m: sum([True for _ in m.GetAtoms()]),
+        "AtomsIsInRing": lambda m: sum([x.IsInRing() for x in m.GetAtoms()]),
+        "AtomsIsAromatic": lambda m: sum([x.GetIsAromatic() for x in m.GetAtoms()]),
+        "NumBonds": lambda m: sum([True for _ in m.GetBonds()]),
+        "BondsIsConjugated": lambda m: sum([x.GetIsConjugated() for x in m.GetBonds()]),
+        "BondsIsAromatic": lambda m: sum([x.GetIsAromatic() for x in m.GetBonds()]),
+        "NumRotatableBonds": lambda m: rdkit.Chem.Lipinski.NumRotatableBonds(m),
+        # Descriptors
         "ExactMolWt": rdkit.Chem.Descriptors.ExactMolWt,
-        "NumAtoms": lambda mol_arg_lam: mol_arg_lam.GetNumAtoms()
+        "FpDensityMorgan3": lambda m: rdkit.Chem.Descriptors.FpDensityMorgan3(m),
+        "FractionCSP3": lambda m: rdkit.Chem.Lipinski.FractionCSP3(m),
+        "MolLogP": lambda m: rdkit.Chem.Crippen.MolLogP(m),
+        "MolMR": lambda m: rdkit.Chem.Crippen.MolMR(m),
+        # Fragments
+        "fr_Al_COO": lambda m: rdkit.Chem.Fragments.fr_Al_COO(m),
+        "fr_Ar_COO": lambda m: rdkit.Chem.Fragments.fr_Ar_COO(m),
+        "fr_Al_OH": lambda m: rdkit.Chem.Fragments.fr_Al_OH(m),
+        "fr_Ar_OH": lambda m: rdkit.Chem.Fragments.fr_Ar_OH(m),
+        "fr_C_O_noCOO": lambda m: rdkit.Chem.Fragments.fr_C_O_noCOO(m),
+        "fr_NH2": lambda m: rdkit.Chem.Fragments.fr_NH2(m),
+        "fr_SH": lambda m: rdkit.Chem.Fragments.fr_SH(m),
+        "fr_sulfide": lambda m: rdkit.Chem.Fragments.fr_sulfide(m),
+        "fr_alkyl_halide": lambda m: rdkit.Chem.Fragments.fr_alkyl_halide(m),
     }
 
     def __init__(self,
