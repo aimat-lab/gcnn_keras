@@ -74,7 +74,7 @@
       "node_pooling_args": {
         "pooling_method": "mean"
       },
-      "depth": 3,
+      "depth": 4,
       "output_mlp": {
         "use_bias": [
           true,
@@ -106,7 +106,7 @@
     "execute_folds": 1,
     "fit": {
       "batch_size": 64,
-      "epochs": 1000,
+      "epochs": 2500,
       "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
@@ -114,9 +114,9 @@
           "class_name": "kgcnn>LinearLearningRateScheduler",
           "config": {
             "learning_rate_start": 0.001,
-            "learning_rate_stop": 1e-05,
-            "epo_min": 100,
-            "epo": 1000,
+            "learning_rate_stop": 5e-06,
+            "epo_min": 250,
+            "epo": 2500,
             "verbose": 0
           }
         }
