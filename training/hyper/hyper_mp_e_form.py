@@ -301,7 +301,7 @@ hyper = {
                 'representation': 'unit',  # None, 'asu' or 'unit'
                 'expand_distance': True,
                 'make_distances': True,
-                'gauss_args': {'bins': 40, 'distance': 5, 'offset': 0.0, 'sigma': 0.4},
+                'gauss_args': {'bins': 60, 'distance': 6, 'offset': 0.0, 'sigma': 0.4},
                 'conv_layer_args': {
                     'units': 128,
                     'activation_s': 'kgcnn>shifted_softplus',
@@ -319,10 +319,10 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
-                "batch_size": 64, "epochs": 2500, "validation_freq": 10, "verbose": 2,
+                "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.001, "learning_rate_stop": 0.5e-05, "epo_min": 250, "epo": 2500,
+                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
                         "verbose": 0}
                      }
                 ]
@@ -344,7 +344,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
                 ]
             },
             "data_unit": "eV/atom"
