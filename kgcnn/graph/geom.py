@@ -215,10 +215,13 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     bounding_box_index = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1) * (max_distance + max_radius_cell)
     bounding_box_index = np.ceil(bounding_box_index).astype("int")
 
+    # Making grid.
     bounding_grid = mesh_grid_list(-bounding_box_index, bounding_box_index)
     bounding_grid = bounding_grid[
         np.logical_not(np.all(bounding_grid == np.array([[0, 0, 0]]), axis=-1))]  # Remove center cell
     bounding_grid_real = np.dot(bounding_grid, lattice_row)
+
+    # Check which centers are in the sphere of cutoff.
     dist_centers = np.sqrt(np.sum(np.square(bounding_grid_real), axis=-1))
     mask_centers = dist_centers <= max_distance + max_radius_cell
     images = bounding_grid[mask_centers]
