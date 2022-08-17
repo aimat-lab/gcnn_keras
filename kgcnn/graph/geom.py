@@ -182,7 +182,6 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         At the moment :obj:`exclusive` is not fully working yet,
         meaning :obj:`max_neighbours` only limits :obj:`max_distance`.
 
-
     Args:
         coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.

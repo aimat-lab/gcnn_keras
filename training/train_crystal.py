@@ -15,16 +15,19 @@ from kgcnn.hyper.hyper import HyperParameter
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.utils.models import get_model_class
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
+from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="CGCNN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="MatProjectEFormDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mp_e_form.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_crystal_model")
+parser.add_argument("--gpu", required=False, help="GPU index used for training.",
+                    default=None, nargs="+", type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -33,6 +36,10 @@ model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
+gpu_to_use = args["gpu"]
+
+# Assigning GPU.
+set_devices_gpu(gpu_to_use)
 
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
