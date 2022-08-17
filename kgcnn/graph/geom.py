@@ -178,6 +178,11 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         For periodic structure, setting :obj:`max_distance` to `inf` would also lead to an infinite number of neighbours
         and connections.
 
+    .. warning::
+        At the moment :obj:`exclusive` is not fully working yet,
+        meaning :obj:`max_neighbours` only limits :obj:`max_distance`.
+
+
     Args:
         coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
