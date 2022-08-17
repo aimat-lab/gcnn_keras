@@ -54,7 +54,7 @@ def set_devices_gpu(gpu_ids_list: Union[list, int], restrict_memory: bool = True
             module_logger.info("Setting visible devices: %s" % gpus_used)
             if restrict_memory:
                 for gpu in gpus_used:
-                    module_logger.info("Restrict Memory: %s" % gpu)
+                    module_logger.info("Restrict Memory: %s" % gpu.name)
                     tf.config.experimental.set_memory_growth(gpu, True)
             logical_gpus = tf.config.experimental.list_logical_devices("GPU")
             module_logger.info("Physical GPUS: %s, Logical GPUS: %s" % (len(gpus), len(logical_gpus)))
