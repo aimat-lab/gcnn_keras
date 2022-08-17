@@ -161,16 +161,22 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
         mat_m = (np.expand_dims(di2[..., use_center], axis=-2) + np.expand_dims(di2[..., use_center],
                                                                                 axis=-1) - di2) / 2
     u, s, v = np.linalg.svd(mat_m)
-    vecs = np.matmul(u, np.sqrt(np.diag(s)))  # EV are sorted by default
-    distout = vecs[..., 0:dim]
-    return distout
+    vec = np.matmul(u, np.sqrt(np.diag(s)))  # EV are sorted by default
+    dist_out = vec[..., 0:dim]
+    return dist_out
 
 
 def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
-                            max_distance: float = 4.0, self_loops: bool = False, sort_distance: bool = True
+                            max_distance: float = 4.0, max_neighbours: bool = None,
+                            self_loops: bool = False,
+                            exclusive: bool = True,
                             ) -> list:
-    """Generate range connections for a periodic lattice. The function generates a super-cell of required radius
+    r"""Generate range connections for a periodic lattice. The function generates a super-cell of required radius
     and computes connections of neighbouring nodes from the primitive centered unit cell.
+
+    .. note::
+        For periodic structure, setting :obj:`max_distance` to `inf` would also lead to an infinite number of neighbours
+        and connections.
 
     Args:
         coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
@@ -178,31 +184,31 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
             The lattice vectors must be given in rows of the matrix!
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
         self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
-        sort_distance (bool, optional): Whether to sort distance for each central node. Default is True.
+        max_neighbours (int, optional): Maximum number of allowed neighbours for each central atom. Default is None.
+        exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
 
     Returns:
         list: [indices, images, dist]
     """
+    # Here we set the lattice matrix, with lattice vectors in either columns or rows of the matrix.
     lattice_col = np.transpose(lattice)
     lattice_row = lattice
 
-    # Index list for nodes
+    # Index list for nodes. Enumerating the nodes in the central unit cell.
     node_index = np.expand_dims(np.arange(0, len(coordinates)), axis=1)  # Nx1
 
     # Mesh Grid list
-    def mesh_grid_list(bound_left, bound_right):
+    def mesh_grid_list(bound_left: np.array, bound_right: np.array) -> np.array:
         pos = [np.arange(i, j+1, 1) for i, j in zip(bound_left, bound_right)]
         grid_list = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)
         return grid_list
 
-    # Diagonals of unit cell
+    # Diagonals of unit cell.
     center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
     max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
-    # print(center_unit_cell, max_radius_cell)
 
     # Bounding box of real space unit cell in index space
     bounding_box_index = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1) * (max_distance + max_radius_cell)
-    # print(bounding_box_index)
     bounding_box_index = np.ceil(bounding_box_index).astype("int")
 
     bounding_grid = mesh_grid_list(-bounding_box_index, bounding_box_index)
@@ -213,16 +219,6 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     mask_centers = dist_centers <= max_distance + max_radius_cell
     images = bounding_grid[mask_centers]
     shifts = bounding_grid_real[mask_centers]
-
-    # Plotting supercell for debugging
-    # dims = 0, 1
-    # fig, ax = plt.subplots(figsize=None)
-    # ax.set_aspect('equal')
-    # ax.scatter(bounding_grid_real[:, dims[0]], bounding_grid_real[:, dims[1]], s=0.5)
-    # ax.scatter(shifts[:, dims[0]], shifts[:, dims[1]], s=0.5)
-    # circle = plt.Circle((0, 0), max_distance, color='r', fill=False)
-    # ax.add_patch(circle)
-    # plt.show()
 
     num_images = images.shape[0]
     images = np.expand_dims(images, axis=0)  # 1xCx3
@@ -264,19 +260,27 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     dist = np.sqrt(np.sum(np.square(dist), axis=-1))  # Nx(N*C+1)
 
     # Sorting for distance in real space
-    if sort_distance:
-        arg_sort = np.argsort(dist, axis=-1)
-        dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
-        dist_indices_sort = np.take_along_axis(
-            dist_indices, np.repeat(np.expand_dims(arg_sort, axis=2), dist_indices.shape[2], axis=2), axis=1)
-        dist_images_sort = np.take_along_axis(
-            dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
-    else:
-        dist_sort = dist
-        dist_images_sort = dist_images
-        dist_indices_sort = dist_indices
+    arg_sort = np.argsort(dist, axis=-1)
+    dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
+    dist_indices_sort = np.take_along_axis(
+        dist_indices, np.repeat(np.expand_dims(arg_sort, axis=2), dist_indices.shape[2], axis=2), axis=1)
+    dist_images_sort = np.take_along_axis(
+        dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
 
-    mask = dist_sort <= max_distance
+    mask_distance = dist_sort <= max_distance
+    mask_neighbours = np.zeros_like(mask_distance, dtype="bool")
+
+    if max_neighbours is None:
+        max_neighbours = dist_sort.shape[-1]
+    else:
+        max_neighbours = min(max_neighbours, dist_sort.shape[-1])
+
+    mask_neighbours[:, :max_neighbours] = True
+
+    if exclusive:
+        mask = np.logical_and(mask_neighbours, mask_distance)
+    else:
+        mask = np.logical_or(mask_neighbours, mask_distance)
 
     # Selected atoms
     out_dist = dist_sort[mask]
