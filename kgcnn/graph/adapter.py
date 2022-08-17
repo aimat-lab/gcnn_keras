@@ -321,7 +321,8 @@ class GraphMethodsAdapter:
                            graph_lattice: str = "graph_lattice",
                            range_image: str = "range_image",
                            range_attributes: str = "range_attributes",
-                           max_distance: float = 4.0, sort_distance: bool = True,
+                           max_distance: float = 4.0, max_neighbours: int = None,
+                           exclusive: bool = True,
                            do_invert_distance: bool = False, self_loops: bool = False):
         r"""Define range in euclidean space for interaction or edge-like connections on a periodic lattice.
         The number of connection is determines based on a cutoff radius and a maximum number of neighbours or both.
@@ -337,7 +338,8 @@ class GraphMethodsAdapter:
             range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
             range_image (str): Name of range image indices to set in dictionary. Default is "range_image".
             max_distance (float): Maximum distance or cutoff radius for connections. Default is 4.0.
-            sort_distance (bool): Whether to sort distance per node. Default is True.
+            max_neighbours (int, optional): Maximum number of allowed neighbours for each central atom. Default is None.
+            exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
             do_invert_distance (bool): Whether to invert the distance. Default is False.
             self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
 
@@ -356,7 +358,7 @@ class GraphMethodsAdapter:
 
         indices, images, dist = range_neighbour_lattice(
             xyz, lattice_mat,
-            max_distance=max_distance, sort_distance=sort_distance, self_loops=self_loops)
+            max_distance=max_distance, max_neighbours=max_neighbours, self_loops=self_loops, exclusive=exclusive)
 
         if do_invert_distance:
             dist = invert_distance(dist)
