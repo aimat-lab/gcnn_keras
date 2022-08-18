@@ -322,7 +322,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     else:
         mask = np.logical_or(mask_neighbours, mask_distance)
 
-    # Selected atoms
+    # Select nodes.
     out_dist = dist_sort[mask]
     out_images = dist_images_sort[mask]
     out_indices = dist_indices_sort[mask]
