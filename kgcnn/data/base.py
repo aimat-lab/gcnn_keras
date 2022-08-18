@@ -356,6 +356,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     @property
     def file_directory_path(self):
+        """Returns path information of `file_directory_`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
@@ -376,7 +377,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.logger.error(*args, **kwargs)
 
     def save(self, filepath: str = None):
-        r"""Save all graph properties to as dictionary as pickled file. By default, saves a file named
+        r"""Save all graph properties to python dictionary as pickled file. By default, saves a file named
         :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
 
         Args:
@@ -389,7 +390,7 @@ class MemoryGraphDataset(MemoryGraphList):
         return self
 
     def load(self, filepath: str = None):
-        r"""Load graph properties from a pickled file. By default loads a file named
+        r"""Load graph properties from a pickled file. By default, loads a file named
         :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
 
         Args:
