@@ -142,7 +142,7 @@ class MemoryGraphList:
 
     def _set_internal_list(self, value: list):
         if not isinstance(value, list):
-            raise TypeError("Must set list for MemoryGraphList.")
+            raise TypeError("Must set list for `MemoryGraphList` internal assignment.")
         self._list = value
         return self
 
@@ -152,9 +152,22 @@ class MemoryGraphList:
         self._list[key] = value
 
     def clear(self):
+        """Clear internal list.
+
+        Returns:
+            None
+        """
         self._list = []
 
     def empty(self, length: int):
+        """Create an empty list in place. Overwrites existing list.
+
+        Args:
+            length (int): Length of the empty list.
+
+        Returns:
+            self
+        """
         if length is None:
             return self
         if length < 0:
@@ -164,6 +177,7 @@ class MemoryGraphList:
 
     @property
     def length(self):
+        """Length of list."""
         return len(self._list)
 
     @length.setter
@@ -180,7 +194,22 @@ class MemoryGraphList:
         else:
             return tf.constant(np.array(props))
 
-    def tensor(self, items, make_copy=True):
+    def tensor(self, items: Union[list, dict], make_copy=True):
+        r"""Make tensor objects from multiple graph properties in list.
+
+        It is recommended to run :obj:`clean` beforehand.
+
+        Args:
+            items (list): List of dictionaries that specify graph properties in list via 'name' key.
+                The dict-items match the tensor input for :obj:`tf.keras.layers.Input` layers.
+                Required dict-keys should be 'name' and 'ragged'.
+                Optionally shape information can be included via 'shape'.
+                E.g.: `[{'name': 'edge_indices', 'ragged': True}, {...}, ...]`.
+            make_copy (bool): Whether to copy the data. Default is True.
+
+        Returns:
+            list: List of Tensors.
+        """
         if isinstance(items, dict):
             return self._to_tensor(items, make_copy=make_copy)
         elif isinstance(items, (tuple, list)):
@@ -210,7 +239,8 @@ class MemoryGraphList:
 
         Args:
             inputs (list): A list of strings, where each string is supposed to be a property name, which the graphs
-                in this list may possess.
+                in this list may possess. Within :obj:`kgcnn`, this can be simpy the 'input' category in model
+                configuration. In this case, a list of dicts that specify the name of the property with 'name' key.
 
         Returns:
             invalid_graphs (np.ndarray): A list of graph indices that do not have the required properties and which
@@ -220,6 +250,7 @@ class MemoryGraphList:
             inputs = [inputs]
         invalid_graphs = []
         for item in inputs:
+            # If this is a list of dict, which are the config for ks.layers.Input(), we pick 'name'.
             if isinstance(item, dict):
                 item_name = item["name"]
             else:
@@ -238,10 +269,10 @@ class MemoryGraphList:
                     invalid_graphs.append(i)
                 elif len(x.shape) > 0:
                     if len(x) <= 0:
-                        self.logger.info("Property %s is empty list for graph %s." % (item_name, i))
+                        self.logger.info("Property %s is an empty list for graph %s." % (item_name, i))
                         invalid_graphs.append(i)
         invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
-        invalid_graphs = np.flip(invalid_graphs)  # Need descending order
+        invalid_graphs = np.flip(invalid_graphs)  # Need descending order for pop()
         if len(invalid_graphs) > 0:
             self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
         else:
