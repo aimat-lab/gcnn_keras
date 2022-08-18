@@ -13,9 +13,11 @@ module_logger.setLevel(logging.INFO)
 
 
 class MemoryGraphList:
-    r"""Class to store a list of graph dictionaries in memory. Contains a python list as property :obj:`_list`.
-    The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. in
-     :obj:`GraphDict`, which are the items of the list.
+    r"""Class to store a list of graph dictionaries in memory.
+
+    Contains a python list as property :obj:`_list`. The graph properties are defined by tensor-like (numpy) arrays
+    for indices, attributes, labels, symbol etc. in :obj:`GraphDict`, which are the items of the list.
+    Access to items via `[]` indexing operator.
 
     A python list of a single named property can be obtained from each :obj:`GraphDict` in :obj:`MemoryGraphList` via
     :obj:`get` or assigned from a python list via :obj:`set` methods.
@@ -38,6 +40,7 @@ class MemoryGraphList:
         data.set("node_coordinates", [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])])
         data.map_list("set_range", max_distance=1.5, max_neighbours=10, self_loops=False)
         data.clean("range_indices")  # Returns cleaned graph indices
+        print(len(data))
         print(data[0])
     """
 
