@@ -291,24 +291,20 @@ class MemoryGraphList:
 
 
 class MemoryGraphDataset(MemoryGraphList):
-    r"""Dataset class for lists of graph tensor properties that can be cast into the :obj:`tf.RaggedTensor` class.
-    The graph list is expected to only store numpy arrays in place of the each node or edge information!
+    r"""Dataset class for lists of graph tensor dictionaries stored on file and fit into memory.
 
-    .. note::
-        Each graph attribute is expected to be a python list or iterable object containing numpy arrays.
-        For example, the special attribute of :obj:`edge_indices` is expected to be a list of arrays of
-        shape `(Num_edges, 2)` with the indices of node connections.
-        The node attributes in :obj:`node_attributes` are numpy arrays of shape `(Num_nodes, Num_features)`.
-
-    The Memory Dataset class inherits from :obj:`MemoryGraphList` and has further information
-    about a location on disk, i.e. a file directory and a file name as well as a name of the dataset.
+    This class inherits from :obj:`MemoryGraphList` and can be used (after loading and setup) as such.
+    It has further information about a location on disk, i.e. a file directory and a file
+    name as well as a name of the dataset.
 
     .. code-block:: python
 
         from kgcnn.data.base import MemoryGraphDataset
         dataset = MemoryGraphDataset(data_directory="", dataset_name="Example")
-        dataset.assign_property("edge_indices", [np.array([[1, 0], [0, 1]])])
-        dataset.assign_property("edge_labels", [np.array([[0], [1]])])
+        # Methods of MemoryGraphList
+        dataset.set("edge_indices", [np.array([[1, 0], [0, 1]])])
+        dataset.set("edge_labels", [np.array([[0], [1]])])
+        # dataset.save()
 
     The file directory and file name are used in child classes and in :obj:`save` and :obj:`load`.
     """
@@ -380,7 +376,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.logger.error(*args, **kwargs)
 
     def save(self, filepath: str = None):
-        r"""Save all graph properties to as dictionary as pickled file. By default saves a file named
+        r"""Save all graph properties to as dictionary as pickled file. By default, saves a file named
         :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
 
         Args:
@@ -439,10 +435,13 @@ class MemoryGraphDataset(MemoryGraphList):
         r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
         by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
 
-        Example:
-            [{"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-            {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+        .. code-block:: python
+
+            hyper_input = [
+                {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
+                {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+            ]
 
         Args:
             hyper_input (list): List of properties that need to be available to a model for training.
