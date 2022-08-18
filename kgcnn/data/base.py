@@ -13,28 +13,31 @@ module_logger.setLevel(logging.INFO)
 
 class MemoryGraphList:
     r"""Class to store a list of graph dictionaries in memory. Contains a python list as property :obj:`_list`.
-    The graph properties are defined by tensor-like numpy arrays for indices, attributes, labels, symbol etc. .
-    They are distributed from of a list of numpy arrays to each graph in the list via :obj:`assign_property`.
+    The graph properties are defined by tensor-like (numpy) arrays for indices, attributes, labels, symbol etc. in
+     :obj:`GraphDict`, which are the items of the list.
 
-    A list of numpy arrays can also be passed to class instances that have a reserved prefix, which is essentially
-    a shortcut to :obj:`assign_property` and must match the length of the list.
-    Prefix are `node_`, `edge_`, `graph_` `range_` and `angle_` for their node, edge and graph properties, respectively.
-    The range-attributes and range-indices are just like edge-indices but refer to a geometric annotation.
-    This allows to have geometric range-connections and topological edges separately.
-    The prefix 'range' is synonym for a geometric edge.
+    A python list of a single named property can be obtained from each :obj:`GraphDict` in :obj:`MemoryGraphList` via
+    :obj:`get` or assigned from a python list via :obj:`set` methods.
+
+    The :obj:`MemoryGraphList` further provides simple map-functionality :obj:`map_list` to apply methods for
+    each :obj:`GraphDict`, and to cast properties to tensor with :obj:`tensor`.
+
+    Cleaning the list for missing properties or empty graphs is done with :obj:`clean`.
 
     .. code-block:: python
 
         import numpy as np
         from kgcnn.data.base import MemoryGraphList
+
         data = MemoryGraphList()
         data.empty(1)
-        data.assign_property("edge_indices", [np.array([[0, 1], [1, 0]])])
-        data.assign_property("node_labels", [np.array([[0], [1]])])
-        print(data.obtain_property("edge_indices"))
-        data.assign_property("node_coordinates", [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])])
-        print(data.obtain_property("node_coordinates"))
+        data.set("edge_indices", [np.array([[0, 1], [1, 0]])])
+        data.set("node_labels", [np.array([[0], [1]])])
+        print(data.get("edge_indices"))
+        data.set("node_coordinates", [np.array([[1, 0, 0], [0, 1, 0], [0, 2, 0], [0, 3, 0]])])
         data.map_list("set_range", max_distance=1.5, max_neighbours=10, self_loops=False)
+        data.clean("range_indices")  # Returns cleaned graph indices
+        print(data[0])
     """
 
     def __init__(self, input_list: list = None):
