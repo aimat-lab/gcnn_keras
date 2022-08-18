@@ -211,13 +211,20 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Diagonals, center, volume and density of unit cell based on lattice matrix.
     center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
     max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
-    # volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
-    # density_unit_cell = len(node_index) / volume_unit_cell
+    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
+    density_unit_cell = len(node_index) / volume_unit_cell
+
+    # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
+    estimated_nn_volume = max_neighbours / density_unit_cell
+    estimated_nn_radius = np.cbrt(estimated_nn_volume / np.pi * 3 / 4)
+
+    super_cell_radius = max_distance
 
     # Bounding box of real space cube with edge length 2 or inner sphere of radius 1 transformed into index
     # space gives 'bounding_box_unit'. Simply upscale for radius of super-cell.
+    # To account for node pairing within the unit cell we add 'max_radius_cell'.
     bounding_box_unit = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1)
-    bounding_box_index = bounding_box_unit * (max_distance + max_radius_cell)
+    bounding_box_index = bounding_box_unit * (super_cell_radius + max_radius_cell)
     bounding_box_index = np.ceil(bounding_box_index).astype("int")
 
     # Making grid for super-cell that repeats the unit cell for required indices in 'bounding_box_index'.
@@ -230,10 +237,12 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Check which centers are in the sphere of cutoff, since for non-rectangular lattice vectors, the parallelepiped
     # can be overshooting the required sphere. Better do this here, before computing coordinates of nodes.
     dist_centers = np.sqrt(np.sum(np.square(bounding_grid_real), axis=-1))
-    mask_centers = dist_centers <= max_distance + max_radius_cell
+    mask_centers = dist_centers <= super_cell_radius + max_radius_cell
     images = bounding_grid[mask_centers]
     shifts = bounding_grid_real[mask_centers]
 
+    # Compute node coordinates of images and prepare indices for those nodes. For 'N' nodes per cell and 'C' images
+    # (without the central unit cell), this will be (flatten) arrays of (N*C)x3.
     num_images = images.shape[0]
     images = np.expand_dims(images, axis=0)  # 1xCx3
     images = np.repeat(images, len(coordinates), axis=0)  # NxCx3
@@ -242,7 +251,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     images = np.reshape(images, (-1, 3))  # (N*C)x3
     indices = np.expand_dims(np.repeat(node_index, num_images), axis=-1)  # (N*C)x1
 
-    # Center cell distance
+    # Center cell distance. Compute the distance matrix separately for the central primitive unit cell.
+    # Here one can check if self-loops (meaning loops between the nodes of the central cell) should be allowed.
     center_indices = np.indices((len(node_index), len(node_index)))
     center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
     center_dist = np.expand_dims(coordinates, axis=0) - np.expand_dims(coordinates, axis=1)  # NxNx3
@@ -258,14 +268,15 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         center_image = remove_self_loops(center_image)
         center_dist = remove_self_loops(center_dist)
 
-    # Make arrays of Nx(NxC)
+    # Make distance matrix of central cell to all image. This will have shape Nx(NxC).
     dist = np.expand_dims(coord_images, axis=0) - np.expand_dims(coordinates, axis=1)  # Nx(N*C)x3
     dist_indices = np.concatenate(
         [np.repeat(np.expand_dims(node_index, axis=1), len(indices), axis=1),
          np.repeat(np.expand_dims(indices, axis=0), len(node_index), axis=0)], axis=-1)  # Nx(N*C)x2
     dist_images = np.repeat(np.expand_dims(images, axis=0), len(node_index), axis=0)  # Nx(N*C)x3
 
-    # Adding Center image as matrix for shape Nx(NxC+1)
+    # Adding distance matrix of nodes within the central cell to the image distance matrix.
+    # The resulting shape is then Nx(NxC+1).
     dist_indices = np.concatenate([center_indices, dist_indices], axis=1)  # Nx(N*C+1)x2
     dist_images = np.concatenate([center_image, dist_images], axis=1)  # Nx(N*C+1)x2
     dist = np.concatenate([center_dist, dist], axis=1)  # Nx(N*C+1)x3
@@ -273,7 +284,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Distance in real space.
     dist = np.sqrt(np.sum(np.square(dist), axis=-1))  # Nx(N*C+1)
 
-    # Sorting for distance in real space
+    # Sorting the distance matrix. Indices and image information must be sorted accordingly.
     arg_sort = np.argsort(dist, axis=-1)
     dist_sort = np.take_along_axis(dist, arg_sort, axis=1)
     dist_indices_sort = np.take_along_axis(
@@ -281,6 +292,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     dist_images_sort = np.take_along_axis(
         dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
 
+    # Select range connections based on distance cutoff and nearest neighbour limit.
     mask_distance = dist_sort <= max_distance
     mask_neighbours = np.zeros_like(mask_distance, dtype="bool")
 
