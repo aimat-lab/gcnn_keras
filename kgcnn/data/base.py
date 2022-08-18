@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import os
+from typing import Union
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphNumpyContainer, GraphDict
 
