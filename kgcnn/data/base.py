@@ -193,7 +193,7 @@ class MemoryGraphList:
             getattr(x, method)(**kwargs)
         return self
 
-    def clean(self, inputs: list):
+    def clean(self, inputs: Union[list, str]):
         r"""Given a list of property names, this method removes all elements from the internal list of
         `GraphDict` items, which do not define at least one of those properties. Meaning, only those graphs remain in
         the list which definitely define all properties specified by :obj:`inputs`.
