@@ -201,15 +201,17 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Index list for nodes. Enumerating the nodes in the central unit cell.
     node_index = np.expand_dims(np.arange(0, len(coordinates)), axis=1)  # Nx1
 
-    # Mesh Grid list
+    # Mesh Grid list. For a list of indices bounding left and right make a list of a 3D mesh.
     def mesh_grid_list(bound_left: np.array, bound_right: np.array) -> np.array:
         pos = [np.arange(i, j+1, 1) for i, j in zip(bound_left, bound_right)]
         grid_list = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)
         return grid_list
 
-    # Diagonals of unit cell.
+    # Diagonals, center and volume of unit cell.
     center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
     max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
+    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
+    density_unit_cell = len(node_index) / volume_unit_cell
 
     # Bounding box of real space unit cell in index space
     bounding_box_index = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1) * (max_distance + max_radius_cell)
