@@ -199,6 +199,7 @@ class MemoryGraphList:
             self
         """
         for i, x in enumerate(self._list):
+            # Can add progress info here.
             getattr(x, method)(**kwargs)
         return self
 
