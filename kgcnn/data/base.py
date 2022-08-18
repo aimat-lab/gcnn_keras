@@ -188,8 +188,17 @@ class MemoryGraphList:
         else:
             raise TypeError("Wrong type, expected e.g. [{'name': 'edge_indices', 'ragged': True}, {...}, ...]")
 
-    def map_list(self, method, **kwargs):
-        for x in self._list:
+    def map_list(self, method: str, **kwargs):
+        r"""Map a method over this list and apply on each :obj:`GraphDict`.
+
+        Args:
+            method (str): Name of the :obj:`GraphDict` method.
+            kwargs: Kwargs for `method`.
+
+        Returns:
+            self
+        """
+        for i, x in enumerate(self._list):
             getattr(x, method)(**kwargs)
         return self
 
