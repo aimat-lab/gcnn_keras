@@ -202,6 +202,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     node_index = np.expand_dims(np.arange(0, len(coordinates)), axis=1)  # Nx1
 
     # Mesh Grid list. For a list of indices bounding left and right make a list of a 3D mesh.
+    # Function is used to pad image unit cells or their origin for super cell.
     def mesh_grid_list(bound_left: np.array, bound_right: np.array) -> np.array:
         pos = [np.arange(i, j+1, 1) for i, j in zip(bound_left, bound_right)]
         grid_list = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)

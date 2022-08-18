@@ -15,3 +15,5 @@ class MatProjectEFormDataset(MatBenchDataset2020):
         super(MatProjectEFormDataset, self).__init__("matbench_mp_e_form", reload=reload, verbose=verbose)
         self.label_names = "e_form"
         self.label_units = "eV/atom"
+
+# data = MatProjectEFormDataset()
