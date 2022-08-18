@@ -84,7 +84,7 @@ class MemoryGraphList:
             self._list[i].assign_property(key, x)
         return self
 
-    def obtain_property(self, key):
+    def obtain_property(self, key: str) -> Union[list, None]:
         r"""Returns a list with the values of all the graphs defined for the string property name `key`. If none of
         the graphs in the list have this property, returns None.
 
