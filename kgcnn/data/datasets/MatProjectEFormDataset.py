@@ -16,4 +16,6 @@ class MatProjectEFormDataset(MatBenchDataset2020):
         self.label_names = "e_form"
         self.label_units = "eV/atom"
 
+
 # data = MatProjectEFormDataset()
+# data.map_list(method="set_range_periodic", max_distance=4, max_neighbours=None)

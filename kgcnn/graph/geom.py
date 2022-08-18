@@ -219,8 +219,11 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     density_unit_cell = len(node_index) / volume_unit_cell
 
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
-    estimated_nn_volume = max_neighbours / density_unit_cell
-    estimated_nn_radius = float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4))
+    if max_neighbours is not None:
+        estimated_nn_volume = max_neighbours / density_unit_cell
+        estimated_nn_radius = float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4))
+    else:
+        estimated_nn_radius = None
 
     # Determine the required size of super-cell
     if max_distance is None:
