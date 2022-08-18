@@ -58,6 +58,15 @@ class MemoryGraphList:
             self._list = [GraphDict(x) for x in input_list._list]
 
     def assign_property(self, key, value):
+        """Assign a list of numpy arrays of a property to :obj:`GraphDict`s in this list.
+
+        Args:
+            key (str): Name of the property.
+            value (list): List of numpy arrays for property `key`.
+
+        Returns:
+            self
+        """
         if value is None:
             # We could also here remove the key from all graphs.
             return self
