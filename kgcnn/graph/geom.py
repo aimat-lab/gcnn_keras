@@ -171,29 +171,33 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
                             self_loops: bool = False,
                             exclusive: bool = True,
                             ) -> list:
-    r"""Generate range connections for a periodic lattice. The function generates a super-cell of required radius
-    and computes connections of neighbouring nodes from the primitive centered unit cell.
+    r"""Generate range connections for a primitive unit cell in a periodic lattice.
+
+    The function generates a super-cell of required radius and computes connections of neighbouring nodes
+    from the primitive centered unit cell.
 
     .. note::
-        For periodic structure, setting :obj:`max_distance` to `inf` would also lead to an infinite number of neighbours
-        and connections.
-
-    .. warning::
-        At the moment :obj:`exclusive` is not fully working yet,
-        meaning :obj:`max_neighbours` only limits :obj:`max_distance`.
+        For periodic structure, setting :obj:`max_distance` and :obj:`max_neighbours` to `inf` would also lead
+        to an infinite number of neighbours and connections. If :obj:`exclusive` is set to `False`, having either
+        :obj:`max_distance` or :obj:`max_neighbours` set to `inf`, will result in an infinite number of neighbours.
+        If set to `None`, :obj:`max_distance` or :obj:`max_neighbours` can selectively be ignored.
 
     Args:
         coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
             The lattice vectors must be given in rows of the matrix!
         max_distance (float, optional): Maximum distance to allow connections, can also be None. Defaults to 4.0.
-        self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
         max_neighbours (int, optional): Maximum number of allowed neighbours for each central atom. Default is None.
+        self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
 
     Returns:
         list: [indices, images, dist]
     """
+    # Require either max_distance or max_neighbours to be specified.
+    if max_distance is None and max_neighbours is None:
+        raise ValueError("Need to specify either `max_distance` or `max_neighbours` or both.")
+
     # Here we set the lattice matrix, with lattice vectors in either columns or rows of the matrix.
     lattice_col = np.transpose(lattice)
     lattice_row = lattice
@@ -216,9 +220,18 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
 
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
     estimated_nn_volume = max_neighbours / density_unit_cell
-    estimated_nn_radius = np.cbrt(estimated_nn_volume / np.pi * 3 / 4)
+    estimated_nn_radius = float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4))
 
-    super_cell_radius = max_distance
+    # Determine the required size of super-cell
+    if max_distance is None:
+        super_cell_radius = estimated_nn_radius
+    elif max_neighbours is None:
+        super_cell_radius = max_distance
+    else:
+        if exclusive:
+            super_cell_radius = min(max_distance, estimated_nn_radius)
+        else:
+            super_cell_radius = max(max_distance, estimated_nn_radius)
 
     # Bounding box of real space cube with edge length 2 or inner sphere of radius 1 transformed into index
     # space gives 'bounding_box_unit'. Simply upscale for radius of super-cell.
@@ -292,15 +305,16 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     dist_images_sort = np.take_along_axis(
         dist_images, np.repeat(np.expand_dims(arg_sort, axis=2), dist_images.shape[2], axis=2), axis=1)
 
-    # Select range connections based on distance cutoff and nearest neighbour limit.
-    mask_distance = dist_sort <= max_distance
-    mask_neighbours = np.zeros_like(mask_distance, dtype="bool")
-
+    # Select range connections based on distance cutoff and nearest neighbour limit. Uses masking.
+    # Based on 'max_distance'.
+    if max_distance is None:
+        mask_distance = np.ones_like(dist_sort, dtype="bool")
+    else:
+        mask_distance = dist_sort <= max_distance
+    # Based on 'max_neighbours'.
+    mask_neighbours = np.zeros_like(dist_sort, dtype="bool")
     if max_neighbours is None:
         max_neighbours = dist_sort.shape[-1]
-    else:
-        max_neighbours = min(max_neighbours, dist_sort.shape[-1])
-
     mask_neighbours[:, :max_neighbours] = True
 
     if exclusive:
