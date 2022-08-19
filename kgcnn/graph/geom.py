@@ -173,7 +173,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
                             self_loops: bool = False,
                             exclusive: bool = True,
                             ) -> list:
-    r"""Generate range connections for a primitive unit cell in a periodic lattice.
+    r"""Generate range connections for a primitive unit cell in a periodic lattice (vectorized).
 
     The function generates a super-cell of required radius and computes connections of neighbouring nodes
     from the primitive centered unit cell.
