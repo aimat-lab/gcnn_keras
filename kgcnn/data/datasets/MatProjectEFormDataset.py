@@ -18,4 +18,4 @@ class MatProjectEFormDataset(MatBenchDataset2020):
 
 
 # data = MatProjectEFormDataset()
-# data.map_list(method="set_range_periodic", max_distance=4, max_neighbours=None)
+# data.map_list(method="set_range_periodic", max_distance=4, max_neighbours=65)

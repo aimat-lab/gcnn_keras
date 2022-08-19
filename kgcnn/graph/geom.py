@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Union
 
 
 def coulomb_matrix_to_inverse_distance_proton(coulomb_mat: np.ndarray, unit_conversion: float = 1.0):
@@ -167,7 +168,8 @@ def coordinates_from_distance_matrix(distance: np.ndarray, use_center: bool = No
 
 
 def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
-                            max_distance: float = 4.0, max_neighbours: bool = None,
+                            max_distance: Union[float, None] = 4.0,
+                            max_neighbours: Union[int, None] = None,
                             self_loops: bool = False,
                             exclusive: bool = True,
                             ) -> list:

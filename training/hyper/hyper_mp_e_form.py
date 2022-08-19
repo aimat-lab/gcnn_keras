@@ -270,7 +270,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 3.6}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 15}},
                     {"map_list": {"method": "set_angle", "allow_multi_edges": True}}
                 ]
             },
@@ -306,7 +306,7 @@ hyper = {
                     'units': 128,
                     'activation_s': 'kgcnn>shifted_softplus',
                     'activation_out': 'kgcnn>shifted_softplus',
-                    'batch_normalization': True,
+                    'batch_normalization': False,
                 },
                 'node_pooling_args': {'pooling_method': 'mean'},
                 'depth': 4,
