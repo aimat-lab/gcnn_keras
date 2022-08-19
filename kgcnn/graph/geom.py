@@ -207,18 +207,39 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Index list for nodes. Enumerating the nodes in the central unit cell.
     node_index = np.expand_dims(np.arange(0, len(coordinates)), axis=1)  # Nx1
 
+    # Diagonals, center, volume and density of unit cell based on lattice matrix.
+    center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
+    max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
+    max_diameter_cell = 2*max_radius_cell
+    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
+    density_unit_cell = len(node_index) / volume_unit_cell
+
+    # Center cell distance. Compute the distance matrix separately for the central primitive unit cell.
+    # Here one can check if self-loops (meaning loops between the nodes of the central cell) should be allowed.
+    center_indices = np.indices((len(node_index), len(node_index)))
+    center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
+    center_dist = np.expand_dims(coordinates, axis=0) - np.expand_dims(coordinates, axis=1)  # NxNx3
+    center_image = np.zeros(center_dist.shape)
+    if not self_loops:
+        def remove_self_loops(x):
+            m = np.logical_not(np.eye(len(x), dtype="bool"))
+            x_shape = np.array(x.shape)
+            x_shape[1] -= 1
+            return np.reshape(x[m], x_shape)
+        center_indices = remove_self_loops(center_indices)
+        center_image = remove_self_loops(center_image)
+        center_dist = remove_self_loops(center_dist)
+
+    # Check the maximum atomic distance, since in practice atoms may not be inside the unit cell.
+    max_diameter_atom_pair = np.amax(center_dist) if len(coordinates) > 1 else 0.0
+    max_distance_atom_origin = np.amax(np.sqrt(np.sum(np.square(coordinates), axis=-1)))
+
     # Mesh Grid list. For a list of indices bounding left and right make a list of a 3D mesh.
-    # Function is used to pad image unit cells or their origin for super cell.
+    # Function is used to pad image unit cells or their origin for super-cell.
     def mesh_grid_list(bound_left: np.array, bound_right: np.array) -> np.array:
         pos = [np.arange(i, j+1, 1) for i, j in zip(bound_left, bound_right)]
         grid_list = np.array(np.meshgrid(*pos)).T.reshape(-1, 3)
         return grid_list
-
-    # Diagonals, center, volume and density of unit cell based on lattice matrix.
-    center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
-    max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
-    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
-    density_unit_cell = len(node_index) / volume_unit_cell
 
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
     if max_neighbours is not None:
@@ -238,11 +259,15 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         else:
             super_cell_radius = max(max_distance, estimated_nn_radius)
 
+    # Safety for super-cell radius. We add this distance to ensure that all atoms of the outer images are within the
+    # actual cutoff distance requested.
+    super_cell_tolerance = max(max_diameter_cell, max_diameter_atom_pair, max_distance_atom_origin)
+
     # Bounding box of real space cube with edge length 2 or inner sphere of radius 1 transformed into index
     # space gives 'bounding_box_unit'. Simply upscale for radius of super-cell.
-    # To account for node pairing within the unit cell we add 'max_radius_cell'.
+    # To account for node pairing within the unit cell we add 'max_diameter_cell'.
     bounding_box_unit = np.sum(np.abs(np.linalg.inv(lattice_col)), axis=1)
-    bounding_box_index = bounding_box_unit * (super_cell_radius + max_radius_cell)
+    bounding_box_index = bounding_box_unit * (super_cell_radius + super_cell_tolerance)
     bounding_box_index = np.ceil(bounding_box_index).astype("int")
 
     # Making grid for super-cell that repeats the unit cell for required indices in 'bounding_box_index'.
@@ -255,7 +280,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Check which centers are in the sphere of cutoff, since for non-rectangular lattice vectors, the parallelepiped
     # can be overshooting the required sphere. Better do this here, before computing coordinates of nodes.
     dist_centers = np.sqrt(np.sum(np.square(bounding_grid_real), axis=-1))
-    mask_centers = dist_centers <= super_cell_radius + max_radius_cell
+    mask_centers = dist_centers <= (super_cell_radius + super_cell_tolerance)
     images = bounding_grid[mask_centers]
     shifts = bounding_grid_real[mask_centers]
 
@@ -268,23 +293,6 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     coord_images = np.reshape(coord_images, (-1, 3))  # (N*C)x3
     images = np.reshape(images, (-1, 3))  # (N*C)x3
     indices = np.expand_dims(np.repeat(node_index, num_images), axis=-1)  # (N*C)x1
-
-    # Center cell distance. Compute the distance matrix separately for the central primitive unit cell.
-    # Here one can check if self-loops (meaning loops between the nodes of the central cell) should be allowed.
-    center_indices = np.indices((len(node_index), len(node_index)))
-    center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
-    center_dist = np.expand_dims(coordinates, axis=0) - np.expand_dims(coordinates, axis=1)  # NxNx3
-    center_image = np.zeros(center_dist.shape)
-    if not self_loops:
-        def remove_self_loops(x):
-            m = np.logical_not(np.eye(len(x), dtype="bool"))
-            x_shape = np.array(x.shape)
-            x_shape[1] -= 1
-            return np.reshape(x[m], x_shape)
-
-        center_indices = remove_self_loops(center_indices)
-        center_image = remove_self_loops(center_image)
-        center_dist = remove_self_loops(center_dist)
 
     # Make distance matrix of central cell to all image. This will have shape Nx(NxC).
     dist = np.expand_dims(coord_images, axis=0) - np.expand_dims(coordinates, axis=1)  # Nx(N*C)x3
