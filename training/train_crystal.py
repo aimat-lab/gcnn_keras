@@ -31,7 +31,7 @@ parser.add_argument("--gpu", required=False, help="GPU index used for training."
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Main parameter about model, dataset, and hyper-parameter
+# Main parameter about model, dataset, and hyperparameter
 model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
