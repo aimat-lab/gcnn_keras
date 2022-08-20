@@ -322,13 +322,13 @@ hyper = {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
+                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.001}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {
