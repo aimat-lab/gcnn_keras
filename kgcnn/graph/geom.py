@@ -172,6 +172,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
                             max_neighbours: Union[int, None] = None,
                             self_loops: bool = False,
                             exclusive: bool = True,
+                            limit_only_max_neighbours: bool = False
                             ) -> list:
     r"""Generate range connections for a primitive unit cell in a periodic lattice (vectorized).
 
@@ -192,6 +193,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         max_neighbours (int, optional): Maximum number of allowed neighbours for each central atom. Default is None.
         self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
+        limit_only_max_neighbours (bool): Whether to only use :obj:`max_neighbours` to limit the number of neighbours
+            but not use it to calculate super-cell. Requires :obj:`max_distance` to be not `None`. Default is False.
 
     Returns:
         list: [indices, images, dist]
@@ -230,7 +233,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         center_image = remove_self_loops(center_image)
         center_dist = remove_self_loops(center_dist)
 
-    # Check the maximum atomic distance, since in practice atoms may not be inside the unit cell. Although they could
+    # Check the maximum atomic distance, since in practice atoms may not be inside the unit cell. Although they SHOULD
     # be projected back into the cell.
     max_diameter_atom_pair = np.amax(center_dist) if len(coordinates) > 1 else 0.0
     max_distance_atom_origin = np.amax(np.sqrt(np.sum(np.square(coordinates), axis=-1)))
@@ -252,7 +255,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Determine the required size of super-cell
     if max_distance is None:
         super_cell_radius = estimated_nn_radius
-    elif max_neighbours is None:
+    elif max_neighbours is None or limit_only_max_neighbours:
         super_cell_radius = max_distance
     else:
         if exclusive:
