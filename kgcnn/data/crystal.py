@@ -218,7 +218,8 @@ class CrystalDataset(MemoryGraphDataset):
         for index, s in enumerate(structs):
             g = pre_processor(s)
             graph_dict = GraphDict()
-            graph_dict.from_networkx(g, node_attributes=pre_processor.node_attributes, edge_attributes=pre_processor.edge_attributes)
+            graph_dict.from_networkx(g, node_attributes=pre_processor.node_attributes,
+                                     edge_attributes=pre_processor.edge_attributes)
             # TODO: Add graph attributes (label, lattice_matrix, etc.)
             # TODO: Rename node and edge properties to match kgcnn conventions
             # TODO: Add GraphDict to dataset
