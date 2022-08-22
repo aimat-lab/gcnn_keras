@@ -227,5 +227,4 @@ class CrystalDataset(MemoryGraphDataset):
             if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                 self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
 
-
         return self

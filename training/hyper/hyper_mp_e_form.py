@@ -14,7 +14,7 @@ hyper = {
                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                                     "graph": {"input_dim": 100, "output_dim": 64}},
                 "make_distance": True, "expand_distance": True,
-                'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+                'gauss_args': {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4},
                 'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
                                    'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
                 'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
@@ -58,7 +58,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 4.0, "max_neighbours": 20}}
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
             "data_unit": "eV/atom"

@@ -230,7 +230,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         center_image = remove_self_loops(center_image)
         center_dist = remove_self_loops(center_dist)
 
-    # Check the maximum atomic distance, since in practice atoms may not be inside the unit cell.
+    # Check the maximum atomic distance, since in practice atoms may not be inside the unit cell. Although they could
+    # be projected back into the cell.
     max_diameter_atom_pair = np.amax(center_dist) if len(coordinates) > 1 else 0.0
     max_distance_atom_origin = np.amax(np.sqrt(np.sum(np.square(coordinates), axis=-1)))
 
