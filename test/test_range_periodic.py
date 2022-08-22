@@ -25,8 +25,8 @@ class TestRangePeriodic(unittest.TestCase):
             indices_max, images_max, dist_max = range_neighbour_lattice(atom,
                                                                         lattice, max_distance=max_r,
                                                                         max_neighbours=None)
+            # For simplicity pick atom 0 to check NN.
             dist_max_0 = dist_max[indices_max[:, 0] == 0]
-            images_max_0 = images_max[indices_max[:, 0] == 0]
 
             test_x_results = []
             for x in [5, 10, 50, 100, 500, 1000]:
@@ -35,16 +35,16 @@ class TestRangePeriodic(unittest.TestCase):
                 indices, images, dist = range_neighbour_lattice(atom, lattice, max_distance=None, max_neighbours=x)
                 test_num = len(indices) == len(atom) * x
                 dist_0 = dist[indices[:, 0] == 0]
-                images_0 = images[indices[:, 0] == 0]
-                test_correct_nn = np.amax(np.abs(dist_max_0[: len(dist_0)] - dist_0)) < 1e-7
-                test_correct_nn2 = np.amax(np.abs(images_max_0[: len(dist_0), :] - images_0)) < 1e-7
-                test_x_results.append(test_num and test_correct_nn and test_correct_nn2)
+                test_correct_nn = np.amax(np.abs(dist_max_0[: len(dist_0)] - dist_0)) < 1e-6
+                if not test_correct_nn:
+                    print(np.abs(dist_max_0[: len(dist_0)] - dist_0))
+                test_x_results.append(test_num and test_correct_nn)
             return test_x_results
 
-        # self.assertTrue(all(_test(self.artificial_atoms, self.artificial_lattice, 50.0)))
-        if not _test(self.real_atoms, self.real_lattice, 100.0):
+        # self.assertTrue(all(_test(self.artificial_atoms, self.artificial_lattice, 5.0)))
+        if not all(_test(self.real_atoms, self.real_lattice, 100.0)):
             print("error")
-        # self.assertTrue(_test(self.real_atoms, self.real_lattice, 50.0))
+        # self.assertTrue(_test(self.real_atoms, self.real_lattice, 100.0))
 
     def test_dist_range(self):
 

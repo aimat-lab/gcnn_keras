@@ -177,7 +177,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     r"""Generate range connections for a primitive unit cell in a periodic lattice (vectorized).
 
     The function generates a super-cell of required radius and computes connections of neighbouring nodes
-    from the primitive centered unit cell.
+    from the primitive centered unit cell. All atoms should be projected back into the primitive unit cell before
+    calculating the range connections.
 
     .. note::
         For periodic structure, setting :obj:`max_distance` and :obj:`max_neighbours` to `inf` would also lead
@@ -194,7 +195,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
         limit_only_max_neighbours (bool): Whether to only use :obj:`max_neighbours` to limit the number of neighbours
-            but not use it to calculate super-cell. Requires :obj:`max_distance` to be not `None`. Default is False.
+            but not use it to calculate super-cell. Requires :obj:`max_distance` to be not `None`.
+            Can be used if the super-cell should be generated with certain :obj:`max_distance`. Default is False.
 
     Returns:
         list: [indices, images, dist]
