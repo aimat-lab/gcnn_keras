@@ -3,7 +3,7 @@ v2.0.4
 * Add ``get_weights`` and ``get_config`` to `kgcnn.scaler` 
 * Add ``get`` and ``set`` alias to `GraphDict` and `MemoryGraphList`
 * Refactored ``GraphDict`` and `adj` into `kgcnn.graph`.
-* Add a simple ``set_range_periodic`` function to `GraphDict`.
+* Add a ``set_range_periodic`` function to `GraphDict`.
 * Add ``make_crystal_model`` functions to SchNet, Megnet, DimeNetPP.
 * Add ``custom_transform`` to `MoleculeNetDataset`.
 * Removed ``add_hydrogen``, `make_conformer`, and `optimize_conformer` from constructor of `MolGraphInterface`.
