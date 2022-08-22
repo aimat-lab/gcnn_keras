@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from kgcnn.graph.geom import range_neighbour_lattice
-# from kgcnn.data.datasets.MatProjectEFormDataset import MatProjectEFormDataset
+from kgcnn.data.datasets.MatProjectEFormDataset import MatProjectEFormDataset
 
 
 class TestRangePeriodic(unittest.TestCase):
@@ -22,16 +22,28 @@ class TestRangePeriodic(unittest.TestCase):
 
     def test_nn_range(self):
 
-        for x in [5, 10, 50, 100]:
-            indices, _, _ = range_neighbour_lattice(self.artificial_atoms,
-                                                    self.artificial_lattice, max_distance=None,
-                                                    max_neighbours=x)
-            self.assertTrue(len(indices) == len(self.artificial_atoms) * x)
-            indices, _, _ = range_neighbour_lattice(self.real_atoms,
-                                                    self.real_lattice, max_distance=None,
-                                                    max_neighbours=x)
-            self.assertTrue(len(indices) == len(self.real_atoms) * x)
-            # print(len(indices), len(self.real_atoms)*x)
+        def _test(atom, lattice, max_r):
+            indices_max, images_max, dist_max = range_neighbour_lattice(atom,
+                                                       lattice, max_distance=max_r,
+                                                       max_neighbours=None)
+            dist_max_0 = dist_max[indices_max[:, 0] == 0]
+            images_max_0 = images_max[indices_max[:, 0] == 0]
+
+            test_x_results = []
+            for x in [5, 10, 50, 100, 500, 1000]:
+                if len(dist_max_0) < x:
+                    print("Too small R for NN. Please increase for test.")
+                indices, images, dist = range_neighbour_lattice(atom, lattice, max_distance=None, max_neighbours=x)
+                test_num = len(indices) == len(atom) * x
+                dist_0 = dist[indices[:, 0] == 0]
+                images_0 = dist[images[:, 0] == 0]
+                test_correct_nn = np.amax(np.abs(dist_max_0[: len(dist_0)] - dist_0)) < 1e-7
+                test_correct_nn2 = np.amax(np.abs(images_max_0[: len(dist_0), :] - images_0)) < 1e-7
+                test_x_results.append(test_num and test_correct_nn and test_correct_nn2)
+            return all(test_x_results)
+
+        self.assertTrue(_test(self.artificial_atoms, self.artificial_lattice, 10.0))
+        self.assertTrue(_test(self.real_atoms, self.real_lattice, 50.0))
 
     def test_dist_range(self):
 
@@ -85,30 +97,30 @@ class TestRangePeriodic(unittest.TestCase):
     #     self.assertTrue(np.amax(np.abs(dist - ref_dist)) < 1e-6)
     #     self.assertTrue(np.amax(np.abs(ref_images - images)) < 1e-6)
     #     self.assertTrue(np.amax(np.abs(ref_indices - indices)) < 1e-6)
-    #
-    # def set_real_lattice_from_data(self, data, i):
-    #     self.real_lattice = data[i]["graph_lattice"]
-    #     self.real_atoms = data[i]["node_coordinates"]
-    #
-    # @staticmethod
-    # def full_sort(indices, images, dist):
-    #     def reorder(order, *args):
-    #         return [x[order] for x in args]
-    #
-    #     s = np.argsort(dist, kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     s = np.argsort(images[:, 2], kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     s = np.argsort(images[:, 1], kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     s = np.argsort(images[:, 0], kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     s = np.argsort(indices[:, 1], kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     s = np.argsort(indices[:, 0], kind="stable")
-    #     indices, images, dist = reorder(s, indices, images, dist)
-    #     return indices, images, dist
-    #
+
+    def set_real_lattice_from_data(self, data, i):
+        self.real_lattice = data[i]["graph_lattice"]
+        self.real_atoms = data[i]["node_coordinates"]
+
+    @staticmethod
+    def full_sort(indices, images, dist):
+        def reorder(order, *args):
+            return [x[order] for x in args]
+
+        s = np.argsort(dist, kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        s = np.argsort(images[:, 2], kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        s = np.argsort(images[:, 1], kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        s = np.argsort(images[:, 0], kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        s = np.argsort(indices[:, 1], kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        s = np.argsort(indices[:, 0], kind="stable")
+        indices, images, dist = reorder(s, indices, images, dist)
+        return indices, images, dist
+
     # @staticmethod
     # def compare_reference(coordinates, lattice, max_distance):
     #     from pymatgen.core.structure import Structure
@@ -148,15 +160,15 @@ class TestRangePeriodic(unittest.TestCase):
     #     return all_edge_indices, all_edge_image, all_edge_distance
 
 
-# dataset = MatProjectEFormDataset()
+dataset = MatProjectEFormDataset()
 
 if __name__ == '__main__':
-    # test = TestRangePeriodic()
-    # for i in range(0, len(dataset)):
-    #     if i % 1000 == 0:
-    #         print("..%s" % i)
-    #     test.set_real_lattice_from_data(dataset, i)
-    #     # test.test_nn_range()
-    #     # test.test_dist_range()
-    #     test.test_dist_all_correct()
+    test = TestRangePeriodic()
+    for i in range(0, len(dataset)):
+        if i % 1000 == 0:
+            print("..%s" % i)
+        test.set_real_lattice_from_data(dataset, i)
+        test.test_nn_range()
+        # test.test_dist_range()
+        # test.test_dist_all_correct()
     unittest.main()
