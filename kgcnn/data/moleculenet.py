@@ -314,7 +314,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         .. code-block:: python
 
-            csv = "index,name,label,smiles\n1,Propanolol,1,[Cl].CC(C)NCC(O)COc1cccc2ccccc12"
+            csv = 'index,name,label,smiles\n1,Propanolol,1,[Cl].CC(C)NCC(O)COc1cccc2ccccc12'
             with open('/tmp/moleculenet_example.csv', mode='w') as file:
                 file.write(csv)
 

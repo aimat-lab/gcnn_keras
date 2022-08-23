@@ -15,7 +15,7 @@ class DownloadDataset:
     r"""Download class for datasets. Provides static-methods and functions for download and unzip of the data.
     They are intentionally kept general and could also be used without this class definition.
     Dataset-specific functions like :obj:`prepare_data` must be implemented in subclasses.
-    Note that :obj:``DownloadDataset`` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
+    Note that :obj:`DownloadDataset` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
     as default. Classes in :obj:`kgcnn.data.datasets` inherit from this class, but :obj:`DownloadDataset` can also be
     used as a member via composition.
     """
