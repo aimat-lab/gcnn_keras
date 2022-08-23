@@ -301,7 +301,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Check which centers are in the sphere of cutoff, since for non-rectangular lattice vectors, the parallelepiped
     # can be overshooting the required sphere. Better do this here, before computing coordinates of nodes.
     dist_centers = np.sqrt(np.sum(np.square(bounding_grid_real), axis=-1))
-    mask_centers = dist_centers <= (super_cell_radius + super_cell_tolerance)
+    mask_centers = dist_centers <= (super_cell_radius + super_cell_tolerance + abs(numerical_tol))
     images = bounding_grid[mask_centers]
     shifts = bounding_grid_real[mask_centers]
 
