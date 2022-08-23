@@ -313,8 +313,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Example:
 
         .. code-block:: python
-            from os import linesep
 
+            from os import linesep
             csv = f"index,name,label,smiles{linesep}1,Propanolol,1,[Cl].CC(C)NCC(O)COc1cccc2ccccc12"
             with open('/tmp/moleculenet_example.csv', mode='w') as file:
                 file.write(csv)
