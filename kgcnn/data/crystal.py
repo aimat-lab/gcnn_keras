@@ -156,9 +156,6 @@ class CrystalDataset(MemoryGraphDataset):
         dicts = load_json_file(file_path)
         return self._pymatgen_deserialize_dicts(dicts)
 
-    def read_pymatgen_json_in_memory(self):
-        return self._read_pymatgen_json_in_memory()
-
     def _map_callbacks(self, callbacks: Dict[str, Callable[[pymatgen.core.structure.Structure, pd.Series], None]]):
 
         # Read pymatgen JSON file from file.
