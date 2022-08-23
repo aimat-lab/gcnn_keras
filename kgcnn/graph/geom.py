@@ -172,13 +172,21 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
                             max_neighbours: Union[int, None] = None,
                             self_loops: bool = False,
                             exclusive: bool = True,
-                            limit_only_max_neighbours: bool = False
+                            limit_only_max_neighbours: bool = False,
+                            numerical_tol: float = 1e-8,
+                            manual_super_cell_radius: float = None,
+                            super_cell_tol_factor: float = 0.25,
                             ) -> list:
     r"""Generate range connections for a primitive unit cell in a periodic lattice (vectorized).
 
-    The function generates a super-cell of required radius and computes connections of neighbouring nodes
-    from the primitive centered unit cell. All atoms should be projected back into the primitive unit cell before
-    calculating the range connections.
+    The function generates a supercell of required radius and computes connections of neighbouring nodes
+    from the primitive centered unit cell. For :obj:`max_neighbours` the supercell radius is estimated based on
+    the unit cell density. Always the smallest necessary supercell is generated based on :obj:`max_distance` and
+    :obj:`max_neighbours`. If a supercell for radius :obj:`max_distance` should always be generated but limited by
+    :obj:`max_neighbours`, you can set :obj:`limit_only_max_neighbours` to `True`.
+
+    .. warning::
+        All atoms should be projected back into the primitive unit cell before calculating the range connections.
 
     .. note::
         For periodic structure, setting :obj:`max_distance` and :obj:`max_neighbours` to `inf` would also lead
@@ -197,6 +205,10 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         limit_only_max_neighbours (bool): Whether to only use :obj:`max_neighbours` to limit the number of neighbours
             but not use it to calculate super-cell. Requires :obj:`max_distance` to be not `None`.
             Can be used if the super-cell should be generated with certain :obj:`max_distance`. Default is False.
+        numerical_tol  (float): Numerical tolerance for distance cut-off. Default is 1e-8.
+        manual_super_cell_radius (float): Manual radius for supercell. This is otherwise automatically set by either
+            :obj:`max_distance` or :obj:`max_neighbours` or both. For manual supercell only. Default is None.
+        super_cell_tol_factor (float): Tolerance factor for supercell relative to unit cell size. Default is 0.25.
 
     Returns:
         list: [indices, images, dist]
@@ -250,12 +262,14 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
     if max_neighbours is not None:
         estimated_nn_volume = (max_neighbours + len(node_index)) / density_unit_cell
-        estimated_nn_radius = float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4))
+        estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
     else:
         estimated_nn_radius = None
 
     # Determine the required size of super-cell
-    if max_distance is None:
+    if manual_super_cell_radius is not None:
+        super_cell_radius = abs(manual_super_cell_radius)
+    elif max_distance is None:
         super_cell_radius = estimated_nn_radius
     elif max_neighbours is None or limit_only_max_neighbours:
         super_cell_radius = max_distance
@@ -268,6 +282,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     # Safety for super-cell radius. We add this distance to ensure that all atoms of the outer images are within the
     # actual cutoff distance requested.
     super_cell_tolerance = max(max_diameter_cell, max_diameter_atom_pair, max_distance_atom_origin)
+    super_cell_tolerance *= (1.0 + super_cell_tol_factor)
 
     # Bounding box of real space cube with edge length 2 or inner sphere of radius 1 transformed into index
     # space gives 'bounding_box_unit'. Simply upscale for radius of super-cell.
@@ -329,7 +344,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     if max_distance is None:
         mask_distance = np.ones_like(dist_sort, dtype="bool")
     else:
-        mask_distance = dist_sort <= max_distance
+        mask_distance = dist_sort <= max_distance + abs(numerical_tol)
     # Based on 'max_neighbours'.
     mask_neighbours = np.zeros_like(dist_sort, dtype="bool")
     if max_neighbours is None:
