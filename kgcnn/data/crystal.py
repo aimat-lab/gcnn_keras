@@ -68,9 +68,8 @@ class CrystalDataset(MemoryGraphDataset):
     def _pymatgen_serialize_structs(structs):
         dicts = []
         for s in structs:
-            # We add @module and @class by hand here.
             d = s.as_dict()
-            # Module information should be already obtained from as_dict.
+            # Module information should be already obtained from as_dict().
             # d["@module"] = type(s).__module__
             # d["@class"] = type(s).__name__
             dicts.append(d)
@@ -138,11 +137,15 @@ class CrystalDataset(MemoryGraphDataset):
         return self
 
     @staticmethod
-    def _pymatgen_deserialize_dicts(dicts: list[dict]) -> list:
+    def _pymatgen_deserialize_dicts(dicts: list[dict], to_unit_cell: bool = False) -> list:
         structs = []
         for x in dicts:
             # We could check symmetry or @module, @class items in dict.
-            structs.append(pymatgen.core.structure.Structure.from_dict(x))
+            s = pymatgen.core.structure.Structure.from_dict(x)
+            structs.append(s)
+            if to_unit_cell:
+                for site in s.sites:
+                    site.to_unit_cell(in_place=True)
         return structs
 
     def _read_pymatgen_json_in_memory(self):
