@@ -20,7 +20,7 @@ class CrystalDataset(MemoryGraphDataset):
     of the structures stored in either a single '.cif' file or multiple CIF-files in :obj:`file_directory`.
     In the latter case, the file names must be included in the '.csv' table.
 
-    .. code-block:: bash
+    .. code-block:: type
         ├── data_directory
             ├── file_directory
             │   ├── *.cif
@@ -122,7 +122,7 @@ class CrystalDataset(MemoryGraphDataset):
                 # Only one file per path
                 structs.append(parse_cif_file_to_structures(os.path.join(self.data_directory,
                                                                          self.file_directory, x))[0])
-                if i % 1000 == 0:
+                if i % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_structs))
             self.info("Exporting as dict for pymatgen ...")
             dicts = self._pymatgen_serialize_structs(structs)
