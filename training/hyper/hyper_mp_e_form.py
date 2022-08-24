@@ -306,7 +306,7 @@ hyper = {
                     'units': 128,
                     'activation_s': 'kgcnn>shifted_softplus',
                     'activation_out': 'kgcnn>shifted_softplus',
-                    'batch_normalization': False,
+                    'batch_normalization': True,
                 },
                 'node_pooling_args': {'pooling_method': 'mean'},
                 'depth': 4,
@@ -322,13 +322,13 @@ hyper = {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-04, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {
