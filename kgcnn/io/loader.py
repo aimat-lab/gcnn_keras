@@ -48,7 +48,7 @@ class GraphBatchLoader(ks.utils.Sequence):
     def __getitem__(self, index):
         """Generate one batch of data"""
         # Generate indexes of the batch
-        batch_indices = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+        batch_indices = self.indices[index * self.batch_size:(index + 1) * self.batch_size]
 
         # Generate data
         x_model, y_model = self._data_generation(batch_indices)
@@ -71,7 +71,7 @@ class GraphBatchLoader(ks.utils.Sequence):
         else:
             return tf.constant(np.array(item))
 
-    def _data_generation(self, batch_indices):
+    def _data_generation(self, batch_indices: Union[np.ndarray, list]):
         """Generates data containing batch_size samples"""
         graphs = [self.data[i] for i in batch_indices]
         # Inputs

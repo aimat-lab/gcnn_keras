@@ -158,7 +158,7 @@ dataset = MatProjectEFormDataset()
 
 if __name__ == '__main__':
     test = TestRangePeriodic()
-    for i in range(0, len(dataset)):
+    for i in range(20000, len(dataset)):
         if i % 1000 == 0:
             print("..%s" % i)
         test.set_real_lattice_from_data(dataset, i)
