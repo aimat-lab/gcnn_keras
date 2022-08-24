@@ -7,7 +7,7 @@ ks = tf.keras
 
 
 class GraphBatchLoader(ks.utils.Sequence):
-    r"""Example implementation of a graph batch loader based on :obj:`ks.utils.Sequence`."""
+    r"""Example (minimal) implementation of a graph batch loader based on :obj:`ks.utils.Sequence`."""
 
     def __init__(self,
                  data: Union[list[dict], MemoryGraphDataset],
@@ -28,7 +28,7 @@ class GraphBatchLoader(ks.utils.Sequence):
             outputs (dict, list): List of dictionaries that specify graph properties in list via 'name' key.
                 Required dict-keys should be 'name' and 'ragged'.
                 Optionally shape information can be included via 'shape'.
-                E.g.: `[{'name': 'edge_indices', 'ragged': True}, {...}, ...]`.
+                E.g.: `[{'name': 'graph_labels', 'ragged': False}, {...}, ...]`.
             batch_size (int): Batch size. Default is 32.
             shuffle (bool): Whether to shuffle data. Default is False.
         """
