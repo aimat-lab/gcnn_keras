@@ -12,6 +12,7 @@ v2.0.4
 * Add normalization option to PAiNN and add ``make_crystal_model``.
 * Add ``kgcnn.literature.CGCNN`` model.
 * Add more list-functionality to ``MemoryGraphList``.
+* Add _tutorial_model_loading_options.ipynb_ to _notebooks_ showing different ways to load ragged data.
 
 
 v2.0.3
