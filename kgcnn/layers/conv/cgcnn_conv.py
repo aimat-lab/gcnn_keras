@@ -54,9 +54,10 @@ class CGCNNLayer(MessagePassingBase):
         self.activation_f_layer = ActivationEmbedding(activation="sigmoid", activity_regularizer=activity_regularizer)
         self.activation_s_layer = ActivationEmbedding(activation_s, activity_regularizer=activity_regularizer)
         self.activation_out_layer = ActivationEmbedding(activation_out, activity_regularizer=activity_regularizer)
-        self.batch_norm_f = GraphBatchNormalization()
-        self.batch_norm_s = GraphBatchNormalization()
-        self.batch_norm_out = GraphBatchNormalization()
+        if batch_normalization:
+            self.batch_norm_f = GraphBatchNormalization()
+            self.batch_norm_s = GraphBatchNormalization()
+            self.batch_norm_out = GraphBatchNormalization()
         self.f = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
         self.s = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
         self.lazy_mult = LazyMultiply()
