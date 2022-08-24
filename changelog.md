@@ -11,6 +11,7 @@ v2.0.4
 * Added ``add_hs``, `make_conformer` and `optimize_conformer` to `MolGraphInterface`.
 * Add normalization option to PAiNN and add ``make_crystal_model``.
 * Add ``kgcnn.literature.CGCNN`` model.
+* Add more list-functionality to ``MemoryGraphList``.
 
 
 v2.0.3
