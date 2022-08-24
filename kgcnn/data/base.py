@@ -4,6 +4,7 @@ import tensorflow as tf
 import pandas as pd
 import os
 from typing import Union
+from collections.abc import MutableMapping
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphNumpyContainer, GraphDict
 
@@ -12,7 +13,7 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class MemoryGraphList:
+class MemoryGraphList(MutableMapping):
     r"""Class to store a list of graph dictionaries in memory.
 
     Contains a python list as property :obj:`_list`. The graph properties are defined by tensor-like (numpy) arrays
@@ -45,8 +46,7 @@ class MemoryGraphList:
     """
 
     def __init__(self, input_list: list = None):
-        r"""Initialize an empty :obj:`MemoryGraphList` instance. If you want to expand the list or
-        namespace of accepted reserved graph prefix identifier, you can expand :obj:`_reserved_graph_property_prefix`.
+        r"""Initialize an empty :obj:`MemoryGraphList` instance.
 
         Args:
             input_list (list, MemoryGraphList): A list or :obj:`MemoryGraphList` of :obj:`GraphDict` items.
@@ -141,7 +141,19 @@ class MemoryGraphList:
             return new_list._set_internal_list([self._list[int(i)] for i in item])
         if isinstance(item, np.ndarray):
             return new_list._set_internal_list([self._list[int(i)] for i in item])
-        raise TypeError("Unsupported type for MemoryGraphList items.")
+        raise TypeError("Unsupported type for `MemoryGraphList` items.")
+
+    def __setitem__(self, key, value):
+        if not isinstance(value, GraphDict):
+            raise TypeError("Require a GraphDict as list item.")
+        self._list[key] = value
+
+    def __delitem__(self, key):
+        value = self._list.__delitem__(key)
+        return value
+
+    def __iter__(self):
+        return iter(self._list)
 
     def _set_internal_list(self, value: list):
         if not isinstance(value, list):
@@ -149,18 +161,13 @@ class MemoryGraphList:
         self._list = value
         return self
 
-    def __setitem__(self, key, value):
-        if not isinstance(value, GraphDict):
-            raise TypeError("Require a GraphDict as list item.")
-        self._list[key] = value
-
     def clear(self):
         """Clear internal list.
 
         Returns:
             None
         """
-        self._list = []
+        self._list.clear()
 
     def empty(self, length: int):
         """Create an empty list in place. Overwrites existing list.
@@ -222,6 +229,11 @@ class MemoryGraphList:
 
     def map_list(self, method: str, **kwargs):
         r"""Map a method over this list and apply on each :obj:`GraphDict`.
+
+        .. code-block:: python
+
+            for i, x in enumerate(self):
+                getattr(x, method)(**kwargs)
 
         Args:
             method (str): Name of the :obj:`GraphDict` method.

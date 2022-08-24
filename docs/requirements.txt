@@ -9,3 +9,4 @@ pandas
 scikit-learn
 rdkit-pypi
 pyyaml
+pymatgen
