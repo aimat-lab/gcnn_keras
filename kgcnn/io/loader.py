@@ -73,7 +73,7 @@ class GraphBatchLoader(ks.utils.Sequence):
 
     def _data_generation(self, batch_indices: Union[np.ndarray, list]):
         """Generates data containing batch_size samples"""
-        graphs = [self.data[i] for i in batch_indices]
+        graphs = [self.data[int(i)] for i in batch_indices]
         # Inputs
         inputs = self.inputs if not isinstance(self.inputs, dict) else [self.inputs]
         x_inputs = []
