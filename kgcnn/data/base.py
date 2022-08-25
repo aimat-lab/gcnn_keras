@@ -493,7 +493,25 @@ class MemoryGraphDataset(MemoryGraphList):
                 message_error("Can not check shape for '%s'." % x["name"])
         return
 
-    def set_methods(self, method_list: list):
+    def set_methods(self, method_list: list[dict]) -> None:
+        r"""Apply a list of serialized class-methods on the dataset.
+
+        This can extend the config-serialization scheme in :obj:`kgcnn.utils.serial`.
+
+        .. code-block:: python
+
+            for method_item in method_list:
+                for method, kwargs in method_item.items():
+                    if hasattr(self, method):
+                        getattr(self, method)(**kwargs)
+
+        Args:
+            method_list (list): A list of dictionaries that specify class methods. The `dict` key denotes the method
+                and the value must contain `kwargs` for the method
+
+        Returns:
+            None.
+        """
         for method_item in method_list:
             for method, kwargs in method_item.items():
                 if hasattr(self, method):
