@@ -56,6 +56,55 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None,
                        output_embedding: str = None,
                        ):
+    """Make `CGCNN <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`_ graph network
+    via functional API.
+
+    Default parameters can be found in :obj:`kgcnn.literature.CGCNN.model_crystal_default`.
+
+    Inputs:
+        list: `[node_attributes, node_frac_coordinates, bond_indices, lattice, cell_translations]`
+        if :obj:`representation='unit'` and :obj:`make_distances=True`
+        or `[node_attributes, node_frac_coordinates, bond_indices, lattice, cell_translations, multiplicities, symmops]`
+        if :obj:`representation='asu'` and :obj:`make_distances=True`
+        or `[node_attributes, edge_distance, bond_indices]`
+        if :obj:`make_distances=False`
+
+            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+              using an embedding layer.
+            - node_frac_coordinates (tf.RaggedTensor): Fractional coordinates of shape `(batch, None, 3)`.
+            - bond_indices (tf.RaggedTensor): Index list for edges or bonds of shape `(batch, None, 2)`.
+            - lattice (tf.Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)`.
+            - cell_translations (tf.RaggedTensor): Indices of the periodic image the sending node is located.
+                The indices of an edge are :math:`(i, j)` with :math:`j` being the sending node.
+            - edge_distance (tf.RaggedTensor): Edge distance of shape `(batch, None, D)` expanded
+                in a basis of dimension `D` or `(batch, None, 1)` if using a :obj:`GaussBasisLayer` layer
+                with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
+            - multiplicities (tf.RaggedTensor): Multiplicities of asymmetric unit cell of shape `(batch, None, 1)`.
+            - symmops (tf.RaggedTensor): Symmetry operations for atoms of shape `(batch, None, 4, 4)`.
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        make_distances (bool): Whether input is distance or coordinates at in place of edges.
+        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
+            form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
+        representation (str): The representation of unit cell. Can be either `None`, 'asu' or 'unit'. Default is 'unit'.
+        conv_layer_args (dict):
+        depth (int): Number of graph embedding units or depth of the network.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
+        gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
+            Defines number of model outputs and activation.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
     atom_attributes = ks.layers.Input(**inputs[0])
     edge_indices = ks.layers.Input(**inputs[2])
 
