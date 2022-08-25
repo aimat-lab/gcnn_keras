@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from kgcnn.graph.geom import range_neighbour_lattice
-from kgcnn.data.datasets.MatProjectEFormDataset import MatProjectEFormDataset
+# from kgcnn.data.datasets.MatProjectEFormDataset import MatProjectEFormDataset
 
 
 class TestRangePeriodic(unittest.TestCase):
@@ -41,10 +41,8 @@ class TestRangePeriodic(unittest.TestCase):
                 test_x_results.append(test_num and test_correct_nn)
             return test_x_results
 
-        # self.assertTrue(all(_test(self.artificial_atoms, self.artificial_lattice, 5.0)))
-        if not all(_test(self.real_atoms, self.real_lattice, 100.0)):
-            print("error")
-        # self.assertTrue(_test(self.real_atoms, self.real_lattice, 100.0))
+        self.assertTrue(all(_test(self.artificial_atoms, self.artificial_lattice, 5.0)))
+        self.assertTrue(all(_test(self.real_atoms, self.real_lattice, 100.0)))
 
     def test_dist_range(self):
 
@@ -154,15 +152,15 @@ class TestRangePeriodic(unittest.TestCase):
     #     return all_edge_indices, all_edge_image, all_edge_distance
 
 
-dataset = MatProjectEFormDataset()
+# dataset = MatProjectEFormDataset()
 
 if __name__ == '__main__':
-    test = TestRangePeriodic()
-    for i in range(20000, len(dataset)):
-        if i % 1000 == 0:
-            print("..%s" % i)
-        test.set_real_lattice_from_data(dataset, i)
-        test.test_nn_range()
-        # test.test_dist_range()
-        # test.test_dist_all_correct()
+    # test = TestRangePeriodic()
+    # test.test_dist_range()
+    # test.test_nn_range()
+    # for i in range(20000, len(dataset)):
+    #     if i % 1000 == 0:
+    #         print("..%s" % i)
+    #     test.set_real_lattice_from_data(dataset, i)
+    #     test.test_nn_range()
     unittest.main()
