@@ -319,7 +319,7 @@ class MemoryGraphDataset(MemoryGraphList):
         # Methods of MemoryGraphList
         dataset.set("edge_indices", [np.array([[1, 0], [0, 1]])])
         dataset.set("edge_labels", [np.array([[0], [1]])])
-        # dataset.save()
+        dataset.save()
 
     The file directory and file name are used in child classes and in :obj:`save` and :obj:`load`.
     """
