@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from typing import Union
+from typing import Union, List
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 from kgcnn.data.base import MemoryGraphDataset
 ks = tf.keras
@@ -10,9 +10,9 @@ class GraphBatchLoader(ks.utils.Sequence):
     r"""Example (minimal) implementation of a graph batch loader based on :obj:`ks.utils.Sequence`."""
 
     def __init__(self,
-                 data: Union[list[dict], MemoryGraphDataset],
-                 inputs: Union[dict, list[dict]],
-                 outputs: Union[dict, list[dict]],
+                 data: Union[List[dict], MemoryGraphDataset],
+                 inputs: Union[dict, List[dict]],
+                 outputs: Union[dict, List[dict]],
                  batch_size: int = 32,
                  shuffle: bool = False):
         """Initialization with data and input information.
@@ -65,7 +65,7 @@ class GraphBatchLoader(ks.utils.Sequence):
         self._shuffle_indices()
 
     @staticmethod
-    def _to_tensor(item, is_ragged):
+    def _to_tensor(item: Union[np.ndarray, list], is_ragged: bool):
         if is_ragged:
             return ragged_tensor_from_nested_numpy(item)
         else:

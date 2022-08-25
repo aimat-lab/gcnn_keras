@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import os
-from typing import Union
+from typing import Union, List
 from collections.abc import MutableMapping
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphNumpyContainer, GraphDict
@@ -493,7 +493,7 @@ class MemoryGraphDataset(MemoryGraphList):
                 message_error("Can not check shape for '%s'." % x["name"])
         return
 
-    def set_methods(self, method_list: list[dict]) -> None:
+    def set_methods(self, method_list: List[dict]) -> None:
         r"""Apply a list of serialized class-methods on the dataset.
 
         This can extend the config-serialization scheme in :obj:`kgcnn.utils.serial`.
