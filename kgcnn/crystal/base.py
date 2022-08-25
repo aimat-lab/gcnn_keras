@@ -1,4 +1,12 @@
 from hashlib import md5
+import logging
+
+logging.basicConfig()  # Module logger
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
+
+module_logger.warning(
+    "Modules in `kgcnn.crystal` are still in development and not fully tested.")
 
 
 class CrystalPreprocessor:

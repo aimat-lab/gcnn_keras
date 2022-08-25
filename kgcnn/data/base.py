@@ -12,6 +12,9 @@ logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+module_logger.info(
+    "Reserved properties for `MemoryGraphList` will be removed in version 2.1.0. Please use set/get methods instead.")
+
 
 class MemoryGraphList(MutableMapping):
     r"""Class to store a list of graph dictionaries in memory.
