@@ -192,7 +192,7 @@ The `data_directory` can have a subdirectory for files and/or single file such a
     │   ├── *.*
     │   └── ... 
     ├── file_name
-    └── dataset_name.pickle
+    └── dataset_name.kgcnn.pickle
 ```
 A base dataset class is created with path and name information:
 
