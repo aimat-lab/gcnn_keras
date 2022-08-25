@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from collections import defaultdict
-from typing import Dict, Callable
+from typing import Dict, Callable, List
 import pandas as pd
 import pymatgen.core.structure
 import pymatgen.symmetry.structure
@@ -66,7 +66,7 @@ class CrystalDataset(MemoryGraphDataset):
         return os.path.splitext(self.file_name)[0] + ".pymatgen.json"
 
     @staticmethod
-    def _pymatgen_serialize_structs(structs):
+    def _pymatgen_serialize_structs(structs: List):
         dicts = []
         for s in structs:
             d = s.as_dict()
@@ -138,7 +138,7 @@ class CrystalDataset(MemoryGraphDataset):
         return self
 
     @staticmethod
-    def _pymatgen_deserialize_dicts(dicts: list[dict], to_unit_cell: bool = False) -> list:
+    def _pymatgen_deserialize_dicts(dicts: List[dict], to_unit_cell: bool = False) -> list:
         structs = []
         for x in dicts:
             # We could check symmetry or @module, @class items in dict.
