@@ -10,9 +10,10 @@ v2.0.4
 * Removed ``add_hydrogen``, `make_conformer`, and `optimize_conformer` from constructor of `MolGraphInterface`.
 * Added ``add_hs``, `make_conformer` and `optimize_conformer` to `MolGraphInterface`.
 * Add normalization option to PAiNN and add ``make_crystal_model``.
-* Add ``kgcnn.literature.CGCNN`` model.
+* Add ``kgcnn.literature.CGCNN`` model with docs.
 * Add more list-functionality to ``MemoryGraphList``.
 * Add _tutorial_model_loading_options.ipynb_ to _notebooks_ showing different ways to load ragged data.
+* Add _tutorial_hyper_optuna.ipynb_ to _notebooks_
 
 
 v2.0.3
