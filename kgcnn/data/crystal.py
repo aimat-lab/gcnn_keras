@@ -21,6 +21,7 @@ class CrystalDataset(MemoryGraphDataset):
     In the latter case, the file names must be included in the '.csv' table.
 
     .. code-block:: type
+
         ├── data_directory
             ├── file_directory
             │   ├── *.cif
