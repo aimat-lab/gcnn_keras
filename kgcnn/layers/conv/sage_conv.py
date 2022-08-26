@@ -115,7 +115,8 @@ class GraphSageNodeLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageEdgeUpdateLayer')
 class GraphSageEdgeUpdateLayer(GraphBaseLayer):
-    r"""A extension for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ model to have edge updates.
+    r"""An extension for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ model to have edge updates.
+
     It is a direct extension and should fit the GraphSAGE idea of message passing.
 
     Args:

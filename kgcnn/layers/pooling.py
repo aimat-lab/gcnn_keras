@@ -1,12 +1,12 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
 
+ks = tf.keras
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdges')
 class PoolingLocalEdges(GraphBaseLayer):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
@@ -71,7 +71,7 @@ class PoolingLocalEdges(GraphBaseLayer):
 
         # If not unsort_segment operation need a scatter here.
         if self.has_unconnected:
-            out = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
+            out = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
                                 tf.concat([tf.shape(nod)[:1], tf.shape(out)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
@@ -87,7 +87,7 @@ class PoolingLocalEdges(GraphBaseLayer):
 PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
 class PoolingWeightedLocalEdges(GraphBaseLayer):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
@@ -164,7 +164,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
             get = tf.math.divide_no_nan(get, tf.math.segment_sum(wval, nodind))  # +tf.eps
 
         if self.has_unconnected:
-            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+            get = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
                                 tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
@@ -181,7 +181,7 @@ class PoolingWeightedLocalEdges(GraphBaseLayer):
 PoolingWeightedLocalMessages = PoolingWeightedLocalEdges  # For now, they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbedding')
 class PoolingEmbedding(GraphBaseLayer):
     """Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
     ::obj`tf.Tensor`.
@@ -228,7 +228,7 @@ PoolingNodes = PoolingEmbedding
 PoolingGlobalEdges = PoolingEmbedding
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedEmbedding')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedEmbedding')
 class PoolingWeightedEmbedding(GraphBaseLayer):
     """Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
     ::obj`tf.Tensor`.
@@ -283,7 +283,7 @@ PoolingWeightedNodes = PoolingWeightedEmbedding
 PoolingWeightedGlobalEdges = PoolingWeightedEmbedding
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesLSTM')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesLSTM')
 class PoolingLocalEdgesLSTM(GraphBaseLayer):
     """The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
@@ -435,7 +435,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+            get = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
                                 tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
@@ -459,7 +459,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
 PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
 class PoolingLocalEdgesAttention(GraphBaseLayer):
     r"""Pooling or aggregation of all edges or edge-like features per node,
     corresponding to node assigned by edge indices.
@@ -532,7 +532,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         if self.has_unconnected:
             # Need to fill tensor since the maximum node may not be also in pooled
             # Does not happen if all nodes are also connected
-            get = tf.scatter_nd(tf.keras.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
+            get = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
                                 tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
 
         out = tf.RaggedTensor.from_row_lengths(get, node_part, validate=self.ragged_validate)
@@ -545,7 +545,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbeddingAttention')
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbeddingAttention')
 class PoolingEmbeddingAttention(GraphBaseLayer):
     r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
     ::obj`tf.Tensor`.
