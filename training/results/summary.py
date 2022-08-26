@@ -58,6 +58,7 @@ with open("README.md", "w") as f:
                 })
                 for x in dataset_info["targets"]:
                     result_dict[x["name"]] = "{0:0.4f} &pm; {1:0.4f} ".format(
-                        np.mean(results[x["metric"]]), np.mean(results[x["metric"]]))
+                        np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
 
             f.write(make_table_line([result_dict[x] if x in result_dict else "" for x in model_cols]))
+            f.write("\n")
