@@ -28,7 +28,7 @@ with open("README.md", "w") as f:
     f.write("# Summary of Benchmark Training\n\n")
 
     f.write("Note that these are the results for models within `kgcnn`,")
-    f.write(" and that training is not always done with optimal hyperparameter when comparing with literature\n\n")
+    f.write(" and that training is not always done with optimal hyperparameter, when comparing with literature.\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
