@@ -1,14 +1,14 @@
 {
   "model": {
     "class_name": "make_model",
-    "module_name": "kgcnn.literature.GAT",
+    "module_name": "kgcnn.literature.GCN",
     "config": {
-      "name": "GAT",
+      "name": "GCN",
       "inputs": [
         {
           "shape": [
             null,
-            1433
+            8710
           ],
           "name": "node_attributes",
           "dtype": "float32",
@@ -39,23 +39,16 @@
           "output_dim": 64
         },
         "edge": {
-          "input_dim": 5,
+          "input_dim": 10,
           "output_dim": 64
         }
       },
-      "attention_args": {
-        "units": 32,
+      "gcn_args": {
+        "units": 140,
         "use_bias": true,
-        "use_edge_features": true,
-        "use_final_activation": false,
-        "has_self_loops": true
-      },
-      "pooling_nodes_args": {
-        "pooling_method": "mean"
+        "activation": "relu"
       },
       "depth": 3,
-      "attention_heads_num": 10,
-      "attention_heads_concat": false,
       "verbose": 10,
       "output_embedding": "node",
       "output_mlp": {
@@ -65,9 +58,9 @@
           false
         ],
         "units": [
-          64,
-          32,
-          7
+          140,
+          70,
+          70
         ],
         "activation": [
           "relu",
@@ -80,7 +73,7 @@
   "training": {
     "fit": {
       "batch_size": 1,
-      "epochs": 250,
+      "epochs": 300,
       "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
@@ -89,8 +82,8 @@
           "config": {
             "learning_rate_start": 0.001,
             "learning_rate_stop": 0.0001,
-            "epo_min": 200,
-            "epo": 250,
+            "epo_min": 260,
+            "epo": 300,
             "verbose": 0
           }
         }
@@ -120,8 +113,8 @@
   },
   "data": {
     "dataset": {
-      "class_name": "CoraLuDataset",
-      "module_name": "kgcnn.data.datasets.CoraLuDataset",
+      "class_name": "CoraDataset",
+      "module_name": "kgcnn.data.datasets.CoraDataset",
       "config": {},
       "methods": [
         {
@@ -146,6 +139,6 @@
   "info": {
     "postfix": "",
     "postfix_file": "",
-    "kgcnn_version": "2.0.3"
+    "kgcnn_version": "2.1.0"
   }
 }
