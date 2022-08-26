@@ -64,7 +64,7 @@ def save_history_score(
     if len(train_loss) > 0:
         result_dict["epochs"] = [int(len(x)) for x in train_loss[0]]
 
-    result_dict["data_time"] = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+    result_dict["date_time"] = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
     result_dict["model_class"] = str(model_class)
     result_dict["model_name"] = str(model_name)
     result_dict["kgcnn_version"] = str(__kgcnn_version__)

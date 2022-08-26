@@ -5,7 +5,7 @@ categorical_accuracy:
 - 1.0
 - 1.0
 data_time: '2022-08-26 17:56:12'
-data_unit: ''
+date_unit: ''
 epochs:
 - 250
 - 250
