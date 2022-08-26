@@ -1,3 +1,9 @@
+v2.1.1
+
+* Remove reserved properties form ``MemoryGraphList``, please use set/get methods.
+* Removed deprecated ``kgcnn.selection`` module.
+
+
 v2.0.4
 
 * Add ``kgcnn.crystal`` module, which is still in development.

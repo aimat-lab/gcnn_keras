@@ -55,7 +55,6 @@ class MemoryGraphList(MutableMapping):
             input_list (list, MemoryGraphList): A list or :obj:`MemoryGraphList` of :obj:`GraphDict` items.
         """
         self._list = []
-        self._reserved_graph_property_prefix = ["node_", "edge_", "graph_", "range_", "angle_"]
         self.logger = module_logger
         if input_list is None:
             input_list = []
@@ -106,28 +105,6 @@ class MemoryGraphList(MutableMapping):
             return None
 
         return prop_list
-
-    def __setattr__(self, key, value):
-        """Setter that intercepts reserved attributes and stores them in the list of graph containers."""
-        if not hasattr(self, "_reserved_graph_property_prefix") or not hasattr(self, "_list"):
-            return super(MemoryGraphList, self).__setattr__(key, value)
-        if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-            module_logger.warning(
-                "Reserved properties are deprecated and will be removed. Please use `assign_property()`.")
-            self.assign_property(key, value)
-        else:
-            return super(MemoryGraphList, self).__setattr__(key, value)
-
-    def __getattribute__(self, key):
-        """Getter that retrieves a list of properties from graph containers."""
-        if key in ["_reserved_graph_property_prefix", "_list"]:
-            return super(MemoryGraphList, self).__getattribute__(key)
-        if any([x == key[:len(x)] for x in self._reserved_graph_property_prefix]):
-            module_logger.warning(
-                "Reserved properties are deprecated and will be removed. Please use `obtain_property()`.")
-            return self.obtain_property(key)
-        else:
-            return super().__getattribute__(key)
 
     def __len__(self):
         """Return the current length of this instance."""
