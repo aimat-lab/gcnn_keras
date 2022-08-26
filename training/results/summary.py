@@ -21,7 +21,7 @@ benchmark_datasets = {
 
 
 def make_table_line(tab_list: list):
-    return "| " + "".join([str(x) + " | " for x in tab_list]) + "\n"
+    return "| " + "".join([str(tab) + " | " for tab in tab_list]) + "\n"
 
 
 with open("README.md", "w") as f:
