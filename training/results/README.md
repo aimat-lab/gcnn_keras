@@ -9,6 +9,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 | model | kgcnn | epochs | Accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
+| GCN | 2.1.0 | 300 | 0.7969 &pm; 0.0144  | 
 
 ## CoraDataset
 
@@ -26,17 +27,5 @@ ESOL consists of 1128 compounds and their corresponding water solubility in log1
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.4272 &pm; 0.0297  | 0.6002 &pm; 0.0268  | 
 | CMPNN | 2.1.0 | 300 | 0.4318 &pm; 0.0173  | 0.5919 &pm; 0.0262  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
-|  |  |  |  |  | 
+| GAT | 2.1.0 | 500 | 0.4884 &pm; 0.0469  | 0.7008 &pm; 0.0857  | 
 
