@@ -6,11 +6,12 @@ from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding, DenseEmbedding, ActivationEmbedding, ZerosLike
 from kgcnn.layers.pooling import PoolingNodes, PoolingEmbeddingAttention
-from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator, HamNetGRUUnion, HamNetNaiveUnion
+from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator, HamNetGRUUnion, \
+    HamNetNaiveUnion
+
 # import tensorflow.keras as ks
 # import tensorflow.python.keras as ks
 ks = tf.keras
-
 
 # Implementation of HamNet in `tf.keras` from paper:
 # HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks
@@ -21,24 +22,25 @@ ks = tf.keras
 # Note: the 2. implementation is cleaner than the original code and has been used as template.
 
 
-hyper_model_default = {"name": "HamNet",
-                       "inputs": [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-                                  {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True}],
-                       "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                           "edge": {"input_dim": 5, "output_dim": 64}},
-                       "message_kwargs": {"units": 128, "units_edge": 128},
-                       "fingerprint_kwargs": {"units": 128, "units_attend": 128, "depth": 2},
-                       "gru_kwargs": {"units": 128},
-                       "verbose": 10, "depth": 1,
-                       "union_type_node": "gru",
-                       "union_type_edge": "None",
-                       "given_coordinates": True,
-                       'output_embedding': 'graph', "output_to_tensor": True,
-                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                      "activation": ['relu', 'relu', 'linear']}
-                       }
+hyper_model_default = {
+    "name": "HamNet",
+    "inputs": [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
+               {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 5, "output_dim": 64}},
+    "message_kwargs": {"units": 128, "units_edge": 128},
+    "fingerprint_kwargs": {"units": 128, "units_attend": 128, "depth": 2},
+    "gru_kwargs": {"units": 128},
+    "verbose": 10, "depth": 1,
+    "union_type_node": "gru",
+    "union_type_edge": "None",
+    "given_coordinates": True,
+    'output_embedding': 'graph', "output_to_tensor": True,
+    'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ['relu', 'relu', 'linear']}
+}
 
 
 @update_model_kwargs(hyper_model_default, update_recursive=inf)
@@ -54,7 +56,7 @@ def make_model(name: str = None,
                given_coordinates: bool = None,
                depth: int = None,
                output_embedding: str = None,
-               output_to_tensor: bool =None,
+               output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
     r"""Make `HamNet <https://arxiv.org/abs/2105.03688>`_ graph model via functional API.

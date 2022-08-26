@@ -33,7 +33,9 @@ model_default = {
     'verbose': 10,
     "depth": 5,
     "dropout": {"rate": 0.1},
-    "pooling_args": {"pooling_method": "sum"},
+    "use_final_gru": True,
+    "pooling_gru": {"units": 64},
+    "pooling_kwargs": {"pooling_method": "sum"},
     "output_embedding": "graph", "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                    "activation": ["relu", "relu", "linear"]}
@@ -52,7 +54,9 @@ def make_model(name: str = None,
                depth: int = None,
                dropout: Union[dict, None] = None,
                verbose: int = None,
-               pooling_args: dict = None,
+               use_final_gru: bool = True,
+               pooling_gru: dict = None,
+               pooling_kwargs: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
@@ -85,8 +89,10 @@ def make_model(name: str = None,
         depth (int): Number of graph embedding units or depth of the network.
         verbose (int): Level for print information.
         dropout (dict): Dictionary of layer arguments unpacked in :obj:`Dropout`.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
+        pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
             :obj:`PoolingLocalEdges` layers.
+        use_final_gru (bool): Whether to use GRU for final readout.
+        pooling_gru (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodesGRU`.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
@@ -118,7 +124,7 @@ def make_model(name: str = None,
     he = he0
     for i in range(depth - 1):
         # Node message/update
-        m_pool = PoolingLocalEdges(**pooling_args)([h, he, edi])
+        m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
         m_max = PoolingLocalEdges(pooling_method="softmax")([h, he, edi])
         m = LazyMultiply()([m_pool, m_max])
         # In paper there is a potential COMMUNICATE() here but in reference code just add() operation.
@@ -135,7 +141,7 @@ def make_model(name: str = None,
             he = DropoutEmbedding(**dropout)(he)
 
     # Last step
-    m_pool = PoolingLocalEdges(**pooling_args)([h, he, edi])
+    m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
     m_max = PoolingLocalEdges(pooling_method="softmax")([h, he, edi])
     m = LazyMultiply()([m_pool, m_max])
     h_final = LazyConcatenate()([m, h, h0])
@@ -144,9 +150,9 @@ def make_model(name: str = None,
     n = h_final
     if output_embedding == 'graph':
         if use_final_gru:
-            out = PoolingNodesGRU(**pooling_gru)(n)
+            out = ks.layers.GRU(**pooling_gru)(n)
         else:
-            out = PoolingNodes(**pooling_args)(n)
+            out = PoolingNodes(**pooling_kwargs)(n)
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
