@@ -65,4 +65,5 @@ with open("README.md", "w") as f:
                         np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
 
             f.write(make_table_line([result_dict[x] if x in result_dict else "" for x in model_cols]))
-            f.write("\n")
+
+        f.write("\n")

@@ -20,11 +20,11 @@ from kgcnn.utils.models import get_model_class
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraDataset")
+                    default="CoraLuDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora.py")
+                    default="hyper/hyper_cora_lu.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
 args = vars(parser.parse_args())
