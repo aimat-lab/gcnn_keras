@@ -19,10 +19,10 @@ ks = tf.keras
 model_default = {
     "name": "CMPNN",
     "inputs": [
-        {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-        {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-        {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-        {'shape': (None, 1), 'name': "edge_indices_reverse", 'dtype': 'int64', 'ragged': True}],
+        {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+        {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+        {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}],
     'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
     "node_initialize": {"units": 64, "activation": "relu"},
@@ -30,7 +30,7 @@ model_default = {
     "edge_dense": {"units": 64, "activation": "linear"},
     "node_dense": {"units": 64, "activation": "linear"},
     "edge_activation": {"activation": "relu"},
-    'verbose': 10,
+    "verbose": 10,
     "depth": 5,
     "dropout": {"rate": 0.1},
     "use_final_gru": True,
