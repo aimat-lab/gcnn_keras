@@ -15,6 +15,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.utils.models import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line with default values from example.
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
@@ -26,7 +27,9 @@ parser.add_argument("--dataset", required=False, help="Name of the dataset or le
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_model_edge")
+                    default="make_model")
+parser.add_argument("--gpu", required=False, help="GPU index used for training.",
+                    default=None, nargs="+", type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -35,6 +38,10 @@ model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
+gpu_to_use = args["gpu"]
+
+# Assigning GPU.
+set_devices_gpu(gpu_to_use)
 
 # A class `HyperSelection` is used to expose and verify hyperparameter.
 # The hyperparameter stored as a dictionary with section 'model', 'data' and 'training'.
@@ -157,3 +164,5 @@ np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".
 # Save hyperparameter again, which were used for this fit. Format is '.json'
 # If non-serialized parameters were in the hyperparameter config file, this operation may fail.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+
+# Save score of fit result for as text file.
