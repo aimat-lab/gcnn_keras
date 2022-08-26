@@ -6,11 +6,12 @@ from kgcnn.data.utils import load_yaml_file
 benchmark_datasets = {
     "CoraDataset": {
         "general_info": "Cora Dataset of 19793 publications and 8710 sparse attributes and 70 classes.",
-        "targets": [{"metric": "val_accuracy", "name": "MAE"}]
+        "targets": [{"metric": "val_categorical_accuracy", "name": "Accuracy"}]
     },
     "ESOLDataset": {
         "general_info": "ESOL consists of 1128 compounds and their corresponding water solubility in log10(mol/L).",
-        "targets": [{"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/l]"}]
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     }
 }
 
@@ -21,6 +22,9 @@ def make_table_line(tab_list: list):
 
 with open("README.md", "w") as f:
     f.write("# Summary of Benchmark Training\n\n")
+
+    f.write("Note that these are the results for models within `kgcnn`,")
+    f.write(" and that training is not always done with optimal hyperparameter when comparing with literature\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
@@ -52,7 +56,7 @@ with open("README.md", "w") as f:
             for r in output_files:
                 results = load_yaml_file(os.path.join(dataset, model, r))
                 result_dict.update({
-                    "model": results["model_class"],
+                    "model": results["model_name"],
                     "kgcnn": results["kgcnn_version"],
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })

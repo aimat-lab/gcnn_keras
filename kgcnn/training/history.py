@@ -27,6 +27,7 @@ def save_history_score(
         model_name (str): Name of the model. Default is "".
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
+        model_class (str): Model class or generator. Default is "".
 
     Returns:
         dict: Score which was saved to file.
@@ -67,6 +68,7 @@ def save_history_score(
     result_dict["model_class"] = str(model_class)
     result_dict["model_name"] = str(model_name)
     result_dict["kgcnn_version"] = str(__kgcnn_version__)
+    result_dict["number_histories"] = len(histories)
 
     if filepath is not None:
         save_yaml_file(result_dict, os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
