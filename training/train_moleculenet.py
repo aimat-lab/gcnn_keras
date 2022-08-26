@@ -169,4 +169,5 @@ hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
+                   model_class=make_function,
                    filepath=filepath, file_name="score" + postfix_file + ".yaml")

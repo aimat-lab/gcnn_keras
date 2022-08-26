@@ -105,7 +105,7 @@ hyper = {
                                              "decay_steps": 1600,
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
-                "loss": "mean_absolute_error",
+                "loss": "mean_squared_error",
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},

@@ -2,6 +2,7 @@ import numpy as np
 import os
 from kgcnn.data.utils import save_yaml_file
 from datetime import datetime
+from kgcnn import __kgcnn_version__
 
 
 def save_history_score(
@@ -12,7 +13,8 @@ def save_history_score(
         data_unit: str = "",
         model_name: str = "",
         file_name: str = "score.yaml",
-        dataset_name: str = ""
+        dataset_name: str = "",
+        model_class: str = "",
 ):
     r"""Save fit results from fit histories to file.
 
@@ -53,15 +55,17 @@ def save_history_score(
 
     result_dict = {}
     for i, l in zip(loss_name, train_loss):
-        result_dict.update({i: [x[-1] for x in l]})
+        result_dict.update({i: [float(x[-1]) for x in l]})
     for i, l in zip(val_loss_name, val_loss):
-        result_dict.update({i: [x[-1] for x in l]})
+        result_dict.update({i: [float(x[-1]) for x in l]})
 
-    result_dict["data_unit"] = data_unit
+    result_dict["data_unit"] = str(data_unit)
     if len(train_loss) > 0:
-        result_dict["epochs"] = [len(x) for x in train_loss[0]]
+        result_dict["epochs"] = [int(len(x)) for x in train_loss[0]]
 
-    result_dict["data_time"] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    result_dict["data_time"] = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+    result_dict["model_class"] = str(model_class)
+    result_dict["kgcnn_version"] = str(__kgcnn_version__)
 
     if filepath is not None:
         save_yaml_file(result_dict, os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
