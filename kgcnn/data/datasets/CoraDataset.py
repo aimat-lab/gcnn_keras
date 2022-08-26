@@ -72,4 +72,4 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
 
         return self
 
-# ds = CoraDataset()
+ds = CoraDataset()
