@@ -345,7 +345,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.1.0"
         }
     },
     "PAiNN": {
