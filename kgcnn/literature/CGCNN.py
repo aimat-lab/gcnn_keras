@@ -6,7 +6,13 @@ from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract, DenseEmbedding
 from kgcnn.layers.mlp import MLP
 from kgcnn.utils.models import update_model_kwargs
+
 ks = tf.keras
+
+# Implementation of CGCNN in `tf.keras` from paper:
+# Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties
+# Tian Xie and Jeffrey C. Grossman
+# https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301
 
 
 model_crystal_default = {

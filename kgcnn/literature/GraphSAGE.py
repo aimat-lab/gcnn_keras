@@ -6,6 +6,7 @@ from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
 from kgcnn.utils.models import update_model_kwargs
+
 ks = tf.keras
 
 # Implementation of GraphSAGE in `tf.keras` from paper:
@@ -14,22 +15,23 @@ ks = tf.keras
 # http://arxiv.org/abs/1706.02216
 
 
-hyper_model_default = {'name': "GraphSAGE",
-                       'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                                  {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                       'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
-                                           "edge": {"input_dim": 5, "output_dim": 64}},
-                       'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                       'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
-                       'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
-                       'concat_args': {"axis": -1},
-                       'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
-                       'depth': 3, 'verbose': 10,
-                       'output_embedding': 'graph', "output_to_tensor": True,
-                       'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                      "activation": ['relu', 'relu', 'sigmoid']}
-                       }
+hyper_model_default = {
+    'name': "GraphSAGE",
+    'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+    'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 5, "output_dim": 64}},
+    'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+    'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+    'pooling_args': {'pooling_method': "segment_mean"}, 'gather_args': {},
+    'concat_args': {"axis": -1},
+    'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "mean"},
+    'depth': 3, 'verbose': 10,
+    'output_embedding': 'graph', "output_to_tensor": True,
+    'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ['relu', 'relu', 'sigmoid']}
+}
 
 
 @update_model_kwargs(hyper_model_default)
