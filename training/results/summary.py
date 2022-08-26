@@ -2,7 +2,8 @@ import os
 
 
 benchmark_datasets = {
-    "CoraDataset": {"general_info": "Cora Dataset  "}
+    "CoraDataset": {
+        "general_info": "Cora Dataset of 19793 publications and 8710 sparse attributes and 70 classes. "}
 }
 
 
