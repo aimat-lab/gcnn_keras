@@ -83,4 +83,4 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
 
         return self
 
-# ds = CoraLUDataset()
+# ds = CoraLuDataset()

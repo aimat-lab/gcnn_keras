@@ -4,8 +4,12 @@ from kgcnn.data.utils import load_yaml_file
 
 
 benchmark_datasets = {
+    "CoraLuDataset": {
+        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes.",
+        "targets": [{"metric": "val_categorical_accuracy", "name": "Accuracy"}]
+    },
     "CoraDataset": {
-        "general_info": "Cora Dataset of 19793 publications and 8710 sparse attributes and 70 classes.",
+        "general_info": "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes.",
         "targets": [{"metric": "val_categorical_accuracy", "name": "Accuracy"}]
     },
     "ESOLDataset": {
