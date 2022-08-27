@@ -13,7 +13,7 @@ benchmark_datasets = {
         "targets": [{"metric": "val_categorical_accuracy", "name": "Accuracy"}]
     },
     "ESOLDataset": {
-        "general_info": "ESOL consists of 1128 compounds and their corresponding water solubility in log10(mol/L).",
+        "general_info": "ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L).",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     }

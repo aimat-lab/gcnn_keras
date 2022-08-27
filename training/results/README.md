@@ -21,7 +21,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 ## ESOLDataset
 
-ESOL consists of 1128 compounds and their corresponding water solubility in log10(mol/L).
+ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L).
 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 

@@ -17,25 +17,26 @@ ks = tf.keras
 # https://aip.scitation.org/doi/pdf/10.1063/1.5019779
 
 
-model_default = {'name': "Schnet",
-                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-                 "make_distance": True, 'expand_distance': True,
-                 'interaction_args': {"units": 128, "use_bias": True,
-                                      "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
-                 'node_pooling_args': {"pooling_method": "sum"},
-                 'depth': 4,
-                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                 'verbose': 10,
-                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-                 'output_embedding': 'graph', "output_to_tensor": True,
-                 "use_output_mlp": True,
-                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                                "activation": ['kgcnn>shifted_softplus', "linear"]}
-                 }
+model_default = {
+    "name": "Schnet",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
+    "make_distance": True, "expand_distance": True,
+    "interaction_args": {"units": 128, "use_bias": True,
+                         "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"},
+    "node_pooling_args": {"pooling_method": "sum"},
+    "depth": 4,
+    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+    "verbose": 10,
+    "last_mlp": {"use_bias": [True, True], "units": [128, 64],
+                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
+    "output_embedding": "graph", "output_to_tensor": True,
+    "use_output_mlp": True,
+    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+}
 
 
 @update_model_kwargs(model_default)
@@ -142,25 +143,25 @@ def make_model(inputs: list = None,
 
 
 model_crystal_default = {
-    'name': "Schnet",
-    'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
-               {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
-               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-               {'shape': (None, 3), 'name': "edge_image", 'dtype': 'int64', 'ragged': True},
-               {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}],
-    'input_embedding': {"node": {"input_dim": 95, "output_dim": 64}},
-    "make_distance": True, 'expand_distance': True,
-    'interaction_args': {"units": 128, "use_bias": True, "activation": 'kgcnn>shifted_softplus', "cfconv_pool": 'sum'},
-    'node_pooling_args': {"pooling_method": "sum"},
-    'depth': 4,
-    'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-    'verbose': 10,
-    'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
-    'output_embedding': 'graph', "output_to_tensor": True,
+    "name": "Schnet",
+    "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+               {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+               {"shape": (None, 3), "name": "edge_image", "dtype": "int64", "ragged": True},
+               {"shape": (3, 3), "name": "graph_lattice", "dtype": "float32", "ragged": False}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
+    "make_distance": True, "expand_distance": True,
+    "interaction_args": {"units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"},
+    "node_pooling_args": {"pooling_method": "sum"},
+    "depth": 4,
+    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+    "verbose": 10,
+    "last_mlp": {"use_bias": [True, True], "units": [128, 64],
+                 "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
+    "output_embedding": "graph", "output_to_tensor": True,
     "use_output_mlp": True,
-    'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ['kgcnn>shifted_softplus', "linear"]}
+    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                   "activation": ["kgcnn>shifted_softplus", "linear"]}
 }
 
 
