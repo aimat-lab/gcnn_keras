@@ -29,4 +29,6 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | CMPNN | 2.1.0 | 300 | 0.4318 &pm; 0.0173  | 0.5919 &pm; 0.0262  | 
 | DMPNN | 2.1.0 | 300 | 0.4463 &pm; 0.0357  | 0.6442 &pm; 0.0429  | 
 | GAT | 2.1.0 | 500 | 0.4699 &pm; 0.0435  | 0.6711 &pm; 0.0745  | 
+| GATv2 | 2.1.0 | 500 | 0.4628 &pm; 0.0432  | 0.6615 &pm; 0.0565  | 
+| GraphSAGE | 2.1.0 | 500 | 0.4896 &pm; 0.0169  | 0.7003 &pm; 0.0494  | 
 

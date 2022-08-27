@@ -16,7 +16,7 @@
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
 [General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
- | [Literature](#literature) | [Datasets](#datasets) | [Examples](#examples) | [Issues](#issues) | [Citing](#citing) | [References](#references)
+ | [Literature](#literature) | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)
  
 
 <a name="general"></a>
@@ -232,10 +232,12 @@ dataset = MUTAGDataset()  # inherits from GraphTUDataset2020
 
 Downloaded datasets are stored in `~/.kgcnn/datasets` on your computer. Please remove them manually, if no longer required.
 
-<a name="examples"></a>
-# Examples
+<a name="training"></a>
+# Training
 
 A set of example training can be found in [training](training). Training scripts are configurable with a hyperparameter config file and command line arguments regarding model and dataset.
+
+You can find a [table](training/results/README.md) of common benchmark datasets in [results](training/results).
 
 # Issues
 
