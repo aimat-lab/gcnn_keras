@@ -27,5 +27,6 @@ ESOL consists of 1128 compounds and their corresponding water solubility in log1
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.4272 &pm; 0.0297  | 0.6002 &pm; 0.0268  | 
 | CMPNN | 2.1.0 | 300 | 0.4318 &pm; 0.0173  | 0.5919 &pm; 0.0262  | 
+| DMPNN | 2.1.0 | 300 | 0.4463 &pm; 0.0357  | 0.6442 &pm; 0.0429  | 
 | GAT | 2.1.0 | 500 | 0.4699 &pm; 0.0435  | 0.6711 &pm; 0.0745  | 
 

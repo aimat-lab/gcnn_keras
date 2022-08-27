@@ -60,7 +60,8 @@ with open("README.md", "w") as f:
             for r in output_files:
                 results = load_yaml_file(os.path.join(dataset, model, r))
                 result_dict.update({
-                    "model": results["model_name"],
+                    "model": results["model_name"] if results["model_class"] == "make_model" else "%s.%s" % (
+                        results["model_name"], results["model_class"]),
                     "kgcnn": results["kgcnn_version"],
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })
