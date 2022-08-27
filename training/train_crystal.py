@@ -9,6 +9,7 @@ from tensorflow_addons import optimizers
 from kgcnn.scaler.scaler import StandardScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
+from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.hyper.hyper import HyperParameter
@@ -177,3 +178,9 @@ np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".
 
 # Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+
+# Save score of fit result for as text file.
+save_history_score(history_list, loss_name=None, val_loss_name=None,
+                   model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
+                   model_class=make_function,
+                   filepath=filepath, file_name="score" + postfix_file + ".yaml")

@@ -65,6 +65,7 @@ with open("README.md", "w") as f:
                     "kgcnn": results["kgcnn_version"],
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })
+
                 for x in dataset_info["targets"]:
                     result_dict[x["name"]] = "{0:0.4f} &pm; {1:0.4f} ".format(
                         np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
