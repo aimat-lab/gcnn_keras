@@ -9,6 +9,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 | model | kgcnn | epochs | Accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
+| GATv2 | 2.1.0 | 250 | 0.8464 &pm; 0.0097  | 
 | GCN | 2.1.0 | 300 | 0.7969 &pm; 0.0144  | 
 
 ## CoraDataset
@@ -31,5 +32,6 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | GAT | 2.1.0 | 500 | 0.4699 &pm; 0.0435  | 0.6711 &pm; 0.0745  | 
 | GATv2 | 2.1.0 | 500 | 0.4628 &pm; 0.0432  | 0.6615 &pm; 0.0565  | 
 | GCN | 2.1.0 | 800 | 0.5639 &pm; 0.0102  | 0.7995 &pm; 0.0324  | 
+| GIN | 2.1.0 | 300 | 0.5107 &pm; 0.0395  | 0.7241 &pm; 0.0441  | 
 | GraphSAGE | 2.1.0 | 500 | 0.4654 &pm; 0.0377  | 0.6556 &pm; 0.0697  | 
 
