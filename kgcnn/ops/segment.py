@@ -44,8 +44,8 @@ def segment_ops_by_name(segment_name: str, data, segment_ids):
         pool = tf.math.segment_max(data, segment_ids)
     elif segment_name in ["segment_min", "sum", "reduce_min"]:
         pool = tf.math.segment_min(data, segment_ids)
-    elif segment_name in ["segment_softmax", "segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
-        pool = segment_softmax(data, segment_ids)
+    # elif segment_name in ["segment_softmax", "segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
+    #     pool = segment_softmax(data, segment_ids)
     else:
         raise TypeError("Unknown segment operation, choose: 'segment_mean', 'segment_sum', ...")
     return pool
