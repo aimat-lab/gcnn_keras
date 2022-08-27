@@ -125,7 +125,7 @@ def make_model(name: str = None,
     for i in range(depth - 1):
         # Node message/update
         m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
-        m_max = PoolingLocalEdges(pooling_method="softmax")([h, he, edi])
+        m_max = PoolingLocalEdges(pooling_method="segment_max")([h, he, edi])
         m = LazyMultiply()([m_pool, m_max])
         # In paper there is a potential COMMUNICATE() here but in reference code just add() operation.
         h = LazyAdd()([h, m])
