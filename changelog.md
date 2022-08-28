@@ -2,7 +2,7 @@ v2.1.1
 
 * Remove reserved properties form ``MemoryGraphList``, please use set/get methods.
 * Removed deprecated ``kgcnn.selection`` module.
-* Rework training. Having plots is memory intensive. Prefer summary table of benchmarks.
+* Rework training. Having plots takes up more memory. Prefer summary table of benchmarks.
 
 
 v2.0.4
