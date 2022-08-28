@@ -41,4 +41,5 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | Megnet | 2.1.0 | 800 | 0.5597 &pm; 0.0314  | 0.7972 &pm; 0.0439  | 
 | NMPN | 2.1.0 | 800 | 0.5706 &pm; 0.0497  | 0.8144 &pm; 0.0710  | 
 | PAiNN | 2.1.0 | 250 | 0.4182 &pm; 0.0198  | 0.5961 &pm; 0.0344  | 
+| Schnet | 2.1.0 | 800 | 0.4682 &pm; 0.0272  | 0.6539 &pm; 0.0471  | 
 
