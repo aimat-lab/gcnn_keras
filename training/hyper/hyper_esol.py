@@ -85,7 +85,7 @@ hyper = {
                 "verbose": 10,
                 "depth": 3,
                 "dropout": None,
-                "use_final_gru": True,
+                "use_final_gru": False,
                 "pooling_gru": {"units": 300},
                 "pooling_kwargs": {"pooling_method": "sum"},
                 "output_embedding": "graph",
