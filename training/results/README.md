@@ -27,6 +27,7 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.4272 &pm; 0.0297  | 0.6002 &pm; 0.0268  | 
+| CMPNN | 2.1.0 | 300 | 0.4596 &pm; 0.0257  | 0.6561 &pm; 0.0295  | 
 | DMPNN | 2.1.0 | 300 | 0.4463 &pm; 0.0357  | 0.6442 &pm; 0.0429  | 
 | GAT | 2.1.0 | 500 | 0.4699 &pm; 0.0435  | 0.6711 &pm; 0.0745  | 
 | GATv2 | 2.1.0 | 500 | 0.4628 &pm; 0.0432  | 0.6615 &pm; 0.0565  | 
@@ -36,4 +37,5 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | GraphSAGE | 2.1.0 | 500 | 0.4654 &pm; 0.0377  | 0.6556 &pm; 0.0697  | 
 | HamNet | 2.1.0 | 400 | 0.5492 &pm; 0.0509  | 0.7645 &pm; 0.0676  | 
 | INorp | 2.1.0 | 500 | 0.4828 &pm; 0.0201  | 0.6748 &pm; 0.0350  | 
+| Megnet | 2.1.0 | 800 | 0.5597 &pm; 0.0314  | 0.7972 &pm; 0.0439  | 
 
