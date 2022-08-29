@@ -161,6 +161,7 @@ A version of the following models and variants thereof are implemented in [liter
 * **[DMPNN](kgcnn/literature/DMPNN.py)**: [Analyzing Learned Molecular Representations for Property Prediction](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b00237) by Yang et al. (2019)
 * **[HamNet](kgcnn/literature/HamNet.py)**: [HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks](https://arxiv.org/abs/2105.03688) by Li et al. (2021)
 * **[CGCNN](kgcnn/literature/CGCNN.py)**: [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) by Xie et al. (2018)
+* **[CMPNN](kgcnn/literature/CGCNN.py)**: [Communicative Representation Learning on Attributed Molecular Graphs](https://www.ijcai.org/proceedings/2020/0392.pdf) by Song et al. (2020)
 </details>
 
 <a name="datasets"></a>
