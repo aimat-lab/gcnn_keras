@@ -76,7 +76,7 @@ hyper = {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 5, "output_dim": 64}},
                 "attention_args": {"units": 32, "use_bias": True, "use_edge_features": True,
-                                "use_final_activation": False, "has_self_loops": True},
+                                   "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,

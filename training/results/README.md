@@ -1,7 +1,8 @@
 # Summary of Benchmark Training
 
 Note that these are the results for models within `kgcnn`, and that training is not always done with optimal hyperparameter or splits, when comparing with literature.
-Model files and training statistics plots are not uploaded on github.
+This table is generated automatically from keras history logs.
+Model weights and training statistics plots are not uploaded on github.
 
 ## CoraLuDataset
 
@@ -57,4 +58,5 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | GAT | 2.1.0 | 500 | 0.5034 &pm; 0.0060  | 0.7037 &pm; 0.0202  | 
 | GIN | 2.1.0 | 300 | 0.4503 &pm; 0.0106  | 0.6175 &pm; 0.0210  | 
 | HamNet | 2.1.0 | 400 | 0.4535 &pm; 0.0119  | 0.6305 &pm; 0.0244  | 
+| INorp | 2.1.0 | 500 | 0.4668 &pm; 0.0118  | 0.6576 &pm; 0.0214  | 
 
