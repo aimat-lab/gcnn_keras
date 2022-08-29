@@ -96,7 +96,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "fit": {"batch_size": 50, "epochs": 600, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
