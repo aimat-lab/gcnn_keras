@@ -17,11 +17,11 @@ benchmark_datasets = {
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     },
-    "LipopDataset": {
-        "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
-    }
+    # "LipopDataset": {
+    #     "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.",
+    #     "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
+    #                 {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+    # }
 }
 
 

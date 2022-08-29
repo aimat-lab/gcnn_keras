@@ -7,7 +7,7 @@ Model files and training statistics plots are not uploaded on github.
 
 Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes.
 
-| model | kgcnn | epochs | Accuracy | 
+| model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
 | GATv2 | 2.1.0 | 250 | 0.8349 &pm; 0.0150  | 
@@ -19,7 +19,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 
 Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes.
 
-| model | kgcnn | epochs | Accuracy | 
+| model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GCN | 2.1.0 | 300 | 0.6150 &pm; 0.0121  | 
 
