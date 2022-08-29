@@ -56,4 +56,5 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | DMPNN | 2.1.0 | 300 | 0.3781 &pm; 0.0091  | 0.5440 &pm; 0.0162  | 
 | GAT | 2.1.0 | 500 | 0.5034 &pm; 0.0060  | 0.7037 &pm; 0.0202  | 
 | GIN | 2.1.0 | 300 | 0.4503 &pm; 0.0106  | 0.6175 &pm; 0.0210  | 
+| HamNet | 2.1.0 | 400 | 0.4535 &pm; 0.0119  | 0.6305 &pm; 0.0244  | 
 
