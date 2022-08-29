@@ -119,6 +119,7 @@ def make_model(name: str = None,
         pos1, pos2 = NodePosition()([x, edi])
         diff_x = LazySubtract()([pos1, pos2])
         norm_x = EuclideanNorm()(diff_x)
+        # Original code as normalize option for coord-differences
 
         # Edge model
         h_i, h_j = GatherEmbeddingSelection()([h, edi])
@@ -134,8 +135,8 @@ def make_model(name: str = None,
 
         # Coord model
         if coord_mlp_kwargs:
-            phi_m_ij = GraphMLP(**coord_mlp_kwargs)(m_ij)
-            x_trans = LazyMultiply()([phi_m_ij, diff_x])
+            m_ij_weights = GraphMLP(**coord_mlp_kwargs)(m_ij)
+            x_trans = LazyMultiply()([m_ij_weights, diff_x])
             agg = PoolingLocalEdges(**pooling_coord_kwargs)([h, x_trans, edi])
             x = LazyAdd()([x, agg])
 
