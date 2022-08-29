@@ -46,3 +46,11 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | PAiNN | 2.1.0 | 250 | 0.4182 &pm; 0.0198  | 0.5961 &pm; 0.0344  | 
 | Schnet | 2.1.0 | 800 | 0.4682 &pm; 0.0272  | 0.6539 &pm; 0.0471  | 
 
+## LipopDataset
+
+Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.
+
+| model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
+| :---: | :---: | :---: | :---: | :---: | 
+| AttentiveFP | 2.1.0 | 200 | 0.4644 &pm; 0.0245  | 0.6393 &pm; 0.0408  | 
+
