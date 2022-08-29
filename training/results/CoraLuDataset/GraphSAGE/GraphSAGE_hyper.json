@@ -1,9 +1,9 @@
 {
   "model": {
     "class_name": "make_model",
-    "module_name": "kgcnn.literature.GIN",
+    "module_name": "kgcnn.literature.GraphSAGE",
     "config": {
-      "name": "GIN",
+      "name": "GraphSAGE",
       "inputs": [
         {
           "shape": [
@@ -11,6 +11,15 @@
             1433
           ],
           "name": "node_attributes",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            1
+          ],
+          "name": "edge_weights",
           "dtype": "float32",
           "ragged": true
         },
@@ -26,28 +35,50 @@
       ],
       "input_embedding": {
         "node": {
-          "input_dim": 96,
+          "input_dim": 95,
           "output_dim": 64
+        },
+        "edge": {
+          "input_dim": 5,
+          "output_dim": 16
         }
       },
-      "depth": 5,
-      "dropout": 0.05,
-      "gin_mlp": {
+      "node_mlp_args": {
         "units": [
           64,
-          64
+          32
         ],
         "use_bias": true,
         "activation": [
           "relu",
           "linear"
-        ],
-        "use_normalization": true,
-        "normalization_technique": "batch"
+        ]
       },
-      "gin_args": {},
-      "last_mlp": {
+      "edge_mlp_args": {
+        "units": 64,
         "use_bias": true,
+        "activation": "relu"
+      },
+      "pooling_args": {
+        "pooling_method": "segment_sum"
+      },
+      "gather_args": {},
+      "concat_args": {
+        "axis": -1
+      },
+      "use_edge_features": true,
+      "pooling_nodes_args": {
+        "pooling_method": "sum"
+      },
+      "depth": 3,
+      "verbose": 10,
+      "output_embedding": "node",
+      "output_mlp": {
+        "use_bias": [
+          true,
+          true,
+          false
+        ],
         "units": [
           64,
           32,
@@ -56,13 +87,8 @@
         "activation": [
           "relu",
           "relu",
-          "linear"
+          "softmax"
         ]
-      },
-      "output_embedding": "node",
-      "output_mlp": {
-        "activation": "softmax",
-        "units": 7
       }
     }
   },

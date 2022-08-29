@@ -3,12 +3,12 @@ import numpy as np
 from collections import defaultdict
 from typing import Dict, Callable, List
 import pandas as pd
+import pymatgen.io.cif
 import pymatgen.core.structure
 import pymatgen.symmetry.structure
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file
-from kgcnn.crystal.module_pymatgen import parse_cif_file_to_structures
 from kgcnn.crystal.base import CrystalPreprocessor
 from kgcnn.graph.base import GraphDict
 
@@ -76,6 +76,12 @@ class CrystalDataset(MemoryGraphDataset):
             dicts.append(d)
         return dicts
 
+    @staticmethod
+    def _pymatgen_parse_cif_file_to_structures(cif_file: str):
+        # structure = pymatgen.io.cif.CifParser.from_string(cif_string).get_structures()[0]
+        structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
+        return structures
+
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
         r"""Try to load all crystal structures from CIF files and save them as a pymatgen json serialization.
         Can load a single CIF file with multiple structures (maybe unstable), or multiple CIF files from a table
@@ -101,7 +107,7 @@ class CrystalDataset(MemoryGraphDataset):
         if os.path.exists(file_path_base + ".cif"):
             found_cif_file = True
             self.info("Start to read many structures form cif-file via pymatgen ...")
-            structs = parse_cif_file_to_structures(file_path)
+            structs = self._pymatgen_parse_cif_file_to_structures(file_path)
             self.info("Exporting as dict for pymatgen ...")
             dicts = self._pymatgen_serialize_structs(structs)
             self.info("Saving structures as .json ...")
@@ -121,8 +127,8 @@ class CrystalDataset(MemoryGraphDataset):
             self.info("Read %s cif-file via pymatgen ..." % num_structs)
             for i, x in enumerate(cif_file_list):
                 # Only one file per path
-                structs.append(parse_cif_file_to_structures(os.path.join(self.data_directory,
-                                                                         self.file_directory, x))[0])
+                structs.append(self._pymatgen_parse_cif_file_to_structures(os.path.join(self.data_directory,
+                                                                                        self.file_directory, x))[0])
                 if i % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_structs))
             self.info("Exporting as dict for pymatgen ...")
@@ -238,7 +244,7 @@ class CrystalDataset(MemoryGraphDataset):
             # TODO: Add graph attributes (label, lattice_matrix, etc.)
             # TODO: Rename node and edge properties to match kgcnn conventions
             # TODO: Add GraphDict to dataset
-    
+
             if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                 self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
 
