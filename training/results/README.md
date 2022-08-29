@@ -1,6 +1,7 @@
 # Summary of Benchmark Training
 
-Note that these are the results for models within `kgcnn`, and that training is not always done with optimal hyperparameter, when comparing with literature.
+Note that these are the results for models within `kgcnn`, and that training is not always done with optimal hyperparameter or splits, when comparing with literature.
+Model files and training statistics plots are not uploaded on github.
 
 ## CoraLuDataset
 
@@ -9,8 +10,10 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 | model | kgcnn | epochs | Accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
-| GATv2 | 2.1.0 | 250 | 0.8464 &pm; 0.0097  | 
+| GATv2 | 2.1.0 | 250 | 0.8349 &pm; 0.0150  | 
 | GCN | 2.1.0 | 300 | 0.7969 &pm; 0.0144  | 
+| GIN | 2.1.0 | 500 | 0.9477 &pm; 0.0138  | 
+| GraphSAGE | 2.1.0 | 500 | 0.9694 &pm; 0.0026  | 
 
 ## CoraDataset
 
@@ -27,7 +30,7 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.4359 &pm; 0.0295  | 0.5920 &pm; 0.0307  | 
-| CMPNN | 2.1.0 | 300 | 0.4596 &pm; 0.0257  | 0.6561 &pm; 0.0295  | 
+| CMPNN | 2.1.0 | 600 | 0.4740 &pm; 0.0259  | 0.6766 &pm; 0.0266  | 
 | DimeNetPP | 2.1.0 | 872 | 0.4572 &pm; 0.0304  | 0.6377 &pm; 0.0501  | 
 | DMPNN | 2.1.0 | 300 | 0.4381 &pm; 0.0203  | 0.6321 &pm; 0.0478  | 
 | GAT | 2.1.0 | 500 | 0.4699 &pm; 0.0435  | 0.6711 &pm; 0.0745  | 
