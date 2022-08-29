@@ -1,11 +1,12 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.geom import EuclideanNorm, NodePosition
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
+from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.utils.models import update_model_kwargs
+from kgcnn.layers.norm import GraphLayerNormalization
 
 ks = tf.keras
 
@@ -16,29 +17,47 @@ ks = tf.keras
 
 
 model_default = {
-    "name": "Schnet",
+    "name": "EGNN",
     "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+               {"shape": (None, 10), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
     "depth": 4,
+    "node_mlp_initialize": None,
+    "use_edge_attributes": True,
+    "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
+    "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
+    "coord_mlp_kwargs":  {"units": [64, 1], "activation": ["swish", "linear"]},
+    "pooling_coord_kwargs": {"pooling_method": "mean"},
+    "pooling_edge_kwargs": {"pooling_method": "sum"},
+    "node_normalize_kwargs": None,
+    "node_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
+    "use_skip": True,
     "verbose": 10,
     "node_pooling_kwargs": {"pooling_method": "sum"},
-    "output_embedding": "graph", "output_to_tensor": True,
+    "output_embedding": "graph",
+    "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["kgcnn>shifted_softplus", "linear"]}
+                   "activation": ["swish", "linear"]}
 }
 
 
 @update_model_kwargs(model_default)
-def make_model(inputs: list = None,
+def make_model(name: str = None,
+               inputs: list = None,
                input_embedding: dict = None,
                depth: int = None,
-               use_edges: bool = None,
+               node_mlp_initialize: dict = None,
+               use_edge_attributes: bool = None,
                edge_mlp_kwargs: dict = None,
                edge_attention_kwargs: dict = None,
                coord_mlp_kwargs: dict = None,
-               name: str = None,
+               pooling_coord_kwargs: dict = None,
+               pooling_edge_kwargs: dict = None,
+               node_normalize_kwargs: dict = None,
+               node_mlp_kwargs: dict = None,
+               use_skip: dict = None,
                verbose: int = None,
                node_pooling_kwargs: dict = None,
                output_embedding: str = None,
@@ -49,15 +68,13 @@ def make_model(inputs: list = None,
     Default parameters can be found in :obj:`kgcnn.literature.EGNN.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_distance, edge_indices]`
-        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
-        :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
+        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices]`
+        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`use_edge_attributes=False`.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_distance (tf.RaggedTensor): Edge distance of shape `(batch, None, D)` expanded
-              in a basis of dimension `D` or `(batch, None, 1)` if using a :obj:`GaussBasisLayer` layer
-              with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
+            - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, D)`.
+                Can also be ignored if not needed.
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
             - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
 
@@ -82,28 +99,33 @@ def make_model(inputs: list = None,
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
-    edge_input = ks.layers.Input(**inputs[2])
-    edge_index_input = ks.layers.Input(**inputs[3])
+    if use_edge_attributes:
+        edge_input = ks.layers.Input(**inputs[2])
+        edge_index_input = ks.layers.Input(**inputs[3])
+    else:
+        edge_input = None
+        edge_index_input = ks.layers.Input(**inputs[2])
 
     # embedding, if no feature dimension
-    h0 = OptionalInputEmbedding(**input_embedding['node'],
-                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    h0 = OptionalInputEmbedding(
+        **input_embedding['node'],
+        use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     edi = edge_index_input
 
     # Model
-    h = h0
+    h = GraphMLP(**node_mlp_initialize)(h0) if node_mlp_initialize else h0
     x = node_input
     for i in range(0, depth):
         pos1, pos2 = NodePosition()([x, edi])
-        rel_x = LazySubtract()([pos1, pos2])
-        norm_x = EuclideanNorm()(rel_x)
+        diff_x = LazySubtract()([pos1, pos2])
+        norm_x = EuclideanNorm()(diff_x)
 
         # Edge model
         h_i, h_j = GatherEmbeddingSelection()([h, edi])
-        if use_edges:
-            m_ij = LazyConcatenate()([h_i, h_j, norm_x])
+        if use_edge_attributes:
+            m_ij = LazyConcatenate()([h_i, h_j, norm_x, edge_input])
         else:
-            m_ij = LazyConcatenate()([h_i, h_j, rel_x, edge_input])
+            m_ij = LazyConcatenate()([h_i, h_j, norm_x])
         if edge_mlp_kwargs:
             m_ij = GraphMLP(**edge_mlp_kwargs)(m_ij)
         if edge_attention_kwargs:
@@ -111,10 +133,26 @@ def make_model(inputs: list = None,
             m_ij = LazyMultiply()([m_att, m_ij])
 
         # Coord model
-        phi_m_ij = GraphMLP()(m_ij)
-        x_trans = LazyMultiply()([])
+        if coord_mlp_kwargs:
+            phi_m_ij = GraphMLP(**coord_mlp_kwargs)(m_ij)
+            x_trans = LazyMultiply()([phi_m_ij, diff_x])
+            agg = PoolingLocalEdges(**pooling_coord_kwargs)([h, x_trans, edi])
+            x = LazyAdd()([x, agg])
+
+        # Node model
+        m_i = PoolingLocalEdges(**pooling_edge_kwargs)([h, m_ij, edi])
+        if node_mlp_kwargs:
+            m_i = LazyConcatenate()([h, m_i])
+            m_i = GraphMLP(**node_mlp_kwargs)(m_i)
+        if node_normalize_kwargs:
+            h = GraphLayerNormalization(**node_normalize_kwargs)(h)
+        if use_skip:
+            h = LazyAdd()([h, m_i])
+        else:
+            h = m_i
 
     # Output embedding choice
+    n = h
     if output_embedding == 'graph':
         out = PoolingNodes(**node_pooling_kwargs)(n)
         out = MLP(**output_mlp)(out)
@@ -126,5 +164,8 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
-    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out)
+    if use_edge_attributes:
+        model = ks.models.Model(inputs=[node_input, xyz_input, edge_input, edge_index_input], outputs=out, name=name)
+    else:
+        model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out, name=name)
     return model
