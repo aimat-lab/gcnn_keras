@@ -34,6 +34,7 @@ with open("README.md", "w") as f:
 
     f.write("Note that these are the results for models within `kgcnn`,")
     f.write(" and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
+    f.write("This table is generated automatically from keras history logs.\n")
     f.write("Model files and training statistics plots are not uploaded on github.\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
