@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.geom import EuclideanNorm, NodePosition
+from kgcnn.layers.geom import EuclideanNorm, NodePosition, EdgeDirectionNormalized
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
@@ -28,7 +28,8 @@ model_default = {
     "use_edge_attributes": True,
     "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
     "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
-    "coord_mlp_kwargs":  {"units": [64, 1], "activation": ["swish", "linear"]},
+    "use_normalized_difference": False,
+    "coord_mlp_kwargs":  {"units": [64, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end.
     "pooling_coord_kwargs": {"pooling_method": "mean"},
     "pooling_edge_kwargs": {"pooling_method": "sum"},
     "node_normalize_kwargs": None,
@@ -52,12 +53,13 @@ def make_model(name: str = None,
                use_edge_attributes: bool = None,
                edge_mlp_kwargs: dict = None,
                edge_attention_kwargs: dict = None,
+               use_normalized_difference: bool = None,
                coord_mlp_kwargs: dict = None,
                pooling_coord_kwargs: dict = None,
                pooling_edge_kwargs: dict = None,
                node_normalize_kwargs: dict = None,
                node_mlp_kwargs: dict = None,
-               use_skip: dict = None,
+               use_skip: bool = None,
                verbose: int = None,
                node_pooling_kwargs: dict = None,
                output_embedding: str = None,
@@ -65,6 +67,7 @@ def make_model(name: str = None,
                output_mlp: dict = None
                ):
     r"""Make `EGNN <https://arxiv.org/abs/2102.09844>`_ graph network via functional API.
+
     Default parameters can be found in :obj:`kgcnn.literature.EGNN.model_default`.
 
     Inputs:
@@ -82,11 +85,22 @@ def make_model(name: str = None,
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
+        name (str): Name of the model. Default is "EGNN".
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
+        node_mlp_initialize (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer for start embedding.
+        use_edge_attributes (bool): Whether to use edge attributes including for example further edge information.
+        edge_mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
+        edge_attention_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
+        use_normalized_difference (bool): Whether to use a normalized difference vector for nodes.
+        coord_mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
+        pooling_coord_kwargs (dict):
+        pooling_edge_kwargs (dict):
+        node_normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphLayerNormalization` layer.
+        node_mlp_kwargs (dict):
+        use_skip (bool):
         verbose (int): Level of verbosity.
-        name (str): Name of the model.
         node_pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
@@ -120,6 +134,8 @@ def make_model(name: str = None,
         diff_x = LazySubtract()([pos1, pos2])
         norm_x = EuclideanNorm()(diff_x)
         # Original code as normalize option for coord-differences
+        if use_normalized_difference:
+            diff_x = EdgeDirectionNormalized()([pos1, pos2])
 
         # Edge model
         h_i, h_j = GatherEmbeddingSelection()([h, edi])
