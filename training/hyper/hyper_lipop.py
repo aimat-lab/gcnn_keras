@@ -66,6 +66,72 @@ hyper = {
             "kgcnn_version": "2.0.3"
         }
     },
+    "CMPNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.CMPNN",
+            "config": {
+                "name": "CMPNN",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "node_initialize": {"units": 300, "activation": "relu"},
+                "edge_initialize": {"units": 300, "activation": "relu"},
+                "edge_dense": {"units": 300, "activation": "linear"},
+                "node_dense": {"units": 300, "activation": "linear"},
+                "edge_activation": {"activation": "relu"},
+                "verbose": 10,
+                "depth": 3,
+                "dropout": None,
+                "use_final_gru": False,
+                "pooling_gru": {"units": 300},
+                "pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_mlp": {
+                    "use_bias": [True, False], "units": [300, 1],
+                    "activation": ["relu", "linear"]
+                }
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 50, "epochs": 600, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                              "config": {"lr": {
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}}
+                              }},
+                "loss": "mean_squared_error",
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "LipopDataset",
+                "module_name": "kgcnn.data.datasets.LipopDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_indices_reverse"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
     "AttentiveFP": {
         "model": {
             "class_name": "make_model",

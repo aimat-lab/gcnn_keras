@@ -1,8 +1,8 @@
 # Summary of Benchmark Training
 
-Note that these are the results for models within `kgcnn`, and that training is not always done with optimal hyperparameter or splits, when comparing with literature.
+Note that these are the results for models within `kgcnn` implementation, and that training is not always done with optimal hyperparameter or splits, when comparing with literature.
 This table is generated automatically from keras history logs.
-Model weights and training statistics plots are not uploaded on github.
+Model weights and training statistics plots are not uploaded on github due to their file size.
 
 ## CoraLuDataset
 
@@ -59,4 +59,13 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | GIN | 2.1.0 | 300 | 0.4503 &pm; 0.0106  | 0.6175 &pm; 0.0210  | 
 | HamNet | 2.1.0 | 400 | 0.4535 &pm; 0.0119  | 0.6305 &pm; 0.0244  | 
 | INorp | 2.1.0 | 500 | 0.4668 &pm; 0.0118  | 0.6576 &pm; 0.0214  | 
+| PAiNN | 2.1.0 | 250 | 0.4559 &pm; 0.0847  | 1.8049 &pm; 2.4384  | 
+
+## MatProjectEFormDataset
+
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom].
+
+| model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
+| :---: | :---: | :---: | :---: | :---: | 
+| Schnet.make_crystal_model | 2.1.0 | 800 | 0.0208 &pm; 0.0005  | 0.0520 &pm; 0.0028  | 
 

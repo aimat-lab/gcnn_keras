@@ -21,6 +21,11 @@ benchmark_datasets = {
         "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+    },
+    "MatProjectEFormDataset": {
+        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom].",
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]"}]
     }
 }
 
@@ -32,10 +37,10 @@ def make_table_line(tab_list: list):
 with open("README.md", "w") as f:
     f.write("# Summary of Benchmark Training\n\n")
 
-    f.write("Note that these are the results for models within `kgcnn`,")
-    f.write(" and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
+    f.write("Note that these are the results for models within `kgcnn` implementation, ")
+    f.write("and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
     f.write("This table is generated automatically from keras history logs.\n")
-    f.write("Model weights and training statistics plots are not uploaded on github.\n\n")
+    f.write("Model weights and training statistics plots are not uploaded on github due to their file size.\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
