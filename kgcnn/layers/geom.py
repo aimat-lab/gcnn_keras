@@ -569,11 +569,12 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
     def __init__(self,
                  dim_half: int = 8,
                  wave_length: float = 10,
+                 include_frequencies: bool = False,
                  **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
         Args:
-            dim_half (int): Dimension of the half output embedding space. Final basis will be 2*`dim_half`.
+            dim_half (int): Dimension of the half output embedding space. Final basis will be 2 * `dim_half`.
                 Defaults to 8.
 
         """
@@ -581,28 +582,28 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         # Layer variables
         self.dim_half = dim_half
         self.wave_length = wave_length
-
+        self.include_frequencies = include_frequencies
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
     def _compute_fourier_encoding(inputs,
-                                  dim_half: int = 4, wave_length: float = 10.0, include_frequencies: bool = True):
+                                  dim_half: int = 4, wave_length: float = 10.0, include_frequencies: bool = False):
         r"""Expand into fourier basis.
 
         Args:
-            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with distance to expand into Fourier basis.
-            dim_half (int): Number of bins for basis.
-            include_frequencies (float): Maximum distance to for Gaussian.
+            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
+            dim_half (int): Dimension of the half output embedding space.
+            include_frequencies (float): Whether to add
 
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
         k = -math.log(wave_length)
         steps = tf.range(dim_half, dtype=inputs.dtype)/dim_half
-        scales = tf.exp(k * steps) * 2 * math.pi
-        scales = tf.cast(scales, dtype=inputs.dtype)
-        freq = inputs * scales
-        out = tf.concat([tf.math.sin(freq), tf.math.cos(freq)], dim=-1)
+        freq = tf.exp(k * steps)
+        scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
+        arg = inputs * scales
+        out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], dim=-1)
         if include_frequencies:
             out = tf.concat([out, freq], dim=-1)
         return out
@@ -619,12 +620,14 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         # Possibly faster RaggedRank==1
 
         return self.call_on_values_tensor_of_ragged(
-            self._compute_gauss_basis, inputs, num_encodings=self.num_encodings, include_self=self.include_self)
+            self._compute_gauss_basis, inputs,
+            dim_half=self.dim_half, wave_length=self.wave_length, include_frequencies=self.include_frequencies)
 
     def get_config(self):
         """Update config."""
         config = super(PositionEncodingBasisLayer, self).get_config()
-        config.update({"bins": self.bins, "distance": self.distance, "offset": self.offset, "sigma": self.sigma})
+        config.update({"dim_half": self.dim_half,
+                       "wave_length": self.wave_length, "include_frequencies": self.include_frequencies})
         return config
 
 
