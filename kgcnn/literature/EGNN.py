@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.geom import EuclideanNorm, NodePosition, EdgeDirectionNormalized
+from kgcnn.layers.geom import EuclideanNorm, NodePosition, EdgeDirectionNormalized, PositionEncodingBasisLayer
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
@@ -29,6 +29,7 @@ model_default = {
     "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
     "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
     "use_normalized_difference": False,
+    "expand_distance_kwargs": None,
     "coord_mlp_kwargs":  {"units": [64, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end.
     "pooling_coord_kwargs": {"pooling_method": "mean"},
     "pooling_edge_kwargs": {"pooling_method": "sum"},
@@ -54,6 +55,7 @@ def make_model(name: str = None,
                edge_mlp_kwargs: dict = None,
                edge_attention_kwargs: dict = None,
                use_normalized_difference: bool = None,
+               expand_distance_kwargs: dict = None,
                coord_mlp_kwargs: dict = None,
                pooling_coord_kwargs: dict = None,
                pooling_edge_kwargs: dict = None,
@@ -94,6 +96,7 @@ def make_model(name: str = None,
         edge_mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
         edge_attention_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
         use_normalized_difference (bool): Whether to use a normalized difference vector for nodes.
+        expand_distance_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PositionEncodingBasisLayer`.
         coord_mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
         pooling_coord_kwargs (dict):
         pooling_edge_kwargs (dict):
@@ -136,6 +139,8 @@ def make_model(name: str = None,
         # Original code as normalize option for coord-differences
         if use_normalized_difference:
             diff_x = EdgeDirectionNormalized()([pos1, pos2])
+        if expand_distance_kwargs:
+            norm_x = PositionEncodingBasisLayer()(norm_x)
 
         # Edge model
         h_i, h_j = GatherEmbeddingSelection()([h, edi])
