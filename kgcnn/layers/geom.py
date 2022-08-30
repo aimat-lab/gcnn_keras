@@ -585,7 +585,8 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
-    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length: int = 10, include_frequencies: bool = True):
+    def _compute_fourier_encoding(inputs,
+                                  dim_half: int = 4, wave_length: float = 10.0, include_frequencies: bool = True):
         r"""Expand into fourier basis.
 
         Args:
@@ -596,7 +597,9 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        scales = tf.exp(-tf.math.log(wave_length) * tf.range(dim_half)/dim_half)*2*tf.constant(math.pi)
+        k = -math.log(wave_length)
+        steps = tf.range(dim_half, dtype=inputs.dtype)/dim_half
+        scales = tf.exp(k * steps) * 2 * math.pi
         scales = tf.cast(scales, dtype=inputs.dtype)
         freq = inputs * scales
         out = tf.concat([tf.math.sin(freq), tf.math.cos(freq)], dim=-1)
