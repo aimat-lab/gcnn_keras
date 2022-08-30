@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
@@ -554,6 +555,72 @@ class GaussBasisLayer(GraphBaseLayer):
     def get_config(self):
         """Update config."""
         config = super(GaussBasisLayer, self).get_config()
+        config.update({"bins": self.bins, "distance": self.distance, "offset": self.offset, "sigma": self.sigma})
+        return config
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='FourierBasisLayer')
+class PositionEncodingBasisLayer(GraphBaseLayer):
+    r"""Expand a distance into a Positional Encoding basis from Transformer models.
+
+
+    """
+
+    def __init__(self,
+                 dim_half: int = 8,
+                 wave_length: float = 10,
+                 **kwargs):
+        r"""Initialize :obj:`FourierBasisLayer` layer.
+
+        Args:
+            dim_half (int): Dimension of the half output embedding space. Final basis will be 2*`dim_half`.
+                Defaults to 8.
+
+        """
+        super(PositionEncodingBasisLayer, self).__init__(**kwargs)
+        # Layer variables
+        self.dim_half = dim_half
+        self.wave_length = wave_length
+
+        # Note: For arbitrary axis the code must be adapted.
+
+    @staticmethod
+    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length: int = 10, include_frequencies: bool = True):
+        r"""Expand into fourier basis.
+
+        Args:
+            inputs (tf.Tensor, tf.RaggedTensor): Tensor input with distance to expand into Fourier basis.
+            dim_half (int): Number of bins for basis.
+            include_frequencies (float): Maximum distance to for Gaussian.
+
+        Returns:
+            tf.Tensor: Distance tensor expanded in Fourier basis.
+        """
+        scales = tf.exp(-tf.math.log(wave_length) * tf.range(dim_half)/dim_half)*2*tf.constant(math.pi)
+        scales = tf.cast(scales, dtype=inputs.dtype)
+        freq = inputs * scales
+        out = tf.concat([tf.math.sin(freq), tf.math.cos(freq)], dim=-1)
+        if include_frequencies:
+            out = tf.concat([out, freq], dim=-1)
+        return out
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
+
+        Returns:
+            tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
+        """
+        # Possibly faster RaggedRank==1
+
+        return self.call_on_values_tensor_of_ragged(
+            self._compute_gauss_basis, inputs, num_encodings=self.num_encodings, include_self=self.include_self)
+
+    def get_config(self):
+        """Update config."""
+        config = super(PositionEncodingBasisLayer, self).get_config()
         config.update({"bins": self.bins, "distance": self.distance, "offset": self.offset, "sigma": self.sigma})
         return config
 
