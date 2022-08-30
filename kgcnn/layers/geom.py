@@ -561,7 +561,8 @@ class GaussBasisLayer(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='FourierBasisLayer')
 class PositionEncodingBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Positional Encoding basis from Transformer models.
+    r"""Expand a distance into a Positional Encoding basis from `Transformer <https://arxiv.org/pdf/1706.03762.pdf>`_
+    models, with :math:`\sin()` and :math:`\sin()` functions, adapted to distance-like positions.
 
 
     """
@@ -574,8 +575,10 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
         Args:
-            dim_half (int): Dimension of the half output embedding space. Final basis will be 2 * `dim_half`.
-                Defaults to 8.
+            dim_half (int): Dimension of the half output embedding space. Final basis will be 2 * `dim_half`, or
+                even 3 * `dim_half`, if `include_frequencies` is set to `True`. Defaults to 8.
+            wave_length (float): Wavelength for positional sin and cos expansion. Defaults to 10.0.
+            include_frequencies (bool): Whether to also include the frequencies. Default is False.
 
         """
         super(PositionEncodingBasisLayer, self).__init__(**kwargs)
@@ -603,6 +606,8 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         freq = tf.exp(k * steps)
         scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
         arg = inputs * scales
+        # We would have to make an alternate, concatenate via additional axis and flatten it after,
+        # but it is unclear, why this would make a difference for subsequent NN.
         out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], dim=-1)
         if include_frequencies:
             out = tf.concat([out, freq], dim=-1)
@@ -617,8 +622,6 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
-        # Possibly faster RaggedRank==1
-
         return self.call_on_values_tensor_of_ragged(
             self._compute_gauss_basis, inputs,
             dim_half=self.dim_half, wave_length=self.wave_length, include_frequencies=self.include_frequencies)
