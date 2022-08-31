@@ -60,7 +60,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | GIN | 2.1.0 | 300 | 0.4503 &pm; 0.0106  | 0.6175 &pm; 0.0210  | 
 | HamNet | 2.1.0 | 400 | 0.4535 &pm; 0.0119  | 0.6305 &pm; 0.0244  | 
 | INorp | 2.1.0 | 500 | 0.4668 &pm; 0.0118  | 0.6576 &pm; 0.0214  | 
-| PAiNN | 2.1.0 | 250 | 0.4559 &pm; 0.0847  | 1.8049 &pm; 2.4384  | 
+| PAiNN | 2.1.0 | 250 | 0.4050 &pm; 0.0070  | 0.5837 &pm; 0.0162  | 
 
 ## MatProjectEFormDataset
 
@@ -68,5 +68,5 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 | model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
 | :---: | :---: | :---: | :---: | :---: | 
-| Schnet.make_crystal_model | 2.1.0 | 800 | 0.0208 &pm; 0.0005  | 0.0520 &pm; 0.0028  | 
+| Schnet.make_crystal_model | 2.1.0 | 800 | 0.0209 &pm; 0.0004  | 0.0514 &pm; 0.0028  | 
 
