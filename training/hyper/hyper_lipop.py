@@ -86,9 +86,9 @@ hyper = {
                 "node_dense": {"units": 300, "activation": "linear"},
                 "edge_activation": {"activation": "relu"},
                 "verbose": 10,
-                "depth": 3,
+                "depth": 5,
                 "dropout": None,
-                "use_final_gru": False,
+                "use_final_gru": True,
                 "pooling_gru": {"units": 300},
                 "pooling_kwargs": {"pooling_method": "sum"},
                 "output_embedding": "graph",
@@ -213,7 +213,7 @@ hyper = {
                             "class_name": "Adam", "config": {
                                 "learning_rate": {
                                     "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 30.0, "decay_steps": 40000.0,
+                                        "learning_rate": 0.0005, "warmup_steps": 30.0, "decay_steps": 40000.0,
                                         "decay_rate": 0.01
                                     }
                                 }, "amsgrad": True
