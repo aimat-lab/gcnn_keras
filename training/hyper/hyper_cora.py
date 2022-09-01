@@ -11,10 +11,10 @@ hyper = {
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                     "edge": {"input_dim": 10, "output_dim": 64}},
-                "gcn_args": {"units": 70, "use_bias": True, "activation": "relu"},
+                "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -253,12 +253,12 @@ hyper = {
                 "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
                 "depth": 5,
                 "dropout": 0.0,
-                "gin_mlp": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"],
+                "gin_mlp": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": False, "normalization_technique": "batch"},
                 "gin_args": {},
-                "last_mlp": {"use_bias": True, "units": [70, 70, 70], "activation": ["relu", "relu", "linear"]},
+                "last_mlp": {"use_bias": True, "units": [140, 70, 70], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "node",
-                "output_mlp": {"activation": ["linear", "softmax"], "units": [70, 70]}
+                "output_mlp": {"activation": ["softmax"], "units": [70]}
             }
         },
         "training": {
