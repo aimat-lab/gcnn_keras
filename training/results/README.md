@@ -84,5 +84,8 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 
 | model | kgcnn | epochs | Accuracy | AUC(ROC) | 
 | :---: | :---: | :---: | :---: | :---: | 
+| AttentiveFP | 2.1.0 | 200 | 0.7466 &pm; 0.0216  | 0.8274 &pm; 0.0187  | 
+| DMPNN | 2.1.0 | 300 | 0.8271 &pm; 0.0069  | 0.8685 &pm; 0.0133  | 
+| GIN | 2.1.0 | 300 | 0.8262 &pm; 0.0110  | 0.8818 &pm; 0.0045  | 
 | GraphSAGE | 2.1.0 | 500 | 0.8063 &pm; 0.0097  | 0.8449 &pm; 0.0147  | 
 

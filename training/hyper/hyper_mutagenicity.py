@@ -278,4 +278,174 @@ hyper = {
             "kgcnn_version": "2.1.0"
         }
     },
+    "INorp": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.INorp",
+            "config": {
+                "name": "INorp",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [], "name": "graph_size", "dtype": "float32", "ragged": False}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
+                                    "edge": {"input_dim": 15, "output_dim": 32},
+                                    "graph": {"input_dim": 30, "output_dim": 32}},
+                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "mean", "init_qstar": "mean"},
+                "node_mlp_args": {"units": [32, 32], "use_bias": True, "activation": ["relu", "linear"]},
+                "edge_mlp_args": {"units": [32, 32], "activation": ["relu", "linear"]},
+                "pooling_args": {"pooling_method": "segment_sum"},
+                "depth": 3, "use_set2set": False, "verbose": 10,
+                "gather_args": {},
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
+                               "activation": ["relu", "relu", "sigmoid"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 300, "epo": 500,
+                        "verbose": 0}
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
+                "config": {},
+                "methods": []
+            },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
+    "GAT": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GAT",
+            "config": {
+                "name": "GAT",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64},
+                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "use_final_activation": False, "has_self_loops": True},
+                "pooling_nodes_args": {"pooling_method": "sum"},
+                "depth": 4, "attention_heads_num": 10,
+                "attention_heads_concat": False, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                               "activation": ["relu", "relu", "sigmoid"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
+                "config": {},
+                "methods": []
+            },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
+    "GATv2": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GATv2",
+            "config": {
+                "name": "GATv2",
+                "inputs": [
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 64},
+                    "edge": {"input_dim": 8, "output_dim": 64}},
+                "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
+                                   "use_final_activation": False, "has_self_loops": True},
+                "pooling_nodes_args": {"pooling_method": "sum"},
+                "depth": 4, "attention_heads_num": 10,
+                "attention_heads_concat": False, "verbose": 10,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                               "activation": ["relu", "relu", "sigmoid"]},
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
+                "config": {},
+                "methods": []
+            },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
 }
