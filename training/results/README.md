@@ -10,11 +10,11 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
-| GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
-| GATv2 | 2.1.0 | 250 | 0.8349 &pm; 0.0150  | 
-| GCN | 2.1.0 | 300 | 0.7969 &pm; 0.0144  | 
-| GIN | 2.1.0 | 500 | 0.8028 &pm; 0.0390  | 
-| GraphSAGE | 2.1.0 | 500 | 0.8512 &pm; 0.0072  | 
+| GAT | 2.1.0 | 250 | 0.8637 &pm; 0.0087  | 
+| GATv2 | 2.1.0 | 250 | 0.8408 &pm; 0.0117  | 
+| GCN | 2.1.0 | 300 | 0.8039 &pm; 0.0188  | 
+| GIN | 2.1.0 | 500 | 0.8309 &pm; 0.0165  | 
+| GraphSAGE | 2.1.0 | 500 | 0.8545 &pm; 0.0073  | 
 
 ## CoraDataset
 
@@ -22,10 +22,10 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
-| GAT | 2.1.0 | 250 | 0.6768 &pm; 0.0051  | 
+| GAT | 2.1.0 | 250 | 0.6749 &pm; 0.0024  | 
 | GATv2 | 2.1.0 | 250 | 0.3320 &pm; 0.0252  | 
-| GCN | 2.1.0 | 300 | 0.6150 &pm; 0.0121  | 
-| GIN | 2.1.0 | 500 | 0.5880 &pm; 0.0218  | 
+| GCN | 2.1.0 | 300 | 0.6191 &pm; 0.0086  | 
+| GIN | 2.1.0 | 800 | 0.6361 &pm; 0.0072  | 
 | GraphSAGE | 2.1.0 | 600 | 0.6147 &pm; 0.0077  | 
 
 ## ESOLDataset
@@ -85,7 +85,10 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 | model | kgcnn | epochs | Accuracy | AUC(ROC) | 
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.7466 &pm; 0.0216  | 0.8274 &pm; 0.0187  | 
+| CMPNN | 2.1.0 | 600 | 0.8098 &pm; 0.0068  | 0.8331 &pm; 0.0070  | 
 | DMPNN | 2.1.0 | 300 | 0.8271 &pm; 0.0069  | 0.8685 &pm; 0.0133  | 
+| GAT | 2.1.0 | 500 | 0.7902 &pm; 0.0125  | 0.8469 &pm; 0.0117  | 
 | GIN | 2.1.0 | 300 | 0.8262 &pm; 0.0110  | 0.8818 &pm; 0.0045  | 
 | GraphSAGE | 2.1.0 | 500 | 0.8063 &pm; 0.0097  | 0.8449 &pm; 0.0147  | 
+| INorp | 2.1.0 | 500 | 0.8040 &pm; 0.0113  | 0.8290 &pm; 0.0117  | 
 

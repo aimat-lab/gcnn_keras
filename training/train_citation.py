@@ -20,11 +20,11 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GraphSAGE")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GATv2")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraLuDataset")
+                    default="CoraDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora_lu.py")
+                    default="hyper/hyper_cora.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",

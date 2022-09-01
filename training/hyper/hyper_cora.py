@@ -76,10 +76,10 @@ hyper = {
                 "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
-                "depth": 4, "attention_heads_num": 10,
+                "depth": 5, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [140, 140, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -199,15 +199,15 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 95, "output_dim": 64}},
-                "node_mlp_args": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"]},
+                "node_mlp_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"]},
                 "edge_mlp_args": {"units": 5, "use_bias": True, "activation": "relu"},
                 "pooling_args": {"pooling_method": "segment_sum"}, "gather_args": {},
                 "concat_args": {"axis": -1},
                 "use_edge_features": False,
-                "pooling_nodes_args": {"pooling_method": "mean"},
+                "pooling_nodes_args": {"pooling_method": "sum"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 64, 70],
                                "activation": ["relu", "relu", "softmax"]}
             }
         },
