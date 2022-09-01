@@ -200,7 +200,7 @@ hyper = {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 95, "output_dim": 64}},
                 "node_mlp_args": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"]},
-                "edge_mlp_args": {"units": 70, "use_bias": True, "activation": "relu"},
+                "edge_mlp_args": {"units": 10, "use_bias": True, "activation": "relu"},
                 "pooling_args": {"pooling_method": "segment_sum"}, "gather_args": {},
                 "concat_args": {"axis": -1},
                 "use_edge_features": True,

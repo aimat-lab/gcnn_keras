@@ -6,19 +6,19 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 ## CoraLuDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes.
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation  on nodes.
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.8645 &pm; 0.0129  | 
 | GATv2 | 2.1.0 | 250 | 0.8349 &pm; 0.0150  | 
 | GCN | 2.1.0 | 300 | 0.7969 &pm; 0.0144  | 
-| GIN | 2.1.0 | 500 | 0.9477 &pm; 0.0138  | 
-| GraphSAGE | 2.1.0 | 500 | 0.9694 &pm; 0.0026  | 
+| GIN | 2.1.0 | 500 | 0.8028 &pm; 0.0390  | 
+| GraphSAGE | 2.1.0 | 500 | 0.8512 &pm; 0.0072  | 
 
 ## CoraDataset
 
-Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes.
+Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes.
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
@@ -62,10 +62,11 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | HamNet | 2.1.0 | 400 | 0.4535 &pm; 0.0119  | 0.6305 &pm; 0.0244  | 
 | INorp | 2.1.0 | 500 | 0.4668 &pm; 0.0118  | 0.6576 &pm; 0.0214  | 
 | PAiNN | 2.1.0 | 250 | 0.4050 &pm; 0.0070  | 0.5837 &pm; 0.0162  | 
+| Schnet | 2.1.0 | 800 | 0.4879 &pm; 0.0205  | 0.6535 &pm; 0.0320  | 
 
 ## MatProjectEFormDataset
 
-Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom].
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use 10-fold cross-validation.
 
 | model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
 | :---: | :---: | :---: | :---: | :---: | 
