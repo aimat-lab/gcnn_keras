@@ -1,9 +1,9 @@
 {
   "model": {
     "class_name": "make_model",
-    "module_name": "kgcnn.literature.GAT",
+    "module_name": "kgcnn.literature.GATv2",
     "config": {
-      "name": "GAT",
+      "name": "GATv2",
       "inputs": [
         {
           "shape": [
