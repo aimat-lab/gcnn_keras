@@ -218,7 +218,8 @@ hyper = {
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy",
+                        "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -268,7 +269,8 @@ hyper = {
                                        "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy",
+                        "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},

@@ -11,10 +11,10 @@ hyper = {
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                     "edge": {"input_dim": 10, "output_dim": 64}},
-                "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
+                "gcn_args": {"units": 70, "use_bias": True, "activation": "relu"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -67,19 +67,19 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
+                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -130,19 +130,19 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                        {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
                         {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
+                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -193,21 +193,21 @@ hyper = {
             "config": {
                 "name": "GraphSAGE",
                 "inputs": [
-                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 95, "output_dim": 64}},
-                "node_mlp_args": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"]},
-                "edge_mlp_args": {"units": 140, "use_bias": True, "activation": "relu"},
+                "node_mlp_args": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"]},
+                "edge_mlp_args": {"units": 70, "use_bias": True, "activation": "relu"},
                 "pooling_args": {"pooling_method": "segment_sum"}, "gather_args": {},
                 "concat_args": {"axis": -1},
                 "use_edge_features": True,
                 "pooling_nodes_args": {"pooling_method": "sum"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]}
             }
         },
@@ -218,7 +218,7 @@ hyper = {
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -248,15 +248,15 @@ hyper = {
             "module_name": "kgcnn.literature.GIN",
             "config": {
                 "name": "GIN",
-                "inputs": [{"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
                 "depth": 5,
                 "dropout": 0.05,
-                "gin_mlp": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"],
+                "gin_mlp": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "batch"},
                 "gin_args": {},
-                "last_mlp": {"use_bias": True, "units": [140, 70, 70], "activation": ["relu", "relu", "linear"]},
+                "last_mlp": {"use_bias": True, "units": [70, 70, 70], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "node",
                 "output_mlp": {"activation": "softmax", "units": 70}
             }
@@ -268,7 +268,7 @@ hyper = {
                                        "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},

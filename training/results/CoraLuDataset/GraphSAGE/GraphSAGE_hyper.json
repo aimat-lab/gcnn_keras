@@ -119,7 +119,7 @@
         }
       },
       "loss": "categorical_crossentropy",
-      "metrics": [
+      "weighted_metrics": [
         "categorical_accuracy"
       ]
     },
