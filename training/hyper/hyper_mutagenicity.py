@@ -285,8 +285,8 @@ hyper = {
             "config": {
                 "name": "INorp",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
                     {"shape": [], "name": "graph_size", "dtype": "float32", "ragged": False}
                 ],
@@ -343,8 +343,8 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {
@@ -399,8 +399,8 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {

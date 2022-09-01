@@ -30,12 +30,12 @@
           "output_dim": 64
         }
       },
-      "depth": 5,
-      "dropout": 0.0,
+      "depth": 4,
+      "dropout": 0.01,
       "gin_mlp": {
         "units": [
-          70,
-          70
+          140,
+          140
         ],
         "use_bias": true,
         "activation": [
@@ -49,7 +49,7 @@
       "last_mlp": {
         "use_bias": true,
         "units": [
-          70,
+          140,
           70,
           70
         ],
@@ -61,24 +61,28 @@
       },
       "output_embedding": "node",
       "output_mlp": {
-        "activation": "softmax",
-        "units": 70
+        "activation": [
+          "softmax"
+        ],
+        "units": [
+          70
+        ]
       }
     }
   },
   "training": {
     "fit": {
-      "batch_size": 32,
-      "epochs": 500,
+      "batch_size": 1,
+      "epochs": 800,
       "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
         {
           "class_name": "kgcnn>LinearLearningRateScheduler",
           "config": {
-            "learning_rate_start": 0.0005,
+            "learning_rate_start": 0.001,
             "learning_rate_stop": 1e-05,
-            "epo_min": 400,
+            "epo_min": 600,
             "epo": 800,
             "verbose": 0
           }
@@ -89,7 +93,7 @@
       "optimizer": {
         "class_name": "Adam",
         "config": {
-          "lr": 0.005
+          "lr": 0.001
         }
       },
       "loss": "categorical_crossentropy",
