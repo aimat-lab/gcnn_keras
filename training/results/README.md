@@ -22,6 +22,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
+| GAT | 2.1.0 | 250 | 0.6768 &pm; 0.0051  | 
 | GCN | 2.1.0 | 300 | 0.6150 &pm; 0.0121  | 
 
 ## ESOLDataset
@@ -70,5 +71,6 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 | model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
 | :---: | :---: | :---: | :---: | :---: | 
+| Megnet.make_crystal_model | 2.1.0 | 1000 | 0.0241 &pm; 0.0006  | 0.0642 &pm; 0.0025  | 
 | Schnet.make_crystal_model | 2.1.0 | 800 | 0.0209 &pm; 0.0004  | 0.0514 &pm; 0.0028  | 
 
