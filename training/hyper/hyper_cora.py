@@ -199,23 +199,23 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 95, "output_dim": 64}},
-                "node_mlp_args": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"]},
-                "edge_mlp_args": {"units": 5, "use_bias": True, "activation": "relu"},
+                "node_mlp_args": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"]},
+                "edge_mlp_args": {"units": 70, "use_bias": True, "activation": "relu"},
                 "pooling_args": {"pooling_method": "segment_sum"}, "gather_args": {},
                 "concat_args": {"axis": -1},
                 "use_edge_features": False,
-                "pooling_nodes_args": {"pooling_method": "sum"},
+                "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 64, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]}
             }
         },
         "training": {
-            "fit": {"batch_size": 1, "epochs": 800, "validation_freq": 10, "verbose": 2,
+            "fit": {"batch_size": 1, "epochs": 600, "validation_freq": 10, "verbose": 2,
                 "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
                                "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
-                                   "epo_min": 600, "epo": 800, "verbose": 0}}]
+                                   "epo_min": 400, "epo": 600, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
                         "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
