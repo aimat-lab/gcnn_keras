@@ -7,8 +7,7 @@
       "inputs": [
         {
           "shape": [
-            null,
-            8710
+            null
           ],
           "name": "node_attributes",
           "dtype": "float32",
@@ -16,10 +15,9 @@
         },
         {
           "shape": [
-            null,
-            1
+            null
           ],
-          "name": "edge_weights",
+          "name": "edge_attributes",
           "dtype": "float32",
           "ragged": true
         },
@@ -39,14 +37,14 @@
           "output_dim": 64
         },
         "edge": {
-          "input_dim": 95,
-          "output_dim": 64
+          "input_dim": 5,
+          "output_dim": 16
         }
       },
       "node_mlp_args": {
         "units": [
-          70,
-          70
+          64,
+          32
         ],
         "use_bias": true,
         "activation": [
@@ -55,24 +53,24 @@
         ]
       },
       "edge_mlp_args": {
-        "units": 70,
+        "units": 64,
         "use_bias": true,
         "activation": "relu"
       },
       "pooling_args": {
-        "pooling_method": "segment_sum"
+        "pooling_method": "segment_mean"
       },
       "gather_args": {},
       "concat_args": {
         "axis": -1
       },
-      "use_edge_features": false,
+      "use_edge_features": true,
       "pooling_nodes_args": {
         "pooling_method": "mean"
       },
       "depth": 3,
       "verbose": 10,
-      "output_embedding": "node",
+      "output_embedding": "graph",
       "output_mlp": {
         "use_bias": [
           true,
@@ -80,22 +78,22 @@
           false
         ],
         "units": [
-          70,
-          70,
-          70
+          64,
+          32,
+          1
         ],
         "activation": [
           "relu",
           "relu",
-          "softmax"
+          "sigmoid"
         ]
       }
     }
   },
   "training": {
     "fit": {
-      "batch_size": 64,
-      "epochs": 600,
+      "batch_size": 32,
+      "epochs": 500,
       "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
@@ -105,7 +103,7 @@
             "learning_rate_start": 0.0005,
             "learning_rate_stop": 1e-05,
             "epo_min": 400,
-            "epo": 600,
+            "epo": 500,
             "verbose": 0
           }
         }
@@ -118,9 +116,10 @@
           "lr": 0.005
         }
       },
-      "loss": "categorical_crossentropy",
-      "weighted_metrics": [
-        "categorical_accuracy"
+      "loss": "binary_crossentropy",
+      "metrics": [
+        "accuracy",
+        "AUC"
       ]
     },
     "cross_validation": {
@@ -135,32 +134,16 @@
   },
   "data": {
     "dataset": {
-      "class_name": "CoraDataset",
-      "module_name": "kgcnn.data.datasets.CoraDataset",
+      "class_name": "MutagenicityDataset",
+      "module_name": "kgcnn.data.datasets.MutagenicityDataset",
       "config": {},
-      "methods": [
-        {
-          "map_list": {
-            "method": "make_undirected_edges"
-          }
-        },
-        {
-          "map_list": {
-            "method": "add_edge_self_loops"
-          }
-        },
-        {
-          "map_list": {
-            "method": "normalize_edge_weights_sym"
-          }
-        }
-      ]
+      "methods": []
     },
     "data_unit": ""
   },
   "info": {
     "postfix": "",
     "postfix_file": "",
-    "kgcnn_version": "2.1.0"
+    "kgcnn_version": "2.0.3"
   }
 }

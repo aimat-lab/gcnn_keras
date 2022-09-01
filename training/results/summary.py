@@ -27,7 +27,7 @@ benchmark_datasets = {
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]"}]
     },
-    "Mutagenicity": {
+    "MutagenicityDataset": {
         "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use 5-fold cross-validation.",
         "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
                     {"metric": "val_auc", "name": "AUC(ROC)"}]
