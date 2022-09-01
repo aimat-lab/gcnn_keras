@@ -54,6 +54,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.4644 &pm; 0.0245  | 0.6393 &pm; 0.0408  | 
+| CMPNN | 2.1.0 | 600 | 0.4131 &pm; 0.0061  | 0.5835 &pm; 0.0094  | 
 | DMPNN | 2.1.0 | 300 | 0.3781 &pm; 0.0091  | 0.5440 &pm; 0.0162  | 
 | GAT | 2.1.0 | 500 | 0.5034 &pm; 0.0060  | 0.7037 &pm; 0.0202  | 
 | GATv2 | 2.1.0 | 500 | 0.3971 &pm; 0.0238  | 0.5688 &pm; 0.0609  | 

@@ -5,11 +5,11 @@ from kgcnn.data.utils import load_yaml_file
 
 benchmark_datasets = {
     "CoraLuDataset": {
-        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes.",
+        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation  on nodes.",
         "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
     },
     "CoraDataset": {
-        "general_info": "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes.",
+        "general_info": "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes.",
         "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
     },
     "ESOLDataset": {
@@ -23,7 +23,7 @@ benchmark_datasets = {
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     },
     "MatProjectEFormDataset": {
-        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom].",
+        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use 10-fold cross-validation.",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]"}]
     }
