@@ -24,6 +24,8 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.6768 &pm; 0.0051  | 
 | GCN | 2.1.0 | 300 | 0.6150 &pm; 0.0121  | 
+| GIN | 2.1.0 | 500 | 0.5274 &pm; 0.0154  | 
+| GraphSAGE | 2.1.0 | 500 | 0.6192 &pm; 0.0051  | 
 
 ## ESOLDataset
 

@@ -104,7 +104,6 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MutagenicityDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}},
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
             },
@@ -165,11 +164,10 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "LipopDataset",
-                "module_name": "kgcnn.data.datasets.LipopDataset",
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}},
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
             },
@@ -187,8 +185,8 @@ hyper = {
             "module_name": "kgcnn.literature.AttentiveFP",
             "config": {
                 "name": "AttentiveFP",
-                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
                                     "edge_attributes": {"input_dim": 5, "output_dim": 64}},
@@ -209,20 +207,17 @@ hyper = {
                               "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
                                          }
                               },
-                "loss": "mean_absolute_error"
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
             "dataset": {
-                "class_name": "LipopDataset",
-                "module_name": "kgcnn.data.datasets.LipopDataset",
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
                 "config": {},
-                "methods": [
-                    {"set_attributes": {}}
-                ]
+                "methods": []
             },
             "data_unit": ""
         },

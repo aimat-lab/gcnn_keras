@@ -76,7 +76,7 @@ hyper = {
                 "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
-                "depth": 4, "attention_heads_num": 10,
+                "depth": 5, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
                 "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
@@ -86,7 +86,7 @@ hyper = {
         "training": {
             "fit": {
                 "batch_size": 1,
-                "epochs": 250,
+                "epochs": 800,
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
@@ -139,7 +139,7 @@ hyper = {
                 "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
-                "depth": 3, "attention_heads_num": 10,
+                "depth": 4, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
                 "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
@@ -154,9 +154,9 @@ hyper = {
                 "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-04,
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05,
                         "epo_min": 200, "epo": 250, "verbose": 0}
-                    }
+                     }
                 ]
             },
             "compile": {
@@ -230,8 +230,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.CoraDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "make_undirected_edges"}},
-                    {"map_list": {"method": "add_edge_self_loops"}},
+                    # {"map_list": {"method": "make_undirected_edges"}},
+                    # {"map_list": {"method": "add_edge_self_loops"}},
                     {"map_list": {"method": "normalize_edge_weights_sym"}}
                 ]
             },
@@ -258,16 +258,16 @@ hyper = {
                 "gin_args": {},
                 "last_mlp": {"use_bias": True, "units": [70, 70, 70], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "node",
-                "output_mlp": {"activation": "softmax", "units": 70}
+                "output_mlp": {"activation": ["linear", "softmax"], "units": [70, 70]}
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
+            "fit": {"batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
                     "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
-                                   "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
-                                       "epo_min": 400, "epo": 800, "verbose": 0}}]
+                                   "config": {"learning_rate_start": 1e-3, "learning_rate_stop": 1e-5,
+                                       "epo_min": 200, "epo": 800, "verbose": 0}}]
             },
-            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
+            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 1e-3}},
                         "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
             },
             "cross_validation": {"class_name": "KFold",
