@@ -230,8 +230,8 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.CoraDataset",
                 "config": {},
                 "methods": [
-                    # {"map_list": {"method": "make_undirected_edges"}},
-                    # {"map_list": {"method": "add_edge_self_loops"}},
+                    {"map_list": {"method": "make_undirected_edges"}},
+                    {"map_list": {"method": "add_edge_self_loops"}},
                     {"map_list": {"method": "normalize_edge_weights_sym"}}
                 ]
             },
@@ -281,7 +281,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
-                    {"map_list": {"method": "add_edge_self_loops"}},
+                    # {"map_list": {"method": "add_edge_self_loops"}},
                     {"map_list": {"method": "normalize_edge_weights_sym"}}
                 ]
             },

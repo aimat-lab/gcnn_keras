@@ -75,7 +75,7 @@ hyper = {
                 "output_embedding": "graph",
                 "output_mlp": {
                     "use_bias": [True, True, False], "units": [64, 32, 1],
-                    "activation": ["relu", "relu", "linear"]
+                    "activation": ["relu", "relu", "sigmoid"]
                 },
             }
         },
@@ -143,7 +143,7 @@ hyper = {
                 "output_embedding": "graph",
                 "output_mlp": {
                     "use_bias": [True, False], "units": [300, 1],
-                    "activation": ["relu", "linear"]
+                    "activation": ["relu", "sigmoid"]
                 }
             }
         },
@@ -196,7 +196,7 @@ hyper = {
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [200, 1],
-                               "activation": ["kgcnn>leaky_relu", "linear"]},
+                               "activation": ["kgcnn>leaky_relu", "sigmoid"]},
             }
         },
         "training": {
@@ -224,7 +224,58 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.1.0"
+        }
+    },
+    "GIN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.GIN",
+            "config": {
+                "name": "GIN",
+                "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "depth": 5,
+                "dropout": 0.05,
+                "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                            "use_normalization": True, "normalization_technique": "batch"},
+                "gin_args": {},
+                "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
+                "output_embedding": "graph",
+                "output_mlp": {"activation": "sigmoid", "units": 1},
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                              "config": {"lr": {
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 5800,
+                                             "decay_rate": 0.5, "staircase": False}
+                              }
+                              }
+                              },
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MutagenicityDataset",
+                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
+                "config": {},
+                "methods": []
+            },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
         }
     },
 }

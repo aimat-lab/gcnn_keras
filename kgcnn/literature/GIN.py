@@ -13,20 +13,21 @@ ks = tf.keras
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
 # https://arxiv.org/abs/1810.00826
 
-model_default = {"name": "GIN",
-                 "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
-                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
-                             "use_normalization": True, "normalization_technique": "batch"},
-                 "gin_args": {},
-                 "depth": 3, "dropout": 0.0, "verbose": 10,
-                 "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
-                              "activation": ["relu", "relu", "linear"]},
-                 "output_embedding": 'graph', "output_to_tensor": True,
-                 "output_mlp": {"use_bias": True, "units": 1,
-                                "activation": "softmax"}
-                 }
+model_default = {
+    "name": "GIN",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
+    "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                "use_normalization": True, "normalization_technique": "batch"},
+    "gin_args": {},
+    "depth": 3, "dropout": 0.0, "verbose": 10,
+    "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
+                 "activation": ["relu", "relu", "linear"]},
+    "output_embedding": 'graph', "output_to_tensor": True,
+    "output_mlp": {"use_bias": True, "units": 1,
+                   "activation": "softmax"}
+}
 
 
 @update_model_kwargs(model_default)
@@ -114,22 +115,23 @@ def make_model(inputs: list = None,
     return model
 
 
-model_default_edge = {"name": "GIN",
-                      "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                                 {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                                 {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                      "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                          "edge": {"input_dim": 5, "output_dim": 64}},
-                      "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
-                                  "use_normalization": True, "normalization_technique": "batch"},
-                      "gin_args": {"epsilon_learnable": False},
-                      "depth": 3, "dropout": 0.0, "verbose": 10,
-                      "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
-                                   "activation": ["relu", "relu", "linear"]},
-                      "output_embedding": 'graph', "output_to_tensor": True,
-                      "output_mlp": {"use_bias": True, "units": 1,
-                                     "activation": "softmax"}
-                      }
+model_default_edge = {
+    "name": "GIN",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 5, "output_dim": 64}},
+    "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
+                "use_normalization": True, "normalization_technique": "batch"},
+    "gin_args": {"epsilon_learnable": False},
+    "depth": 3, "dropout": 0.0, "verbose": 10,
+    "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
+                 "activation": ["relu", "relu", "linear"]},
+    "output_embedding": 'graph', "output_to_tensor": True,
+    "output_mlp": {"use_bias": True, "units": 1,
+                   "activation": "softmax"}
+}
 
 
 @update_model_kwargs(model_default_edge)
