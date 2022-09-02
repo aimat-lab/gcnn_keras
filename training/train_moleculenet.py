@@ -22,11 +22,11 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="LipopDataset")
+                    default="FreeSolvDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_lipop.py")
+                    default="hyper/hyper_freesolv.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
@@ -124,7 +124,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
                      **hyper.fit()
                      )
     stop = time.process_time()
-    print("Print Time for training: ", str(timedelta(seconds=stop - start)))
+    print("Print Time for training: %s" % str(timedelta(seconds=stop - start)))
 
     # Get loss from history.
     history_list.append(hist)
@@ -154,7 +154,7 @@ if scaler:
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=data_unit,
                   model_name=model_name, dataset_name=dataset_name,
-                  file_name="predict" + postfix_file + ".png")
+                  file_name=f"predict{postfix_file}.png")
 
 # Save last keras-model to output-folder.
 model.save(os.path.join(filepath, "model"))

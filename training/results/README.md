@@ -26,7 +26,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | GATv2 | 2.1.0 | 250 | 0.3320 &pm; 0.0252  | 
 | GCN | 2.1.0 | 300 | 0.6156 &pm; 0.0052  | 
 | GIN | 2.1.0 | 800 | 0.6368 &pm; 0.0077  | 
-| GraphSAGE | 2.1.0 | 600 | 0.6151 &pm; 0.0058  | 
+| GraphSAGE | 2.1.0 | 600 | 0.6145 &pm; 0.0073  | 
 
 ## ESOLDataset
 
@@ -108,4 +108,12 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | GIN | 2.1.0 | 300 | 0.8243 &pm; 0.0372  | 0.8570 &pm; 0.0422  | 
 | GraphSAGE | 2.1.0 | 500 | 0.8512 &pm; 0.0263  | 0.8707 &pm; 0.0449  | 
 | INorp | 2.1.0 | 500 | 0.8450 &pm; 0.0682  | 0.8519 &pm; 0.1071  | 
+
+## FreeSolvDataset
+
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.
+
+| model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
+| :---: | :---: | :---: | :---: | :---: | 
+| Schnet | 2.1.0 | 800 | 0.6219 &pm; 0.0245  | 1.0586 &pm; 0.0864  | 
 

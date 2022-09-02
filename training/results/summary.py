@@ -36,7 +36,12 @@ benchmark_datasets = {
         "general_info": "MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.",
         "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
                     {"metric": "val_auc", "name": "AUC(ROC)"}]
-    }
+    },
+    "FreeSolvDataset": {
+        "general_info": "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.",
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+    },
 }
 
 

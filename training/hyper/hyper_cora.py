@@ -73,7 +73,7 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
+                "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 5, "attention_heads_num": 10,
@@ -86,18 +86,18 @@ hyper = {
         "training": {
             "fit": {
                 "batch_size": 1,
-                "epochs": 800,
+                "epochs": 1000,
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05,
+                        "learning_rate_start": 5e-03, "learning_rate_stop": 1e-05,
                         "epo_min": 800, "epo": 1000, "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "categorical_crossentropy",
                 "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
