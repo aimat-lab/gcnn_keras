@@ -23,7 +23,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.6765 &pm; 0.0069  | 
-| GATv2 | 2.1.0 | 800 | 0.6052 &pm; 0.0090  | 
+| GATv2 | 2.1.0 | 1000 | 0.6167 &pm; 0.0081  | 
 | GCN | 2.1.0 | 300 | 0.6156 &pm; 0.0052  | 
 | GIN | 2.1.0 | 800 | 0.6368 &pm; 0.0077  | 
 | GraphSAGE | 2.1.0 | 600 | 0.6145 &pm; 0.0073  | 
@@ -118,6 +118,7 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | AttentiveFP | 2.1.0 | 200 | 0.5809 &pm; 0.0772  | 0.9795 &pm; 0.1612  | 
 | CMPNN | 2.1.0 | 600 | 0.5583 &pm; 0.0844  | 0.9776 &pm; 0.1561  | 
 | DMPNN | 2.1.0 | 300 | 0.5276 &pm; 0.0670  | 0.8785 &pm; 0.1278  | 
+| GAT | 2.1.0 | 500 | 0.6306 &pm; 0.0329  | 1.0904 &pm; 0.0945  | 
 | PAiNN | 2.1.0 | 250 | 0.5298 &pm; 0.0526  | 0.9402 &pm; 0.1300  | 
 | Schnet | 2.1.0 | 800 | 0.6219 &pm; 0.0245  | 1.0586 &pm; 0.0864  | 
 
