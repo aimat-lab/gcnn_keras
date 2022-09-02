@@ -10,11 +10,11 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node at
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
-| GAT | 2.1.0 | 250 | 0.8637 &pm; 0.0087  | 
-| GATv2 | 2.1.0 | 250 | 0.8408 &pm; 0.0117  | 
-| GCN | 2.1.0 | 300 | 0.8039 &pm; 0.0188  | 
-| GIN | 2.1.0 | 500 | 0.8309 &pm; 0.0165  | 
-| GraphSAGE | 2.1.0 | 500 | 0.8545 &pm; 0.0073  | 
+| GAT | 2.1.0 | 250 | 0.8667 &pm; 0.0069  | 
+| GATv2 | 2.1.0 | 250 | 0.8379 &pm; 0.0158  | 
+| GCN | 2.1.0 | 300 | 0.8047 &pm; 0.0113  | 
+| GIN | 2.1.0 | 500 | 0.8427 &pm; 0.0165  | 
+| GraphSAGE | 2.1.0 | 500 | 0.8486 &pm; 0.0097  | 
 
 ## CoraDataset
 
@@ -22,15 +22,15 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
-| GAT | 2.1.0 | 250 | 0.6749 &pm; 0.0024  | 
+| GAT | 2.1.0 | 250 | 0.6765 &pm; 0.0069  | 
 | GATv2 | 2.1.0 | 250 | 0.3320 &pm; 0.0252  | 
-| GCN | 2.1.0 | 300 | 0.6191 &pm; 0.0086  | 
-| GIN | 2.1.0 | 800 | 0.6361 &pm; 0.0072  | 
-| GraphSAGE | 2.1.0 | 600 | 0.6147 &pm; 0.0077  | 
+| GCN | 2.1.0 | 300 | 0.6156 &pm; 0.0052  | 
+| GIN | 2.1.0 | 800 | 0.6368 &pm; 0.0077  | 
+| GraphSAGE | 2.1.0 | 600 | 0.6151 &pm; 0.0058  | 
 
 ## ESOLDataset
 
-ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). Here we use a random split.
+ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.
 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
@@ -53,7 +53,7 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 
 ## LipopDataset
 
-Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.
+Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.
 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
@@ -70,7 +70,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 
 ## MatProjectEFormDataset
 
-Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use 10-fold cross-validation.
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use random 10-fold cross-validation.
 
 | model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
 | :---: | :---: | :---: | :---: | :---: | 
@@ -81,7 +81,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 ## MutagenicityDataset
 
-Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use 5-fold cross-validation.
+Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation.
 
 | model | kgcnn | epochs | Accuracy | AUC(ROC) | 
 | :---: | :---: | :---: | :---: | :---: | 
@@ -103,5 +103,9 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | AttentiveFP | 2.1.0 | 200 | 0.8455 &pm; 0.0600  | 0.8893 &pm; 0.0812  | 
 | CMPNN | 2.1.0 | 600 | 0.8138 &pm; 0.0612  | 0.8133 &pm; 0.0680  | 
 | DMPNN | 2.1.0 | 300 | 0.8506 &pm; 0.0447  | 0.9038 &pm; 0.0435  | 
+| GAT | 2.1.0 | 500 | 0.8141 &pm; 0.0405  | 0.8698 &pm; 0.0499  | 
+| GATv2 | 2.1.0 | 500 | 0.7660 &pm; 0.0303  | 0.7885 &pm; 0.0433  | 
+| GIN | 2.1.0 | 300 | 0.8243 &pm; 0.0372  | 0.8570 &pm; 0.0422  | 
 | GraphSAGE | 2.1.0 | 500 | 0.8512 &pm; 0.0263  | 0.8707 &pm; 0.0449  | 
+| INorp | 2.1.0 | 500 | 0.8450 &pm; 0.0682  | 0.8519 &pm; 0.1071  | 
 

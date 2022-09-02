@@ -32,7 +32,7 @@ If you want to get in contact, feel free to [discuss](https://github.com/aimat-l
 # Requirements
 
 For kgcnn, usually the latest version of tensorflow is required, but is listed as extra requirements in the `setup.py` for simplicity. 
-Additional python packages are placed in the `setup.py` requirements and are installed automatically. 
+Standard python package requirements are placed in the `setup.py` and are installed automatically. 
 Packages which must be installed manually for full functionality:
 
 * [tensorflow](https://www.tensorflow.org/install) >=2.4.1

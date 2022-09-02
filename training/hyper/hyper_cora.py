@@ -36,7 +36,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy"]
+                "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -73,13 +73,13 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
                     "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
+                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 5, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
-                "output_mlp": {"use_bias": [True, True, False], "units": [140, 140, 70],
+                "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
                                "activation": ["relu", "relu", "softmax"]},
             }
         },
@@ -92,14 +92,14 @@ hyper = {
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05,
-                        "epo_min": 200, "epo": 800, "verbose": 0}
+                        "epo_min": 800, "epo": 1000, "verbose": 0}
                      }
                 ]
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy"]
+                "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -162,7 +162,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy"]
+                "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -218,7 +218,7 @@ hyper = {
                                    "epo_min": 400, "epo": 600, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -268,7 +268,7 @@ hyper = {
                                        "epo_min": 600, "epo": 800, "verbose": 0}}]
             },
             "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 1e-3}},
-                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy"]
+                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},

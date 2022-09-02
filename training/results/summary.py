@@ -13,22 +13,22 @@ benchmark_datasets = {
         "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
     },
     "ESOLDataset": {
-        "general_info": "ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). Here we use a random split.",
+        "general_info": "ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     },
     "LipopDataset": {
-        "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). Here we use a random split.",
+        "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     },
     "MatProjectEFormDataset": {
-        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use 10-fold cross-validation.",
+        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use random 10-fold cross-validation.",
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]"}]
     },
     "MutagenicityDataset": {
-        "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use 5-fold cross-validation.",
+        "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation.",
         "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
                     {"metric": "val_auc", "name": "AUC(ROC)"}]
     },
