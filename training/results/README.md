@@ -76,6 +76,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | :---: | :---: | :---: | :---: | :---: | 
 | CGCNN.make_crystal_model | 2.1.0 | 1000 | 0.0355 &pm; 0.0005  | 0.0851 &pm; 0.0035  | 
 | Megnet.make_crystal_model | 2.1.0 | 1000 | 0.0241 &pm; 0.0006  | 0.0642 &pm; 0.0025  | 
+| PAiNN.make_crystal_model | 2.1.0 | 800 | nan &pm; nan  | nan &pm; nan  | 
 | Schnet.make_crystal_model | 2.1.0 | 800 | 0.0209 &pm; 0.0004  | 0.0514 &pm; 0.0028  | 
 
 ## MutagenicityDataset
@@ -92,4 +93,15 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 | GIN | 2.1.0 | 300 | 0.8262 &pm; 0.0110  | 0.8818 &pm; 0.0045  | 
 | GraphSAGE | 2.1.0 | 500 | 0.8063 &pm; 0.0097  | 0.8449 &pm; 0.0147  | 
 | INorp | 2.1.0 | 500 | 0.8040 &pm; 0.0113  | 0.8290 &pm; 0.0117  | 
+
+## MUTAGDataset
+
+MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.
+
+| model | kgcnn | epochs | Accuracy | AUC(ROC) | 
+| :---: | :---: | :---: | :---: | :---: | 
+| AttentiveFP | 2.1.0 | 200 | 0.8455 &pm; 0.0600  | 0.8893 &pm; 0.0812  | 
+| CMPNN | 2.1.0 | 600 | 0.8138 &pm; 0.0612  | 0.8133 &pm; 0.0680  | 
+| DMPNN | 2.1.0 | 300 | 0.8506 &pm; 0.0447  | 0.9038 &pm; 0.0435  | 
+| GraphSAGE | 2.1.0 | 500 | 0.8512 &pm; 0.0263  | 0.8707 &pm; 0.0449  | 
 

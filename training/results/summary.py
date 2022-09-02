@@ -31,6 +31,11 @@ benchmark_datasets = {
         "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use 5-fold cross-validation.",
         "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
                     {"metric": "val_auc", "name": "AUC(ROC)"}]
+    },
+    "MUTAGDataset": {
+        "general_info": "MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.",
+        "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
+                    {"metric": "val_auc", "name": "AUC(ROC)"}]
     }
 }
 

@@ -1,0 +1,47 @@
+data_unit: eV/atom
+date_time: '2022-09-02 04:07:23'
+epochs:
+- 800
+- 800
+- 800
+- 800
+kgcnn_version: 2.1.0
+loss:
+- .nan
+- .nan
+- 0.007893125526607037
+- .nan
+lr:
+- 1.0128571375389583e-05
+- 1.0128571375389583e-05
+- 1.0128571375389583e-05
+- 1.0128571375389583e-05
+model_class: make_crystal_model
+model_name: PAiNN
+number_histories: 10
+scaled_mean_absolute_error:
+- .nan
+- .nan
+- 0.009171842597424984
+- .nan
+scaled_root_mean_squared_error:
+- .nan
+- .nan
+- 0.017232611775398254
+- .nan
+val_loss:
+- .nan
+- .nan
+- 0.02368152141571045
+- .nan
+val_scaled_mean_absolute_error:
+- .nan
+- .nan
+- 0.027518026530742645
+- .nan
+val_scaled_root_mean_squared_error:
+- .nan
+- .nan
+- 0.06423306465148926
+- .nan
+
