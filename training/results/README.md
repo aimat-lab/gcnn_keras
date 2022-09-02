@@ -117,6 +117,7 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | :---: | :---: | :---: | :---: | :---: | 
 | AttentiveFP | 2.1.0 | 200 | 0.5809 &pm; 0.0772  | 0.9795 &pm; 0.1612  | 
 | CMPNN | 2.1.0 | 600 | 0.5583 &pm; 0.0844  | 0.9776 &pm; 0.1561  | 
+| DMPNN | 2.1.0 | 300 | 0.5276 &pm; 0.0670  | 0.8785 &pm; 0.1278  | 
 | PAiNN | 2.1.0 | 250 | 0.5298 &pm; 0.0526  | 0.9402 &pm; 0.1300  | 
 | Schnet | 2.1.0 | 800 | 0.6219 &pm; 0.0245  | 1.0586 &pm; 0.0864  | 
 

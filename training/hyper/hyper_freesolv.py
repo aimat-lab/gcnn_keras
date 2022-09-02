@@ -801,7 +801,7 @@ hyper = {
             "kgcnn_version": "2.0.3"
         }
     },
-"GIN.make_model_edge": {
+    "GIN.make_model_edge": {
         "model": {
             "class_name": "make_model_edge",
             "module_name": "kgcnn.literature.GIN",
