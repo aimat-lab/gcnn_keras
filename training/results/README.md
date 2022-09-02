@@ -6,7 +6,7 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 ## CoraLuDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation  on nodes.
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.
 
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
@@ -23,7 +23,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | model | kgcnn | epochs | Categorical accuracy | 
 | :---: | :---: | :---: | :---: | 
 | GAT | 2.1.0 | 250 | 0.6765 &pm; 0.0069  | 
-| GATv2 | 2.1.0 | 250 | 0.3320 &pm; 0.0252  | 
+| GATv2 | 2.1.0 | 800 | 0.6052 &pm; 0.0090  | 
 | GCN | 2.1.0 | 300 | 0.6156 &pm; 0.0052  | 
 | GIN | 2.1.0 | 800 | 0.6368 &pm; 0.0077  | 
 | GraphSAGE | 2.1.0 | 600 | 0.6145 &pm; 0.0073  | 
@@ -115,5 +115,8 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 
 | model | kgcnn | epochs | MAE [log mol/L] | RMSE [log mol/L] | 
 | :---: | :---: | :---: | :---: | :---: | 
+| AttentiveFP | 2.1.0 | 200 | 0.5809 &pm; 0.0772  | 0.9795 &pm; 0.1612  | 
+| CMPNN | 2.1.0 | 600 | 0.5583 &pm; 0.0844  | 0.9776 &pm; 0.1561  | 
+| PAiNN | 2.1.0 | 250 | 0.5298 &pm; 0.0526  | 0.9402 &pm; 0.1300  | 
 | Schnet | 2.1.0 | 800 | 0.6219 &pm; 0.0245  | 1.0586 &pm; 0.0864  | 
 

@@ -5,7 +5,7 @@ from kgcnn.data.utils import load_yaml_file
 
 benchmark_datasets = {
     "CoraLuDataset": {
-        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation  on nodes.",
+        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.",
         "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
     },
     "CoraDataset": {
