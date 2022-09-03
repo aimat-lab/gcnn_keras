@@ -22,10 +22,10 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="NMPN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="FreeSolvDataset")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
+parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_freesolv.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
@@ -138,7 +138,7 @@ postfix_file = hyper["info"]["postfix_file"]
 data_unit = hyper["data"]["data_unit"]
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                     filepath=filepath, file_name="loss" + postfix_file + ".png")
+                     filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Plot prediction for the last split.
 predicted_y = model.predict(x_test)
@@ -160,14 +160,14 @@ plot_predict_true(predicted_y, true_y,
 model.save(os.path.join(filepath, "model"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
 
 # Save hyperparameter again, which were used for this fit. Format is '.json'
 # If non-serialized parameters were in the hyperparameter config file, this operation may fail.
-hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function,
-                   filepath=filepath, file_name="score" + postfix_file + ".yaml")
+                   filepath=filepath, file_name=f"score{postfix_file}.yaml")
