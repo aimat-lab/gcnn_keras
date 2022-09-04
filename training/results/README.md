@@ -139,8 +139,12 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 | model | kgcnn | epochs | Accuracy | AUC(ROC) | 
 | :---: | :---: | :---: | :---: | :---: | 
+| AttentiveFP | 2.1.0 | 200 | 0.7188 &pm; 0.0179  | 0.7884 &pm; 0.0353  | 
 | CMPNN | 2.1.0 | 600 | 0.7071 &pm; 0.0230  | 0.7164 &pm; 0.0264  | 
 | DMPNN | 2.1.0 | 300 | 0.7152 &pm; 0.0502  | 0.7707 &pm; 0.0512  | 
+| GAT | 2.1.0 | 500 | 0.7313 &pm; 0.0198  | 0.8036 &pm; 0.0279  | 
+| GATv2 | 2.1.0 | 500 | 0.6855 &pm; 0.0192  | 0.7072 &pm; 0.0237  | 
 | GIN | 2.1.0 | 150 | 0.7089 &pm; 0.0242  | 0.7421 &pm; 0.0378  | 
 | GraphSAGE | 2.1.0 | 500 | 0.6891 &pm; 0.0379  | 0.7091 &pm; 0.0430  | 
+| INorp | 2.1.0 | 500 | 0.6928 &pm; 0.0319  | 0.7086 &pm; 0.0126  | 
 
