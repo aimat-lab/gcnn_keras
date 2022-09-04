@@ -74,8 +74,9 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 | model | kgcnn | epochs | MAE [eV/atom] | RMSE [eV/atom] | 
 | :---: | :---: | :---: | :---: | :---: | 
-| CGCNN.make_crystal_model | 2.1.0 | 1000 | 0.0355 &pm; 0.0005  | 0.0851 &pm; 0.0035  | 
-| Megnet.make_crystal_model | 2.1.0 | 1000 | 0.0241 &pm; 0.0006  | 0.0642 &pm; 0.0025  | 
+| CGCNN.make_crystal_model | 2.1.0 | 1000 | 0.0354 &pm; 0.0006  | 0.0847 &pm; 0.0037  | 
+| DimeNetPP.make_crystal_model | 2.1.0 | 750 | 0.0222 &pm; 0.0004  | 0.0626 &pm; 0.0028  | 
+| Megnet.make_crystal_model | 2.1.0 | 1000 | 0.0239 &pm; 0.0005  | 0.0634 &pm; 0.0039  | 
 | PAiNN.make_crystal_model | 2.1.0 | 800 | nan &pm; nan  | nan &pm; nan  | 
 | Schnet.make_crystal_model | 2.1.0 | 800 | 0.0209 &pm; 0.0004  | 0.0514 &pm; 0.0028  | 
 
@@ -131,4 +132,15 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | NMPN | 2.1.0 | 800 | 0.6712 &pm; 0.0970  | 1.2337 &pm; 0.3856  | 
 | PAiNN | 2.1.0 | 250 | 0.5298 &pm; 0.0526  | 0.9402 &pm; 0.1300  | 
 | Schnet | 2.1.0 | 800 | 0.6219 &pm; 0.0245  | 1.0586 &pm; 0.0864  | 
+
+## PROTEINSDataset
+
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids. We use random 5-fold cross-validation.
+
+| model | kgcnn | epochs | Accuracy | AUC(ROC) | 
+| :---: | :---: | :---: | :---: | :---: | 
+| CMPNN | 2.1.0 | 600 | 0.7071 &pm; 0.0230  | 0.7164 &pm; 0.0264  | 
+| DMPNN | 2.1.0 | 300 | 0.7152 &pm; 0.0502  | 0.7707 &pm; 0.0512  | 
+| GIN | 2.1.0 | 150 | 0.7089 &pm; 0.0242  | 0.7421 &pm; 0.0378  | 
+| GraphSAGE | 2.1.0 | 500 | 0.6891 &pm; 0.0379  | 0.7091 &pm; 0.0430  | 
 

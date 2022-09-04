@@ -42,6 +42,11 @@ benchmark_datasets = {
         "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
                     {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
     },
+    "PROTEINSDataset": {
+        "general_info": "TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids. We use random 5-fold cross-validation.",
+        "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
+                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+    },
 }
 
 

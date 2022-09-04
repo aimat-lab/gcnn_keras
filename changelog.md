@@ -2,7 +2,9 @@ v2.1.1
 
 * Remove reserved properties form ``MemoryGraphList``, please use set/get methods.
 * Removed deprecated ``kgcnn.selection`` module.
+* Added history score summary in ``kgcnn.training.history``.
 * Rework training. Having plots takes up more memory. Prefer summary table of benchmarks.
+* Changed ``kgcnn.data.datasets.PROTEINSDataset`` to binary graph labels.
 
 
 v2.0.4

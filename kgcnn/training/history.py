@@ -15,6 +15,7 @@ def save_history_score(
         file_name: str = "score.yaml",
         dataset_name: str = "",
         model_class: str = "",
+        multi_target_indices: list = None,
 ):
     r"""Save fit results from fit histories to file.
 
@@ -28,6 +29,7 @@ def save_history_score(
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
         model_class (str): Model class or generator. Default is "".
+        multi_target_indices (list): List of indices for multi target training. Default is None.
 
     Returns:
         dict: Score which was saved to file.
@@ -57,8 +59,12 @@ def save_history_score(
     result_dict = {}
     for i, l in zip(loss_name, train_loss):
         result_dict.update({i: [float(x[-1]) for x in l]})
+        result_dict.update({"max_%s" % i: [float(np.amax(x)) for x in l]})
+        result_dict.update({"min_%s" % i: [float(np.amin(x)) for x in l]})
     for i, l in zip(val_loss_name, val_loss):
         result_dict.update({i: [float(x[-1]) for x in l]})
+        result_dict.update({"max_%s" % i: [float(np.amax(x)) for x in l]})
+        result_dict.update({"min_%s" % i: [float(np.amin(x)) for x in l]})
 
     result_dict["data_unit"] = str(data_unit)
     if len(train_loss) > 0:

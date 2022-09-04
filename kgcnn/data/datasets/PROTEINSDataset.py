@@ -36,8 +36,7 @@ class PROTEINSDataset(GraphTUDataset2020):
         node_attributes = self.obtain_property("node_attributes")
         node_labels = self.obtain_property("node_labels")
         node_degree = self.obtain_property("node_degree")
-        self.assign_property("graph_labels",
-                             [np.array([0, 1]) if int(x) == 2 else np.array([1, 0]) for x in graph_labels])
+        self.assign_property("graph_labels", [x - 1 for x in graph_labels])
         self.assign_property("node_attributes", [np.array([ohe(int(y)) for y in x]) for x in node_attributes])
         self.assign_property("node_labels", [np.array([ohe2(int(y)) for y in x]) for x in node_labels])
         self.assign_property("node_degree", [np.array([ohe3(int(y)) for y in x]) for x in node_degree])
@@ -45,4 +44,4 @@ class PROTEINSDataset(GraphTUDataset2020):
 
         return self
 
-# ds = PROTEINSDatset()
+# ds = PROTEINSDataset()
