@@ -1,10 +1,13 @@
-v2.1.1
+v2.1.0
 
 * Remove reserved properties form ``MemoryGraphList``, please use set/get methods.
 * Removed deprecated ``kgcnn.selection`` module.
 * Added history score summary in ``kgcnn.training.history``.
 * Rework training. Having plots takes up more memory. Prefer summary table of benchmarks.
 * Changed ``kgcnn.data.datasets.PROTEINSDataset`` to binary graph labels.
+* Add ``kgcnn.literature.CMPNN`` model.
+* Add ``kgcnn.literature.EGNN`` model.
+* Merge ``set_attributes`` into `read_in_memory` for `MoleculeNetDataset` and make ``set_attributes`` alias of `read_in_memory`.   
 
 
 v2.0.4
