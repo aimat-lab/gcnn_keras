@@ -321,7 +321,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
-            has_conformers (bool): Whether to add node coordinates from conformer. Default is False.
+            has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those

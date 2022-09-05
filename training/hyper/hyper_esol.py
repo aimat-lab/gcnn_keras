@@ -53,7 +53,7 @@ hyper = {
                 "class_name": "ESOLDataset",
                 "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
-                "methods": [{"set_attributes": {"has_conformers"}}]
+                "methods": [{"set_attributes": {}}]
             },
             "data_unit": "mol/L"
         },
@@ -400,7 +400,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
                 "methods": [
-                    {"set_attributes": {}},
+                    {"set_attributes": {"add_hydrogen": True}},
                     {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
                 ]
             },
@@ -885,6 +885,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
                 "methods": [
+                    {"set_attributes": {}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 20}},
                     {"map_list": {"method": "set_angle"}}
                 ]
