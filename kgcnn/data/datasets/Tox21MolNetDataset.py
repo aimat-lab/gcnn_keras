@@ -5,7 +5,7 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 class Tox21MolNetDataset(MoleculeNetDataset2018):
     """Store and process full Tox21 dataset."""
 
-    def __init__(self, reload=False, verbose=1, remove_nan: bool = False):
+    def __init__(self, reload=False, verbose=1, remove_nan: bool = True):
         """Initialize Tox21 dataset.
 
         Args:
