@@ -157,7 +157,7 @@ postfix_file = hyper["info"]["postfix_file"]
 data_unit = hyper["data"]["data_unit"]
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                     filepath=filepath, file_name="loss" + postfix_file + ".png")
+                     filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Plot prediction
 predicted_y = model.predict(x_test)
@@ -170,13 +170,13 @@ if scaler:
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=label_units,
                   model_name=model_name, dataset_name=dataset_name, target_names=label_names,
-                  file_name="predict" + postfix_file + ".png")
+                  file_name=f"predict{postfix_file}.png")
 
 # Save keras-model to output-folder.
-model.save(os.path.join(filepath, "model" + postfix_file))
+model.save(os.path.join(filepath, f"model{postfix_file}"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, model_name + "_kfold_splits" + postfix_file + ".npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
 
 # Save hyperparameter again, which were used for this fit.
-hyper.save(os.path.join(filepath, model_name + "_hyper" + postfix_file + ".json"))
+hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))

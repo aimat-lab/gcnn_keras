@@ -157,7 +157,7 @@ plot_predict_true(predicted_y, true_y,
                   file_name=f"predict{postfix_file}.png")
 
 # Save last keras-model to output-folder.
-model.save(os.path.join(filepath, "model"))
+model.save(os.path.join(filepath, f"model{postfix_file}"))
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
