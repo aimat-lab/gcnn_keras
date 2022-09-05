@@ -54,6 +54,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     DEFAULT_LOOP_UPDATE_INFO = 1000
 
+    MOLGRAPH_INTERFACE = MolecularGraphRDKit
+
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10):
         r"""Initialize a :obj:`MoleculeNetDataset` with information of the dataset location on disk.
@@ -155,6 +157,14 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
+    def _read_in_memory_mol_blocks(self):
+        if not os.path.exists(self.file_path_mol):
+            raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
+
+        # Loading the molecules and the csv data
+        self.info("Read molecules from mol-file.")
+        return read_mol_list_from_sdf_file(self.file_path_mol)
+
     def _map_molecule_callbacks(self,
                                 callbacks: Dict[str, Callable[[MolecularGraphRDKit, pd.Series], None]],
                                 custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None,
@@ -203,6 +213,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Args:
             callbacks (dict): Dictionary of callbacks to perform on MolecularGraph object and table entries.
             add_hydrogen (bool): Whether to add hydrogen when making a :obj:`MolecularGraphRDKit` instance.
+            make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             custom_transform (Callable): Custom transformation function to modify the generated
                 :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
                 :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
@@ -210,19 +221,14 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Returns:
             self.
         """
-        if not os.path.exists(self.file_path_mol):
-            raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
-
-        # Loading the molecules and the csv data
-        mols = read_mol_list_from_sdf_file(self.file_path_mol)
+        mol_list = self._read_in_memory_mol_blocks()
         data = pd.read_csv(os.path.join(self.data_directory, self.file_name))
 
         # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one molecule in the dataset.
         value_lists = defaultdict(list)
-        for index, sm in enumerate(mols):
-            mg = MolecularGraphRDKit(make_directed=make_directed).from_mol_block(
-                sm, keep_hs=add_hydrogen)
+        for index, sm in enumerate(mol_list):
+            mg = self.MOLGRAPH_INTERFACE(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
 
             if custom_transform is not None:
                 mg = custom_transform(mg)
@@ -235,7 +241,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                     value = callback(mg, data_dict)
                     value_lists[name].append(value)
             if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
-                self.info(" ... read molecules {0} from {1}".format(index, len(mols)))
+                self.info(" ... process molecules {0} from {1}".format(index, len(mol_list)))
 
         # The string key names of the original "callbacks" dict are also used as the names of the properties which are
         # assigned
@@ -244,49 +250,9 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         return self
 
-    def read_in_memory(self, label_column_name: Union[str, list] = None,
-                       add_hydrogen: bool = True,
-                       make_directed: bool = False,
-                       has_conformers: bool = True,
-                       custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None):
-        """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
-        path information in the constructor of this class. Extract basic graph information from mol-blocks.
-        No further attributes are computed as default. Use :obj:`set_attributes` for this purpose.
-        It further checks the csv-file for graph labels specified by :obj:`label_column_name`.
-        Labels that do not have valid smiles or molecule in the SDF-file are also skipped, but added as `None` to
-        keep the index and the molecule assignment.
-
-        Args:
-            label_column_name (str): Column name in the csv-file where to take graph labels from.
-                For multi-targets you can supply a list of column names or positions. A slice can be provided
-                for selecting columns as graph labels. Default is None.
-            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is True.
-            has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
-            make_directed (bool): Whether to have directed or undirected bonds. Default is False.
-            custom_transform (Callable): Custom transformation function to modify the generated
-                :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
-                :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
-
-        Returns:
-            self
-        """
-        callbacks = {
-            'node_symbol': lambda mg, ds: mg.node_symbol,
-            'node_number': lambda mg, ds: mg.node_number,
-            'edge_indices': lambda mg, ds: mg.edge_number[0],
-            'edge_number': lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
-            'graph_labels': lambda mg, ds: ds[label_column_name],
-            'graph_size': lambda mg, ds: len(mg.node_number)
-        }
-        if has_conformers:
-            callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})
-
-        self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
-                                     make_directed=make_directed)
-
-        return self
-
-    def set_attributes(self, nodes: list = None,
+    def read_in_memory(self,
+                       label_column_name: Union[str, list] = None,
+                       nodes: list = None,
                        edges: list = None,
                        graph: list = None,
                        encoder_nodes: dict = None,
@@ -294,13 +260,19 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        encoder_graph: dict = None,
                        add_hydrogen: bool = False,
                        make_directed: bool = False,
-                       has_conformers: bool = True,
+                       has_conformers: bool = False,
                        additional_callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]] = None,
-                       custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None
-                       ):
-        """Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
-        Reset edges and nodes with new attributes and edge indices. Default values are features that has been used
-        by `Luo et al (2019) <https://doi.org/10.1021/acs.jmedchem.9b00959>`_.
+                       custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None):
+        """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
+        path information in the constructor of this class.
+
+        It further checks the csv-file for graph labels specified by :obj:`label_column_name`.
+        Labels that do not have valid smiles or molecule in the SDF-file are also skipped, but added as `None` to
+        keep the index and the molecule assignment.
+
+        Set further molecular attributes or features by string identifier. Requires :obj:`MolecularGraphRDKit`.
+        Default values are features that has been used by
+        `Luo et al (2019) <https://doi.org/10.1021/acs.jmedchem.9b00959>`_.
 
         The argument :obj:`additional_callbacks` allows adding custom properties to each element of the dataset. It is
         a dictionary whose string keys are the names of the properties and the values are callable function objects
@@ -338,17 +310,19 @@ class MoleculeNetDataset(MemoryGraphDataset):
             mol['edge_attributes']  # int value representing the bond type
             mol['name']  # Array of a single string which is the name from the original CSV data
 
-
         Args:
+            label_column_name (str): Column name in the csv-file where to take graph labels from.
+                For multi-targets you can supply a list of column names or positions. A slice can be provided
+                for selecting columns as graph labels. Default is None.
             nodes (list): A list of node attributes as string. In place of names also functions can be added.
             edges (list): A list of edge attributes as string. In place of names also functions can be added.
             graph (list): A list of graph attributes as string. In place of names also functions can be added.
             encoder_nodes (dict): A dictionary of callable encoder where the key matches the attribute.
             encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
-            add_hydrogen (bool): Whether to remove hydrogen.
-            make_directed (bool): Whether to have directed or undirected bonds. Default is False
-            has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
+            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
+            has_conformers (bool): Whether to add node coordinates from conformer. Default is False.
+            make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -378,15 +352,23 @@ class MoleculeNetDataset(MemoryGraphDataset):
         callbacks = {
             'node_symbol': lambda mg, ds: mg.node_symbol,
             'node_number': lambda mg, ds: mg.node_number,
-            'node_attributes': lambda mg, ds: np.array(mg.node_attributes(nodes, encoder_nodes), dtype='float32'),
             'edge_indices': lambda mg, ds: mg.edge_number[0],
             'edge_number': lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
-            'edge_attributes': lambda mg, ds: np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype='float32'),
-            'graph_size': lambda mg, ds: len(mg.node_number),
-            'graph_attributes': lambda mg, ds: np.array(mg.graph_attributes(graph, encoder_graph), dtype='float32'),
+            'graph_size': lambda mg, ds: len(mg.node_number)
         }
         if has_conformers:
             callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})
+        if label_column_name:
+            callbacks.update({'graph_labels': lambda mg, ds: ds[label_column_name]})
+
+        # Attributes callbacks.
+        callbacks.update({
+            'node_attributes': lambda mg, ds: np.array(mg.node_attributes(nodes, encoder_nodes), dtype='float32'),
+            'edge_attributes': lambda mg, ds: np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype='float32'),
+            'graph_attributes': lambda mg, ds: np.array(mg.graph_attributes(graph, encoder_graph), dtype='float32')
+        })
+
+        # Additional callbacks. Could check for duplicate names here.
         callbacks.update(additional_callbacks)
 
         self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
@@ -397,7 +379,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 for key, value in encoder.items():
                     if hasattr(value, "report"):
                         value.report(name=key)
+
         return self
+
+    # Use alias for `set_attributes`.
+    set_attributes = read_in_memory
 
     @staticmethod
     def _deserialize_encoder(encoder_identifier):

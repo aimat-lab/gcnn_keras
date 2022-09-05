@@ -2,40 +2,15 @@ import importlib
 import logging
 from typing import Union
 
-try:
-    from kgcnn.data.moleculenet import MoleculeNetDataset
-except ModuleNotFoundError as e:
-    logging.error("Can not import `MoleculeNetDataset` for serialization with '%s'." % e)
-    MoleculeNetDataset = None
-
-try:
-    from kgcnn.data.qm import QMDataset
-except ModuleNotFoundError as e:
-    logging.error("Can not import `QMDataset` for serialization with '%s'." % e)
-    QMDataset = None
-
-try:
-    from kgcnn.data.tudataset import GraphTUDataset
-except ModuleNotFoundError as e:
-    logging.error("Can not import `GraphTUDataset` for serialization with '%s'." % e)
-    GraphTUDataset = None
-
-try:
-    from kgcnn.data.crystal import CrystalDataset
-except ModuleNotFoundError as e:
-    logging.error("Can not import `CrystalDataset` for serialization with '%s'." % e)
-    CrystalDataset = None
-
-
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 global_dataset_register = {
-    "MoleculeNetDataset": MoleculeNetDataset,
-    "QMDataset": QMDataset,
-    "GraphTUDataset": GraphTUDataset,
-    "CrystalDataset": CrystalDataset
+    "MoleculeNetDataset": {"class_name": "MoleculeNetDataset", "module_name": "kgcnn.data.moleculenet"},
+    "QMDataset": {"class_name": "QMDataset", "module_name": "kgcnn.data.qm"},
+    "GraphTUDataset": {"class_name": "GraphTUDataset", "module_name": "kgcnn.data.tudataset"},
+    "CrystalDataset": {"class_name": "CrystalDataset", "module_name": "kgcnn.data.crystal"}
 }
 
 
@@ -63,21 +38,19 @@ def deserialize(dataset: Union[str, dict]):
 
     # Find dataset class in register.
     if dataset["class_name"] in global_dataset_register:
-        ds_class = global_dataset_register[dataset["class_name"]]
-        config = dataset["config"] if "config" in dataset else {}
-        ds_instance = ds_class(**config)
-
-    # Or load dynamically from datasets folder.
+        dataset_name = global_dataset_register[dataset["class_name"]]["class_name"]
+        module_name = global_dataset_register[dataset["class_name"]]["module_name"]
     else:
         dataset_name = dataset["class_name"]
         module_name = dataset["module_name"] if "module_name" in dataset else "kgcnn.data.datasets.%s" % dataset_name
-        try:
-            ds_class = getattr(importlib.import_module(str(module_name)), str(dataset_name))
-            config = dataset["config"] if "config" in dataset else {}
-            ds_instance = ds_class(**config)
-        except ModuleNotFoundError:
-            raise NotImplementedError(
-                "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
+
+    try:
+        ds_class = getattr(importlib.import_module(str(module_name)), str(dataset_name))
+        config = dataset["config"] if "config" in dataset else {}
+        ds_instance = ds_class(**config)
+    except ModuleNotFoundError:
+        raise NotImplementedError(
+            "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
 
     # Call class methods to load or process data.
     # Order is important here.
