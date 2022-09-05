@@ -53,7 +53,7 @@ hyper = {
                 "class_name": "ESOLDataset",
                 "module_name": "kgcnn.data.datasets.ESOLDataset",
                 "config": {},
-                "methods": [{"set_attributes": {}}]
+                "methods": [{"set_attributes": {"has_conformers"}}]
             },
             "data_unit": "mol/L"
         },

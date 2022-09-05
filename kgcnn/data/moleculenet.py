@@ -260,7 +260,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        encoder_graph: dict = None,
                        add_hydrogen: bool = False,
                        make_directed: bool = False,
-                       has_conformers: bool = False,
+                       has_conformers: bool = True,
                        additional_callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]] = None,
                        custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
