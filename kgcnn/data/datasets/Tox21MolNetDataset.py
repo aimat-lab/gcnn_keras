@@ -22,7 +22,7 @@ class Tox21MolNetDataset(MoleculeNetDataset2018):
         graph_labels = self.obtain_property("graph_labels")
         graph_labels = [np.array(x, dtype="float") for x in graph_labels]
         if self._remove_nan_label:
-            graph_labels = [np.nan_to_numy(x) for x in graph_labels]
+            graph_labels = [np.nan_to_num(x) for x in graph_labels]
         self.assign_property("graph_labels", graph_labels)
 
 
