@@ -42,7 +42,7 @@ hyper = {
         "data": {
             "dataset": {"class_name": "Tox21MolNetDataset",
                         "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                        "config": {},
+                        "config": {"remove_nan": True},
                         "methods": [{"set_attributes": {}}]
                         },
             "data_unit": ""
