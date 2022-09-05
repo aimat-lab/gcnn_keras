@@ -148,3 +148,11 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 | GraphSAGE | 2.1.0 | 500 | 0.6891 &pm; 0.0379  | 0.7091 &pm; 0.0430  | 
 | INorp | 2.1.0 | 500 | 0.6928 &pm; 0.0319  | 0.7086 &pm; 0.0126  | 
 
+## Tox21MolNetDataset
+
+Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation.
+
+| model | kgcnn | epochs | Accuracy | AUC(ROC) | 
+| :---: | :---: | :---: | :---: | :---: | 
+| GraphSAGE | 2.1.0 | 100 | 0.9338 &pm; 0.0036  | 0.8089 &pm; 0.0074  | 
+

@@ -47,6 +47,11 @@ benchmark_datasets = {
         "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
                     {"metric": "val_auc", "name": "AUC(ROC)"}]
     },
+    "Tox21MolNetDataset": {
+        "general_info": "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation.",
+        "targets": [{"metric": "val_binary_accuracy", "name": "Accuracy"},
+                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+    },
 }
 
 
