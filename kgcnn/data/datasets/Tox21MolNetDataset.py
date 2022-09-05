@@ -12,8 +12,8 @@ class Tox21MolNetDataset(MoleculeNetDataset2018):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        super(Tox21MolNetDataset, self).__init__("Tox21", reload=reload, verbose=verbose)
         self._remove_nan_label = remove_nan
+        super(Tox21MolNetDataset, self).__init__("Tox21", reload=reload, verbose=verbose)
 
     def read_in_memory(self, **kwargs):
         super(Tox21MolNetDataset, self).read_in_memory(**kwargs)
@@ -26,4 +26,4 @@ class Tox21MolNetDataset(MoleculeNetDataset2018):
         self.assign_property("graph_labels", graph_labels)
 
 
-# data = Tox21MolNetDataset(reload=False)
+data = Tox21MolNetDataset(reload=False)
