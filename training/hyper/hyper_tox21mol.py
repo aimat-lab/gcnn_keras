@@ -6,8 +6,8 @@ hyper = {
             "config": {
                 "name": "GraphSAGE",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32","ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32","ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32","ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32","ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64","ragged": True}],
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64},
@@ -20,7 +20,7 @@ hyper = {
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
                                "activation": ["relu", "relu", "sigmoid"]}
             }
         },
@@ -30,17 +30,21 @@ hyper = {
                                "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
             },
-            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
+                # "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
-            "dataset": {"class_name": "Tox21Dataset",
-                        "module_name": "kgcnn.data.datasets.Tox21Dataset",
-                        "config": {},  "methods": []},
+            "dataset": {"class_name": "Tox21MolNetDataset",
+                        "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
+                        "config": {},
+                        "methods": [{"set_attributes": {}}]
+                        },
             "data_unit": ""
         },
         "info": {
@@ -56,8 +60,8 @@ hyper = {
             "config": {
                 "name": "DMPNN",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
                     {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
                 ],
@@ -74,7 +78,7 @@ hyper = {
                 "dropout": {"rate": 0.1},
                 "output_embedding": "graph",
                 "output_mlp": {
-                    "use_bias": [True, True, False], "units": [64, 32, 1],
+                    "use_bias": [True, True, False], "units": [64, 32, 12],
                     "activation": ["relu", "relu", "sigmoid"]
                 },
             }
@@ -92,7 +96,7 @@ hyper = {
                               }
                               }
                               },
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
@@ -100,8 +104,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
@@ -122,8 +126,8 @@ hyper = {
             "config": {
                 "name": "CMPNN",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
                     {"shape": [None, 1], "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}
                 ],
@@ -142,7 +146,7 @@ hyper = {
                 "pooling_kwargs": {"pooling_method": "sum"},
                 "output_embedding": "graph",
                 "output_mlp": {
-                    "use_bias": [True, False], "units": [300, 1],
+                    "use_bias": [True, False], "units": [300, 12],
                     "activation": ["relu", "sigmoid"]
                 }
             }
@@ -157,15 +161,15 @@ hyper = {
                                              "decay_steps": 1600,
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
@@ -185,8 +189,8 @@ hyper = {
             "module_name": "kgcnn.literature.AttentiveFP",
             "config": {
                 "name": "AttentiveFP",
-                "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64},
                                     "edge_attributes": {"input_dim": 5, "output_dim": 64}},
@@ -195,7 +199,7 @@ hyper = {
                 "dropout": 0.2,
                 "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True], "units": [200, 1],
+                "output_mlp": {"use_bias": [True, True], "units": [200, 12],
                                "activation": ["kgcnn>leaky_relu", "sigmoid"]},
             }
         },
@@ -207,15 +211,15 @@ hyper = {
                               "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
                                          }
                               },
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": []
             },
@@ -233,7 +237,7 @@ hyper = {
             "module_name": "kgcnn.literature.GIN",
             "config": {
                 "name": "GIN",
-                "inputs": [{"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
                            {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
                 "depth": 5,
@@ -241,9 +245,9 @@ hyper = {
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "batch"},
                 "gin_args": {},
-                "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
+                "last_mlp": {"use_bias": True, "units": [64, 32, 12], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
-                "output_mlp": {"activation": "sigmoid", "units": 1},
+                "output_mlp": {"activation": "sigmoid", "units": 12},
             }
         },
         "training": {
@@ -258,15 +262,15 @@ hyper = {
                               }
                               }
                               },
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": []
             },
@@ -285,8 +289,8 @@ hyper = {
             "config": {
                 "name": "INorp",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True},
                     {"shape": [], "name": "graph_size", "dtype": "float32", "ragged": False}
                 ],
@@ -300,7 +304,7 @@ hyper = {
                 "depth": 3, "use_set2set": False, "verbose": 10,
                 "gather_args": {},
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
+                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 12],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -316,15 +320,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": []
             },
@@ -343,8 +347,8 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {
@@ -356,7 +360,7 @@ hyper = {
                 "depth": 4, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -372,15 +376,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": []
             },
@@ -399,8 +403,8 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None], "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32", "ragged": True},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {
@@ -412,7 +416,7 @@ hyper = {
                 "depth": 4, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -428,15 +432,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
         },
         "data": {
             "dataset": {
-                "class_name": "Tox21Dataset",
-                "module_name": "kgcnn.data.datasets.Tox21Dataset",
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
                 "config": {},
                 "methods": []
             },

@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 ks = tf.keras
 
@@ -108,3 +109,33 @@ class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
                 if 'kgcnn_scale_rmse' not in weight.name:
                     assign_add_ops.append(weight.assign_add(weight_to_add))
         return assign_add_ops
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='BinaryAccuracyNoNaN')
+class BinaryAccuracyNoNaN(ks.metrics.BinaryAccuracy):
+
+    def __init__(self, name="AUC_no_nan", **kwargs):
+        super(BinaryAccuracyNoNaN, self).__init__(name=name, **kwargs)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        is_not_nan = tf.cast(tf.logical_not(tf.math.is_nan(y_true)), y_pred.dtype)
+        if sample_weight is not None:
+            sample_weight *= is_not_nan
+        else:
+            sample_weight = is_not_nan
+        return super(BinaryAccuracyNoNaN, self).update_state(y_true, y_pred, sample_weight=sample_weight)
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='AUCNoNaN')
+class AUCNoNaN(ks.metrics.AUC):
+
+    def __init__(self, name="binary_accuracy_no_nan", **kwargs):
+        super(AUCNoNaN, self).__init__(name=name, **kwargs)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        is_not_nan = tf.cast(tf.logical_not(tf.math.is_nan(y_true)), y_pred.dtype)
+        if sample_weight is not None:
+            sample_weight *= is_not_nan
+        else:
+            sample_weight = is_not_nan
+        return super(AUCNoNaN, self).update_state(y_true, y_pred, sample_weight=sample_weight)
