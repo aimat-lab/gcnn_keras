@@ -3,55 +3,54 @@ import numpy as np
 import pandas as pd
 from kgcnn.data.utils import load_yaml_file
 
-
 benchmark_datasets = {
     "CoraLuDataset": {
         "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.",
-        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
+        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}]
     },
     "CoraDataset": {
         "general_info": "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes.",
-        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy"}]
+        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}]
     },
     "ESOLDataset": {
         "general_info": "ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
     },
     "LipopDataset": {
         "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
     },
     "MatProjectEFormDataset": {
         "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use random 10-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]"}]
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"}]
     },
     "MutagenicityDataset": {
         "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
-                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
     },
     "MUTAGDataset": {
         "general_info": "MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
-                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
     },
     "FreeSolvDataset": {
         "general_info": "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]"}]
+        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
     },
     "PROTEINSDataset": {
         "general_info": "TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy"},
-                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
     },
     "Tox21MolNetDataset": {
         "general_info": "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_binary_accuracy", "name": "Accuracy"},
-                    {"metric": "val_auc", "name": "AUC(ROC)"}]
+        "targets": [{"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
     },
 }
 
@@ -64,7 +63,8 @@ with open("README.md", "w") as f:
     f.write("# Summary of Benchmark Training\n\n")
 
     f.write("Note that these are the results for models within `kgcnn` implementation, ")
-    f.write("and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
+    f.write(
+        "and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
     f.write("This table is generated automatically from keras history logs.\n")
     f.write("Model weights and training statistics plots are not uploaded on github due to their file size.\n\n")
 
@@ -103,12 +103,18 @@ with open("README.md", "w") as f:
                     "kgcnn": results["kgcnn_version"],
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })
-
                 for x in dataset_info["targets"]:
-                    result_dict[x["name"]] = "{0:0.4f} &pm; {1:0.4f} ".format(
-                        np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
-
+                    result_dict[x["name"]] = (np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
             df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
+
+        for data_targets in dataset_info["targets"]:
+            target_val = df[data_targets["name"]]
+            find_function = np.argmax if data_targets["find_best"] == "max" else np.argmin
+            best = find_function([x[0] for x in target_val])
+            format_strings = ["{0:0.4f} &pm; {1:0.4f}"]*len(target_val)
+            format_strings[int(best)] = "**{0:0.4f} &pm; {1:0.4f}**"
+            format_val = [format_strings[i].format(x, y) for i, (x, y) in enumerate(target_val)]
+            df[data_targets["name"]] = format_val
 
         f.write(df.to_markdown(index=False))
         f.write("\n\n")
