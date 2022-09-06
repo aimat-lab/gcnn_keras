@@ -107,6 +107,8 @@ with open("README.md", "w") as f:
                     result_dict[x["name"]] = (np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
             df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
 
+        # Pandas style does not seem to support mark-down formatting.
+        # Manual formatting here.
         for data_targets in dataset_info["targets"]:
             target_val = df[data_targets["name"]]
             find_function = np.argmax if data_targets["find_best"] == "max" else np.argmin
