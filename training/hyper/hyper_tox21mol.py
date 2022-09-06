@@ -96,6 +96,7 @@ hyper = {
                               }
                               }
                               },
+                # "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
