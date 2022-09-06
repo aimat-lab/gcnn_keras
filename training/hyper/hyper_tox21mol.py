@@ -84,7 +84,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []
+            "fit": {"batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []
                     },
             "compile": {
                 "optimizer": {"class_name": "Adam",
@@ -106,7 +106,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
@@ -170,7 +170,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
@@ -220,7 +220,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": []
             },
             "data_unit": ""
@@ -271,7 +271,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": []
             },
             "data_unit": ""
@@ -329,7 +329,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": []
             },
             "data_unit": ""
@@ -385,7 +385,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": []
             },
             "data_unit": ""
@@ -441,7 +441,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {},
+                "config": {"remove_nan": True},
                 "methods": []
             },
             "data_unit": ""
