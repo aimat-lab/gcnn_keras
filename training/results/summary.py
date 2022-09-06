@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 from kgcnn.data.utils import load_yaml_file
 
 
@@ -80,8 +81,8 @@ with open("README.md", "w") as f:
         model_cols = ["model", "kgcnn", "epochs"]
         for x in dataset_info["targets"]:
             model_cols.append(x["name"])
-        f.write(make_table_line(model_cols))
-        f.write(make_table_line([":---:"]*len(model_cols)))
+
+        df = pd.DataFrame(columns=model_cols)
 
         for model in model_folders:
 
@@ -107,6 +108,7 @@ with open("README.md", "w") as f:
                     result_dict[x["name"]] = "{0:0.4f} &pm; {1:0.4f} ".format(
                         np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
 
-            f.write(make_table_line([result_dict[x] if x in result_dict else "" for x in model_cols]))
+            df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
 
-        f.write("\n")
+        f.write(df.to_markdown(index=False))
+        f.write("\n\n")
