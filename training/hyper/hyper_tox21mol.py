@@ -25,7 +25,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 100, "validation_freq": 10, "verbose": 2,
+            "fit": {"batch_size": 32, "epochs": 100, "validation_freq": 1, "verbose": 2,
                 "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
                                "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
@@ -251,7 +251,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "fit": {"batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
@@ -310,7 +310,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 300, "epo": 500,
@@ -366,7 +366,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
@@ -422,7 +422,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 2, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,

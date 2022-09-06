@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from typing import Union
 from kgcnn.data.utils import save_yaml_file
 from datetime import datetime
 from kgcnn import __kgcnn_version__
@@ -15,7 +16,7 @@ def save_history_score(
         file_name: str = "score.yaml",
         dataset_name: str = "",
         model_class: str = "",
-        multi_target_indices: list = None,
+        multi_target_indices: Union[list, int, None] = None,
 ):
     r"""Save fit results from fit histories to file.
 
@@ -46,6 +47,10 @@ def save_history_score(
         loss_name = [loss_name]
     if not isinstance(val_loss_name, list):
         val_loss_name = [val_loss_name]
+    if isinstance(multi_target_indices, list):
+        multi_target_indices = [int(x) for x in multi_target_indices]
+    elif multi_target_indices is not None:
+        multi_target_indices = int(multi_target_indices)
 
     train_loss = []
     for x in loss_name:
@@ -75,6 +80,7 @@ def save_history_score(
     result_dict["model_name"] = str(model_name)
     result_dict["kgcnn_version"] = str(__kgcnn_version__)
     result_dict["number_histories"] = len(histories)
+    result_dict["multi_target_indices"] = multi_target_indices
 
     if filepath is not None:
         save_yaml_file(result_dict, os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))

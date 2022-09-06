@@ -9,12 +9,14 @@ from tensorflow_addons import optimizers
 from kgcnn.data.qm import QMGraphLabelScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
+from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.utils.models import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a QMDataset.')
@@ -25,6 +27,8 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
                     default="hyper/hyper_qm9_orbitals.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
+parser.add_argument("--gpu", required=False, help="GPU index used for training.",
+                    default=None, nargs="+", type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -33,6 +37,10 @@ model_name = args["model"]
 dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
+gpu_to_use = args["gpu"]
+
+# Assigning GPU.
+set_devices_gpu(gpu_to_use)
 
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
@@ -180,3 +188,9 @@ np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"),
 
 # Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
+
+# Save score of fit result for as text file.
+save_history_score(history_list, loss_name=None, val_loss_name=None,
+                   model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
+                   model_class=make_function, multi_target_indices=multi_target_indices,
+                   filepath=filepath, file_name=f"score{postfix_file}.yaml")
