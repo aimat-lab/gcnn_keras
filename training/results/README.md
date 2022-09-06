@@ -162,4 +162,5 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 | GIN         | 2.1.0   |       50 | 0.9416 &pm; 0.0021     | 0.8276 &pm; 0.0054     |
 | GraphSAGE   | 2.1.0   |      100 | 0.9338 &pm; 0.0036     | 0.8089 &pm; 0.0074     |
 | INorp       | 2.1.0   |       50 | 0.9386 &pm; 0.0040     | 0.8240 &pm; 0.0112     |
+| Schnet      | 2.1.0   |       50 | 0.9403 &pm; 0.0039     | 0.8078 &pm; 0.0077     |
 
