@@ -204,7 +204,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []
+            "fit": {"batch_size": 200, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []
                     },
             "compile": {
                 "optimizer": {"class_name": "Addons>AdamW",

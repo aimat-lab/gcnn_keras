@@ -154,6 +154,7 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 
 | model | kgcnn | epochs | Accuracy | AUC(ROC) | 
 | :---: | :---: | :---: | :---: | :---: | 
+| CMPNN | 2.1.0 | 50 | 0.9382 &pm; 0.0012  | 0.7928 &pm; 0.0166  | 
 | DMPNN | 2.1.0 | 50 | 0.9423 &pm; 0.0015  | 0.8388 &pm; 0.0055  | 
 | GraphSAGE | 2.1.0 | 100 | 0.9338 &pm; 0.0036  | 0.8089 &pm; 0.0074  | 
 
