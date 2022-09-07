@@ -78,8 +78,8 @@ benchmark_datasets = {
         "general_info": [
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
-            "We use random 5-fold cross-validation. ",
-            "`Min. RMSE` deontes the smallest test RMSE observed for any epoch. "
+            "We use a random 5-fold cross-validation. ",
+            "`Min. RMSE` denotes the smallest test RMSE observed for any epoch. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -109,6 +109,17 @@ benchmark_datasets = {
             {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
         ]
     },
+    # "QM7Dataset": {
+    #     "general_info": [
+    #         "QM7 dataset is a subset of GDB-13. ",
+    #         "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
+    #         "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
+    #     ],
+    #     "targets": [
+    #         {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+    #         {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+    #     ]
+    # },
 }
 
 
@@ -161,7 +172,9 @@ with open("README.md", "w") as f:
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })
                 for x in dataset_info["targets"]:
-                    result_dict[x["name"]] = (np.mean(results[x["metric"]]), np.std(results[x["metric"]]))
+                    target_res = np.array(results[x["metric"]])
+                    target_res = target_res[~np.isnan(target_res)]
+                    result_dict[x["name"]] = (np.mean(target_res), np.std(target_res))
             df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
 
         # Pandas style does not seem to support mark-down formatting.

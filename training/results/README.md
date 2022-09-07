@@ -72,13 +72,13 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 10-fold cross-validation. 
 
-| model                        | kgcnn   |   epochs | MAE [eV/atom]      | RMSE [eV/atom]     |
-|:-----------------------------|:--------|---------:|:-------------------|:-------------------|
-| CGCNN.make_crystal_model     | 2.1.0   |     1000 | 0.0354 &pm; 0.0006 | 0.0847 &pm; 0.0037 |
-| DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0220 &pm; 0.0006 | 0.0623 &pm; 0.0036 |
-| Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0239 &pm; 0.0005 | 0.0634 &pm; 0.0039 |
-| PAiNN.make_crystal_model     | 2.1.0   |      800 | **nan &pm; nan**   | **nan &pm; nan**   |
-| Schnet.make_crystal_model    | 2.1.0   |      800 | 0.0209 &pm; 0.0004 | 0.0514 &pm; 0.0028 |
+| model                        | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.1.0   |     1000 | 0.0354 &pm; 0.0006     | 0.0847 &pm; 0.0037     |
+| DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0220 &pm; 0.0006     | 0.0623 &pm; 0.0036     |
+| Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0239 &pm; 0.0005     | 0.0634 &pm; 0.0039     |
+| PAiNN.make_crystal_model     | 2.1.0   |      800 | 0.0278 &pm; 0.0003     | 0.0662 &pm; 0.0040     |
+| Schnet.make_crystal_model    | 2.1.0   |      800 | **0.0209 &pm; 0.0004** | **0.0514 &pm; 0.0028** |
 
 ## MutagenicityDataset
 
@@ -112,7 +112,7 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 
 ## FreeSolvDataset
 
-FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation. `Min. RMSE` deontes the smallest test RMSE observed for any epoch. 
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. `Min. RMSE` denotes the smallest test RMSE observed for any epoch. 
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       | Min. RMSE [log mol/L]   |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|:------------------------|
