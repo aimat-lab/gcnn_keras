@@ -2,9 +2,10 @@ import tensorflow as tf
 ks = tf.keras
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
 
-    def __init__(self, learning_rate=1e-3, name="Adan", betas=(0.98, 0.92, 0.99), eps=1e-8,
+    def __init__(self, learning_rate=1e-3, name="Adan", beta_1=0.98, beta_2=0.92, beta_3=0.99, eps=1e-8,
                  weight_decay=0.0, no_prox=False, **kwargs):
         super(Adan, self).__init__(name=name, **kwargs)
 
@@ -12,18 +13,18 @@ class Adan(ks.optimizers.Optimizer):
             raise ValueError("Invalid learning rate: {}".format(learning_rate))
         if not 0.0 <= eps:
             raise ValueError("Invalid epsilon value: {}".format(eps))
-        if not 0.0 <= betas[0] < 1.0:
-            raise ValueError("Invalid beta parameter at index 0: {}".format(betas[0]))
-        if not 0.0 <= betas[1] < 1.0:
-            raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
-        if not 0.0 <= betas[2] < 1.0:
-            raise ValueError("Invalid beta parameter at index 2: {}".format(betas[2]))
+        if not 0.0 <= beta_1 < 1.0:
+            raise ValueError("Invalid beta parameter at index 0: {}".format(beta_1))
+        if not 0.0 <= beta_2 < 1.0:
+            raise ValueError("Invalid beta parameter at index 1: {}".format(beta_2))
+        if not 0.0 <= beta_3 < 1.0:
+            raise ValueError("Invalid beta parameter at index 2: {}".format(beta_3))
 
         self._set_hyper("learning_rate", kwargs.get("lr", learning_rate))
         self._set_hyper("eps", eps)
-        self._set_hyper("beta_1", betas[0])
-        self._set_hyper("beta_2", betas[1])
-        self._set_hyper("beta_3", betas[2])
+        self._set_hyper("beta_1", beta_1)
+        self._set_hyper("beta_2", beta_2)
+        self._set_hyper("beta_3", beta_3)
         self._set_hyper("weight_decay", weight_decay)
         self._set_hyper("no_prox", no_prox)
 
@@ -99,3 +100,10 @@ class Adan(ks.optimizers.Optimizer):
 
         pre_grad.assign(grad)
         return tf.group(*[update, exp_avg, exp_avg_diff, exp_avg_sq, pre_grad])
+
+    def _resource_apply_sparse(self, grad, var):
+        raise NotImplementedError("Sparse gradient updates are not supported.")
+
+    def get_config(self):
+        config = super(Adan, self).get_config()
+        return config
