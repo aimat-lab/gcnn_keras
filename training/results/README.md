@@ -163,3 +163,11 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 | INorp       | 2.1.0   |       50 | 0.9386 &pm; 0.0040     | 0.8240 &pm; 0.0112     |
 | Schnet      | 2.1.0   |       50 | 0.9403 &pm; 0.0039     | 0.8078 &pm; 0.0077     |
 
+## QM7Dataset
+
+QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
+
+| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|
+| Schnet  | 2.1.0   |      800 | **2.5247 &pm; 0.2063** | **8.8590 &pm; 4.8022** |
+
