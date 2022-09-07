@@ -60,8 +60,8 @@ class QM7bDataset(QMDataset, DownloadDataset):
             mat = scipy.io.loadmat(os.path.join(self.data_directory, self.download_info["download_file_name"]))
             coulomb_mat = mat["X"]
             graph_len = [int(np.around(np.sum(np.diagonal(x) > 0))) for x in coulomb_mat]
-            proton_inv_dist = [coulomb_matrix_to_inverse_distance_proton(x[:i, :i], unit_conversion=0.529177) for x, i
-                               in zip(coulomb_mat, graph_len)]
+            proton_inv_dist = [coulomb_matrix_to_inverse_distance_proton(x[:i, :i], unit_conversion=0.529177210903) for
+                               x, i in zip(coulomb_mat, graph_len)]
             proton = [x[1] for x in proton_inv_dist]
             inv_dist = [x[0] for x in proton_inv_dist]
             dist = [invert_distance(x) for x in inv_dist]
@@ -85,6 +85,5 @@ class QM7bDataset(QMDataset, DownloadDataset):
 
         return super(QM7bDataset, self).prepare_data(
             overwrite=overwrite, xyz_column_name=xyz_column_name, make_sdf=make_sdf)
-
 
 # data = QM7bDataset(reload=True)

@@ -5,52 +5,108 @@ from kgcnn.data.utils import load_yaml_file
 
 benchmark_datasets = {
     "CoraLuDataset": {
-        "general_info": "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.",
-        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}]
+        "general_info": [
+            "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
+            "Here we use random 5-fold cross-validation on nodes."
+        ],
+        "targets": [
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
+        ]
     },
     "CoraDataset": {
-        "general_info": "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes.",
-        "targets": [{"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}]
+        "general_info": [
+            "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
+            "Here we use random 5-fold cross-validation on nodes."
+        ],
+        "targets": [
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
+        ]
     },
     "ESOLDataset": {
-        "general_info": "ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
+        "general_info": [
+            "ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}
+        ]
     },
     "LipopDataset": {
-        "general_info": "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
+        "general_info": [
+            "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",
+            "Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}
+        ]
     },
     "MatProjectEFormDataset": {
-        "general_info": "Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use random 10-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"}]
+        "general_info": [
+            "Materials Project dataset from Matbench with 132752 crystal structures ",
+            "and their corresponding formation energy in [eV/atom]. ",
+            "We use a random 10-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"}
+        ]
     },
     "MutagenicityDataset": {
-        "general_info": "Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
+        "general_info": [
+            "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",
+            "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+        ]
     },
     "MUTAGDataset": {
-        "general_info": "MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
+        "general_info": [
+            "MUTAG dataset from TUDataset for classification with 188 graphs. ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+        ]
     },
     "FreeSolvDataset": {
-        "general_info": "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-                    {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}]
+        "general_info": [
+            "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
+            "their corresponding hydration free energy for small neutral molecules in water. ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "Min. RMSE [log mol/L]", "find_best": "min"}
+        ]
     },
     "PROTEINSDataset": {
-        "general_info": "TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
+        "general_info": [
+            "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
+            "Nodes represent the amino acids of the protein. ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+        ]
     },
     "Tox21MolNetDataset": {
-        "general_info": "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation.",
-        "targets": [{"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
-                    {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}]
+        "general_info": [
+            "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
+            "12 different targets relevant to drug toxicity. ",
+            "We use random 5-fold cross-validation."
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+        ]
     },
 }
 
@@ -70,7 +126,7 @@ with open("README.md", "w") as f:
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
-        f.write("%s\n\n" % dataset_info["general_info"])
+        f.write("%s\n\n" % "".join(dataset_info["general_info"]))
 
         search_path = dataset
         if os.path.exists(search_path):
@@ -113,7 +169,7 @@ with open("README.md", "w") as f:
             target_val = df[data_targets["name"]]
             find_function = np.argmax if data_targets["find_best"] == "max" else np.argmin
             best = find_function([x[0] for x in target_val])
-            format_strings = ["{0:0.4f} &pm; {1:0.4f}"]*len(target_val)
+            format_strings = ["{0:0.4f} &pm; {1:0.4f}"] * len(target_val)
             format_strings[int(best)] = "**{0:0.4f} &pm; {1:0.4f}**"
             format_val = [format_strings[i].format(x, y) for i, (x, y) in enumerate(target_val)]
             df[data_targets["name"]] = format_val

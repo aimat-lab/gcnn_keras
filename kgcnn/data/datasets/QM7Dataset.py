@@ -59,8 +59,9 @@ class QM7Dataset(QMDataset, DownloadDataset):
             graph_len = [int(np.around(np.sum(x > 0))) for x in mat["Z"]]
             proton = [x[:i] for i, x in zip(graph_len, mat["Z"])]
             atoms = [[inverse_global_proton_dict[i] for i in x] for x in proton]
-            pos = [x[:i, :]*0.529177 for i, x in zip(graph_len, mat["R"])]
+            pos = [x[:i, :]*0.529177210903 for i, x in zip(graph_len, mat["R"])]
             atoms_pos = [[x, y] for x, y in zip(atoms, pos)]
+            np.save(os.path.join(self.data_directory, "qm7_splits.npy"), mat["P"])
             self.info("Writing XYZ file from coulomb matrix information.")
             write_list_to_xyz_file(file_path, atoms_pos)
         else:

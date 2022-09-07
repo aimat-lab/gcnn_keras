@@ -6,7 +6,7 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 ## CoraLuDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse node attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.
 
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
@@ -30,7 +30,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 ## ESOLDataset
 
-ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.
+ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -53,7 +53,7 @@ ESOL (MoleculeNet) consists of 1128 compounds as smiles and their corresponding 
 
 ## LipopDataset
 
-Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corresponding octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.
+Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.
 
 | model       | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -70,12 +70,12 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles and their corre
 
 ## MatProjectEFormDataset
 
-Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use random 10-fold cross-validation.
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 10-fold cross-validation.
 
 | model                        | kgcnn   |   epochs | MAE [eV/atom]      | RMSE [eV/atom]     |
 |:-----------------------------|:--------|---------:|:-------------------|:-------------------|
 | CGCNN.make_crystal_model     | 2.1.0   |     1000 | 0.0354 &pm; 0.0006 | 0.0847 &pm; 0.0037 |
-| DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0222 &pm; 0.0004 | 0.0626 &pm; 0.0028 |
+| DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0220 &pm; 0.0006 | 0.0623 &pm; 0.0036 |
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0239 &pm; 0.0005 | 0.0634 &pm; 0.0039 |
 | PAiNN.make_crystal_model     | 2.1.0   |      800 | **nan &pm; nan**   | **nan &pm; nan**   |
 | Schnet.make_crystal_model    | 2.1.0   |      800 | 0.0209 &pm; 0.0004 | 0.0514 &pm; 0.0028 |
@@ -114,28 +114,27 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 
 FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.
 
-| model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
-|:--------------------|:--------|---------:|:-----------------------|:-----------------------|
-| AttentiveFP         | 2.1.0   |      200 | 0.5809 &pm; 0.0772     | 0.9795 &pm; 0.1612     |
-| CMPNN               | 2.1.0   |      600 | 0.5583 &pm; 0.0844     | 0.9776 &pm; 0.1561     |
-| DimeNetPP           | 2.1.0   |      300 | 0.5920 &pm; 0.0996     | 0.9797 &pm; 0.2217     |
-| DMPNN               | 2.1.0   |      300 | **0.5276 &pm; 0.0670** | **0.8785 &pm; 0.1278** |
-| GAT                 | 2.1.0   |      500 | 0.6306 &pm; 0.0329     | 1.0904 &pm; 0.0945     |
-| GATv2               | 2.1.0   |      500 | 0.6122 &pm; 0.0602     | 1.0712 &pm; 0.1553     |
-| GCN                 | 2.1.0   |      800 | 0.7209 &pm; 0.0431     | 1.1873 &pm; 0.1273     |
-| GIN                 | 2.1.0   |      300 | 0.6722 &pm; 0.1252     | 1.0846 &pm; 0.2204     |
-| GIN.make_model_edge | 2.1.0   |      300 | 0.7044 &pm; 0.0667     | 1.1644 &pm; 0.0932     |
-| GraphSAGE           | 2.1.0   |      500 | 0.6115 &pm; 0.0680     | 1.0354 &pm; 0.1745     |
-| HamNet              | 2.1.0   |      400 | 0.6346 &pm; 0.0733     | 1.0948 &pm; 0.1089     |
-| INorp               | 2.1.0   |      500 | 0.6907 &pm; 0.0581     | 1.1252 &pm; 0.1053     |
-| Megnet              | 2.1.0   |      800 | 1.0509 &pm; 0.1364     | 1.7950 &pm; 0.3772     |
-| NMPN                | 2.1.0   |      800 | 0.6712 &pm; 0.0970     | 1.2337 &pm; 0.3856     |
-| PAiNN               | 2.1.0   |      250 | 0.5298 &pm; 0.0526     | 0.9402 &pm; 0.1300     |
-| Schnet              | 2.1.0   |      800 | 0.6219 &pm; 0.0245     | 1.0586 &pm; 0.0864     |
+| model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       | Min. RMSE [log mol/L]   |
+|:--------------------|:--------|---------:|:-----------------------|:-----------------------|:------------------------|
+| AttentiveFP         | 2.1.0   |      200 | 0.6055 &pm; 0.0654     | 0.9643 &pm; 0.1413     | 0.8573 &pm; 0.1235      |
+| CMPNN               | 2.1.0   |      600 | 0.5319 &pm; 0.0655     | 0.9262 &pm; 0.1597     | 0.8673 &pm; 0.1571      |
+| DMPNN               | 2.1.0   |      300 | 0.5305 &pm; 0.0474     | **0.9070 &pm; 0.1497** | **0.8192 &pm; 0.1484**  |
+| GAT                 | 2.1.0   |      500 | 0.6401 &pm; 0.0892     | 1.0845 &pm; 0.2040     | 1.0494 &pm; 0.1967      |
+| GATv2               | 2.1.0   |      500 | 0.6390 &pm; 0.0467     | 1.1203 &pm; 0.1491     | 0.9891 &pm; 0.1020      |
+| GCN                 | 2.1.0   |      800 | 0.7766 &pm; 0.0774     | 1.3245 &pm; 0.2008     | 1.1710 &pm; 0.0881      |
+| GIN                 | 2.1.0   |      300 | 0.7112 &pm; 0.0917     | 1.1421 &pm; 0.1469     | 1.0502 &pm; 0.1093      |
+| GIN.make_model_edge | 2.1.0   |      300 | 0.6197 &pm; 0.0685     | 1.0584 &pm; 0.1756     | 0.9840 &pm; 0.1753      |
+| GraphSAGE           | 2.1.0   |      500 | 0.5667 &pm; 0.0577     | 0.9861 &pm; 0.1328     | 0.9236 &pm; 0.1444      |
+| HamNet              | 2.1.0   |      400 | 0.6395 &pm; 0.0496     | 1.0508 &pm; 0.0827     | 0.9691 &pm; 0.0884      |
+| INorp               | 2.1.0   |      500 | 0.6448 &pm; 0.0607     | 1.0911 &pm; 0.1530     | 0.9915 &pm; 0.1678      |
+| Megnet              | 2.1.0   |      800 | 0.9749 &pm; 0.0429     | 1.5328 &pm; 0.0862     | 1.3589 &pm; 0.0661      |
+| NMPN                | 2.1.0   |      800 | 0.6393 &pm; 0.0808     | 1.0830 &pm; 0.1283     | 0.9532 &pm; 0.1101      |
+| PAiNN               | 2.1.0   |      250 | **0.5128 &pm; 0.0565** | 0.9403 &pm; 0.1387     | 0.8569 &pm; 0.1270      |
+| Schnet              | 2.1.0   |      800 | 0.5980 &pm; 0.0556     | 1.0614 &pm; 0.1531     | 0.9441 &pm; 0.1021      |
 
 ## PROTEINSDataset
 
-TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids. We use random 5-fold cross-validation.
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation.
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
