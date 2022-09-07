@@ -6,7 +6,7 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 ## CoraLuDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes.
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
 
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
@@ -18,7 +18,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 
 ## CoraDataset
 
-Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes.
+Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. 
 
 | model     | kgcnn   |   epochs | Categorical accuracy   |
 |:----------|:--------|---------:|:-----------------------|
@@ -30,7 +30,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 
 ## ESOLDataset
 
-ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation.
+ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -53,7 +53,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 
 ## LipopDataset
 
-Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation.
+Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation. 
 
 | model       | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -70,7 +70,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 ## MatProjectEFormDataset
 
-Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 10-fold cross-validation.
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 10-fold cross-validation. 
 
 | model                        | kgcnn   |   epochs | MAE [eV/atom]      | RMSE [eV/atom]     |
 |:-----------------------------|:--------|---------:|:-------------------|:-------------------|
@@ -82,7 +82,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 ## MutagenicityDataset
 
-Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation.
+Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. 
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -97,7 +97,7 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 
 ## MUTAGDataset
 
-MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation.
+MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation. 
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -112,7 +112,7 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 
 ## FreeSolvDataset
 
-FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation.
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use random 5-fold cross-validation. `Min. RMSE` deontes the smallest test RMSE observed for any epoch. 
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       | Min. RMSE [log mol/L]   |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|:------------------------|
@@ -134,7 +134,7 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 
 ## PROTEINSDataset
 
-TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation.
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. 
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
@@ -149,7 +149,7 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 ## Tox21MolNetDataset
 
-Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation.
+Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|

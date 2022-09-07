@@ -7,7 +7,7 @@ benchmark_datasets = {
     "CoraLuDataset": {
         "general_info": [
             "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
-            "Here we use random 5-fold cross-validation on nodes."
+            "Here we use random 5-fold cross-validation on nodes. "
         ],
         "targets": [
             {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
@@ -16,7 +16,7 @@ benchmark_datasets = {
     "CoraDataset": {
         "general_info": [
             "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
-            "Here we use random 5-fold cross-validation on nodes."
+            "Here we use random 5-fold cross-validation on nodes. "
         ],
         "targets": [
             {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
@@ -25,7 +25,7 @@ benchmark_datasets = {
     "ESOLDataset": {
         "general_info": [
             "ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -36,7 +36,7 @@ benchmark_datasets = {
         "general_info": [
             "Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. ",
             "Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -47,7 +47,7 @@ benchmark_datasets = {
         "general_info": [
             "Materials Project dataset from Matbench with 132752 crystal structures ",
             "and their corresponding formation energy in [eV/atom]. ",
-            "We use a random 10-fold cross-validation."
+            "We use a random 10-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
@@ -57,7 +57,7 @@ benchmark_datasets = {
     "MutagenicityDataset": {
         "general_info": [
             "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",
-            "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation."
+            "The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -67,7 +67,7 @@ benchmark_datasets = {
     "MUTAGDataset": {
         "general_info": [
             "MUTAG dataset from TUDataset for classification with 188 graphs. ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -78,7 +78,8 @@ benchmark_datasets = {
         "general_info": [
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. ",
+            "`Min. RMSE` deontes the smallest test RMSE observed for any epoch. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -90,7 +91,7 @@ benchmark_datasets = {
         "general_info": [
             "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
             "Nodes represent the amino acids of the protein. ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -101,7 +102,7 @@ benchmark_datasets = {
         "general_info": [
             "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
             "12 different targets relevant to drug toxicity. ",
-            "We use random 5-fold cross-validation."
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
