@@ -1,6 +1,6 @@
 import os
 import numpy as np
-
+from typing import Union
 from kgcnn.scaler.mol import QMGraphLabelScaler
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.base import MemoryGraphDataset
@@ -119,7 +119,7 @@ class QMDataset(MemoryGraphDataset):
             self.info("Reading single xyz-file.")
             xyz_list = read_xyz_file(self.file_path_xyz)
 
-        # Additionally try to make SDF file
+        # Additionally, try to make SDF file
         if make_sdf:
             self.info("Converting xyz to mol information.")
             mb = self._make_mol_list(xyz_list)
@@ -136,7 +136,7 @@ class QMDataset(MemoryGraphDataset):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_path)[0] + ".xyz"
 
-    def read_in_memory(self, label_column_name: str = None):
+    def read_in_memory(self, label_column_name: Union[str, list] = None):
         """Read xyz-file geometric information into memory. Optionally read also mol information. And try to find CSV
         file with graph labels if a column is specified by :obj:`label_column_name`.
 

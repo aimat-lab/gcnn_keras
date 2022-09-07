@@ -2,12 +2,14 @@ import numpy as np
 from typing import Union
 
 
-def coulomb_matrix_to_inverse_distance_proton(coulomb_mat: np.ndarray, unit_conversion: float = 1.0):
+def coulomb_matrix_to_inverse_distance_proton(coulomb_mat: np.ndarray,
+                                              unit_conversion: float = 1.0, exponent: float = 2.4):
     r"""Convert a Coulomb matrix back to inverse distancematrix plus atomic number.
 
     Args:
         coulomb_mat (np.ndarray): Coulomb matrix of shape (...,N,N)
         unit_conversion (float) : Whether to scale units for distance. Default is 1.0.
+        exponent (float): Exponent for diagonal elements. Default is 2.4.
 
     Returns:
         tuple: [inv_dist, z]
@@ -17,7 +19,7 @@ def coulomb_matrix_to_inverse_distance_proton(coulomb_mat: np.ndarray, unit_conv
     """
     indslie = np.arange(0, coulomb_mat.shape[-1])
     z = coulomb_mat[..., indslie, indslie]
-    z = np.power(2 * z, 1 / 2.4)
+    z = np.power(2 * z, 1 / exponent)
     a = np.expand_dims(z, axis=len(z.shape) - 1)
     b = np.expand_dims(z, axis=len(z.shape))
     zz = a * b
