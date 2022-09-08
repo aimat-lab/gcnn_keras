@@ -14,6 +14,8 @@ kgcnn.egg-info
 /notebooks/ExampleMol/*
 /notebooks/ExampleQM/*
 /notebooks/ExampleQM
+/notebooks/kt_dmpnn
+/notebooks/kt_dmpnn/*
 /notebooks/gcn_explain_*.png
 /notebooks/.ipynb_checkpoints
 /notebooks/graph_explainer/.ipynb_checkpoints

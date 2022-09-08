@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 ks = tf.keras
 
 
@@ -42,6 +43,7 @@ class Adan(ks.optimizers.Optimizer):
         super(Adan, self)._prepare_local(var_device, var_dtype, apply_state)
 
         local_step = tf.cast(self.iterations + 1, var_dtype)
+        diff_scale = tf.cast(self.iterations > 0, var_dtype)
         beta_1_t = tf.identity(self._get_hyper('beta_1', var_dtype))
         beta_2_t = tf.identity(self._get_hyper('beta_2', var_dtype))
         beta_3_t = tf.identity(self._get_hyper('beta_3', var_dtype))
@@ -52,6 +54,7 @@ class Adan(ks.optimizers.Optimizer):
         eps = tf.convert_to_tensor(self._get_hyper('eps', var_dtype), var_dtype)
         update_dict = dict(
             eps=eps,
+            diff_scale=diff_scale,
             weight_decay=weight_decay,
             beta_1_t=beta_1_t,
             beta_2_t=beta_2_t,
@@ -68,13 +71,15 @@ class Adan(ks.optimizers.Optimizer):
         coefficients = ((apply_state or {}).get((var_device, var_dtype))
                         or self._fallback_apply_state(var_device, var_dtype))
 
+        # Getting coefficients set by `_prepare_local`
         lr_t = coefficients["lr_t"]  # lr_t = self._decayed_lr(var_dtype)
-        weight_decay = coefficients['weight_decay']
+        weight_decay = coefficients["weight_decay"]
         beta1, beta2, beta3 = coefficients["beta_1_t"], coefficients["beta_2_t"], coefficients["beta_3_t"]
         bias_correction1 = coefficients["bias_correction1"]
         bias_correction2 = coefficients["bias_correction2"]
         bias_correction3 = coefficients["bias_correction3"]
-        eps = coefficients['eps']
+        eps = coefficients["eps"]
+        diff_scale = coefficients["diff_scale"]
 
         exp_avg = self.get_slot(var, 'exp_avg')
         exp_avg_sq = self.get_slot(var, 'exp_avg_sq')
@@ -82,23 +87,24 @@ class Adan(ks.optimizers.Optimizer):
         pre_grad = self.get_slot(var, 'pre_grad')
 
         diff = grad - pre_grad
+        diff *= diff_scale
 
         update = grad + beta2 * diff
-        exp_avg.assign(beta1*exp_avg + grad*(1-beta1), use_locking=self._use_locking)
-        exp_avg_diff.assign(exp_avg_diff*beta2 + diff*(1-beta2))
-        exp_avg_sq.assign(exp_avg_sq*beta3 + update*update*(1 - beta3))
+        exp_avg.assign(beta1 * exp_avg + grad * (1 - beta1), use_locking=self._use_locking)
+        exp_avg_diff.assign(exp_avg_diff * beta2 + diff * (1 - beta2), use_locking=self._use_locking)
+        exp_avg_sq.assign(exp_avg_sq * beta3 + update * update * (1 - beta3), use_locking=self._use_locking)
 
-        denom = (tf.math.sqrt(exp_avg_sq) / tf.math.sqrt(bias_correction3))+eps
-        update = (exp_avg / bias_correction1 + beta2 * exp_avg_diff / bias_correction2)/(denom)
+        denom = (tf.math.sqrt(exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+        update = (exp_avg / bias_correction1 + beta2 * exp_avg_diff / bias_correction2) / (denom)
 
         if self._get_hyper['no_prox']:
-            var.assign(var*(1 - lr_t * weight_decay))
-            var.assign_add(update*(-lr_t))
+            var.assign(var * (1 - lr_t * weight_decay), use_locking=self._use_locking)
+            var.assign_add(update * (-lr_t), use_locking=self._use_locking)
         else:
-            var.assign_add(update*(-lr_t))
-            var.assign(var / (1 + lr_t * weight_decay))
+            var.assign_add(update * (-lr_t), use_locking=self._use_locking)
+            var.assign(var / (1 + lr_t * weight_decay), use_locking=self._use_locking)
 
-        pre_grad.assign(grad)
+        pre_grad.assign(grad, use_locking=self._use_locking)
         return tf.group(*[update, exp_avg, exp_avg_diff, exp_avg_sq, pre_grad])
 
     def _resource_apply_sparse(self, grad, var):
