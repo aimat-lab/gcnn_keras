@@ -114,7 +114,7 @@ class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
 @ks.utils.register_keras_serializable(package='kgcnn', name='BinaryAccuracyNoNaN')
 class BinaryAccuracyNoNaN(ks.metrics.BinaryAccuracy):
 
-    def __init__(self, name="AUC_no_nan", **kwargs):
+    def __init__(self, name="binary_accuracy_no_nan", **kwargs):
         super(BinaryAccuracyNoNaN, self).__init__(name=name, **kwargs)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -129,7 +129,7 @@ class BinaryAccuracyNoNaN(ks.metrics.BinaryAccuracy):
 @ks.utils.register_keras_serializable(package='kgcnn', name='AUCNoNaN')
 class AUCNoNaN(ks.metrics.AUC):
 
-    def __init__(self, name="binary_accuracy_no_nan", **kwargs):
+    def __init__(self, name="AUC_no_nan", **kwargs):
         super(AUCNoNaN, self).__init__(name=name, **kwargs)
 
     def update_state(self, y_true, y_pred, sample_weight=None):

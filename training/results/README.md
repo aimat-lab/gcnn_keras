@@ -112,12 +112,13 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 
 ## FreeSolvDataset
 
-FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. *Min. RMSE* denotes the smallest test RMSE observed for any epoch. 
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. *Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch. 
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       | *Min. MAE*             | *Min. RMSE*            |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
 | AttentiveFP         | 2.1.0   |      200 | 0.6055 &pm; 0.0654     | 0.9643 &pm; 0.1413     | 0.5254 &pm; 0.0506     | 0.8573 &pm; 0.1235     |
 | CMPNN               | 2.1.0   |      600 | 0.5319 &pm; 0.0655     | 0.9262 &pm; 0.1597     | 0.4983 &pm; 0.0589     | 0.8673 &pm; 0.1571     |
+| DimeNetPP           | 2.1.0   |      300 | 0.5791 &pm; 0.0649     | 0.9439 &pm; 0.1602     | 0.5519 &pm; 0.0648     | 0.8618 &pm; 0.0973     |
 | DMPNN               | 2.1.0   |      300 | 0.5305 &pm; 0.0474     | **0.9070 &pm; 0.1497** | **0.4809 &pm; 0.0450** | **0.8192 &pm; 0.1484** |
 | GAT                 | 2.1.0   |      500 | 0.6401 &pm; 0.0892     | 1.0845 &pm; 0.2040     | 0.6237 &pm; 0.0841     | 1.0494 &pm; 0.1967     |
 | GATv2               | 2.1.0   |      500 | 0.6390 &pm; 0.0467     | 1.1203 &pm; 0.1491     | 0.5988 &pm; 0.0355     | 0.9891 &pm; 0.1020     |

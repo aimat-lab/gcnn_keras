@@ -13,8 +13,8 @@ epochs:
 - 800
 kgcnn_version: 2.1.0
 loss:
-- .nan
-- .nan
+- 0.00783451832830906
+- 0.007933292537927628
 - 0.007893125526607037
 - .nan
 - .nan
@@ -38,8 +38,8 @@ model_class: make_crystal_model
 model_name: PAiNN
 number_histories: 10
 scaled_mean_absolute_error:
-- .nan
-- .nan
+- 0.009112910367548466
+- 0.009228790178894997
 - 0.009171842597424984
 - .nan
 - .nan
@@ -49,8 +49,8 @@ scaled_mean_absolute_error:
 - .nan
 - .nan
 scaled_root_mean_squared_error:
-- .nan
-- .nan
+- 0.016574757173657417
+- 0.017229970544576645
 - 0.017232611775398254
 - .nan
 - .nan
@@ -60,8 +60,8 @@ scaled_root_mean_squared_error:
 - .nan
 - .nan
 val_loss:
-- .nan
-- .nan
+- 0.024482591077685356
+- 0.02414732798933983
 - 0.02368152141571045
 - .nan
 - .nan
@@ -71,8 +71,8 @@ val_loss:
 - .nan
 - .nan
 val_scaled_mean_absolute_error:
-- .nan
-- .nan
+- 0.02847757749259472
+- 0.02809055522084236
 - 0.027518026530742645
 - .nan
 - .nan
@@ -82,8 +82,8 @@ val_scaled_mean_absolute_error:
 - .nan
 - .nan
 val_scaled_root_mean_squared_error:
-- .nan
-- .nan
+- 0.07334014028310776
+- 0.06695523113012314
 - 0.06423306465148926
 - .nan
 - .nan

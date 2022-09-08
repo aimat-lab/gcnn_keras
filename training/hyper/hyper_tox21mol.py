@@ -32,8 +32,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                # "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -42,7 +42,7 @@ hyper = {
         "data": {
             "dataset": {"class_name": "Tox21MolNetDataset",
                         "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                        "config": {"remove_nan": True},
+                        "config": {"remove_nan": False},
                         "methods": [{"set_attributes": {}}]
                         },
             "data_unit": ""
@@ -50,7 +50,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.1.0"
         }
     },
     "DMPNN": {
@@ -96,8 +96,8 @@ hyper = {
                               }
                               }
                               },
-                # "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -107,7 +107,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
@@ -162,7 +162,8 @@ hyper = {
                                              "decay_steps": 1600,
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -171,7 +172,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": [
                     {"map_list": {"method": "set_edge_indices_reverse"}}
                 ]
@@ -212,7 +213,8 @@ hyper = {
                               "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
                                          }
                               },
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -221,7 +223,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": []
             },
             "data_unit": ""
@@ -263,7 +265,8 @@ hyper = {
                               }
                               }
                               },
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -272,7 +275,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": []
             },
             "data_unit": ""
@@ -321,7 +324,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -330,7 +334,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": []
             },
             "data_unit": ""
@@ -377,7 +381,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -386,7 +391,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": []
             },
             "data_unit": ""
@@ -433,7 +438,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -442,7 +448,7 @@ hyper = {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": []
             },
             "data_unit": ""
@@ -492,14 +498,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             }
         },
         "data": {
             "dataset": {
                 "class_name": "Tox21MolNetDataset",
                 "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
-                "config": {"remove_nan": True},
+                "config": {"remove_nan": False},
                 "methods": [
                     {"set_attributes": {}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
