@@ -6,8 +6,13 @@ ks = tf.keras
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
 
+    # Reference pytorch implementations:
+    # https://github.com/frgfm/Holocron/blob/main/holocron/optim/functional.py
+    # https://github.com/sail-sg/Adan/blob/main/adan.py
+    # https://github.com/lucidrains/Adan-pytorch
+
     def __init__(self, learning_rate=1e-3, name="Adan", beta_1=0.98, beta_2=0.92, beta_3=0.99, eps=1e-8,
-                 weight_decay=0.0, no_prox=False, **kwargs):
+                 weight_decay=0.0, no_prox=False, amsgrad= False, **kwargs):
         super(Adan, self).__init__(name=name, **kwargs)
 
         if not 0.0 <= learning_rate:
@@ -27,7 +32,8 @@ class Adan(ks.optimizers.Optimizer):
         self._set_hyper("beta_2", beta_2)
         self._set_hyper("beta_3", beta_3)
         self._set_hyper("weight_decay", weight_decay)
-        self._set_hyper("no_prox", no_prox)
+        self._no_prox = no_prox
+        self._use_amsgrad = amsgrad
 
     def _create_slots(self, var_list):
         for var in var_list:
@@ -38,6 +44,9 @@ class Adan(ks.optimizers.Optimizer):
             self.add_slot(var, "exp_avg_diff")
         for var in var_list:
             self.add_slot(var, "pre_grad")
+        if self._use_amsgrad:
+            for var in var_list:
+                self.add_slot(var, "max_exp_avg_sq")
 
     def _prepare_local(self, var_device, var_dtype, apply_state):
         super(Adan, self)._prepare_local(var_device, var_dtype, apply_state)
@@ -65,7 +74,6 @@ class Adan(ks.optimizers.Optimizer):
         )
         apply_state[(var_device, var_dtype)].update(update_dict)
 
-    @tf.function
     def _resource_apply_dense(self, grad, var, apply_state=None):
         var_device, var_dtype = var.device, var.dtype.base_dtype
         coefficients = ((apply_state or {}).get((var_device, var_dtype))
@@ -89,15 +97,23 @@ class Adan(ks.optimizers.Optimizer):
         diff = grad - pre_grad
         diff *= diff_scale
 
-        update = grad + beta2 * diff
         exp_avg.assign(beta1 * exp_avg + grad * (1 - beta1), use_locking=self._use_locking)
         exp_avg_diff.assign(exp_avg_diff * beta2 + diff * (1 - beta2), use_locking=self._use_locking)
+        update = grad + beta2 * diff
         exp_avg_sq.assign(exp_avg_sq * beta3 + update * update * (1 - beta3), use_locking=self._use_locking)
 
-        denom = (tf.math.sqrt(exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+        if self._use_amsgrad:
+            max_exp_avg_sq = self.get_slot(var, 'max_exp_avg_sq')
+            # Maintains the maximum of all 2nd moment running avg. till now
+            max_exp_avg_sq.assign(tf.maximum(max_exp_avg_sq, exp_avg_sq), use_locking=self._use_locking)
+            # Use the max. for normalizing running avg. of gradient
+            denom = (tf.math.sqrt(max_exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+        else:
+            denom = (tf.math.sqrt(exp_avg_sq) / tf.math.sqrt(bias_correction3)) + eps
+
         update = (exp_avg / bias_correction1 + beta2 * exp_avg_diff / bias_correction2) / (denom)
 
-        if self._get_hyper['no_prox']:
+        if self._no_prox:
             var.assign(var * (1 - lr_t * weight_decay), use_locking=self._use_locking)
             var.assign_add(update * (-lr_t), use_locking=self._use_locking)
         else:
