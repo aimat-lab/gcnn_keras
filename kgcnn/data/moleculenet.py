@@ -371,7 +371,9 @@ class MoleculeNetDataset(MemoryGraphDataset):
         # Additional callbacks. Could check for duplicate names here.
         callbacks.update(additional_callbacks)
 
-        self._map_molecule_callbacks(callbacks, add_hydrogen=add_hydrogen, custom_transform=custom_transform,
+        self._map_molecule_callbacks(callbacks=callbacks,
+                                     add_hydrogen=add_hydrogen,
+                                     custom_transform=custom_transform,
                                      make_directed=make_directed)
 
         if self.logger.getEffectiveLevel() < 20:

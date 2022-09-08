@@ -393,8 +393,8 @@ class MemoryGraphDataset(MemoryGraphList):
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
-        r"""Read a data frame in :obj:`data_frame` from file path. By default uses :obj:`file_name` and pandas.
-        Checks for a '.csv' file and then for excel file endings. Meaning the file extension of file_path is ignored
+        r"""Read a data frame in :obj:`data_frame` from file path. By default, uses :obj:`file_name` and pandas.
+        Checks for a '.csv' file and then for Excel file endings. Meaning the file extension of file_path is ignored
         but must be any of the following '.csv', '.xls', '.xlsx', 'odt'.
 
         Args:

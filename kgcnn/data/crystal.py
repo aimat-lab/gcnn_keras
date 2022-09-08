@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from collections import defaultdict
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Union
 import pandas as pd
 import pymatgen.io.cif
 import pymatgen.core.structure
@@ -166,15 +166,12 @@ class CrystalDataset(MemoryGraphDataset):
         dicts = load_json_file(file_path)
         return self._pymatgen_deserialize_dicts(dicts)
 
-    def _map_callbacks(self, callbacks: Dict[str, Callable[[pymatgen.core.structure.Structure, pd.Series], None]]):
-
-        # Read pymatgen JSON file from file.
-        structs = self._read_pymatgen_json_in_memory()
-        # self.structs = structs
-
-        # Try to read table file
-        self.read_in_table_file(file_path=self.file_path)
-        data = self.data_frame
+    def _map_callbacks(self,
+                       structs: list,
+                       data: pd.Series,
+                       callbacks: Dict[
+                           str, Callable[[pymatgen.core.structure.Structure, pd.Series], Union[np.ndarray, None]]],
+                       assign_to_self: bool = True) -> dict:
 
         # The dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one structure in the dataset.
@@ -192,8 +189,11 @@ class CrystalDataset(MemoryGraphDataset):
 
         # The string key names of the original "callbacks" dict are also used as the names of the properties which are
         # assigned
-        for name, values in value_lists.items():
-            self.assign_property(name, values)
+        if assign_to_self:
+            for name, values in value_lists.items():
+                self.assign_property(name, values)
+
+        return value_lists
 
     def read_in_memory(self, label_column_name: str = None,
                        additional_callbacks: Dict[
@@ -223,7 +223,9 @@ class CrystalDataset(MemoryGraphDataset):
                      **additional_callbacks
                      }
 
-        self._map_callbacks(callbacks)
+        self._map_callbacks(structs=self._read_pymatgen_json_in_memory(),
+                            data=self.read_in_table_file(file_path=self.file_path).data_frame,
+                            callbacks=callbacks)
 
         return self
 
