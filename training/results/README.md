@@ -152,21 +152,21 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
 
-| model       | kgcnn   |   epochs | Accuracy           | AUC(ROC)           |
-|:------------|:--------|---------:|:-------------------|:-------------------|
-| AttentiveFP | 2.1.0   |       50 | 0.9354 &pm; 0.0019 | 0.8483 &pm; 0.0044 |
-| CMPNN       | 2.1.0   |       50 | 0.9292 &pm; 0.0034 | 0.7977 &pm; 0.0421 |
-| DMPNN       | 2.1.0   |       50 | 0.9399 &pm; 0.0009 | 0.8608 &pm; 0.0027 |
-| GAT         | 2.1.0   |       50 | 0.9354 &pm; 0.0029 | 0.8642 &pm; 0.0060 |
-| GATv2       | 2.1.0   |       50 | **nan &pm; nan**   | **nan &pm; nan**   |
-| GIN         | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
-| GraphSAGE   | 2.1.0   |      100 | 0.9304 &pm; 0.0022 | 0.8326 &pm; 0.0068 |
-| INorp       | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
-| Schnet      | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.0   |       50 | 0.9354 &pm; 0.0019     | 0.8483 &pm; 0.0044     |
+| CMPNN       | 2.1.0   |       50 | 0.9292 &pm; 0.0034     | 0.7977 &pm; 0.0421     |
+| DMPNN       | 2.1.0   |       50 | **0.9399 &pm; 0.0009** | 0.8608 &pm; 0.0027     |
+| GAT         | 2.1.0   |       50 | 0.9354 &pm; 0.0029     | **0.8642 &pm; 0.0060** |
+| GATv2       | 2.1.0   |       50 | 0.9358 &pm; 0.0039     | 0.8617 &pm; 0.0051     |
+| GIN         | 2.1.0   |       50 | 0.9373 &pm; 0.0021     | 0.8561 &pm; 0.0087     |
+| GraphSAGE   | 2.1.0   |      100 | 0.9304 &pm; 0.0022     | 0.8326 &pm; 0.0068     |
+| INorp       | 2.1.0   |       50 | 0.9340 &pm; 0.0024     | 0.8535 &pm; 0.0061     |
+| Schnet      | 2.1.0   |       50 | 0.9315 &pm; 0.0023     | 0.8218 &pm; 0.0143     |
 
 ## QM7Dataset
 
-QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
+QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use a random 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
 | model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
@@ -174,7 +174,7 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 ## QM9Dataset
 
-QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. Test errors are MAE and for energies are given in [eV]. 
+QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 10-fold cross-validation. Test errors are MAE and for energies are given in [eV]. 
 
 | model   | kgcnn   |   epochs | HOMO                   |
 |:--------|:--------|---------:|:-----------------------|
