@@ -77,7 +77,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | CGCNN.make_crystal_model     | 2.1.0   |     1000 | 0.0354 &pm; 0.0006     | 0.0847 &pm; 0.0037     |
 | DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0220 &pm; 0.0006     | 0.0623 &pm; 0.0036     |
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0239 &pm; 0.0005     | 0.0634 &pm; 0.0039     |
-| PAiNN.make_crystal_model     | 2.1.0   |      800 | 0.0278 &pm; 0.0003     | 0.0662 &pm; 0.0040     |
+| PAiNN.make_crystal_model     | 2.1.0   |      800 | 0.0280 &pm; 0.0003     | 0.0675 &pm; 0.0042     |
 | Schnet.make_crystal_model    | 2.1.0   |      800 | **0.0209 &pm; 0.0004** | **0.0514 &pm; 0.0028** |
 
 ## MutagenicityDataset
@@ -152,17 +152,17 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
 
-| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
-|:------------|:--------|---------:|:-----------------------|:-----------------------|
-| AttentiveFP | 2.1.0   |       50 | 0.9398 &pm; 0.0034     | 0.8141 &pm; 0.0129     |
-| CMPNN       | 2.1.0   |       50 | 0.9382 &pm; 0.0012     | 0.7928 &pm; 0.0166     |
-| DMPNN       | 2.1.0   |       50 | **0.9423 &pm; 0.0015** | 0.8388 &pm; 0.0055     |
-| GAT         | 2.1.0   |       50 | 0.9418 &pm; 0.0009     | **0.8416 &pm; 0.0037** |
-| GATv2       | 2.1.0   |       50 | 0.9416 &pm; 0.0016     | 0.8330 &pm; 0.0060     |
-| GIN         | 2.1.0   |       50 | 0.9416 &pm; 0.0021     | 0.8276 &pm; 0.0054     |
-| GraphSAGE   | 2.1.0   |      100 | 0.9338 &pm; 0.0036     | 0.8089 &pm; 0.0074     |
-| INorp       | 2.1.0   |       50 | 0.9386 &pm; 0.0040     | 0.8240 &pm; 0.0112     |
-| Schnet      | 2.1.0   |       50 | 0.9403 &pm; 0.0039     | 0.8078 &pm; 0.0077     |
+| model       | kgcnn   |   epochs | Accuracy           | AUC(ROC)           |
+|:------------|:--------|---------:|:-------------------|:-------------------|
+| AttentiveFP | 2.1.0   |       50 | 0.9354 &pm; 0.0019 | 0.8483 &pm; 0.0044 |
+| CMPNN       | 2.1.0   |       50 | 0.9292 &pm; 0.0034 | 0.7977 &pm; 0.0421 |
+| DMPNN       | 2.1.0   |       50 | 0.9399 &pm; 0.0009 | 0.8608 &pm; 0.0027 |
+| GAT         | 2.1.0   |       50 | 0.9354 &pm; 0.0029 | 0.8642 &pm; 0.0060 |
+| GATv2       | 2.1.0   |       50 | **nan &pm; nan**   | **nan &pm; nan**   |
+| GIN         | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
+| GraphSAGE   | 2.1.0   |      100 | 0.9304 &pm; 0.0022 | 0.8326 &pm; 0.0068 |
+| INorp       | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
+| Schnet      | 2.1.0   |       50 | nan &pm; nan       | nan &pm; nan       |
 
 ## QM7Dataset
 
@@ -171,4 +171,12 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 | model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
 | Schnet  | 2.1.0   |      800 | **2.5247 &pm; 0.2063** | **8.8590 &pm; 4.8022** |
+
+## QM9Dataset
+
+QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. Test errors are MAE and for energies are given in [eV]. 
+
+| model   | kgcnn   |   epochs | HOMO                   |
+|:--------|:--------|---------:|:-----------------------|
+| Schnet  | 2.1.0   |      800 | **0.0356 &pm; 0.0000** |
 

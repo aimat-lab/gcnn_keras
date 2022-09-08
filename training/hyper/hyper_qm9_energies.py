@@ -13,7 +13,7 @@ hyper = {
                 "input_embedding": {
                     "node": {"input_dim": 95, "output_dim": 64}
                 },
-                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 4],
+                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "interaction_args": {
                     "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
@@ -29,7 +29,7 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
-            "execute_folds": 1,
+            "execute_folds": 10,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -45,16 +45,10 @@ hyper = {
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10, 11, 12, 13]
+            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
         },
         "data": {
             "dataset": {
@@ -68,8 +62,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_energies",
-            "kgcnn_version": "2.0.3"
+            "postfix_file": "_U0",
+            "kgcnn_version": "2.1.0"
         }
     },
     "Megnet": {
@@ -96,14 +90,14 @@ hyper = {
                 "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
                 "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 4],
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
                                "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]},
             }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
-            "execute_folds": 1,
+            "execute_folds": 10,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -120,16 +114,10 @@ hyper = {
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10, 11, 12, 13]
+            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -143,8 +131,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_energies",
-            "kgcnn_version": "2.0.3"
+            "postfix_file": "_U0",
+            "kgcnn_version": "2.1.0"
         }
     },
     "NMPN": {
@@ -166,14 +154,14 @@ hyper = {
                 "verbose": 10,
                 "geometric_edge": True, "make_distance": True, "expand_distance": True,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 4],
+                "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 1],
                                "activation": ["selu", "selu", "linear"]},
             }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
-            "execute_folds": 1,
+            "execute_folds": 10,
             "fit": {
                 "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -190,16 +178,10 @@ hyper = {
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10, 11, 12, 13]
+            "multi_target_indices": [10]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -213,8 +195,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_energies",
-            "kgcnn_version": "2.0.3"
+            "postfix_file": "_U0",
+            "kgcnn_version": "2.1.0"
         }
     },
     "PAiNN": {
@@ -233,13 +215,13 @@ hyper = {
                 "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
                 "update_args": {"units": 128}, "depth": 3, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True], "units": [128, 4], "activation": ["swish", "linear"]},
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]},
             }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
-            "execute_folds": 1,
+            "execute_folds": 10,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -263,16 +245,10 @@ hyper = {
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10, 11, 12, 13]
+            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -286,8 +262,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_energies",
-            "kgcnn_version": "2.0.3"
+            "postfix_file": "_U0",
+            "kgcnn_version": "2.1.0"
         }
     },
     "DimeNetPP": {
@@ -308,7 +284,7 @@ hyper = {
                 "num_blocks": 4, "num_spherical": 7, "num_radial": 6,
                 "cutoff": 5.0, "envelope_exponent": 5,
                 "num_before_skip": 1, "num_after_skip": 2, "num_dense_output": 3,
-                "num_targets": 4, "extensive": True, "output_init": "zeros",
+                "num_targets": 1, "extensive": True, "output_init": "zeros",
                 "activation": "swish", "verbose": 10,
                 "output_embedding": "graph",
                 "use_output_mlp": False,
@@ -318,7 +294,7 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
-            "execute_folds": 1,
+            "execute_folds": 10,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -342,16 +318,10 @@ hyper = {
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
-                            "config": {}},
-                           {"class_name": "ExtensiveMolecularScaler",
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10, 11, 12, 13]
+            "multi_target_indices": [10]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -366,8 +336,8 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_energies",
-            "kgcnn_version": "2.0.3"
+            "postfix_file": "_U0",
+            "kgcnn_version": "2.1.0"
         }
     }
 }

@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from math import nan
 from kgcnn.data.utils import load_yaml_file
 
 benchmark_datasets = {
@@ -106,19 +107,32 @@ benchmark_datasets = {
             "We use random 5-fold cross-validation. "
         ],
         "targets": [
-            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+            {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"}
         ]
     },
     "QM7Dataset": {
         "general_info": [
             "QM7 dataset is a subset of GDB-13. ",
             "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
+            "We use a random 5-fold cross-validation. "
             "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [kcal/mol]", "find_best": "min"},
             {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [kcal/mol]", "find_best": "min"}
+        ]
+    },
+    "QM9Dataset": {
+        "general_info": [
+            "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",
+            "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
+            "We use a random 10-fold cross-validation. "
+            "Test errors are MAE and for energies are given in [eV]. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "HOMO", "find_best": "min",
+             "multi_target_indices": [5]}
         ]
     },
 }
@@ -173,7 +187,17 @@ with open("README.md", "w") as f:
                     "epochs": str(int(np.mean(results["epochs"]))),
                 })
                 for x in dataset_info["targets"]:
+                    if x["metric"] not in results:
+                        continue
                     target_res = np.array(results[x["metric"]])
+                    if "multi_target_indices" in results:
+                        target_idx = results["multi_target_indices"]
+                        if target_idx is not None:
+                            if "multi_target_indices" not in x:
+                                continue
+                            info_idx = x["multi_target_indices"]
+                            if info_idx != target_idx:
+                                continue
                     target_res = target_res[~np.isnan(target_res)]
                     result_dict[x["name"]] = (np.mean(target_res), np.std(target_res))
             df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
@@ -183,10 +207,12 @@ with open("README.md", "w") as f:
         for data_targets in dataset_info["targets"]:
             target_val = df[data_targets["name"]]
             find_function = np.argmax if data_targets["find_best"] == "max" else np.argmin
-            best = find_function([x[0] for x in target_val])
+            best = find_function([x[0] if isinstance(x, (list, tuple, np.ndarray)) else x for x in target_val])
             format_strings = ["{0:0.4f} &pm; {1:0.4f}"] * len(target_val)
             format_strings[int(best)] = "**{0:0.4f} &pm; {1:0.4f}**"
-            format_val = [format_strings[i].format(x, y) for i, (x, y) in enumerate(target_val)]
+            format_val = [
+                format_strings[i].format(*v) if isinstance(v, (list, tuple, np.ndarray)) else format_strings[i].format(
+                    v, nan) for i, v in enumerate(target_val)]
             df[data_targets["name"]] = format_val
 
         f.write(df.to_markdown(index=False))

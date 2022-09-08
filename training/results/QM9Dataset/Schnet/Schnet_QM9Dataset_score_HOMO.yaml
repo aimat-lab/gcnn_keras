@@ -1,0 +1,52 @@
+data_unit: ''
+date_time: '2022-09-08 16:51:02'
+epochs:
+- 800
+kgcnn_version: 2.1.0
+loss:
+- 0.003783503547310829
+lr:
+- 1.06999996205559e-05
+max_loss:
+- 0.43405601382255554
+max_lr:
+- 0.0005000000237487257
+max_scaled_mean_absolute_error:
+- 0.26134806871414185
+max_scaled_root_mean_squared_error:
+- 0.36217424273490906
+max_val_loss:
+- 0.19191482663154602
+max_val_scaled_mean_absolute_error:
+- 0.11555331200361252
+max_val_scaled_root_mean_squared_error:
+- 0.16112326085567474
+min_loss:
+- 0.003783503547310829
+min_lr:
+- 1.06999996205559e-05
+min_scaled_mean_absolute_error:
+- 0.0022780830040574074
+min_scaled_root_mean_squared_error:
+- 0.003968657925724983
+min_val_loss:
+- 0.05864576995372772
+min_val_scaled_mean_absolute_error:
+- 0.03531106188893318
+min_val_scaled_root_mean_squared_error:
+- 0.06573072075843811
+model_class: make_model
+model_name: Schnet
+multi_target_indices:
+- 5
+number_histories: 10
+scaled_mean_absolute_error:
+- 0.0022780830040574074
+scaled_root_mean_squared_error:
+- 0.003968657925724983
+val_loss:
+- 0.05905162915587425
+val_scaled_mean_absolute_error:
+- 0.0355554074048996
+val_scaled_root_mean_squared_error:
+- 0.06794967502355576
