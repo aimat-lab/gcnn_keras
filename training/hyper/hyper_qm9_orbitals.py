@@ -28,7 +28,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -98,7 +98,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -164,7 +164,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
@@ -226,7 +226,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
@@ -301,7 +301,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 1,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
