@@ -79,12 +79,13 @@ benchmark_datasets = {
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
             "We use a random 5-fold cross-validation. ",
-            "`Min. RMSE` denotes the smallest test RMSE observed for any epoch. "
+            "*Min. RMSE* denotes the smallest test RMSE observed for any epoch. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
             {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
-            {"metric": "min_val_scaled_root_mean_squared_error", "name": "Min. RMSE [log mol/L]", "find_best": "min"}
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min"},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min"}
         ]
     },
     "PROTEINSDataset": {
