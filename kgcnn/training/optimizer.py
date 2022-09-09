@@ -127,7 +127,7 @@ class Adan(ks.optimizers.Optimizer):
             {
                 "no_prox": bool(self._no_prox),
                 "amsgrad": bool(self._use_amsgrad),
-                "learning_rate": self._serialize_hyperparameter("beta_1"),
+                "learning_rate": self._serialize_hyperparameter("learning_rate"),
                 "eps": self._serialize_hyperparameter("eps"),
                 "beta_1": self._serialize_hyperparameter("beta_1"),
                 "beta_2": self._serialize_hyperparameter("beta_2"),
