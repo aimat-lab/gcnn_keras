@@ -112,7 +112,7 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 
 ## FreeSolvDataset
 
-FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. *Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch. 
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. *Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch during training. 
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       | *Min. MAE*             | *Min. RMSE*            |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
@@ -150,19 +150,19 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 
 ## Tox21MolNetDataset
 
-Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
+Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. *Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. 
 
-| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
-|:------------|:--------|---------:|:-----------------------|:-----------------------|
-| AttentiveFP | 2.1.0   |       50 | 0.9354 &pm; 0.0019     | 0.8483 &pm; 0.0044     |
-| CMPNN       | 2.1.0   |       50 | 0.9292 &pm; 0.0034     | 0.7977 &pm; 0.0421     |
-| DMPNN       | 2.1.0   |       50 | **0.9399 &pm; 0.0009** | 0.8608 &pm; 0.0027     |
-| GAT         | 2.1.0   |       50 | 0.9354 &pm; 0.0029     | **0.8642 &pm; 0.0060** |
-| GATv2       | 2.1.0   |       50 | 0.9358 &pm; 0.0039     | 0.8617 &pm; 0.0051     |
-| GIN         | 2.1.0   |       50 | 0.9373 &pm; 0.0021     | 0.8561 &pm; 0.0087     |
-| GraphSAGE   | 2.1.0   |      100 | 0.9304 &pm; 0.0022     | 0.8326 &pm; 0.0068     |
-| INorp       | 2.1.0   |       50 | 0.9340 &pm; 0.0024     | 0.8535 &pm; 0.0061     |
-| Schnet      | 2.1.0   |       50 | 0.9315 &pm; 0.0023     | 0.8218 &pm; 0.0143     |
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | *Max. Accuracy*        | *Max. AUC*             |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.0   |       50 | 0.9354 &pm; 0.0019     | 0.8483 &pm; 0.0044     | 0.9401 &pm; 0.0015     | **0.8721 &pm; 0.0040** |
+| CMPNN       | 2.1.0   |       50 | 0.9292 &pm; 0.0034     | 0.7977 &pm; 0.0421     | 0.9317 &pm; 0.0047     | 0.8148 &pm; 0.0419     |
+| DMPNN       | 2.1.0   |       50 | **0.9399 &pm; 0.0009** | 0.8608 &pm; 0.0027     | **0.9410 &pm; 0.0012** | 0.8705 &pm; 0.0052     |
+| GAT         | 2.1.0   |       50 | 0.9354 &pm; 0.0029     | **0.8642 &pm; 0.0060** | 0.9363 &pm; 0.0024     | 0.8658 &pm; 0.0057     |
+| GATv2       | 2.1.0   |       50 | 0.9358 &pm; 0.0039     | 0.8617 &pm; 0.0051     | 0.9376 &pm; 0.0026     | 0.8675 &pm; 0.0037     |
+| GIN         | 2.1.0   |       50 | 0.9373 &pm; 0.0021     | 0.8561 &pm; 0.0087     | 0.9402 &pm; 0.0020     | 0.8677 &pm; 0.0061     |
+| GraphSAGE   | 2.1.0   |      100 | 0.9304 &pm; 0.0022     | 0.8326 &pm; 0.0068     | 0.9385 &pm; 0.0029     | 0.8664 &pm; 0.0060     |
+| INorp       | 2.1.0   |       50 | 0.9340 &pm; 0.0024     | 0.8535 &pm; 0.0061     | 0.9374 &pm; 0.0013     | 0.8597 &pm; 0.0038     |
+| Schnet      | 2.1.0   |       50 | 0.9315 &pm; 0.0023     | 0.8218 &pm; 0.0143     | 0.9356 &pm; 0.0024     | 0.8421 &pm; 0.0074     |
 
 ## QM7Dataset
 

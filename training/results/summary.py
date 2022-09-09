@@ -80,7 +80,7 @@ benchmark_datasets = {
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
             "We use a random 5-fold cross-validation. ",
-            "*Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch. "
+            "*Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -104,11 +104,14 @@ benchmark_datasets = {
         "general_info": [
             "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
             "12 different targets relevant to drug toxicity. ",
-            "We use random 5-fold cross-validation. "
+            "We use random 5-fold cross-validation. ",
+            "*Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"}
+            {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max"},
+            {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max"}
         ]
     },
     "QM7Dataset": {
