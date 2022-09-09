@@ -77,7 +77,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | CGCNN.make_crystal_model     | 2.1.0   |     1000 | 0.0354 &pm; 0.0006     | 0.0847 &pm; 0.0037     |
 | DimeNetPP.make_crystal_model | 2.1.0   |      750 | 0.0220 &pm; 0.0006     | 0.0623 &pm; 0.0036     |
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0239 &pm; 0.0005     | 0.0634 &pm; 0.0039     |
-| PAiNN.make_crystal_model     | 2.1.0   |      800 | 0.0280 &pm; 0.0003     | 0.0675 &pm; 0.0042     |
+| PAiNN.make_crystal_model     | 2.1.0   |      800 | 0.0278 &pm; 0.0005     | 0.0676 &pm; 0.0038     |
 | Schnet.make_crystal_model    | 2.1.0   |      800 | **0.0209 &pm; 0.0004** | **0.0514 &pm; 0.0028** |
 
 ## MutagenicityDataset
@@ -140,12 +140,12 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | *Max. Accuracy*    | *Max. AUC*         |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|:-------------------|:-------------------|
 | AttentiveFP | 2.1.0   |      200 | 0.7269 &pm; 0.0280     | 0.7925 &pm; 0.0250     | 0.7772 &pm; 0.0270 | 0.8361 &pm; 0.0278 |
-| CMPNN       | 2.1.0   |      600 | 0.7071 &pm; 0.0230     | 0.7164 &pm; 0.0264     | 0.7700 &pm; 0.0185 | 0.8259 &pm; 0.0262 |
-| DMPNN       | 2.1.0   |      300 | 0.7152 &pm; 0.0502     | 0.7707 &pm; 0.0512     | **nan &pm; nan**   | **nan &pm; nan**   |
-| GAT         | 2.1.0   |      500 | **0.7313 &pm; 0.0198** | **0.8036 &pm; 0.0279** | 0.7772 &pm; 0.0177 | 0.8265 &pm; 0.0270 |
+| CMPNN       | 2.1.0   |      600 | 0.7377 &pm; 0.0164     | 0.7532 &pm; 0.0174     | 0.7763 &pm; 0.0210 | 0.8337 &pm; 0.0252 |
+| DMPNN       | 2.1.0   |      300 | **0.7395 &pm; 0.0300** | **0.8038 &pm; 0.0365** | 0.7907 &pm; 0.0272 | 0.8357 &pm; 0.0274 |
+| GAT         | 2.1.0   |      500 | 0.7368 &pm; 0.0330     | 0.7991 &pm; 0.0303     | 0.7817 &pm; 0.0358 | 0.8278 &pm; 0.0367 |
 | GATv2       | 2.1.0   |      500 | 0.6855 &pm; 0.0192     | 0.7072 &pm; 0.0237     | 0.7745 &pm; 0.0182 | 0.8283 &pm; 0.0192 |
 | GIN         | 2.1.0   |      150 | 0.7098 &pm; 0.0357     | 0.7437 &pm; 0.0454     | 0.7449 &pm; 0.0325 | 0.7728 &pm; 0.0401 |
-| GraphSAGE   | 2.1.0   |      500 | 0.6891 &pm; 0.0379     | 0.7091 &pm; 0.0430     | nan &pm; nan       | nan &pm; nan       |
+| GraphSAGE   | 2.1.0   |      500 | 0.6891 &pm; 0.0379     | 0.7091 &pm; 0.0430     | **nan &pm; nan**   | **nan &pm; nan**   |
 | INorp       | 2.1.0   |      500 | 0.6928 &pm; 0.0319     | 0.7086 &pm; 0.0126     | 0.7574 &pm; 0.0155 | 0.8113 &pm; 0.0149 |
 
 ## Tox21MolNetDataset

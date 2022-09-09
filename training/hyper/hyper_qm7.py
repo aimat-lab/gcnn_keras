@@ -59,6 +59,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
                 ]
             },
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
@@ -128,6 +129,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
                 ]
             },
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
@@ -192,6 +194,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
                 ]
             },
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
@@ -259,6 +262,7 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000}}
                 ]
             },
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
@@ -333,6 +337,7 @@ hyper = {
                     {"map_list": {"method": "set_angle"}}
                 ]
             },
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
