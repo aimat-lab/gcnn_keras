@@ -48,12 +48,12 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": None
+            "multi_target_indices": [3]
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "QM7bDataset",
+                "module_name": "kgcnn.data.datasets.QM7bDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -117,12 +117,12 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": None
+            "multi_target_indices": [3]
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "QM7bDataset",
+                "module_name": "kgcnn.data.datasets.QM7bDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -181,12 +181,12 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": None
+            "multi_target_indices": [3]
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "QM7bDataset",
+                "module_name": "kgcnn.data.datasets.QM7bDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
@@ -248,12 +248,12 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": None
+            "multi_target_indices": [3]
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "QM7bDataset",
+                "module_name": "kgcnn.data.datasets.QM7bDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000}}
@@ -321,12 +321,12 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": None
+            "multi_target_indices": [3]
         },
         "data": {
             "dataset": {
-                "class_name": "QM7Dataset",
-                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "class_name": "QM7bDataset",
+                "module_name": "kgcnn.data.datasets.QM7bDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},

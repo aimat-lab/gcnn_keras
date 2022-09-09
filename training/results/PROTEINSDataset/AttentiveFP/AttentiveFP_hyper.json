@@ -1,1 +1,121 @@
-{"model": {"class_name": "make_model", "module_name": "kgcnn.literature.AttentiveFP", "config": {"name": "AttentiveFP", "inputs": [{"shape": [null, 3], "name": "node_labels", "dtype": "float32", "ragged": true}, {"shape": [null, 1], "name": "edge_weights", "dtype": "float32", "ragged": true}, {"shape": [null, 2], "name": "edge_indices", "dtype": "int64", "ragged": true}], "input_embedding": {"node_attributes": {"input_dim": 95, "output_dim": 64}, "edge_attributes": {"input_dim": 5, "output_dim": 64}}, "attention_args": {"units": 200}, "depth": 2, "dropout": 0.2, "verbose": 10, "output_embedding": "graph", "output_mlp": {"use_bias": [true, true], "units": [200, 1], "activation": ["kgcnn>leaky_relu", "sigmoid"]}}}, "training": {"fit": {"batch_size": 200, "epochs": 200, "validation_freq": 1, "verbose": 2, "callbacks": []}, "compile": {"optimizer": {"class_name": "Addons>AdamW", "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05}}, "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]}, "cross_validation": {"class_name": "KFold", "config": {"n_splits": 5, "random_state": null, "shuffle": true}}, "multi_target_indices": null}, "data": {"dataset": {"class_name": "PROTEINSDataset", "module_name": "kgcnn.data.datasets.PROTEINSDataset", "config": {}, "methods": [{"map_list": {"method": "normalize_edge_weights_sym"}}]}, "data_unit": ""}, "info": {"postfix": "", "postfix_file": "", "kgcnn_version": "2.1.0"}}
+{
+  "model": {
+    "class_name": "make_model",
+    "module_name": "kgcnn.literature.AttentiveFP",
+    "config": {
+      "name": "AttentiveFP",
+      "inputs": [
+        {
+          "shape": [
+            null,
+            3
+          ],
+          "name": "node_labels",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            1
+          ],
+          "name": "edge_weights",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            2
+          ],
+          "name": "edge_indices",
+          "dtype": "int64",
+          "ragged": true
+        }
+      ],
+      "input_embedding": {
+        "node_attributes": {
+          "input_dim": 95,
+          "output_dim": 64
+        },
+        "edge_attributes": {
+          "input_dim": 5,
+          "output_dim": 64
+        }
+      },
+      "attention_args": {
+        "units": 200
+      },
+      "depth": 2,
+      "dropout": 0.2,
+      "verbose": 10,
+      "output_embedding": "graph",
+      "output_mlp": {
+        "use_bias": [
+          true,
+          true
+        ],
+        "units": [
+          200,
+          1
+        ],
+        "activation": [
+          "kgcnn>leaky_relu",
+          "sigmoid"
+        ]
+      }
+    }
+  },
+  "training": {
+    "fit": {
+      "batch_size": 200,
+      "epochs": 200,
+      "validation_freq": 1,
+      "verbose": 2,
+      "callbacks": []
+    },
+    "compile": {
+      "optimizer": {
+        "class_name": "Addons>AdamW",
+        "config": {
+          "lr": 0.0031622776601683794,
+          "weight_decay": 1e-05
+        }
+      },
+      "loss": "binary_crossentropy",
+      "metrics": [
+        "accuracy",
+        "AUC"
+      ]
+    },
+    "cross_validation": {
+      "class_name": "KFold",
+      "config": {
+        "n_splits": 5,
+        "random_state": 42,
+        "shuffle": true
+      }
+    },
+    "multi_target_indices": null
+  },
+  "data": {
+    "dataset": {
+      "class_name": "PROTEINSDataset",
+      "module_name": "kgcnn.data.datasets.PROTEINSDataset",
+      "config": {},
+      "methods": [
+        {
+          "map_list": {
+            "method": "normalize_edge_weights_sym"
+          }
+        }
+      ]
+    },
+    "data_unit": ""
+  },
+  "info": {
+    "postfix": "",
+    "postfix_file": "",
+    "kgcnn_version": "2.1.0"
+  }
+}

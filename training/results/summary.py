@@ -93,11 +93,14 @@ benchmark_datasets = {
         "general_info": [
             "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
             "Nodes represent the amino acids of the protein. ",
-            "We use random 5-fold cross-validation. "
+            "We use random 5-fold cross-validation. ",
+            "*Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max"},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max"}
         ]
     },
     "Tox21MolNetDataset": {

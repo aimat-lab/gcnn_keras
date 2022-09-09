@@ -135,18 +135,18 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 
 ## PROTEINSDataset
 
-TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. 
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. *Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. 
 
-| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
-|:------------|:--------|---------:|:-----------------------|:-----------------------|
-| AttentiveFP | 2.1.0   |      200 | 0.7188 &pm; 0.0179     | 0.7884 &pm; 0.0353     |
-| CMPNN       | 2.1.0   |      600 | 0.7071 &pm; 0.0230     | 0.7164 &pm; 0.0264     |
-| DMPNN       | 2.1.0   |      300 | 0.7152 &pm; 0.0502     | 0.7707 &pm; 0.0512     |
-| GAT         | 2.1.0   |      500 | **0.7313 &pm; 0.0198** | **0.8036 &pm; 0.0279** |
-| GATv2       | 2.1.0   |      500 | 0.6855 &pm; 0.0192     | 0.7072 &pm; 0.0237     |
-| GIN         | 2.1.0   |      150 | 0.7089 &pm; 0.0242     | 0.7421 &pm; 0.0378     |
-| GraphSAGE   | 2.1.0   |      500 | 0.6891 &pm; 0.0379     | 0.7091 &pm; 0.0430     |
-| INorp       | 2.1.0   |      500 | 0.6928 &pm; 0.0319     | 0.7086 &pm; 0.0126     |
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | *Max. Accuracy*    | *Max. AUC*         |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|:-------------------|:-------------------|
+| AttentiveFP | 2.1.0   |      200 | 0.7269 &pm; 0.0280     | 0.7925 &pm; 0.0250     | 0.7772 &pm; 0.0270 | 0.8361 &pm; 0.0278 |
+| CMPNN       | 2.1.0   |      600 | 0.7071 &pm; 0.0230     | 0.7164 &pm; 0.0264     | 0.7700 &pm; 0.0185 | 0.8259 &pm; 0.0262 |
+| DMPNN       | 2.1.0   |      300 | 0.7152 &pm; 0.0502     | 0.7707 &pm; 0.0512     | **nan &pm; nan**   | **nan &pm; nan**   |
+| GAT         | 2.1.0   |      500 | **0.7313 &pm; 0.0198** | **0.8036 &pm; 0.0279** | 0.7772 &pm; 0.0177 | 0.8265 &pm; 0.0270 |
+| GATv2       | 2.1.0   |      500 | 0.6855 &pm; 0.0192     | 0.7072 &pm; 0.0237     | 0.7745 &pm; 0.0182 | 0.8283 &pm; 0.0192 |
+| GIN         | 2.1.0   |      150 | 0.7098 &pm; 0.0357     | 0.7437 &pm; 0.0454     | 0.7449 &pm; 0.0325 | 0.7728 &pm; 0.0401 |
+| GraphSAGE   | 2.1.0   |      500 | 0.6891 &pm; 0.0379     | 0.7091 &pm; 0.0430     | nan &pm; nan       | nan &pm; nan       |
+| INorp       | 2.1.0   |      500 | 0.6928 &pm; 0.0319     | 0.7086 &pm; 0.0126     | 0.7574 &pm; 0.0155 | 0.8113 &pm; 0.0149 |
 
 ## Tox21MolNetDataset
 
@@ -178,5 +178,5 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 
 | model   | kgcnn   |   epochs | HOMO                   |
 |:--------|:--------|---------:|:-----------------------|
-| Schnet  | 2.1.0   |      800 | **0.0356 &pm; 0.0000** |
+| Schnet  | 2.1.0   |      800 | **0.0351 &pm; 0.0005** |
 
