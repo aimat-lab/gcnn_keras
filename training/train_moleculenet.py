@@ -23,7 +23,7 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GATv2")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="Tox21MolNetDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
@@ -116,6 +116,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Compile model with optimizer and loss from hyperparameter.
     # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
+    print(hyper.compile(metrics=metrics)["metrics"][-1].get_config())
     print(model.summary())
 
     # Run keras model-fit and take time for training.

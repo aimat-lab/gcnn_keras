@@ -32,7 +32,9 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -96,7 +98,10 @@ hyper = {
                               }
                               }
                               },
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -153,7 +158,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "fit": {"batch_size": 32, "epochs": 30, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
@@ -162,7 +167,10 @@ hyper = {
                                              "decay_steps": 1600,
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -213,7 +221,10 @@ hyper = {
                               "config": {"lr": 0.0031622776601683794, "weight_decay": 1e-05
                                          }
                               },
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -265,7 +276,10 @@ hyper = {
                               }
                               }
                               },
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -324,7 +338,10 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -381,7 +398,10 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -438,7 +458,10 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -498,7 +521,10 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "kgcnn>BinaryCrossentropyNoNaN", "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             }
         },
