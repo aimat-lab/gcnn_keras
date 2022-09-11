@@ -111,7 +111,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                # "metrics": [{"class_name": "Addons>RSquare", "config": {"dtype": "float32", "y_shape": (1,)}}]
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
                 "scaler": [{"class_name": "StandardScaler",

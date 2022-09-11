@@ -5,7 +5,7 @@ import time
 import os
 import argparse
 from datetime import timedelta
-from tensorflow_addons import optimizers
+from tensorflow_addons import optimizers, metrics
 from kgcnn.data.qm import QMGraphLabelScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler

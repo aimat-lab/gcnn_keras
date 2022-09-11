@@ -170,7 +170,8 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 | model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
-| Schnet  | 2.1.0   |      800 | **2.5247 &pm; 0.2063** | **8.8590 &pm; 4.8022** |
+| Megnet  | 2.1.0   |      800 | **1.4922 &pm; 0.0680** | **2.8795 &pm; 0.5466** |
+| Schnet  | 2.1.0   |      800 | 2.5247 &pm; 0.2063     | 8.8590 &pm; 4.8022     |
 
 ## QM9Dataset
 
@@ -178,5 +179,6 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 
 | model   | kgcnn   |   epochs | HOMO                   |
 |:--------|:--------|---------:|:-----------------------|
+| Megnet  | 2.1.0   |      800 | 0.0423 &pm; 0.0014     |
 | Schnet  | 2.1.0   |      800 | **0.0351 &pm; 0.0005** |
 

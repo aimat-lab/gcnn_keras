@@ -4,6 +4,7 @@ import logging
 from typing import Union
 from copy import deepcopy
 from kgcnn.data.utils import load_hyper_file, save_json_file
+ks = tf.keras
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -111,8 +112,13 @@ class HyperParameter:
         return deepcopy(self._hyper[item])
 
     def compile(self, loss=None, optimizer='rmsprop', metrics: list = None, weighted_metrics: list = None):
-        """Select compile hyperparameter. Additional default values for the training scripts are given as
-        functional kwargs. Functional kwargs are overwritten by hyperparameter.
+        r"""Generate kwargs for :obj:`tf.keras.Model.compile` from hyperparameter and default parameter.
+
+        This function should handle deserialization of hyperparameter and, if not specified, fill them from default.
+        Loss, optimizer are overwritten from hyperparameter, if available. Metrics are added to the list from function
+        arguments. Note that otherwise metrics can not be deserialized, since `metrics` can include nested
+        lists and a dictionary of model output names. When using deserialization with this function, you must not
+        name your model output "class_name" and "config".
 
         Args:
             loss: Default loss for fit. Default is None.
@@ -123,29 +129,67 @@ class HyperParameter:
         Returns:
             dict: Deserialized compile kwargs from hyperparameter.
         """
-        hyper_compile = deepcopy(self._hyper["training"]["compile"])
+        if metrics is None:
+            metrics = []
+        if weighted_metrics is None:
+            weighted_metrics = []
+        if "compile" in self._hyper["training"]:
+            hyper_compile = deepcopy(self._hyper["training"]["compile"])
+        else:
+            hyper_compile = {}
+
         reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics", "metrics"]
         hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
                                     key not in reserved_compile_arguments}
-        if "optimizer" in hyper_compile:
-            try:
-                optimizer = tf.keras.optimizers.get(hyper_compile['optimizer'])
-            except:
-                optimizer = hyper_compile['optimizer']
+
         if "loss" in hyper_compile:
             loss = hyper_compile["loss"]
-        if "weighted_metrics" in hyper_compile:
-            if weighted_metrics is None:
-                weighted_metrics = []
-            weighted_metrics += [x for x in hyper_compile["weighted_metrics"]]
+        if "optimizer" in hyper_compile:
+            optimizer = hyper_compile["optimizer"]
         if "metrics" in hyper_compile:
-            if metrics is None:
-                metrics = []
-            metrics += [x for x in hyper_compile["metrics"]]
+            metrics += hyper_compile["metrics"]
+        if "weighted_metrics" in hyper_compile:
+            weighted_metrics += hyper_compile["weighted_metrics"]
 
-        out = {"loss": loss, "optimizer": optimizer, "metrics": metrics, "weighted_metrics": weighted_metrics}
-        out.update(hyper_compile_additional)
-        return out
+        def loss_deserialize(lo):
+            if isinstance(lo, dict):
+                if "class_name" in lo and "config" in lo:
+                    try:
+                        return ks.losses.get(lo)
+                    except ValueError:
+                        return ks.utils.deserialize_keras_object(lo)
+            return lo
+
+        def optimizer_deserialize(o):
+            if isinstance(o, dict):
+                if "class_name" in o and "config" in o:
+                    try:
+                        return ks.optimizers.get(o)
+                    except ValueError:
+                        return ks.utils.deserialize_keras_object(o)
+            return o
+
+        def metrics_nested_deserialize(m):
+            if isinstance(m, (list, tuple)):
+                return [metrics_nested_deserialize(x) for x in m]
+            elif isinstance(m, dict):
+                if "class_name" in m and "config" in m:
+                    try:
+                        return ks.metrics.get(m)
+                    except ValueError:
+                        return ks.utils.deserialize_keras_object(m)
+                else:
+                    return {key: metrics_nested_deserialize(value) for key, value in m.items()}
+            else:
+                return m
+
+        metrics = metrics_nested_deserialize(metrics)
+        weighted_metrics = metrics_nested_deserialize(weighted_metrics)
+        loss = loss_deserialize(loss)
+        optimizer = optimizer_deserialize(optimizer)
+
+        return {"loss": loss, "optimizer": optimizer, "metrics": metrics, "weighted_metrics": weighted_metrics,
+                **hyper_compile_additional}
 
     def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
         """Select fit hyperparameter. Additional default values for the training scripts are given as
@@ -161,6 +205,7 @@ class HyperParameter:
             dict: de-serialized fit kwargs from hyperparameter.
         """
         hyper_fit = deepcopy(self._hyper["training"]["fit"])
+
         reserved_fit_arguments = ["callbacks", "batch_size", "validation_freq", "epochs"]
         hyper_fit_additional = {key: value for key, value in hyper_fit.items() if key not in reserved_fit_arguments}
 
@@ -212,3 +257,6 @@ class HyperParameter:
         """
         # Must make more refined saving and serialization here.
         save_json_file(self._hyper, file_path)
+
+
+# hyper = HyperParameter({"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})

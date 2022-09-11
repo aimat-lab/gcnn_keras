@@ -80,5 +80,16 @@ class QM7Dataset(QMDataset, DownloadDataset):
         return super(QM7Dataset, self).prepare_data(
             overwrite=overwrite, xyz_column_name=xyz_column_name, make_sdf=make_sdf)
 
+    def read_in_memory_sdf(self, **kwargs):
+        super(QM7Dataset, self).read_in_memory_sdf()
 
-# data = QM7Dataset(reload=True)
+        # Mean molecular weight mmw
+        mass_dict = {'H': 1.0079, 'C': 12.0107, 'N': 14.0067, 'O': 15.9994, 'F': 18.9984, 'S': 32.065}
+
+        def mmw(atoms):
+            mass = [mass_dict[x] for x in atoms]
+            return np.array([np.mean(mass), len(mass)])
+
+        self.assign_property("graph_attributes", [mmw(x) for x in self.obtain_property("node_symbol")])
+
+# data = QM7Dataset(reload=False)
