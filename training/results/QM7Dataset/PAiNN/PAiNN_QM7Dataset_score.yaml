@@ -1,0 +1,121 @@
+data_unit: kcal/mol
+date_time: '2022-09-12 16:29:08'
+epochs:
+- 872
+- 872
+- 872
+- 872
+- 872
+kgcnn_version: 2.1.0
+loss:
+- 0.0070675332099199295
+- .nan
+- .nan
+- 0.0073733264580369
+- 0.007648849859833717
+max_loss:
+- 0.49117511510849
+- .nan
+- .nan
+- 0.4425610601902008
+- 0.5481822490692139
+max_scaled_mean_absolute_error:
+- 109.7670669555664
+- .nan
+- .nan
+- 98.28726959228516
+- 123.04329681396484
+max_scaled_root_mean_squared_error:
+- 155.89703369140625
+- .nan
+- .nan
+- 144.11036682128906
+- 178.67080688476562
+max_val_loss:
+- 0.12016410380601883
+- .nan
+- .nan
+- 0.09899884462356567
+- 0.0879097580909729
+max_val_scaled_mean_absolute_error:
+- 26.854103088378906
+- .nan
+- .nan
+- 21.98640251159668
+- 19.73195457458496
+max_val_scaled_root_mean_squared_error:
+- 34.774497985839844
+- .nan
+- .nan
+- 31.09145736694336
+- 30.165796279907227
+min_loss:
+- 0.00544732203707099
+- .nan
+- .nan
+- 0.005692312493920326
+- 0.00533931702375412
+min_scaled_mean_absolute_error:
+- 1.2173596620559692
+- .nan
+- .nan
+- 1.2641912698745728
+- 1.1984467506408691
+min_scaled_root_mean_squared_error:
+- 1.6668329238891602
+- .nan
+- .nan
+- 1.662134051322937
+- 1.6296111345291138
+min_val_loss:
+- 0.006785592529922724
+- .nan
+- .nan
+- 0.005733744706958532
+- 0.00788865052163601
+min_val_scaled_mean_absolute_error:
+- 1.5164337158203125
+- .nan
+- .nan
+- 1.273392915725708
+- 1.7706621885299683
+min_val_scaled_root_mean_squared_error:
+- 3.0746712684631348
+- .nan
+- .nan
+- 2.1276588439941406
+- 8.522217750549316
+model_class: make_model
+model_name: PAiNN
+multi_target_indices: null
+number_histories: 5
+scaled_mean_absolute_error:
+- 1.5794414281845093
+- .nan
+- .nan
+- 1.6375229358673096
+- 1.7168370485305786
+scaled_root_mean_squared_error:
+- 2.1072728633880615
+- .nan
+- .nan
+- 2.5096073150634766
+- 2.2866575717926025
+val_loss:
+- 0.013265140354633331
+- .nan
+- .nan
+- 0.008084941655397415
+- 0.011018378660082817
+val_scaled_mean_absolute_error:
+- 2.9644737243652344
+- .nan
+- .nan
+- 1.79556405544281
+- 2.473151445388794
+val_scaled_root_mean_squared_error:
+- 4.278755187988281
+- .nan
+- .nan
+- 2.7409298419952393
+- 8.760217666625977
