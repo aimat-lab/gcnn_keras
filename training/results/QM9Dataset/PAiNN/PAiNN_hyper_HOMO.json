@@ -76,12 +76,12 @@
     "cross_validation": {
       "class_name": "KFold",
       "config": {
-        "n_splits": 5,
+        "n_splits": 10,
         "random_state": 42,
         "shuffle": true
       }
     },
-    "execute_folds": 5,
+    "execute_folds": 10,
     "fit": {
       "batch_size": 32,
       "epochs": 872,
@@ -128,12 +128,14 @@
         ]
       }
     },
-    "multi_target_indices": null
+    "multi_target_indices": [
+      5
+    ]
   },
   "data": {
     "dataset": {
-      "class_name": "QM7Dataset",
-      "module_name": "kgcnn.data.datasets.QM7Dataset",
+      "class_name": "QM9Dataset",
+      "module_name": "kgcnn.data.datasets.QM9Dataset",
       "config": {},
       "methods": [
         {
@@ -145,11 +147,11 @@
         }
       ]
     },
-    "data_unit": "kcal/mol"
+    "data_unit": ""
   },
   "info": {
     "postfix": "",
-    "postfix_file": "",
+    "postfix_file": "_HOMO",
     "kgcnn_version": "2.1.0"
   }
 }
