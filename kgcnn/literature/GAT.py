@@ -93,7 +93,7 @@ def make_model(inputs: list = None,
     # Model
     nk = DenseEmbedding(units=attention_args["units"], activation="linear")(n)
     for i in range(0, depth):
-        heads = [AttentionHeadGAT(**attention_args)([n, ed, edi]) for _ in range(attention_heads_num)]
+        heads = [AttentionHeadGAT(**attention_args)([nk, ed, edi]) for _ in range(attention_heads_num)]
         if attention_heads_concat:
             nk = LazyConcatenate(axis=-1)(heads)
         else:
