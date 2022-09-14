@@ -310,7 +310,7 @@ hyper = {
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                     "edge": {"input_dim": 5, "output_dim": 64}},
                 "attention_args": {"units": 200},
-                "depth": 2,
+                "depthato": 2, "depthmol": 3,
                 "dropout": 0.2,
                 "verbose": 10,
                 "output_embedding": "graph",
