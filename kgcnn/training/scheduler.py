@@ -49,7 +49,7 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
     tf.keras.callbacks.LearningRateScheduler."""
 
     def __init__(self, learning_rate_start: float = 1e-3, learning_rate_stop: float = 1e-5, epo_min: int = 0,
-                 epo: int = 500, verbose: int = 0):
+                 epo: int = 500, verbose: int = 0, eps: float = 1e-8):
         """Set the parameters for the learning rate scheduler.
 
         Args:
@@ -57,6 +57,7 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
             learning_rate_stop (float): End learning rate. Default is 1e-5.
             epo_min (int): Minimum number of epochs to keep the learning-rate constant before decrease. Default is 0.
             epo (int): Total number of epochs. Default is 500.
+            eps (float): Numerical epsilon which bounds minimum learning rate.
             verbose (int): Verbosity. Default is 0.
         """
         super(LinearLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr, verbose=verbose)
@@ -64,6 +65,7 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
         self.learning_rate_stop = learning_rate_stop
         self.epo = epo
         self.epo_min = epo_min
+        self.eps = float(eps)
 
     def schedule_epoch_lr(self, epoch, lr):
         if epoch < self.epo_min:
@@ -71,10 +73,11 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
         else:
             out = float(self.learning_rate_start - (self.learning_rate_start - self.learning_rate_stop) / (
                     self.epo - self.epo_min) * (epoch - self.epo_min))
-        return float(out)
+        return max(float(out), self.eps)
 
     def get_config(self):
         config = super(LinearLearningRateScheduler, self).get_config()
         config.update({"learning_rate_start": self.learning_rate_start,
-                       "learning_rate_stop": self.learning_rate_stop, "epo": self.epo, "epo_min": self.epo_min})
+                       "learning_rate_stop": self.learning_rate_stop,
+                       "epo": self.epo, "epo_min": self.epo_min, "eps": self.eps})
         return config

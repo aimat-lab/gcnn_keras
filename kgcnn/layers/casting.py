@@ -21,9 +21,9 @@ class ChangeTensorType(GraphBaseLayer):
     """
 
     def __init__(self,
-                 partition_type: str = "row_length",
                  input_tensor_type: str = "RaggedTensor",
                  output_tensor_type: str = "RaggedTensor",
+                 partition_type: str = "row_length",
                  **kwargs):
         r"""Initialize layer.
 
@@ -45,15 +45,15 @@ class ChangeTensorType(GraphBaseLayer):
         super(ChangeTensorType, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        """Forward pass.
+        r"""Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Ragged tensor.
+            inputs (tf.RaggedTensor): Ragged tensor with `ragged_rank` of 1.
 
         Returns:
             tensor: Changed tensor type.
         """
-        self.assert_ragged_input_rank(inputs)
+        self.assert_ragged_input_rank(inputs, ragged_rank=1)
 
         if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
             return inputs.to_tensor()

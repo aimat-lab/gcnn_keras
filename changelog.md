@@ -8,6 +8,8 @@ v2.1.0
 * Add ``kgcnn.literature.CMPNN`` model.
 * Add ``kgcnn.literature.EGNN`` model.
 * Merge ``set_attributes`` into `read_in_memory` for `MoleculeNetDataset` and make ``set_attributes`` alias of `read_in_memory`.   
+* Fix behaviour of node updates ``kgcnn.literature.GAT``.
+* Change
 
 
 v2.0.4
