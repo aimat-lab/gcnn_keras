@@ -6,6 +6,7 @@ from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, A
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+
 ks = tf.keras
 
 # Implementation of GAT in `tf.keras` from paper:
@@ -13,21 +14,22 @@ ks = tf.keras
 # by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
 # https://arxiv.org/abs/1710.10903
 
-model_default = {'name': "GAT",
-                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
-                                     "edge": {"input_dim": 5, "output_dim": 64}},
-                 'attention_args': {"units": 32, "use_final_activation": False, "use_edge_features": True,
-                                    "has_self_loops": True, "activation": "kgcnn>leaky_relu", 'use_bias': True},
-                 'pooling_nodes_args': {'pooling_method': 'mean'},
-                 'depth': 3, 'attention_heads_num': 5,
-                 'attention_heads_concat': False, 'verbose': 10,
-                 'output_embedding': 'graph', "output_to_tensor": True,
-                 'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ['relu', 'relu', 'sigmoid']}
-                 }
+model_default = {
+    "name": "GAT",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 5, "output_dim": 64}},
+    "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
+                       "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
+    "pooling_nodes_args": {"pooling_method": "mean"},
+    "depth": 3, "attention_heads_num": 5,
+    "attention_heads_concat": False, "verbose": 10,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ["relu", "relu", "sigmoid"]}
+}
 
 
 @update_model_kwargs(model_default)
@@ -112,5 +114,5 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for `GAT`")
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out, name=name)
     return model
