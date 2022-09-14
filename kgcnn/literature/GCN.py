@@ -5,6 +5,7 @@ from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.utils.models import update_model_kwargs, generate_embedding
+
 ks = tf.keras
 
 # Implementation of GCN in `tf.keras` from paper:
@@ -13,19 +14,20 @@ ks = tf.keras
 # https://arxiv.org/abs/1609.02907
 # https://github.com/tkipf/gcn
 
-model_default = {"name": "GCN",
-                 "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 1), "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                     "edge": {"input_dim": 10, "output_dim": 64}},
-                 "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum",
-                              "is_sorted": False, "has_unconnected": True},
-                 "depth": 3, "verbose": 10,
-                 "output_embedding": "graph", "output_to_tensor": True,
-                 "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ["relu", "relu", "sigmoid"]}
-                 }
+model_default = {
+    "name": "GCN",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 10, "output_dim": 64}},
+    "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum",
+                 "is_sorted": False, "has_unconnected": True},
+    "depth": 3, "verbose": 10,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ["relu", "relu", "sigmoid"]}
+}
 
 
 @update_model_kwargs(model_default)
@@ -105,19 +107,20 @@ def make_model(inputs: list = None,
     return model
 
 
-model_default_weighted = {"name": "GCN_weighted",
-                          "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                                     {"shape": (None, 1), "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                                     {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
-                                     {"shape": (None, 1), "name": "node_weights", "dtype": "float32", "ragged": True}],
-                          "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                              "edge": {"input_dim": 10, "output_dim": 64}},
-                          "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
-                          "depth": 3, "verbose": 1,
-                          "output_embedding": "graph", "output_to_tensor": True,
-                          "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                         "activation": ["relu", "relu", "sigmoid"]},
-                          }
+model_default_weighted = {
+    "name": "GCN_weighted",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 1), "name": "edge_weights", "dtype": "float32","ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+               {"shape": (None, 1), "name": "node_weights", "dtype": "float32", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 10, "output_dim": 64}},
+    "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
+    "depth": 3, "verbose": 1,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ["relu", "relu", "sigmoid"]},
+}
 
 
 @update_model_kwargs(model_default_weighted)
