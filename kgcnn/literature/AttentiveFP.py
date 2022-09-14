@@ -5,9 +5,9 @@ from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
+
 # import tensorflow.keras as ks
 ks = tf.keras
-
 
 # Implementation of AttentiveFP in `tf.keras` from paper:
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism
@@ -18,21 +18,22 @@ ks = tf.keras
 # https://doi.org/10.1021/acs.jmedchem.9b00959
 
 
-model_default = {"name": "AttentiveFP",
-                 "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
-                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                     "edge": {"input_dim": 5, "output_dim": 64}},
-                 "attention_args": {"units": 32},
-                 "depthmol": 2,
-                 "depthato": 2,
-                 "dropout": 0.1,
-                 "verbose": 10,
-                 "output_embedding": "graph", "output_to_tensor": True,
-                 "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
-                                "activation": ["relu", "relu", "sigmoid"]}
-                 }
+model_default = {
+    "name": "AttentiveFP",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 5, "output_dim": 64}},
+    "attention_args": {"units": 32},
+    "depthmol": 2,
+    "depthato": 2,
+    "dropout": 0.1,
+    "verbose": 10,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ["relu", "relu", "sigmoid"]}
+}
 
 
 @update_model_kwargs(model_default)
@@ -66,7 +67,8 @@ def make_model(inputs: list = None,
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
-        depth (int): Number of graph embedding units or depth of the network.
+        depthato (int): Number of graph embedding units or depth of the network.
+        depthmol (int): Number of graph embedding units or depth of the graph embedding.
         dropout (float): Dropout to use.
         attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentiveHeadFP` layer. Units parameter
             is also used in GRU-update and :obj:`PoolingNodesAttentive`.
@@ -106,7 +108,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodesAttentive(units=attention_args['units'],depth = depthmol)(n)  # Tensor output.
+        out = PoolingNodesAttentive(units=attention_args['units'], depth=depthmol)(n)  # Tensor output.
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
