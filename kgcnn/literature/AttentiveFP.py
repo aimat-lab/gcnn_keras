@@ -25,7 +25,8 @@ model_default = {"name": "AttentiveFP",
                  "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                      "edge": {"input_dim": 5, "output_dim": 64}},
                  "attention_args": {"units": 32},
-                 "depth": 3,
+                 "depthmol": 2,
+                 "depthato": 2,
                  "dropout": 0.1,
                  "verbose": 10,
                  "output_embedding": "graph", "output_to_tensor": True,
@@ -37,7 +38,8 @@ model_default = {"name": "AttentiveFP",
 @update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                input_embedding: dict = None,
-               depth: int = None,
+               depthmol: int = None,
+               depthato: int = None,
                dropout: float = None,
                attention_args: dict = None,
                name: str = None,
@@ -96,7 +98,7 @@ def make_model(inputs: list = None,
     ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
     nk = GRUUpdate(units=attention_args['units'])([nk, ck])
 
-    for i in range(1, depth):
+    for i in range(1, depthato):
         ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
         nk = GRUUpdate(units=attention_args['units'])([nk, ck])
         nk = DropoutEmbedding(rate=dropout)(nk)
@@ -104,7 +106,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodesAttentive(units=attention_args['units'])(n)  # Tensor output.
+        out = PoolingNodesAttentive(units=attention_args['units'],depth = depthmol)(n)  # Tensor output.
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(n)
