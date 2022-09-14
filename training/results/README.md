@@ -6,27 +6,27 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 ## CoraLuDataset
 
-Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. *Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. 
 
-| model     | kgcnn   |   epochs | Categorical accuracy   |
-|:----------|:--------|---------:|:-----------------------|
-| GAT       | 2.1.0   |      250 | **0.8667 &pm; 0.0069** |
-| GATv2     | 2.1.0   |      250 | 0.8379 &pm; 0.0158     |
-| GCN       | 2.1.0   |      300 | 0.8047 &pm; 0.0113     |
-| GIN       | 2.1.0   |      500 | 0.8427 &pm; 0.0165     |
-| GraphSAGE | 2.1.0   |      500 | 0.8486 &pm; 0.0097     |
+| model     | kgcnn   |   epochs | Categorical accuracy   | *Max. Categorical accuracy*   |
+|:----------|:--------|---------:|:-----------------------|:------------------------------|
+| GAT       | 2.1.0   |      250 | 0.8490 &pm; 0.0122     | 0.8645 &pm; 0.0072            |
+| GATv2     | 2.1.0   |      250 | 0.8261 &pm; 0.0106     | 0.8427 &pm; 0.0124            |
+| GCN       | 2.1.0   |      300 | 0.8076 &pm; 0.0119     | 0.8493 &pm; 0.0122            |
+| GIN       | 2.1.0   |      500 | 0.8098 &pm; 0.0396     | 0.8250 &pm; 0.0169            |
+| GraphSAGE | 2.1.0   |      500 | **0.8512 &pm; 0.0100** | **0.8652 &pm; 0.0065**        |
 
 ## CoraDataset
 
-Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. 
+Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. *Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. 
 
-| model     | kgcnn   |   epochs | Categorical accuracy   |
-|:----------|:--------|---------:|:-----------------------|
-| GAT       | 2.1.0   |      250 | **0.6765 &pm; 0.0069** |
-| GATv2     | 2.1.0   |     1000 | 0.6167 &pm; 0.0081     |
-| GCN       | 2.1.0   |      300 | 0.6156 &pm; 0.0052     |
-| GIN       | 2.1.0   |      800 | 0.6368 &pm; 0.0077     |
-| GraphSAGE | 2.1.0   |      600 | 0.6145 &pm; 0.0073     |
+| model     | kgcnn   |   epochs | Categorical accuracy   | *Max. Categorical accuracy*   |
+|:----------|:--------|---------:|:-----------------------|:------------------------------|
+| GAT       | 2.1.0   |      250 | 0.6147 &pm; 0.0077     | 0.6302 &pm; 0.0069            |
+| GATv2     | 2.1.0   |     1000 | 0.6144 &pm; 0.0110     | 0.6327 &pm; 0.0040            |
+| GCN       | 2.1.0   |      300 | 0.6136 &pm; 0.0057     | 0.6206 &pm; 0.0071            |
+| GIN       | 2.1.0   |      800 | **0.6403 &pm; 0.0062** | **0.6507 &pm; 0.0066**        |
+| GraphSAGE | 2.1.0   |      600 | 0.6133 &pm; 0.0045     | 0.6467 &pm; 0.0022            |
 
 ## ESOLDataset
 

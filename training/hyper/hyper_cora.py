@@ -39,7 +39,7 @@ hyper = {
                 "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -102,7 +102,7 @@ hyper = {
                 "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -139,7 +139,7 @@ hyper = {
                 "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "mean"},
-                "depth": 4, "attention_heads_num": 10,
+                "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
                 "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
@@ -165,7 +165,7 @@ hyper = {
                 "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -221,7 +221,7 @@ hyper = {
                         "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -271,7 +271,7 @@ hyper = {
                         "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {

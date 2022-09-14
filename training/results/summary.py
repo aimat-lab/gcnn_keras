@@ -8,19 +8,23 @@ benchmark_datasets = {
     "CoraLuDataset": {
         "general_info": [
             "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
-            "Here we use random 5-fold cross-validation on nodes. "
+            "Here we use random 5-fold cross-validation on nodes. ",
+            "*Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. "
         ],
         "targets": [
-            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max"},
         ]
     },
     "CoraDataset": {
         "general_info": [
             "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
-            "Here we use random 5-fold cross-validation on nodes. "
+            "Here we use random 5-fold cross-validation on nodes. ",
+            "*Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. "
         ],
         "targets": [
-            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"}
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max"},
         ]
     },
     "ESOLDataset": {
