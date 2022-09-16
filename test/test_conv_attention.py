@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 
-from kgcnn.layers.casting import ChangeTensorType,ChangeIndexing
+from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attention import PoolingLocalEdgesAttention, AttentionHeadGAT
 
 

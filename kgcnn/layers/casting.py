@@ -1,7 +1,10 @@
+import numpy as np
 import tensorflow as tf
+from typing import Union
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.ragged import partition_from_ragged_tensor_by_name
 from kgcnn.layers.base import GraphBaseLayer
+
 # import tensorflow.keras as ks
 ks = tf.keras
 
@@ -10,13 +13,15 @@ ks = tf.keras
 class ChangeTensorType(GraphBaseLayer):
     r"""Layer to change the ragged tensor representation into tensor type information.
 
-    The tensor representation can be :obj:`tf.RaggedTensor`, :obj:`tf.Tensor` or a tuple of (values, partition).
+    The tensor representation of :obj:`tf.RaggedTensor` is cast into similar :obj:`tf.Tensor` formats.
     For example, the :obj:`RaggedTensor` has shape `(batch, None, F)`.
-    The dense tensor in case of equal sized graphs or zero padded graphs will have shape `(batch, N, F)`.
-    For disjoint representation (values, partition), the embeddings are given by
-    a flattened value :obj:`tf.Tensor` of shape `(batch*N, F)` and a partition tensor of either 'row_length',
-    'row_splits' or 'value_rowids'. This matches the :obj:`tf.RaggedTensor` partition information for a ragged rank of
-    one, which effectively keeps the batch assignment.
+    The dense tensor in case of equal sized graphs or zero padded graphs will have shape `(batch, N, F)`, with `N`
+    being the (maximum) number of nodes, or given shape otherwise.
+
+    For disjoint representation (one big graph with disconnected sub-graphs) the :obj:`tf.RaggedTensor` can be
+    split into a flattened value :obj:`tf.Tensor` of shape `(batch*[None], F)` and a partition
+    :obj:`tf.Tensor` of either 'row_length', 'row_splits' or 'value_rowids'.
+    This requires the :obj:`tf.RaggedTensor` to have a ragged rank of one.
 
     """
 
@@ -24,21 +29,29 @@ class ChangeTensorType(GraphBaseLayer):
                  input_tensor_type: str = "RaggedTensor",
                  output_tensor_type: str = "RaggedTensor",
                  partition_type: str = "row_length",
+                 shape: Union[list, tuple, None] = None,
+                 default_value: Union[float, None, list] = None,
                  **kwargs):
         r"""Initialize layer.
 
         Args:
-            partition_type (str): Partition tensor type. Default is "row_length".
             input_tensor_type (str): Input type of the tensors for :obj:`call`. Default is "RaggedTensor".
             output_tensor_type (str): Output type of the tensors for :obj:`call`. Default is "RaggedTensor".
+            partition_type (str): Partition tensor type. Default is "row_length".
+            shape (list, tuple): Defining shape for conversion to tensor. Default is None.
+            default_value (float, list): Default value for padding. Must broadcast. Default is None.
         """
         super(ChangeTensorType, self).__init__(**kwargs)
         self.partition_type = partition_type
-        self.input_tensor_type = input_tensor_type
-        self.output_tensor_type = output_tensor_type
+        self.input_tensor_type = str(input_tensor_type)
+        self.output_tensor_type = str(output_tensor_type)
+        self.shape = shape
+        self.default_value = default_value
 
-        if self.input_tensor_type not in ["ragged", "RaggedTensor"]:
-            raise ValueError("Input must be RaggedTensor for layer %s" % self.name)
+        self._str_type_ragged = ["ragged", "RaggedTensor"]
+        self._str_type_tensor = ["Tensor", "tensor"]
+        self._str_type_mask = ["padded", "masked", "mask"]
+        self._str_type_partition = ["disjoint", "row_partition", "values_partition", "values"]
 
     def build(self, input_shape):
         """Build layer."""
@@ -53,97 +66,101 @@ class ChangeTensorType(GraphBaseLayer):
         Returns:
             tensor: Changed tensor type.
         """
-        self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        if self.input_tensor_type in self._str_type_ragged:
+            if self.output_tensor_type in self._str_type_ragged:
+                return inputs  # Nothing to do here.
+            if self.output_tensor_type in self._str_type_tensor:
+                return inputs.to_tensor(shape=self.shape, default_value=self.default_value)
+            elif self.output_tensor_type in self._str_type_mask:
+                return inputs.to_tensor(shape=self.shape, default_value=self.default_value), inputs.with_flat_values(
+                    np.ones_like(inputs.flat_values, dtype="bool")).to_tensor(shape=self.shape, default_value=False)
+            elif self.output_tensor_type in self._str_type_partition:
+                self.assert_ragged_input_rank(inputs, ragged_rank=1)
+                return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
 
-        if self.output_tensor_type in ["Tensor", "tensor", "padded", "masked"]:
-            return inputs.to_tensor()
-        elif self.output_tensor_type in ["ragged", "RaggedTensor"]:
-            return inputs  # Nothing to do here.
-        elif self.output_tensor_type in ["disjoint", "row_partition", "nested", "values_partition", "values"]:
-            return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
-        else:
-            raise NotImplementedError("Unsupported output_tensor_type %s" % self.output_tensor_type)
+        # Unsupported type conversion.
+        raise NotImplementedError(
+            "Unsupported conversion from %s to %s" % (self.input_tensor_type, self.output_tensor_type))
 
     def get_config(self):
         """Update layer config."""
         config = super(ChangeTensorType, self).get_config()
         config.update({"partition_type": self.partition_type,
                        "input_tensor_type": self.input_tensor_type,
-                       "output_tensor_type": self.output_tensor_type
+                       "output_tensor_type": self.output_tensor_type,
+                       "shape": self.shape, "default_value": self.default_value
                        })
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='ChangeIndexing')
-class ChangeIndexing(GraphBaseLayer):
-    r"""Shift the indices for index-tensors to reference within the batch or each sample separately or vice-versa.
+@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToBatchAdjacency')
+class CastEdgeIndicesToBatchAdjacency(GraphBaseLayer):
+    r"""Layer to change the ragged or sparse tensor representation of graphs into (dense) batch tensor type information.
 
-    This can be interpreted as a per-graph assignment of batched graph representations versus a global disjoint graph
-    representation with unconnected sub-graphs. A ragged index tensor would have indices referencing each sample.
-    If the batch-dimension was dissolved for target and index tensor, indices must be corrected.
-
-    For example, a flatten operation changes an index tensor as `[[0, 1, 2], [0, 1], [0, 1]]` to `[0, 1, 2, 0, 1, 0, 1]`
-    with requires a subsequent index-shift of `[0, 1, 2, 1, 1, 0, 1]` to `[0, 1, 2, 3+0, 3+1, 5+0, 5+1]` equals
-    `[0, 1, 2, 3, 4, 5, 6]`, so that correct indexing is preserved if batch dimension is dissolved.
-
-    This layer shifts a ragged index tensor according to a batch partition taken from a ragged target tensor with
-    both having a ragged rank of one.
-
+    In addition to the (feature) adjacency matrix, a mask can be returned.
     """
 
-    def __init__(self,
-                 to_indexing: str = 'batch',
-                 from_indexing: str = 'sample',
-                 **kwargs):
+    def __init__(self, n_max: int = None, return_mask: bool = True, **kwargs):
         r"""Initialize layer.
 
         Args:
-            to_indexing (str): The index refer to the overall 'batch' or to single 'sample'.
-                The disjoint representation assigns nodes within the 'batch'.
-                It changes 'sample' to 'batch' or 'batch' to 'sample'. Default is 'batch'.
-            from_indexing (str): Index convention that has been set for the input. Default is 'sample'.
+            n_max (int): Defining maximum shape for padded adjacency matrix. Default is None.
+            default_value (float, list): Default value for padding. Must broadcast. Default is None.
         """
-        super(ChangeIndexing, self).__init__(**kwargs)
-        self.to_indexing = to_indexing
-        self.from_indexing = from_indexing
-
-        if hasattr(self, "node_indexing"):
-            if self.from_indexing != self.node_indexing:
-                raise ValueError("Graph layer's indexing does not agree with `from_indexing` '%s' vs '%s'" % (
-                        self.node_indexing, self.to_indexing))
+        super(CastEdgeIndicesToBatchAdjacency, self).__init__(**kwargs)
+        self.n_max = int(n_max) if n_max else None
+        self.return_mask = bool(return_mask)
 
     def build(self, input_shape):
         """Build layer."""
-        super(ChangeIndexing, self).build(input_shape)
+        super(CastEdgeIndicesToBatchAdjacency, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
 
         Args:
-            inputs (list): [nodes, index_tensor]
+            inputs (list): [edges, indices]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
-                - index_tensor (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
-            
+                - edges (tf.RaggedTensor): Edge features of shape `(batch, [N], F)`
+                - indices (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
+
         Returns:
-            tf.RaggedTensor: Edge indices with modified reference of shape `(batch, [N], 2)`.
+            tuple: Padded (batch) adjacency matrix of shape `(batch, N_max, N_max, F)` plus mask of shape
+                `(batch, N_max, N_max)`.
         """
-        self.assert_ragged_input_rank(inputs)
-        nodes, edge_index = inputs
-        index_list = partition_row_indexing(edge_index.values,
-                                            nodes.row_splits,
-                                            edge_index.value_rowids(),
-                                            partition_type_target="row_splits",
-                                            partition_type_index="value_rowids",
-                                            from_indexing=self.from_indexing,
-                                            to_indexing=self.to_indexing)
+        edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
 
-        out = tf.RaggedTensor.from_row_splits(index_list, edge_index.row_splits, validate=self.ragged_validate)
-        return out
+        indices_flatten = indices.values
+        edges_flatten = edges.values
+        indices_batch = tf.expand_dims(tf.cast(indices.value_rowids(), indices.values.dtype), axis=-1)
+        feature_shape_edges = edges.shape[2:]
+
+        if self.n_max:
+            n_max = self.n_max
+            indices_okay = np.all(indices.values < self.n_max, axis=-1)
+            indices_flatten = indices_flatten[indices_okay]
+            indices_batch = indices_batch[indices_okay]
+            edges_flatten = edges_flatten[indices_okay]
+        else:
+            n_max = tf.reduce_max(indices.values) + 1
+
+        scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
+
+        # Determine shape of output adjacency matrix.
+        shape_adj = tf.TensorShape([tf.shape(indices)[0], n_max, n_max] + feature_shape_edges)
+        adj = tf.scatter_nd(scatter_indices, edges_flatten, shape=shape_adj)
+
+        if self.return_mask:
+            mask_values = tf.ones(tf.shape(edges_flatten)[0], dtype=edges.dtype)
+            shape_mask = tf.TensorShape([tf.shape(indices)[0], n_max, n_max])
+            mask = tf.scatter_nd(scatter_indices, mask_values, shape=shape_mask)
+        else:
+            mask = None
+
+        return adj, mask
 
     def get_config(self):
         """Update layer config."""
-        config = super(ChangeIndexing, self).get_config()
-        config.update({"to_indexing": self.to_indexing,
-                       "from_indexing": self.from_indexing})
+        config = super(CastEdgeIndicesToBatchAdjacency, self).get_config()
+        config.update({"n_max": self.n_max, "return_mask": self.return_mask})
         return config

@@ -163,17 +163,17 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 10,
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 700, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 500,
+                        "learning_rate_start": 1e-04, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 700,
                         "verbose": 0
                     }
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
@@ -296,7 +296,7 @@ hyper = {
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "execute_folds": 10,
             "fit": {
-                "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 10, "epochs": 650, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {

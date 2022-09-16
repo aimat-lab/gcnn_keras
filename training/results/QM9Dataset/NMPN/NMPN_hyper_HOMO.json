@@ -1,25 +1,24 @@
 {
   "model": {
     "class_name": "make_model",
-    "module_name": "kgcnn.literature.GAT",
+    "module_name": "kgcnn.literature.NMPN",
     "config": {
-      "name": "GAT",
+      "name": "NMPN",
       "inputs": [
         {
           "shape": [
-            null,
-            41
+            null
           ],
-          "name": "node_attributes",
+          "name": "node_number",
           "dtype": "float32",
           "ragged": true
         },
         {
           "shape": [
             null,
-            11
+            3
           ],
-          "name": "edge_attributes",
+          "name": "node_coordinates",
           "dtype": "float32",
           "ragged": true
         },
@@ -39,24 +38,26 @@
           "output_dim": 64
         },
         "edge": {
-          "input_dim": 8,
+          "input_dim": 5,
           "output_dim": 64
         }
       },
-      "attention_args": {
-        "units": 64,
-        "use_bias": true,
-        "use_edge_features": true,
-        "use_final_activation": false,
-        "has_self_loops": true
+      "set2set_args": {
+        "channels": 32,
+        "T": 3,
+        "pooling_method": "sum",
+        "init_qstar": "0"
       },
-      "pooling_nodes_args": {
-        "pooling_method": "sum"
+      "pooling_args": {
+        "pooling_method": "segment_sum"
       },
-      "depth": 1,
-      "attention_heads_num": 10,
-      "attention_heads_concat": false,
+      "use_set2set": true,
+      "depth": 3,
+      "node_dim": 128,
       "verbose": 10,
+      "geometric_edge": true,
+      "make_distance": true,
+      "expand_distance": true,
       "output_embedding": "graph",
       "output_mlp": {
         "use_bias": [
@@ -65,32 +66,41 @@
           false
         ],
         "units": [
-          64,
-          32,
+          25,
+          25,
           1
         ],
         "activation": [
-          "relu",
-          "relu",
+          "selu",
+          "selu",
           "linear"
         ]
       }
     }
   },
   "training": {
+    "cross_validation": {
+      "class_name": "KFold",
+      "config": {
+        "n_splits": 10,
+        "random_state": 42,
+        "shuffle": true
+      }
+    },
+    "execute_folds": 10,
     "fit": {
       "batch_size": 32,
-      "epochs": 500,
-      "validation_freq": 2,
+      "epochs": 700,
+      "validation_freq": 10,
       "verbose": 2,
       "callbacks": [
         {
           "class_name": "kgcnn>LinearLearningRateScheduler",
           "config": {
-            "learning_rate_start": 0.0005,
+            "learning_rate_start": 0.0001,
             "learning_rate_stop": 1e-05,
-            "epo_min": 250,
-            "epo": 500,
+            "epo_min": 50,
+            "epo": 700,
             "verbose": 0
           }
         }
@@ -100,45 +110,50 @@
       "optimizer": {
         "class_name": "Adam",
         "config": {
-          "lr": 0.005
+          "lr": 0.0001
         }
       },
       "loss": "mean_absolute_error"
     },
-    "cross_validation": {
-      "class_name": "KFold",
-      "config": {
-        "n_splits": 5,
-        "random_state": 42,
-        "shuffle": true
-      }
-    },
     "scaler": {
-      "class_name": "StandardScaler",
+      "class_name": "QMGraphLabelScaler",
       "config": {
-        "with_std": true,
-        "with_mean": true,
-        "copy": true
+        "scaler": [
+          {
+            "class_name": "StandardScaler",
+            "config": {
+              "with_std": true,
+              "with_mean": true,
+              "copy": true
+            }
+          }
+        ]
       }
     },
-    "multi_target_indices": null
+    "multi_target_indices": [
+      5
+    ]
   },
   "data": {
     "dataset": {
-      "class_name": "ESOLDataset",
-      "module_name": "kgcnn.data.datasets.ESOLDataset",
+      "class_name": "QM9Dataset",
+      "module_name": "kgcnn.data.datasets.QM9Dataset",
       "config": {},
       "methods": [
         {
-          "set_attributes": {}
+          "map_list": {
+            "method": "set_range",
+            "max_distance": 4,
+            "max_neighbours": 30
+          }
         }
       ]
     },
-    "data_unit": "mol/L"
+    "data_unit": ""
   },
   "info": {
     "postfix": "",
-    "postfix_file": "",
-    "kgcnn_version": "2.0.3"
+    "postfix_file": "_HOMO",
+    "kgcnn_version": "2.1.0"
   }
 }
