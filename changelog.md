@@ -10,7 +10,8 @@ v2.1.0
 * Merge ``set_attributes`` into `read_in_memory` for `MoleculeNetDataset` and make ``set_attributes`` alias of `read_in_memory`.   
 * Fix error of node updates in ``kgcnn.literature.GAT``. Rerunning training.
 * Fix learning rate scheduler ``kgcnn.training.scheduler.LinearLearningRateScheduler`` min. learning rate if trained beyond epoch argument.
-
+* Removed ``kgcnn.layers.casting.ChangeIndexing`` at it was not used.
+* Added ``kgcnn.layers.casting.CastEdgeIndicesToBatchAdjacency``.
 
 v2.0.4
 

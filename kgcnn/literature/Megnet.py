@@ -6,6 +6,7 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs
+
 # from kgcnn.layers.casting import ChangeTensorType
 ks = tf.keras
 
@@ -16,27 +17,28 @@ ks = tf.keras
 # https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294
 
 
-model_default = {'name': "Megnet",
-                 'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 3), 'name': "node_coordinates", 'dtype': 'float32', 'ragged': True},
-                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True},
-                            {'shape': [], 'name': "graph_attributes", 'dtype': 'float32', 'ragged': False}],
-                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 64},
-                                     "graph": {"input_dim": 100, "output_dim": 64}},
-                 "make_distance": True, "expand_distance": True,
-                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                 'meg_block_args': {'node_embed': [64, 32, 32], 'edge_embed': [64, 32, 32],
-                                    'env_embed': [64, 32, 32], 'activation': 'kgcnn>softplus2'},
-                 'set2set_args': {'channels': 16, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-                 'node_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                 'edge_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                 'state_ff_args': {"units": [64, 32], "activation": "kgcnn>softplus2"},
-                 'nblocks': 3, 'has_ff': True, 'dropout': None, 'use_set2set': True,
-                 'verbose': 10,
-                 'output_embedding': 'graph',
-                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                                "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}
-                 }
+model_default = {
+    "name": "Megnet",
+    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+               {"shape": [], "name": "graph_attributes", "dtype": "float32", "ragged": False}],
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "graph": {"input_dim": 100, "output_dim": 64}},
+    "make_distance": True, "expand_distance": True,
+    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
+    "meg_block_args": {"node_embed": [64, 32, 32], "edge_embed": [64, 32, 32],
+                       "env_embed": [64, 32, 32], "activation": "kgcnn>softplus2"},
+    "set2set_args": {"channels": 16, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+    "node_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "edge_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "state_ff_args": {"units": [64, 32], "activation": "kgcnn>softplus2"},
+    "nblocks": 3, "has_ff": True, "dropout": None, "use_set2set": True,
+    "verbose": 10,
+    "output_embedding": "graph",
+    "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                   "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
+}
 
 
 @update_model_kwargs(model_default)
