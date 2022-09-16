@@ -3,7 +3,7 @@ import tensorflow as tf
 ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Adan')
+@ks.utils.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
 
     # Reference pytorch implementations:
