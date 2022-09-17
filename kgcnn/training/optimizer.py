@@ -20,11 +20,11 @@ class Adan(ks.optimizers.Optimizer):
         if not 0.0 <= eps:
             raise ValueError("Invalid epsilon value: {}".format(eps))
         if not 0.0 <= beta_1 < 1.0:
-            raise ValueError("Invalid beta parameter at index 0: {}".format(beta_1))
+            raise ValueError("Invalid beta_1 parameter: {}".format(beta_1))
         if not 0.0 <= beta_2 < 1.0:
-            raise ValueError("Invalid beta parameter at index 1: {}".format(beta_2))
+            raise ValueError("Invalid beta_2 parameter: {}".format(beta_2))
         if not 0.0 <= beta_3 < 1.0:
-            raise ValueError("Invalid beta parameter at index 2: {}".format(beta_3))
+            raise ValueError("Invalid beta_3 parameter: {}".format(beta_3))
 
         self._set_hyper("learning_rate", kwargs.get("lr", learning_rate))
         self._set_hyper("eps", eps)

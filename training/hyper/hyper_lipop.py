@@ -45,7 +45,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -111,7 +111,7 @@ hyper = {
                 "loss": "mean_squared_error",
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -163,7 +163,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -225,7 +225,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -280,7 +280,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -341,7 +341,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -378,7 +378,7 @@ hyper = {
                 "attention_args": {"units": 64, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
                 "pooling_nodes_args": {"pooling_method": "sum"},
-                "depth": 4, "attention_heads_num": 10,
+                "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
@@ -400,7 +400,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -459,7 +459,7 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -506,7 +506,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 12, "epochs": 300, "validation_freq": 10, "verbose": 2, "callbacks": []
@@ -593,7 +593,7 @@ hyper = {
                 "loss": "mean_squared_error"
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler",
                        "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
@@ -639,7 +639,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
