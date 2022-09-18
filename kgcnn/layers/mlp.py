@@ -261,14 +261,14 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
 
-        self.mlp_dense_layer_list = [ks.layers.Dense(
+        self.mlp_dense_layer_list = [DenseEmbedding(
             **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
 
-        self.mlp_activation_layer_list = [ks.layers.Activation(
+        self.mlp_activation_layer_list = [ActivationEmbedding(
             **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
 
         self.mlp_dropout_layer_list = [
-            ks.layers.Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
+            DropoutEmbedding(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
             in range(self._depth)]
 
         self.mlp_norm_layer_list = [None] * self._depth
