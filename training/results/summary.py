@@ -1,30 +1,37 @@
 import os
+import argparse
 import numpy as np
 import pandas as pd
+import yaml
 from math import nan
-from kgcnn.data.utils import load_yaml_file
+
+parser = argparse.ArgumentParser(description='Summary of training stats.')
+parser.add_argument("--min_max", required=False, help="Show min/max values for stats.", default=False, type=bool)
+args = vars(parser.parse_args())
+print("Input of argparse:", args)
+show_min_max = args["min_max"]
 
 benchmark_datasets = {
     "CoraLuDataset": {
         "general_info": [
             "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
             "Here we use random 5-fold cross-validation on nodes. ",
-            "*Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
-            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
+             "is_min_max": True},
         ]
     },
     "CoraDataset": {
         "general_info": [
             "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
             "Here we use random 5-fold cross-validation on nodes. ",
-            "*Max. Accuracy* denotes the highest test Accuracy observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
-            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
+             "is_min_max": True},
         ]
     },
     "ESOLDataset": {
@@ -34,7 +41,11 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
     "LipopDataset": {
@@ -45,7 +56,11 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"}
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
     "MatProjectEFormDataset": {
@@ -56,7 +71,11 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
-            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"}
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
     "MutagenicityDataset": {
@@ -66,7 +85,9 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
     "MUTAGDataset": {
@@ -76,7 +97,9 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"}
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
     "FreeSolvDataset": {
@@ -84,13 +107,14 @@ benchmark_datasets = {
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
             "We use a random 5-fold cross-validation. ",
-            "*Min. MAE/RMSE* denotes the smallest test MAE/RMSE observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
             {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
-            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min"},
-            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min"}
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
     "PROTEINSDataset": {
@@ -98,13 +122,12 @@ benchmark_datasets = {
             "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
             "Nodes represent the amino acids of the protein. ",
             "We use random 5-fold cross-validation. ",
-            "*Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
             {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
-            {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max"},
-            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max"}
+            {"metric": "max_val_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
     "Tox21MolNetDataset": {
@@ -112,13 +135,13 @@ benchmark_datasets = {
             "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
             "12 different targets relevant to drug toxicity. ",
             "We use random 5-fold cross-validation. ",
-            "*Max. Accuracy/AUC* denotes the highest test Accuracy/AUC observed for any epoch during training. "
         ],
         "targets": [
             {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
             {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
-            {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max"},
-            {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max"}
+            {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
+             "is_min_max": True},
+            {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
     "QM7Dataset": {
@@ -130,7 +153,11 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [kcal/mol]", "find_best": "min"},
-            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [kcal/mol]", "find_best": "min"}
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [kcal/mol]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
     "QM9Dataset": {
@@ -142,10 +169,20 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "HOMO", "find_best": "min",
-             "multi_target_indices": [5]}
+             "multi_target_indices": [5]},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
         ]
     },
 }
+
+
+def load_yaml_file(file_path: str):
+    with open(file_path, 'r') as stream:
+        obj = yaml.safe_load(stream)
+    return obj
 
 
 def make_table_line(tab_list: list):
@@ -160,6 +197,8 @@ with open("README.md", "w") as f:
         "and that training is not always done with optimal hyperparameter or splits, when comparing with literature.\n")
     f.write("This table is generated automatically from keras history logs.\n")
     f.write("Model weights and training statistics plots are not uploaded on github due to their file size.\n\n")
+    f.write("*Max.* or *Min.* denotes the best test error observed for any epoch during training.\n")
+    f.write("To show overall best test error run ``python3 summary.py --min_max True``.\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
@@ -224,6 +263,11 @@ with open("README.md", "w") as f:
                 format_strings[i].format(*v) if isinstance(v, (list, tuple, np.ndarray)) else format_strings[i].format(
                     v, nan) for i, v in enumerate(target_val)]
             df[data_targets["name"]] = format_val
+
+            if not show_min_max:
+                if "is_min_max" in data_targets:
+                    if data_targets["is_min_max"]:
+                        del df[data_targets["name"]]
 
         f.write(df.to_markdown(index=False))
         f.write("\n\n")
