@@ -198,7 +198,8 @@ with open("README.md", "w") as f:
     f.write("This table is generated automatically from keras history logs.\n")
     f.write("Model weights and training statistics plots are not uploaded on github due to their file size.\n\n")
     f.write("*Max.* or *Min.* denotes the best test error observed for any epoch during training.\n")
-    f.write("To show overall best test error run ``python3 summary.py --min_max True``.\n\n")
+    f.write("To show overall best test error run ``python3 summary.py --min_max True``.\n")
+    f.write("If not noted otherwise, we use a (fixed) random k-fold split for validation errors.\n\n")
 
     for dataset, dataset_info in benchmark_datasets.items():
         f.write("## %s\n\n" % dataset)
