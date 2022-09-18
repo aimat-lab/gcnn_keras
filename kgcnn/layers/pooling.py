@@ -84,7 +84,7 @@ class PoolingLocalEdges(GraphBaseLayer):
         return config
 
 
-PoolingLocalMessages = PoolingLocalEdges  # For now they are synonyms
+PoolingLocalMessages = PoolingLocalEdges  # For now, they are synonyms
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')

@@ -6,6 +6,14 @@ ks = tf.keras
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphLayerNormalization')
 class GraphLayerNormalization(GraphBaseLayer):
+    r"""Layer normalization for ragged graph tensor objects.
+
+    Uses `ks.layers.LayerNormalization` on ragged tensor for graph properties such as node or edge features.
+    Since graphs have different number of nodes in a batch, the normalization is applied on the `values` tensor
+    directly. To this end, the :obj:`axis` parameter must be strictly > 0 and ideally > 1, since first two dimensions
+    are joined for normalization.
+
+    """
 
     def __init__(self,
                  axis=-1,
@@ -14,7 +22,25 @@ class GraphLayerNormalization(GraphBaseLayer):
                  beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
                  gamma_constraint=None,
                  **kwargs):
-        """Initialize layer same as Activation."""
+        r"""Initialize layer :obj:`GraphLayerNormalization`.
+
+        Args:
+            axis: Integer or List/Tuple. The axis or axes to normalize across.
+                Typically this is the features axis/axes. The left-out axes are
+                typically the batch axis/axes. This argument defaults to `-1`, the last dimension in the input.
+            epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
+            center: If True, add offset of `beta` to normalized tensor. If False,
+                `beta` is ignored. Defaults to True.
+            scale: If True, multiply by `gamma`. If False, `gamma` is not used.
+                Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
+                this can be disabled since the scaling will be done by the next layer.
+            beta_initializer: Initializer for the beta weight. Defaults to zeros.
+            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_regularizer: Optional regularizer for the beta weight. None by default.
+            gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            beta_constraint: Optional constraint for the beta weight. None by default.
+            gamma_constraint: Optional constraint for the gamma weight. None by default.
+        """
         super(GraphLayerNormalization, self).__init__(**kwargs)
         # The axis 0,1 are merged for ragged embedding input.
         if isinstance(axis, (list, tuple)):
@@ -74,10 +100,11 @@ class GraphLayerNormalization(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
-        self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
         return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
+        """Get layer configuration."""
         config = super(GraphLayerNormalization, self).get_config()
         config.update({"axis": self.axis})
         return config
@@ -85,7 +112,15 @@ class GraphLayerNormalization(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphBatchNormalization')
 class GraphBatchNormalization(GraphBaseLayer):
+    r"""Batch normalization for ragged graph tensor objects.
 
+    Uses `ks.layers.BatchNormalization` on ragged tensor for graph properties such as node or edge features.
+    Since graphs have different number of nodes in a batch, the normalization is applied on the `values` tensor
+    directly. This means that the 'batch' is in fact all nodes of different graphs, since first two dimensions
+    are joined for normalization.
+    To this end, the :obj:`axis` parameter must be strictly > 0 and ideally > 1.
+
+    """
     def __init__(self,
                  axis=-1,
                  momentum=0.99, epsilon=0.001, center=True, scale=True,
@@ -94,7 +129,28 @@ class GraphBatchNormalization(GraphBaseLayer):
                  moving_variance_initializer='ones', beta_regularizer=None,
                  gamma_regularizer=None, beta_constraint=None, gamma_constraint=None,
                  **kwargs):
-        """Initialize layer same as Activation."""
+        r"""Initialize layer :obj:`GraphBatchNormalization`.
+
+        Args:
+            axis: Integer, the axis that should be normalized (typically the features
+                axis). For instance, after a `Conv2D` layer with
+                `data_format="channels_first"`, set `axis=1` in `BatchNormalization`.
+            momentum: Momentum for the moving average.
+            epsilon: Small float added to variance to avoid dividing by zero.
+            center: If True, add offset of `beta` to normalized tensor. If False,
+                `beta` is ignored.
+            scale: If True, multiply by `gamma`. If False, `gamma` is not used. When
+                the next layer is linear (also e.g. `nn.relu`), this can be disabled
+                since the scaling will be done by the next layer.
+            beta_initializer: Initializer for the beta weight.
+            gamma_initializer: Initializer for the gamma weight.
+            moving_mean_initializer: Initializer for the moving mean.
+            moving_variance_initializer: Initializer for the moving variance.
+            beta_regularizer: Optional regularizer for the beta weight.
+            gamma_regularizer: Optional regularizer for the gamma weight.
+            beta_constraint: Optional constraint for the beta weight.
+            gamma_constraint: Optional constraint for the gamma weight.
+        """
         super(GraphBatchNormalization, self).__init__(**kwargs)
         # The axis 0,1 are merged for ragged embedding input.
         if isinstance(axis, (list, tuple)):
@@ -157,12 +213,11 @@ class GraphBatchNormalization(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
-        self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
         return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
+        """Get layer configuration."""
         config = super(GraphBatchNormalization, self).get_config()
         config.update({"axis": self.axis})
         return config
-
-# test = tf.RaggedTensor.from_row_lengths(tf.constant([[[0.0],[0.0]], [[1.0],[1.0]], [[2.0],[2.0]]]),tf.constant([2,1]))
