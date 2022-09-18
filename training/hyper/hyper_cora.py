@@ -254,7 +254,7 @@ hyper = {
                 "depth": 4,
                 "dropout": 0.01,
                 "gin_mlp": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"],
-                            "use_normalization": False, "normalization_technique": "batch"},
+                            "use_normalization": False, "normalization_technique": "graph_batch"},
                 "gin_args": {},
                 "last_mlp": {"use_bias": True, "units": [140, 70, 70], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "node",
