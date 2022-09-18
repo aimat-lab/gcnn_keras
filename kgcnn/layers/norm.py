@@ -6,12 +6,12 @@ ks = tf.keras
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphLayerNormalization')
 class GraphLayerNormalization(GraphBaseLayer):
-    r"""Layer normalization for ragged graph tensor objects.
+    r"""Graph Layer normalization for (ragged) graph tensor objects.
 
-    Uses `ks.layers.LayerNormalization` on ragged tensor for graph properties such as node or edge features.
-    Since graphs have different number of nodes in a batch, the normalization is applied on the `values` tensor
-    directly. To this end, the :obj:`axis` parameter must be strictly > 0 and ideally > 1, since first two dimensions
-    are joined for normalization.
+    Uses `ks.layers.LayerNormalization` on all node or edge features in a batch.
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`_.
+    To this end, the (positive) :obj:`axis` parameter must be strictly > 0 and ideally > 1,
+    since first two dimensions are flattened for normalization.
 
     """
 
@@ -100,7 +100,7 @@ class GraphLayerNormalization(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
-        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged_rank = 1.
         return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
@@ -112,13 +112,12 @@ class GraphLayerNormalization(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphBatchNormalization')
 class GraphBatchNormalization(GraphBaseLayer):
-    r"""Batch normalization for ragged graph tensor objects.
+    r"""Graph batch normalization for (ragged) graph tensor objects.
 
-    Uses `ks.layers.BatchNormalization` on ragged tensor for graph properties such as node or edge features.
-    Since graphs have different number of nodes in a batch, the normalization is applied on the `values` tensor
-    directly. This means that the 'batch' is in fact all nodes of different graphs, since first two dimensions
-    are joined for normalization.
-    To this end, the :obj:`axis` parameter must be strictly > 0 and ideally > 1.
+    Uses `ks.layers.BatchNormalization` on all node or edge features in a batch.
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`_.
+    To this end, the (positive) :obj:`axis` parameter must be strictly > 0 and ideally > 1,
+    since first two dimensions are flattened for normalization.
 
     """
     def __init__(self,
@@ -213,7 +212,7 @@ class GraphBatchNormalization(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
-        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged input here for correct axis.
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged_rank = 1.
         return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):

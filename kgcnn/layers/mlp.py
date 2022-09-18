@@ -3,6 +3,7 @@ import kgcnn.ops.activ
 from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, DropoutEmbedding
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
+
 ks = tf.keras
 
 
@@ -112,16 +113,17 @@ class MLPBase(GraphBaseLayer):
         # List for groups of arguments.
         key_list_act = ["activation", "activity_regularizer"]
         key_list_dense = ["units", "use_bias", "kernel_regularizer", "bias_regularizer",
-            "kernel_initializer", "bias_initializer", "kernel_constraint", "bias_constraint"]
+                          "kernel_initializer", "bias_initializer", "kernel_constraint", "bias_constraint"]
         key_list_norm = ["axis", "momentum", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-            "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer", "gamma_regularizer",
-            "beta_constraint", "gamma_constraint"]
+                         "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer",
+                         "gamma_regularizer",
+                         "beta_constraint", "gamma_constraint"]
         key_list_dropout = ["rate", "noise_shape", "seed"]
         key_list_use = ["use_dropout", "use_normalization", "normalization_technique"]
         self._key_list_init = ["kernel_initializer", "bias_initializer", "beta_initializer", "gamma_initializer",
-            "moving_mean_initializer", "moving_variance_initializer"]
+                               "moving_mean_initializer", "moving_variance_initializer"]
         self._key_list_reg = ["activity_regularizer", "kernel_regularizer", "bias_regularizer",
-            "beta_regularizer", "gamma_regularizer"]
+                              "beta_regularizer", "gamma_regularizer"]
         self._key_list_const = ["kernel_constraint", "bias_constraint", "beta_constraint", "gamma_constraint"]
 
         # Dictionary of kwargs for MLP.
@@ -197,6 +199,22 @@ class MLPBase(GraphBaseLayer):
                                              "beta_constraint": self._conf_beta_constraint[i],
                                              "gamma_constraint": self._conf_gamma_constraint[i]}
                                             for i in range(self._depth)]
+        self._conf_mlp_batch_layer_kwargs = [{"name": self.name + '_norm_' + str(i),
+                                             "axis": self._conf_axis[i],
+                                             "epsilon": self._conf_epsilon[i],
+                                             "center": self._conf_center[i],
+                                             "scale": self._conf_scale[i],
+                                             "beta_initializer": self._conf_beta_initializer[i],
+                                             "gamma_initializer": self._conf_gamma_initializer[i],
+                                             "beta_regularizer": self._conf_beta_regularizer[i],
+                                             "gamma_regularizer": self._conf_gamma_regularizer[i],
+                                             "beta_constraint": self._conf_beta_constraint[i],
+                                             "gamma_constraint": self._conf_gamma_constraint[i],
+                                             "momentum": self._conf_momentum[i],
+                                             "moving_mean_initializer": self._conf_moving_mean_initializer[i],
+                                             "moving_variance_initializer": self._conf_moving_variance_initializer[i]
+                                              }
+                                            for i in range(self._depth)]
         self._conf_mlp_drop_layer_kwargs = [{"name": self.name + '_drop_' + str(i),
                                              "rate": self._conf_rate[i],
                                              "noise_shape": self._conf_noise_shape[i],
@@ -211,7 +229,7 @@ class MLPBase(GraphBaseLayer):
         """Update config."""
         config = super(MLPBase, self).get_config()
         for key in self._key_list:
-            config.update({key: getattr(self, "_conf_"+key)})
+            config.update({key: getattr(self, "_conf_" + key)})
 
         # Serialize initializer, regularizes, constraints and activation.
         for sl, sm in [
@@ -220,83 +238,6 @@ class MLPBase(GraphBaseLayer):
         ]:
             for key in sl:
                 config.update({key: [sm(x) for x in getattr(self, "_conf_" + key)]})
-        return config
-
-
-@ks.utils.register_keras_serializable(package='kgcnn', name='GraphMLP')
-class GraphMLP(MLPBase):
-    r"""Multilayer perceptron that consist of multiple :obj:`DenseEmbedding` layers for ragged graph tensors input.
-
-    .. note::
-        Please see layer arguments of :obj:`MLPBase` for configuration!
-
-    In principle :obj:`GraphMLP` is identical and also interchangeable with :obj:`MLP` with exception to the
-    normalization.
-    This layer adds normalization for embeddings tensors of node or edge embeddings represented by a ragged tensor.
-    The definition of graph, batch or layer normalization is different from the standard keras definition.
-    Please find :obj:`GraphLayerNormalization` and :obj:`GraphBatchNormalization` in :obj:`kgcnn.layers.norm`
-    for more information.
-
-    """
-
-    def __init__(self, units, **kwargs):
-        """Initialize MLP as for dense."""
-        super(GraphMLP, self).__init__(units=units, **kwargs)
-
-        self.mlp_dense_layer_list = [DenseEmbedding(
-            **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
-
-        self.mlp_activation_layer_list = [ActivationEmbedding(
-            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
-
-        self.mlp_dropout_layer_list = [
-            DropoutEmbedding(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i in
-            range(self._depth)]
-
-        self.mlp_norm_layer_list = [None] * self._depth
-        for i in range(self._depth):
-            if self._conf_use_normalization[i]:
-                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphBatchNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i],
-                        momentum=self._conf_momentum[i],
-                        moving_mean_initializer=self._conf_moving_mean_initializer[i],
-                        moving_variance_initializer=self._conf_moving_variance_initializer[i])
-                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization",
-                                                               "GraphLayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphLayerNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i])
-                else:
-                    raise NotImplementedError(
-                        "ERROR: Normalization via %s not supported." % self._conf_normalization_technique[i])
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(GraphMLP, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        r"""Forward pass.
-
-        Args:
-            inputs (tf.RaggedTensor): Input tensor with last dimension must not be `None`.
-
-        Returns:
-            tf.RaggedTensor: MLP forward pass.
-        """
-        x = inputs
-        for i in range(len(self._conf_units)):
-            x = self.mlp_dense_layer_list[i](x, **kwargs)
-            if self._conf_use_dropout[i]:
-                x = self.mlp_dropout_layer_list[i](x, **kwargs)
-            if self._conf_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
-            x = self.mlp_activation_layer_list[i](x, **kwargs)
-        out = x
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(GraphMLP, self).get_config()
         return config
 
 
@@ -310,6 +251,9 @@ class MLP(MLPBase):
     This layer adds normalization and dropout for normal tensor input. Please, see keras
     `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
     :obj:`Dense`, :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
+
+    Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
+    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'.
 
     """
 
@@ -330,15 +274,17 @@ class MLP(MLPBase):
         self.mlp_norm_layer_list = [None] * self._depth
         for i in range(self._depth):
             if self._conf_use_normalization[i]:
-                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization", "GraphBatchNormalization"]:
+                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization"]:
                     self.mlp_norm_layer_list[i] = ks.layers.BatchNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i],
-                        momentum=self._conf_momentum[i],
-                        moving_mean_initializer=self._conf_moving_mean_initializer[i],
-                        moving_variance_initializer=self._conf_moving_variance_initializer[i])
-                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization",
-                                                               "GraphLayerNormalization"]:
+                        **self._conf_mlp_batch_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["graph_batch", "GraphBatchNormalization"]:
+                    self.mlp_norm_layer_list[i] = GraphBatchNormalization(
+                        **self._conf_mlp_batch_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization"]:
                     self.mlp_norm_layer_list[i] = ks.layers.LayerNormalization(
+                        **self._conf_mlp_norm_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["graph_layer", "GraphLayerNormalization"]:
+                    self.mlp_norm_layer_list[i] = GraphLayerNormalization(
                         **self._conf_mlp_norm_layer_kwargs[i])
                 else:
                     raise NotImplementedError(
@@ -372,3 +318,6 @@ class MLP(MLPBase):
         """Update config."""
         config = super(MLP, self).get_config()
         return config
+
+
+GraphMLP = MLP

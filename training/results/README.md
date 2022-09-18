@@ -6,6 +6,7 @@ Model weights and training statistics plots are not uploaded on github due to th
 
 *Max.* or *Min.* denotes the best test error observed for any epoch during training.
 To show overall best test error run ``python3 summary.py --min_max True``.
+If not noted otherwise, we use a (fixed) random k-fold split for validation errors.
 
 ## CoraLuDataset
 
