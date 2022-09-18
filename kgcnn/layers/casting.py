@@ -98,7 +98,8 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
     r"""Layer to change the ragged tensor representation of edges of graphs into (dense) tensor type information of the
     adjacency matrix.
 
-    In addition to the (feature) adjacency matrix, a mask can be returned. Note that
+    In addition to the (feature) adjacency matrix, a mask can be returned. Note that the adjacency matrix is padded
+    and has an extra dimension to include edge feature information.
 
     """
 
