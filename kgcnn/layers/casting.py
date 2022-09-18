@@ -93,11 +93,13 @@ class ChangeTensorType(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToBatchAdjacency')
-class CastEdgeIndicesToBatchAdjacency(GraphBaseLayer):
-    r"""Layer to change the ragged or sparse tensor representation of graphs into (dense) batch tensor type information.
+@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDenseAdjacency')
+class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
+    r"""Layer to change the ragged tensor representation of edges of graphs into (dense) tensor type information of the
+    adjacency matrix.
 
-    In addition to the (feature) adjacency matrix, a mask can be returned.
+    In addition to the (feature) adjacency matrix, a mask can be returned. Note that
+
     """
 
     def __init__(self, n_max: int = None, return_mask: bool = True, **kwargs):
@@ -107,13 +109,13 @@ class CastEdgeIndicesToBatchAdjacency(GraphBaseLayer):
             n_max (int): Defining maximum shape for padded adjacency matrix. Default is None.
             default_value (float, list): Default value for padding. Must broadcast. Default is None.
         """
-        super(CastEdgeIndicesToBatchAdjacency, self).__init__(**kwargs)
+        super(CastEdgeIndicesToDenseAdjacency, self).__init__(**kwargs)
         self.n_max = int(n_max) if n_max else None
         self.return_mask = bool(return_mask)
 
     def build(self, input_shape):
         """Build layer."""
-        super(CastEdgeIndicesToBatchAdjacency, self).build(input_shape)
+        super(CastEdgeIndicesToDenseAdjacency, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -161,6 +163,6 @@ class CastEdgeIndicesToBatchAdjacency(GraphBaseLayer):
 
     def get_config(self):
         """Update layer config."""
-        config = super(CastEdgeIndicesToBatchAdjacency, self).get_config()
+        config = super(CastEdgeIndicesToDenseAdjacency, self).get_config()
         config.update({"n_max": self.n_max, "return_mask": self.return_mask})
         return config

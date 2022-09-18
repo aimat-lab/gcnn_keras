@@ -1,7 +1,7 @@
 import tensorflow as tf
 from typing import Union
 from kgcnn.layers.modules import OptionalInputEmbedding
-from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToBatchAdjacency
+from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
 
@@ -86,7 +86,7 @@ def make_model(name: str = None,
     # Cast to dense Tensor with padding for MAT.
     n, n_mask = ChangeTensorType(output_tensor_type="padded")(n)
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded")(xyz_input)
-    a, a_mask = CastEdgeIndicesToBatchAdjacency(n_max=max_atoms)([ed, edi])
+    a, a_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])
 
     # Model Loop
     for i in range(depth):

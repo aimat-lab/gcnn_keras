@@ -11,7 +11,7 @@ v2.1.0
 * Fix error of node updates in ``kgcnn.literature.GAT``. Rerunning training.
 * Fix learning rate scheduler ``kgcnn.training.scheduler.LinearLearningRateScheduler`` min. learning rate if trained beyond epoch argument.
 * Removed ``kgcnn.layers.casting.ChangeIndexing`` at it was not used.
-* Added ``kgcnn.layers.casting.CastEdgeIndicesToBatchAdjacency``.
+* Added ``kgcnn.layers.casting.CastEdgeIndicesToDenseAdjacency``.
 
 v2.0.4
 
