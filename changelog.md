@@ -12,6 +12,8 @@ v2.1.0
 * Fix learning rate scheduler ``kgcnn.training.scheduler.LinearLearningRateScheduler`` min. learning rate if trained beyond epoch argument.
 * Removed ``kgcnn.layers.casting.ChangeIndexing`` at it was not used.
 * Added ``kgcnn.layers.casting.CastEdgeIndicesToDenseAdjacency``.
+* Merged ``kgcnn.layers.mlp.MLP`` and ``kgcnn.layers.mlp.GraphMLP``, but kept `GraphMLP` as alias.
+
 
 v2.0.4
 
