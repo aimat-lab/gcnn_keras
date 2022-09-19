@@ -73,7 +73,7 @@ class ChangeTensorType(GraphBaseLayer):
                 return inputs.to_tensor(shape=self.shape, default_value=self.default_value)
             elif self.output_tensor_type in self._str_type_mask:
                 return inputs.to_tensor(shape=self.shape, default_value=self.default_value), inputs.with_flat_values(
-                    np.ones_like(inputs.flat_values)).to_tensor(shape=self.shape, default_value=0.0)
+                    tf.ones_like(inputs.flat_values)).to_tensor(shape=self.shape, default_value=0.0)
             elif self.output_tensor_type in self._str_type_partition:
                 self.assert_ragged_input_rank(inputs, ragged_rank=1)
                 return partition_from_ragged_tensor_by_name(inputs, self.partition_type)

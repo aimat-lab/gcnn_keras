@@ -34,7 +34,7 @@ hyper = {
                         "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -95,7 +95,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "multi_target_indices": None
         },
         "data": {
@@ -160,7 +160,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
         },
         "data": {
             "dataset": {
@@ -210,7 +210,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
         },
         "data": {
             "dataset": {
@@ -261,7 +261,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
         },
         "data": {
             "dataset": {
@@ -319,7 +319,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
         },
         "data": {
             "dataset": {
@@ -375,7 +375,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
         },
         "data": {
             "dataset": {
@@ -431,7 +431,7 @@ hyper = {
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": None, "shuffle": True}}
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
         },
         "data": {
             "dataset": {
