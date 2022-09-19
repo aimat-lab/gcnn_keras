@@ -150,12 +150,19 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
 
         # Determine shape of output adjacency matrix.
-        shape_adj = tf.TensorShape([tf.shape(indices)[0], n_max, n_max] + feature_shape_edges)
+        indices_shape = tf.shape(indices)
+        if len(feature_shape_edges) > 0:
+            shape_adj = tf.concat(
+                [indices_shape[:1], tf.constant([n_max, n_max], dtype=indices_shape.dtype),
+                 tf.constant(feature_shape_edges, dtype=indices_shape.dtype)], axis=0)
+        else:
+            shape_adj = tf.concat([indices_shape[:1], tf.constant([n_max, n_max], dtype=indices_shape.dtype)], axis=0)
+
         adj = tf.scatter_nd(scatter_indices, edges_flatten, shape=shape_adj)
 
         if self.return_mask:
             mask_values = tf.ones(tf.shape(edges_flatten)[0], dtype=edges.dtype)
-            shape_mask = tf.TensorShape([tf.shape(indices)[0], n_max, n_max])
+            shape_mask = tf.concat([indices_shape[:1], tf.constant([n_max, n_max], dtype=indices_shape.dtype)], axis=0)
             mask = tf.scatter_nd(scatter_indices, mask_values, shape=shape_mask)
         else:
             mask = None
