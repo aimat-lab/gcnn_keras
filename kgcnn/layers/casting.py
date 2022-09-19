@@ -140,12 +140,12 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
 
         if self.n_max:
             n_max = self.n_max
-            indices_okay = np.all(indices.values < self.n_max, axis=-1)
+            indices_okay = tf.math.reduce_all(indices.values < self.n_max, axis=-1)
             indices_flatten = indices_flatten[indices_okay]
             indices_batch = indices_batch[indices_okay]
             edges_flatten = edges_flatten[indices_okay]
         else:
-            n_max = tf.reduce_max(indices.values) + 1
+            n_max = tf.math.reduce_max(indices.values) + 1
 
         scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
 
