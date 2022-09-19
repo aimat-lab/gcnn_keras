@@ -95,7 +95,7 @@ class GraphLayerNormalization(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            tf.RaggedTensor, tf.Tensor: Embeddings of shape (batch, [M], F, ...)
+            inputs (tf.RaggedTensor, tf.Tensor): Embeddings of shape (batch, [M], F, ...)
 
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
@@ -207,7 +207,7 @@ class GraphBatchNormalization(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            tf.RaggedTensor, tf.Tensor: Embeddings of shape (batch, [M], F, ...)
+            inputs (tf.RaggedTensor, tf.Tensor): Embeddings of shape (batch, [M], F, ...)
 
         Returns:
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
