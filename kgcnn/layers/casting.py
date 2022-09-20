@@ -118,6 +118,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         """Build layer."""
         super(CastEdgeIndicesToDenseAdjacency, self).build(input_shape)
 
+    # @tf.function
     def call(self, inputs, **kwargs):
         r"""Forward pass.
 
@@ -136,7 +137,8 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         indices_flatten = indices.values
         edges_flatten = edges.values
         indices_batch = tf.expand_dims(tf.cast(indices.value_rowids(), indices.values.dtype), axis=-1)
-        feature_shape_edges = edges.shape[2:]
+        feature_shape_edges_static = edges.shape[2:]
+        feature_shape_edges = tf.cast(feature_shape_edges_static, dtype=indices.values.dtype)
 
         if self.n_max:
             n_max = self.n_max
@@ -144,26 +146,25 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
             indices_flatten = indices_flatten[indices_okay]
             indices_batch = indices_batch[indices_okay]
             edges_flatten = edges_flatten[indices_okay]
+            n_max_shape = tf.constant([n_max, n_max], dtype=indices.values.dtype)
         else:
             n_max = tf.math.reduce_max(indices.values) + 1
+            n_max_shape = tf.cast(tf.repeat(n_max, 2), dtype=indices.values.dtype)
 
         scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
 
         # Determine shape of output adjacency matrix.
-        indices_shape = tf.cast(tf.shape(indices), dtype=scatter_indices.dtype)
-        if len(feature_shape_edges) > 0:
-            shape_adj = tf.concat(
-                [indices_shape[:1], tf.constant([n_max, n_max], dtype=scatter_indices.dtype),
-                 tf.constant(feature_shape_edges, dtype=scatter_indices.dtype)], axis=0)
+        batch_shape = tf.cast(tf.expand_dims(tf.shape(indices)[0], axis=-1), dtype=scatter_indices.dtype)
+        if len(feature_shape_edges_static) > 0:
+            shape_adj = tf.concat([batch_shape, n_max_shape, feature_shape_edges], axis=0)
         else:
-            shape_adj = tf.concat([indices_shape[:1], tf.constant([n_max, n_max], dtype=scatter_indices.dtype)], axis=0)
+            shape_adj = tf.concat([batch_shape, n_max_shape], axis=0)
 
         adj = tf.scatter_nd(scatter_indices, edges_flatten, shape=shape_adj)
 
         if self.return_mask:
             mask_values = tf.ones(tf.shape(edges_flatten)[0], dtype=edges.dtype)
-            shape_mask = tf.concat(
-                [indices_shape[:1], tf.constant([n_max, n_max], dtype=scatter_indices.dtype)], axis=0)
+            shape_mask = tf.concat([batch_shape, n_max_shape], axis=0)
             mask = tf.scatter_nd(scatter_indices, mask_values, shape=shape_mask)
         else:
             mask = None
@@ -175,3 +176,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         config = super(CastEdgeIndicesToDenseAdjacency, self).get_config()
         config.update({"n_max": self.n_max, "return_mask": self.return_mask})
         return config
+
+# out = CastEdgeIndicesToDenseAdjacency()(
+# [tf.ragged.constant([[[1.0]],[[1.0] ,[1.0]]], ragged_rank=1,inner_shape=(1,)),
+# tf.ragged.constant([[[0,0]],[[0,1],[1,0]]], ragged_rank=1, inner_shape=(2,)) ])
