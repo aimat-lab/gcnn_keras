@@ -294,9 +294,9 @@ def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
 
-            - idx (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
-            - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
-            - idx_ijk_ij (np.ndarray): Indices for angle pairs referring to edges of shape `(M, 2)`.
+        - idx (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
+        - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
+        - idx_ijk_ij (np.ndarray): Indices for angle pairs referring to edges of shape `(M, 2)`.
     """
     if idx is None:
         return None, None, None

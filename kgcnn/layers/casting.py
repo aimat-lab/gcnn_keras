@@ -124,8 +124,8 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         Args:
             inputs (list): [edges, indices]
 
-                - edges (tf.RaggedTensor): Edge features of shape `(batch, [N], F)`
-                - indices (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
+                - edges (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], F)`
+                - indices (tf.RaggedTensor, tf.Tensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
 
         Returns:
             tuple: Padded (batch) adjacency matrix of shape `(batch, N_max, N_max, F)` plus mask of shape
