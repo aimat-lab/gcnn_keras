@@ -26,6 +26,9 @@ model_default = {
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
+    "bessel_basis_local": {"num_radial": 16, "cutoff": 3.0, "envelope_exponent": 5},
+    "bessel_basis_global": {"num_radial": 16, "cutoff": 6.0, "envelope_exponent": 5},
+    "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
     "depth": 4,
     "verbose": 10,
     "node_pooling_args": {"pooling_method": "sum"},
@@ -42,6 +45,9 @@ def make_model(inputs: list = None,
                node_pooling_args: dict = None,
                depth: int = None,
                name: str = None,
+               bessel_basis_local: dict = None,
+               bessel_basis_global: dict = None,
+               spherical_basis_local: dict = None,
                verbose: int = None,
                output_embedding: str = None,
                use_output_mlp: bool = None,
@@ -103,25 +109,29 @@ def make_model(inputs: list = None,
     # For the first version, we restrict ourselves to 2-hop angles.
     pos1_l, pos2_l = NodePosition()([x, ei_l])
     d_l = NodeDistanceEuclidean()([pos1_l, pos2_l])
-    rbf_l = BesselBasisLayer()(d_l)
+    rbf_l = BesselBasisLayer(**bessel_basis_local)(d_l)
     v12_l = LazySubtract()([pos1_l, pos2_l])
     a_l = EdgeAngle()([v12_l, ai_1])
-    sbf_l = SphericalBasisLayer()([d_l, a_l, ai_1])
+    sbf_l = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l, ai_1])
 
     # Calculate distance and bessel basis for global (range) edges.
     pos1_g, pos2_g = NodePosition()([x, ri_g])
     d_g = NodeDistanceEuclidean()([pos1_g, pos2_g])
-    rbf_g = BesselBasisLayer()(d_g)
+    rbf_g = BesselBasisLayer(**bessel_basis_global)(d_g)
 
+    rbf_l = GraphMLP()(rbf_l)
+    sbf_l = GraphMLP()(sbf_l)
+    rbf_g = GraphMLP()(rbf_g)
 
     # Model
-    n = n
+    h = n
     for i in range(0, depth):
         pass
 
     # Output embedding choice
+    out = h
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)(n)
+        out = PoolingNodes(**node_pooling_args)(out)
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':

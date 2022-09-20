@@ -107,11 +107,9 @@ def make_model(inputs: list = None,
     edi = edge_index_input
 
     # embedding, if no feature dimension
-    n0 = OptionalInputEmbedding(**input_embedding['node'],
-                                use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    n0 = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     if not geometric_edge:
-        ed = OptionalInputEmbedding(**input_embedding['edge'],
-                                    use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
+        ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     else:
         ed = edge_input
 
