@@ -1,10 +1,11 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
+from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazySubtract
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
+from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
 
 ks = tf.keras
 
@@ -21,10 +22,10 @@ model_default = {
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                {"shape": (None, ), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+               {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
-    "make_distance": True, "expand_distance": True,
     "depth": 4,
     "verbose": 10,
     "node_pooling_args": {"pooling_method": "sum"},
@@ -38,8 +39,6 @@ model_default = {
 @update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                input_embedding: dict = None,
-               make_distance: bool = None,
-               expand_distance: bool = None,
                node_pooling_args: dict = None,
                depth: int = None,
                name: str = None,
@@ -49,13 +48,11 @@ def make_model(inputs: list = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
-    r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default`.
+    r"""Make `MXMNet <https://github.com/zetayue/MXMNet>`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.MXMNet.model_default`.
 
     Inputs:
-        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices, range_indices]`
-        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
-        :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
+        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices, angle_indices, range_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
@@ -64,6 +61,8 @@ def make_model(inputs: list = None,
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
             - range_indices (tf.RaggedTensor): Index list for range-like edges of shape `(batch, None, 2)`.
             - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
+            - angle_indices (tf.RaggedTensor): Index list of angles referring to range connections of
+              shape `(batch, None, 2)`.
 
     Outputs:
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
@@ -71,9 +70,6 @@ def make_model(inputs: list = None,
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
-        make_distance (bool): Whether input is distance or coordinates at in place of edges.
-        expand_distance (bool): If the edge input are actual edges or node coordinates instead that are expanded to
-            form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
         depth (int): Number of graph embedding units or depth of the network.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
@@ -90,22 +86,33 @@ def make_model(inputs: list = None,
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
-    edge_index_input = ks.layers.Input(**inputs[2])
+    edge_input = ks.layers.Input(**inputs[2])
+    edge_index_input = ks.layers.Input(**inputs[3])
+    angle_index_input = ks.layers.Input(**inputs[4])
+    range_index_input = ks.layers.Input(**inputs[5])
 
-    # embedding, if no feature dimension
-    n = OptionalInputEmbedding(**input_embedding['node'],
-                               use_embedding=len(inputs[0]['shape']) < 2)(node_input)
-    edi = edge_index_input
+    # Rename to short names and make embedding, if no feature dimension.
+    x = xyz_input
+    n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
+    ei_l = edge_index_input
+    ri_g = range_index_input
+    ai_1 = angle_index_input
 
-    if make_distance:
-        x = xyz_input
-        pos1, pos2 = NodePosition()([x, edi])
-        ed = NodeDistanceEuclidean()([pos1, pos2])
-    else:
-        ed = xyz_input
+    # Calculate distances and spherical and bessel basis for local edges including angles.
+    # For the first version, we restrict ourselves to 2-hop angles.
+    pos1_l, pos2_l = NodePosition()([x, ei_l])
+    d_l = NodeDistanceEuclidean()([pos1_l, pos2_l])
+    rbf_l = BesselBasisLayer()(d_l)
+    v12_l = LazySubtract()([pos1_l, pos2_l])
+    a_l = EdgeAngle()([v12_l, ai_1])
+    sbf_l = SphericalBasisLayer()([d_l, a_l, ai_1])
 
-    if expand_distance:
-        ed = GaussBasisLayer(**gauss_args)(ed)
+    # Calculate distance and bessel basis for global (range) edges.
+    pos1_g, pos2_g = NodePosition()([x, ri_g])
+    d_g = NodeDistanceEuclidean()([pos1_g, pos2_g])
+    rbf_g = BesselBasisLayer()(d_g)
+
 
     # Model
     n = n
