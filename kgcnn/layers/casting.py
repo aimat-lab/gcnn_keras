@@ -118,7 +118,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         """Build layer."""
         super(CastEdgeIndicesToDenseAdjacency, self).build(input_shape)
 
-    # @tf.function
+    @tf.function
     def call(self, inputs, **kwargs):
         r"""Forward pass.
 
@@ -177,6 +177,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         config.update({"n_max": self.n_max, "return_mask": self.return_mask})
         return config
 
-# out = CastEdgeIndicesToDenseAdjacency()(
+# layer = CastEdgeIndicesToDenseAdjacency()
+# out = layer.call(
 # [tf.ragged.constant([[[1.0]],[[1.0] ,[1.0]]], ragged_rank=1,inner_shape=(1,)),
 # tf.ragged.constant([[[0,0]],[[0,1],[1,0]]], ragged_rank=1, inner_shape=(2,)) ])

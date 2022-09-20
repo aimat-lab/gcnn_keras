@@ -16,7 +16,7 @@ model_default = {
     "name": "MAT",
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
-        {"shape": (None,), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
         {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
@@ -80,7 +80,7 @@ def make_model(name: str = None,
 
     # Embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
-    ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
+    ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
     # Cast to dense Tensor with padding for MAT.
@@ -93,7 +93,7 @@ def make_model(name: str = None,
         # Model
         pass
 
-    out = None
+    out = n
     if output_embedding == 'graph':
         pass
     elif output_embedding == 'node':
@@ -107,3 +107,5 @@ def make_model(name: str = None,
         name=name
     )
     return model
+
+# test = make_model()
