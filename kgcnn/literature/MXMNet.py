@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazySubtract
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyConcatenate, LazySubtract
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
@@ -29,6 +29,7 @@ model_default = {
     "bessel_basis_local": {"num_radial": 16, "cutoff": 3.0, "envelope_exponent": 5},
     "bessel_basis_global": {"num_radial": 16, "cutoff": 6.0, "envelope_exponent": 5},
     "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
+    "use_edge_attributes": False,
     "depth": 4,
     "verbose": 10,
     "node_pooling_args": {"pooling_method": "sum"},
@@ -48,6 +49,7 @@ def make_model(inputs: list = None,
                bessel_basis_local: dict = None,
                bessel_basis_global: dict = None,
                spherical_basis_local: dict = None,
+               use_edge_attributes: bool = None,
                verbose: int = None,
                output_embedding: str = None,
                use_output_mlp: bool = None,
@@ -119,14 +121,18 @@ def make_model(inputs: list = None,
     d_g = NodeDistanceEuclidean()([pos1_g, pos2_g])
     rbf_g = BesselBasisLayer(**bessel_basis_global)(d_g)
 
+    if use_edge_attributes:
+        rbf_l = LazyConcatenate()([rbf_l, ed])
+
     rbf_l = GraphMLP()(rbf_l)
     sbf_l = GraphMLP()(sbf_l)
     rbf_g = GraphMLP()(rbf_g)
 
     # Model
     h = n
+    nodes_list = [n]
     for i in range(0, depth):
-        pass
+        nodes_list.append(h)
 
     # Output embedding choice
     out = h
