@@ -38,9 +38,9 @@ class Attention(Layer):
         super(Attention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        node, adj, dist, node_mask, adj_mask, dist_mask = inputs
+        node, adj, dist, node_mask, adj_mask = inputs
         print(node.shape, adj.shape, dist.shape)
-        print(node_mask.shape, adj_mask.shape, dist_mask.shape)
+        print(node_mask.shape, adj_mask.shape)
         # convert node input into qkv matrix
         qkv = self.to_qkv(node)
         # rearrange and unstack the matrix to get each elements 
