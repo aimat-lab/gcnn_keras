@@ -17,22 +17,22 @@ model_default = {
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+        {"shape": (None), "name": "edge_number", "dtype": "float32", "ragged": True},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
+    "use_edge_input_embedding": False,
     "max_atoms": None,
     "verbose": 10,
     "depth": 5,
-    "units":64,
+    "units": 64,
     "heads": 8,
-    "Ld":0.5,
-    "Lg":0.5,
-    "La":1,
-    "dim_out":1,
-    "use_onlyadjacencymatrix":True,
-    "output_embedding": "graph", 
+    "Ld": 0.5,
+    "Lg": 0.5,
+    "La": 1,
+    "dim_out": 1,
+    "output_embedding": "graph",
     "output_to_tensor": True,
 }
 
@@ -42,6 +42,7 @@ def make_model(name: str = None,
                dim_out: int = None,
                inputs: list = None,
                input_embedding: dict = None,
+               use_edge_input_embedding: bool = None,
                depth: int = None,
                units: int = None,
                heads: int = None,
@@ -49,7 +50,6 @@ def make_model(name: str = None,
                verbose: int = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
-               use_onlyadjacencymatrix: bool = None,
                Lg: float = None,
                La: float = None,
                Ld: float = None
@@ -90,41 +90,35 @@ def make_model(name: str = None,
     edge_input = ks.layers.Input(**inputs[2])
     edge_index_input = ks.layers.Input(**inputs[3])
 
-
     # Embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
-    ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
+    ed = OptionalInputEmbedding(
+        **input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2 and use_edge_input_embedding)(edge_input)
     edi = edge_index_input
 
     # Cast to dense Tensor with padding for MAT.
     n, n_mask = ChangeTensorType(output_tensor_type="padded")(n)
-    xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded")(xyz_input) # wrong shape we need to have NatomxNatom dim here
-    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi]) # wrong shape we need to have NatomxNatom dim here
-
-    if use_onlyadjacencymatrix:
-        print('this is default parameters to be setted')
-        print('edge_input must be converted to AdjacencyMatrix as well as distance matrix too')
-        print('TODO : remove this stupid trick to just mimic the shape: This is wrong of course!')
-        adj  = tf.math.reduce_sum(adj,axis=-1)
+    xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded")(xyz_input)
+    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # max_atoms x max_atoms
 
     # depth loop
     h = n
     for _ in range(depth):
-            # part one Norm + Attention + Residual
-            hn = ks.layers.LayerNormalization()(h)
-            h += Attention(heads=heads , Ld=Ld, Lg=Lg, La = La, units=units)([hn, adj, xyz, n_mask, adj_mask, xyz_mask])
-            # part two Norm + MLP + Residual
-            hn = ks.layers.LayerNormalization()(h)
-            h += FF()(hn)
-        
+        # part one Norm + Attention + Residual
+        hn = ks.layers.LayerNormalization()(h)
+        h += Attention(heads=heads, Ld=Ld, Lg=Lg, La=La, units=units)([hn, adj, xyz, n_mask, adj_mask, xyz_mask])
+        # part two Norm + MLP + Residual
+        hn = ks.layers.LayerNormalization()(h)
+        h += FF()(hn)
+
     # pooling output
-    out=h
+    out = h
     if output_embedding == 'graph':
         out = ks.layers.LayerNormalization()(out)
         # mean pooling can be a parameter
-        out = tf.math.reduce_mean(out,axis=-2)
+        out = tf.math.reduce_mean(out, axis=-2)
         # final prediction MLP for the output!
-        out = FF(dim_out = dim_out)(out)
+        out = FF(dim_out=dim_out)(out)
     elif output_embedding == 'node':
         pass
     else:
