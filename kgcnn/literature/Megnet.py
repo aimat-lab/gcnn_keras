@@ -212,7 +212,7 @@ model_crystal_default = {
 }
 
 
-@update_model_kwargs(model_default)
+@update_model_kwargs(model_crystal_default)
 def make_crystal_model(inputs: list = None,
                        input_embedding: dict = None,
                        expand_distance: bool = None,
