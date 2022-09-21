@@ -5,6 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacen
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.conv.mat_conv import Attention, FF
+from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
 
 ks = tf.keras
 
@@ -100,19 +101,29 @@ def make_model(name: str = None,
     n, n_mask = ChangeTensorType(output_tensor_type="padded")(n)
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded")(xyz_input) # wrong shape we need to have NatomxNatom dim here
     adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi]) # wrong shape we need to have NatomxNatom dim here
-
+    
+    # compute the distance matrix
+    pos1, pos2 = NodePosition()([xyz, edi])
+    d = NodeDistanceEuclidean()([pos1, pos2])
+    # convert the distance ragged to in dense matrix
+    dist, dist_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([d, edi]) # wrong shape we need to have NatomxNatom dim here
+    
     if use_onlyadjacencymatrix:
         print('this is default parameters to be setted')
         print('edge_input must be converted to AdjacencyMatrix as well as distance matrix too')
         print('TODO : remove this stupid trick to just mimic the shape: This is wrong of course!')
         adj  = tf.math.reduce_sum(adj,axis=-1)
+        dist  = tf.math.reduce_max(dist,axis=-1)
+        print(dist.shape)
+        print(adj.shape)
+
 
     # depth loop
     h = n
     for _ in range(depth):
             # part one Norm + Attention + Residual
             hn = ks.layers.LayerNormalization()(h)
-            h += Attention(heads=heads , Ld=Ld, Lg=Lg, La = La, units=units)([hn, adj, xyz, n_mask, adj_mask, xyz_mask])
+            h += Attention(heads=heads , Ld=Ld, Lg=Lg, La = La, units=units)([hn, adj, dist, n_mask, adj_mask])
             # part two Norm + MLP + Residual
             hn = ks.layers.LayerNormalization()(h)
             h += FF()(hn)
