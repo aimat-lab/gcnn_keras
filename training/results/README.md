@@ -167,7 +167,7 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 
 ## ClinToxDataset
 
-ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. 
+ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
 
 | model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:------------|:--------|---------:|:-----------------------|:-----------------------|
