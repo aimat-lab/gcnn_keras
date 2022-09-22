@@ -40,7 +40,7 @@ dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
 gpu_to_use = args["gpu"]
-execute_splits = args["fold"]
+execute_folds = args["fold"]
 
 # Assigning GPU.
 set_devices_gpu(gpu_to_use)
@@ -98,16 +98,16 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
-if execute_splits in hyper["training"]["execute_folds"]:
-    execute_splits = hyper["training"]["execute_folds"] if hyper["training"]["execute_folds"] else execute_splits
+if "execute_folds" in hyper["training"]:
+    execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
 for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
 
     # Only do execute_splits out of the k-folds of cross-validation.
-    if execute_splits:
-        if i not in execute_splits:
+    if execute_folds:
+        if i not in execute_folds:
             continue
     print("Running training on fold: %s" % i)
 

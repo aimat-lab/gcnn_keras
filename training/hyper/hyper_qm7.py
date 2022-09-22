@@ -29,7 +29,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -98,7 +97,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -164,7 +162,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -225,7 +222,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -299,7 +295,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },

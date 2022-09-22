@@ -31,7 +31,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -101,7 +100,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -165,7 +163,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -234,7 +231,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 16, "epochs": 780, "validation_freq": 10, "verbose": 2, "callbacks": [],
                 "validation_batch_size": 8
@@ -317,7 +313,6 @@ hyper = {
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "execute_folds": None,
             "fit": {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
