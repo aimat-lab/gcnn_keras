@@ -421,7 +421,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.warning("Unsupported data extension of '%s' for table file." % file_path)
         return self
 
-    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
+    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = False):
         r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
         by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
 

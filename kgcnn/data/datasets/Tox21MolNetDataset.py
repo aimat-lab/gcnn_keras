@@ -26,4 +26,4 @@ class Tox21MolNetDataset(MoleculeNetDataset2018):
         self.assign_property("graph_labels", graph_labels)
 
 
-data = Tox21MolNetDataset(reload=False)
+# data = Tox21MolNetDataset(reload=False)

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyConcatenate, LazySubtract
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyConcatenate, LazySubtract, LazyAdd
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
@@ -132,10 +132,11 @@ def make_model(inputs: list = None,
     h = n
     nodes_list = [n]
     for i in range(0, depth):
+
         nodes_list.append(h)
 
     # Output embedding choice
-    out = h
+    out = LazyAdd()(nodes_list)
     if output_embedding == 'graph':
         out = PoolingNodes(**node_pooling_args)(out)
         if use_output_mlp:

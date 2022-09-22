@@ -20,11 +20,11 @@ from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Megnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MatProjectEFormDataset")
+                    default="MatProjectPhononsDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_mp_e_form.py")
+                    default="hyper/hyper_mp_phonons.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_crystal_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
@@ -40,6 +40,7 @@ dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
 gpu_to_use = args["gpu"]
+execute_folds = args["fold"]
 
 # Assigning GPU.
 set_devices_gpu(gpu_to_use)
@@ -92,15 +93,19 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Training on splits. Since training on crystal datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing.
-execute_splits = hyper["training"]["execute_folds"]
+if "execute_folds" in hyper["training"]:
+    execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
-for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
+
+for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
 
     # Only do execute_splits out of the k-folds of cross-validation.
-    if splits_done >= execute_splits:
-        break
+    if execute_folds:
+        if i not in execute_folds:
+            continue
+    print("Running training on fold: %s" % i)
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.

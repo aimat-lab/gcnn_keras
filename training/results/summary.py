@@ -78,6 +78,21 @@ benchmark_datasets = {
     #          "is_min_max": True}
     #     ]
     # },
+    "MatProjectPhononsDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 1,265 crystal structures ",
+            "and their corresponding vibration properties in [1/cm]. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV/atom]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV/atom]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
     "MutagenicityDataset": {
         "general_info": [
             "Mutagenicity dataset from TUDataset for classification with 4337 graphs. ",

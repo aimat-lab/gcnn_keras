@@ -103,6 +103,7 @@ if "execute_folds" in hyper["training"]:
 splits_done = 0
 history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
+
 for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
 
     # Only do execute_splits out of the k-folds of cross-validation.
