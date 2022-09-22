@@ -168,15 +168,17 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 
 ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. 
 
-| model       | kgcnn   |   epochs | Accuracy         | AUC(ROC)               |
-|:------------|:--------|---------:|:-----------------|:-----------------------|
-| AttentiveFP | 2.1.0   |       50 | **nan &pm; nan** | **0.5000 &pm; 0.0000** |
-| CMPNN       | 2.1.0   |       30 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
-| DMPNN       | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
-| GIN         | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
-| GraphSAGE   | 2.1.0   |      100 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
-| INorp       | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
-| Schnet      | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.0   |       50 | 0.9460 &pm; 0.0088     | 0.8240 &pm; 0.0618     |
+| CMPNN       | 2.1.0   |       30 | 0.9446 &pm; 0.0122     | 0.7441 &pm; 0.1020     |
+| DMPNN       | 2.1.0   |       50 | **0.9480 &pm; 0.0063** | **0.8391 &pm; 0.0515** |
+| GAT         | 2.1.0   |       50 | 0.9440 &pm; 0.0082     | 0.8277 &pm; 0.0462     |
+| GATv2       | 2.1.0   |       50 | 0.9460 &pm; 0.0083     | 0.8005 &pm; 0.0435     |
+| GIN         | 2.1.0   |       50 | 0.9345 &pm; 0.0088     | 0.7735 &pm; 0.0484     |
+| GraphSAGE   | 2.1.0   |      100 | 0.9278 &pm; 0.0106     | 0.7895 &pm; 0.0644     |
+| INorp       | 2.1.0   |       50 | 0.9284 &pm; 0.0159     | 0.7312 &pm; 0.0635     |
+| Schnet      | 2.1.0   |       50 | 0.9332 &pm; 0.0039     | 0.6848 &pm; 0.0596     |
 
 ## QM7Dataset
 
