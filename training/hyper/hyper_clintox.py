@@ -20,7 +20,7 @@ hyper = {
                 "pooling_nodes_args": {"pooling_method": "mean"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                                "activation": ["relu", "relu", "sigmoid"]}
             }
         },
@@ -35,7 +35,7 @@ hyper = {
                 # "loss": "kgcnn>BinaryCrossentropyNoNaN",
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -80,7 +80,7 @@ hyper = {
                 "dropout": {"rate": 0.1},
                 "output_embedding": "graph",
                 "output_mlp": {
-                    "use_bias": [True, True, False], "units": [64, 32, 12],
+                    "use_bias": [True, True, False], "units": [64, 32, 1],
                     "activation": ["relu", "relu", "sigmoid"]
                 },
             }
@@ -102,7 +102,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -152,7 +152,7 @@ hyper = {
                 "pooling_kwargs": {"pooling_method": "sum"},
                 "output_embedding": "graph",
                 "output_mlp": {
-                    "use_bias": [True, False], "units": [300, 12],
+                    "use_bias": [True, False], "units": [300, 1],
                     "activation": ["relu", "sigmoid"]
                 }
             }
@@ -171,7 +171,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -209,7 +209,7 @@ hyper = {
                 "dropout": 0.2,
                 "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True], "units": [200, 12],
+                "output_mlp": {"use_bias": [True, True], "units": [200, 1],
                                "activation": ["kgcnn>leaky_relu", "sigmoid"]},
             }
         },
@@ -225,7 +225,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -259,9 +259,9 @@ hyper = {
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "graph_batch"},
                 "gin_args": {},
-                "last_mlp": {"use_bias": True, "units": [64, 32, 12], "activation": ["relu", "relu", "linear"]},
+                "last_mlp": {"use_bias": True, "units": [64, 32, 2], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
-                "output_mlp": {"activation": "sigmoid", "units": 12},
+                "output_mlp": {"activation": "sigmoid", "units": 1},
             }
         },
         "training": {
@@ -280,7 +280,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -322,7 +322,7 @@ hyper = {
                 "depth": 3, "use_set2set": False, "verbose": 10,
                 "gather_args": {},
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 12],
+                "output_mlp": {"use_bias": [True, True, False], "units": [32, 32, 1],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -342,7 +342,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -382,7 +382,7 @@ hyper = {
                 "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -402,7 +402,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -442,7 +442,7 @@ hyper = {
                 "depth": 4, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 12],
+                "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
                                "activation": ["relu", "relu", "sigmoid"]},
             }
         },
@@ -462,7 +462,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -495,7 +495,7 @@ hyper = {
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
                 "output_embedding": "graph",
-                'output_mlp': {"use_bias": [True, True], "units": [64, 12],
+                'output_mlp': {"use_bias": [True, True], "units": [64, 1],
                                "activation": ['kgcnn>shifted_softplus', "sigmoid"]},
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
@@ -525,7 +525,7 @@ hyper = {
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN",
                 #             {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
-                "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
+                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             }
         },
         "data": {

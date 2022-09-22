@@ -17,9 +17,9 @@ class ClinToxDataset(MoleculeNetDataset2018):
     def read_in_memory(self, **kwargs):
         super(ClinToxDataset, self).read_in_memory(**kwargs)
 
-        # Strictly one class we can use second class here for labeling.
+        # Strictly one class so we pick drug approved for positive label.
         graph_labels = self.obtain_property("graph_labels")
-        graph_labels = [np.array(x[1:], dtype="float") if x is not None else np.array([None]) for x in graph_labels]
+        graph_labels = [np.array(x, dtype="float") if x is not None else None for x in graph_labels]
         self.assign_property("graph_labels", graph_labels)
 
 

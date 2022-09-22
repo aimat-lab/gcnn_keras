@@ -164,6 +164,20 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 | INorp       | 2.1.0   |       50 | 0.9350 &pm; 0.0032     | 0.8146 &pm; 0.0072     |
 | Schnet      | 2.1.0   |       50 | 0.9316 &pm; 0.0029     | 0.7875 &pm; 0.0102     |
 
+## ClinToxDataset
+
+ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. 
+
+| model       | kgcnn   |   epochs | Accuracy         | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------|:-----------------------|
+| AttentiveFP | 2.1.0   |       50 | **nan &pm; nan** | **0.5000 &pm; 0.0000** |
+| CMPNN       | 2.1.0   |       30 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| DMPNN       | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| GIN         | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| GraphSAGE   | 2.1.0   |      100 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| INorp       | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+| Schnet      | 2.1.0   |       50 | nan &pm; nan     | 0.5000 &pm; 0.0000     |
+
 ## QM7Dataset
 
 QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use a random 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
