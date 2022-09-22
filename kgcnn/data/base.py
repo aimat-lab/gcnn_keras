@@ -421,7 +421,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.warning("Unsupported data extension of '%s' for table file." % file_path)
         return self
 
-    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = False):
+    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
         r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
         by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
 
@@ -445,12 +445,19 @@ class MemoryGraphDataset(MemoryGraphList):
             else:
                 dataset.error(msg)
 
+        def message_warning(msg):
+            dataset.warning(msg)
+
         for x in hyper_input:
             if "name" not in x:
                 message_error("Can not infer name from '%s' for model input." % x)
             data = [dataset[i].obtain_property(x["name"]) for i in range(len(dataset))]
-            if any([y is None for y in data]):
-                message_error("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
+            prop_in_data = [y is None for y in data]
+            if all(prop_in_data):
+                message_error("Property %s is not defined for any graph in list. Please check property." % x["name"])
+            if any(prop_in_data):
+                message_warning("Property %s is not defined for all graphs in list. Please run clean()." % x["name"])
+
             # we also will check shape here but only with first element.
             if hasattr(data[0], "shape") and "shape" in x:
                 shape_element = data[0].shape
