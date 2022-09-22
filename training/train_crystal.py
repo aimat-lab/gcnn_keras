@@ -29,6 +29,8 @@ parser.add_argument("--make", required=False, help="Name of the make function or
                     default="make_crystal_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
                     default=None, nargs="+", type=int)
+parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
+                    default=None, nargs="+", type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 

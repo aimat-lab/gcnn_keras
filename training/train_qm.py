@@ -29,6 +29,8 @@ parser.add_argument("--make", required=False, help="Name of the make function or
                     default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
                     default=None, nargs="+", type=int)
+parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
+                    default=None, nargs="+", type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
@@ -38,6 +40,7 @@ dataset_name = args["dataset"]
 hyper_path = args["hyper"]
 make_function = args["make"]
 gpu_to_use = args["gpu"]
+execute_splits = args["fold"]
 
 # Assigning GPU.
 set_devices_gpu(gpu_to_use)
@@ -94,16 +97,19 @@ atoms = dataset.obtain_property("node_number")
 kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
-# train on all splits for testing.
-execute_splits = hyper["training"]["execute_folds"]
+# train on all splits for testing. Can be set via command line or hyperparameter.
+if execute_splits in hyper["training"]["execute_folds"]:
+    execute_splits = hyper["training"]["execute_folds"] if hyper["training"]["execute_folds"] else execute_splits
 splits_done = 0
 history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
-for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
+for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
 
     # Only do execute_splits out of the k-folds of cross-validation.
-    if splits_done >= execute_splits:
-        break
+    if execute_splits:
+        if i not in execute_splits:
+            continue
+    print("Running training on fold: %s" % i)
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.

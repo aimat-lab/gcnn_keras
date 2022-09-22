@@ -170,10 +170,8 @@ benchmark_datasets = {
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "HOMO", "find_best": "min",
              "multi_target_indices": [5]},
-            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
-             "is_min_max": True},
-            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
-             "is_min_max": True}
+            {"metric": "val_scaled_mean_absolute_error", "name": "LUMO", "find_best": "min",
+             "multi_target_indices": [6]},
         ]
     },
 }

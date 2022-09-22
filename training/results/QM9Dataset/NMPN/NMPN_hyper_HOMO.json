@@ -87,7 +87,7 @@
         "shuffle": true
       }
     },
-    "execute_folds": 10,
+    "execute_folds": null,
     "fit": {
       "batch_size": 32,
       "epochs": 700,
