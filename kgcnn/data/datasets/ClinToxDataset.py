@@ -23,4 +23,4 @@ class ClinToxDataset(MoleculeNetDataset2018):
         self.assign_property("graph_labels", graph_labels)
 
 
-data = ClinToxDataset(reload=False)
+# data = ClinToxDataset(reload=False)
