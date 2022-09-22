@@ -116,7 +116,6 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
     # Compile model with optimizer and loss from hyperparameter.
     # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
-    print(hyper.compile(metrics=metrics)["metrics"][-1].get_config())
     print(model.summary())
 
     # Run keras model-fit and take time for training.
