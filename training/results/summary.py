@@ -163,7 +163,7 @@ benchmark_datasets = {
         "general_info": [
             "ClinTox (MoleculeNet) consists of 1478 compounds as smiles and ",
             "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
-            "We use random 5-fold cross-validation. ",
+            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target.",
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
