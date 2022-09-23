@@ -202,6 +202,19 @@ benchmark_datasets = {
              "multi_target_indices": [6]},
         ]
     },
+    "SIDERDataset": {
+        "general_info": [
+            "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
+            "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
+            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target.",
+        ],
+        "targets": [
+            {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "max_val_binary_accuracy", "name": "*Max. Accuracy*", "find_best": "max", "is_min_max": True},
+            {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
+        ]
+    },
 }
 
 
