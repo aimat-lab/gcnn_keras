@@ -212,3 +212,18 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 | PAiNN   | 2.1.0   |      872 | **0.0287 &pm; 0.0068** | nan &pm; nan       |
 | Schnet  | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006 |
 
+## SIDERDataset
+
+SIDER (MoleculeNet) consists of 1427 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| CMPNN     | 2.1.0   |       30 | 0.7360 &pm; 0.0048     | 0.5729 &pm; 0.0303     |
+| DMPNN     | 2.1.0   |       50 | 0.6866 &pm; 0.1280     | 0.5942 &pm; 0.0508     |
+| GAT       | 2.1.0   |       50 | 0.7559 &pm; 0.0078     | 0.6064 &pm; 0.0209     |
+| GATv2     | 2.1.0   |       50 | 0.7515 &pm; 0.0066     | 0.6026 &pm; 0.0199     |
+| GIN       | 2.1.0   |       50 | 0.7438 &pm; 0.0075     | **0.6109 &pm; 0.0256** |
+| GraphSAGE | 2.1.0   |       30 | 0.7542 &pm; 0.0080     | 0.5946 &pm; 0.0151     |
+| INorp     | 2.1.0   |       50 | 0.7471 &pm; 0.0105     | 0.5836 &pm; 0.0211     |
+| Schnet    | 2.1.0   |       50 | **0.7581 &pm; 0.0037** | 0.6075 &pm; 0.0143     |
+
