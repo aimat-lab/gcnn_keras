@@ -205,12 +205,13 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 10-fold cross-validation. Test errors are MAE and for energies are given in [eV]. 
 
-| model   | kgcnn   |   epochs | HOMO                   | LUMO               |
-|:--------|:--------|---------:|:-----------------------|:-------------------|
-| Megnet  | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | **nan &pm; nan**   |
-| NMPN    | 2.1.0   |      680 | 0.0627 &pm; 0.0013     | nan &pm; nan       |
-| PAiNN   | 2.1.0   |      872 | **0.0287 &pm; 0.0068** | nan &pm; nan       |
-| Schnet  | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006 |
+| model     | kgcnn   |   epochs | HOMO                   | LUMO               |
+|:----------|:--------|---------:|:-----------------------|:-------------------|
+| DimeNetPP | 2.1.0   |      650 | **0.0242 &pm; 0.0006** | **nan &pm; nan**   |
+| Megnet    | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | nan &pm; nan       |
+| NMPN      | 2.1.0   |      680 | 0.0627 &pm; 0.0013     | nan &pm; nan       |
+| PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | nan &pm; nan       |
+| Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006 |
 
 ## SIDERDataset
 

@@ -291,7 +291,7 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 10, "epochs": 650, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 10, "epochs": 600, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
