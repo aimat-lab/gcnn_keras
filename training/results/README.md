@@ -214,7 +214,7 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 
 ## SIDERDataset
 
-SIDER (MoleculeNet) consists of 1427 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
+SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse drug reactions (ADR), grouped into 27 system organ classes. We use random 5-fold cross-validation.
 
 | model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|

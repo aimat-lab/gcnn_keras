@@ -205,8 +205,8 @@ benchmark_datasets = {
     "SIDERDataset": {
         "general_info": [
             "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
-            "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
-            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target.",
+            "data for adverse drug reactions (ADR), grouped into 27 system organ classes. ",
+            "We use random 5-fold cross-validation.",
         ],
         "targets": [
             {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
