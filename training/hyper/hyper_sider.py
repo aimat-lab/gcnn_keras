@@ -25,7 +25,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2,
+            "fit": {"batch_size": 32, "epochs": 30, "validation_freq": 1, "verbose": 2,
                 "callbacks": [{"class_name": "kgcnn>LinearLearningRateScheduler",
                                "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
                                    "epo_min": 400, "epo": 500, "verbose": 0}}]
@@ -33,9 +33,9 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -86,7 +86,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2, "callbacks": []
+            "fit": {"batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []
                     },
             "compile": {
                 "optimizer": {"class_name": "Adam",
@@ -99,9 +99,9 @@ hyper = {
                               }
                               },
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -157,7 +157,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "fit": {"batch_size": 32, "epochs": 30, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
@@ -167,9 +167,9 @@ hyper = {
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -212,7 +212,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 200, "epochs": 500, "validation_freq": 1, "verbose": 2, "callbacks": []
+            "fit": {"batch_size": 200, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []
                     },
             "compile": {
                 "optimizer": {"class_name": "Addons>AdamW",
@@ -220,9 +220,9 @@ hyper = {
                                          }
                               },
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -262,7 +262,7 @@ hyper = {
             }
         },
         "training": {
-            "fit": {"batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "fit": {"batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2, "callbacks": []},
             "compile": {
                 "optimizer": {"class_name": "Adam",
                               "config": {"lr": {
@@ -274,9 +274,9 @@ hyper = {
                               }
                               },
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -324,7 +324,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 300, "epo": 500,
@@ -335,9 +335,9 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -383,7 +383,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
@@ -394,9 +394,9 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -442,7 +442,7 @@ hyper = {
         },
         "training": {
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.5e-03, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 500,
@@ -453,9 +453,9 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}}
@@ -504,7 +504,7 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 32, "epochs": 500, "validation_freq": 1, "verbose": 2,
+                "batch_size": 32, "epochs": 50, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                         "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
@@ -515,9 +515,9 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
                 "loss": "binary_crossentropy",
-                "metrics": ["accuracy",
-                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27}}],
-                # "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "metrics": ["binary_accuracy",
+                            {"class_name": "AUC", "config": {"multi_label": True, "num_labels": 27, "name": "auc"}}],
+                # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             }
         },
         "data": {
