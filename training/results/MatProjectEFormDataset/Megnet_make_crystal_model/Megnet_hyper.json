@@ -1,0 +1,217 @@
+{
+  "model": {
+    "module_name": "kgcnn.literature.Megnet",
+    "class_name": "make_crystal_model",
+    "config": {
+      "name": "Megnet",
+      "inputs": [
+        {
+          "shape": [
+            null
+          ],
+          "name": "node_number",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            3
+          ],
+          "name": "node_coordinates",
+          "dtype": "float32",
+          "ragged": true
+        },
+        {
+          "shape": [
+            null,
+            2
+          ],
+          "name": "range_indices",
+          "dtype": "int64",
+          "ragged": true
+        },
+        {
+          "shape": [
+            1
+          ],
+          "name": "charge",
+          "dtype": "float32",
+          "ragged": false
+        },
+        {
+          "shape": [
+            null,
+            3
+          ],
+          "name": "range_image",
+          "dtype": "int64",
+          "ragged": true
+        },
+        {
+          "shape": [
+            3,
+            3
+          ],
+          "name": "graph_lattice",
+          "dtype": "float32",
+          "ragged": false
+        }
+      ],
+      "input_embedding": {
+        "node": {
+          "input_dim": 95,
+          "output_dim": 64
+        },
+        "graph": {
+          "input_dim": 100,
+          "output_dim": 64
+        }
+      },
+      "make_distance": true,
+      "expand_distance": true,
+      "gauss_args": {
+        "bins": 25,
+        "distance": 5,
+        "offset": 0.0,
+        "sigma": 0.4
+      },
+      "meg_block_args": {
+        "node_embed": [
+          64,
+          32,
+          32
+        ],
+        "edge_embed": [
+          64,
+          32,
+          32
+        ],
+        "env_embed": [
+          64,
+          32,
+          32
+        ],
+        "activation": "kgcnn>softplus2"
+      },
+      "set2set_args": {
+        "channels": 16,
+        "T": 3,
+        "pooling_method": "sum",
+        "init_qstar": "0"
+      },
+      "node_ff_args": {
+        "units": [
+          64,
+          32
+        ],
+        "activation": "kgcnn>softplus2"
+      },
+      "edge_ff_args": {
+        "units": [
+          64,
+          32
+        ],
+        "activation": "kgcnn>softplus2"
+      },
+      "state_ff_args": {
+        "units": [
+          64,
+          32
+        ],
+        "activation": "kgcnn>softplus2"
+      },
+      "nblocks": 3,
+      "has_ff": true,
+      "dropout": null,
+      "use_set2set": true,
+      "verbose": 10,
+      "output_embedding": "graph",
+      "output_mlp": {
+        "use_bias": [
+          true,
+          true,
+          true
+        ],
+        "units": [
+          32,
+          16,
+          1
+        ],
+        "activation": [
+          "kgcnn>softplus2",
+          "kgcnn>softplus2",
+          "linear"
+        ]
+      }
+    }
+  },
+  "training": {
+    "cross_validation": {
+      "class_name": "KFold",
+      "config": {
+        "n_splits": 5,
+        "random_state": 42,
+        "shuffle": true
+      }
+    },
+    "fit": {
+      "batch_size": 32,
+      "epochs": 1000,
+      "validation_freq": 10,
+      "verbose": 2,
+      "callbacks": [
+        {
+          "class_name": "kgcnn>LinearLearningRateScheduler",
+          "config": {
+            "learning_rate_start": 0.0005,
+            "learning_rate_stop": 5e-06,
+            "epo_min": 100,
+            "epo": 1000,
+            "verbose": 0
+          }
+        }
+      ]
+    },
+    "compile": {
+      "optimizer": {
+        "class_name": "Adam",
+        "config": {
+          "lr": 0.0005
+        }
+      },
+      "loss": "mean_absolute_error"
+    },
+    "scaler": {
+      "class_name": "StandardScaler",
+      "module_name": "kgcnn.scaler.scaler",
+      "config": {
+        "with_std": true,
+        "with_mean": true,
+        "copy": true
+      }
+    },
+    "multi_target_indices": null
+  },
+  "data": {
+    "dataset": {
+      "class_name": "MatProjectEFormDataset",
+      "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
+      "config": {},
+      "methods": [
+        {
+          "map_list": {
+            "method": "set_range_periodic",
+            "max_distance": 5.0
+          }
+        }
+      ]
+    },
+    "data_unit": "eV/atom"
+  },
+  "info": {
+    "postfix": "",
+    "postfix_file": "",
+    "kgcnn_version": "2.0.4"
+  }
+}
