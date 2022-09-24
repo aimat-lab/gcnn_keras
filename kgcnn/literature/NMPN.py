@@ -7,7 +7,7 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
 from kgcnn.utils.models import update_model_kwargs
-from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer
+from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer, ShiftPeriodicLattice
 
 ks = tf.keras
 
@@ -208,12 +208,12 @@ def make_crystal_model(inputs: list = None,
                        output_mlp: dict = None
                        ):
     r"""Make `NMPN <http://arxiv.org/abs/1704.01212>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.NMPN.model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.NMPN.model_crystal_default`.
 
     Inputs:
-        list: `[node_attributes, edge_attributes, edge_indices]`
-        or `[node_attributes, edge_distance, edge_indices]` if :obj:`geometric_edge=True`
-        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
+        list: `[node_attributes, edge_attributes, edge_indices, edge_image, lattice]`
+        or `[node_attributes, edge_distance, edge_indices, edge_image, lattice]` if :obj:`geometric_edge=True`
+        or `[node_attributes, node_coordinates, edge_indices, edge_image, lattice]` if :obj:`make_distance=True` and
         :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
@@ -225,6 +225,9 @@ def make_crystal_model(inputs: list = None,
               with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
             - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
+            - lattice (tf.Tensor): Lattice matrix of the periodic structure of shape `(batch, 3, 3)`.
+            - edge_image (tf.RaggedTensor): Indices of the periodic image the sending node is located. The indices
+                of and edge are :math:`(i, j)` with :math:`j` being the sending node.
 
     Outputs:
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
@@ -257,6 +260,9 @@ def make_crystal_model(inputs: list = None,
     node_input = ks.layers.Input(**inputs[0])
     edge_input = ks.layers.Input(**inputs[1])  # Or coordinates
     edge_index_input = ks.layers.Input(**inputs[2])
+    edge_image = ks.layers.Input(**inputs[3])
+    lattice = ks.layers.Input(**inputs[4])
+
     edi = edge_index_input
 
     # embedding, if no feature dimension
@@ -268,7 +274,9 @@ def make_crystal_model(inputs: list = None,
 
     # If coordinates are in place of edges
     if make_distance:
-        pos1, pos2 = NodePosition()([ed, edi])
+        x = ed
+        pos1, pos2 = NodePosition()([x, edi])
+        pos2 = ShiftPeriodicLattice()([pos2, edge_image, lattice])
         ed = NodeDistanceEuclidean()([pos1, pos2])
 
     if expand_distance:
@@ -314,5 +322,5 @@ def make_crystal_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `NMPN`")
 
-    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+    model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, edge_image, lattice], outputs=out)
     return model

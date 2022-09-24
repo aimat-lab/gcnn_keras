@@ -4,7 +4,7 @@ from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
-from kgcnn.layers.conv.mat_conv import Attention, FF
+from kgcnn.layers.conv.mat_conv import Attention, FeedForward, MATDistanceMatrix
 
 ks = tf.keras
 
@@ -17,12 +17,11 @@ model_default = {
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None), "name": "edge_number", "dtype": "float32", "ragged": True},
+        {"shape": (None, ), "name": "edge_number", "dtype": "float32", "ragged": True},  # or edge_weights
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
-    "use_edge_input_embedding": False,
     "max_atoms": None,
     "verbose": 10,
     "depth": 5,
@@ -39,10 +38,8 @@ model_default = {
 
 @update_model_kwargs(model_default)
 def make_model(name: str = None,
-               dim_out: int = None,
                inputs: list = None,
                input_embedding: dict = None,
-               use_edge_input_embedding: bool = None,
                depth: int = None,
                units: int = None,
                heads: int = None,
@@ -52,7 +49,8 @@ def make_model(name: str = None,
                output_to_tensor: bool = None,
                Lg: float = None,
                La: float = None,
-               Ld: float = None
+               Ld: float = None,
+               dim_out: int = None,
                ):
     r"""Make `MAT <>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.MAT.model_default`.
@@ -92,13 +90,13 @@ def make_model(name: str = None,
 
     # Embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
-    ed = OptionalInputEmbedding(
-        **input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2 and use_edge_input_embedding)(edge_input)
     edi = edge_index_input
+    ed = edge_index_input
 
     # Cast to dense Tensor with padding for MAT.
-    n, n_mask = ChangeTensorType(output_tensor_type="padded")(n)
-    xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded")(xyz_input)
+    n, n_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, None))(n)
+    xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, 3))(xyz_input)
+    dist, dist_mask = MATDistanceMatrix()(xyz, mask=xyz_mask)
     adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # max_atoms x max_atoms
 
     # depth loop
@@ -106,10 +104,11 @@ def make_model(name: str = None,
     for _ in range(depth):
         # part one Norm + Attention + Residual
         hn = ks.layers.LayerNormalization()(h)
-        h += Attention(heads=heads, Ld=Ld, Lg=Lg, La=La, units=units)([hn, adj, xyz, n_mask, adj_mask, xyz_mask])
+        h += Attention(units=units, heads=heads, Ld=Ld, Lg=Lg, La=La)(
+            [hn, adj, dist, n_mask, dist_mask, xyz_mask])
         # part two Norm + MLP + Residual
         hn = ks.layers.LayerNormalization()(h)
-        h += FF()(hn)
+        h += FeedForward()(hn)
 
     # pooling output
     out = h
@@ -118,7 +117,7 @@ def make_model(name: str = None,
         # mean pooling can be a parameter
         out = tf.math.reduce_mean(out, axis=-2)
         # final prediction MLP for the output!
-        out = FF(dim_out=dim_out)(out)
+        out = FeedForward(dim_out=dim_out)(out)
     elif output_embedding == 'node':
         pass
     else:

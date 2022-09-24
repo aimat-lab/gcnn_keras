@@ -349,5 +349,72 @@ hyper = {
             "postfix_file": "",
             "kgcnn_version": "2.0.4"
         }
-    }
+    },
+    "NMPN.make_crystal_model": {
+        "model": {
+            "class_name": "make_crystal_model",
+            "module_name": "kgcnn.literature.NMPN",
+            "config": {
+                "name": "NMPN",
+                "inputs": [
+                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
+                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
+                "pooling_args": {"pooling_method": "segment_mean"},
+                "use_set2set": True,
+                "depth": 3,
+                "node_dim": 128,
+                "verbose": 10,
+                "geometric_edge": True, "make_distance": True, "expand_distance": True,
+                "output_embedding": "graph",
+                "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 1],
+                               "activation": ["selu", "selu", "linear"]},
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 16, "epochs": 700, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-04, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 700,
+                        "verbose": 0
+                    }
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MatProjectPhononsDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
+                ]
+            },
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
 }
