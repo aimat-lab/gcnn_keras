@@ -379,7 +379,7 @@ hyper = {
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
                 "batch_size": 16, "epochs": 700, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
