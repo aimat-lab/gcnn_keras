@@ -31,6 +31,7 @@ model_default = {
     "distance_matrix_kwargs": {"trafo": "exp"},
     "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
     "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
+    "embedding_units": 64,
     "depth": 5,
     "heads": 8,
     "merge_heads": "concat",
@@ -50,6 +51,7 @@ def make_model(name: str = None,
                distance_matrix_kwargs: dict = None,
                attention_kwargs: dict = None,
                feed_forward_kwargs:dict = None,
+               embedding_units: int = None,
                depth: int = None,
                heads: int = None,
                merge_heads: str = None,
@@ -63,7 +65,7 @@ def make_model(name: str = None,
     Default parameters can be found in :obj:`kgcnn.literature.MAT.model_default`.
 
     .. note::
-        Please make sure to choose matching units for `attention_kwargs` and `feed_forward_kwargs`.
+        We added a linear layers to keep correct node embedding dimension.
 
     Inputs:
         list: `[node_attributes, node_coordinates, edge_attributes, edge_indices]`
@@ -136,7 +138,7 @@ def make_model(name: str = None,
 
     # Repeat for depth.
     h_mask = n_mask
-    h = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(n)  # Assert correct feature dimension for skip.
+    h = ks.layers.Dense(units=embedding_units, use_bias=False)(n)  # Assert correct feature dimension for skip.
     for _ in range(depth):
         # 1. Norm + Attention + Residual
         hn = ks.layers.LayerNormalization()(h)
@@ -151,9 +153,10 @@ def make_model(name: str = None,
         ]
         if merge_heads == "add":
             hu = ks.layers.Add()(hs)
+            hu = ks.layers.Dense(units=embedding_units, use_bias=False)(hu)
         else:
             hu = ks.layers.Concatenate(axis=-1)(hs)
-            hu = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(hu)
+            hu = ks.layers.Dense(units=embedding_units, use_bias=False)(hu)
         h = ks.layers.Add()([h, hu])
 
         # 2. Norm + MLP + Residual
@@ -162,6 +165,7 @@ def make_model(name: str = None,
 
         hu = MLP(**feed_forward_kwargs)(hn)
         hu = ks.layers.Multiply()([hu, h_mask])
+        hu = ks.layers.Dense(units=embedding_units, use_bias=False)(hu)
 
         h = ks.layers.Add()([h, hu])
 
