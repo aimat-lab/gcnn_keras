@@ -301,11 +301,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         bond_info = []
         for i, x in enumerate(m.GetBonds()):
             bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
-            bond_info.append(x.GetBondType())
+            bond_info.append(int(x.GetBondType()))
             if not self._make_directed:
                 # Add a bond with opposite direction but same properties
                 bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
-                bond_info.append(x.GetBondType())
+                bond_info.append(int(x.GetBondType()))
         # Sort directed bonds
         bond_idx, bond_info = self._sort_bonds(bond_idx)
         return bond_idx, bond_info
