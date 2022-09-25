@@ -139,7 +139,6 @@ def make_model(name: str = None,
     h = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(n)  # Assert correct feature dimension for skip.
     for _ in range(depth):
         # 1. Norm + Attention + Residual
-        # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
         hn = ks.layers.Multiply()([hn, h_mask])
 
@@ -158,7 +157,6 @@ def make_model(name: str = None,
         h = ks.layers.Add()([h, hu])
 
         # 2. Norm + MLP + Residual
-        # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
         hn = ks.layers.Multiply()([hn, h_mask])
 
@@ -170,7 +168,6 @@ def make_model(name: str = None,
     # pooling output
     out = h
     out_mask = h_mask
-    # TODO: Need to check padded Normalization.
     out = ks.layers.LayerNormalization()(out)
     out = ks.layers.Multiply()([out, out_mask])
     if output_embedding == 'graph':
