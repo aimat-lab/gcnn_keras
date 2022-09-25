@@ -30,14 +30,15 @@ model_default = {
     "max_atoms": None,
     "distance_matrix_kwargs": {"trafo": "exp"},
     "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
-    "feed_forward_kwargs": {"units": 64},
+    "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
     "depth": 5,
     "heads": 8,
+    "merge_heads": "concat",
     "verbose": 10,
     "output_embedding": "graph",
     "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                   "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
+                   "activation": ["relu", "relu", "linear"]}
 }
 
 
@@ -51,6 +52,7 @@ def make_model(name: str = None,
                feed_forward_kwargs:dict = None,
                depth: int = None,
                heads: int = None,
+               merge_heads: str = None,
                max_atoms: int = None,
                verbose: int = None,
                output_embedding: str = None,
@@ -126,6 +128,7 @@ def make_model(name: str = None,
         # Assume that feature-wise attention is not desired for adjacency, reduce to single value.
         adj = ks.layers.Dense(1, use_bias=False)(adj)
         adj_mask = MATReduceMask(axis=-1, keepdims=True)(adj_mask)
+        adj = ks.layers.Multiply()([adj, adj_mask])
     else:
         # Make sure that shape is (batch, max_atoms, max_atoms, 1).
         adj = MATExpandMask(axis=-1)(adj)
@@ -143,11 +146,15 @@ def make_model(name: str = None,
         hs = [
             MATAttentionHead(**attention_kwargs)(
                 [hn, dist, adj],
-                mask=[n_mask, dist_mask, dist_mask]
+                mask=[n_mask, dist_mask, adj_mask]
             )
             for _ in range(heads)
-        ]  # Mask is applied in attention.
-        hu = ks.layers.Add()(hs)  # Merge attention heads.
+        ]
+        if merge_heads == "add":
+            hu = ks.layers.Add()(hs)
+        else:
+            hu = ks.layers.Concatenate(axis=-1)(hs)
+            hu = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(hu)
         h = ks.layers.Add()([h, hu])
 
         # 2. Norm + MLP + Residual

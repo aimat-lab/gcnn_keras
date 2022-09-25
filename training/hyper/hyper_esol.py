@@ -971,7 +971,7 @@ hyper = {
                 "inputs": [
                     {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
                     {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_number
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_weights
                     {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
@@ -980,14 +980,15 @@ hyper = {
                 "max_atoms": None,
                 "distance_matrix_kwargs": {"trafo": "exp"},
                 "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
-                "feed_forward_kwargs": {"units": 64},
+                "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
                 "depth": 5,
                 "heads": 8,
+                "merge_heads": "concat",
                 "verbose": 10,
                 "output_embedding": "graph",
                 "output_to_tensor": True,
                 "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                               "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
+                               "activation": ["relu", "relu", "linear"]}
             }
         },
         "training": {

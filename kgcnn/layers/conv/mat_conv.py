@@ -121,7 +121,7 @@ class MATAttentionHead(ks.layers.Layer):
         q = tf.expand_dims(self.dense_q(h)*h_mask, axis=2)
         k = tf.expand_dims(self.dense_k(h)*h_mask, axis=1)
         v = self.dense_v(h)*h_mask
-        qk = tf.einsum('bij...,bjk...->bik...', q, k) / self.scale
+        qk = q * k / self.scale
         qk = tf.nn.softmax(qk, axis=2)
         # Apply mask on self-attention
         qk_mask = tf.expand_dims(h_mask, axis=1) * tf.expand_dims(h_mask, axis=2)  # (b, 1, n, ...) * (b, n, 1, ...)
@@ -132,6 +132,8 @@ class MATAttentionHead(ks.layers.Layer):
         a_g = self.lambda_g * tf.cast(a_g, dtype=h.dtype)
         # print(qk.shape, a_d.shape, a_g.shape)
         att = qk + a_d + a_g
+        # Or move to feature dimension to batch and apply on last axis as tf.einsum('...ij,...jk->...ik', s, t)
+        # Should check if this is identical.
         hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(v, axis=2))
         hp = tf.squeeze(hp, axis=2)
         hp *= h_mask
