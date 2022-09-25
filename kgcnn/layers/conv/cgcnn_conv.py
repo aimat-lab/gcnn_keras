@@ -1,5 +1,5 @@
 import tensorflow as tf
-from kgcnn.layers.conv.message import MessagePassingBase
+from kgcnn.layers.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
 from kgcnn.layers.modules import ActivationEmbedding, LazyMultiply, LazyConcatenate, LazyAdd, DenseEmbedding
 ks = tf.keras

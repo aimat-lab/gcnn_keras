@@ -13,6 +13,8 @@ v2.1.0
 * Removed ``kgcnn.layers.casting.ChangeIndexing`` at it was not used.
 * Added ``kgcnn.layers.casting.CastEdgeIndicesToDenseAdjacency``.
 * Merged ``kgcnn.layers.mlp.MLP`` and ``kgcnn.layers.mlp.GraphMLP``, but kept `GraphMLP` as alias. Change in kwargs for "normalization_technique".
+* Moved ``kgcnn.layers.conv.message`` to ``kgcnn.layers.message``.
+* Refactored ``kgcnn.layers.conv.attention`` into ``kgcnn.layers.conv.gat_conv`` and ``kgcnn.layers.conv.attentivefp_conv``.
 
 
 v2.0.4

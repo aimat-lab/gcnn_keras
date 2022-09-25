@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.attention import AttentionHeadGAT
+from kgcnn.layers.conv.gat_conv import AttentionHeadGAT
 from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP

@@ -10,6 +10,7 @@ The layers for `kgcnn` should accept ragged tensor input and are sorted as follo
     * `kgcnn.layers.norm` Normalization layers for graph tensors. 
     * `kgcnn.layers.modules` Keras layers and modules to support ragged tensor input.
     * `kgcnn.layers.pooling` General layers for standard aggregation and pooling.
+    * `kgcnn.layers.message` Message passing base layer.
 
 
 * Model specific pooling and convolutional layers (they should make use of existing modules in `kgcnn.layers`) are sorted into:
@@ -18,4 +19,5 @@ The layers for `kgcnn` should accept ragged tensor input and are sorted as follo
 
 
 Thereby it should be possible to contribute to `kgcnn` by supplying new layers in `kgcnn.layers.pool` and `kgcnn.layers.conv` and a 
-corresponding model in `kgcnn.literature`. Naming and implementation should be made following the existing convention, if possible.
+corresponding model in `kgcnn.literature`. Naming and implementation should be made following the existing convention, if possible,
+which is model name + '_conv' or '_pool'.
