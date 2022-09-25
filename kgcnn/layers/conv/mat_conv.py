@@ -43,11 +43,12 @@ class MATDistanceMatrix(ks.layers.Layer):
         # Shape of mask (batch, N, 3)
         diff = tf.expand_dims(inputs, axis=1) - tf.expand_dims(inputs, axis=2)
         dist = tf.reduce_sum(tf.square(diff), axis=-1, keepdims=True)
+        # shape of dist (batch, N, N, 1)
         if self.trafo == "exp":
             dist = tf.exp(-dist)
         if self.trafo == "softmax":
-            dist = tf.nn.softmax(dist, axis=-1)
-        # If no mask.
+            dist = tf.nn.softmax(dist, axis=2)
+
         if mask is None:
             return dist
         diff_mask = tf.expand_dims(inputs, axis=1) * tf.expand_dims(inputs, axis=2)
@@ -111,6 +112,7 @@ class MATAttentionHead(ks.layers.Layer):
         qk = self.lambda_a * qk
         a_d = self.lambda_d * tf.cast(a_d, dtype=h.dtype)
         a_g = self.lambda_g * tf.cast(a_g, dtype=h.dtype)
+        print(qk.shape, a_d.shape, a_g.shape)
         att = qk + a_d + a_g
         hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(v, axis=2))
         hp = tf.squeeze(hp, axis=2)

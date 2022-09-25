@@ -113,8 +113,12 @@ def make_model(name: str = None,
         xyz, mask=xyz_mask)  # Always be shape (batch, max_atoms, max_atoms, 1)
     adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # (batch, max_atoms, max_atoms, feat)
 
+    # Check shapes
+    # print(n.shape, dist.shape, adj.shape)
+    # print(n_mask.shape, dist_mask.shape, adj_mask.shape)
+
     # Adjacency is derived from edge input. If edge input has no last dimension and no embedding is used, then adjacency
-    # matrix will have shape (batch, max_atoms, max_atoms,1 ) and edge input should be ones or weights or bond degree.
+    # matrix will have shape (batch, max_atoms, max_atoms) and edge input should be ones or weights or bond degree.
     # Otherwise, adjacency bears feature expanded from edge attributes of shape (batch, max_atoms, max_atoms, features).
     has_edge_dim = len(inputs[1]["shape"]) > 2 or len(inputs[1]["shape"]) < 2 and use_edge_embedding
 
@@ -126,7 +130,7 @@ def make_model(name: str = None,
     # Repeat for depth.
     h = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(n)  # Assert correct feature dimension for skip.
     for _ in range(depth):
-        # part one Norm + Attention + Residual
+        # 1. Norm + Attention + Residual
         # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
         hs = [
@@ -138,7 +142,8 @@ def make_model(name: str = None,
         ]
         hu = ks.layers.Add()(hs)  # Merge attention heads.
         h = ks.layers.Add()([h, hu])
-        # part two Norm + MLP + Residual
+
+        # 2. Norm + MLP + Residual
         # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
         hu = MLP(**feed_forward_kwargs)(hn)
