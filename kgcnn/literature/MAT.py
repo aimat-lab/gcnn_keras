@@ -9,7 +9,11 @@ from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix
 ks = tf.keras
 
 # Implementation of MAT in `tf.keras` from paper:
-# TODO
+# Molecule Attention Transformer
+# Łukasz Maziarka, Tomasz Danel, Sławomir Mucha, Krzysztof Rataj, Jacek Tabor, Stanisław Jastrzębski
+# https://arxiv.org/abs/2002.08264
+# https://github.com/ardigen/MAT
+# https://github.com/lucidrains/molecule-attention-transformer
 
 
 model_default = {
@@ -141,10 +145,9 @@ def make_model(name: str = None,
     return model
 
 
-from kgcnn.data.datasets.ESOLDataset import ESOLDataset
-
-data = ESOLDataset()
-data.clean(model_default["inputs"])
-x_list = data.tensor(model_default["inputs"])
-model = make_model()
-out = model.predict(x_list)
+# from kgcnn.data.datasets.ESOLDataset import ESOLDataset
+# data = ESOLDataset()
+# data.clean(model_default["inputs"])
+# x_list = data.tensor(model_default["inputs"])
+# model = make_model()
+# out = model.predict(x_list)

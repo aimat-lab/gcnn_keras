@@ -51,12 +51,15 @@ class MATAttentionHead(ks.layers.Layer):
         v = self.dense_v(h)
         qk = tf.einsum('bij...,bjk...->bik...', q, k) / self.scale
         qk = tf.nn.softmax(qk, axis=2)
-        # TODO: Must apply mask here
+        # Apply mask on self-attention
+        qk_mask = tf.expand_dims(h_mask, axis=1) * tf.expand_dims(h_mask, axis=2)  # (b, 1, n, ...) * (b, n, 1, ...)
+        qk *= qk_mask
         att = self.lambda_g * qk + self.lambda_d * tf.cast(a_d, dtype=h.dtype) + self.lambda_a * tf.cast(a_a,
                                                                                                          dtype=h.dtype)
         hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(h, axis=2))
         hp = tf.squeeze(hp, axis=2)
-        return hp * h_mask
+        hp *= h_mask
+        return
 
     def get_config(self):
         config = super(MATAttentionHead, self).get_config()
