@@ -107,9 +107,9 @@ def make_model(name: str = None,
 
     # Cast to dense Tensor with padding for MAT.
     # Nodes must have feature dimension.
-    n, n_mask = ChangeTensorType(
+    n, n_mask_f = ChangeTensorType(
         output_tensor_type="padded", shape=(None, max_atoms, None))(n)  # (batch, max_atoms, features)
-    n_mask = MATReduceMask(axis=-1, keepdims=True)(n_mask)  # prefer broadcast mask (batch, max_atoms, 1)
+    n_mask = MATReduceMask(axis=-1, keepdims=True)(n_mask_f)  # prefer broadcast mask (batch, max_atoms, 1)
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, 3))(xyz_input)
     dist, dist_mask = MATDistanceMatrix(**distance_matrix_kwargs)(
         xyz, mask=xyz_mask)  # Always be shape (batch, max_atoms, max_atoms, 1)
