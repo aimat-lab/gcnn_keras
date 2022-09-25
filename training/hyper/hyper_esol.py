@@ -967,35 +967,40 @@ hyper = {
             "class_name": "make_model",
             "module_name": "kgcnn.literature.MAT",
             "config": {
-                'name': "NMPN",
-                'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
-                'input_embedding': {"node": {"input_dim": 95, "output_dim": 128},
-                                    "edge": {"input_dim": 95, "output_dim": 128}},
-                'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
-                'set2set_args': {'channels': 64, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
-                'pooling_args': {'pooling_method': "segment_sum"},
-                'edge_mlp': {'use_bias': True, 'activation': 'swish', "units": [64, 64]},
-                'use_set2set': True, 'depth': 3, 'node_dim': 128,
-                "geometric_edge": False, "make_distance": False, "expand_distance": False,
-                'verbose': 10,
-                'output_embedding': 'graph',
-                'output_mlp': {"use_bias": [True, True, False], "units": [64, 32, 1],
-                               "activation": ['swish', 'swish', 'linear']},
+                "name": "MAT",
+                "inputs": [
+                    {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_number
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "use_edge_embedding": False,
+                "max_atoms": None,
+                "distance_matrix_kwargs": {"trafo": "exp"},
+                "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
+                "feed_forward_kwargs": {"units": 64},
+                "depth": 5,
+                "heads": 8,
+                "verbose": 10,
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                               "activation": ["kgcnn>softplus2", "kgcnn>softplus2", "linear"]}
             }
         },
         "training": {
             "fit": {
-                "batch_size": 32,
-                "epochs": 800,
+                "batch_size": 64,
+                "epochs": 400,
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler",
                         "config": {
-                            "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 100, "epo": 800,
+                            "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 0, "epo": 400,
                             "verbose": 0
                         }
                     }
@@ -1016,7 +1021,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
-                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}}
                 ]
             },
             "data_unit": "mol/L"
@@ -1024,7 +1029,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.1.0"
         }
     },
 }
