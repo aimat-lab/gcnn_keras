@@ -307,7 +307,7 @@ class MolecularGraphRDKit(MolGraphInterface):
                 bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
                 bond_info.append(int(x.GetBondType()))
         # Sort directed bonds
-        bond_idx, bond_info = self._sort_bonds(bond_idx)
+        bond_idx, bond_info = self._sort_bonds(bond_idx, bond_info)
         return bond_idx, bond_info
 
     @property
