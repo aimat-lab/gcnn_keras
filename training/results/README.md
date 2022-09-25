@@ -51,7 +51,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | HamNet              | 2.1.0   |      400 | 0.5485 &pm; 0.0225     | 0.7605 &pm; 0.0210     |
 | INorp               | 2.1.0   |      500 | 0.4856 &pm; 0.0145     | 0.6801 &pm; 0.0252     |
 | Megnet              | 2.1.0   |      800 | 0.5446 &pm; 0.0142     | 0.7651 &pm; 0.0410     |
-| NMPN                | 2.1.0   |      800 | 0.5820 &pm; 0.0451     | 0.8231 &pm; 0.0682     |
+| NMPN                | 2.1.0   |      800 | 0.5045 &pm; 0.0217     | 0.7092 &pm; 0.0482     |
 | PAiNN               | 2.1.0   |      250 | **0.4291 &pm; 0.0164** | **0.6014 &pm; 0.0238** |
 | Schnet              | 2.1.0   |      800 | 0.4579 &pm; 0.0259     | 0.6527 &pm; 0.0411     |
 
@@ -88,6 +88,8 @@ Materials Project dataset from Matbench with 1,265 crystal structures and their 
 | model                     | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]          |
 |:--------------------------|:--------|---------:|:------------------------|:------------------------|
 | Megnet.make_crystal_model | 2.1.0   |     1000 | **29.2085 &pm; 2.8130** | **53.9366 &pm; 7.0800** |
+| NMPN.make_crystal_model   | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
+| PAiNN.make_crystal_model  | 2.1.0   |      800 | 48.6461 &pm; 1.2551     | 93.4495 &pm; 4.8675     |
 | Schnet.make_crystal_model | 2.1.0   |      800 | 39.6044 &pm; 2.1223     | 78.6854 &pm; 15.0636    |
 
 ## MutagenicityDataset
@@ -139,7 +141,7 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | HamNet              | 2.1.0   |      400 | 0.6395 &pm; 0.0496     | 1.0508 &pm; 0.0827     |
 | INorp               | 2.1.0   |      500 | 0.6448 &pm; 0.0607     | 1.0911 &pm; 0.1530     |
 | Megnet              | 2.1.0   |      800 | 0.9749 &pm; 0.0429     | 1.5328 &pm; 0.0862     |
-| NMPN                | 2.1.0   |      800 | 0.6393 &pm; 0.0808     | 1.0830 &pm; 0.1283     |
+| NMPN                | 2.1.0   |      800 | 0.5733 &pm; 0.0392     | 0.9861 &pm; 0.0816     |
 | PAiNN               | 2.1.0   |      250 | **0.5128 &pm; 0.0565** | 0.9403 &pm; 0.1387     |
 | Schnet              | 2.1.0   |      800 | 0.5980 &pm; 0.0556     | 1.0614 &pm; 0.1531     |
 
