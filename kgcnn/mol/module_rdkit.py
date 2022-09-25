@@ -278,19 +278,19 @@ class MolecularGraphRDKit(MolGraphInterface):
     def _sort_bonds(bond_idx, bond_info=None):
         # Sort directed bonds
         bond_idx = np.array(bond_idx, dtype="int64")
-        bonds = None
+        bonds1, bonds2 = None, None
         if len(bond_idx) > 0:
             order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
             ind1 = bond_idx[order1]
             if bond_info:
-                bonds = [bond_info[i] for i in order1]
+                bonds1 = [bond_info[i] for i in order1]
             order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
             ind2 = ind1[order2]
             if bond_info:
-                bonds = [bonds[i] for i in order2]
+                bonds2 = [bonds1[i] for i in order2]
             # Take the sorted bonds
             bond_idx = ind2
-            bond_info = bonds
+            bond_info = bonds2
         return bond_idx, bond_info
 
     @property
