@@ -81,6 +81,24 @@ class MATReduceMask(ks.layers.Layer):
         return config
 
 
+class MATExpandMask(ks.layers.Layer):
+
+    def __init__(self, axis: int, **kwargs):
+        super(MATExpandMask, self).__init__(**kwargs)
+        self.axis = axis
+
+    def build(self, input_shape):
+        super(MATExpandMask, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        return tf.expand_dims(inputs, axis=self.axis)
+
+    def get_config(self):
+        config = super(MATExpandMask, self).get_config()
+        config.update({"axis": self.axis})
+        return config
+
+
 class MATAttentionHead(ks.layers.Layer):
 
     def __init__(self, units: int = 64, lambda_a: float = 1.0, lambda_g: float = 0.5, lambda_d: float = 0.5, **kwargs):
@@ -112,7 +130,7 @@ class MATAttentionHead(ks.layers.Layer):
         qk = self.lambda_a * qk
         a_d = self.lambda_d * tf.cast(a_d, dtype=h.dtype)
         a_g = self.lambda_g * tf.cast(a_g, dtype=h.dtype)
-        print(qk.shape, a_d.shape, a_g.shape)
+        # print(qk.shape, a_d.shape, a_g.shape)
         att = qk + a_d + a_g
         hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(v, axis=2))
         hp = tf.squeeze(hp, axis=2)

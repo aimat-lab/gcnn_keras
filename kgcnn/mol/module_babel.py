@@ -185,11 +185,11 @@ class MolecularGraphOpenBabel(MolGraphInterface):
             if bnd is None:
                 continue
             bond_idx.append([bnd.GetBeginAtomIdx() - 1, bnd.GetEndAtomIdx() - 1])
-            bond_number.append([bnd.GetBondOrder()])
+            bond_number.append(bnd.GetBondOrder())
             if not self._make_directed:
                 # Add a bond with opposite direction but same properties
                 bond_idx.append([bnd.GetEndAtomIdx() - 1, bnd.GetBeginAtomIdx() - 1])
-                bond_number.append([bnd.GetBondOrder()])
+                bond_number.append(bnd.GetBondOrder())
                 # Sort bond indices
         bond_idx = np.array(bond_idx, dtype="int64")
         bond_number = np.array(bond_number, dtype="int64")

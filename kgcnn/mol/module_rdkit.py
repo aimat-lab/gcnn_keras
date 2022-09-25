@@ -274,11 +274,41 @@ class MolecularGraphRDKit(MolGraphInterface):
         """Return list of node number which is the atomic number of each atom in the molecule"""
         return np.array([x.GetAtomicNum() for x in self.mol.GetAtoms()])
 
+    @staticmethod
+    def _sort_bonds(bond_idx, bond_info=None):
+        # Sort directed bonds
+        bond_idx = np.array(bond_idx, dtype="int64")
+        bonds = None
+        if len(bond_idx) > 0:
+            order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
+            ind1 = bond_idx[order1]
+            if bond_info:
+                bonds = [bond_info[i] for i in order1]
+            order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
+            ind2 = ind1[order2]
+            if bond_info:
+                bonds = [bonds[i] for i in order2]
+            # Take the sorted bonds
+            bond_idx = ind2
+            bond_info = bonds
+        return bond_idx, bond_info
+
     @property
     def edge_number(self):
         """Make list of the bond order or type of each bond in the molecule."""
-        temp = self.edge_attributes(["BondType"], encoder={"BondType": int})
-        return temp
+        m = self.mol
+        bond_idx = []
+        bond_info = []
+        for i, x in enumerate(m.GetBonds()):
+            bond_idx.append([x.GetEndAtomIdx(), x.GetBeginAtomIdx()])
+            bond_info.append(x.GetBondType())
+            if not self._make_directed:
+                # Add a bond with opposite direction but same properties
+                bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
+                bond_info.append(x.GetBondType())
+        # Sort directed bonds
+        bond_idx, bond_info = self._sort_bonds(bond_idx)
+        return bond_idx, bond_info
 
     @property
     def edge_indices(self):
@@ -296,14 +326,7 @@ class MolecularGraphRDKit(MolGraphInterface):
                 # Add a bond with opposite direction but same properties
                 bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
         # Sort directed bonds
-        bond_idx = np.array(bond_idx, dtype="int64")
-        if len(bond_idx) > 0:
-            order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
-            ind1 = bond_idx[order1]
-            order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
-            ind2 = ind1[order2]
-            # Take the sorted bonds
-            bond_idx = ind2
+        bond_idx, _ = self._sort_bonds(bond_idx)
         return bond_idx
 
     def edge_attributes(self, properties: list, encoder: dict):
@@ -347,17 +370,7 @@ class MolecularGraphRDKit(MolGraphInterface):
                 bond_idx.append([x.GetBeginAtomIdx(), x.GetEndAtomIdx()])
 
         # Sort directed bonds
-        bond_idx = np.array(bond_idx, dtype="int64")
-        if len(bond_idx) > 0:
-            order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
-            ind1 = bond_idx[order1]
-            val1 = [bond_info[i] for i in order1]
-            order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
-            ind2 = ind1[order2]
-            val2 = [val1[i] for i in order2]
-            # Take the sorted bonds
-            bond_idx = ind2
-            bond_info = val2
+        bond_idx, bond_info = self._sort_bonds(bond_idx, bond_info)
         return bond_idx, bond_info
 
     def node_attributes(self, properties: list, encoder: dict):

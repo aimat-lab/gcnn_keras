@@ -905,10 +905,10 @@ hyper = {
             "config": {
                 'name': "NMPN",
                 'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 1), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
                 'input_embedding': {"node": {"input_dim": 95, "output_dim": 128},
-                                    "edge": {"input_dim": 5, "output_dim": 128}},
+                                    "edge": {"input_dim": 95, "output_dim": 128}},
                 'gauss_args': {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},
                 'set2set_args': {'channels': 64, 'T': 3, "pooling_method": "sum", "init_qstar": "0"},
                 'pooling_args': {'pooling_method': "segment_sum"},

@@ -4,7 +4,7 @@ from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
-from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix, MATReduceMask, MATGlobalPool
+from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix, MATReduceMask, MATGlobalPool, MATExpandMask
 
 ks = tf.keras
 
@@ -21,7 +21,7 @@ model_default = {
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None, ), "name": "edge_number", "dtype": "float32", "ragged": True},  # or edge_weights
+        {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_weights
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
@@ -111,7 +111,7 @@ def make_model(name: str = None,
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, 3))(xyz_input)
     dist, dist_mask = MATDistanceMatrix(**distance_matrix_kwargs)(
         xyz, mask=xyz_mask)  # Always be shape (batch, max_atoms, max_atoms, 1)
-    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # (batch, max_atoms, max_atoms, feat)
+    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # (batch, max_atoms, max_atoms, (feat))
 
     # Check shapes
     # print(n.shape, dist.shape, adj.shape)
@@ -120,46 +120,59 @@ def make_model(name: str = None,
     # Adjacency is derived from edge input. If edge input has no last dimension and no embedding is used, then adjacency
     # matrix will have shape (batch, max_atoms, max_atoms) and edge input should be ones or weights or bond degree.
     # Otherwise, adjacency bears feature expanded from edge attributes of shape (batch, max_atoms, max_atoms, features).
-    has_edge_dim = len(inputs[1]["shape"]) > 2 or len(inputs[1]["shape"]) < 2 and use_edge_embedding
+    has_edge_dim = len(inputs[1]["shape"]) >= 2 or len(inputs[1]["shape"]) < 2 and use_edge_embedding
 
     if has_edge_dim:
-        # Assume that feature attention is not desired, reduce to single value.
+        # Assume that feature-wise attention is not desired for adjacency, reduce to single value.
         adj = ks.layers.Dense(1, use_bias=False)(adj)
         adj_mask = MATReduceMask(axis=-1, keepdims=True)(adj_mask)
+    else:
+        # Make sure that shape is (batch, max_atoms, max_atoms, 1).
+        adj = MATExpandMask(axis=-1)(adj)
+        adj_mask = MATExpandMask(axis=-1)(adj_mask)
 
     # Repeat for depth.
+    h_mask = n_mask
     h = ks.layers.Dense(attention_kwargs["units"], use_bias=False)(n)  # Assert correct feature dimension for skip.
     for _ in range(depth):
         # 1. Norm + Attention + Residual
         # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
+        hn = ks.layers.Multiply()([hn, h_mask])
+
         hs = [
             MATAttentionHead(**attention_kwargs)(
                 [hn, dist, adj],
                 mask=[n_mask, dist_mask, dist_mask]
             )
             for _ in range(heads)
-        ]
+        ]  # Mask is applied in attention.
         hu = ks.layers.Add()(hs)  # Merge attention heads.
         h = ks.layers.Add()([h, hu])
 
         # 2. Norm + MLP + Residual
         # TODO: Need to check padded Normalization.
         hn = ks.layers.LayerNormalization()(h)
+        hn = ks.layers.Multiply()([hn, h_mask])
+
         hu = MLP(**feed_forward_kwargs)(hn)
+        hu = ks.layers.Multiply()([hu, h_mask])
+
         h = ks.layers.Add()([h, hu])
 
     # pooling output
     out = h
+    out_mask = h_mask
+    # TODO: Need to check padded Normalization.
+    out = ks.layers.LayerNormalization()(out)
+    out = ks.layers.Multiply()([out, out_mask])
     if output_embedding == 'graph':
-        out = ks.layers.LayerNormalization()(out)
-        out = MATGlobalPool()(out)
+        out = MATGlobalPool()(out, mask=out_mask)
         # final prediction MLP for the output!
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
         out = GraphMLP(**output_mlp)(out)
-        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
-            out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+        out = ks.layers.Multiply()([out, out_mask])
     else:
         raise ValueError("Unsupported graph embedding for mode `MAT`")
 
@@ -171,9 +184,10 @@ def make_model(name: str = None,
     return model
 
 
-from kgcnn.data.datasets.ESOLDataset import ESOLDataset
-data = ESOLDataset()
-data.clean(model_default["inputs"])
-x_list = data.tensor(model_default["inputs"])
-model = make_model()
-out = model.predict(x_list)
+# from kgcnn.data.datasets.ESOLDataset import ESOLDataset
+# data = ESOLDataset()
+# data.map_list(method= "normalize_edge_weights_sym")
+# data.clean(model_default["inputs"])
+# x_list = data.tensor(model_default["inputs"])
+# model = make_model()
+# out = model.predict(x_list)
