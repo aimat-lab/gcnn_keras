@@ -4,7 +4,7 @@ from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.utils.models import update_model_kwargs
-from kgcnn.layers.conv.mat_conv import Attention, FeedForward, MATDistanceMatrix
+from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix
 
 ks = tf.keras
 
@@ -17,20 +17,17 @@ model_default = {
     "inputs": [
         {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-        {"shape": (None, ), "name": "edge_number", "dtype": "float32", "ragged": True},  # or edge_weights
+        {"shape": (None,), "name": "edge_number", "dtype": "float32", "ragged": True},  # or edge_weights
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
+    "use_explicit_edge_embedding": False,
     "max_atoms": None,
     "verbose": 10,
     "depth": 5,
     "units": 64,
     "heads": 8,
-    "Ld": 0.5,
-    "Lg": 0.5,
-    "La": 1,
-    "dim_out": 1,
     "output_embedding": "graph",
     "output_to_tensor": True,
 }
@@ -40,6 +37,7 @@ model_default = {
 def make_model(name: str = None,
                inputs: list = None,
                input_embedding: dict = None,
+               use_explicit_edge_embedding: bool = None,
                depth: int = None,
                units: int = None,
                heads: int = None,
@@ -47,13 +45,12 @@ def make_model(name: str = None,
                verbose: int = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
-               Lg: float = None,
-               La: float = None,
-               Ld: float = None,
-               dim_out: int = None,
                ):
-    r"""Make `MAT <>`_ graph network via functional API.
+    r"""Make `MAT <https://arxiv.org/pdf/2002.08264.pdf>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.MAT.model_default`.
+
+    .. note::
+        Please make sure to choose matching dimensions for .
 
     Inputs:
         list: `[node_attributes, node_coordinates, edge_attributes, edge_indices]`
@@ -89,26 +86,39 @@ def make_model(name: str = None,
     edge_index_input = ks.layers.Input(**inputs[3])
 
     # Embedding, if no feature dimension
-    n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    n = OptionalInputEmbedding(**input_embedding["node"], use_embedding=len(inputs[0]["shape"]) < 2)(node_input)
+    ed = OptionalInputEmbedding(
+        **input_embedding["edge"], use_embedding=len(inputs[1]["shape"]) < 2 and use_explicit_edge_embedding
+    )(node_input)
     edi = edge_index_input
-    ed = edge_index_input
 
     # Cast to dense Tensor with padding for MAT.
+    # Nodes must have feature dimension.
     n, n_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, None))(n)
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, 3))(xyz_input)
-    dist, dist_mask = MATDistanceMatrix()(xyz, mask=xyz_mask)
-    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # max_atoms x max_atoms
+    dist, dist_mask = MATDistanceMatrix()(xyz, mask=xyz_mask)  # Always be shape (batch, max_atoms, max_atoms)
+    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # (batch, max_atoms, max_atoms, feat)
+
+    # Adjacency is derived from edge input. If edge input has no last dimension and no embedding is used, then adjacency
+    # matrix will have shape (batch, max_atoms, max_atoms) and edge input should be ones or weights or bond degree.
+    # Otherwise, adjacency bears feature expanded from edge attributes of shape (batch, max_atoms, max_atoms, features).
 
     # depth loop
     h = n
     for _ in range(depth):
         # part one Norm + Attention + Residual
         hn = ks.layers.LayerNormalization()(h)
-        h += Attention(units=units, heads=heads, Ld=Ld, Lg=Lg, La=La)(
-            [hn, adj, dist, n_mask, dist_mask, xyz_mask])
+        hs = [
+            MATAttentionHead(units=units)(
+                [hn, dist, adj],
+                mask=[n_mask, dist_mask, xyz_mask]
+            )
+            for _ in range(heads)
+        ]
+        hn = ks.layers.Add()(hs)
         # part two Norm + MLP + Residual
-        hn = ks.layers.LayerNormalization()(h)
-        h += FeedForward()(hn)
+        hn = ks.layers.LayerNormalization()(hn)
+        h += MLP(units=units)(hn)
 
     # pooling output
     out = h
@@ -117,7 +127,7 @@ def make_model(name: str = None,
         # mean pooling can be a parameter
         out = tf.math.reduce_mean(out, axis=-2)
         # final prediction MLP for the output!
-        out = FeedForward(dim_out=dim_out)(out)
+        out = MLP(units=units)(out)
     elif output_embedding == 'node':
         pass
     else:
@@ -129,3 +139,12 @@ def make_model(name: str = None,
         name=name
     )
     return model
+
+
+from kgcnn.data.datasets.ESOLDataset import ESOLDataset
+
+data = ESOLDataset()
+data.clean(model_default["inputs"])
+x_list = data.tensor(model_default["inputs"])
+model = make_model()
+out = model.predict(x_list)

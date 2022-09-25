@@ -36,6 +36,9 @@ class MATAttentionHead(ks.layers.Layer):
         self.lambda_g = lambda_g
         self.lambda_d = lambda_d
         self.scale = self.units ** -0.5
+        self.dense_q = ks.layers.Dense(units=units)
+        self.dense_k = ks.layers.Dense(units=units)
+        self.dense_v = ks.layers.Dense(units=units)
 
     def build(self, input_shape):
         super(MATAttentionHead, self).build(input_shape)
@@ -43,9 +46,17 @@ class MATAttentionHead(ks.layers.Layer):
     def call(self, inputs, mask, **kwargs):
         h, a_d, a_a = inputs
         h_mask, a_d_mask, a_a_mask = mask
-        q =
-
-        return out
+        q = tf.expand_dims(self.dense_q(h), axis=2)
+        k = tf.expand_dims(self.dense_k(h), axis=1)
+        v = self.dense_v(h)
+        qk = tf.einsum('bij...,bjk...->bik...', q, k) / self.scale
+        qk = tf.nn.softmax(qk, axis=2)
+        # TODO: Must apply mask here
+        att = self.lambda_g * qk + self.lambda_d * tf.cast(a_d, dtype=h.dtype) + self.lambda_a * tf.cast(a_a,
+                                                                                                         dtype=h.dtype)
+        hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(h, axis=2))
+        hp = tf.squeeze(hp, axis=2)
+        return hp * h_mask
 
     def get_config(self):
         config = super(MATAttentionHead, self).get_config()
