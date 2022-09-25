@@ -130,7 +130,6 @@ def make_model(name: str = None,
         # Assume that feature-wise attention is not desired for adjacency, reduce to single value.
         adj = ks.layers.Dense(1, use_bias=False)(adj)
         adj_mask = MATReduceMask(axis=-1, keepdims=True)(adj_mask)
-        adj = ks.layers.Multiply()([adj, adj_mask])
     else:
         # Make sure that shape is (batch, max_atoms, max_atoms, 1).
         adj = MATExpandMask(axis=-1)(adj)
@@ -142,8 +141,6 @@ def make_model(name: str = None,
     for _ in range(depth):
         # 1. Norm + Attention + Residual
         hn = ks.layers.LayerNormalization()(h)
-        hn = ks.layers.Multiply()([hn, h_mask])
-
         hs = [
             MATAttentionHead(**attention_kwargs)(
                 [hn, dist, adj],
@@ -161,20 +158,17 @@ def make_model(name: str = None,
 
         # 2. Norm + MLP + Residual
         hn = ks.layers.LayerNormalization()(h)
-        hn = ks.layers.Multiply()([hn, h_mask])
-
         hu = MLP(**feed_forward_kwargs)(hn)
-        hu = ks.layers.Multiply()([hu, h_mask])
         hu = ks.layers.Dense(units=embedding_units, use_bias=False)(hu)
-
+        hu = ks.layers.Multiply()([hu, h_mask])
         h = ks.layers.Add()([h, hu])
 
     # pooling output
     out = h
     out_mask = h_mask
     out = ks.layers.LayerNormalization()(out)
-    out = ks.layers.Multiply()([out, out_mask])
     if output_embedding == 'graph':
+        out = ks.layers.Multiply()([out, out_mask])
         out = MATGlobalPool()(out, mask=out_mask)
         # final prediction MLP for the output!
         out = MLP(**output_mlp)(out)

@@ -38,21 +38,19 @@ class MATDistanceMatrix(ks.layers.Layer):
     def build(self, input_shape):
         super(MATDistanceMatrix, self).build(input_shape)
 
-    def call(self, inputs, mask=None, **kwargs):
+    def call(self, inputs, mask, **kwargs):
         # Shape of inputs (batch, N, 3)
         # Shape of mask (batch, N, 3)
         diff = tf.expand_dims(inputs, axis=1) - tf.expand_dims(inputs, axis=2)
         dist = tf.reduce_sum(tf.square(diff), axis=-1, keepdims=True)
         # shape of dist (batch, N, N, 1)
+        diff_mask = tf.expand_dims(mask, axis=1) * tf.expand_dims(mask, axis=2)
+        dist_mask = tf.reduce_prod(diff_mask, axis=-1, keepdims=True)
+        dist = dist * dist_mask
         if self.trafo == "exp":
             dist = tf.exp(-dist)
         if self.trafo == "softmax":
             dist = tf.nn.softmax(dist, axis=2)
-
-        if mask is None:
-            return dist
-        diff_mask = tf.expand_dims(inputs, axis=1) * tf.expand_dims(inputs, axis=2)
-        dist_mask = tf.reduce_prod(diff_mask, axis=-1, keepdims=True)
         dist = dist * dist_mask
         return dist, dist_mask
 
@@ -118,14 +116,14 @@ class MATAttentionHead(ks.layers.Layer):
     def call(self, inputs, mask, **kwargs):
         h, a_d, a_g = inputs
         h_mask, a_d_mask, a_g_mask = mask
-        q = tf.expand_dims(self.dense_q(h)*h_mask, axis=2)
-        k = tf.expand_dims(self.dense_k(h)*h_mask, axis=1)
+        q = tf.expand_dims(self.dense_q(h), axis=2)
+        k = tf.expand_dims(self.dense_k(h), axis=1)
         v = self.dense_v(h)*h_mask
         qk = q * k / self.scale
-        qk = tf.nn.softmax(qk, axis=2)
         # Apply mask on self-attention
         qk_mask = tf.expand_dims(h_mask, axis=1) * tf.expand_dims(h_mask, axis=2)  # (b, 1, n, ...) * (b, n, 1, ...)
         qk *= qk_mask
+        qk = tf.nn.softmax(qk, axis=2)
         # Weights
         qk = self.lambda_a * qk
         a_d = self.lambda_d * tf.cast(a_d, dtype=h.dtype)
