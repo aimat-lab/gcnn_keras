@@ -98,12 +98,12 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
     r"""Layer to change the ragged tensor representation of edges of graphs into (dense) tensor type information of the
     adjacency matrix.
 
-    In addition to the (feature) adjacency matrix, a mask can be returned. Note that the adjacency matrix is padded
-    and has an extra dimension to include edge feature information.
+    In addition to the (featured) adjacency matrix, a mask can be returned. Note that the adjacency matrix is padded
+    and has possible extra dimensions to include edge feature information.
 
     """
 
-    def __init__(self, n_max: int = None, return_mask: bool = True, **kwargs):
+    def __init__(self, n_max: int = None, return_mask: bool = True, use_node_tensor: bool = True, **kwargs):
         r"""Initialize layer.
 
         Args:
@@ -113,26 +113,32 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         super(CastEdgeIndicesToDenseAdjacency, self).__init__(**kwargs)
         self.n_max = int(n_max) if n_max else None
         self.return_mask = bool(return_mask)
+        self.use_node_tensor = use_node_tensor
 
     def build(self, input_shape):
         """Build layer."""
         super(CastEdgeIndicesToDenseAdjacency, self).build(input_shape)
 
-    @tf.function
+    # @tf.function
     def call(self, inputs, **kwargs):
-        r"""Forward pass.
+        r"""Forward pass. The additional node information is optional but recommended for auto shape.
 
         Args:
-            inputs (list): [edges, indices]
+            inputs (list): [nodes, edges, indices]
 
-                - edges (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], F)`
+                - nodes (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], ...)`
+                - edges (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], F, ...)`
                 - indices (tf.RaggedTensor, tf.Tensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
 
         Returns:
             tuple: Padded (batch) adjacency matrix of shape `(batch, N_max, N_max, F)` plus mask of shape
                 `(batch, N_max, N_max)`.
         """
-        edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        if self.use_node_tensor:
+            nodes, edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        else:
+            edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+            nodes = None
 
         indices_flatten = indices.values
         edges_flatten = edges.values
@@ -148,8 +154,11 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
             edges_flatten = edges_flatten[indices_okay]
             n_max_shape = tf.constant([n_max, n_max], dtype=indices.values.dtype)
         else:
-            n_max = tf.math.reduce_max(indices.values) + 1
-            n_max_shape = tf.cast(tf.repeat(n_max, 2), dtype=indices.values.dtype)
+            if self.use_node_tensor:
+                n_max = tf.math.reduce_max(nodes.row_lengths())
+            else:
+                n_max = tf.math.reduce_max(indices.values) + 1
+            n_max_shape = tf.cast(tf.repeat(n_max, 2), dtype=indices.values.dtype)  # Shape of adjacency matrix
 
         scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
 
@@ -174,7 +183,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(CastEdgeIndicesToDenseAdjacency, self).get_config()
-        config.update({"n_max": self.n_max, "return_mask": self.return_mask})
+        config.update({"n_max": self.n_max, "return_mask": self.return_mask, "use_node_tensor": self.use_node_tensor})
         return config
 
 # layer = CastEdgeIndicesToDenseAdjacency()

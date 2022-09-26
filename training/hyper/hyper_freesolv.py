@@ -969,4 +969,77 @@ hyper = {
             "kgcnn_version": "2.0.3"
         }
     },
+    "MAT": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MAT",
+            "config": {
+                "name": "MAT",
+                "inputs": [
+                    {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_weights
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 95, "output_dim": 64}},
+                "use_edge_embedding": False,
+                "max_atoms": None,
+                "distance_matrix_kwargs": {"trafo": "exp"},
+                "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
+                "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
+                "embedding_units": 64,
+                "depth": 5,
+                "heads": 8,
+                "merge_heads": "concat",
+                "verbose": 10,
+                "pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                               "activation": ["relu", "relu", "linear"]}
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 32,
+                "epochs": 400,
+                "validation_freq": 10,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler",
+                        "config": {
+                            "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 0, "epo": 400,
+                            "verbose": 0
+                        }
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
+                "loss": "mean_absolute_error"
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
+        },
+        "data": {
+            "dataset": {
+                "class_name": "FreeSolvDataset",
+                "module_name": "kgcnn.data.datasets.FreeSolvDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
+    },
 }

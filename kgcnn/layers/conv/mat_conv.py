@@ -46,11 +46,14 @@ class MATDistanceMatrix(ks.layers.Layer):
         # shape of dist (batch, N, N, 1)
         diff_mask = tf.expand_dims(mask, axis=1) * tf.expand_dims(mask, axis=2)
         dist_mask = tf.reduce_prod(diff_mask, axis=-1, keepdims=True)
-        dist = dist * dist_mask
+
         if self.trafo == "exp":
             dist = tf.exp(-dist)
-        if self.trafo == "softmax":
+        elif self.trafo == "softmax":
+            dist += tf.where(
+                tf.cast(dist_mask, dtype="bool"), tf.zeros_like(dist), -tf.ones_like(dist) / ks.backend.epsilon())
             dist = tf.nn.softmax(dist, axis=2)
+
         dist = dist * dist_mask
         return dist, dist_mask
 
@@ -118,22 +121,33 @@ class MATAttentionHead(ks.layers.Layer):
         h_mask, a_d_mask, a_g_mask = mask
         q = tf.expand_dims(self.dense_q(h), axis=2)
         k = tf.expand_dims(self.dense_k(h), axis=1)
-        v = self.dense_v(h)*h_mask
+        v = self.dense_v(h) * h_mask
         qk = q * k / self.scale
         # Apply mask on self-attention
         qk_mask = tf.expand_dims(h_mask, axis=1) * tf.expand_dims(h_mask, axis=2)  # (b, 1, n, ...) * (b, n, 1, ...)
-        qk *= qk_mask
+        qk += tf.where(tf.cast(qk_mask, dtype="bool"), tf.zeros_like(qk), -tf.ones_like(qk) / ks.backend.epsilon())
         qk = tf.nn.softmax(qk, axis=2)
+        qk *= qk_mask
         # Weights
         qk = self.lambda_a * qk
         a_d = self.lambda_d * tf.cast(a_d, dtype=h.dtype)
         a_g = self.lambda_g * tf.cast(a_g, dtype=h.dtype)
         # print(qk.shape, a_d.shape, a_g.shape)
         att = qk + a_d + a_g
-        # Or move to feature dimension to batch and apply on last axis as tf.einsum('...ij,...jk->...ik', s, t)
-        # Should check if this is identical.
-        hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(v, axis=2))
-        hp = tf.squeeze(hp, axis=2)
+        # v has shape (b, N, F)
+        # att has shape (b, N, N, F)
+
+        # Or permute feature dimension to batch and apply on last axis via and permute back again
+        v = tf.transpose(v, perm=[0, 2, 1])
+        att = tf.transpose(att, perm=[0, 3, 1, 2])
+        hp = tf.einsum('...ij,...jk->...ik', att, tf.expand_dims(v, axis=3))  # From example in tf docs
+        hp = tf.squeeze(hp, axis=3)
+        hp = tf.transpose(hp, perm=[0, 2, 1])
+
+        # Same as above but may be slower.
+        # hp = tf.einsum('bij...,bjk...->bik...', att, tf.expand_dims(v, axis=2))
+        # hp = tf.squeeze(hp, axis=2)
+
         hp *= h_mask
         return hp
 

@@ -29,13 +29,14 @@ model_default = {
     "use_edge_embedding": False,
     "max_atoms": None,
     "distance_matrix_kwargs": {"trafo": "exp"},
-    "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
+    "attention_kwargs": {"units": 8, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
     "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
     "embedding_units": 64,
     "depth": 5,
     "heads": 8,
     "merge_heads": "concat",
     "verbose": 10,
+    "pooling_kwargs": {"pooling_method": "sum"},
     "output_embedding": "graph",
     "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
@@ -57,6 +58,7 @@ def make_model(name: str = None,
                merge_heads: str = None,
                max_atoms: int = None,
                verbose: int = None,
+               pooling_kwargs: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
@@ -65,17 +67,17 @@ def make_model(name: str = None,
     Default parameters can be found in :obj:`kgcnn.literature.MAT.model_default`.
 
     .. note::
-        We added a linear layers to keep correct node embedding dimension.
+        We added a linear layer to keep correct node embedding dimension.
 
     Inputs:
         list: `[node_attributes, node_coordinates, edge_attributes, edge_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
+            - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
             - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
-            - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`
 
     Outputs:
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
@@ -86,6 +88,15 @@ def make_model(name: str = None,
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
         verbose (int): Level for print information.
+        use_edge_embedding (bool): Whether to use edge input embedding regardless of edge input shape.
+        distance_matrix_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`MATDistanceMatrix`.
+        attention_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`MATDistanceMatrix`.
+        feed_forward_kwargs (dict): Dictionary of layer arguments unpacked in feed forward :obj:`MLP`.
+        embedding_units (int): Units for node embedding.
+        heads (int): Number of attention heads
+        merge_heads (str): How to merge head, using either 'sum' or 'concat'.
+        max_atoms (int): Fixed (maximum) number of atoms for padding. Can be `None`.
+        pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`MATGlobalPool`.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
@@ -101,7 +112,7 @@ def make_model(name: str = None,
     edge_index_input = ks.layers.Input(**inputs[3])
 
     # Embedding, if no feature dimension
-    n = OptionalInputEmbedding(**input_embedding["node"], use_embedding=len(inputs[0]["shape"]) < 2)(node_input)
+    nd = OptionalInputEmbedding(**input_embedding["node"], use_embedding=len(inputs[0]["shape"]) < 2)(node_input)
     ed = OptionalInputEmbedding(
         **input_embedding["edge"], use_embedding=len(inputs[1]["shape"]) < 2 and use_edge_embedding
     )(edge_input)
@@ -110,12 +121,14 @@ def make_model(name: str = None,
     # Cast to dense Tensor with padding for MAT.
     # Nodes must have feature dimension.
     n, n_mask_f = ChangeTensorType(
-        output_tensor_type="padded", shape=(None, max_atoms, None))(n)  # (batch, max_atoms, features)
+        output_tensor_type="padded", shape=(None, max_atoms, None))(nd)  # (batch, max_atoms, features)
     n_mask = MATReduceMask(axis=-1, keepdims=True)(n_mask_f)  # prefer broadcast mask (batch, max_atoms, 1)
     xyz, xyz_mask = ChangeTensorType(output_tensor_type="padded", shape=(None, max_atoms, 3))(xyz_input)
+    # Always has shape (batch, max_atoms, max_atoms, 1)
     dist, dist_mask = MATDistanceMatrix(**distance_matrix_kwargs)(
-        xyz, mask=xyz_mask)  # Always be shape (batch, max_atoms, max_atoms, 1)
-    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([ed, edi])  # (batch, max_atoms, max_atoms, (feat))
+        xyz, mask=xyz_mask)
+    # Adjacency matrix padded (batch, max_atoms, max_atoms, (features))
+    adj, adj_mask = CastEdgeIndicesToDenseAdjacency(n_max=max_atoms)([nd, ed, edi])
 
     # Check shapes
     # print(n.shape, dist.shape, adj.shape)
@@ -148,7 +161,7 @@ def make_model(name: str = None,
             )
             for _ in range(heads)
         ]
-        if merge_heads == "add":
+        if merge_heads in ["add", "sum", "reduce_sum"]:
             hu = ks.layers.Add()(hs)
             hu = ks.layers.Dense(units=embedding_units, use_bias=False)(hu)
         else:
@@ -169,7 +182,7 @@ def make_model(name: str = None,
     out = ks.layers.LayerNormalization()(out)
     if output_embedding == 'graph':
         out = ks.layers.Multiply()([out, out_mask])
-        out = MATGlobalPool()(out, mask=out_mask)
+        out = MATGlobalPool(**pooling_kwargs)(out, mask=out_mask)
         # final prediction MLP for the output!
         out = MLP(**output_mlp)(out)
     elif output_embedding == 'node':
