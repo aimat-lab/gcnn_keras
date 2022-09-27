@@ -36,6 +36,8 @@ class MEGAN(ks.models.Model):
                  final_pooling: str = 'sum',
                  regression_limits: Optional[Tuple[float, float]] = None,
                  regression_reference: Optional[float] = None,
+                 return_importances: bool = True,
+                 inputs: Optional = None,
                  **kwargs):
         super(MEGAN, self).__init__(self, **kwargs)
         self.units = units
@@ -56,6 +58,7 @@ class MEGAN(ks.models.Model):
         self.final_pooling = final_pooling
         self.regression_limits = regression_limits
         self.regression_reference = regression_reference
+        self.return_importances = return_importances
 
         # ~ MAIN CONVOLUTIONAL / ATTENTION LAYERS
         self.attention_layers: List[GraphBaseLayer] = []
@@ -112,15 +115,18 @@ class MEGAN(ks.models.Model):
         # ~ EXPLANATION ONLY TRAIN STEP
 
     def call(self,
-             inputs):
+             inputs,
+             training=False):
 
         node_input, edge_input, edge_index_input = inputs
+        edge_index_input = tf.cast(edge_index_input, tf.int32)
 
         alphas = []
         x = node_input
         for lay in self.attention_layers:
             x, alpha = lay([x, edge_input, edge_index_input])
-            x = self.lay_dropout(x)
+            if training:
+                x = self.lay_dropout(x, training=training)
 
             alphas.append(alpha)
 
@@ -151,8 +157,25 @@ class MEGAN(ks.models.Model):
 
         for lay in self.final_layers:
             out = lay(out)
-            self.lay_final_dropout(out)
+            if training:
+                self.lay_final_dropout(out, training=training)
 
-        return out, node_importances, edge_importances
+        if self.return_importances:
+            return out, node_importances, edge_importances
+        else:
+            return out
 
 
+def make_model(inputs: Optional[list] = None,
+               **kwargs
+               ):
+
+    megan = MEGAN(
+        **kwargs
+    )
+
+    inputs = [ks.layers.Input(**kwargs) for kwargs in inputs]
+    outputs = megan(inputs)
+    model = ks.models.Model(inputs=inputs, outputs=outputs)
+
+    return model

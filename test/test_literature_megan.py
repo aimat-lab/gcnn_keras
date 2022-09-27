@@ -29,6 +29,10 @@ class TestMegan(unittest.TestCase):
             tf.ragged.constant(ei, ragged_rank=1),
         )
 
+    def test_ragged_tensor_from_shape(self):
+        tensor = self.ragged_tensor_from_shape((None, 3), 'float32')
+
+
     # -- UNITTESTS --
 
     def test_construction_basically_works(self):
