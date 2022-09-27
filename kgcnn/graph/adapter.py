@@ -14,37 +14,73 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-def obtain_assign_properties(obtain_properties: list = None, assign_properties: list = None):
-    """Decorating function.
+def obtain_assign_properties(obtain: Union[list, str] = None, assign: Union[list, str] = None,
+                             silent: Union[list, str] = None):
+    """Decorating function to obtain and assign properties to container.
+
+    Args:
+       obtain:
+       assign:
+       silent:
     """
+    if obtain is None:
+        obtain = []
+    if assign is None:
+        assign = []
+    if silent is None:
+        silent = []
+    if not isinstance(obtain, (list, tuple)):
+        obtain = [obtain]
+    if not isinstance(silent, (list, tuple)):
+        silent = [silent]
+    assign_is_list = isinstance(assign, (list, tuple))
+    if not assign_is_list:
+        assign = [assign]
 
     def has_special_characters(s, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
-        if pat.search(s):
-            return True
-        else:
-            return False
+        return pat.search(s) is not None
+
+    def function_obtain_property(self, key, quiet):
+        if isinstance(key, str):
+            if not self.has_valid_key(key) and not quiet:
+                module_logger.warning("Missing '%s' in '%s'" % (key, type(self).__name__))
+            return self.obtain_property(key)
+        return key
+
+    def function_assign_property(self, key, value):
+        self.assign_property(key, value)
 
     def obtain_assign_decorator(func):
 
         @functools.wraps(func)
-        def update_wrapper(self, *args, **kwargs):
-            properties_to_obtain = {x: None for x in obtain_properties}
-            other_kwargs = {}
+        def function_wrapper(self, *args, **kwargs):
+            properties_to_obtain = [
+                [x, kwargs[x] if x in kwargs else x, True if x in silent else False] for x in obtain]
+            properties_to_assign = [kwargs[x] if x in kwargs else x for x in assign]
+
+            obtained_properties = {
+                key: function_obtain_property(self, value, verbose) for key, value, verbose in properties_to_obtain}
+            other_kwargs = {key: value for key, value in kwargs.items() if key not in obtain}
 
             if len(args) > 0:
-                module_logger.warning("`GraphTensorMethodsAdapter` can only fetch kwargs, not %s" % args)
+                module_logger.warning("`GraphTensorMethodsAdapter` can only fetch properties in kwargs, not %s" % args)
 
-            func(self, *args, **properties_to_obtain, **other_kwargs)
+            output = func(self, *args, **obtained_properties, **other_kwargs)
+            if not assign_is_list:
+                output = [output]
+
+            for key, value in zip(properties_to_assign, output):
+                function_assign_property(self, key, value)
             return self
 
-        return update_wrapper
+        return function_wrapper
 
     return obtain_assign_decorator
 
 
 class GraphTensorMethodsAdapter:
 
-    def find_graph_properties(self, keys: str) -> list:
+    def search_properties(self, keys: str) -> list:
         raise NotImplementedError("Must be implemented by container class")
 
     def has_valid_key(self, key: str) -> bool:
@@ -79,7 +115,7 @@ class GraphTensorMethodsAdapter:
             module_logger.error("Can not operate on edges, missing '%s'." % edge_indices)
             return self
         # Determine all linked edge attributes, that are not None.
-        edge_linked = self.find_graph_properties(edge_attributes)
+        edge_linked = self.search_properties(edge_attributes)
         # Edge indices is always at first position!
         edge_linked = [edge_indices] + [x for x in edge_linked if x != edge_indices]
         no_nan_edge_prop = [x for x in edge_linked if self.obtain_property(x) is not None]
@@ -92,32 +128,6 @@ class GraphTensorMethodsAdapter:
         # Set all new edge attributes.
         for at, value in zip(no_nan_edge_prop, new_edges):
             self.assign_property(at, value)
-        return self
-
-    def set_edge_indices_reverse(self, *, edge_indices: str = "edge_indices",
-                                 edge_indices_reverse: str = "edge_indices_reverse"):
-        r"""Computes the index map of the reverse edge for each of the edges, if available. This can be used by a model
-        to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
-        Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
-        pair get a `nan` as map index. If there are multiple edges, the first encounter is assigned.
-
-        .. warning::
-            Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
-
-        Args:
-            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
-
-        Returns:
-            self
-        """
-        if not self.has_valid_key(edge_indices):
-            module_logger.error("Can not set 'set_edge_indices_reverse', missing '%s'." % edge_indices)
-            return self
-        self.assign_property(
-            edge_indices_reverse,
-            np.expand_dims(compute_reverse_edges_index_map(self.obtain_property(edge_indices)), axis=-1)
-        )
         return self
 
     def make_undirected_edges(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
@@ -189,8 +199,31 @@ class GraphTensorMethodsAdapter:
                                edge_attributes=edge_attributes)
         return self
 
-    # @obtain_assign_properties(obtain_properties="key", assign_properties="key")
-    def pad_property(self, *, key: str, pad_width: Union[int, list, np.ndarray], mode: str = "constant", **kwargs):
+    @obtain_assign_properties(obtain="edge_indices", assign="edge_indices_reverse")
+    def set_edge_indices_reverse(self, *, edge_indices: Union[str, np.ndarray] = "edge_indices",
+                                 edge_indices_reverse: str = "edge_indices_reverse"):
+        r"""Computes the index map of the reverse edge for each of the edges, if available. This can be used by a model
+        to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
+        Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
+        pair get a `nan` as map index. If there are multiple edges, the first encounter is assigned.
+
+        .. warning::
+            Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
+
+        Args:
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
+
+        Returns:
+            self
+        """
+        if edge_indices is None:
+            return None
+        return np.expand_dims(compute_reverse_edges_index_map(edge_indices), axis=-1)
+
+    @obtain_assign_properties(obtain="key", assign="key")
+    def pad_property(self, *, key: Union[str, np.ndarray],
+                     pad_width: Union[int, list, np.ndarray], mode: str = "constant", **kwargs):
         r"""Pad a graph tensor property.
 
         Args:
@@ -201,15 +234,31 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(key):
-            module_logger.error("Can not pad property, missing '%s'." % key)
-            return self
-        prop = self.obtain_property(key)
-        prop = np.pad(prop, pad_width=pad_width, mode=mode, **kwargs)
-        self.assign_property(key, prop)
-        return self
+        if key is None:
+            return
+        return np.pad(key, pad_width=pad_width, mode=mode, **kwargs)
 
-    def normalize_edge_weights_sym(self, edge_indices: str = "edge_indices", edge_weights: str = "edge_weights"):
+    @obtain_assign_properties(obtain=["edge_indices"], assign="edge_weights")
+    def set_edge_weights_uniform(self, *, edge_indices: Union[str, np.ndarray] = "edge_indices",
+                                 edge_weights: str = "edge_weights", value: float = 1.0):
+        r"""Adds or sets :obj:`edge_weights` with. Requires the property :obj:`edge_indices`.
+        Does not affect other edge-properties and only sets :obj:`edge_weights`.
+
+        Args:
+            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+            edge_weights (str): Name of edge weights to set in dictionary. Default is "edge_weights".
+            value (float): Value to set :obj:`edge_weights` with. Default is 1.0.
+
+        Returns:
+            self
+        """
+        if edge_indices is None:
+            return None
+        return np.ones((len(edge_indices), 1))*value
+
+    @obtain_assign_properties(obtain=["edge_indices", "edge_weights"], assign="edge_weights", silent="edge_weights")
+    def normalize_edge_weights_sym(self, *, edge_indices: Union[str, np.ndarray] = "edge_indices",
+                                   edge_weights: str = "edge_weights"):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
         Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
         The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
@@ -222,21 +271,18 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(edge_indices):
-            module_logger.error("Can not set 'normalize_edge_weights_sym', missing '%s'." % edge_indices)
-            return self
+        if edge_indices is None:
+            return None
         # If weights is not set, initialize with weight one.
-        if not self.has_valid_key(edge_weights):
-            self.assign_property(edge_weights, np.ones((len(self.obtain_property(edge_indices)), 1)))
-        self.assign_property(
-            edge_weights,
-            rescale_edge_weights_degree_sym(self.obtain_property(edge_indices), self.obtain_property(edge_weights))
-        )
-        return self
+        if edge_weights is None:
+            edge_weights = np.ones((len(edge_indices), 1))
+        edge_weights = rescale_edge_weights_degree_sym(edge_indices, edge_weights)
+        return edge_weights
 
-    def set_range_from_edges(self, edge_indices: str = "edge_indices",
+    @obtain_assign_properties(obtain=["edge_indices", "node_coordinates"], assign=["range_indices", "range_attributes"])
+    def set_range_from_edges(self, *, edge_indices: Union[str, np.ndarray] = "edge_indices",
                              range_indices: str = "range_indices",
-                             node_coordinates: str = "node_coordinates",
+                             node_coordinates: Union[str, np.ndarray] = "node_coordinates",
                              range_attributes: str = "range_attributes",
                              do_invert_distance: bool = False):
         r"""Assigns range indices and attributes (distance) from the definition of edge indices. These operations
@@ -253,26 +299,21 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(edge_indices):
-            module_logger.error("Can not set 'set_range_from_edges', missing '%s'." % edge_indices)
-            return self
-        self.assign_property(
-            range_indices,
-            np.array(self.obtain_property(edge_indices), dtype="int")  # We make a copy.
-        )
-        if not self.has_valid_key(node_coordinates):
-            module_logger.error("Coordinates '%s' are not set. Can not calculate range values." % node_coordinates)
-            return self
-        xyz = self.obtain_property(node_coordinates)
-        idx = self.obtain_property(range_indices)
-        dist = np.sqrt(np.sum(np.square(xyz[idx[:, 0]] - xyz[idx[:, 1]]), axis=-1, keepdims=True))
+        if edge_indices is None:
+            return None, None
+        range_indices = np.array(edge_indices, dtype="int")  # Makes copy
+        if node_coordinates is None:
+            return range_indices, None
+        dist = np.sqrt(np.sum(
+            np.square(node_coordinates[range_indices[:, 0]] - node_coordinates[range_indices[:, 1]]),
+            axis=-1, keepdims=True))
         if do_invert_distance:
             dist = invert_distance(dist)
-        self.assign_property(range_attributes, dist)
-        return self
+        return range_indices, dist
 
-    def set_range(self, range_indices: str = "range_indices",
-                  node_coordinates: str = "node_coordinates",
+    @obtain_assign_properties(obtain="node_coordinates", assign=["range_indices", "range_attributes"])
+    def set_range(self, *, range_indices: str = "range_indices",
+                  node_coordinates: Union[str, np.ndarray] = "node_coordinates",
                   range_attributes: str = "range_attributes",
                   max_distance: float = 4.0, max_neighbours: int = 15,
                   do_invert_distance: bool = False, self_loops: bool = False, exclusive: bool = True):
@@ -293,14 +334,12 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(node_coordinates):
-            module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
-            return self
+        if node_coordinates is None:
+            return None, None
         # Compute distance matrix here. May be problematic for too large graphs.
-        dist = coordinates_to_distancematrix(self.obtain_property(node_coordinates))
-        cons, indices = define_adjacency_from_distance(dist, max_distance=max_distance,
-                                                       max_neighbours=max_neighbours,
-                                                       exclusive=exclusive, self_loops=self_loops)
+        dist = coordinates_to_distancematrix(node_coordinates)
+        cons, indices = define_adjacency_from_distance(
+            dist, max_distance=max_distance, max_neighbours=max_neighbours, exclusive=exclusive, self_loops=self_loops)
         mask = np.array(cons, dtype="bool")
         dist_masked = dist[mask]
         if do_invert_distance:
@@ -309,12 +348,12 @@ class GraphTensorMethodsAdapter:
         if len(dist_masked.shape) <= 1:
             dist_masked = np.expand_dims(dist_masked, axis=-1)
         # Assign attributes to instance.
-        self.assign_property(range_attributes, dist_masked)
-        self.assign_property(range_indices, indices)
-        return self
+        return indices, dist_masked
 
-    def set_angle(self, range_indices: str = "range_indices",
-                  node_coordinates: str = "node_coordinates",
+    @obtain_assign_properties(obtain=["node_coordinates", "range_indices"], silent="node_coordinates",
+                              assign=["angle_indices", "angle_indices_nodes", "angle_attributes"])
+    def set_angle(self, range_indices: Union[str, np.ndarray] = "range_indices",
+                  node_coordinates: Union[str, np.ndarray] = "node_coordinates",
                   angle_indices: str = "angle_indices",
                   angle_indices_nodes: str = "angle_indices_nodes",
                   angle_attributes: str = "angle_attributes",
@@ -342,28 +381,21 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(range_indices):
-            module_logger.error("Can not set 'set_angle', missing '%s'." % range_indices)
-            return self
+        if range_indices is None:
+            return None, None, None
         # Compute angles
-        _, a_triples, a_indices = get_angle_indices(self.obtain_property(range_indices),
-                                                    allow_multi_edges=allow_multi_edges)
-        self.assign_property(angle_indices, a_indices)
-        self.assign_property(angle_indices_nodes, a_triples)
+        _, a_triples, a_indices = get_angle_indices(range_indices, allow_multi_edges=allow_multi_edges)
         # Also compute angles
         if compute_angles:
-            if node_coordinates not in self or self.obtain_property(node_coordinates) is None:
-                module_logger.error("Coordinates are not set. Can not compute angle values.")
-                return self
-            self.assign_property(
-                angle_attributes,
-                get_angle(self.obtain_property(node_coordinates), a_triples)
-            )
-        return self
+            if node_coordinates is not None:
+                return a_indices, a_triples, get_angle(node_coordinates, a_triples)
+        return a_indices, a_triples, None
 
+    @obtain_assign_properties(obtain=["node_coordinates", "graph_lattice"],
+                              assign=["range_indices", "range_image", "range_attributes"])
     def set_range_periodic(self, range_indices: str = "range_indices",
-                           node_coordinates: str = "node_coordinates",
-                           graph_lattice: str = "graph_lattice",
+                           node_coordinates: Union[str, np.ndarray] = "node_coordinates",
+                           graph_lattice: Union[str, np.ndarray] = "graph_lattice",
                            range_image: str = "range_image",
                            range_attributes: str = "range_attributes",
                            max_distance: float = 4.0, max_neighbours: int = None,
@@ -391,18 +423,13 @@ class GraphTensorMethodsAdapter:
         Returns:
             self
         """
-        if not self.has_valid_key(node_coordinates):
-            module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
-            return self
-        if not self.has_valid_key(graph_lattice):
-            module_logger.error("Lattice '%s' is not set. Can not compute range." % graph_lattice)
-            return self
-
-        xyz = self.obtain_property(node_coordinates)
-        lattice_mat = self.obtain_property(graph_lattice)
+        if node_coordinates is None:
+            return None, None, None
+        if graph_lattice is None:
+            return None, None, None
 
         indices, images, dist = range_neighbour_lattice(
-            xyz, lattice_mat,
+            node_coordinates, graph_lattice,
             max_distance=max_distance, max_neighbours=max_neighbours, self_loops=self_loops, exclusive=exclusive)
 
         if do_invert_distance:
@@ -411,10 +438,7 @@ class GraphTensorMethodsAdapter:
         if len(dist.shape) <= 1:
             dist = np.expand_dims(dist, axis=-1)
         # Assign attributes to instance.
-        self.assign_property(range_attributes, dist)
-        self.assign_property(range_indices, indices)
-        self.assign_property(range_image, images)
-        return self
+        return indices, images, dist
 
 
 GraphMethodsAdapter = GraphTensorMethodsAdapter
