@@ -1,5 +1,7 @@
 import logging
 import numpy as np
+import functools
+import re
 from typing import Union
 
 from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
@@ -12,12 +14,40 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class GraphMethodsAdapter:
+def obtain_assign_properties(obtain_properties: list = None, assign_properties: list = None):
+    """Decorating function.
+    """
 
-    def find_graph_properties(self, name_props: str) -> list:
+    def has_special_characters(s, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
+        if pat.search(s):
+            return True
+        else:
+            return False
+
+    def obtain_assign_decorator(func):
+
+        @functools.wraps(func)
+        def update_wrapper(self, *args, **kwargs):
+            properties_to_obtain = {x: None for x in obtain_properties}
+            other_kwargs = {}
+
+            if len(args) > 0:
+                module_logger.warning("`GraphTensorMethodsAdapter` can only fetch kwargs, not %s" % args)
+
+            func(self, *args, **properties_to_obtain, **other_kwargs)
+            return self
+
+        return update_wrapper
+
+    return obtain_assign_decorator
+
+
+class GraphTensorMethodsAdapter:
+
+    def find_graph_properties(self, keys: str) -> list:
         raise NotImplementedError("Must be implemented by container class")
 
-    def assert_has_key(self, key: str) -> None:
+    def has_valid_key(self, key: str) -> bool:
         raise NotImplementedError("Must be implemented by container class")
 
     def obtain_property(self, key: str) -> Union[np.ndarray, None]:
@@ -26,10 +56,9 @@ class GraphMethodsAdapter:
     def assign_property(self, key: str, value: np.ndarray):
         raise NotImplementedError("Must be implemented by container class")
 
-    def _operate_on_edges(self, operation,
-                          edge_indices: str = "edge_indices",
-                          edge_attributes: str = "^edge_.*",
-                          **kwargs):
+    def _operate_on_edges(
+            self, operation, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+            **kwargs):
         r"""General wrapper to run a certain function on an array of edge-indices and all edge related properties
         in the dictionary of self.
         The name of the key for indices must be defined in :obj:`edge_indices`. Related value or attribute tensors
@@ -46,7 +75,7 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not operate on edges, missing '%s'." % edge_indices)
             return self
         # Determine all linked edge attributes, that are not None.
@@ -65,7 +94,7 @@ class GraphMethodsAdapter:
             self.assign_property(at, value)
         return self
 
-    def set_edge_indices_reverse(self, edge_indices: str = "edge_indices",
+    def set_edge_indices_reverse(self, *, edge_indices: str = "edge_indices",
                                  edge_indices_reverse: str = "edge_indices_reverse"):
         r"""Computes the index map of the reverse edge for each of the edges, if available. This can be used by a model
         to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
@@ -82,7 +111,7 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not set 'set_edge_indices_reverse', missing '%s'." % edge_indices)
             return self
         self.assign_property(
@@ -91,10 +120,8 @@ class GraphMethodsAdapter:
         )
         return self
 
-    def make_undirected_edges(self, edge_indices: str = "edge_indices",
-                              edge_attributes: str = "^edge_.*",
-                              remove_duplicates: bool = True,
-                              sort_indices: bool = True):
+    def make_undirected_edges(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+                              remove_duplicates: bool = True, sort_indices: bool = True):
         r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
         With :obj:`remove_duplicates` an edge can be added even though there is already and edge at :math:`(j, i)`.
         For other edge tensors, like the attributes or labels, the values of edge :math:`(i, j)` is added in place.
@@ -135,7 +162,7 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not set 'add_edge_self_loops', missing '%s'." % edge_indices)
             return self
         self._operate_on_edges(add_self_loops_to_edge_indices, edge_indices=edge_indices,
@@ -155,16 +182,34 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not set 'sort_edge_indices', missing '%s'." % edge_indices)
             return self
         self._operate_on_edges(sort_edge_indices, edge_indices=edge_indices,
                                edge_attributes=edge_attributes)
         return self
 
-    def normalize_edge_weights_sym(self,
-                                   edge_indices: str = "edge_indices",
-                                   edge_weights: str = "edge_weights"):
+    # @obtain_assign_properties(obtain_properties="key", assign_properties="key")
+    def pad_property(self, *, key: str, pad_width: Union[int, list, np.ndarray], mode: str = "constant", **kwargs):
+        r"""Pad a graph tensor property.
+
+        Args:
+            key (str): Name of the (tensor) property to pad.
+            pad_width (list, int): Width to pad tensor.
+            mode (str): Padding mode.
+
+        Returns:
+            self
+        """
+        if not self.has_valid_key(key):
+            module_logger.error("Can not pad property, missing '%s'." % key)
+            return self
+        prop = self.obtain_property(key)
+        prop = np.pad(prop, pad_width=pad_width, mode=mode, **kwargs)
+        self.assign_property(key, prop)
+        return self
+
+    def normalize_edge_weights_sym(self, edge_indices: str = "edge_indices", edge_weights: str = "edge_weights"):
         r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
         Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
         The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
@@ -177,11 +222,11 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not set 'normalize_edge_weights_sym', missing '%s'." % edge_indices)
             return self
         # If weights is not set, initialize with weight one.
-        if not self.assert_has_key(edge_weights):
+        if not self.has_valid_key(edge_weights):
             self.assign_property(edge_weights, np.ones((len(self.obtain_property(edge_indices)), 1)))
         self.assign_property(
             edge_weights,
@@ -208,14 +253,14 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(edge_indices):
+        if not self.has_valid_key(edge_indices):
             module_logger.error("Can not set 'set_range_from_edges', missing '%s'." % edge_indices)
             return self
         self.assign_property(
             range_indices,
             np.array(self.obtain_property(edge_indices), dtype="int")  # We make a copy.
         )
-        if not self.assert_has_key(node_coordinates):
+        if not self.has_valid_key(node_coordinates):
             module_logger.error("Coordinates '%s' are not set. Can not calculate range values." % node_coordinates)
             return self
         xyz = self.obtain_property(node_coordinates)
@@ -248,7 +293,7 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(node_coordinates):
+        if not self.has_valid_key(node_coordinates):
             module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
             return self
         # Compute distance matrix here. May be problematic for too large graphs.
@@ -297,7 +342,7 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(range_indices):
+        if not self.has_valid_key(range_indices):
             module_logger.error("Can not set 'set_angle', missing '%s'." % range_indices)
             return self
         # Compute angles
@@ -346,10 +391,10 @@ class GraphMethodsAdapter:
         Returns:
             self
         """
-        if not self.assert_has_key(node_coordinates):
+        if not self.has_valid_key(node_coordinates):
             module_logger.error("Coordinates '%s' are not set. Can not compute range." % node_coordinates)
             return self
-        if not self.assert_has_key(graph_lattice):
+        if not self.has_valid_key(graph_lattice):
             module_logger.error("Lattice '%s' is not set. Can not compute range." % graph_lattice)
             return self
 
@@ -370,3 +415,6 @@ class GraphMethodsAdapter:
         self.assign_property(range_indices, indices)
         self.assign_property(range_image, images)
         return self
+
+
+GraphMethodsAdapter = GraphTensorMethodsAdapter

@@ -1,26 +1,27 @@
 import numpy as np
-from kgcnn.graph.adapter import GraphMethodsAdapter
 import re
 import networkx as nx
+from typing import Union
+from kgcnn.graph.adapter import GraphTensorMethodsAdapter
 
 
-class GraphDict(dict, GraphMethodsAdapter):
+class GraphDict(dict, GraphTensorMethodsAdapter):
     r"""Dictionary container to store graph information in tensor-form. At the moment only numpy-arrays are supported.
     The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
     In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
     when assigning a named value.
 
     Graph operations that modify edges or sort indices are methods of this class supported by
-    :obj:`kgcnn.graph.adapter.GraphMethodsAdapter`.
+    :obj:`kgcnn.graph.adapter.GraphTensorMethodsAdapter`.
     Note that the graph-tensors name must follow a standard-convention or be provided to member functions
-    (see documentation of :obj:`kgcnn.graph.adapter.GraphMethodsAdapter`).
+    (see documentation of :obj:`kgcnn.graph.adapter.GraphTensorMethodsAdapter`).
 
     .. code-block:: python
 
         import numpy as np
         from kgcnn.graph.base import GraphDict
         g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
-        g.add_edge_self_loops().sort_edge_indices()  # from GraphMethodsAdapter
+        g.add_edge_self_loops().sort_edge_indices()  # from GraphTensorMethodsAdapter
         print(g)
     """
 
@@ -159,42 +160,59 @@ class GraphDict(dict, GraphMethodsAdapter):
             return self[key]
         return None
 
-    def find_graph_properties(self, name_props: str) -> list:
-        r"""Search for properties in self. This includes a list of possible names or a pattern-matching of a single
-        string.
+    def search_properties(self, keys: Union[str, list]) -> list:
+        r"""Search for properties in self.
+
+        This includes a list of possible names or a pattern-matching of a single string.
 
         Args:
-            name_props (str, list): Pattern matching string or list of strings to search for
+            keys (str, list): Pattern matching string or list of strings to search for.
 
         Returns:
-            list: List of names in self that match :obj:`name_props`.
+            list: List of names in self that match :obj:`keys`.
         """
-        if name_props is None:
+        if keys is None:
             return []
-        elif isinstance(name_props, str):
+        elif isinstance(keys, str):
             match_props = []
             for x in self:
-                if re.match(name_props, x):
-                    if re.match(name_props, x).group() == x:
+                if re.match(keys, x):
+                    if re.match(keys, x).group() == x:
                         match_props.append(x)
             return match_props
-        elif isinstance(name_props, (list, tuple)):
-            return [x for x in name_props if x in self]
-        raise TypeError("Can not find keys of properties for input type %s" % name_props)
+        elif isinstance(keys, (list, tuple)):
+            # No pattern matching for list input.
+            return [x for x in keys if x in self]
+        return []
+    # Old Alias
+    find_graph_properties = search_properties
 
-    def assert_has_key(self, key: str, raise_error: bool = False):
-        """Check if the property is found in self.
+    def assert_has_valid_key(self, key: str, raise_error: bool = True):
+        """Assert the property is found in self.
 
         Args:
             key (str): Name of property that must be defined.
-            raise_error (bool): Whether to raise error. Default is False.
+            raise_error (bool): Whether to raise error. Default is True.
 
         Returns:
-            bool: Key is valid.
+            bool: Key is valid. Only if `raise_error` is False.
         """
         if key not in self or self.obtain_property(key) is None:
             if raise_error:
-                raise ValueError("Can not use '%s', as it is not found." % key)
+                raise AssertionError("`GraphDict` does not have %s." % key)
+            return False
+        return True
+
+    def has_valid_key(self, key: str):
+        """Check if the property is found in self and also is not Noe.
+
+        Args:
+            key (str): Name of property that must be defined.
+
+        Returns:
+            bool: Key is valid. Only if `raise_error` is False.
+        """
+        if key not in self or self.obtain_property(key) is None:
             return False
         return True
 

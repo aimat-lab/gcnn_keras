@@ -967,30 +967,32 @@ hyper = {
             "class_name": "make_model",
             "module_name": "kgcnn.literature.MAT",
             "config": {
-                    "name": "MAT",
-                    "inputs": [
-                        {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
-                        {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                        {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},  # or edge_weights
-                        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
-                    ],
-                    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                        "edge": {"input_dim": 5, "output_dim": 64}},
-                    "use_edge_embedding": False,
-                    "max_atoms": None,
-                    "distance_matrix_kwargs": {"trafo": "exp"},
-                    "attention_kwargs": {"units": 64, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
-                    "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
-                    "embedding_units": 64,
-                    "depth": 5,
-                    "heads": 8,
-                    "merge_heads": "concat",
-                    "verbose": 10,
-                    "pooling_kwargs": {"pooling_method": "sum"},
-                    "output_embedding": "graph",
-                    "output_to_tensor": True,
-                    "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
-                                   "activation": ["relu", "relu", "linear"]}
+                "name": "MAT",
+                "inputs": [
+                    {"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 95, "output_dim": 64}},
+                "use_edge_embedding": False,
+                "max_atoms": None,
+                "distance_matrix_kwargs": {"trafo": "exp"},
+                "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3,
+                                     "lambda_adjacency": None,
+                                     "dropout": 0.1},
+                "feed_forward_kwargs": {"units": [32, 32, 32], "activation": ["relu", "relu", "linear"]},
+                "embedding_units": 32,
+                "depth": 5,
+                "heads": 8,
+                "merge_heads": "concat",
+                "verbose": 10,
+                "pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True, True], "units": [32, 16, 1],
+                               "activation": ["relu", "relu", "linear"]}
             }
         },
         "training": {
@@ -1024,7 +1026,9 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "pad_property", "key": "node_number", "pad_width": [0, 1]}},
+                    {"map_list": {"method": "pad_property", "key": "node_coordinates", "pad_width": [[0, 1], [0, 0]]}}
                 ]
             },
             "data_unit": "mol/L"

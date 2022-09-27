@@ -25,13 +25,14 @@ model_default = {
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                        "edge": {"input_dim": 5, "output_dim": 64}},
+                        "edge": {"input_dim": 95, "output_dim": 64}},
     "use_edge_embedding": False,
     "max_atoms": None,
     "distance_matrix_kwargs": {"trafo": "exp"},
-    "attention_kwargs": {"units": 8, "lambda_a": 1.0, "lambda_g": 0.5, "lambda_d": 0.5},
-    "feed_forward_kwargs": {"units": [64, 64, 64], "activation": ["relu", "relu", "linear"]},
-    "embedding_units": 64,
+    "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3, "lambda_adjacency": None,
+                         "dropout": 0.1},
+    "feed_forward_kwargs": {"units": [32, 32, 32], "activation": ["relu", "relu", "linear"]},
+    "embedding_units": 32,
     "depth": 5,
     "heads": 8,
     "merge_heads": "concat",
@@ -197,12 +198,3 @@ def make_model(name: str = None,
         name=name
     )
     return model
-
-
-# from kgcnn.data.datasets.ESOLDataset import ESOLDataset
-# data = ESOLDataset()
-# data.map_list(method= "normalize_edge_weights_sym")
-# data.clean(model_default["inputs"])
-# x_list = data.tensor(model_default["inputs"])
-# model = make_model()
-# out = model.predict(x_list)

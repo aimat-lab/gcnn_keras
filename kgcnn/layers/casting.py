@@ -187,7 +187,7 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDenseAdjacency')
+@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDisjointSparseAdjacency')
 class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
     r"""Helper layer to cast a set of RaggedTensors forming a graph representation into a single SparseTensor, which
     then can be regarded to be in disjoint representation. This means that the batch is represented as one big

@@ -104,16 +104,26 @@ class MATExpandMask(ks.layers.Layer):
 
 class MATAttentionHead(ks.layers.Layer):
 
-    def __init__(self, units: int = 64, lambda_a: float = 1.0, lambda_g: float = 0.5, lambda_d: float = 0.5, **kwargs):
+    def __init__(self, units: int = 64,
+                 lambda_distance: float = 0.3, lambda_attention: float = 0.3,
+                 lambda_adjacency: Union[float, None] = None,
+                 dropout: Union[float, None] = None,
+                 **kwargs):
         super(MATAttentionHead, self).__init__(**kwargs)
         self.units = int(units)
-        self.lambda_a = lambda_a
-        self.lambda_g = lambda_g
-        self.lambda_d = lambda_d
+        self.lambda_distance = lambda_distance
+        self.lambda_attention = lambda_attention
+        if lambda_adjacency is not None:
+            self.lambda_adjacency = lambda_adjacency
+        else:
+            self.lambda_adjacency = 1.0 - self.lambda_attention - self.lambda_distance
         self.scale = self.units ** -0.5
         self.dense_q = ks.layers.Dense(units=units)
         self.dense_k = ks.layers.Dense(units=units)
         self.dense_v = ks.layers.Dense(units=units)
+        self._dropout = dropout
+        if self._dropout is not None:
+            self.layer_dropout = ks.layers.Dropout(self._dropout)
 
     def build(self, input_shape):
         super(MATAttentionHead, self).build(input_shape)
@@ -131,13 +141,15 @@ class MATAttentionHead(ks.layers.Layer):
         qk = tf.nn.softmax(qk, axis=2)
         qk *= qk_mask
         # Weights
-        qk = self.lambda_a * qk
-        a_d = self.lambda_d * tf.cast(a_d, dtype=h.dtype)
-        a_g = self.lambda_g * tf.cast(a_g, dtype=h.dtype)
+        qk = self.lambda_attention * qk
+        a_d = self.lambda_distance * tf.cast(a_d, dtype=h.dtype)
+        a_g = self.lambda_adjacency * tf.cast(a_g, dtype=h.dtype)
         # print(qk.shape, a_d.shape, a_g.shape)
         att = qk + a_d + a_g
         # v has shape (b, N, F)
         # att has shape (b, N, N, F)
+        if self._dropout is not None:
+            att = self.layer_dropout(att)
 
         # Or permute feature dimension to batch and apply on last axis via and permute back again
         v = tf.transpose(v, perm=[0, 2, 1])
@@ -155,6 +167,7 @@ class MATAttentionHead(ks.layers.Layer):
 
     def get_config(self):
         config = super(MATAttentionHead, self).get_config()
-        config.update({"units": self.units, "lambda_a": self.lambda_a,
-                       "lambda_g": self.lambda_g, "lambda_d": self.lambda_d})
+        config.update({"units": self.units, "lambda_adjacency": self.lambda_adjacency,
+                       "lambda_attention": self.lambda_attention, "lambda_distance": self.lambda_distance,
+                       "dropout": self._dropout})
         return config
