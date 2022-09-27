@@ -16,7 +16,7 @@ module_logger.setLevel(logging.INFO)
 
 def obtain_assign_properties(obtain: Union[list, str] = None, assign: Union[list, str] = None,
                              silent: Union[list, str] = None):
-    """Decorating function to obtain and assign properties to container.
+    """Decorator to obtain and assign properties to container from function input and output.
 
     Args:
        obtain:

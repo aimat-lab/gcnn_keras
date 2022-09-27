@@ -1026,7 +1026,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "pad_property", "key": "node_number", "pad_width": [0, 1]}},
                     {"map_list": {"method": "pad_property", "key": "node_coordinates", "pad_width": [[0, 1], [0, 0]]}}
                 ]
