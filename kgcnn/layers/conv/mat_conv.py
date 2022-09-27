@@ -48,6 +48,8 @@ class MATDistanceMatrix(ks.layers.Layer):
         dist_mask = tf.reduce_prod(diff_mask, axis=-1, keepdims=True)
 
         if self.trafo == "exp":
+            dist += tf.where(
+                tf.cast(dist_mask, dtype="bool"), tf.zeros_like(dist), tf.ones_like(dist) / ks.backend.epsilon())
             dist = tf.exp(-dist)
         elif self.trafo == "softmax":
             dist += tf.where(
