@@ -133,8 +133,9 @@ def make_adjacency_undirected_logical_or(adj_mat):
         return a_out.tocoo()
 
 
-def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True,
-                                   fill_value: int = 0):
+def add_self_loops_to_edge_indices(edge_indices, *args,
+                                   remove_duplicates: bool = True, sort_indices: bool = True,
+                                   fill_value: int = 0, return_nested: bool = False):
     r"""Add self-loops to edge index list, i.e. `[0, 0], [1, 1], ...]`. Edge values are filled up with ones or zeros.
     Default mode is to remove duplicates in the added list. Edge indices are sorted by default. Sorting is done for the
     first index at position `index[:, 0]`.
@@ -145,10 +146,10 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
         fill_value (int): Value to initialize edge values with.
+        return_nested (bool): Whether to return nested args in addition to indices.
 
     Returns:
-        edge_indices: Sorted index list with self-loops. Optionally (edge_indices, edge_values) if edge_values are not
-            None.
+        np.ndarray: `edge_indices` or `(edge_indices, *args)`. Or `(edge_indices, args)` if `return_nested`.
     """
     clean_edge = [x for x in args]
     max_ind = np.max(edge_indices)
@@ -181,13 +182,16 @@ def add_self_loops_to_edge_indices(edge_indices, *args, remove_duplicates: bool 
         clean_index = ind1[order2]
         for i, x in enumerate(clean_edge):
             clean_edge[i] = x[order2]
+    if return_nested:
+        return clean_index, clean_edge
     if len(clean_edge) > 0:
         return [clean_index] + clean_edge
     else:
         return clean_index
 
 
-def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True):
+def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = True, sort_indices: bool = True,
+                              return_nested: bool = False):
     r"""Add matching edges for `(i, j)` as `(j, i)` with the same edge values. If they do already exist,
     no edge is added. By default, all indices are sorted. Sorting is done for the first index at position `index[:, 0]`.
 
@@ -196,9 +200,10 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = Tru
         args (np.ndarray): Edge related value arrays to be changed accordingly of shape `(N, ...)`.
         remove_duplicates (bool): Remove duplicate edge indices. Default is True.
         sort_indices (bool): Sort final edge indices. Default is True.
+        return_nested (bool): Whether to return nested args in addition to indices.
 
     Returns:
-        np.ndarray: edge_indices or [edge_indices, args].
+        np.ndarray: `edge_indices` or `(edge_indices, *args)`. Or `(edge_indices, args)` if `return_nested`.
     """
     clean_edge = [x for x in args]
     edge_index_flip = np.concatenate([edge_indices[:, 1:2], edge_indices[:, 0:1]], axis=-1)
@@ -227,25 +232,25 @@ def add_edges_reverse_indices(edge_indices, *args, remove_duplicates: bool = Tru
         clean_index = ind1[order2]
         for i, x in enumerate(clean_edge):
             clean_edge[i] = x[order2]
+    if return_nested:
+        return clean_index, clean_edge
     if len(clean_edge) > 0:
         return [clean_index] + clean_edge
     else:
         return clean_index
 
 
-def sort_edge_indices(edge_indices, *args):
+def sort_edge_indices(edge_indices, *args, return_nested: bool = False):
     r"""Sort edge index list of `np.ndarray` for the first index and then for the second index.
     Edge values are rearranged accordingly if passed to the function call.
 
     Args:
         edge_indices (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
         args (np.ndarray): Edge related value arrays to be sorted accordingly of shape `(N, ...)`.
+        return_nested (bool): Whether to return nested args in addition to indices.
 
     Returns:
-        list: [edge_indices, args] or edge_indices
-        
-            - edge_indices (np.ndarray): Sorted indices of shape `(N, 2)`.
-            - args (np.ndarray): Edge related arrays to be sorted accordingly of shape `(N, ...)`.
+        np.ndarray: `edge_indices` or `(edge_indices, *args)`. Or `(edge_indices, args)` if `return_nested`.
     """
     order1 = np.argsort(edge_indices[:, 1], axis=0, kind='mergesort')  # stable!
     ind1 = edge_indices[order1]
@@ -253,6 +258,8 @@ def sort_edge_indices(edge_indices, *args):
     order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')
     ind2 = ind1[order2]
     args2 = [x[order2] for x in args1]
+    if return_nested:
+        return ind2, args2
     if len(args2) > 0:
         return [ind2] + args2
     else:
@@ -425,7 +432,7 @@ def get_index_matrix(shape, flatten=False):
     return ind_array
 
 
-def coordinates_to_distancematrix(coord3d):
+def coordinates_to_distancematrix(coord3d: np.ndarray):
     r"""Transform coordinates to distance matrix. Will apply transformation on last dimension.
     Changing of shape from `(..., N, 3)` to `(..., N, N)`. This also works for more than 3 coordinates.
     Note: We could extend this to other metrics.
