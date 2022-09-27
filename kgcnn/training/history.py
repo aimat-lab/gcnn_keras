@@ -16,6 +16,7 @@ def save_history_score(
         file_name: str = "score.yaml",
         dataset_name: str = "",
         model_class: str = "",
+        execute_folds: Union[list, int, None] = None,
         multi_target_indices: Union[list, int, None] = None,
 ):
     r"""Save fit results from fit histories to file.
@@ -30,6 +31,7 @@ def save_history_score(
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
         model_class (str): Model class or generator. Default is "".
+        execute_folds (list, int): Folds which where executed.
         multi_target_indices (list): List of indices for multi target training. Default is None.
 
     Returns:
@@ -81,6 +83,7 @@ def save_history_score(
     result_dict["kgcnn_version"] = str(__kgcnn_version__)
     result_dict["number_histories"] = len(histories)
     result_dict["multi_target_indices"] = multi_target_indices
+    result_dict["execute_folds"] = execute_folds
 
     if filepath is not None:
         save_yaml_file(result_dict, os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))

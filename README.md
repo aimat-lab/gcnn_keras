@@ -165,6 +165,7 @@ A version of the following models and variants thereof are implemented in [liter
 * **[CGCNN](kgcnn/literature/CGCNN.py)**: [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) by Xie et al. (2018)
 * **[CMPNN](kgcnn/literature/CMPNN.py)**: [Communicative Representation Learning on Attributed Molecular Graphs](https://www.ijcai.org/proceedings/2020/0392.pdf) by Song et al. (2020)
 * **[EGNN](kgcnn/literature/EGNN.py)**: [E(n) Equivariant Graph Neural Networks](https://arxiv.org/abs/2102.09844) by Satorras et al. (2021)
+* **[MAT](kgcnn/literature/MAT.py)**: [Molecule Attention Transformer](https://arxiv.org/abs/2002.08264) by Maziarka et al. (2020)
 </details>
 
 <a name="datasets"></a>
