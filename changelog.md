@@ -16,6 +16,7 @@ v2.1.0
 * Moved ``kgcnn.layers.conv.message`` to ``kgcnn.layers.message``.
 * Refactored ``kgcnn.layers.conv.attention`` into ``kgcnn.layers.conv.gat_conv`` and ``kgcnn.layers.conv.attentivefp_conv``.
 * In ``MoleculeNetDataset`` and `QMDataset` changed the shape of 'edge_number' to be `(N, )` instead of `(N, 1)`. To agree with 'node_number' shape.
+* Removed ``kgcnn.layers.conv.sparse`` as it was not used and added its content to ``kgcnn.layers.conv.gcn_conv`` and ``kgcnn.layers.casting`` 
 
 
 v2.0.4

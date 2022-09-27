@@ -186,7 +186,70 @@ class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
         config.update({"n_max": self.n_max, "return_mask": self.return_mask, "use_node_tensor": self.use_node_tensor})
         return config
 
-# layer = CastEdgeIndicesToDenseAdjacency()
-# out = layer.call(
-# [tf.ragged.constant([[[1.0]],[[1.0] ,[1.0]]], ragged_rank=1,inner_shape=(1,)),
-# tf.ragged.constant([[[0,0]],[[0,1],[1,0]]], ragged_rank=1, inner_shape=(2,)) ])
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDenseAdjacency')
+class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
+    r"""Helper layer to cast a set of RaggedTensors forming a graph representation into a single SparseTensor, which
+    then can be regarded to be in disjoint representation. This means that the batch is represented as one big
+    adjacency matrix with disjoint sub-blocks.
+
+    This includes edge indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(CastEdgeIndicesToDisjointSparseAdjacency, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(CastEdgeIndicesToDisjointSparseAdjacency, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [nodes, edges, edge_index]
+
+                - nodes (tf.RaggedTensor): Node feature tensor of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge feature ragged tensor of shape (batch, [M], 1)
+                - edge_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
+
+        Returns:
+            tf.SparseTensor: Sparse disjoint matrix of shape (batch*[N],batch*[N])
+        """
+        self.assert_ragged_input_rank(inputs)
+        nod, node_len = inputs[0].values, inputs[0].row_lengths()
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edge_index, edge_len = inputs[2].values, inputs[2].row_lengths()
+
+        # batch-wise indexing
+        edge_index = partition_row_indexing(edge_index,
+                                            node_len, edge_len,
+                                            partition_type_target="row_length",
+                                            partition_type_index="row_length",
+                                            from_indexing=self.node_indexing,
+                                            to_indexing="batch")
+        indexlist = edge_index
+        valuelist = edge
+
+        if not self.is_sorted:
+            # Sort per outgoing
+            batch_order = tf.argsort(indexlist[:, 1], axis=0, direction='ASCENDING')
+            indexlist = tf.gather(indexlist, batch_order, axis=0)
+            valuelist = tf.gather(valuelist, batch_order, axis=0)
+            # Sort per ingoing node
+            node_order = tf.argsort(indexlist[:, 0], axis=0, direction='ASCENDING', stable=True)
+            indexlist = tf.gather(indexlist, node_order, axis=0)
+            valuelist = tf.gather(valuelist, node_order, axis=0)
+
+        indexlist = tf.cast(indexlist, dtype=tf.int64)
+        dense_shape = tf.concat([tf.shape(nod)[0:1], tf.shape(nod)[0:1]], axis=0)
+        dense_shape = tf.cast(dense_shape, dtype=tf.int64)
+        out = tf.sparse.SparseTensor(indexlist, valuelist[:, 0], dense_shape)
+
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(CastEdgeIndicesToDisjointSparseAdjacency, self).get_config()
+        return config
