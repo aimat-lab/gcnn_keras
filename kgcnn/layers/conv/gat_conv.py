@@ -312,3 +312,13 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
         # h_is: ([batch], [N], K * Vu) or ([batch], [N], Vu)
         # a_ijs: ([batch], [M], K, 1)
         return h_is, a_ijs
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(MultiHeadGATV2Layer, self).get_config()
+        config.update({
+            'num_heads': self.num_heads,
+            'concat_heads': self.concat_heads
+        })
+
+        return config

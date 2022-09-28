@@ -1045,10 +1045,12 @@ hyper = {
             "module_name": "kgcnn.literature.MEGAN",
             "config": {
                 'name': "MEGAN",
-                'units': [45, 40, 35],
-                'final_units': [50, 30, 1],
+                'units': [60, 50, 40, 30],
+                'importance_units': [],
+                'final_units': [50, 30, 10, 1],
                 'dropout_rate': 0.3,
-                'importance_channels': 2,
+                'final_dropout_rate': 0.00,
+                'importance_channels': 3,
                 'return_importances': False,
                 'use_edge_features': False,
                 'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
@@ -1059,13 +1061,13 @@ hyper = {
         "training": {
             "fit": {
                 "batch_size": 64,
-                "epochs": 300,
+                "epochs": 400,
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 300,
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
                         "verbose": 0
                     }
                     }
@@ -1094,7 +1096,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.3"
+            "kgcnn_version": "2.1.0"
         }
     },
 }
