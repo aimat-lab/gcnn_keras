@@ -2,9 +2,8 @@ from typing import List, Tuple, Dict, Optional, Any
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
-from tensorflow.python.keras.engine import compile_utils
 
+from tensorflow.python.keras.engine import compile_utils
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import DenseEmbedding
 from kgcnn.layers.modules import ActivationEmbedding, DropoutEmbedding
@@ -12,6 +11,8 @@ from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
+
+ks = tf.keras
 
 
 class MEGAN(ks.models.Model):
@@ -52,6 +53,7 @@ class MEGAN(ks.models.Model):
                  **kwargs):
         """
         Args:
+
             units: A list of ints where each element configures an additional attention layer. The numeric
                 value determines the number of hidden units to be used in the attention heads of that layer
             activation: The activation function to be used within the attention layers of the network
