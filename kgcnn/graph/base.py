@@ -1,8 +1,13 @@
 import numpy as np
 import re
+import logging
 import networkx as nx
 from typing import Union
 from kgcnn.graph.adapter import GraphTensorMethodsAdapter
+
+logging.basicConfig()  # Module logger
+module_logger = logging.getLogger(__name__)
+module_logger.setLevel(logging.INFO)
 
 
 class GraphDict(dict, GraphTensorMethodsAdapter):
@@ -179,10 +184,10 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
                 if re.match(keys, x):
                     if re.match(keys, x).group() == x:
                         match_props.append(x)
-            return match_props
+            return sorted(match_props)
         elif isinstance(keys, (list, tuple)):
             # No pattern matching for list input.
-            return [x for x in keys if x in self]
+            return sorted([x for x in keys if x in self])
         return []
     # Old Alias
     find_graph_properties = search_properties
@@ -222,3 +227,62 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
 
 
 GraphNumpyContainer = GraphDict
+
+
+class GraphPreProcessorBase:
+
+    def __init__(self, *, in_place: bool = True, name: str = None):
+        self._config_kwargs = {"in_place": in_place, "name": name}
+        self._to_obtain = {}
+        self._to_assign = None
+        self._call_kwargs = {}
+        self._search = []
+        self._quite = []
+        self._in_place = in_place
+
+    def _obtain_properties(self, graph: GraphDict):
+        obtained_properties = {}
+        for key, name in self._to_obtain.items():
+            if isinstance(name, str):
+                if not graph.has_valid_key(name) and key not in self._quite:
+                    module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
+                obtained_properties[key] = graph.obtain_property(name)
+            elif isinstance(name, (list, tuple)):
+                prop_list = []
+                for x in name:
+                    if not graph.has_valid_key(x) and key not in self._quite:
+                        module_logger.warning("Missing '%s' in '%s'" % (x, type(graph).__name__))
+                    prop_list.append(graph.obtain_property(x))
+                obtained_properties[key] = prop_list
+            else:
+                raise ValueError("Unsupported property identifier %s" % name)
+
+        return obtained_properties
+
+    def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
+        if isinstance(self._to_assign, str):
+            graph.assign_property(self._to_assign, graph_properties)
+            return
+        if isinstance(self._to_assign, (list, tuple)):
+            for key, value in zip(self._to_assign, graph_properties):
+                graph.assign_property(key, value)
+            return
+
+    def call(self, **kwargs):
+        raise NotImplementedError("Must be implemented in sub-class.")
+
+    def __call__(self, graph: GraphDict):
+        if not self._in_place:
+            graph = GraphDict(graph)
+        graph_properties = self._obtain_properties(graph)
+        processed_properties = self.call(**graph_properties, **self._call_kwargs)
+        self._assign_properties(graph, processed_properties)
+        return graph
+
+    @staticmethod
+    def has_special_characters(query, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
+        return pat.search(query) is not None
+
+    def get_config(self):
+        config = self._config_kwargs
+        return config
