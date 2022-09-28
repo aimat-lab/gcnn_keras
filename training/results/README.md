@@ -213,7 +213,7 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 |:----------|:--------|---------:|:-----------------------|:-------------------|
 | DimeNetPP | 2.1.0   |      650 | **0.0242 &pm; 0.0006** | **nan &pm; nan**   |
 | Megnet    | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | nan &pm; nan       |
-| NMPN      | 2.1.0   |      680 | 0.0627 &pm; 0.0013     | nan &pm; nan       |
+| NMPN      | 2.1.0   |      700 | 0.0627 &pm; 0.0013     | 0.0618 &pm; 0.0006 |
 | PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | nan &pm; nan       |
 | Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006 |
 

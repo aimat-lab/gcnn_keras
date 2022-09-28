@@ -218,7 +218,7 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
 
     # Alias of internal assign and obtain property.
     set = assign_property
-    # get = obtain_property
+    # get = obtain_property  # Already has correct behaviour.
 
 
 GraphNumpyContainer = GraphDict
