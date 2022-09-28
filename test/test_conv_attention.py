@@ -1,12 +1,15 @@
 import unittest
+import random
 
 import numpy as np
 import tensorflow as tf
 
 
 from kgcnn.layers.casting import ChangeTensorType
+from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.conv.attention import PoolingLocalEdgesAttention
 from kgcnn.layers.conv.gat_conv import AttentionHeadGAT
+from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
 
 
 class TestAttentionDisjoint(unittest.TestCase):
@@ -50,6 +53,56 @@ class TestAttentionDisjoint(unittest.TestCase):
 
         self.assertTrue(np.all(np.array(result[0].shape) == np.array([8,5])))
         # layer.get_config()
+
+
+class TestMultiHeadGATV2Layer(unittest.TestCase):
+
+    def random_input(self, num_batches=5, num_features=3):
+        n = []
+        ei = []
+        e = []
+        for b in range(num_batches):
+            N = random.randint(5, 30)
+            node_indices = list(range(N))
+            M = random.randint(1, N - 1)
+
+            n.append([[random.random() for _ in range(num_features)] for _ in range(N)])
+            e.append([[random.random() for _ in range(num_features)] for _ in range(M)])
+            ei.append(list(zip(random.sample(node_indices, M), random.sample(node_indices, M))))
+
+        return (
+            tf.ragged.constant(n, ragged_rank=1),
+            tf.ragged.constant(e, ragged_rank=1),
+            tf.ragged.constant(ei, ragged_rank=1),
+        )
+
+    def test_construction_basically_works(self):
+        layer = MultiHeadGATV2Layer(units=2, num_heads=2)
+        self.assertIsInstance(layer, MultiHeadGATV2Layer)
+        self.assertIsInstance(layer, GraphBaseLayer)
+
+    def test_shapes_basically_work(self):
+        num_batches = 5
+        n, e, ei = self.random_input(num_batches=num_batches, num_features=3)
+        # print(n.shape, e.shape, ei.shape)
+
+        # When concatenating the heads
+        num_units = 2
+        num_heads = 4
+        layer = MultiHeadGATV2Layer(units=num_units, num_heads=num_heads, concat_heads=True)
+
+        node_embeddings, attention_logits = layer([n, e, ei])
+        self.assertIsInstance(node_embeddings, tf.RaggedTensor)
+        self.assertIsInstance(attention_logits, tf.RaggedTensor)
+        self.assertEqual((num_batches, None, num_units * num_heads), node_embeddings.shape)
+        self.assertEqual((num_batches, None, num_heads, 1), attention_logits.shape)
+
+        # When not concatenating the heads -> should average instead
+        layer = MultiHeadGATV2Layer(units=num_units, num_heads=num_heads, concat_heads=False)
+        node_embeddings, attention_logits = layer([n, e, ei])
+        self.assertEqual((num_batches, None, num_units), node_embeddings.shape)
+        self.assertEqual((num_batches, None, num_heads, 1), attention_logits.shape)
+
 
 
 if __name__ == '__main__':

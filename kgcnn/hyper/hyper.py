@@ -44,10 +44,10 @@ class HyperParameter:
             self._hyper_all = hyper_info
         else:
             raise TypeError("`HyperParameter` requires valid hyper dictionary or path to file.")
-
+        
         # If model and training section in hyper-dictionary, then this is a valid hyper setting.
         # If hyper is itself a dictionary with many models, pick the right model if model name is given.
-        model_name_class = "%s.%s" % (model_name, model_class)
+        model_name_class = "%s.%s" % (model_name, model_class)        
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
         elif model_name is not None and model_class == "make_model" and model_name in self._hyper_all:
