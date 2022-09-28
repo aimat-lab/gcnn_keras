@@ -34,7 +34,7 @@ class SetEdgeWeightsUniform(GraphPreProcessorBase):
         self._to_assign = edge_weights
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_weights": edge_weights, **self._call_kwargs})
 
-    def call(self, edge_indices: np.ndarray, value: float):
+    def call(self, *, edge_indices: np.ndarray, value: float):
         if edge_indices is None:
             return None
         return np.ones((len(edge_indices), 1)) * value
@@ -59,7 +59,7 @@ class NormalizeEdgeWeightsSymmetric(GraphPreProcessorBase):
         self._silent = edge_weights
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_weights": edge_weights})
 
-    def call(self, edge_indices: np.ndarray, edge_weights: np.ndarray):
+    def call(self, *, edge_indices: np.ndarray, edge_weights: np.ndarray):
         if edge_indices is None:
             return None
         # If weights is not set, initialize with weight one.
@@ -70,23 +70,20 @@ class NormalizeEdgeWeightsSymmetric(GraphPreProcessorBase):
 
 
 class SetRangeFromEdges(GraphPreProcessorBase):
+    r"""Assigns range indices and attributes (distance) from the definition of edge indices. These operations
+    require the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
+    :obj:`range_indices` will be equal to :obj:`edge_indices`.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
+        node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
+        range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
+        do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
+    """
     def __init__(self, *, edge_indices: str = "edge_indices", range_indices: str = "range_indices",
                  node_coordinates: str = "node_coordinates", range_attributes: str = "range_attributes",
                  do_invert_distance: bool = False, name="set_range_from_edges", **kwargs):
-        r"""Assigns range indices and attributes (distance) from the definition of edge indices. These operations
-        require the attributes :obj:`node_coordinates` and :obj:`edge_indices` to be set. That also means that
-        :obj:`range_indices` will be equal to :obj:`edge_indices`.
-
-        Args:
-            edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-            range_indices (str): Name of range indices to set in dictionary. Default is "range_indices".
-            node_coordinates (str): Name of coordinates in dictionary. Default is "node_coordinates".
-            range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
-            do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
-
-        Returns:
-            self
-        """
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "node_coordinates": node_coordinates})
         self._call_kwargs = {"do_invert_distance": do_invert_distance}
@@ -95,7 +92,7 @@ class SetRangeFromEdges(GraphPreProcessorBase):
             "edge_indices": edge_indices, "node_coordinates": node_coordinates, "range_indices": range_indices,
             "range_attributes": range_attributes, **self._call_kwargs})
 
-    def call(self, edge_indices: np.ndarray, node_coordinates: np.ndarray, do_invert_distance: bool):
+    def call(self, *, edge_indices: np.ndarray, node_coordinates: np.ndarray, do_invert_distance: bool):
         if edge_indices is None:
             return None, None
         range_indices = np.array(edge_indices, dtype="int")  # Makes copy
@@ -139,7 +136,7 @@ class SetRange(GraphPreProcessorBase):
             "node_coordinates": node_coordinates, "range_indices": range_indices, "range_attributes": range_attributes,
             **self._call_kwargs})
 
-    def call(self, node_coordinates: np.ndarray, max_distance: float, max_neighbours: int, do_invert_distance: bool,
+    def call(self, *, node_coordinates: np.ndarray, max_distance: float, max_neighbours: int, do_invert_distance: bool,
              self_loops: bool, exclusive: bool):
         if node_coordinates is None:
             return None, None
@@ -178,7 +175,7 @@ class SetAngle(GraphPreProcessorBase):
             the nodes are unique. Default is False.
         compute_angles (bool): Whether to also compute angles.
     """
-    def __init__(self, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
+    def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  angle_indices: str = "angle_indices", angle_indices_nodes: str = "angle_indices_nodes",
                  angle_attributes: str = "angle_attributes", allow_multi_edges: bool = False,
                  compute_angles: bool = True, name="set_angle", **kwargs):
@@ -191,7 +188,7 @@ class SetAngle(GraphPreProcessorBase):
             "node_coordinates": node_coordinates, "range_indices": range_indices, "angle_indices": angle_indices,
             "angle_indices_nodes": angle_indices_nodes, "angle_attributes": angle_attributes, **self._call_kwargs})
 
-    def call(self, range_indices: np.ndarray, node_coordinates: np.ndarray,
+    def call(self, *, range_indices: np.ndarray, node_coordinates: np.ndarray,
              allow_multi_edges: bool, compute_angles: bool):
         if range_indices is None:
             return None, None, None
@@ -224,7 +221,7 @@ class SetRangePeriodic(GraphPreProcessorBase):
         do_invert_distance (bool): Whether to invert the distance. Default is False.
         self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
     """
-    def __init__(self, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
+    def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  graph_lattice: str = "graph_lattice", range_image: str = "range_image",
                  range_attributes: str = "range_attributes", max_distance: float = 4.0, max_neighbours: int = None,
                  exclusive: bool = True, do_invert_distance: bool = False, self_loops: bool = False,
