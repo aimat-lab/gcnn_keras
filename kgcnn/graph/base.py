@@ -3,7 +3,6 @@ import re
 import logging
 import networkx as nx
 from typing import Union
-from kgcnn.graph.adapter import GraphTensorMethodsAdapter
 from kgcnn.graph.serial import get_preprocessor
 from copy import deepcopy
 

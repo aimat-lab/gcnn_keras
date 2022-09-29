@@ -568,7 +568,7 @@ hyper = {
         "training": {
             "fit": {
                 "batch_size": 64,
-                "epochs": 400,
+                "epochs": 50,
                 "validation_freq": 1,
                 "verbose": 2,
                 "callbacks": [
