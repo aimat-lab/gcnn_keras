@@ -1,5 +1,14 @@
 v2.1.1
 
+* Removed `kgcnn.graph.adapter` and switched to ``kgcnn.graph.preprocessor``. How to update:
+```python
+from kgcnn.data.base import GraphDict
+GraphDict().apply_preprocessor("sort_edge_indices")  # Instead of GraphDict().sort_edge_indices()
+GraphDict().apply_preprocessor("set_edge_weights_uniform", value=0.0) # Instead of GraphDict().set_edge_weights_uniform(value=0.0)
+```
+* Add ``kgcnn.literature.MEGAN`` model.
+* Fixed error in ``ClinToxDataset`` label index.
+
 
 v2.1.0
 
@@ -21,6 +30,7 @@ v2.1.0
 * In ``MoleculeNetDataset`` and `QMDataset` changed the shape of 'edge_number' to be `(N, )` instead of `(N, 1)`. To agree with 'node_number' shape.
 * Removed ``kgcnn.layers.conv.sparse`` as it was not used and added its content to ``kgcnn.layers.conv.gcn_conv`` and ``kgcnn.layers.casting`` 
 * Started with ``kgcnn.graph.preprocessor``.
+
 
 v2.0.4
 
