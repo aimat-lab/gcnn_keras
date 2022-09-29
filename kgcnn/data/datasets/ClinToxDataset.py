@@ -12,8 +12,8 @@ class ClinToxDataset(MoleculeNetDataset2018):
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
-        super(ClinToxDataset, self).__init__("ClinTox", reload=reload, verbose=verbose)
         self.label_index = label_index
+        super(ClinToxDataset, self).__init__("ClinTox", reload=reload, verbose=verbose)
 
     def read_in_memory(self, **kwargs):
         super(ClinToxDataset, self).read_in_memory(**kwargs)

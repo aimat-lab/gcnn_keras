@@ -12,7 +12,7 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class GraphDict(dict, GraphTensorMethodsAdapter):
+class GraphDict(dict):
     r"""Dictionary container to store graph information in tensor-form. At the moment only numpy-arrays are supported.
     The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
     In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
@@ -228,8 +228,17 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
     # get = obtain_property  # Already has correct behaviour.
 
     def apply_preprocessor(self, name, **kwargs):
+        r"""Apply a preprocessor on self.
+
+        Args:
+            name: Name, serialized dictionary or type :obj:`GraphPreProcessorBase`.
+            kwargs: Optional kwargs for preprocessor.
+
+        Returns:
+            self
+        """
         if isinstance(name, str):
-            get_preprocessor(name)(**kwargs)(self)
+            get_preprocessor(name, **kwargs)(self)
             return self
         elif isinstance(name, GraphPreProcessorBase):
             name(self)

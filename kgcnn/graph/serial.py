@@ -3,6 +3,16 @@ import importlib
 
 def get_preprocessor(name, **kwargs):
     preprocessor_identifier = {
+        "make_undirected_edges": "MakeUndirectedEdges",
+        "add_edge_self_loops": "AddEdgeSelfLoops",
+        "sort_edge_indices": "SortEdgeIndices",
+        "set_edge_indices_reverse": "SetEdgeIndicesReverse",
+        "pad_property": "PadProperty",
+        "set_edge_weights_uniform": "SetEdgeWeightsUniform",
+        "normalize_edge_weights_sym": "NormalizeEdgeWeightsSymmetric",
+        "set_range_from_edges": "SetRangeFromEdges",
+        "set_range": "SetRange",
+        "set_angle": "SetAngle",
         "set_range_periodic": "SetRangePeriodic"
     }
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.preprocessor")), str(preprocessor_identifier[name]))

@@ -135,7 +135,7 @@ class PadProperty(GraphPreProcessorBase):
         mode (str): Padding mode.
     """
     def __init__(self, *, key: str, pad_width: Union[int, list, tuple, np.ndarray], mode: str = "constant",
-                 name="name", **kwargs):
+                 name="pad_property", **kwargs):
         call_kwargs = {"pad_width": pad_width, "mode": mode}
         # List of additional kwargs for pad that do not belong to super.
         for x in ["stat_length", "constant_values", "end_values", "reflect_type"]:
