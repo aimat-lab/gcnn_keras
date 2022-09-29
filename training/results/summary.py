@@ -192,8 +192,9 @@ benchmark_datasets = {
         "general_info": [
             "QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. ",
             "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
-            "We use a random 10-fold cross-validation. "
-            "Test errors are MAE and for energies are given in [eV]. "
+            "We use a random 10-fold cross-validation, ",
+            "but not all splits are evaluated for cheaper evaluation. ",
+            "Test errors are MAE and for energies are given in [eV]. ",
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "HOMO", "find_best": "min",
