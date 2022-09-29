@@ -1,3 +1,6 @@
+v2.1.1
+
+
 v2.1.0
 
 * Remove reserved properties form ``MemoryGraphList``, please use set/get methods.
