@@ -228,9 +228,10 @@ class MemoryGraphList(MutableMapping):
                     getattr(x, method)(**kwargs)
                 else:
                     x.apply_preprocessor(name=method, **kwargs)
-        # For any callable method to map.
-        for i, x in enumerate(self._list):
-            method(x, **kwargs)
+        else:
+            # For any callable method to map.
+            for i, x in enumerate(self._list):
+                method(x, **kwargs)
         return self
 
     def clean(self, inputs: Union[list, str]):
