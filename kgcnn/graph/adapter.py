@@ -13,6 +13,10 @@ logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+module_logger.info(
+    "`GraphMethodsAdapter` is deprecated and will be removed in future versions in favor of `GraphPreProcessorBase`. \
+This is done, in order not to pollute `GraphDict`s namespace for increasing number of methods.")
+
 
 def obtain_assign_properties(obtain: Union[list, str] = None, assign: Union[list, str] = None,
                              silent: Union[list, str] = None):
@@ -254,7 +258,7 @@ class GraphTensorMethodsAdapter:
         """
         if edge_indices is None:
             return None
-        return np.ones((len(edge_indices), 1))*value
+        return np.ones((len(edge_indices), 1)) * value
 
     @obtain_assign_properties(obtain=["edge_indices", "edge_weights"], assign="edge_weights", silent="edge_weights")
     def normalize_edge_weights_sym(self, *, edge_indices: Union[str, np.ndarray] = "edge_indices",

@@ -4,6 +4,7 @@ import logging
 import networkx as nx
 from typing import Union
 from kgcnn.graph.adapter import GraphTensorMethodsAdapter
+from copy import deepcopy
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -244,9 +245,13 @@ class GraphPreProcessorBase:
         obtained_properties = {}
         for key, name in self._to_obtain.items():
             if isinstance(name, str):
-                if not graph.has_valid_key(name) and key not in self._quite:
-                    module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
-                obtained_properties[key] = graph.obtain_property(name)
+                if name in self._search:
+                    name = graph.search_properties(name)  # Will be sorted list and existing only
+                    obtained_properties[key] = [graph.obtain_property(x) for x in name]
+                else:
+                    if not graph.has_valid_key(name) and key not in self._quite:
+                        module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
+                    obtained_properties[key] = graph.obtain_property(name)
             elif isinstance(name, (list, tuple)):
                 prop_list = []
                 for x in name:
@@ -260,12 +265,31 @@ class GraphPreProcessorBase:
         return obtained_properties
 
     def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
-        if isinstance(self._to_assign, str):
-            graph.assign_property(self._to_assign, graph_properties)
+
+        def _assign_single(name, single_graph_property):
+            if name in self._search:
+                names = graph.search_properties(name)  # Will be sorted list and existing only
+                # Assume that names matches graph_properties
+                if not isinstance(single_graph_property, (list, tuple)):
+                    module_logger.error("Wrong return type for %s" % name)
+                if len(names) != len(single_graph_property):
+                    module_logger.error("Wrong number of %s for %s" % (names, single_graph_property))
+                for x, gp in zip(names, single_graph_property):
+                    graph.assign_property(x, gp)
+                return
+            graph.assign_property(name, single_graph_property)
             return
+
+        if isinstance(self._to_assign, str):
+            _assign_single(self._to_assign, graph_properties)
+
         if isinstance(self._to_assign, (list, tuple)):
+            if not isinstance(graph_properties, (list, tuple)):
+                module_logger.error("Wrong return type for %s" % self._to_assign)
+            if len(self._to_assign) != len(graph_properties):
+                module_logger.error("Wrong number of %s for %s" % (self._to_assign, graph_properties))
             for key, value in zip(self._to_assign, graph_properties):
-                graph.assign_property(key, value)
+                _assign_single(key, value)
             return
 
     def call(self, **kwargs):
@@ -284,5 +308,5 @@ class GraphPreProcessorBase:
         return pat.search(query) is not None
 
     def get_config(self):
-        config = self._config_kwargs
+        config = deepcopy(self._config_kwargs)
         return config
