@@ -554,6 +554,7 @@ hyper = {
                 'units': [60, 50, 40, 30],
                 'importance_units': [],
                 'final_units': [50, 30, 10, 1],
+                "final_activation": "sigmoid",
                 'dropout_rate': 0.3,
                 'final_dropout_rate': 0.00,
                 'importance_channels': 3,
@@ -568,7 +569,7 @@ hyper = {
             "fit": {
                 "batch_size": 64,
                 "epochs": 400,
-                "validation_freq": 10,
+                "validation_freq": 1,
                 "verbose": 2,
                 "callbacks": [
                     {
