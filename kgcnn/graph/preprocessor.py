@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from typing import Union
 from kgcnn.graph.base import GraphPreProcessorBase, GraphDict
 from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
@@ -11,9 +12,137 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-# class MakeUndirectedEdges(GraphPreProcessorBase):
-#     def __init__(self, name="make_undirected_edges", **kwargs):
-#         super().__init__(name=name, **kwargs)
+class MakeUndirectedEdges(GraphPreProcessorBase):
+    r"""Add edges :math:`(j, i)` for :math:`(i, j)` if there is no edge :math:`(j, i)`.
+    With :obj:`remove_duplicates` an edge can be added even though there is already and edge at :math:`(j, i)`.
+    For other edge tensors, like the attributes or labels, the values of edge :math:`(i, j)` is added in place.
+    Requires that :obj:`edge_indices` property is assigned.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        edge_attributes (str): Name of related edge values or attributes.
+            This can be a match-string or list of names. Default is "^edge_.*".
+        remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
+        sort_indices (bool): Sort indices after adding edges. Default is True.
+    """
+    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+                 remove_duplicates: bool = True, sort_indices: bool = True, name="make_undirected_edges", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
+        self._to_assign = [edge_indices, edge_attributes]
+        self._call_kwargs = {
+            "remove_duplicates": remove_duplicates, "sort_indices": sort_indices}
+        self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
+                                    **self._call_kwargs})
+
+    def call(self, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool):
+        return add_edges_reverse_indices(
+            edge_indices=edge_indices, *edge_attributes, remove_duplicates=remove_duplicates, sort_indices=sort_indices,
+            return_nested=True)
+
+
+class AddEdgeSelfLoops(GraphPreProcessorBase):
+    r"""Add self loops to each graph property. The function expects the property :obj:`edge_indices`
+    to be defined. By default, the edges are also sorted after adding the self-loops.
+    All other edge properties are filled with :obj:`fill_value`.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        edge_attributes (str): Name of related edge values or attributes.
+            This can be a match-string or list of names. Default is "^edge_.*".
+        remove_duplicates (bool): Whether to remove duplicates. Default is True.
+        sort_indices (bool): To sort indices after adding self-loops. Default is True.
+        fill_value (in): The fill_value for all other edge properties.
+    """
+    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+                 remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0,
+                 name="add_edge_self_loops", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
+        self._to_assign = [edge_indices, edge_attributes]
+        self._call_kwargs = {
+            "remove_duplicates": remove_duplicates, "sort_indices": sort_indices, "fill_value": fill_value}
+        self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
+                                    **self._call_kwargs})
+
+    def call(self, *, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool,
+             fill_value: bool):
+        return add_self_loops_to_edge_indices(
+            edge_indices=edge_indices, *edge_attributes, remove_duplicates=remove_duplicates,
+            sort_indices=sort_indices, fill_value=fill_value, return_nested=True)
+
+
+class SortEdgeIndices(GraphPreProcessorBase):
+    r"""Sort edge indices and all edge-related properties. The index list is sorted for the first entry.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        edge_attributes (str): Name of related edge values or attributes.
+            This can be a match-string or list of names. Default is "^edge_.*".
+    """
+    def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+                 name="sort_edge_indices", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
+        self._to_assign = [edge_indices, edge_attributes]
+        self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
+
+    def call(self, *, edge_indices: np.ndarray, edge_attributes: list):
+        return sort_edge_indices(edge_indices, *edge_attributes, return_nested=True)
+
+
+class SetEdgeIndicesReverse(GraphPreProcessorBase):
+    r"""Computes the index map of the reverse edge for each of the edges, if available. This can be used by a model
+    to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
+    Does not affect other edge-properties, only creates a map on edge indices. Edges that do not have a reverse
+    pair get a `nan` as map index. If there are multiple edges, the first encounter is assigned.
+
+    .. warning::
+        Reverse maps are not recomputed if you use e.g. :obj:`sort_edge_indices` or redefine edges.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
+    """
+    def __init__(self, *, edge_indices: str = "edge_indices", edge_indices_reverse: str = "edge_indices_reverse",
+                 name="set_edge_indices_reverse", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"edge_indices": edge_indices})
+        self._to_assign = edge_indices_reverse
+        self._config_kwargs.update({"edge_indices": edge_indices, "edge_indices_reverse": edge_indices_reverse})
+
+    def call(self, *, edge_indices: np.ndarray):
+        if edge_indices is None:
+            return None
+        return np.expand_dims(compute_reverse_edges_index_map(edge_indices), axis=-1)
+
+
+class PadProperty(GraphPreProcessorBase):
+    r"""Pad a graph tensor property.
+
+    Args:
+        key (str): Name of the (tensor) property to pad.
+        pad_width (list, int): Width to pad tensor.
+        mode (str): Padding mode.
+    """
+    def __init__(self, *, key: str, pad_width: Union[int, list, tuple, np.ndarray], mode: str = "constant",
+                 name="name", **kwargs):
+        call_kwargs = {"pad_width": pad_width, "mode": mode}
+        # List of additional kwargs for pad that do not belong to super.
+        for x in ["stat_length", "constant_values", "end_values", "reflect_type"]:
+            if x in kwargs:
+                call_kwargs[x] = kwargs[x]
+                kwargs.pop(x)
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"key": key})
+        self._call_kwargs = call_kwargs
+        self._to_assign = key
+        self._config_kwargs.update({"key": key, **self._call_kwargs})
+
+    def call(self, *, key: np.ndarray, pad_width: Union[int, list, tuple, np.ndarray], mode: str):
+        if key is None:
+            return
+        return np.pad(key, pad_width=pad_width, mode=mode)
 
 
 class SetEdgeWeightsUniform(GraphPreProcessorBase):
