@@ -394,5 +394,8 @@ class SetRangePeriodic(GraphPreProcessorBase):
         return indices, images, dist
 
 
-def get():
-    pass
+def get(name, **kwargs):
+    preprocessor_identifier = {
+        "set_range_periodic": SetRangePeriodic
+    }
+    return preprocessor_identifier[name](**kwargs)
