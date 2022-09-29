@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import os
-from typing import Union, List
+from typing import Union, List, Callable
 from collections.abc import MutableMapping
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphNumpyContainer, GraphDict
@@ -204,13 +204,14 @@ class MemoryGraphList(MutableMapping):
         else:
             raise TypeError("Wrong type, expected e.g. [{'name': 'edge_indices', 'ragged': True}, {...}, ...]")
 
-    def map_list(self, method: str, **kwargs):
+    def map_list(self, method: Union[str, Callable], **kwargs):
         r"""Map a method over this list and apply on each :obj:`GraphDict`.
+        For method being string, either a class-method or a preprocessor is chosen for backward compatibility.
 
         .. code-block:: python
 
             for i, x in enumerate(self):
-                getattr(x, method)(**kwargs)
+                method(x, **kwargs)
 
         Args:
             method (str): Name of the :obj:`GraphDict` method.
@@ -219,9 +220,17 @@ class MemoryGraphList(MutableMapping):
         Returns:
             self
         """
+        # Can add progress info here.
+        if isinstance(method, str):
+            for i, x in enumerate(self._list):
+                # If this is a class method or a preprocessor else.
+                if hasattr(x, method):
+                    getattr(x, method)(**kwargs)
+                else:
+                    x.apply_preprocessor(name=method, **kwargs)
+        # For any callable method to map.
         for i, x in enumerate(self._list):
-            # Can add progress info here.
-            getattr(x, method)(**kwargs)
+            method(x, **kwargs)
         return self
 
     def clean(self, inputs: Union[list, str]):

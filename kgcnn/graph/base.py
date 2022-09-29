@@ -228,7 +228,7 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
 
     def apply_preprocessor(self, name, **kwargs):
         if isinstance(name, str):
-            pass
+            raise NotImplementedError("Deserialization is not yes suppoerted")
         elif isinstance(name, GraphPreProcessorBase):
             name(self)
             return self
