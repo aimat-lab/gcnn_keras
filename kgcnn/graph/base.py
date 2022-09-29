@@ -5,6 +5,7 @@ import networkx as nx
 from typing import Union
 from kgcnn.graph.adapter import GraphTensorMethodsAdapter
 from copy import deepcopy
+from kgcnn.graph.preprocessor import get as get_preprocessor
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -228,7 +229,8 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
 
     def apply_preprocessor(self, name, **kwargs):
         if isinstance(name, str):
-            raise NotImplementedError("Deserialization is not yes suppoerted")
+            get_preprocessor(name)(**kwargs)(self)
+            return self
         elif isinstance(name, GraphPreProcessorBase):
             name(self)
             return self
