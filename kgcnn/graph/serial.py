@@ -2,6 +2,7 @@ import importlib
 
 
 def get_preprocessor(name, **kwargs):
+    """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
         "make_undirected_edges": "MakeUndirectedEdges",
         "add_edge_self_loops": "AddEdgeSelfLoops",

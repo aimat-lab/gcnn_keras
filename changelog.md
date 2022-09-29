@@ -1,6 +1,6 @@
 v2.1.1
 
-* Removed `kgcnn.graph.adapter` and switched to ``kgcnn.graph.preprocessor``. How to update:
+* Removed `kgcnn.graph.adapter` and switched to completed ``kgcnn.graph.preprocessor``. How to update:
 ```python
 from kgcnn.data.base import GraphDict
 GraphDict().apply_preprocessor("sort_edge_indices")  # Instead of GraphDict().sort_edge_indices()
