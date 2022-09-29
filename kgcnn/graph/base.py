@@ -226,6 +226,14 @@ class GraphDict(dict, GraphTensorMethodsAdapter):
     set = assign_property
     # get = obtain_property  # Already has correct behaviour.
 
+    def apply_preprocessor(self, name, **kwargs):
+        if isinstance(name, str):
+            pass
+        elif isinstance(name, GraphPreProcessorBase):
+            name(self)
+            return self
+        raise ValueError("Unsupported preprocessor %s" % name)
+
 
 GraphNumpyContainer = GraphDict
 
@@ -237,7 +245,7 @@ class GraphPreProcessorBase:
         self._to_obtain = {}
         self._to_assign = None
         self._call_kwargs = {}
-        self._search = []
+        self._search = {"resolve": [], "ignore": []}
         self._quite = []
         self._in_place = in_place
 
@@ -245,9 +253,10 @@ class GraphPreProcessorBase:
         obtained_properties = {}
         for key, name in self._to_obtain.items():
             if isinstance(name, str):
-                if name in self._search:
-                    name = graph.search_properties(name)  # Will be sorted list and existing only
-                    obtained_properties[key] = [graph.obtain_property(x) for x in name]
+                if name in self._search["resolve"]:
+                    names = graph.search_properties(name)  # Will be sorted list and existing only
+                    names = [x for x in names if x not in self._search["ignore"]]
+                    obtained_properties[key] = [graph.obtain_property(x) for x in names]
                 else:
                     if not graph.has_valid_key(name) and key not in self._quite:
                         module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
@@ -261,14 +270,14 @@ class GraphPreProcessorBase:
                 obtained_properties[key] = prop_list
             else:
                 raise ValueError("Unsupported property identifier %s" % name)
-
         return obtained_properties
 
     def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
 
         def _assign_single(name, single_graph_property):
-            if name in self._search:
+            if name in self._search["resolve"]:
                 names = graph.search_properties(name)  # Will be sorted list and existing only
+                names = [x for x in names if x not in self._search["ignore"]]
                 # Assume that names matches graph_properties
                 if not isinstance(single_graph_property, (list, tuple)):
                     module_logger.error("Wrong return type for %s" % name)
@@ -299,6 +308,7 @@ class GraphPreProcessorBase:
         if not self._in_place:
             graph = GraphDict(graph)
         graph_properties = self._obtain_properties(graph)
+        print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
         self._assign_properties(graph, processed_properties)
         return graph

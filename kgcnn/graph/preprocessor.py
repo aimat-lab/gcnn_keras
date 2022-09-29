@@ -30,7 +30,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = [edge_attributes]
+        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
         self._call_kwargs = {
             "remove_duplicates": remove_duplicates, "sort_indices": sort_indices}
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
@@ -38,7 +38,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
 
     def call(self, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool):
         return add_edges_reverse_indices(
-            edge_indices=edge_indices, *edge_attributes, remove_duplicates=remove_duplicates, sort_indices=sort_indices,
+            edge_indices, *edge_attributes, remove_duplicates=remove_duplicates, sort_indices=sort_indices,
             return_nested=True)
 
 
@@ -61,7 +61,7 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = [edge_attributes]
+        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
         self._call_kwargs = {
             "remove_duplicates": remove_duplicates, "sort_indices": sort_indices, "fill_value": fill_value}
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
@@ -70,7 +70,7 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool,
              fill_value: bool):
         return add_self_loops_to_edge_indices(
-            edge_indices=edge_indices, *edge_attributes, remove_duplicates=remove_duplicates,
+            edge_indices, *edge_attributes, remove_duplicates=remove_duplicates,
             sort_indices=sort_indices, fill_value=fill_value, return_nested=True)
 
 
@@ -87,7 +87,7 @@ class SortEdgeIndices(GraphPreProcessorBase):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = [edge_attributes]
+        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
 
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list):
