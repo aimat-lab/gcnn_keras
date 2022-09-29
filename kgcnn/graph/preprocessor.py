@@ -37,6 +37,8 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
                                     **self._call_kwargs})
 
     def call(self, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool):
+        if edge_indices is None:
+            return None, [None]*len(edge_attributes)
         return add_edges_reverse_indices(
             edge_indices, *edge_attributes, remove_duplicates=remove_duplicates, sort_indices=sort_indices,
             return_nested=True)
@@ -69,6 +71,8 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
 
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool,
              fill_value: bool):
+        if edge_indices is None:
+            return None, [None]*len(edge_attributes)
         return add_self_loops_to_edge_indices(
             edge_indices, *edge_attributes, remove_duplicates=remove_duplicates,
             sort_indices=sort_indices, fill_value=fill_value, return_nested=True)
@@ -91,6 +95,8 @@ class SortEdgeIndices(GraphPreProcessorBase):
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
 
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list):
+        if edge_indices is None:
+            return None, [None]*len(edge_attributes)
         return sort_edge_indices(edge_indices, *edge_attributes, return_nested=True)
 
 

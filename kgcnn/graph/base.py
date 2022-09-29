@@ -282,7 +282,7 @@ class GraphPreProcessorBase:
                 if not isinstance(single_graph_property, (list, tuple)):
                     module_logger.error("Wrong return type for %s" % name)
                 if len(names) != len(single_graph_property):
-                    module_logger.error("Wrong number of %s for %s" % (names, single_graph_property))
+                    module_logger.error("Wrong number in output of %s." % names)
                 for x, gp in zip(names, single_graph_property):
                     graph.assign_property(x, gp)
                 return
@@ -296,7 +296,7 @@ class GraphPreProcessorBase:
             if not isinstance(graph_properties, (list, tuple)):
                 module_logger.error("Wrong return type for %s" % self._to_assign)
             if len(self._to_assign) != len(graph_properties):
-                module_logger.error("Wrong number of %s for %s" % (self._to_assign, graph_properties))
+                module_logger.error("Wrong number in output of %s." % self._to_assign)
             for key, value in zip(self._to_assign, graph_properties):
                 _assign_single(key, value)
             return
@@ -308,7 +308,7 @@ class GraphPreProcessorBase:
         if not self._in_place:
             graph = GraphDict(graph)
         graph_properties = self._obtain_properties(graph)
-        print(graph_properties)
+        # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
         self._assign_properties(graph, processed_properties)
         return graph
