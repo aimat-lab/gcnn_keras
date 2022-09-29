@@ -4,8 +4,8 @@ import logging
 import networkx as nx
 from typing import Union
 from kgcnn.graph.adapter import GraphTensorMethodsAdapter
+from kgcnn.graph.serial import get_preprocessor
 from copy import deepcopy
-from kgcnn.graph.preprocessor import get as get_preprocessor
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

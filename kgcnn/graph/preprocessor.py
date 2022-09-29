@@ -392,10 +392,3 @@ class SetRangePeriodic(GraphPreProcessorBase):
             dist = np.expand_dims(dist, axis=-1)
         # Assign attributes to instance.
         return indices, images, dist
-
-
-def get(name, **kwargs):
-    preprocessor_identifier = {
-        "set_range_periodic": SetRangePeriodic
-    }
-    return preprocessor_identifier[name](**kwargs)
