@@ -22,7 +22,8 @@ model_default = {
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                {"shape": (None, ), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
-               {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True},
+               {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
+               {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
@@ -96,8 +97,9 @@ def make_model(inputs: list = None,
     xyz_input = ks.layers.Input(**inputs[1])
     edge_input = ks.layers.Input(**inputs[2])
     edge_index_input = ks.layers.Input(**inputs[3])
-    angle_index_input = ks.layers.Input(**inputs[4])
-    range_index_input = ks.layers.Input(**inputs[5])
+    angle_index_input_1 = ks.layers.Input(**inputs[4])
+    angle_index_input_2 = ks.layers.Input(**inputs[5])
+    range_index_input = ks.layers.Input(**inputs[6])
 
     # Rename to short names and make embedding, if no feature dimension.
     x = xyz_input
@@ -105,7 +107,8 @@ def make_model(inputs: list = None,
     ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
     ei_l = edge_index_input
     ri_g = range_index_input
-    ai_1 = angle_index_input
+    ai_1 = angle_index_input_1
+    ai_2 = angle_index_input_2
 
     # Calculate distances and spherical and bessel basis for local edges including angles.
     # For the first version, we restrict ourselves to 2-hop angles.
@@ -113,8 +116,10 @@ def make_model(inputs: list = None,
     d_l = NodeDistanceEuclidean()([pos1_l, pos2_l])
     rbf_l = BesselBasisLayer(**bessel_basis_local)(d_l)
     v12_l = LazySubtract()([pos1_l, pos2_l])
-    a_l = EdgeAngle()([v12_l, ai_1])
-    sbf_l = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l, ai_1])
+    a_l_1 = EdgeAngle()([v12_l, ai_1])
+    a_l_2 = EdgeAngle()([v12_l, ai_2])
+    sbf_l_1 = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l_1, ai_1])
+    sbf_l_2 = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l_2, ai_2])
 
     # Calculate distance and bessel basis for global (range) edges.
     pos1_g, pos2_g = NodePosition()([x, ri_g])
@@ -125,7 +130,8 @@ def make_model(inputs: list = None,
         rbf_l = LazyConcatenate()([rbf_l, ed])
 
     rbf_l = GraphMLP()(rbf_l)
-    sbf_l = GraphMLP()(sbf_l)
+    sbf_l_1 = GraphMLP()(sbf_l_1)
+    sbf_l_2 = GraphMLP()(sbf_l_2)
     rbf_g = GraphMLP()(rbf_g)
 
     # Model
