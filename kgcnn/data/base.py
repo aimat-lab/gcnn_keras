@@ -206,7 +206,7 @@ class MemoryGraphList(MutableMapping):
 
     def map_list(self, method: Union[str, Callable], **kwargs):
         r"""Map a method over this list and apply on each :obj:`GraphDict`.
-        For method being string, either a class-method or a preprocessor is chosen for backward compatibility.
+        For :obj:`method` being string, either a class-method or a preprocessor is chosen for backward compatibility.
 
         .. code-block:: python
 
@@ -228,6 +228,8 @@ class MemoryGraphList(MutableMapping):
                     getattr(x, method)(**kwargs)
                 else:
                     x.apply_preprocessor(name=method, **kwargs)
+        elif isinstance(method, dict):
+            raise NotImplementedError("Serialization for method is not yet supported")
         else:
             # For any callable method to map.
             for i, x in enumerate(self._list):

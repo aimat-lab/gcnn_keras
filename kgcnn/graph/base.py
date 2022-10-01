@@ -237,10 +237,12 @@ class GraphDict(dict):
             self
         """
         if isinstance(name, str):
-            get_preprocessor(name, **kwargs)(self)
+            proc_graph = get_preprocessor(name, **kwargs)(self)
+            self.update(proc_graph)
             return self
         elif isinstance(name, GraphPreProcessorBase):
-            name(self)
+            proc_graph = name(self)
+            self.update(proc_graph)
             return self
         raise ValueError("Unsupported preprocessor %s" % name)
 
@@ -250,7 +252,7 @@ GraphNumpyContainer = GraphDict
 
 class GraphPreProcessorBase:
 
-    def __init__(self, *, in_place: bool = True, name: str = None):
+    def __init__(self, *, in_place: bool = False, name: str = None):
         self._config_kwargs = {"in_place": in_place, "name": name}
         self._to_obtain = {}
         self._to_assign = None
