@@ -152,6 +152,13 @@ def add_self_loops_to_edge_indices(edge_indices, *args,
         np.ndarray: `edge_indices` or `(edge_indices, *args)`. Or `(edge_indices, args)` if `return_nested`.
     """
     clean_edge = [x for x in args]
+    if len(edge_indices) <= 0:
+        if return_nested:
+            return edge_indices, clean_edge
+        if len(clean_edge) > 0:
+            return [edge_indices] + clean_edge
+        else:
+            return edge_indices
     max_ind = np.max(edge_indices)
     self_loops = np.arange(max_ind + 1, dtype="int")
     self_loops = np.concatenate([np.expand_dims(self_loops, axis=-1), np.expand_dims(self_loops, axis=-1)], axis=-1)
