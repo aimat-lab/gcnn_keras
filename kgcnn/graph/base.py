@@ -286,29 +286,37 @@ class GraphPreProcessorBase:
 
     def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
 
+        def _check_list_property(n, p):
+            if not isinstance(p, (list, tuple)):
+                module_logger.error("Wrong return type for %s" % n)
+            if len(n) != len(p):
+                module_logger.error("Wrong number in output of %s." % n)
+
         def _assign_single(name, single_graph_property):
-            if name in self._search["resolve"]:
-                names = graph.search_properties(name)  # Will be sorted list and existing only
-                names = [x for x in names if x not in self._search["ignore"]]
-                # Assume that names matches graph_properties
-                if not isinstance(single_graph_property, (list, tuple)):
-                    module_logger.error("Wrong return type for %s" % name)
-                if len(names) != len(single_graph_property):
-                    module_logger.error("Wrong number in output of %s." % names)
-                for x, gp in zip(names, single_graph_property):
+            if isinstance(name, str):
+                if name in self._search["resolve"]:
+                    names = graph.search_properties(name)  # Will be sorted list and existing only
+                    names = [x for x in names if x not in self._search["ignore"]]
+                    # Assume that names matches graph_properties
+                    _check_list_property(names, single_graph_property)
+                    for x, gp in zip(names, single_graph_property):
+                        graph.assign_property(x, gp)
+                else:
+                    graph.assign_property(name, single_graph_property)
+            elif isinstance(name, (list, tuple)):
+                # For nested output
+                _check_list_property(name, single_graph_property)
+                for x, gp in zip(name, single_graph_property):
                     graph.assign_property(x, gp)
-                return
-            graph.assign_property(name, single_graph_property)
+            else:
+                module_logger.error("Wrong type of named property %s" % name)
             return
 
         if isinstance(self._to_assign, str):
             _assign_single(self._to_assign, graph_properties)
 
         if isinstance(self._to_assign, (list, tuple)):
-            if not isinstance(graph_properties, (list, tuple)):
-                module_logger.error("Wrong return type for %s" % self._to_assign)
-            if len(self._to_assign) != len(graph_properties):
-                module_logger.error("Wrong number in output of %s." % self._to_assign)
+            _check_list_property(self._to_assign, graph_properties)
             for key, value in zip(self._to_assign, graph_properties):
                 _assign_single(key, value)
             return
