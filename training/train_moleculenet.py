@@ -25,9 +25,9 @@ from kgcnn.utils.devices import set_devices_gpu
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="MAT")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="ESOLDataset")
+                    default="FreeSolvDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
-                    default="hyper/hyper_esol.py")
+                    default="hyper/hyper_freesolv.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
