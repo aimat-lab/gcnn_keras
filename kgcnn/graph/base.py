@@ -288,9 +288,9 @@ class GraphPreProcessorBase:
 
         def _check_list_property(n, p):
             if not isinstance(p, (list, tuple)):
-                module_logger.error("Wrong return type for %s" % n)
+                module_logger.error("Wrong return type for '%s', which is not list." % n)
             if len(n) != len(p):
-                module_logger.error("Wrong number in output of %s." % n)
+                module_logger.error("Wrong number of properties '%s' for '%s'." % (len(p), n))
 
         def _assign_single(name, single_graph_property):
             if isinstance(name, str):
@@ -312,14 +312,14 @@ class GraphPreProcessorBase:
                 module_logger.error("Wrong type of named property %s" % name)
             return
 
+        # Process assignment here.
         if isinstance(self._to_assign, str):
             _assign_single(self._to_assign, graph_properties)
-
-        if isinstance(self._to_assign, (list, tuple)):
+        elif isinstance(self._to_assign, (list, tuple)):
             _check_list_property(self._to_assign, graph_properties)
             for key, value in zip(self._to_assign, graph_properties):
                 _assign_single(key, value)
-            return
+        return
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
