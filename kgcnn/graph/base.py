@@ -309,7 +309,7 @@ class GraphPreProcessorBase:
                 for x, gp in zip(name, single_graph_property):
                     graph.assign_property(x, gp)
             else:
-                module_logger.error("Wrong type of named property %s" % name)
+                module_logger.error("Wrong type of named property '%s'" % name)
             return
 
         # Process assignment here.
