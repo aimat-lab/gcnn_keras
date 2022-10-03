@@ -2,10 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 
-from typing import Dict, Callable, Union
+from typing import Dict, Callable, Union, List
 from collections import defaultdict
 
 from kgcnn.data.base import MemoryGraphDataset
+from kgcnn.mol.base import MolGraphInterface
 from kgcnn.mol.module_rdkit import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
@@ -157,7 +158,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def _read_in_memory_mol_blocks(self):
+    def read_in_memory_mol_blocks(self):
         if not os.path.exists(self.file_path_mol):
             raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
@@ -166,17 +167,20 @@ class MoleculeNetDataset(MemoryGraphDataset):
         return read_mol_list_from_sdf_file(self.file_path_mol)
 
     def _map_molecule_callbacks(self,
-                                callbacks: Dict[str, Callable[[MolecularGraphRDKit, pd.Series], None]],
-                                custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None,
+                                mol_list: List[str],
+                                data: Union[pd.Series, pd.DataFrame],
+                                callbacks: Dict[str, Callable[[MolGraphInterface, pd.Series], None]],
+                                custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None,
                                 add_hydrogen: bool = False,
-                                make_directed: bool = False
-                                ):
-        r"""This method loads the list of molecules from the SDF file, as well as the data of the original CSV file.
-        It then iterates over all the molecules / CSV rows and invokes the callbacks for each.
+                                make_directed: bool = False,
+                                assign_to_self: bool = True
+                                ) -> dict:
+        r"""This method receive the list of molecules, as well as the data from a pandas data series.
+        It then iterates over all the molecules / data rows and invokes the callbacks for each.
 
         The "callbacks" parameter is supposed to be a dictionary whose keys are string names of attributes which are
-        supposed to be derived from the molecule / csv data and the values are function objects which define how to
-        derive that data. Those callback functions get passed two parameters:
+        supposed to be derived from the molecule / data and the values are function objects which define how to
+        derive that data. Those callback functions get two parameters:
 
             - mg: The :obj:`MolecularGraphRDKit` instance for the current molecule
             - ds: A pandas data series that match data in the CSV file for the specific molecule.
@@ -190,9 +194,6 @@ class MoleculeNetDataset(MemoryGraphDataset):
             If a molecule cannot be properly loaded by :obj:`MolecularGraphRDKit`, then for all attributes
             "None" is added without invoking the callback!
 
-        Before calling this function, the ".sdf" molecule data file needs to exist, which means it is important to
-        have called the "prepare_data" method before, or add a suitable SDF file manually.
-
         Example:
 
         .. code-block:: python
@@ -200,10 +201,14 @@ class MoleculeNetDataset(MemoryGraphDataset):
             mol_net = MoleculeNetDataset()
             mol_net.prepare_data()
 
-            mol_net._map_molecule_callbacks(callbacks={
-                'graph_size': lambda mg, dd: len(mg.node_number),
-                'index': lambda mg, dd: dd['index']
-            })
+            mol_net._map_molecule_callbacks(
+                mol_net.read_in_memory_mol_blocks(),
+                mol_net.read_in_table_file(),
+                callbacks={
+                    'graph_size': lambda mg, dd: len(mg.node_number),
+                    'index': lambda mg, dd: dd['index']
+                }
+            )
 
             mol: dict = mol_net[0]
             assert 'graph_size' in mol.keys()
@@ -219,11 +224,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
 
         Returns:
-            self.
+            dict: Values of
         """
-        mol_list = self._read_in_memory_mol_blocks()
-        data = pd.read_csv(os.path.join(self.data_directory, self.file_name))
-
         # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one molecule in the dataset.
         value_lists = defaultdict(list)
@@ -244,11 +246,12 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 self.info(" ... process molecules {0} from {1}".format(index, len(mol_list)))
 
         # The string key names of the original "callbacks" dict are also used as the names of the properties which are
-        # assigned
-        for name, values in value_lists.items():
-            self.assign_property(name, values)
+        # assigned.
+        if assign_to_self:
+            for name, values in value_lists.items():
+                self.assign_property(name, values)
 
-        return self
+        return value_lists
 
     def read_in_memory(self,
                        label_column_name: Union[str, list] = None,
@@ -371,7 +374,9 @@ class MoleculeNetDataset(MemoryGraphDataset):
         # Additional callbacks. Could check for duplicate names here.
         callbacks.update(additional_callbacks)
 
-        self._map_molecule_callbacks(callbacks=callbacks,
+        self._map_molecule_callbacks(self.read_in_memory_mol_blocks(),
+                                     self.read_in_table_file().data_frame,
+                                     callbacks=callbacks,
                                      add_hydrogen=add_hydrogen,
                                      custom_transform=custom_transform,
                                      make_directed=make_directed)
