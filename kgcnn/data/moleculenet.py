@@ -203,7 +203,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
             mol_net._map_molecule_callbacks(
                 mol_net.read_in_memory_mol_blocks(),
-                mol_net.read_in_table_file(),
+                mol_net.read_in_table_file().data_frame,
                 callbacks={
                     'graph_size': lambda mg, dd: len(mg.node_number),
                     'index': lambda mg, dd: dd['index']
@@ -216,6 +216,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
 
         Args:
+            mol_list (list): List of mol strings.
+            data (pd.DataFrame): Pandas data frame or series matching list of mol-strings.
             callbacks (dict): Dictionary of callbacks to perform on MolecularGraph object and table entries.
             add_hydrogen (bool): Whether to add hydrogen when making a :obj:`MolecularGraphRDKit` instance.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
@@ -224,7 +226,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                 :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
 
         Returns:
-            dict: Values of
+            dict: Values of callbacks.
         """
         # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one molecule in the dataset.
