@@ -30,6 +30,8 @@ model_default = {
     "bessel_basis_local": {"num_radial": 16, "cutoff": 3.0, "envelope_exponent": 5},
     "bessel_basis_global": {"num_radial": 16, "cutoff": 6.0, "envelope_exponent": 5},
     "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
+    "mlp_rbf_kwargs": {},
+    "mlp_sbf_kwargs": {},
     "use_edge_attributes": False,
     "depth": 4,
     "verbose": 10,
@@ -51,6 +53,8 @@ def make_model(inputs: list = None,
                bessel_basis_global: dict = None,
                spherical_basis_local: dict = None,
                use_edge_attributes: bool = None,
+               mlp_rbf_kwargs: dict = None,
+               mlp_sbf_kwargs: dict = None,
                verbose: int = None,
                output_embedding: str = None,
                use_output_mlp: bool = None,
@@ -129,10 +133,10 @@ def make_model(inputs: list = None,
     if use_edge_attributes:
         rbf_l = LazyConcatenate()([rbf_l, ed])
 
-    rbf_l = GraphMLP()(rbf_l)
-    sbf_l_1 = GraphMLP()(sbf_l_1)
-    sbf_l_2 = GraphMLP()(sbf_l_2)
-    rbf_g = GraphMLP()(rbf_g)
+    rbf_l = GraphMLP(**mlp_rbf_kwargs)(rbf_l)
+    sbf_l_1 = GraphMLP(**mlp_sbf_kwargs)(sbf_l_1)
+    sbf_l_2 = GraphMLP(**mlp_sbf_kwargs)(sbf_l_2)
+    rbf_g = GraphMLP(**mlp_rbf_kwargs)(rbf_g)
 
     # Model
     h = n
