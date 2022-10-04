@@ -20,7 +20,7 @@ class MXMGlobalMP(GraphBaseLayer):
         self.res2 = ResidualLayer(self.dim)
         self.res3 = ResidualLayer(self.dim)
         self.mlp = GraphMLP(self.dim, activation="swish")
-        self.add1 = LazyAdd()
+        self.add_res = LazyAdd()
 
         self.x_edge_mlp = GraphMLP(self.dim, activation="swish")
         self.linear = DenseEmbedding(self.dim, bias=False, activation="linear")
@@ -67,7 +67,7 @@ class MXMGlobalMP(GraphBaseLayer):
         # Update function f_u
         h = self.res1(h)
         h = self.mlp(h)
-        h = self.add1([h, res_h])
+        h = self.add_res([h, res_h])
         h = self.res2(h)
         h = self.res3(h)
 
