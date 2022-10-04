@@ -30,7 +30,7 @@ model_default = {
     "max_atoms": None,
     "distance_matrix_kwargs": {"trafo": "exp"},
     "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3, "lambda_adjacency": None,
-                         "dropout": 0.1},
+                         "dropout": 0.1, "add_identity": False},
     "feed_forward_kwargs": {"units": [32, 32, 32], "activation": ["relu", "relu", "linear"]},
     "embedding_units": 32,
     "depth": 5,

@@ -106,11 +106,12 @@ class MATAttentionHead(ks.layers.Layer):
 
     def __init__(self, units: int = 64,
                  lambda_distance: float = 0.3, lambda_attention: float = 0.3,
-                 lambda_adjacency: Union[float, None] = None,
+                 lambda_adjacency: Union[float, None] = None, add_identity: bool = False,
                  dropout: Union[float, None] = None,
                  **kwargs):
         super(MATAttentionHead, self).__init__(**kwargs)
         self.units = int(units)
+        self.add_identity = bool(add_identity)
         self.lambda_distance = lambda_distance
         self.lambda_attention = lambda_attention
         if lambda_adjacency is not None:
@@ -140,6 +141,12 @@ class MATAttentionHead(ks.layers.Layer):
         qk += tf.where(tf.cast(qk_mask, dtype="bool"), tf.zeros_like(qk), -tf.ones_like(qk) / ks.backend.epsilon())
         qk = tf.nn.softmax(qk, axis=2)
         qk *= qk_mask
+        # Add diagonal to graph adjacency (optional).
+        if self.add_identity:
+            a_g_eye = tf.eye(tf.shape(a_g)[1], batch_shape=tf.shape(a_g)[:1], dtype=a_g.dtype)
+            if a_g.shape.rank > 3:
+                a_g_eye = tf.expand_dims(a_g_eye, axis=-1)
+            a_g += a_g_eye
         # Weights
         qk = self.lambda_attention * qk
         a_d = self.lambda_distance * tf.cast(a_d, dtype=h.dtype)
@@ -169,5 +176,5 @@ class MATAttentionHead(ks.layers.Layer):
         config = super(MATAttentionHead, self).get_config()
         config.update({"units": self.units, "lambda_adjacency": self.lambda_adjacency,
                        "lambda_attention": self.lambda_attention, "lambda_distance": self.lambda_distance,
-                       "dropout": self._dropout})
+                       "dropout": self._dropout, "add_identity": self.add_identity})
         return config

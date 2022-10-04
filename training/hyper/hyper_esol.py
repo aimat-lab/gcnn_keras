@@ -980,7 +980,7 @@ hyper = {
                 "max_atoms": None,
                 "distance_matrix_kwargs": {"trafo": "exp"},
                 "attention_kwargs": {"units": 8, "lambda_attention": 0.3, "lambda_distance": 0.3,
-                                     "lambda_adjacency": None,
+                                     "lambda_adjacency": None, "add_identity": True,
                                      "dropout": 0.1},
                 "feed_forward_kwargs": {"units": [32, 32, 32], "activation": ["relu", "relu", "linear"]},
                 "embedding_units": 32,
@@ -1026,7 +1026,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
-                    {"map_list": {"method": "add_edge_self_loops"}},
+                    # {"map_list": {"method": "add_edge_self_loops"}},
                     {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "pad_property", "key": "node_number", "pad_width": [0, 1]}},
                     {"map_list": {"method": "pad_property", "key": "node_coordinates", "pad_width": [[0, 1], [0, 0]]}}
