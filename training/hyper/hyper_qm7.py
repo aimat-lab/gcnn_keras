@@ -354,47 +354,40 @@ hyper = {
                            {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
                            {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
+                                    "edge": {"input_dim": 5, "output_dim": 32}},
                 "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
-                "mlp_rbf_kwargs": {"units": 64},
-                "mlp_sbf_kwargs": {"units": 64},
-                "global_mp_kwargs": {"units": 64},
-                "local_mp_kwargs": {"units": 64},
+                "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
+                "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
+                "global_mp_kwargs": {"units": 32},
+                "local_mp_kwargs": {"units": 32},
                 "use_edge_attributes": False,
-                "depth": 4,
+                "depth": 3,
                 "verbose": 10,
                 "node_pooling_args": {"pooling_method": "sum"},
                 "output_embedding": "graph", "output_to_tensor": True,
                 "use_output_mlp": True,
-                "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                               "activation": ["swish", "linear"]}
+                "output_mlp": {"use_bias": [True], "units": [1],
+                               "activation": ["linear"]}
             }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 16, "epochs": 800, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 64, "epochs": 500, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-06, "epo_min": 0, "epo": 500,
+                        "verbose": 0
+                    }
+                     }
+                ]
             },
             "compile": {
-                "optimizer": {
-                    "class_name": "Addons>MovingAverage", "config": {
-                        "optimizer": {
-                            "class_name": "Adam", "config": {
-                                "learning_rate": {
-                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 150.0, "decay_steps": 200000.0,
-                                        "decay_rate": 0.01
-                                    }
-                                }, "amsgrad": True
-                            }
-                        },
-                        "average_decay": 0.999
-                    }
-                },
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
@@ -413,9 +406,13 @@ hyper = {
                     {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
-                                  "angle_indices": "angle_indices_1"}},
+                                  "angle_indices": "angle_indices_1",
+                                  "angle_indices_nodes": "angle_indices_nodes_1",
+                                  "angle_attributes": "angle_attributes_2"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
-                                  "angle_indices": "angle_indices_2"}}
+                                  "angle_indices": "angle_indices_2",
+                                  "angle_indices_nodes": "angle_indices_nodes_1",
+                                  "angle_attributes": "angle_attributes_2"}}
                 ]
             },
             "data_unit": "kcal/mol"

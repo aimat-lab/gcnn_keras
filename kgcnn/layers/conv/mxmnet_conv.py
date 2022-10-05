@@ -11,7 +11,7 @@ ks = tf.keras
 @ks.utils.register_keras_serializable(package='kgcnn', name='MXMGlobalMP')
 class MXMGlobalMP(GraphBaseLayer):
 
-    def __init__(self, units: int =63, **kwargs):
+    def __init__(self, units: int = 64, **kwargs):
         """Initialize layer."""
         super(MXMGlobalMP, self).__init__(**kwargs)
         self.dim = units
@@ -79,7 +79,7 @@ class MXMGlobalMP(GraphBaseLayer):
 
 class MXMLocalMP(GraphBaseLayer):
 
-    def __init__(self, units, **kwargs):
+    def __init__(self, units: int = 64, **kwargs):
         super(MXMLocalMP, self).__init__(**kwargs)
         self.dim = units
 
@@ -104,7 +104,7 @@ class MXMLocalMP(GraphBaseLayer):
         self.h_mlp = GraphMLP([self.dim], activation="swish")
 
         self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation="swish")
-        self.y_W = DenseEmbedding(1)
+        self.y_W = DenseEmbedding(1, activation="linear")
         self.add_res = LazyAdd()
 
         self.gather_nodes = GatherEmbeddingSelection([0, 1])

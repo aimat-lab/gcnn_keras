@@ -19,30 +19,30 @@ ks = tf.keras
 
 model_default = {
     "name": "MXMNet",
-    "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+    "inputs": [{"shape": (None, ), "name": "node_number", "dtype": "float32", "ragged": True},
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-               {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None, ), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
                {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
                {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
-    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                        "edge": {"input_dim": 5, "output_dim": 64}},
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
+                        "edge": {"input_dim": 5, "output_dim": 32}},
     "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
     "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},  # Should match range_indices
     "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
-    "mlp_rbf_kwargs": {"units": 64},
-    "mlp_sbf_kwargs": {"units": 64},
-    "global_mp_kwargs": {"units": 64},
-    "local_mp_kwargs": {"units": 64},
+    "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
+    "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
+    "global_mp_kwargs": {"units": 32},
+    "local_mp_kwargs": {"units": 32},
     "use_edge_attributes": False,
-    "depth": 4,
+    "depth": 3,
     "verbose": 10,
     "node_pooling_args": {"pooling_method": "sum"},
     "output_embedding": "graph", "output_to_tensor": True,
     "use_output_mlp": True,
-    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
-                   "activation": ["swish", "linear"]}
+    "output_mlp": {"use_bias": [True], "units": [1],
+                   "activation": ["linear"]}
 }
 
 

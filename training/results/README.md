@@ -50,7 +50,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GraphSAGE           | 2.1.0   |      500 | 0.5003 &pm; 0.0445     | 0.7242 &pm; 0.0791     |
 | HamNet              | 2.1.0   |      400 | 0.5485 &pm; 0.0225     | 0.7605 &pm; 0.0210     |
 | INorp               | 2.1.0   |      500 | 0.4856 &pm; 0.0145     | 0.6801 &pm; 0.0252     |
-| MAT                 | 2.1.1   |      400 | 0.5389 &pm; 0.0466     | 0.7209 &pm; 0.0590     |
+| MAT                 | 2.1.1   |      400 | 0.5341 &pm; 0.0263     | 0.7232 &pm; 0.0448     |
 | MEGAN               | 2.1.0   |      400 | 0.4369 &pm; 0.0319     | 0.6048 &pm; 0.0461     |
 | Megnet              | 2.1.0   |      800 | 0.5446 &pm; 0.0142     | 0.7651 &pm; 0.0410     |
 | NMPN                | 2.1.0   |      800 | 0.5045 &pm; 0.0217     | 0.7092 &pm; 0.0482     |
@@ -213,13 +213,13 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 10-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
-| model     | kgcnn   |   epochs | HOMO                   | LUMO               |
-|:----------|:--------|---------:|:-----------------------|:-------------------|
-| DimeNetPP | 2.1.0   |      650 | **0.0242 &pm; 0.0006** | **nan &pm; nan**   |
-| Megnet    | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | nan &pm; nan       |
-| NMPN      | 2.1.0   |      700 | 0.0627 &pm; 0.0013     | 0.0618 &pm; 0.0006 |
-| PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | 0.0230 &pm; 0.0005 |
-| Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006 |
+| model     | kgcnn   |   epochs | HOMO                   | LUMO                   |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DimeNetPP | 2.1.0   |      610 | **0.0242 &pm; 0.0006** | **0.0209 &pm; 0.0002** |
+| Megnet    | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | 0.0354 &pm; 0.0008     |
+| NMPN      | 2.1.0   |      700 | 0.0627 &pm; 0.0013     | 0.0618 &pm; 0.0006     |
+| PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | 0.0230 &pm; 0.0005     |
+| Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006     |
 
 ## SIDERDataset
 
