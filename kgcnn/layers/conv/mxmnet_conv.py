@@ -45,10 +45,10 @@ class MXMGlobalMP(GraphBaseLayer):
         x_edge = self.multiply_edge([edge_attr_lin, x_edge])
 
         # Pooling here.
-        x_p = self.pool([x_i, x_edge, edge_index])
+        x_p = self.pool([x, x_edge, edge_index])
 
         # Replace self loops by explicit node update here.
-        x_i_p = self.add([x_p, x_i])
+        x_i_p = self.add([x_p, x])
 
         return x_i_p
 
