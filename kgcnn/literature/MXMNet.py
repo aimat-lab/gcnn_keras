@@ -147,7 +147,7 @@ def make_model(inputs: list = None,
     h = n
     nodes_list = []
     for i in range(0, depth):
-        h = MXMGlobalMP(**global_mp_kwargs)([h, rbf_g, ei_l])
+        h = MXMGlobalMP(**global_mp_kwargs)([h, rbf_g, ri_g])
         h, t = MXMLocalMP(**local_mp_kwargs)([h, rbf_l, sbf_l_1, sbf_l_2, ei_l, ai_1, ai_2])
         nodes_list.append(t)
 

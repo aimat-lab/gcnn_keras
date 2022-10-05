@@ -108,7 +108,7 @@ class MXMLocalMP(GraphBaseLayer):
         self.add_res = LazyAdd()
 
         self.gather_nodes = GatherEmbeddingSelection([0, 1])
-        self.cat = LazyConcatenate(9)
+        self.cat = LazyConcatenate()
         self.multiply = LazyMultiply()
         self.gather_mkj = GatherNodesOutgoing()
         self.gather_mjj = GatherNodesOutgoing()
