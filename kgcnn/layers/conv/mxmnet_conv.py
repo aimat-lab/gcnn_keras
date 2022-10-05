@@ -3,7 +3,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.modules import LazyAdd, DenseEmbedding, LazyConcatenate, LazyMultiply
 from kgcnn.layers.conv.dimenet_conv import ResidualLayer
-from kgcnn.layers.gather import GatherEmbeddingSelection
+from kgcnn.layers.gather import GatherEmbeddingSelection, GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalMessages
 ks = tf.keras
 
@@ -105,8 +105,22 @@ class MXMLocalMP(GraphBaseLayer):
 
         self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation="swish")
         self.y_W = DenseEmbedding(1)
+        self.add_res = LazyAdd()
 
-    def call(self, h, rbf, sbf1, sbf2, idx_kj, idx_ji_1, idx_jj, idx_ji_2, edge_index, num_nodes=None):
+        self.gather_nodes = GatherEmbeddingSelection([0, 1])
+        self.cat = LazyConcatenate(9)
+        self.multiply = LazyMultiply()
+        self.gather_mkj = GatherNodesOutgoing()
+        self.gather_mjj = GatherNodesOutgoing()
+        self.pool_mkj = PoolingLocalMessages(pooling_method="sum")
+        self.pool_mjj = PoolingLocalMessages(pooling_method="sum")
+        self.pool_h = PoolingLocalMessages(pooling_method="sum")
+        self.add_mji_1 = LazyAdd()
+        self.add_mji_2 = LazyAdd()
+
+
+    def call(self, inputs, **kwargs):
+        h, rbf, sbf1, sbf2, edge_index, angle_idx_1, angle_idx_2 = inputs
         res_h = h
 
         # Integrate the Cross Layer Mapping inside the Local Message Passing
@@ -114,34 +128,38 @@ class MXMLocalMP(GraphBaseLayer):
 
         # Message Passing 1
         j, i = edge_index
-        m = torch.cat([h[i], h[j], rbf], dim=-1)
+        hi, hj = self.gather_nodes([h, edge_index])
+        m = self.cat([hi, hj, rbf])
 
         m_kj = self.mlp_kj(m)
-        m_kj = m_kj * self.lin_rbf1(rbf)
-        m_kj = m_kj[idx_kj] * self.mlp_sbf1(sbf1)
-        m_kj = scatter(m_kj, idx_ji_1, dim=0, dim_size=m.size(0), reduce='add')
+        m_kj = self.multiply([m_kj, self.lin_rbf1(rbf)])
+        m_kj = self.gather_mkj([m_kj, angle_idx_1])
+        m_kj = self.multiply([m_kj, self.mlp_sbf1(sbf1)])
+        m_kj = self.pool_mkj([m, m_kj, angle_idx_1])
 
         m_ji_1 = self.mlp_ji_1(m)
 
-        m = m_ji_1 + m_kj
+        m = self.add_mji_1([m_ji_1, m_kj])
 
         # Message Passing 2       (index jj denotes j'i in the main paper)
         m_jj = self.mlp_jj(m)
-        m_jj = m_jj * self.lin_rbf2(rbf)
-        m_jj = m_jj[idx_jj] * self.mlp_sbf2(sbf2)
-        m_jj = scatter(m_jj, idx_ji_2, dim=0, dim_size=m.size(0), reduce='add')
+        m_jj = self.multiply([m_jj, self.lin_rbf2(rbf)])
+        m_jj = self.gather_mjj([m_jj, angle_idx_2])
+        m_jj = self.multiply([m_jj, self.mlp_sbf2(sbf2)])
+        m_jj = self.pool_mjj([m, m_jj, angle_idx_2])
 
         m_ji_2 = self.mlp_ji_2(m)
 
-        m = m_ji_2 + m_jj
+        m = self.add_mji_2([m_ji_2, m_jj])
 
         # Aggregation
-        m = self.lin_rbf_out(rbf) * m
-        h = scatter(m, i, dim=0, dim_size=h.size(0), reduce='add')
+        m = self.multiply([self.lin_rbf_out(rbf), m])
+        h = self.pool_h([h, m, edge_index])
 
         # Update function f_u
         h = self.res1(h)
-        h = self.h_mlp(h) + res_h
+        h = self.h_mlp(h)
+        h = self.add_res([h, res_h])
         h = self.res2(h)
         h = self.res3(h)
 
