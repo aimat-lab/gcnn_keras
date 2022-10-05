@@ -340,5 +340,90 @@ hyper = {
             "postfix_file": "",
             "kgcnn_version": "2.1.0"
         }
+    },
+    "MXMNet": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MXMNet",
+            "config": {
+                "name": "MXMNet",
+                "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+                "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+                "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
+                "mlp_rbf_kwargs": {"units": 64},
+                "mlp_sbf_kwargs": {"units": 64},
+                "global_mp_kwargs": {"units": 64},
+                "local_mp_kwargs": {"units": 64},
+                "use_edge_attributes": False,
+                "depth": 4,
+                "verbose": 10,
+                "node_pooling_args": {"pooling_method": "sum"},
+                "output_embedding": "graph", "output_to_tensor": True,
+                "use_output_mlp": True,
+                "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                               "activation": ["swish", "linear"]}
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 16, "epochs": 800, "validation_freq": 10, "verbose": 2, "callbacks": []
+            },
+            "compile": {
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 150.0, "decay_steps": 200000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": True
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "QM7Dataset",
+                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_edge_weights_uniform"}},
+                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
+                                  "angle_indices": "angle_indices_1"}},
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
+                                  "angle_indices": "angle_indices_2"}}
+                ]
+            },
+            "data_unit": "kcal/mol"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.0"
+        }
     }
 }

@@ -23,7 +23,7 @@ class MXMGlobalMP(GraphBaseLayer):
         self.add_res = LazyAdd()
 
         self.x_edge_mlp = GraphMLP(self.dim, activation="swish")
-        self.linear = DenseEmbedding(self.dim, bias=False, activation="linear")
+        self.linear = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
         self.gather = GatherEmbeddingSelection([0,1])
         self.pool = PoolingLocalMessages()
@@ -48,7 +48,7 @@ class MXMGlobalMP(GraphBaseLayer):
         x_p = self.pool([x, x_edge, edge_index])
 
         # Replace self loops by explicit node update here.
-        x_i_p = self.add([x_p, x_i], dim=0)
+        x_i_p = self.add([x_p, x_i])
 
         return x_i_p
 
@@ -92,14 +92,14 @@ class MXMLocalMP(GraphBaseLayer):
 
         self.mlp_sbf1 = GraphMLP([self.dim, self.dim], activation="swish")
         self.mlp_sbf2 = GraphMLP([self.dim, self.dim], activation="swish")
-        self.lin_rbf1 = DenseEmbedding(self.dim, bias=False, activation="linear")
-        self.lin_rbf2 = DenseEmbedding(self.dim, bias=False, activation="linear")
+        self.lin_rbf1 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
+        self.lin_rbf2 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
         self.res1 = ResidualLayer(self.dim)
         self.res2 = ResidualLayer(self.dim)
         self.res3 = ResidualLayer(self.dim)
 
-        self.lin_rbf_out = DenseEmbedding(self.dim, bias=False, activation="linear")
+        self.lin_rbf_out = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
         self.h_mlp = GraphMLP([self.dim], activation="swish")
 
@@ -118,37 +118,35 @@ class MXMLocalMP(GraphBaseLayer):
         self.add_mji_1 = LazyAdd()
         self.add_mji_2 = LazyAdd()
 
-
     def call(self, inputs, **kwargs):
         h, rbf, sbf1, sbf2, edge_index, angle_idx_1, angle_idx_2 = inputs
         res_h = h
 
         # Integrate the Cross Layer Mapping inside the Local Message Passing
-        h = self.h_mlp(h)
+        h = self.h_mlp(h, **kwargs)
 
         # Message Passing 1
-        j, i = edge_index
         hi, hj = self.gather_nodes([h, edge_index])
         m = self.cat([hi, hj, rbf])
 
-        m_kj = self.mlp_kj(m)
+        m_kj = self.mlp_kj(m, **kwargs)
         m_kj = self.multiply([m_kj, self.lin_rbf1(rbf)])
         m_kj = self.gather_mkj([m_kj, angle_idx_1])
         m_kj = self.multiply([m_kj, self.mlp_sbf1(sbf1)])
         m_kj = self.pool_mkj([m, m_kj, angle_idx_1])
 
-        m_ji_1 = self.mlp_ji_1(m)
+        m_ji_1 = self.mlp_ji_1(m, **kwargs)
 
         m = self.add_mji_1([m_ji_1, m_kj])
 
         # Message Passing 2       (index jj denotes j'i in the main paper)
-        m_jj = self.mlp_jj(m)
+        m_jj = self.mlp_jj(m, **kwargs)
         m_jj = self.multiply([m_jj, self.lin_rbf2(rbf)])
         m_jj = self.gather_mjj([m_jj, angle_idx_2])
         m_jj = self.multiply([m_jj, self.mlp_sbf2(sbf2)])
         m_jj = self.pool_mjj([m, m_jj, angle_idx_2])
 
-        m_ji_2 = self.mlp_ji_2(m)
+        m_ji_2 = self.mlp_ji_2(m, **kwargs)
 
         m = self.add_mji_2([m_ji_2, m_jj])
 
@@ -157,14 +155,14 @@ class MXMLocalMP(GraphBaseLayer):
         h = self.pool_h([h, m, edge_index])
 
         # Update function f_u
-        h = self.res1(h)
-        h = self.h_mlp(h)
+        h = self.res1(h, **kwargs)
+        h = self.h_mlp(h, **kwargs)
         h = self.add_res([h, res_h])
-        h = self.res2(h)
-        h = self.res3(h)
+        h = self.res2(h, **kwargs)
+        h = self.res3(h, **kwargs)
 
         # Output Module
-        y = self.y_mlp(h)
-        y = self.y_W(y)
+        y = self.y_mlp(h, **kwargs)
+        y = self.y_W(y, **kwargs)
 
         return h, y

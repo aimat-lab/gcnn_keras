@@ -6,6 +6,7 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
 from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
+from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
 
 ks = tf.keras
 
@@ -18,20 +19,22 @@ ks = tf.keras
 
 model_default = {
     "name": "MXMNet",
-    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32", "ragged": True},
+    "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
-               {"shape": (None, ), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+               {"shape": (None,), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
                {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
                {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                         "edge": {"input_dim": 5, "output_dim": 64}},
-    "bessel_basis_local": {"num_radial": 16, "cutoff": 3.0, "envelope_exponent": 5},
-    "bessel_basis_global": {"num_radial": 16, "cutoff": 6.0, "envelope_exponent": 5},
+    "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+    "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},  # Should match range_indices
     "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
-    "mlp_rbf_kwargs": {},
-    "mlp_sbf_kwargs": {},
+    "mlp_rbf_kwargs": {"units": 64},
+    "mlp_sbf_kwargs": {"units": 64},
+    "global_mp_kwargs": {"units": 64},
+    "local_mp_kwargs": {"units": 64},
     "use_edge_attributes": False,
     "depth": 4,
     "verbose": 10,
@@ -46,7 +49,6 @@ model_default = {
 @update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                input_embedding: dict = None,
-               node_pooling_args: dict = None,
                depth: int = None,
                name: str = None,
                bessel_basis_local: dict = None,
@@ -55,9 +57,12 @@ def make_model(inputs: list = None,
                use_edge_attributes: bool = None,
                mlp_rbf_kwargs: dict = None,
                mlp_sbf_kwargs: dict = None,
+               global_mp_kwargs: dict = None,
+               local_mp_kwargs: dict = None,
                verbose: int = None,
                output_embedding: str = None,
                use_output_mlp: bool = None,
+               node_pooling_args: dict = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
@@ -140,10 +145,11 @@ def make_model(inputs: list = None,
 
     # Model
     h = n
-    nodes_list = [n]
+    nodes_list = []
     for i in range(0, depth):
-
-        nodes_list.append(h)
+        h = MXMGlobalMP(**global_mp_kwargs)([h, rbf_g, ei_l])
+        h, t = MXMLocalMP(**local_mp_kwargs)([h, rbf_l, sbf_l_1, sbf_l_2, ei_l, ai_1, ai_2])
+        nodes_list.append(t)
 
     # Output embedding choice
     out = LazyAdd()(nodes_list)

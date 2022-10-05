@@ -20,7 +20,7 @@ from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a QMDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="NMPN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="MXMNet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="QM7Dataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
