@@ -166,5 +166,10 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `MXMNet`")
 
-    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out, name=name)
+    model = ks.models.Model(
+        inputs=[node_input, xyz_input, edge_input, edge_index_input, angle_index_input_1, angle_index_input_2,
+                range_index_input],
+        outputs=out,
+        name=name
+    )
     return model
