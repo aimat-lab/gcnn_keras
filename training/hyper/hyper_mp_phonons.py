@@ -267,7 +267,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 17}},
-                    {"map_list": {"method": "set_angle", "allow_multi_edges": True}}
+                    {"map_list": {"method": "set_angle", "allow_multi_edges": True, "allow_reverse_edges": True}}
                 ]
             },
         },
