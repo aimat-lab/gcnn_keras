@@ -315,11 +315,15 @@ class SetAngle(GraphPreProcessorBase):
     """
     def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  angle_indices: str = "angle_indices", angle_indices_nodes: str = "angle_indices_nodes",
-                 angle_attributes: str = "angle_attributes", allow_multi_edges: bool = False,
+                 angle_attributes: str = "angle_attributes",
+                 allow_multi_edges: bool = False, allow_self_edges: bool = False, allow_reverse_edges: bool = False,
+                 edge_pairing: str = "kj", check_sorted: bool = True,
                  compute_angles: bool = True, name="set_angle", **kwargs):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"node_coordinates": node_coordinates, "range_indices": range_indices})
-        self._call_kwargs = {"allow_multi_edges": allow_multi_edges, "compute_angles": compute_angles}
+        self._call_kwargs = {"allow_multi_edges": allow_multi_edges, "compute_angles": compute_angles,
+                             "allow_self_edges": allow_self_edges, "edge_pairing": edge_pairing,
+                             "allow_reverse_edges": allow_reverse_edges, "check_sorted": check_sorted}
         self._to_assign = [angle_indices, angle_indices_nodes, angle_attributes]
         self._silent = node_coordinates
         self._config_kwargs.update({
@@ -327,11 +331,15 @@ class SetAngle(GraphPreProcessorBase):
             "angle_indices_nodes": angle_indices_nodes, "angle_attributes": angle_attributes, **self._call_kwargs})
 
     def call(self, *, range_indices: np.ndarray, node_coordinates: np.ndarray,
-             allow_multi_edges: bool, compute_angles: bool):
+             check_sorted: bool, allow_multi_edges: bool,
+             allow_self_edges: bool, allow_reverse_edges: bool,
+             edge_pairing: str, compute_angles: bool):
         if range_indices is None:
             return None, None, None
         # Compute Indices
-        _, a_triples, a_indices = get_angle_indices(range_indices, allow_multi_edges=allow_multi_edges)
+        _, a_triples, a_indices = get_angle_indices(
+            range_indices, allow_multi_edges=allow_multi_edges, allow_self_edges=allow_self_edges,
+            allow_reverse_edges=allow_reverse_edges, check_sorted=check_sorted, edge_pairing=edge_pairing)
         # Also compute angles
         if compute_angles:
             if node_coordinates is not None:
