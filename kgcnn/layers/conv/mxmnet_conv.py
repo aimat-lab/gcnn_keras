@@ -79,19 +79,20 @@ class MXMGlobalMP(GraphBaseLayer):
 
 class MXMLocalMP(GraphBaseLayer):
 
-    def __init__(self, units: int = 64, **kwargs):
+    def __init__(self, units: int = 64, output_units: int = 1, activation: str = "swish",
+                 output_kernel_initializer:str = "zeros", **kwargs):
         super(MXMLocalMP, self).__init__(**kwargs)
         self.dim = units
-
+        self.output_dim = output_units
         self.h_mlp = GraphMLP(self.dim)
 
-        self.mlp_kj = GraphMLP([self.dim], activation="swish")
-        self.mlp_ji_1 = GraphMLP([self.dim], activation="swish")
-        self.mlp_ji_2 = GraphMLP([self.dim], activation="swish")
-        self.mlp_jj = GraphMLP([self.dim], activation="swish")
+        self.mlp_kj = GraphMLP([self.dim], activation=activation)
+        self.mlp_ji_1 = GraphMLP([self.dim], activation=activation)
+        self.mlp_ji_2 = GraphMLP([self.dim], activation=activation)
+        self.mlp_jj = GraphMLP([self.dim], activation=activation)
 
-        self.mlp_sbf1 = GraphMLP([self.dim, self.dim], activation="swish")
-        self.mlp_sbf2 = GraphMLP([self.dim, self.dim], activation="swish")
+        self.mlp_sbf1 = GraphMLP([self.dim, self.dim], activation=activation)
+        self.mlp_sbf2 = GraphMLP([self.dim, self.dim], activation=activation)
         self.lin_rbf1 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
         self.lin_rbf2 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
@@ -101,10 +102,11 @@ class MXMLocalMP(GraphBaseLayer):
 
         self.lin_rbf_out = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
-        self.h_mlp = GraphMLP([self.dim], activation="swish")
+        self.h_mlp = GraphMLP([self.dim], activation=activation)
 
-        self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation="swish")
-        self.y_W = DenseEmbedding(1, activation="linear")
+        self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation=activation)
+        self.y_W = DenseEmbedding(self.output_dim, activation="linear",
+                                  kernel_initializer=output_kernel_initializer)
         self.add_res = LazyAdd()
 
         self.gather_nodes = GatherEmbeddingSelection([0, 1])
@@ -130,9 +132,11 @@ class MXMLocalMP(GraphBaseLayer):
         m = self.cat([hi, hj, rbf])
 
         m_kj = self.mlp_kj(m, **kwargs)
-        m_kj = self.multiply([m_kj, self.lin_rbf1(rbf)])
+        w_rbf1 = self.lin_rbf1(rbf)
+        m_kj = self.multiply([m_kj, w_rbf1])
         m_kj = self.gather_mkj([m_kj, angle_idx_1])
-        m_kj = self.multiply([m_kj, self.mlp_sbf1(sbf1)])
+        sw_sbf1 = self.mlp_sbf1(sbf1)
+        m_kj = self.multiply([m_kj, sw_sbf1])
         m_kj = self.pool_mkj([m, m_kj, angle_idx_1])
 
         m_ji_1 = self.mlp_ji_1(m, **kwargs)
@@ -141,9 +145,11 @@ class MXMLocalMP(GraphBaseLayer):
 
         # Message Passing 2       (index jj denotes j'i in the main paper)
         m_jj = self.mlp_jj(m, **kwargs)
-        m_jj = self.multiply([m_jj, self.lin_rbf2(rbf)])
+        w_rbf2 = self.lin_rbf2(rbf)
+        m_jj = self.multiply([m_jj, w_rbf2])
         m_jj = self.gather_mjj([m_jj, angle_idx_2])
-        m_jj = self.multiply([m_jj, self.mlp_sbf2(sbf2)])
+        sw_sbf2 = self.mlp_sbf2(sbf2)
+        m_jj = self.multiply([m_jj, sw_sbf2])
         m_jj = self.pool_mjj([m, m_jj, angle_idx_2])
 
         m_ji_2 = self.mlp_ji_2(m, **kwargs)
@@ -151,7 +157,8 @@ class MXMLocalMP(GraphBaseLayer):
         m = self.add_mji_2([m_ji_2, m_jj])
 
         # Aggregation
-        m = self.multiply([self.lin_rbf_out(rbf), m])
+        w_rbf = self.lin_rbf_out(rbf)
+        m = self.multiply([w_rbf, m])
         h = self.pool_h([h, m, edge_index])
 
         # Update function f_u
