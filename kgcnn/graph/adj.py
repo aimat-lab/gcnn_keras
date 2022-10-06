@@ -297,74 +297,9 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None, shape=None)
     return out_adj
 
 
-def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = False):
-    r"""Compute index list for edge-pairs forming an angle. Not for batches, only for single instance.
-
-    Args:
-        idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
-        check_sorted (bool): Whether to sort for new angle indices. Default is True.
-        allow_multi_edges (bool): Whether to keep angle pairs with :math:`i=k` in the tuple :math:`(i, j, k)`
-
-    Returns:
-        tuple: idx, idx_ijk, idx_ijk_ij
-
-        - idx (np.ndarray): Edge indices referring to nodes of shape `(N, 2)`.
-        - idx_ijk (np.ndarray): Indices of nodes forming an angle as i<-j<-k of shape `(M, 3)`.
-        - idx_ijk_ij (np.ndarray): Indices for angle pairs referring to edges of shape `(M, 2)`.
-    """
-    if idx is None:
-        return None, None, None
-    if len(idx) == 0:
-        return np.array([]), np.array([]), np.array([])
-    # Can swap here
-    idx_i = idx[:, 0]
-    idx_j = idx[:, 1]
-    label_ij = np.arange(len(idx))
-    # Direction of edges is i<-j here, so angles around i<-j<-k
-    idx_ijk = []  # index triples that form an angle as i<-j<-k
-    idx_ijk_ij = []  # New indices that refer to edges to form an angle as i',j'   i':(i, j) j':(j, k)
-    max_j = np.amax(idx_j)
-    for n in range(max_j + 1):
-        mask_jn = idx_j == n
-        mask_in = idx_i == n
-        pos_i = idx_i[mask_jn]
-        pos_j = idx_j[mask_jn]
-        pos_k = idx_j[mask_in]
-        label_i = label_ij[mask_jn]
-        label_k = label_ij[mask_in]
-        if len(pos_i) == 0 or len(pos_j) == 0 or len(pos_k) == 0:
-            continue
-        # All combos around j
-        combos_ik = np.concatenate(
-            [np.expand_dims(np.repeat(np.expand_dims(pos_i, axis=1), len(pos_k), axis=1), axis=-1),
-             np.expand_dims(np.repeat(np.expand_dims(pos_j, axis=1), len(pos_k), axis=1), axis=-1),
-             np.expand_dims(np.repeat(np.expand_dims(pos_k, axis=0), len(pos_i), axis=0), axis=-1)], axis=-1)
-        combos_label = np.concatenate(
-            [np.expand_dims(np.repeat(np.expand_dims(label_i, axis=1), len(label_k), axis=1), axis=-1),
-             np.expand_dims(np.repeat(np.expand_dims(label_k, axis=0), len(label_i), axis=0), axis=-1)], axis=-1)
-
-        mask_combos = np.ones(combos_label.shape[:2], dtype="bool")
-        if not allow_multi_edges:
-            mask_combos = np.array(combos_ik[:, :, 0] != combos_ik[:, :, -1], dtype="bool")
-        idx_ijk.append(combos_ik[mask_combos])
-        idx_ijk_ij.append(combos_label[mask_combos])
-    idx_ijk = np.concatenate(idx_ijk, axis=0)
-    idx_ijk_ij = np.concatenate(idx_ijk_ij, axis=0)
-
-    if check_sorted:
-        order1 = np.argsort(idx_ijk_ij[:, 1], axis=0, kind='mergesort')  # stable!
-        idx_ijk_ij = idx_ijk_ij[order1]
-        idx_ijk = idx_ijk[order1]
-        order2 = np.argsort(idx_ijk_ij[:, 0], axis=0, kind='mergesort')
-        idx_ijk = idx_ijk[order2]
-        idx_ijk_ij = idx_ijk_ij[order2]
-
-    return idx, idx_ijk, idx_ijk_ij
-
-
-def get_angle_indices_v2(idx, check_sorted: bool = True, allow_multi_edges: bool = False,
-                         allow_self_edges: bool = False, allow_reverse_edges: bool = False,
-                         edge_pairing: str = "jk"):
+def get_angle_indices_(idx, check_sorted: bool = True, allow_multi_edges: bool = False,
+                       allow_self_edges: bool = False, allow_reverse_edges: bool = False,
+                       edge_pairing: str = "jk"):
     r"""Compute index list for edge-pairs forming an angle. Not for batches, only for single instance.
 
     Args:
