@@ -166,6 +166,7 @@ A version of the following models and variants thereof are implemented in [liter
 * **[CMPNN](kgcnn/literature/CMPNN.py)**: [Communicative Representation Learning on Attributed Molecular Graphs](https://www.ijcai.org/proceedings/2020/0392.pdf) by Song et al. (2020)
 * **[EGNN](kgcnn/literature/EGNN.py)**: [E(n) Equivariant Graph Neural Networks](https://arxiv.org/abs/2102.09844) by Satorras et al. (2021)
 * **[MAT](kgcnn/literature/MAT.py)**: [Molecule Attention Transformer](https://arxiv.org/abs/2002.08264) by Maziarka et al. (2020)
+* **[MXMNet](kgcnn/literature/MXMNet.py)**: [Molecular Mechanics-Driven Graph Neural Network with Multiplex Graph for Molecular Structures](https://arxiv.org/abs/2011.07457) by Zhang et al. (2020)
 </details>
 
 <a name="datasets"></a>

@@ -66,21 +66,24 @@ def make_model(inputs: list = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
-    r"""Make `MXMNet <https://github.com/zetayue/MXMNet>`_ graph network via functional API.
+    r"""Make `MXMNet <https://arxiv.org/abs/2011.07457>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.MXMNet.model_default`.
 
     Inputs:
-        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices, angle_indices, range_indices]`
+        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices, angle_indices_1, angle_indices_2,
+         range_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
             - edge_attributes (tf.RaggedTensor): Edge attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
-            - range_indices (tf.RaggedTensor): Index list for range-like edges of shape `(batch, None, 2)`.
+            - edge_indices (tf.RaggedTensor): Index list for (local) edges of shape `(batch, None, 2)`.
+            - range_indices (tf.RaggedTensor): Index list for (global) range-like edges of shape `(batch, None, 2)`.
             - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
-            - angle_indices (tf.RaggedTensor): Index list of angles referring to range connections of
-              shape `(batch, None, 2)`.
+            - angle_indices_1 (tf.RaggedTensor): Index list of angles referring to (local) edge connections of
+              shape `(batch, None, 2)`. Angles of edge pairing (ij, jk).
+            - angle_indices_2 (tf.RaggedTensor): Index list of angles referring to (local) edge connections of
+              shape `(batch, None, 2)`.  Angles of edge pairing (ij, ik).
 
     Outputs:
         tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
@@ -91,6 +94,14 @@ def make_model(inputs: list = None,
         depth (int): Number of graph embedding units or depth of the network.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
+        bessel_basis_local: Dictionary of layer arguments unpacked in local `:obj:BesselBasisLayer` layer.
+        bessel_basis_global: Dictionary of layer arguments unpacked in global `:obj:BesselBasisLayer` layer.
+        spherical_basis_local: Dictionary of layer arguments unpacked in `:obj:SphericalBasisLayer` layer.
+        use_edge_attributes: Whether to add edge attributes. Default is False.
+        mlp_rbf_kwargs: Dictionary of layer arguments unpacked in `:obj:MLP` layer for RBF feed-forward.
+        mlp_sbf_kwargs: Dictionary of layer arguments unpacked in `:obj:MLP` layer for SBF feed-forward.
+        global_mp_kwargs: Dictionary of layer arguments unpacked in `:obj:MXMGlobalMP` layer.
+        local_mp_kwargs: Dictionary of layer arguments unpacked in `:obj:MXMLocalMP` layer.
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
