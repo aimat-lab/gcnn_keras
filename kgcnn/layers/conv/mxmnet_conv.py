@@ -76,15 +76,21 @@ class MXMGlobalMP(GraphBaseLayer):
 
         return h
 
+    def get_config(self):
+        config = super(MXMGlobalMP, self).get_config()
+        config.update({"units": self.dim})
+        return config
+
 
 class MXMLocalMP(GraphBaseLayer):
 
     def __init__(self, units: int = 64, output_units: int = 1, activation: str = "swish",
-                 output_kernel_initializer:str = "zeros", **kwargs):
+                 output_kernel_initializer: str = "zeros", **kwargs):
         super(MXMLocalMP, self).__init__(**kwargs)
         self.dim = units
         self.output_dim = output_units
-        self.h_mlp = GraphMLP(self.dim)
+        self.activation = activation
+        self.h_mlp = GraphMLP(self.dim, activation=activation)
 
         self.mlp_kj = GraphMLP([self.dim], activation=activation)
         self.mlp_ji_1 = GraphMLP([self.dim], activation=activation)
@@ -143,7 +149,7 @@ class MXMLocalMP(GraphBaseLayer):
 
         m = self.add_mji_1([m_ji_1, m_kj])
 
-        # Message Passing 2       (index jj denotes j'i in the main paper)
+        # Message Passing 2 (index jj denotes j'i in the main paper)
         m_jj = self.mlp_jj(m, **kwargs)
         w_rbf2 = self.lin_rbf2(rbf)
         m_jj = self.multiply([m_jj, w_rbf2])
@@ -173,3 +179,11 @@ class MXMLocalMP(GraphBaseLayer):
         y = self.y_W(y, **kwargs)
 
         return h, y
+
+    def get_config(self):
+        config = super(MXMLocalMP, self).get_config()
+        out_conf = self.y_W.get_config()
+        config.update({"units": self.dim, "output_units": self.output_dim,
+                       "activation": ks.activations.serialize(ks.activations.get(self.activation)),
+                       "output_kernel_initializer": out_conf["kernel_initializer"]})
+        return config
