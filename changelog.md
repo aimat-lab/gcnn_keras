@@ -1,16 +1,18 @@
 v2.1.1
 
-* Removed `kgcnn.graph.adapter` and switched to completed ``kgcnn.graph.preprocessor``. How to update:
+* Removed `kgcnn.graph.adapter` and switched to completed ``kgcnn.graph.preprocessor``. The interface to `MemoryGraphList` and datasets does not change. How to update:
 ```python
 from kgcnn.data.base import GraphDict
 GraphDict().apply_preprocessor("sort_edge_indices")  # Instead of GraphDict().sort_edge_indices()
 GraphDict().apply_preprocessor("set_edge_weights_uniform", value=0.0) # Instead of GraphDict().set_edge_weights_uniform(value=0.0)
-# Or
+# Or directly using class.
 from kgcnn.graph.preprocessor import SortEdgeIndices
 SortEdgeIndices(in_place=True)(GraphDict())
 ```
 * Add ``kgcnn.literature.MEGAN`` model.
+* Add ``kgcnn.literature.MXMNet`` model.
 * Fixed error in ``ClinToxDataset`` label index.
+* Reworked ``kgcnn.graph.adj.get_angle_index`` with additional function arguments. Default behaviour remains identical. For periodic system an additional `allow_reverse_edges=True` is now required.
 
 
 v2.1.0
