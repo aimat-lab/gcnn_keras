@@ -427,7 +427,79 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
-    }
+    },
+    "EGNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.EGNN",
+            "config": {
+                "name": "EGNN",
+                "inputs": [{"shape": (None, ), "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 95, "output_dim": 64}},
+                "depth": 4,
+                "node_mlp_initialize": None,
+                "use_edge_attributes": False,
+                "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
+                "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
+                "use_normalized_difference": False,
+                "expand_distance_kwargs": None,
+                "coord_mlp_kwargs": {"units": [64, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end.
+                "pooling_coord_kwargs": {"pooling_method": "mean"},
+                "pooling_edge_kwargs": {"pooling_method": "sum"},
+                "node_normalize_kwargs": None,
+                "node_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
+                "use_skip": True,
+                "verbose": 10,
+                "node_pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                               "activation": ["swish", "linear"]}
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "QM7Dataset",
+                "module_name": "kgcnn.data.datasets.QM7Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
+                ]
+            },
+            "data_unit": "kcal/mol"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.1"
+        }
+    },
 }

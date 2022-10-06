@@ -22,7 +22,8 @@ model_default = {
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                {"shape": (None, 10), "name": "edge_attributes", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}],
-    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                        "edge": {"input_dim": 95, "output_dim": 64}},
     "depth": 4,
     "node_mlp_initialize": None,
     "use_edge_attributes": True,
@@ -73,7 +74,7 @@ def make_model(name: str = None,
     Default parameters can be found in :obj:`kgcnn.literature.EGNN.model_default`.
 
     Inputs:
-        list: `[node_attributes, node_coordinates, edge_attributes, edge_indices]`
+        list: `[node_attributes, node_coordinates, edge_indices, edge_attributes]`
         or `[node_attributes, node_coordinates, edge_indices]` if :obj:`use_edge_attributes=False`.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
@@ -116,17 +117,15 @@ def make_model(name: str = None,
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
+    edge_index_input = ks.layers.Input(**inputs[2])
     if use_edge_attributes:
-        edge_input = ks.layers.Input(**inputs[2])
-        edge_index_input = ks.layers.Input(**inputs[3])
+        edge_input = ks.layers.Input(**inputs[3])
+        ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[3]['shape']) < 2)(edge_input)
     else:
-        edge_input = None
-        edge_index_input = ks.layers.Input(**inputs[2])
+        edge_input, ed = None, None
 
     # embedding, if no feature dimension
-    h0 = OptionalInputEmbedding(
-        **input_embedding['node'],
-        use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    h0 = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
     edi = edge_index_input
 
     # Model
@@ -145,7 +144,7 @@ def make_model(name: str = None,
         # Edge model
         h_i, h_j = GatherEmbeddingSelection()([h, edi])
         if use_edge_attributes:
-            m_ij = LazyConcatenate()([h_i, h_j, norm_x, edge_input])
+            m_ij = LazyConcatenate()([h_i, h_j, norm_x, ed])
         else:
             m_ij = LazyConcatenate()([h_i, h_j, norm_x])
         if edge_mlp_kwargs:
@@ -187,7 +186,7 @@ def make_model(name: str = None,
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
     if use_edge_attributes:
-        model = ks.models.Model(inputs=[node_input, xyz_input, edge_input, edge_index_input], outputs=out, name=name)
+        model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, edge_input], outputs=out, name=name)
     else:
         model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out, name=name)
     return model
