@@ -297,9 +297,9 @@ def make_adjacency_from_edge_indices(edge_indices, edge_values=None, shape=None)
     return out_adj
 
 
-def get_angle_indices_(idx, check_sorted: bool = True, allow_multi_edges: bool = False,
-                       allow_self_edges: bool = False, allow_reverse_edges: bool = False,
-                       edge_pairing: str = "jk"):
+def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = False,
+                      allow_self_edges: bool = False, allow_reverse_edges: bool = False,
+                      edge_pairing: str = "jk"):
     r"""Compute index list for edge-pairs forming an angle. Not for batches, only for single instance.
 
     Args:
