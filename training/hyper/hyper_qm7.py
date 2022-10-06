@@ -412,11 +412,11 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
-                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
                                   "angle_indices": "angle_indices_1",
                                   "angle_indices_nodes": "angle_indices_nodes_1",
                                   "angle_attributes": "angle_attributes_1"}},
-                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices",
+                    {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "ik",
                                   "angle_indices": "angle_indices_2",
                                   "angle_indices_nodes": "angle_indices_nodes_2",
                                   "angle_attributes": "angle_attributes_2"}}
