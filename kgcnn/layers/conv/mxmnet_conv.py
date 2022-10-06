@@ -86,11 +86,12 @@ class MXMGlobalMP(GraphBaseLayer):
 class MXMLocalMP(GraphBaseLayer):
 
     def __init__(self, units: int = 64, output_units: int = 1, activation: str = "swish",
-                 output_kernel_initializer: str = "zeros", **kwargs):
+                 output_kernel_initializer: str = "zeros", pooling_method: str = "sum", **kwargs):
         super(MXMLocalMP, self).__init__(**kwargs)
         self.dim = units
         self.output_dim = output_units
         self.activation = activation
+        self.pooling_method = pooling_method
         self.h_mlp = GraphMLP(self.dim, activation=activation)
 
         self.mlp_kj = GraphMLP([self.dim], activation=activation)
@@ -121,9 +122,9 @@ class MXMLocalMP(GraphBaseLayer):
         self.multiply = LazyMultiply()
         self.gather_mkj = GatherNodesOutgoing()
         self.gather_mjj = GatherNodesOutgoing()
-        self.pool_mkj = PoolingLocalMessages(pooling_method="sum")
-        self.pool_mjj = PoolingLocalMessages(pooling_method="sum")
-        self.pool_h = PoolingLocalMessages(pooling_method="sum")
+        self.pool_mkj = PoolingLocalMessages(pooling_method=pooling_method)
+        self.pool_mjj = PoolingLocalMessages(pooling_method=pooling_method)
+        self.pool_h = PoolingLocalMessages(pooling_method=pooling_method)
         self.add_mji_1 = LazyAdd()
         self.add_mji_2 = LazyAdd()
 
@@ -186,5 +187,6 @@ class MXMLocalMP(GraphBaseLayer):
         out_conf = self.y_W.get_config()
         config.update({"units": self.dim, "output_units": self.output_dim,
                        "activation": ks.activations.serialize(ks.activations.get(self.activation)),
-                       "output_kernel_initializer": out_conf["kernel_initializer"]})
+                       "output_kernel_initializer": out_conf["kernel_initializer"],
+                       "pooling_method": self.pooling_method})
         return config
