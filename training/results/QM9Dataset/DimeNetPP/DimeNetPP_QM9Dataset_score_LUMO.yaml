@@ -80,7 +80,7 @@ model_class: make_model
 model_name: DimeNetPP
 multi_target_indices:
 - 6
-number_histories: 1
+number_histories: 4
 scaled_mean_absolute_error:
 - 5.7568751799408346e-05
 - 7.15587884769775e-05

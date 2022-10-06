@@ -131,7 +131,7 @@ model_class: make_model
 model_name: Megnet
 multi_target_indices:
 - 6
-number_histories: 1
+number_histories: 6
 scaled_mean_absolute_error:
 - 0.006436940282583237
 - 0.006958754733204842
