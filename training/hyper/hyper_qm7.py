@@ -377,17 +377,24 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 64, "epochs": 500, "validation_freq": 10, "verbose": 2,
-                "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-06, "epo_min": 0, "epo": 500,
-                        "verbose": 0
-                    }
-                     }
-                ]
+                "batch_size": 64, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 150.0, "decay_steps": 200000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": True
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
