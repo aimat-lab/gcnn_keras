@@ -204,6 +204,7 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 | model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
+| EGNN    | 2.1.1   |      800 | 1.5786 &pm; 0.0863     | 3.6083 &pm; 0.7331     |
 | Megnet  | 2.1.0   |      800 | 1.4922 &pm; 0.0680     | **2.8795 &pm; 0.5466** |
 | NMPN    | 2.1.0   |      500 | 6.5715 &pm; 0.4977     | 34.9752 &pm; 8.0740    |
 | PAiNN   | 2.1.0   |      872 | **1.2690 &pm; 0.0938** | 4.5825 &pm; 2.2684     |
