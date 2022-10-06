@@ -13,7 +13,7 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Add ``kgcnn.literature.MXMNet`` model.
 * Fixed error in ``ClinToxDataset`` label index.
 * Reworked ``kgcnn.graph.adj.get_angle_index`` with additional function arguments. Default behaviour remains identical. For periodic system an additional `allow_reverse_edges=True` is now required.
-* Added input embedding for edges in ``kgcnn.literature.EGNN`` and changed order of input tensors.
+* Added input embedding for edges in ``kgcnn.literature.EGNN`` and changed order of input tensors. Debugged model.
 
 
 v2.1.0

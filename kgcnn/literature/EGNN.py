@@ -130,11 +130,11 @@ def make_model(name: str = None,
 
     # Model
     h = GraphMLP(**node_mlp_initialize)(h0) if node_mlp_initialize else h0
-    x = node_input
+    x = xyz_input
     for i in range(0, depth):
         pos1, pos2 = NodePosition()([x, edi])
         diff_x = LazySubtract()([pos1, pos2])
-        norm_x = EuclideanNorm()(diff_x)
+        norm_x = EuclideanNorm(keepdims=True)(diff_x)
         # Original code as normalize option for coord-differences
         if use_normalized_difference:
             diff_x = EdgeDirectionNormalized()([pos1, pos2])
@@ -142,7 +142,7 @@ def make_model(name: str = None,
             norm_x = PositionEncodingBasisLayer()(norm_x)
 
         # Edge model
-        h_i, h_j = GatherEmbeddingSelection()([h, edi])
+        h_i, h_j = GatherEmbeddingSelection([0, 1])([h, edi])
         if use_edge_attributes:
             m_ij = LazyConcatenate()([h_i, h_j, norm_x, ed])
         else:
