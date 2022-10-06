@@ -398,24 +398,28 @@ def get_angle_indices_v2(idx, check_sorted: bool = True, allow_multi_edges: bool
     idx_ij_k = []  # New indices that refer to edges to form an angle as ij, `edge_pairing`
     for n, ij in enumerate(idx):
         if allow_self_edges:
-            idx_n = idx
-            label_ij_n = label_ij
+            matching_edges = idx
+            matching_labels = label_ij
         else:
-            idx_n = np.delete(idx, n, axis=0)
-            label_ij_n = np.delete(label_ij, n, axis=0)
-        matching_mask = idx_n[:, pos_fix] == ij[pos_ij]
-        matching_edges = idx_n[matching_mask]
-        matching_labels = label_ij_n[matching_mask]
+            matching_edges = np.delete(idx, n, axis=0)
+            matching_labels = np.delete(label_ij, n, axis=0)
+
+        mask = matching_edges[:, pos_fix] == ij[pos_ij]
+        matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
+
         if not allow_multi_edges:
-            matching_mask = np.logical_and(matching_mask, matching_edges[:, 0] != ij[0], matching_edges[:, 1] != ij[1])
+            mask = np.logical_or(matching_edges[:, 0] != ij[0], matching_edges[:, 1] != ij[1])
+            matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
+
         if not allow_reverse_edges:
-            matching_mask = np.logical_and(matching_mask, matching_edges[:, 0] != ij[1], matching_edges[:, 1] != ij[0])
-        matching_labels = matching_labels[matching_mask]
-        matching_edges = matching_edges[matching_mask]
+            mask = np.logical_or(matching_edges[:, 0] != ij[1], matching_edges[:, 1] != ij[0])
+            matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
+
         if len(matching_edges) == 0:
             idx_ijk.append(np.empty((0, 3), dtype=idx.dtype))
             idx_ij_k.append(np.empty((0, 2), dtype=idx.dtype))
             continue
+
         # All combos for edge ij
         combos_ik = np.concatenate(
             [np.repeat([ij], len(matching_edges), axis=0), np.expand_dims(matching_edges[:, pos_k], axis=-1)], axis=-1)
