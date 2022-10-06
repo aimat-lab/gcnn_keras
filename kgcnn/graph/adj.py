@@ -427,6 +427,14 @@ def get_angle_indices_v2(idx, check_sorted: bool = True, allow_multi_edges: bool
     idx_ijk = np.concatenate(idx_ijk, axis=0)
     idx_ij_k = np.concatenate(idx_ij_k, axis=0)
 
+    if check_sorted:
+        order1 = np.argsort(idx_ij_k[:, 1], axis=0, kind='mergesort')  # stable!
+        idx_ij_k = idx_ij_k[order1]
+        idx_ijk = idx_ijk[order1]
+        order2 = np.argsort(idx_ij_k[:, 0], axis=0, kind='mergesort')
+        idx_ijk = idx_ijk[order2]
+        idx_ij_k = idx_ij_k[order2]
+
     return idx, idx_ijk, idx_ij_k
 
 
