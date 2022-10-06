@@ -370,7 +370,13 @@ def get_angle_indices_v2(idx, check_sorted: bool = True, allow_multi_edges: bool
     Args:
         idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
         check_sorted (bool): Whether to sort for new angle indices. Default is True.
-        allow_multi_edges (bool): Whether to keep angle pairs with same node indices.
+        allow_self_edges (bool): Whether to allow the exact same edge in an angle pairing.
+        allow_multi_edges (bool): Whether to keep angle pairs with same node indices,
+            such as angle pairings of sort `ij`, `ij`.
+        allow_reverse_edges (bool): Whether to keep angle pairs with reverse node indices,
+            such as angle pairings of sort `ij`, `ji`.
+        edge_pairing (str): Determines which edge pairs for angle computation are chosen. Default is 'jk'.
+            Alternatives are for example: 'ik', 'kj', 'ki'.
 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
