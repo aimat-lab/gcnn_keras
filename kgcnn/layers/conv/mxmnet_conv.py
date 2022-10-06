@@ -82,6 +82,7 @@ class MXMGlobalMP(GraphBaseLayer):
         return config
 
 
+@ks.utils.register_keras_serializable(package='kgcnn', name='MXMLocalMP')
 class MXMLocalMP(GraphBaseLayer):
 
     def __init__(self, units: int = 64, output_units: int = 1, activation: str = "swish",
