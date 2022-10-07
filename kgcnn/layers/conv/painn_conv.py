@@ -226,16 +226,18 @@ class PAiNNUpdate(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EquivariantInitialize')
 class EquivariantInitialize(GraphBaseLayer):
-    """Zero equivariant initializer of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
+    """Equivariant initializer of `PAiNN <https://arxiv.org/pdf/2102.03150.pdf>`_ .
 
     Args:
         dim (int): Dimension of equivariant features. Default is 3.
+        method (str): How to initialize equivariant tensor. Default is "zeros".
     """
 
-    def __init__(self, dim=3, **kwargs):
+    def __init__(self, dim=3, method: str = "zeros", **kwargs):
         """Initialize Layer."""
         super(EquivariantInitialize, self).__init__(**kwargs)
         self.dim = int(dim)
+        self.method = str(method)
 
     def build(self, input_shape):
         """Build layer."""
@@ -253,20 +255,33 @@ class EquivariantInitialize(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Zero equivariant tensor of shape (batch, [N], dim, F)
         """
-        self.assert_ragged_input_rank(inputs)
-        values = tf.zeros_like(inputs.values)
-        values = tf.expand_dims(values, axis=1)
+        inputs = self.assert_ragged_input_rank(inputs)
+        if self.method == "zeros":
+            out = tf.zeros_like(inputs.values)
+            out = tf.expand_dims(out, axis=1)
+            out = tf.repeat(out, self.dim, axis=1)
+        elif self.method == "ones":
+            out = tf.ones_like(inputs.values)
+            out = tf.expand_dims(out, axis=1)
+            out = tf.repeat(out, self.dim, axis=1)
+        elif self.method == "eye":
+            values = inputs.values
+            out = tf.eye(self.dim, num_columns=values.shape[1], batch_shape=tf.shape(values)[:1], dtype=values.dtype)
+        elif self.method == "normal":
+            values = inputs.values
+            out = tf.random.normal([self.dim, inputs.shape[1]])
+            out = tf.repeat(out, tf.shape(values)[0], axis=0)
+        else:
+            out = tf.expand_dims(inputs.values, axis=1)
+            out = tf.repeat(out, self.dim, axis=1)
         # Static shape expansion for dim, tf.repeat would be possible too.
-        shape_expand = [1] * len(values.shape)
-        shape_expand[1] = self.dim
-        values = values * tf.zeros(shape_expand)
-        out = tf.RaggedTensor.from_row_splits(values, inputs.row_splits)
+        out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits)
         return out
 
     def get_config(self):
         """Update layer config."""
         config = super(EquivariantInitialize, self).get_config()
-        config.update({"dim": self.dim})
+        config.update({"dim": self.dim, "method": self.method})
         return config
 
 

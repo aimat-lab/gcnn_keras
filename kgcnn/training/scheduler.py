@@ -81,3 +81,43 @@ class LinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
                        "learning_rate_stop": self.learning_rate_stop,
                        "epo": self.epo, "epo_min": self.epo_min, "eps": self.eps})
         return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupLinearLearningRateScheduler')
+class LinearWarmupLinearLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
+    """Callback for linear change of the learning rate. This class inherits from
+    tf.keras.callbacks.LearningRateScheduler."""
+
+    def __init__(self, learning_rate_start: float = 1e-3, learning_rate_stop: float = 1e-5, epo_warmup: int = 0,
+                 epo: int = 500, verbose: int = 0, eps: float = 1e-8):
+        """Set the parameters for the learning rate scheduler.
+
+        Args:
+            learning_rate_start (float): Initial learning rate. Default is 1e-3.
+            learning_rate_stop (float): End learning rate. Default is 1e-5.
+            epo_min (int): Minimum number of epochs to keep the learning-rate constant before decrease. Default is 0.
+            epo (int): Total number of epochs. Default is 500.
+            eps (float): Numerical epsilon which bounds minimum learning rate.
+            verbose (int): Verbosity. Default is 0.
+        """
+        super(LinearWarmupLinearLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr, verbose=verbose)
+        self.learning_rate_start = learning_rate_start
+        self.learning_rate_stop = learning_rate_stop
+        self.epo = epo
+        self.epo_warmup = epo_warmup
+        self.eps = float(eps)
+
+    def schedule_epoch_lr(self, epoch, lr):
+        if epoch < self.epo_warmup:
+            out = self.learning_rate_start*epoch/self.epo_warmup
+        else:
+            out = self.learning_rate_start - (self.learning_rate_start - self.learning_rate_stop) / (
+                    self.epo - self.epo_warmup) * (epoch - self.epo_warmup)
+        return max(float(out), self.eps)
+
+    def get_config(self):
+        config = super(LinearWarmupLinearLearningRateScheduler, self).get_config()
+        config.update({"learning_rate_start": self.learning_rate_start,
+                       "learning_rate_stop": self.learning_rate_stop,
+                       "epo": self.epo, "epo_warmup": self.epo_warmup, "eps": self.eps})
+        return config

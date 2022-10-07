@@ -151,11 +151,12 @@ hyper = {
                     {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+                "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                 "pooling_args": {"pooling_method": "mean"},
                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "mean"},
                 "update_args": {"units": 128}, "depth": 2, "verbose": 10,
-                "equiv_normalization": True, "node_normalization": True,
+                "equiv_normalization": False, "node_normalization": False,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
             }
@@ -166,14 +167,14 @@ hyper = {
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                    {"class_name": "kgcnn>LinearWarmupLinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-04, "learning_rate_stop": 5e-06, "epo_warmup": 25, "epo": 500,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0001}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}}, # "clipnorm": 10.0, "clipvalue": 10.0}
                 "loss": "mean_absolute_error"
             },
             "scaler": {

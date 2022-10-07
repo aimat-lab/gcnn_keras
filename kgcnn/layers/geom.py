@@ -165,7 +165,7 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.Tensor: Euclidean norm of inputs.
         """
-        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims)))
+        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))+ks.backend.epsilon())
         if invert_norm:
             out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
         return out

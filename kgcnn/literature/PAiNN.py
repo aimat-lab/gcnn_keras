@@ -25,6 +25,7 @@ model_default = {
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+    "equiv_initialize_kwargs": {"dim": 3, "method": "zeros"},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "sum"},
     "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
@@ -40,6 +41,7 @@ model_default = {
 @update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                input_embedding: dict = None,
+               equiv_initialize_kwargs: dict = None,
                bessel_basis: dict = None,
                depth: int = None,
                pooling_args: dict = None,
@@ -73,6 +75,7 @@ def make_model(inputs: list = None,
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
+        equiv_initialize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`EquivariantInitialize` layer.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final :obj:`BesselBasisLayer` layer.
         depth (int): Number of graph embedding units or depth of the network.
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
@@ -100,7 +103,7 @@ def make_model(inputs: list = None,
     if len(inputs) > 3:
         equiv_input = ks.layers.Input(**inputs[3])
     else:
-        equiv_input = EquivariantInitialize(dim=3)(z)
+        equiv_input = EquivariantInitialize(**equiv_initialize_kwargs)(z)
 
     edi = bond_index_input
     x = xyz_input
@@ -115,20 +118,17 @@ def make_model(inputs: list = None,
     for i in range(depth):
         # Message
         ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
-        if equiv_normalization:
-            dv = GraphLayerNormalization(axis=2)(dv)
-        if node_normalization:
-            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
         # Update
         ds, dv = PAiNNUpdate(**update_args)([z, v])
-        if equiv_normalization:
-            dv = GraphLayerNormalization(axis=2)(dv)
-        if node_normalization:
-            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
+
+        if equiv_normalization:
+            v = GraphLayerNormalization(axis=2)(v)
+        if node_normalization:
+            z = GraphBatchNormalization(axis=-1)(z)
 
     n = z
     # Output embedding choice
@@ -159,6 +159,7 @@ model_crystal_default = {
         {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
     ],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+    "equiv_initialize_kwargs": {"dim": 3, "method": "zeros"},
     "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
     "pooling_args": {"pooling_method": "sum"},
     "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
@@ -174,6 +175,7 @@ model_crystal_default = {
 @update_model_kwargs(model_crystal_default)
 def make_crystal_model(inputs: list = None,
                        input_embedding: dict = None,
+                       equiv_initialize_kwargs: dict = None,
                        bessel_basis: dict = None,
                        depth: int = None,
                        pooling_args: dict = None,
@@ -211,6 +213,7 @@ def make_crystal_model(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         bessel_basis (dict): Dictionary of layer arguments unpacked in final :obj:`BesselBasisLayer` layer.
+        equiv_initialize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`EquivariantInitialize` layer.
         depth (int): Number of graph embedding units or depth of the network.
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         conv_args (dict): Dictionary of layer arguments unpacked in :obj:`PAiNNconv` layer.
@@ -239,7 +242,7 @@ def make_crystal_model(inputs: list = None,
     if len(inputs) > 5:
         equiv_input = ks.layers.Input(**inputs[5])
     else:
-        equiv_input = EquivariantInitialize(dim=3)(z)
+        equiv_input = EquivariantInitialize(**equiv_initialize_kwargs)(z)
 
     edi = bond_index_input
     x = xyz_input
@@ -255,20 +258,17 @@ def make_crystal_model(inputs: list = None,
     for i in range(depth):
         # Message
         ds, dv = PAiNNconv(**conv_args)([z, v, rbf, env, rij, edi])
-        if equiv_normalization:
-            dv = GraphLayerNormalization(axis=2)(dv)
-        if node_normalization:
-            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
         # Update
         ds, dv = PAiNNUpdate(**update_args)([z, v])
-        if equiv_normalization:
-            dv = GraphLayerNormalization(axis=2)(dv)
-        if node_normalization:
-            ds = GraphBatchNormalization(axis=-1)(ds)
         z = LazyAdd()([z, ds])
         v = LazyAdd()([v, dv])
+
+        if equiv_normalization:
+            v = GraphLayerNormalization(axis=2)(v)
+        if node_normalization:
+            z = GraphBatchNormalization(axis=-1)(z)
 
     n = z
     # Output embedding choice
