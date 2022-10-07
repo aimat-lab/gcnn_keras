@@ -168,13 +168,13 @@ hyper = {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearWarmupLinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-04, "learning_rate_stop": 5e-06, "epo_warmup": 25, "epo": 500,
+                        "learning_rate_start": 1e-04, "learning_rate_stop": 5e-06, "epo_warmup": 25, "epo": 1000,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}}, # "clipnorm": 10.0, "clipvalue": 10.0}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}}, # "clipnorm": 100.0, "clipvalue": 100.0}
                 "loss": "mean_absolute_error"
             },
             "scaler": {
