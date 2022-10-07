@@ -325,11 +325,11 @@ class GraphPreProcessorBase:
         raise NotImplementedError("Must be implemented in sub-class.")
 
     def __call__(self, graph: GraphDict):
-        if not self._in_place:
-            graph = GraphDict(graph)
         graph_properties = self._obtain_properties(graph)
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
+        if not self._in_place:
+            graph = GraphDict()
         self._assign_properties(graph, processed_properties)
         return graph
 
