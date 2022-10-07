@@ -253,7 +253,7 @@ class EquivariantInitialize(GraphBaseLayer):
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
 
         Returns:
-            tf.RaggedTensor: Zero equivariant tensor of shape (batch, [N], dim, F)
+            tf.RaggedTensor: Equivariant tensor of shape (batch, [N], dim, F)
         """
         inputs = self.assert_ragged_input_rank(inputs)
         if self.method == "zeros":
@@ -269,11 +269,13 @@ class EquivariantInitialize(GraphBaseLayer):
             out = tf.eye(self.dim, num_columns=values.shape[1], batch_shape=tf.shape(values)[:1], dtype=values.dtype)
         elif self.method == "normal":
             values = inputs.values
-            out = tf.random.normal([self.dim, inputs.shape[1]])
+            out = tf.expand_dims(tf.random.normal([self.dim, values.shape[1]]), axis=0)
             out = tf.repeat(out, tf.shape(values)[0], axis=0)
-        else:
+        elif self.method == "node":
             out = tf.expand_dims(inputs.values, axis=1)
             out = tf.repeat(out, self.dim, axis=1)
+        else:
+            raise ValueError("Unknown initialization method %s" % self.method)
         # Static shape expansion for dim, tf.repeat would be possible too.
         out = tf.RaggedTensor.from_row_splits(out, inputs.row_splits)
         return out
