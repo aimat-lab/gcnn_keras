@@ -47,7 +47,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
+            "multi_target_indices": [12]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
         },
         "data": {
             "dataset": {
@@ -61,7 +61,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_H",
             "kgcnn_version": "2.1.0"
         }
     },
@@ -115,7 +115,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            "multi_target_indices": [12]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -129,7 +129,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_H",
             "kgcnn_version": "2.1.0"
         }
     },
@@ -178,7 +178,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            "multi_target_indices": [12]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -192,7 +192,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_H",
             "kgcnn_version": "2.1.0"
         }
     },
@@ -244,7 +244,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            "multi_target_indices": [12]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -258,7 +258,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_H",
             "kgcnn_version": "2.1.0"
         }
     },
@@ -316,7 +316,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            "multi_target_indices": [12]   # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -331,7 +331,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_H",
             "kgcnn_version": "2.1.0"
         }
     }

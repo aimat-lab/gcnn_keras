@@ -259,6 +259,10 @@ class EquivariantInitialize(GraphBaseLayer):
         """
         inputs = self.assert_ragged_input_rank(inputs)
         if self.method == "zeros":
+            out = tf.zeros_like(inputs.values)
+            out = tf.expand_dims(out, axis=1)
+            out = tf.repeat(out, self.dim, axis=1)
+        elif self.method == "eps":
             out = tf.zeros_like(inputs.values) + ks.backend.epsilon()
             out = tf.expand_dims(out, axis=1)
             out = tf.repeat(out, self.dim, axis=1)

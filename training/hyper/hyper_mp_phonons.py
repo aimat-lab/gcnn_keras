@@ -154,7 +154,7 @@ hyper = {
                 "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                 "pooling_args": {"pooling_method": "mean"},
-                "conv_args": {"units": 128, "cutoff": None, "conv_pool": "mean"},
+                "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                 "update_args": {"units": 128}, "depth": 2, "verbose": 10,
                 "equiv_normalization": False, "node_normalization": False,
                 "output_embedding": "graph",
