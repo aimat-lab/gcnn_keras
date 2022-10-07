@@ -233,11 +233,13 @@ class EquivariantInitialize(GraphBaseLayer):
         method (str): How to initialize equivariant tensor. Default is "zeros".
     """
 
-    def __init__(self, dim=3, method: str = "zeros", **kwargs):
+    def __init__(self, dim=3, method: str = "zeros", value: float = 1.0, stddev: float = 1.0, **kwargs):
         """Initialize Layer."""
         super(EquivariantInitialize, self).__init__(**kwargs)
         self.dim = int(dim)
         self.method = str(method)
+        self.value = float(value)
+        self.stddev = float(stddev)
 
     def build(self, input_shape):
         """Build layer."""
@@ -257,7 +259,7 @@ class EquivariantInitialize(GraphBaseLayer):
         """
         inputs = self.assert_ragged_input_rank(inputs)
         if self.method == "zeros":
-            out = tf.zeros_like(inputs.values)
+            out = tf.zeros_like(inputs.values) + ks.backend.epsilon()
             out = tf.expand_dims(out, axis=1)
             out = tf.repeat(out, self.dim, axis=1)
         elif self.method == "ones":
@@ -269,8 +271,12 @@ class EquivariantInitialize(GraphBaseLayer):
             out = tf.eye(self.dim, num_columns=values.shape[1], batch_shape=tf.shape(values)[:1], dtype=values.dtype)
         elif self.method == "normal":
             values = inputs.values
-            out = tf.expand_dims(tf.random.normal([self.dim, values.shape[1]]), axis=0)
+            out = tf.expand_dims(tf.random.normal([self.dim, values.shape[1]], stddev=self.stddev), axis=0)
             out = tf.repeat(out, tf.shape(values)[0], axis=0)
+        elif self.method == "const":
+            out = tf.ones_like(inputs.values)*self.value
+            out = tf.expand_dims(out, axis=1)
+            out = tf.repeat(out, self.dim, axis=1)
         elif self.method == "node":
             out = tf.expand_dims(inputs.values, axis=1)
             out = tf.repeat(out, self.dim, axis=1)
@@ -283,7 +289,7 @@ class EquivariantInitialize(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(EquivariantInitialize, self).get_config()
-        config.update({"dim": self.dim, "method": self.method})
+        config.update({"dim": self.dim, "method": self.method, "value": self.value, "stddev": self.stddev})
         return config
 
 

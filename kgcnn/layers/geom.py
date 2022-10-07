@@ -135,18 +135,21 @@ class EuclideanNorm(GraphBaseLayer):
     with :obj:`invert_norm` layer arguments.
     """
 
-    def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, **kwargs):
+    def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, add_eps: bool = False,
+                 **kwargs):
         """Initialize layer.
 
         Args:
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
+            add_eps (bool): Whether to add epsilon before taking square root. Default is False.
         """
         super(EuclideanNorm, self).__init__(**kwargs)
         self.axis = axis
         self.keepdims = keepdims
         self.invert_norm = invert_norm
+        self.add_eps = add_eps
 
     def build(self, input_shape):
         """Build layer."""
@@ -162,13 +165,14 @@ class EuclideanNorm(GraphBaseLayer):
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
-            add_eps (bool): Whether to add epsilon before sqrt. Default is False.
+            add_eps (bool): Whether to add epsilon before taking square root. Default is False.
 
         Returns:
             tf.Tensor: Euclidean norm of inputs.
         """
         out = tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))
-        # Or just tf.norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
+        # Or just via tf.norm.
+        # out = tf.norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
         if add_eps:
             out = out + ks.backend.epsilon()
         out = tf.sqrt(out)
@@ -196,7 +200,8 @@ class EuclideanNorm(GraphBaseLayer):
     def get_config(self):
         """Update config."""
         config = super(EuclideanNorm, self).get_config()
-        config.update({"axis": self.axis, "keepdims": self.keepdims, "invert_norm": self.invert_norm})
+        config.update({"axis": self.axis, "keepdims": self.keepdims, "invert_norm": self.invert_norm,
+                       "add_eps": self.add_eps})
         return config
 
 
