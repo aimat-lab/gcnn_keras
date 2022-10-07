@@ -168,6 +168,7 @@ class EuclideanNorm(GraphBaseLayer):
             tf.Tensor: Euclidean norm of inputs.
         """
         out = tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))
+        # Or just tf.norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
         if add_eps:
             out = out + ks.backend.epsilon()
         out = tf.sqrt(out)
