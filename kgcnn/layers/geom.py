@@ -153,7 +153,8 @@ class EuclideanNorm(GraphBaseLayer):
         super(EuclideanNorm, self).build(input_shape)
 
     @staticmethod
-    def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False):
+    def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
+                                add_eps: bool = False):
         """Function to compute euclidean norm for inputs.
 
         Args:
@@ -165,7 +166,10 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.Tensor: Euclidean norm of inputs.
         """
-        out = tf.sqrt(tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))+ks.backend.epsilon())
+        out = tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))
+        if add_eps:
+            out = out + ks.backend.epsilon()
+        out = tf.sqrt(out)
         if invert_norm:
             out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
         return out
