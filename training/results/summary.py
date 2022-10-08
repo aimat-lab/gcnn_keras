@@ -203,6 +203,8 @@ benchmark_datasets = {
              "multi_target_indices": [6]},
             {"metric": "val_scaled_mean_absolute_error", "name": "U0", "find_best": "min",
              "multi_target_indices": [10]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "H", "find_best": "min",
+             "multi_target_indices": [12]},
         ]
     },
     "SIDERDataset": {

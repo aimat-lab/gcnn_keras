@@ -562,7 +562,7 @@ class GaussBasisLayer(GraphBaseLayer):
         Args:
             inputs: distance
 
-                - distance (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
+                - distance (tf.RaggedTensor, tf.Tensor): Edge distance of shape `(batch, [K], 1)`
 
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
@@ -589,11 +589,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
 
     """
 
-    def __init__(self,
-                 dim_half: int = 8,
-                 wave_length: float = 10,
-                 include_frequencies: bool = False,
-                 **kwargs):
+    def __init__(self, dim_half: int = 8, wave_length: float = 10, include_frequencies: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
         Args:
@@ -639,7 +635,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         r"""Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor): Edge distance of shape `(batch, [K], 1)`
+            inputs (tf.RaggedTensor, tf.Tensor): Edge distance of shape `(batch, [K], 1)`
 
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
