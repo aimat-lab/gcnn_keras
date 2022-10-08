@@ -136,7 +136,7 @@ class EuclideanNorm(GraphBaseLayer):
     """
 
     def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, add_eps: bool = False,
-                 **kwargs):
+                 no_nan: bool = True, **kwargs):
         """Initialize layer.
 
         Args:
@@ -144,12 +144,14 @@ class EuclideanNorm(GraphBaseLayer):
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
             add_eps (bool): Whether to add epsilon before taking square root. Default is False.
+            no_nan (bool): Whether to remove NaNs on invert. Default is True.
         """
         super(EuclideanNorm, self).__init__(**kwargs)
         self.axis = axis
         self.keepdims = keepdims
         self.invert_norm = invert_norm
         self.add_eps = add_eps
+        self.no_nan = no_nan
 
     def build(self, input_shape):
         """Build layer."""
@@ -157,7 +159,7 @@ class EuclideanNorm(GraphBaseLayer):
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
-                                add_eps: bool = False):
+                                add_eps: bool = False, no_nan: bool = True):
         """Function to compute euclidean norm for inputs.
 
         Args:
@@ -177,7 +179,10 @@ class EuclideanNorm(GraphBaseLayer):
             out = out + ks.backend.epsilon()
         out = tf.sqrt(out)
         if invert_norm:
-            out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
+            if no_nan:
+                out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
+            else:
+                out = 1/out
         return out
 
     def call(self, inputs, **kwargs):
@@ -189,19 +194,16 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Euclidean norm computed for specific axis of shape `(batch, [N], ...)`
         """
-        # Possibly faster
-        if isinstance(inputs, tf.RaggedTensor):
-            axis = get_positive_axis(self.axis, inputs.shape.rank)
-            if inputs.ragged_rank == 1 and axis > 1:
-                out = self._compute_euclidean_norm(inputs.values, axis-1, self.keepdims, self.invert_norm)
-                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        return self._compute_euclidean_norm(inputs, self.axis, self.keepdims, self.invert_norm)
+        return self.call_on_values_tensor_of_ragged(
+            self._compute_euclidean_norm, inputs,
+            axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
+            no_nan=self.no_nan)
 
     def get_config(self):
         """Update config."""
         config = super(EuclideanNorm, self).get_config()
         config.update({"axis": self.axis, "keepdims": self.keepdims, "invert_norm": self.invert_norm,
-                       "add_eps": self.add_eps})
+                       "add_eps": self.add_eps, "no_nan": self.no_nan})
         return config
 
 
@@ -291,11 +293,11 @@ class NodeDistanceEuclidean(GraphBaseLayer):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
         r"""Initialize layer instance of :obj:`NodeDistanceEuclidean`. """
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
         self.layer_subtract = LazySubtract()
-        self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True)
+        self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True, add_eps=add_eps, no_nan=no_nan)
 
     def build(self, input_shape):
         """Build layer."""
@@ -316,6 +318,12 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         diff = self.layer_subtract(inputs)
         return self.layer_euclidean_norm(diff)
 
+    def get_config(self):
+        config = super(NodeDistanceEuclidean, self).get_config()
+        conf_norm = self.layer_euclidean_norm.get_config()
+        config.update({"add_eps": conf_norm["add_eps"], "no_nan": conf_norm["no_nan"]})
+        return config
+
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
 class EdgeDirectionNormalized(GraphBaseLayer):
@@ -331,11 +339,12 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     As the first index defines the incoming edge.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
         """Initialize layer."""
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
         self.layer_subtract = LazySubtract()
-        self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True, invert_norm=True)
+        self.layer_euclidean_norm = EuclideanNorm(
+            axis=2, keepdims=True, invert_norm=True, add_eps=add_eps, no_nan=no_nan)
         self.layer_multiply = LazyMultiply()
 
     def build(self, input_shape):
@@ -361,6 +370,8 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     def get_config(self):
         """Update config."""
         config = super(EdgeDirectionNormalized, self).get_config()
+        conf_norm = self.layer_euclidean_norm.get_config()
+        config.update({"add_eps": conf_norm["add_eps"], "no_nan": conf_norm["no_nan"]})
         return config
 
 
@@ -808,9 +819,7 @@ class CosCutOff(GraphBaseLayer):
 
     """
 
-    def __init__(self,
-                 cutoff,
-                 **kwargs):
+    def __init__(self, cutoff, **kwargs):
         r"""Initialize layer.
 
         Args:
