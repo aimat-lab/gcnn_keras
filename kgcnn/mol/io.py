@@ -41,7 +41,7 @@ def write_list_to_xyz_file(filepath: str, mol_list: list):
 
 
 def parse_mol_str(mol_str: str):
-    """Parse a MDL mol table string into nested list. Only supports V2000 format and CTab. Better rely on
+    """Parse MDL mol table string into nested list. Only supports V2000 format and CTab. Better rely on
     OpenBabel to do this. This function was a temporary solution.
 
     Args:
@@ -147,7 +147,7 @@ def read_xyz_file(file_path, delimiter: str = None, line_by_line=False):
                 atoms = []
                 coordinates = []
             else:
-                # Finished reading a atom line.
+                # Finished reading an atom line.
                 num = num - 1
         else:
             logging.warning("Empty line in xyz file for mismatch in atom count found.")
