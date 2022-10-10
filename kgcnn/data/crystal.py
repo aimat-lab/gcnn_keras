@@ -147,7 +147,7 @@ class CrystalDataset(MemoryGraphDataset):
                 structs.append(self._pymatgen_parse_file_to_structure(
                     os.path.join(self.data_directory, self.file_directory, x))[0])
                 if i % self.DEFAULT_LOOP_UPDATE_INFO == 0:
-                    self.info(" ... read structure {0} from {1}".format(i, num_structs))
+                    self.info(" ... load structure {0} from {1}".format(i, num_structs))
             self.save_pymatgen_structures(structs)
             pymatgen_file_made = True
 
@@ -155,19 +155,25 @@ class CrystalDataset(MemoryGraphDataset):
             raise FileNotFoundError("Could not make pymatgen structures.")
         return self
 
-    def read_pymatgen_json_in_memory(self):
-        file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
+    def read_pymatgen_json_in_memory(self, file_path: str = None) -> List:
+        """Read pymatgen serialized json-file into memory.
+
+        Args:
+            file_path (str): File path to json-file, uses class default. Default is None.
+
+        Returns:
+            list: List of pymatgen structures.
+        """
+        if file_path is None:
+            file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
 
         if not os.path.exists(file_path):
             raise FileNotFoundError("Cannot find .json file for `CrystalDataset`. Please `prepare_data()`.")
 
         self.info("Reading structures from .json ...")
-        dicts = load_json_file(file_path)
-        return self._pymatgen_deserialize_dicts(dicts)
+        return self._pymatgen_deserialize_dicts(load_json_file(file_path))
 
-    def _map_callbacks(self,
-                       structs: list,
-                       data: pd.Series,
+    def _map_callbacks(self, structs: list, data: pd.Series,
                        callbacks: Dict[
                            str, Callable[[pymatgen.core.structure.Structure, pd.Series], Union[np.ndarray, None]]],
                        assign_to_self: bool = True) -> dict:
