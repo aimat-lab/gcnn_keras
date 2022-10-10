@@ -17,8 +17,8 @@ class CrystalDataset(MemoryGraphDataset):
     r"""Class for making graph dataset from periodic structures such as crystals.
 
     The dataset class requires a :obj:`data_directory` to store a table '.csv' file containing labels and information
-    of the structures stored in either a single '.cif' file or multiple CIF-files in :obj:`file_directory`.
-    In the latter case, the file names must be included in the '.csv' table.
+    of the structures stored in multiple CIF files in :obj:`file_directory`.
+    The file names must be included in the '.csv' table.
 
     .. code-block:: type
 
@@ -31,8 +31,9 @@ class CrystalDataset(MemoryGraphDataset):
             └── file_name.pymatgen.json
 
     This class uses :obj:`pymatgen.core.structure.Structure` and therefore requires :obj:`pymatgen` to be installed.
-    A '.pymatgen.json' serialized file is generated to store a list of structures from '.cif' file format via
-    :obj:`prepare_data()`.
+    A '.pymatgen.json' serialized file is generated to store a list of structures from single '.cif' files via
+    :obj:`prepare_data()`. Consequently, a 'file_name.pymatgen.json' can be directly stored in :obj:`data_directory`.
+    In this, case :obj:`prepare_data()` does not have to be used.
 
     """
 
@@ -48,21 +49,21 @@ class CrystalDataset(MemoryGraphDataset):
 
         Args:
             data_directory (str): Full path to directory of the dataset. Default is None.
-            file_name (str): Filename for dataset to read into memory. This can be a single a 'cif' file.
-                Or a '.csv' of file names that are expected to be cif-files in file_directory.
+            file_name (str): Filename for dataset to read into memory. This is a table file.
+                Or a '.csv' of file names that are expected to be cif-files in :obj:`file_directory`.
                 Default is None.
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 'cif' files. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
             verbose (int): Logging level. Default is 10.
         """
-        super(CrystalDataset, self).__init__(data_directory=data_directory, dataset_name=dataset_name,
-                                             file_name=file_name, verbose=verbose,
-                                             file_directory=file_directory)
+        super(CrystalDataset, self).__init__(
+            data_directory=data_directory, dataset_name=dataset_name, file_name=file_name, verbose=verbose,
+            file_directory=file_directory)
         self._structs = None
 
     def _get_pymatgen_file_name(self):
-        """Try to determine a file name for the pymatgen serialization information to store to disk."""
+        """Internal file name for the pymatgen serialization information to store to disk."""
         return os.path.splitext(self.file_name)[0] + ".pymatgen.json"
 
     @staticmethod
@@ -77,15 +78,34 @@ class CrystalDataset(MemoryGraphDataset):
         return dicts
 
     @staticmethod
+    def _pymatgen_deserialize_dicts(dicts: List[dict], to_unit_cell: bool = False) -> list:
+        structs = []
+        for x in dicts:
+            # We could check symmetry or @module, @class items in dict.
+            s = pymatgen.core.structure.Structure.from_dict(x)
+            structs.append(s)
+            if to_unit_cell:
+                for site in s.sites:
+                    site.to_unit_cell(in_place=True)
+        return structs
+
+    def save_pymatgen_structures(self, structs: list, file_path: str = None):
+        if file_path is None:
+            file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
+        self.info("Exporting as dict for pymatgen ...")
+        dicts = self._pymatgen_serialize_structs(structs)
+        self.info("Saving structures as .json ...")
+        save_json_file(dicts, file_path)
+
+    @staticmethod
     def _pymatgen_parse_cif_file_to_structures(cif_file: str):
         # structure = pymatgen.io.cif.CifParser.from_string(cif_string).get_structures()[0]
         structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
         return structures
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
-        r"""Try to load all crystal structures from CIF files and save them as a pymatgen json serialization.
-        Can load a single CIF file with multiple structures (maybe unstable), or multiple CIF files from a table
-        that keeps file names and possible labels or additional information.
+        r"""Try to load all crystal structures from single files and save them as a pymatgen json serialization.
+        Can load multiple CIF files from a table that keeps file names and possible labels or additional information.
 
         Args:
             cif_column_name (str): Name of the column that has file names found in file_directory. Default is None.
@@ -100,26 +120,12 @@ class CrystalDataset(MemoryGraphDataset):
         pymatgen_file_made = False
 
         file_path = os.path.join(self.data_directory, self.file_name)
-        file_path_base = os.path.splitext(file_path)[0]
-
-        # Check for a single CIF file.
-        found_cif_file = False
-        if os.path.exists(file_path_base + ".cif"):
-            found_cif_file = True
-            self.info("Start to read many structures form cif-file via pymatgen ...")
-            structs = self._pymatgen_parse_cif_file_to_structures(file_path)
-            self.info("Exporting as dict for pymatgen ...")
-            dicts = self._pymatgen_serialize_structs(structs)
-            self.info("Saving structures as .json ...")
-            out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
-            save_json_file(dicts, out_path)
-            pymatgen_file_made = True
 
         # We try to read in a csv file.
         self.read_in_table_file(file_path=file_path)
 
         # Check if table has a list of single cif files in file directory.
-        if not found_cif_file and cif_column_name is not None and self.data_frame is not None:
+        if cif_column_name is not None and self.data_frame is not None:
             # Try to find file names in data_frame
             cif_file_list = self.data_frame[cif_column_name].values
             num_structs = len(cif_file_list)
@@ -127,42 +133,24 @@ class CrystalDataset(MemoryGraphDataset):
             self.info("Read %s cif-file via pymatgen ..." % num_structs)
             for i, x in enumerate(cif_file_list):
                 # Only one file per path
-                structs.append(self._pymatgen_parse_cif_file_to_structures(os.path.join(self.data_directory,
-                                                                                        self.file_directory, x))[0])
+                structs.append(self._pymatgen_parse_cif_file_to_structures(
+                    os.path.join(self.data_directory, self.file_directory, x))[0])
                 if i % self.DEFAULT_LOOP_UPDATE_INFO == 0:
                     self.info(" ... read structure {0} from {1}".format(i, num_structs))
-            self.info("Exporting as dict for pymatgen ...")
-            dicts = self._pymatgen_serialize_structs(structs)
-            self.info("Saving structures as .json ...")
-            out_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
-            save_json_file(dicts, out_path)
+            self.save_pymatgen_structures(structs)
             pymatgen_file_made = True
 
         if not pymatgen_file_made:
             raise FileNotFoundError("Could not make pymatgen structures.")
-
         return self
 
-    @staticmethod
-    def _pymatgen_deserialize_dicts(dicts: List[dict], to_unit_cell: bool = False) -> list:
-        structs = []
-        for x in dicts:
-            # We could check symmetry or @module, @class items in dict.
-            s = pymatgen.core.structure.Structure.from_dict(x)
-            structs.append(s)
-            if to_unit_cell:
-                for site in s.sites:
-                    site.to_unit_cell(in_place=True)
-        return structs
-
-    def _read_pymatgen_json_in_memory(self):
+    def read_pymatgen_json_in_memory(self):
         file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
 
         if not os.path.exists(file_path):
             raise FileNotFoundError("Cannot find .json file for `CrystalDataset`. Please `prepare_data()`.")
 
         self.info("Reading structures from .json ...")
-
         dicts = load_json_file(file_path)
         return self._pymatgen_deserialize_dicts(dicts)
 
@@ -223,7 +211,7 @@ class CrystalDataset(MemoryGraphDataset):
                      **additional_callbacks
                      }
 
-        self._map_callbacks(structs=self._read_pymatgen_json_in_memory(),
+        self._map_callbacks(structs=self.read_pymatgen_json_in_memory(),
                             data=self.read_in_table_file(file_path=self.file_path).data_frame,
                             callbacks=callbacks)
 
@@ -234,7 +222,7 @@ class CrystalDataset(MemoryGraphDataset):
         if reset_graphs:
             self.clear()
         # Read pymatgen JSON file from file.
-        structs = self._read_pymatgen_json_in_memory()
+        structs = self.read_pymatgen_json_in_memory()
         if reset_graphs:
             self.empty(len(structs))
 
