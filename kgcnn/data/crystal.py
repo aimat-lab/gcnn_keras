@@ -105,6 +105,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
         r"""Try to load all crystal structures from single files and save them as a pymatgen json serialization.
+
         Can load multiple CIF files from a table that keeps file names and possible labels or additional information.
 
         Args:

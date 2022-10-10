@@ -115,9 +115,9 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
             self.download_info.update({"download_url": "https://ml.materialsproject.org/projects/" +
                                                        self.download_info["download_file_name"]})
         else:
-            raise ValueError("ERROR: Can not resolve %s as a MatBench dataset. Pick " % dataset_name,
-                             self.datsets_download_info.keys(),
-                             "For new dataset, add to `datasets_download_info` list manually.")
+            raise ValueError(
+                "Can not resolve %s as a MatBench dataset. Pick " % dataset_name, self.datasets_download_info.keys(),
+                "For new dataset, add to `datasets_download_info` list manually.")
 
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
