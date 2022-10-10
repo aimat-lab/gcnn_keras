@@ -30,7 +30,7 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
             verbose (int): Print progress or info for processing where 0=silent. Default is 1.
         """
         self.class_label_mapping = None
-        # Use default base class init()
+        # Use default base class init.
 
         MemoryGraphDataset.__init__(self, dataset_name="cora_lu", verbose=verbose)
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)

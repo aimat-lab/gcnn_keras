@@ -221,15 +221,17 @@ class MemoryGraphList(MutableMapping):
             self
         """
         # Can add progress info here.
+        # Method by name.
         if isinstance(method, str):
             for i, x in enumerate(self._list):
-                # If this is a class method or a preprocessor else.
+                # If this is a class method.
                 if hasattr(x, method):
                     getattr(x, method)(**kwargs)
                 else:
+                    # For compatibility names can refer to preprocessors.
                     x.apply_preprocessor(name=method, **kwargs)
         elif isinstance(method, dict):
-            raise NotImplementedError("Serialization for method is not yet supported")
+            raise NotImplementedError("Serialization for method in `map_list` is not yet supported")
         else:
             # For any callable method to map.
             for i, x in enumerate(self._list):
@@ -351,20 +353,20 @@ class MemoryGraphDataset(MemoryGraphList):
         if not os.path.exists(os.path.realpath(self.data_directory)):
             self.error("Data directory does not exist.")
         if self.file_name is None:
-            self.warning("Can not determine file path.")
+            self.warning("Can not determine file path, missing `file_name`.")
             return None
         return os.path.join(self.data_directory, self.file_name)
 
     @property
     def file_directory_path(self):
-        """Returns path information of `file_directory_`."""
+        r"""Returns path information of `file_directory`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
         if not os.path.exists(self.data_directory):
             self.error("Data directory does not exist.")
         if self.file_directory is None:
-            self.warning("Can not determine file directory.")
+            self.warning("Can not determine file directory, missing `file_directory`.")
             return None
         return os.path.join(self.data_directory, self.file_directory)
 
@@ -407,7 +409,7 @@ class MemoryGraphDataset(MemoryGraphList):
     def read_in_table_file(self, file_path: str = None, **kwargs):
         r"""Read a data frame in :obj:`data_frame` from file path. By default, uses :obj:`file_name` and pandas.
         Checks for a '.csv' file and then for Excel file endings. Meaning the file extension of file_path is ignored
-        but must be any of the following '.csv', '.xls', '.xlsx', 'odt'.
+        but must be any of the following '.csv', '.xls', '.xlsx', '.odt'.
 
         Args:
             file_path (str): File path to table file. Default is None.

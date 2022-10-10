@@ -12,22 +12,24 @@ module_logger.setLevel(logging.INFO)
 
 
 class GraphDict(dict):
-    r"""Dictionary container to store graph information in tensor-form. At the moment only numpy-arrays are supported.
-    The naming convention is not restricted. The class is supposed to be handled just as a python dictionary.
+    r"""Dictionary container to store graph information in tensor-form.
+
+    At the moment only numpy-arrays are supported. The naming convention is not restricted.
+    The class is supposed to be handled just as a python dictionary.
     In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
     when assigning a named value.
 
-    Graph operations that modify edges or sort indices are methods of this class supported by
-    :obj:`kgcnn.graph.adapter.GraphTensorMethodsAdapter`.
-    Note that the graph-tensors name must follow a standard-convention or be provided to member functions
-    (see documentation of :obj:`kgcnn.graph.adapter.GraphTensorMethodsAdapter`).
+    Graph operations that modify edges or sort indices can be applied via :obj:`apply_preprocessor` located in
+    :obj:`kgcnn.graph.preprocessor`.
+
 
     .. code-block:: python
 
         import numpy as np
         from kgcnn.graph.base import GraphDict
         g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
-        g.add_edge_self_loops().sort_edge_indices()  # from GraphTensorMethodsAdapter
+        g.apply_preprocessor("add_edge_self_loops")
+        g.apply_preprocessor("sort_edge_indices")
         print(g)
     """
 
@@ -285,12 +287,13 @@ class GraphPreProcessorBase:
         return obtained_properties
 
     def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
+        out_graph = GraphDict()
 
         def _check_list_property(n, p):
             if not isinstance(p, (list, tuple)):
                 module_logger.error("Wrong return type for '%s', which is not list." % n)
             if len(n) != len(p):
-                module_logger.error("Wrong number of properties '%s' for '%s'." % (len(p), n))
+                module_logger.error("Wrong number of properties '%s' for '%s'." % (p, n))
 
         def _assign_single(name, single_graph_property):
             if isinstance(name, str):
@@ -300,14 +303,14 @@ class GraphPreProcessorBase:
                     # Assume that names matches graph_properties
                     _check_list_property(names, single_graph_property)
                     for x, gp in zip(names, single_graph_property):
-                        graph.assign_property(x, gp)
+                        out_graph.assign_property(x, gp)
                 else:
-                    graph.assign_property(name, single_graph_property)
+                    out_graph.assign_property(name, single_graph_property)
             elif isinstance(name, (list, tuple)):
                 # For nested output
                 _check_list_property(name, single_graph_property)
                 for x, gp in zip(name, single_graph_property):
-                    graph.assign_property(x, gp)
+                    out_graph.assign_property(x, gp)
             else:
                 module_logger.error("Wrong type of named property '%s'" % name)
             return
@@ -319,7 +322,7 @@ class GraphPreProcessorBase:
             _check_list_property(self._to_assign, graph_properties)
             for key, value in zip(self._to_assign, graph_properties):
                 _assign_single(key, value)
-        return
+        return out_graph
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
@@ -328,10 +331,11 @@ class GraphPreProcessorBase:
         graph_properties = self._obtain_properties(graph)
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
-        if not self._in_place:
-            graph = GraphDict()
-        self._assign_properties(graph, processed_properties)
-        return graph
+        out_graph = self._assign_properties(graph, processed_properties)
+        if self._in_place:
+            graph.update(out_graph)
+            return graph
+        return out_graph
 
     @staticmethod
     def has_special_characters(query, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
