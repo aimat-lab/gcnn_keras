@@ -209,7 +209,7 @@ dataset = MemoryGraphDataset(data_directory="ExampleDir/",
                              file_name=None, file_directory=None)
 ```
 
-The subclasses `QMDataset`, `MoleculeNetDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
+The subclasses `QMDataset`, `MoleculeNetDataset`, `CrystalDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
 Most subclasses implement `prepare_data()` and `read_in_memory()` with dataset dependent arguments.
 An example for `MoleculeNetDataset` is shown below. 
 For more details find tutorials in [notebooks](notebooks).
@@ -228,7 +228,7 @@ dataset.read_in_memory(label_column_name="label", add_hydrogen=False,
 ```
 
 In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/) or [MoleculeNet](https://moleculenet.org/). 
-The subclasses `GraphTUDataset2020` and `MoleculeNetDataset2018` download and read the available datasets by name.
+The subclasses `GraphTUDataset2020`, `MatBenchDataset2020` and `MoleculeNetDataset2018` download and read the available datasets by name.
 There are also specific dataset subclasses for each dataset to handle additional processing or downloading from individual sources:
 
 ```python

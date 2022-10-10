@@ -12,6 +12,7 @@ class ExtensiveMolecularScaler:
     interactions into account, e.g. as energy contribution.
 
     """
+
     _attributes_list_sklearn = ["coef_", "intercept_", "n_iter_", "n_features_in_", "feature_names_in_"]
     _attributes_list_mol = ["scale_", "_fit_atom_selection", "_fit_atom_selection_mask"]
     max_atomic_number = 95
