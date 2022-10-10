@@ -33,8 +33,8 @@ class CrystalDataset(MemoryGraphDataset):
     This class uses :obj:`pymatgen.core.structure.Structure` and therefore requires :obj:`pymatgen` to be installed.
     A '.pymatgen.json' serialized file is generated to store a list of structures from single '.cif' files via
     :obj:`prepare_data()`. Consequently, a 'file_name.pymatgen.json' can be directly stored in :obj:`data_directory`.
-    In this, case :obj:`prepare_data()` does not have to be used.
-
+    In this, case :obj:`prepare_data()` does not have to be used. Additionally, a table file 'file_name.csv'
+    that lists the single file names and possible labels or classification targets is required.
     """
 
     DEFAULT_LOOP_UPDATE_INFO = 5000
@@ -104,8 +104,9 @@ class CrystalDataset(MemoryGraphDataset):
         return structures
 
     def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
-        r"""Try to load all crystal structures from single files and save them as a pymatgen json serialization.
+        r"""Default preparation for crystal datasets.
 
+        Try to load all crystal structures from single files and save them as a pymatgen json serialization.
         Can load multiple CIF files from a table that keeps file names and possible labels or additional information.
 
         Args:
