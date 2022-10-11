@@ -492,7 +492,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "",
+            "postfix_file": "_HOMO",
             "kgcnn_version": "2.1.1"
         }
     },
