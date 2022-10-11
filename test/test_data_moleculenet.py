@@ -196,7 +196,7 @@ class TestMoleculeNetDataset(unittest.TestCase):
         # This method will automatically add properties with the string key names of the "callbacks" dict to the
         # underlying GraphList based on the transformations defined by the callback functions.
         molnet._map_molecule_callbacks(
-            molnet.read_in_memory_mol_blocks(), molnet.read_in_table_file().data_frame, callbacks)
+            molnet.get_mol_blocks_from_sdf_file(), molnet.read_in_table_file().data_frame, callbacks)
 
         molecule = molnet[1]
         self.assertIn('name', molecule)

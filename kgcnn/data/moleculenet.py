@@ -150,15 +150,15 @@ class MoleculeNetDataset(MemoryGraphDataset):
         self.read_in_table_file()
         smiles = self.data_frame[smiles_column_name].values
 
-        mb = self._smiles_to_mol_list(smiles,
-                                      add_hydrogen=add_hydrogen, sanitize=sanitize,
-                                      make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-                                      external_program=external_program, num_workers=num_workers)
+        mb = self._smiles_to_mol_list(
+            smiles, add_hydrogen=add_hydrogen, sanitize=sanitize,
+            make_conformers=make_conformers, optimize_conformer=optimize_conformer,
+            external_program=external_program, num_workers=num_workers)
 
         write_mol_block_list_to_sdf(mb, self.file_path_mol)
         return self
 
-    def read_in_memory_mol_blocks(self):
+    def get_mol_blocks_from_sdf_file(self):
         if not os.path.exists(self.file_path_mol):
             raise FileNotFoundError("Can not load molecules for dataset %s" % self.dataset_name)
 
@@ -202,7 +202,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             mol_net.prepare_data()
 
             mol_net._map_molecule_callbacks(
-                mol_net.read_in_memory_mol_blocks(),
+                mol_net.get_mol_blocks_from_sdf_file(),
                 mol_net.read_in_table_file().data_frame,
                 callbacks={
                     'graph_size': lambda mg, dd: len(mg.node_number),
@@ -376,7 +376,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         # Additional callbacks. Could check for duplicate names here.
         callbacks.update(additional_callbacks)
 
-        self._map_molecule_callbacks(self.read_in_memory_mol_blocks(),
+        self._map_molecule_callbacks(self.get_mol_blocks_from_sdf_file(),
                                      self.read_in_table_file().data_frame,
                                      callbacks=callbacks,
                                      add_hydrogen=add_hydrogen,
