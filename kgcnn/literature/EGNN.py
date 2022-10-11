@@ -134,7 +134,7 @@ def make_model(name: str = None,
     for i in range(0, depth):
         pos1, pos2 = NodePosition()([x, edi])
         diff_x = LazySubtract()([pos1, pos2])
-        norm_x = EuclideanNorm(keepdims=True)(diff_x)
+        norm_x = EuclideanNorm(keepdims=True, axis=2)(diff_x)
         # Original code as normalize option for coord-differences
         if use_normalized_difference:
             diff_x = EdgeDirectionNormalized()([pos1, pos2])
