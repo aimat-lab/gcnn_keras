@@ -180,6 +180,17 @@ class CrystalDataset(MemoryGraphDataset):
                        callbacks: Dict[
                            str, Callable[[pymatgen.core.structure.Structure, pd.Series], Union[np.ndarray, None]]],
                        assign_to_self: bool = True) -> dict:
+        """Map callbacks on a data series object plus structure list.
+
+        Args:
+            structs (list): List of pymatgen structures.
+            data (pd.Series, pd.DataFrame): Data Frame matching the structure list.
+            callbacks (dict): Dictionary of callbacks that take a data object plus pymatgen structure as argument.
+            assign_to_self (bool): Whether to already assign the output of callbacks to this class.
+
+        Returns:
+            dict: Values of callbacks.
+        """
 
         # The dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one structure in the dataset.
@@ -238,7 +249,7 @@ class CrystalDataset(MemoryGraphDataset):
         return self
 
     def set_representation(self, pre_processor: CrystalPreprocessor, reset_graphs: bool = False):
-
+        # TODO: Add documentation
         if reset_graphs:
             self.clear()
         # Read pymatgen JSON file from file.
