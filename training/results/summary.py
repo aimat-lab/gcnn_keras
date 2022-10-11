@@ -197,14 +197,16 @@ benchmark_datasets = {
             "Test errors are MAE and for energies are given in [eV]. ",
         ],
         "targets": [
-            {"metric": "val_scaled_mean_absolute_error", "name": "HOMO", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "HOMO [eV]", "find_best": "min",
              "multi_target_indices": [5]},
-            {"metric": "val_scaled_mean_absolute_error", "name": "LUMO", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "LUMO [eV]", "find_best": "min",
              "multi_target_indices": [6]},
-            {"metric": "val_scaled_mean_absolute_error", "name": "U0", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "U [eV]", "find_best": "min",
              "multi_target_indices": [10]},
-            {"metric": "val_scaled_mean_absolute_error", "name": "H", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
              "multi_target_indices": [12]},
+            {"metric": "val_scaled_mean_absolute_error", "name": "G [eV]", "find_best": "min",
+             "multi_target_indices": [13]},
         ]
     },
     "SIDERDataset": {
