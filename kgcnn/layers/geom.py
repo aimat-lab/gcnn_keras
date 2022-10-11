@@ -156,6 +156,7 @@ class EuclideanNorm(GraphBaseLayer):
     def build(self, input_shape):
         """Build layer."""
         super(EuclideanNorm, self).build(input_shape)
+        self.axis = get_positive_axis(self.axis, len(input_shape))
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
@@ -673,7 +674,6 @@ class BesselBasisLayer(GraphBaseLayer):
         u(d) = 1 − \frac{(p + 1)(p + 2)}{2} d^p + p(p + 2)d^{p+1} − \frac{p(p + 1)}{2} d^{p+2},
 
     where :math:`p \in \mathbb{N}_0` and typically :math:`p=6`.
-
     """
 
     def __init__(self, num_radial: int,
@@ -759,7 +759,6 @@ class CosCutOffEnvelope(GraphBaseLayer):
         f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
 
     This layer only computes the cutoff envelope but does not apply it.
-
     """
 
     def __init__(self,
@@ -812,7 +811,6 @@ class CosCutOff(GraphBaseLayer):
         f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
 
     This layer computes the cutoff envelope and applies it to the input by simply multiplying with the envelope.
-
     """
 
     def __init__(self, cutoff, **kwargs):
