@@ -433,26 +433,26 @@ hyper = {
                 "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
                            {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                    "edge": {"input_dim": 95, "output_dim": 64}},
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
+                                    "edge": {"input_dim": 95, "output_dim": 128}},
                 "depth": 4,
                 "node_mlp_initialize": None,
                 "use_edge_attributes": False,
-                "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
-                "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
+                "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
+                "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
                 "use_normalized_difference": False,
                 "expand_distance_kwargs": None,
                 "coord_mlp_kwargs": {"units": [64, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end.
                 "pooling_coord_kwargs": {"pooling_method": "mean"},
                 "pooling_edge_kwargs": {"pooling_method": "sum"},
                 "node_normalize_kwargs": None,
-                "node_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
+                "node_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
                 "use_skip": True,
                 "verbose": 10,
                 "node_pooling_kwargs": {"pooling_method": "mean"},
                 "output_embedding": "graph",
                 "output_to_tensor": True,
-                "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1],
                                "activation": ["swish", "linear"]}
             }
         },
@@ -485,7 +485,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
+                    {"map_list": {"method": "set_range", "max_distance": 6, "max_neighbours": 10000}}
                 ]
             },
             "data_unit": "eV"
