@@ -156,8 +156,10 @@ class CrystalDataset(MemoryGraphDataset):
             raise FileNotFoundError("Could not make pymatgen structures.")
         return self
 
-    def read_pymatgen_structures(self, file_path: str = None) -> List:
-        """Read pymatgen serialized json-file into memory.
+    def load_pymatgen_structures(self, file_path: str = None) -> List:
+        """Load pymatgen serialized json-file into memory.
+
+        Structures are not added to :obj:`CrystalDataset` but returned by this function.
 
         Args:
             file_path (str): File path to json-file, uses class default. Default is None.
@@ -229,7 +231,7 @@ class CrystalDataset(MemoryGraphDataset):
                      **additional_callbacks
                      }
 
-        self._map_callbacks(structs=self.read_pymatgen_structures(),
+        self._map_callbacks(structs=self.load_pymatgen_structures(),
                             data=self.read_in_table_file(file_path=self.file_path).data_frame,
                             callbacks=callbacks)
 
@@ -240,7 +242,7 @@ class CrystalDataset(MemoryGraphDataset):
         if reset_graphs:
             self.clear()
         # Read pymatgen JSON file from file.
-        structs = self.read_pymatgen_structures()
+        structs = self.load_pymatgen_structures()
         if reset_graphs:
             self.empty(len(structs))
 
