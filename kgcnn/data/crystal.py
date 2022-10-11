@@ -112,14 +112,14 @@ class CrystalDataset(MemoryGraphDataset):
         structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
         return structures
 
-    def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
+    def prepare_data(self, file_column_name: str = None, overwrite: bool = False):
         r"""Default preparation for crystal datasets.
 
         Try to load all crystal structures from single files and save them as a pymatgen json serialization.
         Can load multiple CIF files from a table that keeps file names and possible labels or additional information.
 
         Args:
-            cif_column_name (str): Name of the column that has file names found in file_directory. Default is None.
+            file_column_name (str): Name of the column that has file names found in file_directory. Default is None.
             overwrite (bool): Whether to rerun the data extraction. Default is False.
 
         Returns:
@@ -136,9 +136,9 @@ class CrystalDataset(MemoryGraphDataset):
         self.read_in_table_file(file_path=file_path)
 
         # Check if table has a list of single cif files in file directory.
-        if cif_column_name is not None and self.data_frame is not None:
+        if file_column_name is not None and self.data_frame is not None:
             # Try to find file names in data_frame
-            cif_file_list = self.data_frame[cif_column_name].values
+            cif_file_list = self.data_frame[file_column_name].values
             num_structs = len(cif_file_list)
             structs = []
             self.info("Read %s cif-file via pymatgen ..." % num_structs)

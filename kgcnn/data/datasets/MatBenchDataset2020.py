@@ -66,19 +66,19 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
 
     }
     datasets_prepare_data_info = {
-        "matbench_steels": {"cif_column_name": "composition"},
-        "matbench_jdft2d": {"cif_column_name": "structure"},
-        "matbench_phonons": {"cif_column_name": "structure"},
-        "matbench_expt_gap": {"cif_column_name": "composition"},
-        "matbench_dielectric": {"cif_column_name": "structure"},
-        "matbench_expt_is_metal": {"cif_column_name": "composition"},
-        "matbench_glass": {"cif_column_name": "composition"},
-        "matbench_log_gvrh": {"cif_column_name": "structure"},
-        "matbench_log_kvrh": {"cif_column_name": "structure"},
-        "matbench_perovskites": {"cif_column_name": "structure"},
-        "matbench_mp_gap": {"cif_column_name": "structure"},
-        "matbench_mp_is_metal": {"cif_column_name": "structure"},
-        "matbench_mp_e_form": {"cif_column_name": "structure"},
+        "matbench_steels": {"file_column_name": "composition"},
+        "matbench_jdft2d": {"file_column_name": "structure"},
+        "matbench_phonons": {"file_column_name": "structure"},
+        "matbench_expt_gap": {"file_column_name": "composition"},
+        "matbench_dielectric": {"file_column_name": "structure"},
+        "matbench_expt_is_metal": {"file_column_name": "composition"},
+        "matbench_glass": {"file_column_name": "composition"},
+        "matbench_log_gvrh": {"file_column_name": "structure"},
+        "matbench_log_kvrh": {"file_column_name": "structure"},
+        "matbench_perovskites": {"file_column_name": "structure"},
+        "matbench_mp_gap": {"file_column_name": "structure"},
+        "matbench_mp_is_metal": {"file_column_name": "structure"},
+        "matbench_mp_e_form": {"file_column_name": "structure"},
     }
     datasets_read_in_memory_info = {
         "matbench_steels": {"label_column_name": "yield strength"},
@@ -133,7 +133,7 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         if self.fits_in_memory:
             self.read_in_memory(**self.datasets_read_in_memory_info[self.dataset_name])
 
-    def prepare_data(self, cif_column_name: str = None, overwrite: bool = False):
+    def prepare_data(self, file_column_name: str = None, overwrite: bool = False):
 
         file_name_download = self.download_file_name if self.extract_file_name is None else self.extract_file_name
         # file_name_base = os.path.splitext(self.file_name)[0]
@@ -151,7 +151,7 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         data_columns = data["columns"]
         index_structure = 0
         for i, col in enumerate(data_columns):
-            if col == cif_column_name:
+            if col == file_column_name:
                 index_structure = i
                 break
         py_mat_list = [x[index_structure] for x in data["data"]]
