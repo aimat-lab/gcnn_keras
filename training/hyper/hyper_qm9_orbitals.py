@@ -348,17 +348,17 @@ hyper = {
                            {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
                            {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
-                                    "edge": {"input_dim": 5, "output_dim": 32}},
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
+                                    "edge": {"input_dim": 95, "output_dim": 128}},
                 "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
-                "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
-                "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
-                "global_mp_kwargs": {"units": 32},
-                "local_mp_kwargs": {"units": 32},
+                "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
+                "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
+                "global_mp_kwargs": {"units": 128},
+                "local_mp_kwargs": {"units": 128},
                 "use_edge_attributes": False,
-                "depth": 3,
+                "depth": 6,
                 "verbose": 10,
                 "node_pooling_args": {"pooling_method": "mean"},
                 "output_embedding": "graph", "output_to_tensor": True,
@@ -371,7 +371,7 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 64, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 128, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
