@@ -32,8 +32,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
     Attribute generation is carried out via the :obj:`MolecularGraphRDKit` class and requires RDKit as backend.
     """
 
-    DEFAULT_NODE_ATTRIBUTES = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
-                               'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
+    _default_node_attributes = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
+                                'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
     DEFAULT_NODE_ENCODERS = {
         'Symbol': OneHotEncoder(
             ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
@@ -119,9 +119,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
                      add_hydrogen: bool = True, sanitize: bool = True,
                      make_conformers: bool = True, optimize_conformer: bool = True,
                      external_program: dict = None, num_workers: int = None):
-        r"""Pre-computation of molecular structure information and optionally conformers. This function reads smiles
-        from the csv-file given by :obj:`file_name` and creates a single SDF File of generated mol-blocks with the same
-        file name. The function requires :obj:`RDKit` and (optionally) :obj:`OpenBabel`.
+        r"""Computation of molecular structure information and optionally conformers from smiles.
+
+        This function reads smiles from the csv-file given by :obj:`file_name` and creates a single SDF File of
+        generated mol-blocks with the same file name.
+        The function requires :obj:`RDKit` and (optionally) :obj:`OpenBabel`.
         Smiles that are not compatible with both RDKit and OpenBabel result in an empty mol-block in the SDF file to
         keep the number of molecules the same.
 
@@ -341,7 +343,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         """
         # May put this in a decorator with a copy or just leave as default arguments.
         # If e.g. nodes is not modified there is no problem with having mutable defaults.
-        nodes = nodes if nodes is not None else self.DEFAULT_NODE_ATTRIBUTES
+        nodes = nodes if nodes is not None else self._default_node_attributes
         edges = edges if edges is not None else self.DEFAULT_EDGE_ATTRIBUTES
         graph = graph if graph is not None else self.DEFAULT_GRAPH_ATTRIBUTES
         encoder_nodes = encoder_nodes if encoder_nodes is not None else self.DEFAULT_NODE_ENCODERS
