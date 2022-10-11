@@ -206,7 +206,7 @@ benchmark_datasets = {
             {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
              "multi_target_indices": [12]},
             {"metric": "val_scaled_mean_absolute_error", "name": "G [eV]", "find_best": "min",
-             "multi_target_indices": [13]},
+             "multi_target_indices": [13]}
         ]
     },
     "SIDERDataset": {
