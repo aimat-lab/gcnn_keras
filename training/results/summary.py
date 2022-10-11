@@ -201,7 +201,7 @@ benchmark_datasets = {
              "multi_target_indices": [5]},
             {"metric": "val_scaled_mean_absolute_error", "name": "LUMO [eV]", "find_best": "min",
              "multi_target_indices": [6]},
-            {"metric": "val_scaled_mean_absolute_error", "name": "U [eV]", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "U0 [eV]", "find_best": "min",
              "multi_target_indices": [10]},
             {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
              "multi_target_indices": [12]},
