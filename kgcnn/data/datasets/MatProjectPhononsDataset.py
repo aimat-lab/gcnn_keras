@@ -17,5 +17,5 @@ class MatProjectPhononsDataset(MatBenchDataset2020):
         self.label_units = "1/cm"
 
 
-# data = MatProjectPhononsDataset()
+# data = MatProjectPhononsDataset(reload=True)
 # data.map_list(method="set_range_periodic", max_distance=4, max_neighbours=65)
