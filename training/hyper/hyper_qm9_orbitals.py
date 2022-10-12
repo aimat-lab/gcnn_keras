@@ -351,7 +351,7 @@ hyper = {
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
                                     "edge": {"input_dim": 95, "output_dim": 128}},
                 "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
-                "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
+                "bessel_basis_global": {"num_radial": 16, "cutoff": 8.0, "envelope_exponent": 5},
                 "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
                 "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
@@ -405,7 +405,7 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_edge_weights_uniform"}},
-                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
+                    {"map_list": {"method": "set_range", "max_distance": 8, "max_neighbours": 1000}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
                                   "angle_indices": "angle_indices_1",
                                   "angle_indices_nodes": "angle_indices_nodes_1",
@@ -435,14 +435,14 @@ hyper = {
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
                                     "edge": {"input_dim": 95, "output_dim": 128}},
-                "depth": 4,
+                "depth": 7,
                 "node_mlp_initialize": None,
                 "use_edge_attributes": False,
-                "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
+                "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
                 "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
                 "use_normalized_difference": False,
                 "expand_distance_kwargs": None,
-                "coord_mlp_kwargs": {"units": [64, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end.
+                "coord_mlp_kwargs": {"units": [128, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end
                 "pooling_coord_kwargs": {"pooling_method": "mean"},
                 "pooling_edge_kwargs": {"pooling_method": "sum"},
                 "node_normalize_kwargs": None,
@@ -462,14 +462,29 @@ hyper = {
             "fit": {
                 "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
-                        "verbose": 0}
-                     }
+                    # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                    #     "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                    #     "verbose": 0}
+                    #  }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
+                # "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
+                "optimizer": {
+                    "class_name": "Addons>MovingAverage", "config": {
+                        "optimizer": {
+                            "class_name": "Adam", "config": {
+                                "learning_rate": {
+                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
+                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                        "decay_rate": 0.01
+                                    }
+                                }, "amsgrad": True
+                            }
+                        },
+                        "average_decay": 0.999
+                    }
+                },
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
@@ -485,7 +500,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 6, "max_neighbours": 10000}}
+                    {"map_list": {"method": "set_range", "max_distance": 8, "max_neighbours": 10000}}
                 ]
             },
             "data_unit": "eV"
