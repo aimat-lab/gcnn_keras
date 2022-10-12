@@ -28,7 +28,8 @@ class CrystalDataset(MemoryGraphDataset):
             │   ├── *.cif
             │   └── ...
             ├── file_name.csv
-            └── file_name.pymatgen.json
+            ├── file_name.pymatgen.json
+            └── dataset_name.kgcnn.pickle
 
     This class uses :obj:`pymatgen.core.structure.Structure` and therefore requires :obj:`pymatgen` to be installed.
     A '.pymatgen.json' serialized file is generated to store a list of structures from single '.cif' files via

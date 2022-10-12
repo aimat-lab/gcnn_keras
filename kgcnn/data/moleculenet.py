@@ -14,8 +14,17 @@ from kgcnn.mol.convert import MolConverter
 
 
 class MoleculeNetDataset(MemoryGraphDataset):
-    r"""Class for using molecule datasets. The concept is to load a table of smiles and corresponding targets and
-    convert them into a tensor representation for graph networks.
+    r"""Class for using 'MoleculeNet' datasets.
+
+    The concept is to load a table of smiles and corresponding targets an convert them into a tensor representation
+    for graph networks.
+
+    .. code-block:: type
+
+        ├── data_directory
+            ├── file_name.csv
+            ├── file_name.sdf
+            └── dataset_name.kgcnn.pickle
 
     The class provides properties and methods for making graph features from smiles.
     The typical input is a `csv` or `excel` file with smiles and corresponding graph labels.
@@ -34,7 +43,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     _default_node_attributes = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
                                 'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
-    DEFAULT_NODE_ENCODERS = {
+    _default_node_encoders = {
         'Symbol': OneHotEncoder(
             ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
             dtype="str"
@@ -45,17 +54,15 @@ class MoleculeNetDataset(MemoryGraphDataset):
         'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str'),
         "ChiralityPossible": OneHotEncoder(["1"], add_unknown=False, dtype='str'),
     }
-    DEFAULT_EDGE_ATTRIBUTES = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
-    DEFAULT_EDGE_ENCODERS = {
+    _default_edge_attributes = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
+    _default_edge_encoders = {
         'BondType': OneHotEncoder([1, 2, 3, 12], add_unknown=False),
         'Stereo': OneHotEncoder([0, 1, 2, 3], add_unknown=False)
     }
-    DEFAULT_GRAPH_ATTRIBUTES = ['ExactMolWt', 'NumAtoms']
-    DEFAULT_GRAPH_ENCODERS = {}
+    _default_graph_attributes = ['ExactMolWt', 'NumAtoms']
+    _default_graph_encoders = {}
 
-    DEFAULT_LOOP_UPDATE_INFO = 1000
-
-    MOLGRAPH_INTERFACE = MolecularGraphRDKit
+    _default_loop_update_info = 1000
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10):
@@ -108,8 +115,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
                             add_hydrogen=add_hydrogen, sanitize=sanitize,
                             make_conformers=make_conformers, optimize_conformer=optimize_conformer,
                             external_program=external_program, num_workers=num_workers)
-        for i in range(0, len(smiles), self.DEFAULT_LOOP_UPDATE_INFO):
-            mg = conv.smile_to_mol(smiles[i:i + self.DEFAULT_LOOP_UPDATE_INFO])
+        for i in range(0, len(smiles), self._default_loop_update_info):
+            mg = conv.smile_to_mol(smiles[i:i + self._default_loop_update_info])
             molecule_list = molecule_list + mg
             self.info(" ... converted molecules {0} from {1}".format(i + len(mg), len(smiles)))
 
@@ -175,7 +182,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
                                 custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None,
                                 add_hydrogen: bool = False,
                                 make_directed: bool = False,
-                                assign_to_self: bool = True
+                                assign_to_self: bool = True,
+                                mol_interface_class=MolecularGraphRDKit,
                                 ) -> dict:
         r"""This method receive the list of molecules, as well as the data from a pandas data series.
         It then iterates over all the molecules / data rows and invokes the callbacks for each.
@@ -226,6 +234,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             custom_transform (Callable): Custom transformation function to modify the generated
                 :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
                 :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
+            mol_interface_class: Interface for molecular graphs. Must be a :obj:`MolGraphInterface`.
 
         Returns:
             dict: Values of callbacks.
@@ -234,7 +243,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         # lists corresponds to one molecule in the dataset.
         value_lists = defaultdict(list)
         for index, sm in enumerate(mol_list):
-            mg = self.MOLGRAPH_INTERFACE(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
+            mg = mol_interface_class(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
 
             if custom_transform is not None:
                 mg = custom_transform(mg)
@@ -246,7 +255,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                     data_dict = data.loc[index]
                     value = callback(mg, data_dict)
                     value_lists[name].append(value)
-            if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+            if index % self._default_loop_update_info == 0:
                 self.info(" ... process molecules {0} from {1}".format(index, len(mol_list)))
 
         # The string key names of the original "callbacks" dict are also used as the names of the properties which are
@@ -344,11 +353,11 @@ class MoleculeNetDataset(MemoryGraphDataset):
         # May put this in a decorator with a copy or just leave as default arguments.
         # If e.g. nodes is not modified there is no problem with having mutable defaults.
         nodes = nodes if nodes is not None else self._default_node_attributes
-        edges = edges if edges is not None else self.DEFAULT_EDGE_ATTRIBUTES
-        graph = graph if graph is not None else self.DEFAULT_GRAPH_ATTRIBUTES
-        encoder_nodes = encoder_nodes if encoder_nodes is not None else self.DEFAULT_NODE_ENCODERS
-        encoder_edges = encoder_edges if encoder_edges is not None else self.DEFAULT_EDGE_ENCODERS
-        encoder_graph = encoder_graph if encoder_graph is not None else self.DEFAULT_GRAPH_ENCODERS
+        edges = edges if edges is not None else self._default_edge_attributes
+        graph = graph if graph is not None else self._default_graph_attributes
+        encoder_nodes = encoder_nodes if encoder_nodes is not None else self._default_node_encoders
+        encoder_edges = encoder_edges if encoder_edges is not None else self._default_edge_encoders
+        encoder_graph = encoder_graph if encoder_graph is not None else self._default_graph_encoders
         additional_callbacks = additional_callbacks if additional_callbacks is not None else {}
 
         # Deserializing encoders
