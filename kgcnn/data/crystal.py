@@ -36,9 +36,20 @@ class CrystalDataset(MemoryGraphDataset):
     Consequently, a 'file_name.pymatgen.json' can be directly stored in :obj:`data_directory`.
     In this, case :obj:`prepare_data()` does not have to be used. Additionally, a table file 'file_name.csv'
     that lists the single file names and possible labels or classification targets is required.
+
+    .. code-block:: python
+
+        from kgcnn.data.crystal import CrystalDataset
+        dataset = CrystalDataset(
+            data_directory="data_directory/",
+            dataset_name="ExampleCrystal",
+            file_name="file_name.csv",
+            file_directory="file_directory")
+        dataset.prepare_data(file_column_name="file_name", overwrite=True)
+        dataset.read_in_memory(label_column_name="label")
     """
 
-    DEFAULT_LOOP_UPDATE_INFO = 5000
+    _default_loop_update_info = 5000
 
     def __init__(self,
                  data_directory: str = None,
@@ -63,9 +74,11 @@ class CrystalDataset(MemoryGraphDataset):
             file_directory=file_directory)
         self._structs = None
 
-    def _get_pymatgen_file_name(self):
+    @property
+    def pymatgen_json_file_path(self):
         """Internal file name for the pymatgen serialization information to store to disk."""
-        return os.path.splitext(self.file_name)[0] + ".pymatgen.json"
+        file_name = os.path.splitext(self.file_name)[0] + ".pymatgen.json"
+        return os.path.join(self.data_directory, file_name)
 
     @staticmethod
     def _pymatgen_serialize_structs(structs: List) -> List[dict]:
@@ -82,7 +95,7 @@ class CrystalDataset(MemoryGraphDataset):
     def _pymatgen_deserialize_dicts(dicts: List[dict], to_unit_cell: bool = False) -> list:
         structs = []
         for x in dicts:
-            # We could check symmetry or @module, @class items in dict.
+            # TODO: We could check symmetry or @module, @class items in dict.
             s = pymatgen.core.structure.Structure.from_dict(x)
             structs.append(s)
             if to_unit_cell:
@@ -101,7 +114,7 @@ class CrystalDataset(MemoryGraphDataset):
             None.
         """
         if file_path is None:
-            file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
+            file_path = self.pymatgen_json_file_path
         self.info("Exporting as dict for pymatgen ...")
         dicts = self._pymatgen_serialize_structs(structs)
         self.info("Saving structures as .json ...")
@@ -126,7 +139,7 @@ class CrystalDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        if os.path.exists(os.path.join(self.data_directory, self._get_pymatgen_file_name())) and not overwrite:
+        if os.path.exists(self.pymatgen_json_file_path) and not overwrite:
             self.info("Pickled pymatgen structures already exist. Do nothing.")
             return self
         pymatgen_file_made = False
@@ -147,7 +160,7 @@ class CrystalDataset(MemoryGraphDataset):
                 # Only one file per path
                 structs.append(self._pymatgen_parse_file_to_structure(
                     os.path.join(self.data_directory, self.file_directory, x))[0])
-                if i % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+                if i % self._default_loop_update_info == 0:
                     self.info(" ... load structure {0} from {1}".format(i, num_structs))
             self.save_structures_to_json_file(structs)
             pymatgen_file_made = True
@@ -168,7 +181,7 @@ class CrystalDataset(MemoryGraphDataset):
             list: List of pymatgen structures.
         """
         if file_path is None:
-            file_path = os.path.join(self.data_directory, self._get_pymatgen_file_name())
+            file_path = self.pymatgen_json_file_path
 
         if not os.path.exists(file_path):
             raise FileNotFoundError("Cannot find .json file for `CrystalDataset`. Please `prepare_data()`.")
@@ -203,7 +216,7 @@ class CrystalDataset(MemoryGraphDataset):
                     data_dict = data.loc[index]
                     value = callback(st, data_dict)
                     value_lists[name].append(value)
-            if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+            if index % self._default_loop_update_info == 0:
                 self.info(" ... read structures {0} from {1}".format(index, len(structs)))
 
         # The string key names of the original "callbacks" dict are also used as the names of the properties which are
@@ -221,7 +234,7 @@ class CrystalDataset(MemoryGraphDataset):
         """Read structures from pymatgen json serialization and convert them into graph information.
 
         Args:
-            label_column_name (str): Columns of labels for graph. Default is None.
+            label_column_name (str): Columns of labels for graph in table file. Default is None.
             additional_callbacks (dict): Callbacks to add during read into memory.
 
         Returns:
@@ -266,7 +279,7 @@ class CrystalDataset(MemoryGraphDataset):
             # TODO: Rename node and edge properties to match kgcnn conventions
             # TODO: Add GraphDict to dataset
 
-            if index % self.DEFAULT_LOOP_UPDATE_INFO == 0:
+            if index % self._default_loop_update_info == 0:
                 self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
 
         return self
