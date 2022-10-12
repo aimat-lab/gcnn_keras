@@ -407,7 +407,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
     @staticmethod
     def _deserialize_encoder(encoder_identifier):
-        """Serialization. Will maybe include keras in the future.
+        """Deserialization of encoder class.
 
         Args:
             encoder_identifier: Identifier, class or function of an encoder.
