@@ -12,8 +12,9 @@ module_logger.setLevel(logging.INFO)
 
 
 class DownloadDataset:
-    r"""Download class for datasets. Provides static-methods and functions for download and unzip of the data.
+    r"""Download class for datasets.
 
+    Provides static-methods and functions for download and unzip of the data.
     They are intentionally kept general and could also be used without this class definition.
     Downloading is handled by :obj:`download_dataset_to_disk` already in :obj:`init` by default.
     Dataset-specific functions like :obj:`prepare_data` must be implemented in subclasses.
