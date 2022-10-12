@@ -203,13 +203,15 @@ ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs app
 
 QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use a random 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
-| model   | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
-|:--------|:--------|---------:|:-----------------------|:-----------------------|
-| EGNN    | 2.1.1   |      800 | 1.5786 &pm; 0.0863     | 3.6083 &pm; 0.7331     |
-| Megnet  | 2.1.0   |      800 | 1.4922 &pm; 0.0680     | **2.8795 &pm; 0.5466** |
-| NMPN    | 2.1.0   |      500 | 6.5715 &pm; 0.4977     | 34.9752 &pm; 8.0740    |
-| PAiNN   | 2.1.0   |      872 | **1.2690 &pm; 0.0938** | 4.5825 &pm; 2.2684     |
-| Schnet  | 2.1.0   |      800 | 2.5247 &pm; 0.2063     | 8.8590 &pm; 4.8022     |
+| model     | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DimeNetPP | 2.1.1   |      872 | 2.8634 &pm; 0.1360     | 6.0549 &pm; 1.7723     |
+| EGNN      | 2.1.1   |      800 | 1.5786 &pm; 0.0863     | 3.6083 &pm; 0.7331     |
+| Megnet    | 2.1.0   |      800 | 1.4922 &pm; 0.0680     | **2.8795 &pm; 0.5466** |
+| MXMNet    | 2.1.1   |      872 | 5.9999 &pm; 3.4727     | 19.8145 &pm; 9.2640    |
+| NMPN      | 2.1.0   |      500 | 6.5715 &pm; 0.4977     | 34.9752 &pm; 8.0740    |
+| PAiNN     | 2.1.0   |      872 | **1.2690 &pm; 0.0938** | 4.5825 &pm; 2.2684     |
+| Schnet    | 2.1.0   |      800 | 2.5247 &pm; 0.2063     | 8.8590 &pm; 4.8022     |
 
 ## QM9Dataset
 

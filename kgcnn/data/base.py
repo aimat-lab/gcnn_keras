@@ -335,18 +335,19 @@ class MemoryGraphDataset(MemoryGraphList):
         # For logging.
         self.logger = logging.getLogger("kgcnn.data." + dataset_name) if dataset_name is not None else module_logger
         self.logger.setLevel(verbose)
-        # Dataset information on file.
+        # Information on location of dataset on file. Data directory must be filepath.
         self.data_directory = data_directory
         self.file_name = file_name
         self.file_directory = file_directory
         self.dataset_name = dataset_name
-        # Data Frame for information.
+        # Data Frame for labels and graph names.
         self.data_frame = None
         self.data_keys = None
         self.data_unit = None
 
     @property
     def file_path(self):
+        """Construct filepath from 'file_name' given in `init`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
@@ -359,6 +360,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     @property
     def file_directory_path(self):
+        """Construct file-directory path from 'file_name' and 'file_directory' given in `init`."""
         r"""Returns path information of `file_directory`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
@@ -371,12 +373,15 @@ class MemoryGraphDataset(MemoryGraphList):
         return os.path.join(self.data_directory, self.file_directory)
 
     def info(self, *args, **kwargs):
+        """Pass information to class' logger instance."""
         self.logger.info(*args, **kwargs)
 
     def warning(self, *args, **kwargs):
+        """Pass warning to class' logger instance."""
         self.logger.warning(*args, **kwargs)
 
     def error(self, *args, **kwargs):
+        """Pass error to class' logger instance."""
         self.logger.error(*args, **kwargs)
 
     def save(self, filepath: str = None):
@@ -420,8 +425,10 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         if file_path is None:
             file_path = os.path.join(self.data_directory, self.file_name)
-        file_path_base = os.path.splitext(file_path)[0]
+
+        # TODO: Better determine file-type from file ending and just test all supported types otherwise.
         # file_extension_given = os.path.splitext(file_path)[1]
+        file_path_base = os.path.splitext(file_path)[0]
 
         for file_extension in [".csv"]:
             if os.path.exists(file_path_base + file_extension):
@@ -435,9 +442,12 @@ class MemoryGraphDataset(MemoryGraphList):
         self.warning("Unsupported data extension of '%s' for table file." % file_path)
         return self
 
-    def assert_valid_model_input(self, hyper_input: list, raise_error_on_fail: bool = True):
-        r"""Interface to hyperparameter. Check whether dataset has graph-properties (tensor format) requested
-        by model input. The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
+    def assert_valid_model_input(self, hyper_input: Union[list, dict], raise_error_on_fail: bool = True):
+        r"""Check whether dataset has graph-properties (tensor format) requested by model input.
+
+        The list :obj:`hyper_input` that defines model input match interface to hyperparameter.
+        The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
+        The list must contain dictionaries with keys,
 
         .. code-block:: python
 
@@ -461,6 +471,19 @@ class MemoryGraphDataset(MemoryGraphList):
 
         def message_warning(msg):
             dataset.warning(msg)
+
+        if isinstance(hyper_input, dict):
+            if "name" in hyper_input and "shape" in hyper_input:
+                # Single model input that has not been properly passed as list.
+                hyper_input = [hyper_input]
+            else:
+                # In principle keras also accepts a dictionary for model inputs. Just cast to list here.
+                hyper_input = list(hyper_input.values())
+
+        for x in hyper_input:
+            if not isinstance(x, dict):
+                message_error(
+                    "Wrong type of list item in `assert_valid_model_input`. Found %s but must be `dict`" % type(x))
 
         for x in hyper_input:
             if "name" not in x:
