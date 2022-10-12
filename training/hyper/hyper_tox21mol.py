@@ -545,4 +545,65 @@ hyper = {
             "kgcnn_version": "2.1.0"
         }
     },
+    "MEGAN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.MEGAN",
+            "config": {
+                'name': "MEGAN",
+                'units': [60, 50, 40, 30],
+                'importance_units': [],
+                'final_units': [50, 30, 10, 12],
+                "final_activation": "sigmoid",
+                'dropout_rate': 0.3,
+                'final_dropout_rate': 0.00,
+                'importance_channels': 3,
+                'return_importances': False,
+                'use_edge_features': False,
+                'inputs': [{'shape': (None, 41), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, ), 'name': "edge_number", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+            }
+        },
+        "training": {
+            "fit": {
+                "batch_size": 64,
+                "epochs": 50,
+                "validation_freq": 1,
+                "verbose": 2,
+                "callbacks": [
+                    {
+                        "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
+                        "verbose": 0}
+                    }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "loss": "kgcnn>BinaryCrossentropyNoNaN",
+                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
+                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+        },
+        "data": {
+            "dataset": {
+                "class_name": "Tox21MolNetDataset",
+                "module_name": "kgcnn.data.datasets.Tox21MolNetDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_range", "max_distance": 3, "max_neighbours": 10000}}
+                ]
+            },
+            "data_unit": ""
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.1.1"
+        }
+    },
 }

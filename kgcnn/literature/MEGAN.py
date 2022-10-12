@@ -209,6 +209,7 @@ class MEGAN(ks.models.Model):
         })
 
         return config
+
     @property
     def doing_regression(self) -> bool:
         return self.regression_limits is not None
