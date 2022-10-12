@@ -122,7 +122,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     @staticmethod
     def _pymatgen_parse_file_to_structure(cif_file: str):
-        # We can add flexible from file here.
+        # TODO: We can add flexible parsing to include other than just CIF from file here.
         structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
         return structures
 
