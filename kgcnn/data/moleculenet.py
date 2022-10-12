@@ -415,6 +415,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         Returns:
             obj: Deserialized encoder.
         """
+        # TODO: Can extend deserialization to any callable encoder.
         if isinstance(encoder_identifier, dict):
             if encoder_identifier["class_name"] == "OneHotEncoder":
                 return OneHotEncoder.from_config(encoder_identifier["config"])

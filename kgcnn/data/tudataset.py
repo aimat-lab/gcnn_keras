@@ -11,9 +11,11 @@ from kgcnn.data.base import MemoryGraphDataset
 
 class GraphTUDataset(MemoryGraphDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. Datasets contain non-isomorphic graphs. This general base class has
-    functionality to load TUDatasets in a generic way. The datasets are already in a graph-like format and do not
-    need further processing via e.g. `prepare data`.
+    <https://chrsmrrs.github.io/datasets>`_.
+
+    Datasets contain non-isomorphic graphs for many graph classification or regression tasks.
+    This general base class has functionality to load TUDatasets in a generic way.
+    The datasets are already in a graph-like format and do not need further processing via e.g. `prepare data`.
 
     .. note::
         Note that subclasses of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
@@ -38,7 +40,9 @@ class GraphTUDataset(MemoryGraphDataset):
                                     file_name=file_name, verbose=verbose, file_directory=file_directory)
 
     def read_in_memory(self):
-        r"""Read the TUDataset into memory. The TUDataset is stored in disjoint representations. The data is cast
+        r"""Read the :obj:`GraphTUDataset` into memory.
+
+        The TUDataset is stored in disjoint representations. The data is cast
         to a list of separate graph properties for `MemoryGraphDataset`.
 
         Returns:
@@ -104,7 +108,7 @@ class GraphTUDataset(MemoryGraphDataset):
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
-            self.info("Shift start of graph id to zero for %s to match python indexing." % name_dataset)
+            self.info("Shift start of graph id to zero for '%s' to match python indexing." % name_dataset)
             g_a = g_a - 1
             g_n_id = g_n_id - 1
 

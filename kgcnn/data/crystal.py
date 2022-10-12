@@ -3,6 +3,7 @@ import numpy as np
 from collections import defaultdict
 from typing import Dict, Callable, List, Union
 import pandas as pd
+import pymatgen
 import pymatgen.io.cif
 import pymatgen.core.structure
 import pymatgen.symmetry.structure
