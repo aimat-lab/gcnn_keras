@@ -443,11 +443,11 @@ class MemoryGraphDataset(MemoryGraphList):
         return self
 
     def assert_valid_model_input(self, hyper_input: Union[list, dict], raise_error_on_fail: bool = True):
-        r"""Check whether dataset has graph-properties (tensor format) requested by model input.
+        r"""Check whether dataset has graph properties (in tensor format) requested by model input.
 
         The list :obj:`hyper_input` that defines model input match interface to hyperparameter.
         The model input is set up by a list of layer configs for the keras :obj:`Input` layer.
-        The list must contain dictionaries with keys,
+        The list must contain dictionaries for each model input with "name" and "shape" keys.
 
         .. code-block:: python
 
@@ -475,11 +475,13 @@ class MemoryGraphDataset(MemoryGraphList):
         if isinstance(hyper_input, dict):
             if "name" in hyper_input and "shape" in hyper_input:
                 # Single model input that has not been properly passed as list.
+                # Assume here one does not name model output name and shape.
                 hyper_input = [hyper_input]
             else:
                 # In principle keras also accepts a dictionary for model inputs. Just cast to list here.
                 hyper_input = list(hyper_input.values())
 
+        # Check if we have List[dict].
         for x in hyper_input:
             if not isinstance(x, dict):
                 message_error(
