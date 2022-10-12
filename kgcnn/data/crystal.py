@@ -144,24 +144,21 @@ class CrystalDataset(MemoryGraphDataset):
             return self
         pymatgen_file_made = False
 
-        file_path = os.path.join(self.data_directory, self.file_name)
-
         # We try to read in a csv file.
-        self.read_in_table_file(file_path=file_path)
+        self.read_in_table_file(file_path=self.file_path)
 
         # Check if table has a list of single cif files in file directory.
         if file_column_name is not None and self.data_frame is not None:
             # Try to find file names in data_frame
             file_list = self.data_frame[file_column_name].values
-            num_structs = len(file_list)
             structs = []
-            self.info("Read %s cif-file via pymatgen ..." % num_structs)
+            self.info("Read %s cif-file via pymatgen ..." % len(file_list))
             for i, x in enumerate(file_list):
                 # Only one file per path
                 structs.append(self._pymatgen_parse_file_to_structure(
                     os.path.join(self.data_directory, self.file_directory, x))[0])
                 if i % self._default_loop_update_info == 0:
-                    self.info(" ... load structure {0} from {1}".format(i, num_structs))
+                    self.info(" ... load structure {0} from {1}".format(i, len(file_list)))
             self.save_structures_to_json_file(structs)
             pymatgen_file_made = True
 

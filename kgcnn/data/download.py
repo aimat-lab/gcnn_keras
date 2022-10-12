@@ -13,11 +13,37 @@ module_logger.setLevel(logging.INFO)
 
 class DownloadDataset:
     r"""Download class for datasets. Provides static-methods and functions for download and unzip of the data.
+
     They are intentionally kept general and could also be used without this class definition.
+    Downloading is handled by :obj:`download_dataset_to_disk` already in :obj:`init` by default.
     Dataset-specific functions like :obj:`prepare_data` must be implemented in subclasses.
-    Note that :obj:`DownloadDataset` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
-    as default. Classes in :obj:`kgcnn.data.datasets` inherit from this class, but :obj:`DownloadDataset` can also be
+
+    .. note::
+
+        Note that :obj:`DownloadDataset` uses a main directory located at '~/.kgcnn/datasets' for downloading datasets
+        as default.
+
+    Classes in :obj:`kgcnn.data.datasets` inherit from this class, but :obj:`DownloadDataset` can also be
     used as a member via composition.
+
+    .. warning::
+
+        Downloads are not checked for safety or malware. Use with caution!
+
+    Example on how to use :obj:`DownloadDataset` standalone:
+
+    .. code-block:: python
+
+        from kgcnn.data.download import DownloadDataset
+        download = DownloadDataset(
+            download_url="https://github.com/aimat-lab/gcnn_keras/blob/master/README.md",
+            data_main_dir="./",
+            data_directory_name="",
+            download_file_name="README.html",
+            reload=True,
+            execute_download_dataset_on_init=False
+        )
+        download.download_dataset_to_disk()
     """
 
     def __init__(self,
@@ -32,7 +58,8 @@ class DownloadDataset:
                  extract_gz: bool = False,
                  reload: bool = False,
                  verbose: int = 10,
-                 data_main_dir: str = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets")
+                 data_main_dir: str = os.path.join(os.path.expanduser("~"), ".kgcnn", "datasets"),
+                 execute_download_dataset_on_init: bool = True
                  ):
         r"""Base initialization function for downloading and extracting the data. The arguments to the constructor
         determine what to download and whether to unpack the download. The main function :obj:`download_dataset_to_disk`
@@ -51,6 +78,7 @@ class DownloadDataset:
             extract_gz (bool): Whether to unpack a gz-archive. Default is False.
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Logging level. Default is 10.
+            execute_download_dataset_on_init (bool): Whether to start download on class construction.
         """
         self.data_main_dir = data_main_dir
         self.dataset_name = dataset_name
@@ -65,9 +93,11 @@ class DownloadDataset:
         self.download_reload = reload
         self.logger_download = module_logger
         self.logger_download.setLevel(verbose)
+        self.execute_download_dataset_on_init = bool(execute_download_dataset_on_init)
 
         # Make the download already in init.
-        self.download_dataset_to_disk()
+        if self.execute_download_dataset_on_init:
+            self.download_dataset_to_disk()
 
     def download_dataset_to_disk(self):
         """Main download function to run the download and unpack of the dataset. Defined by attributes in self."""
