@@ -5,7 +5,7 @@ from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyCon
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.utils.models import update_model_kwargs
-from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
+from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer, EmbeddingDimeBlock
 from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
 
 ks = tf.keras
@@ -26,8 +26,11 @@ model_default = {
                {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
                {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
-    "input_embedding": {"node": {"input_dim": 95, "output_dim": 32},
-                        "edge": {"input_dim": 5, "output_dim": 32}},
+    "input_embedding": {"node": {"input_dim": 95, "output_dim": 32,
+                                 "embeddings_initializer": {
+                                     "class_name": "RandomUniform",
+                                     "config": {"minval": -1.7320508075688772, "maxval": 1.7320508075688772}}},
+                        "edge": {"input_dim": 32, "output_dim": 32}},
     "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
     "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},  # Should match range_indices
     "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
@@ -123,7 +126,10 @@ def make_model(inputs: list = None,
 
     # Rename to short names and make embedding, if no feature dimension.
     x = xyz_input
-    n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
+    if len(inputs[0]["shape"]) < 2:
+        n = EmbeddingDimeBlock(**input_embedding["node"])(node_input)
+    else:
+        n = node_input
     ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
     ei_l = edge_index_input
     ri_g = range_index_input
