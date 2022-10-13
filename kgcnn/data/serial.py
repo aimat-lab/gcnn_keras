@@ -16,8 +16,9 @@ global_dataset_register = {
 
 def deserialize(dataset: Union[str, dict]):
     r"""Deserialize a dataset class from dictionary including "class_name" and "config" keys.
+
     Furthermore, `prepare_data`, `read_in_memory` and `map_list` are possible for deserialization if manually
-    set in 'methods' key as list.
+    set in 'methods' key as list. Tries to resolve datasets also without `module_name` key.
 
     Args:
         dataset (str, dict): Dictionary of the dataset serialization.
@@ -50,7 +51,7 @@ def deserialize(dataset: Union[str, dict]):
         ds_instance = ds_class(**config)
     except ModuleNotFoundError:
         raise NotImplementedError(
-            "Unknown identifier %s, which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
+            "Unknown identifier '%s', which is not in the sub-classed modules in kgcnn.data.datasets" % dataset_name)
 
     # Call class methods to load or process data.
     # Order is important here.

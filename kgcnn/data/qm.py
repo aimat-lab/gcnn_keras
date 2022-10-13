@@ -31,7 +31,7 @@ class QMDataset(MemoryGraphDataset):
             └── dataset_name.kgcnn.pickle
 
     Further, it should be possible to generate approximate chemical bonding information via `openbabel`, if this
-    additional package is installed. The class inherits :obj:`MemoryGraphDataset`.
+    additional package is installed. The class inherits from :obj:`MemoryGraphDataset`.
     """
 
     _global_proton_dict = global_proton_dict
@@ -112,7 +112,7 @@ class QMDataset(MemoryGraphDataset):
             self.info("Reading single xyz-file.")
             xyz_list = read_xyz_file(self.file_path_xyz)
 
-        # Additionally, try to make SDF file
+        # Additionally, try to make SDF file. Requires openbabel.
         if make_sdf:
             self.info("Converting xyz to mol information.")
             write_mol_block_list_to_sdf(self._make_mol_list(xyz_list), self.file_path_mol)

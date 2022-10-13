@@ -6,7 +6,7 @@ import os
 from typing import Union, List, Callable
 from collections.abc import MutableMapping
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
-from kgcnn.graph.base import GraphNumpyContainer, GraphDict
+from kgcnn.graph.base import GraphDict
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
