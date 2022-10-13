@@ -146,18 +146,24 @@ class QMDataset(MemoryGraphDataset):
         self.assign_property("node_number", nodes)
         return self
 
-    def read_in_memory_sdf(self):
+    def read_in_memory_sdf(self, file_path: str = None):
         """Read SDF-file with chemical structure information into memory.
+
+        Args:
+            file_path (str): Filepath to SDF file.
 
         Returns:
             self
         """
-        if not os.path.exists(self.file_path_mol):
+        if file_path is None:
+            file_path = self.file_path_mol
+
+        if not os.path.exists(file_path):
             self.warning("Can not load SDF-file for dataset %s" % self.dataset_name)
             return self
 
         # Load sdf file here.
-        mol_list = read_mol_list_from_sdf_file(self.file_path_mol)
+        mol_list = read_mol_list_from_sdf_file(file_path)
         if mol_list is None:
             self.warning("Failed to load bond information from SDF file.")
             return self
