@@ -8,7 +8,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
     """Downloader for DeepChem MoleculeNetDataset 2018 class.
 
     """
-    datsets_download_info = {
+    datasets_download_info = {
         "ESOL": {"dataset_name": "ESOL", "download_file_name": 'delaney-processed.csv', "data_directory_name": "ESOL"},
         "FreeSolv": {"dataset_name": "FreeSolv", "data_directory_name": "FreeSolv", "download_file_name": 'SAMPL.csv'},
         "Lipop": {"dataset_name": "Lipop", "data_directory_name": "Lipop", "download_file_name": 'Lipophilicity.csv'},
@@ -73,14 +73,14 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
         MoleculeNetDataset.__init__(self, verbose=verbose, dataset_name=dataset_name)
 
         # Prepare download
-        if dataset_name in self.datsets_download_info:
-            self.download_info = self.datsets_download_info[dataset_name]
+        if dataset_name in self.datasets_download_info:
+            self.download_info = self.datasets_download_info[dataset_name]
             self.download_info.update({"download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/" +
                                                        self.download_info["download_file_name"]})
         else:
             raise ValueError("ERROR:kgcnn: Can not resolve %s as a Molecule. Pick " % dataset_name,
-                             self.datsets_download_info.keys(),
-                             "For new dataset, add to `datsets_download_info` list manually.")
+                             self.datasets_download_info.keys(),
+                             "For new dataset, add to `datasets_download_info` list manually.")
 
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 

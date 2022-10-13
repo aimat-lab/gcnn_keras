@@ -6,67 +6,66 @@ from kgcnn.data.download import DownloadDataset
 
 
 class MD17Dataset(DownloadDataset, MemoryGraphDataset):
-    """Store and process full Cora dataset."""
-
-    download_info = {
-        "dataset_name": "MD17",
-        "data_directory_name": "MD17",
-        "download_url": "https://github.com/abojchevski/graph2gauss/raw/master/data/cora.npz",
-        "download_file_name": 'cora.npz',
-        "unpack_tar": False,
-        "unpack_zip": False,
-        "unpack_directory_name": None
+    """Store and process full MD17Dataset dataset."""
+    datasets_download_info = {
+        "CG-CG": {"download_file_name": "CG-CG.npz"},
+        "aspirin_dft": {"download_file_name": "aspirin_dft.npz"},
+        "azobenzene_dft": {"download_file_name": "azobenzene_dft.npz"},
+        "benzene2017_dft": {"download_file_name": "benzene2017_dft.npz"},
+        "benzene2018_dft": {"download_file_name": "benzene2018_dft.npz"},
+        "ethanol_dft": {"download_file_name": "ethanol_dft.npz"},
+        "malonaldehyde_dft": {"download_file_name": "malonaldehyde_dft.npz"},
+        "naphthalene_dft": {"download_file_name": "naphthalene_dft.npz"},
+        "paracetamol_dft": {"download_file_name": "paracetamol_dft.npz"},
+        "salicylic_dft": {"download_file_name": "salicylic_dft.npz"},
+        "toluene_dft": {"download_file_name": "toluene_dft.npz"},
+        "uracil_dft": {"download_file_name": "toluene_dft.npz"}
     }
 
-    def __init__(self, trajectory_name: str = "", reload=False, verbose=1):
+    def __init__(self, trajectory_name: str = None, reload=False, verbose=10):
         """Initialize full Cora dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
-        # Use default base class init()
         self.data_keys = None
+        self.trajectory_name = trajectory_name
+        MemoryGraphDataset.__init__(self, dataset_name="MD17", verbose=verbose)
 
-        MemoryGraphDataset.__init__(self, dataset_name="Cora", verbose=verbose)
-        DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
+        # Prepare download
+        if trajectory_name in self.datasets_download_info:
+            self.download_info = self.datasets_download_info[trajectory_name]
+            self.download_info.update({
+                "download_url": "http://quantum-machine.org/gdml/data/npz/%s" % self.download_info[
+                    "download_file_name"]})
+        else:
+            raise ValueError(
+                "Can not resolve '%s' trajectory. Choose: %s." % (
+                    trajectory_name, list(self.datasets_download_info.keys())))
 
+        DownloadDataset.__init__(self, dataset_name="MD17", data_directory_name="MD17", **self.download_info,
+                                 reload=reload, verbose=verbose)
+        self.file_name = self.download_file_name
+        self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
+        self.dataset_name = self.dataset_name + "_" + self.trajectory_name
         if self.fits_in_memory:
             self.read_in_memory()
 
+    def _get_trajectory_from_npz(self, file_path: str = None):
+        if file_path is None:
+            file_dir = os.path.join(self.data_directory)
+            file_path = os.path.join(file_dir, self.file_name)
+        return np.load(file_path)
+
     def read_in_memory(self):
-        """Load full Cora data into memory and already split into items."""
-        filepath = os.path.join(self.data_main_dir, self.data_directory_name, "cora.npz")
-        loader = np.load(filepath, allow_pickle=True)
-        loader = dict(loader)
-
-        a = sp.csr_matrix((loader['adj_data'], loader['adj_indices'],
-                           loader['adj_indptr']), shape=loader['adj_shape'])
-
-        x = sp.csr_matrix((loader['attr_data'], loader['attr_indices'],
-                           loader['attr_indptr']), shape=loader['attr_shape'])
-
-        # Original adjacency matrix
-        # self.graph_adjacency = a
-
-        # Compute labels
-        labels = loader.get('labels')
-        labels = np.expand_dims(labels, axis=-1)
-        labels = np.array(labels == np.arange(70), dtype="float")
-        self.assign_property("node_labels", [labels])  # One graph
-
-        # Node attributes
-        self.assign_property("node_attributes", [x.toarray()])
-
-        # Set edges and indices.
-        edi, ed = convert_scaled_adjacency_to_list(a)
-        self.assign_property("edge_indices", [edi])
-        self.assign_property("edge_attributes", [np.expand_dims(ed, axis=-1)])
-        self.assign_property("edge_weights", [np.expand_dims(ed, axis=-1)])
-
-        # Information
-        self.data_keys = loader.get('idx_to_class')
-
+        data = self._get_trajectory_from_npz()
+        self.data_keys = list(data.keys())
+        for key in ["R", "E", "F"]:
+            self.assign_property(key, [x for x in data[key]])
+        for key in ["z", 'name', 'type', 'md5', "theory"]:
+            value = data[key]
+            self.assign_property(key, [np.array(value) for _ in range(len(self))])
         return self
 
-# ds = CoraDataset()
+# ds = MD17Dataset("aspirin_dft")
