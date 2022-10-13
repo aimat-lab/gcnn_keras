@@ -107,13 +107,11 @@ class QMDataset(MemoryGraphDataset):
             )
             write_list_to_xyz_file(self.file_path_xyz, xyz_list)
 
-        # Or the default is to read from single xyz-file.
-        if xyz_list is None:
-            self.info("Reading single xyz-file.")
-            xyz_list = read_xyz_file(self.file_path_xyz)
-
         # Additionally, try to make SDF file. Requires openbabel.
         if make_sdf:
+            if xyz_list is None:
+                self.info("Reading single xyz-file.")
+                xyz_list = read_xyz_file(self.file_path_xyz)
             self.info("Converting xyz to mol information.")
             write_mol_block_list_to_sdf(self._make_mol_list(xyz_list), self.file_path_mol)
         return self
@@ -128,31 +126,24 @@ class QMDataset(MemoryGraphDataset):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_path)[0] + ".xyz"
 
-    def read_in_memory(self, label_column_name: Union[str, list] = None):
-        """Read xyz-file geometric information into memory. Optionally read also mol information. And try to find CSV
-        file with graph labels if a column is specified by :obj:`label_column_name`.
+    def read_in_memory_xyz(self, file_path: str = None):
+        """Read XYZ-file with geometric information into memory.
+
+        Args:
+            file_path (str): Filepath to xyz file.
 
         Returns:
             self
         """
-        # Try to read xyz file here.
-        xyz_list = read_xyz_file(self.file_path_xyz)
+        if file_path is None:
+            file_path = self.file_path_xyz
+        xyz_list = read_xyz_file(file_path)
         symbol = [np.array(x[0]) for x in xyz_list]
         coord = [np.array(x[1], dtype="float")[:, :3] for x in xyz_list]
         nodes = [np.array([self._global_proton_dict[x] for x in y[0]], dtype="int") for y in xyz_list]
-
         self.assign_property("node_coordinates", coord)
         self.assign_property("node_symbol", symbol)
         self.assign_property("node_number", nodes)
-
-        # Try also to read SDF file.
-        self.read_in_memory_sdf()
-
-        # Try also to read labels
-        self.read_in_table_file()
-        if self.data_frame is not None and label_column_name is not None:
-            labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
-            self.assign_property("graph_labels", [x for x in labels])
         return self
 
     def read_in_memory_sdf(self):
@@ -191,3 +182,30 @@ class QMDataset(MemoryGraphDataset):
         self.assign_property("edge_indices", edge_index)
         self.assign_property("edge_number", bond_number)
         return self
+
+    def read_in_memory(self, label_column_name: Union[str, list] = None):
+        """Read xyz-file geometric information into memory. Optionally read also mol information. And try to find CSV
+        file with graph labels if a column is specified by :obj:`label_column_name`.
+
+        Returns:
+            self
+        """
+        # 1. Read labels.
+        self.read_in_table_file()
+        if self.data_frame is not None and label_column_name is not None:
+            labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
+            self.assign_property("graph_labels", [x for x in labels])
+        else:
+            self.warning("Can not read '%s' from CSV table for assigning graph labels." % label_column_name)
+        # 2. Read geometries from xyz.
+        if os.path.exists(self.file_path_xyz):
+            self.read_in_memory_xyz()
+        else:
+            self.error("Can not read .xyz from file, no file '%s' found." % self.file_path_xyz)
+        # 3. Read also structure from SDF file.
+        if os.path.exists(self.file_path_mol):
+            self.read_in_memory_sdf()
+        else:
+            self.error("Can not read .sdf from file, no file '%s' found." % self.file_path_mol)
+        return self
+

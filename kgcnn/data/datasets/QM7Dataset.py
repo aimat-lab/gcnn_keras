@@ -4,7 +4,7 @@ import numpy as np
 import scipy.io
 import json
 import pandas as pd
-
+from typing import Union
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 from kgcnn.mol.io import write_list_to_xyz_file
@@ -80,6 +80,21 @@ class QM7Dataset(QMDataset, DownloadDataset):
         return super(QM7Dataset, self).prepare_data(
             overwrite=overwrite, xyz_column_name=xyz_column_name, make_sdf=make_sdf)
 
+    def _get_cross_validation_splits(self):
+        return np.load(os.path.join(self.data_directory, "qm7_splits.npy"))
+
+    def read_in_memory(self, label_column_name: Union[str, list] = None):
+        super(QM7Dataset, self).read_in_memory(label_column_name=label_column_name)
+        splits = self._get_cross_validation_splits()
+        property_split = []
+        for i in range(len(self)):
+            is_in_split = []
+            for j, split in enumerate(splits):
+                if i in split:
+                    is_in_split.append(j)
+            property_split.append(np.array(is_in_split, dtype="int"))
+        self.assign_property("k_split", property_split)
+
     def read_in_memory_sdf(self, **kwargs):
         super(QM7Dataset, self).read_in_memory_sdf()
 
@@ -91,5 +106,6 @@ class QM7Dataset(QMDataset, DownloadDataset):
             return np.array([np.mean(mass), len(mass)])
 
         self.assign_property("graph_attributes", [mmw(x) for x in self.obtain_property("node_symbol")])
+
 
 # data = QM7Dataset(reload=False)
