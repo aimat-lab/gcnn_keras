@@ -112,22 +112,24 @@ class DownloadDataset:
             self.setup_dataset_dir(self.data_main_dir, self.data_directory_name, logger=self.logger_download)
 
         if self.download_url is not None:
-            self.download_database(os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
-                                   self.download_file_name, overwrite=self.download_reload, logger=self.logger_download)
+            self.download_database(
+                os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
+                self.download_file_name, overwrite=self.download_reload, logger=self.logger_download)
 
         if self.unpack_tar:
-            self.unpack_tar_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=self.download_reload,
-                                 logger=self.logger_download)
+            self.unpack_tar_file(
+                os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                self.unpack_directory_name, overwrite=self.download_reload, logger=self.logger_download)
 
         if self.unpack_zip:
-            self.unpack_zip_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.unpack_directory_name, overwrite=self.download_reload,
-                                 logger=self.logger_download)
+            self.unpack_zip_file(
+                os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                self.unpack_directory_name, overwrite=self.download_reload, logger=self.logger_download)
 
         if self.extract_gz:
-            self.extract_gz_file(os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
-                                 self.extract_file_name, overwrite=self.download_reload, logger=self.logger_download)
+            self.extract_gz_file(
+                os.path.join(self.data_main_dir, self.data_directory_name), self.download_file_name,
+                self.extract_file_name, overwrite=self.download_reload, logger=self.logger_download)
 
     @staticmethod
     def setup_dataset_main(data_main_dir, logger=None):
