@@ -19,7 +19,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     The dataset class requires a :obj:`data_directory` to store a table '.csv' file containing labels and information
     of the structures stored in multiple (CIF, POSCAR, ...) files in :obj:`file_directory`.
-    The file names must be included in the '.csv' table.
+    The file names must be included in the '.csv' table. The table file must have one line of header with column names!
 
     .. code-block:: type
 
@@ -126,7 +126,7 @@ class CrystalDataset(MemoryGraphDataset):
     def _pymatgen_parse_file_to_structure(cif_file: str):
         # TODO: We can add flexible parsing to include other than just CIF from file here.
         structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
-        return structures
+        return structures[0]
 
     def prepare_data(self, file_column_name: str = None, overwrite: bool = False):
         r"""Default preparation for crystal datasets.
@@ -146,26 +146,13 @@ class CrystalDataset(MemoryGraphDataset):
             return self
         pymatgen_file_made = False
 
-        # We try to read in a csv file.
-        self.read_in_table_file(file_path=self.file_path)
-
-        # Check if table has a list of single cif files in file directory.
-        if file_column_name is not None and self.data_frame is not None:
-            # Try to find file names in data_frame
-            file_list = self.data_frame[file_column_name].values
-            structs = []
-            self.info("Read %s cif-file via pymatgen ..." % len(file_list))
-            for i, x in enumerate(file_list):
-                # Only one file per path
-                structs.append(self._pymatgen_parse_file_to_structure(
-                    os.path.join(self.data_directory, self.file_directory, x))[0])
-                if i % self._default_loop_update_info == 0:
-                    self.info(" ... load structure {0} from {1}".format(i, len(file_list)))
-            self.save_structures_to_json_file(structs)
-            pymatgen_file_made = True
-
-        if not pymatgen_file_made:
-            raise FileNotFoundError("Could not make pymatgen structures.")
+        self.info("Searching for structure files in '%s'" % self.file_directory_path)
+        structs = self.collect_files_in_file_directory(
+            file_column_name=file_column_name, table_file_path=None,
+            read_method_file=self._pymatgen_parse_file_to_structure, update_counter=self._default_loop_update_info,
+            append_file_content=True
+        )
+        self.save_structures_to_json_file(structs)
         return self
 
     def get_structures_from_json_file(self, file_path: str = None) -> List:

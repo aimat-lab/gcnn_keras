@@ -513,6 +513,39 @@ class MemoryGraphDataset(MemoryGraphList):
                 message_error("Can not check shape for '%s'." % x["name"])
         return
 
+    def collect_files_in_file_directory(self, file_column_name: str = None, table_file_path: str = None,
+                                        read_method_file: Callable = None, update_counter: int = 1000,
+                                        append_file_content: bool = True):
+        self.read_in_table_file(table_file_path)
+        if self.data_frame is None:
+            raise FileNotFoundError("Can not find '.csv' table path '%s'." % table_file_path)
+
+        if file_column_name is None:
+            raise ValueError("Please specify column for '.csv' file which contains file names.")
+
+        if file_column_name not in self.data_frame.columns:
+            raise ValueError(
+                "Can not find file names of column '%s' in '%s'" % (file_column_name, self.data_frame.columns))
+
+        name_file_list = self.data_frame[file_column_name].values
+        num_files = len(name_file_list)
+
+        if not os.path.exists(self.file_directory_path):
+            raise ValueError("No file directory found at '%s'." % self.file_directory_path)
+
+        self.info("Read %s single files." % num_files)
+        out_list = []
+        for i, x in enumerate(name_file_list):
+            # Only one file per path
+            file_loaded = read_method_file(os.path.join(self.file_directory_path, x))
+            if append_file_content:
+                out_list.append(file_loaded)
+            else:
+                out_list += file_loaded
+            if i % update_counter == 0:
+                self.info("... Read {0} file {1} from {2}".format(os.path.splitext(x)[1], i, num_files))
+        return out_list
+
     def set_methods(self, method_list: List[dict]) -> None:
         r"""Apply a list of serialized class-methods on the dataset.
 

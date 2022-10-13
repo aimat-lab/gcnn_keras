@@ -12,20 +12,31 @@ from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
 
 
 class QMDataset(MemoryGraphDataset):
-    r"""This is a base class for 'quantum mechanical' datasets. It generates graph properties from a xyz-file, which
-    stores atomic coordinates.
+    r"""This is a base class for QM (quantum mechanical) datasets.
 
-    Additionally, it should be possible to generate approximate chemical bonding information via `openbabel`, if this
-    additional package is installed.
-    The class inherits :obj:`MemoryGraphDataset`.
+    It generates graph properties from a xyz-file, which stores atomic coordinates.
+    Additionally, loading multiple single xyz-files into one file is supported. The file names and labels are given
+    by a CSV or table file. The table file must have one line of header with column names!
 
-    At the moment, there is no connection to :obj:`MoleculeNetDataset` since usually for geometric data, the usage is
-    related to learning quantum properties like energy, orbitals or forces and no "chemical" feature information is
-    required.
+    .. code-block:: type
+
+        ├── data_directory
+            ├── file_directory
+            │   ├── *.xyz
+            │   ├── *.xyz
+            │   └── ...
+            ├── file_name.csv
+            ├── file_name.xyz
+            ├── file_name.sdf
+            └── dataset_name.kgcnn.pickle
+
+    Further, it should be possible to generate approximate chemical bonding information via `openbabel`, if this
+    additional package is installed. The class inherits :obj:`MemoryGraphDataset`.
     """
 
     _global_proton_dict = global_proton_dict
     _inverse_global_proton_dict = inverse_global_proton_dict
+    _default_loop_update_info = 5000
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10, file_directory: str = None):
@@ -65,8 +76,13 @@ class QMDataset(MemoryGraphDataset):
             mol_list.append(mol_str)
         return mol_list
 
+    @staticmethod
+    def _parse_geom_singe_file(file_path: str):
+        return read_xyz_file(file_path)[0]
+
     def prepare_data(self, overwrite: bool = False, xyz_column_name: str = None, make_sdf: bool = True):
         r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
+
         If there is no single xyz-file, it will be created with the information of a csv-file with the same name.
 
         Args:
@@ -77,41 +93,18 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        xyz_list = None
-
         if os.path.exists(self.file_path_mol) and not overwrite:
             self.info("Found SDF-file %s of pre-computed structures." % self.file_path_mol)
             return self
 
-        # Collect single xyz files in directory
+        # Try collect single xyz files in directory
+        xyz_list = None
         if not os.path.exists(self.file_path_xyz):
-            self.read_in_table_file()
-
-            if self.data_frame is None:
-                raise FileNotFoundError("Can not find csv table with file names.")
-
-            if xyz_column_name is None:
-                raise ValueError("Please specify column for csv file which contains file names.")
-
-            if xyz_column_name not in self.data_frame.columns:
-                raise ValueError(
-                    "Can not find file-names of column %s in %s" % (xyz_column_name, self.data_frame.columns))
-
-            xyz_file_list = self.data_frame[xyz_column_name].values
-            num_molecules = len(xyz_file_list)
-
-            if not os.path.exists(os.path.join(self.data_directory, self.file_directory)):
-                raise ValueError("No file directory of xyz files.")
-
-            self.info("Read %s single xyz-files." % num_molecules)
-            xyz_list = []
-            for i, x in enumerate(xyz_file_list):
-                # Only one file per path
-                xyz_info = read_xyz_file(os.path.join(self.data_directory, self.file_directory, x))
-                xyz_list.append(xyz_info[0])
-                if i % 1000 == 0:
-                    self.info("... Read structure {0} from {1}".format(i, num_molecules))
-            # Make single file for later loading, which is faster.
+            xyz_list = self.collect_files_in_file_directory(
+                file_column_name=xyz_column_name, table_file_path=None,
+                read_method_file=self._parse_geom_singe_file, update_counter=self._default_loop_update_info,
+                append_file_content=True
+            )
             write_list_to_xyz_file(self.file_path_xyz, xyz_list)
 
         # Or the default is to read from single xyz-file.
@@ -122,8 +115,7 @@ class QMDataset(MemoryGraphDataset):
         # Additionally, try to make SDF file
         if make_sdf:
             self.info("Converting xyz to mol information.")
-            mb = self._make_mol_list(xyz_list)
-            write_mol_block_list_to_sdf(mb, self.file_path_mol)
+            write_mol_block_list_to_sdf(self._make_mol_list(xyz_list), self.file_path_mol)
         return self
 
     @property
