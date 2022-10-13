@@ -5,7 +5,7 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.download import DownloadDataset
 
 
-class MD17DatasetRevised(DownloadDataset, MemoryGraphDataset):
+class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
     """Store and process full MD17DatasetRevised dataset."""
 
     download_info = {
@@ -65,4 +65,4 @@ class MD17DatasetRevised(DownloadDataset, MemoryGraphDataset):
         self.assign_property("nuclear_charges", [np.array(node_number) for _ in range(len(self))])
         return self
 
-# ds = MD17DatasetRevised("aspirin")
+# ds = MD17RevisedDataset("aspirin")
