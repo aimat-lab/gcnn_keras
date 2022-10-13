@@ -515,7 +515,19 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def collect_files_in_file_directory(self, file_column_name: str = None, table_file_path: str = None,
                                         read_method_file: Callable = None, update_counter: int = 1000,
-                                        append_file_content: bool = True):
+                                        append_file_content: bool = True) -> list:
+        r"""Utility function to collect single files in :obj:`file_directory` by names in CSV table file.
+
+        Args:
+            file_column_name (str): Name of the column in Table file that holds list of file names.
+            table_file_path (str): Path to table file. Can be None. Default is None.
+            read_method_file (Callable): Callable read-file method to return (processed) file content.
+            update_counter (int): Loop counter to show progress. Default is 1000.
+            append_file_content (bool): Whether to append or add return of :obj:`read_method_file`.
+
+        Returns:
+            list: File content loaded from single files.
+        """
         self.read_in_table_file(table_file_path)
         if self.data_frame is None:
             raise FileNotFoundError("Can not find '.csv' table path '%s'." % table_file_path)
