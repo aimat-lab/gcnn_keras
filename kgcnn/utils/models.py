@@ -40,7 +40,8 @@ def get_model_class(module_name: str, class_name: str):
 
 
 def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
-    """Deprecated. Optional embedding for tensor input.
+    r"""Deprecated in favour of :obj:`kgcnn.layers.modules.OptionalInputEmbedding`. Optional embedding for tensor input.
+
     If there is no feature dimension, an embedding layer can be used.
     If the input tensor has without batch dimension the shape of e.g. `(None, F)` and `F` is the feature dimension,
     no embedding layer is required. However, for shape `(None, )` an embedding with `output_dim` assures a vector
