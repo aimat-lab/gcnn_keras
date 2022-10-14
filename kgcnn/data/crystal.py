@@ -75,6 +75,8 @@ class CrystalDataset(MemoryGraphDataset):
             data_directory=data_directory, dataset_name=dataset_name, file_name=file_name, verbose=verbose,
             file_directory=file_directory)
         self._structs = None
+        self.label_units = None
+        self.label_names = None
 
     @property
     def pymatgen_json_file_path(self):
