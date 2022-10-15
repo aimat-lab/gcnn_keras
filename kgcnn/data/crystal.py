@@ -128,7 +128,7 @@ class CrystalDataset(MemoryGraphDataset):
     def _pymatgen_parse_file_to_structure(cif_file: str):
         # TODO: We can add flexible parsing to include other than just CIF from file here.
         structures = pymatgen.io.cif.CifParser(cif_file).get_structures()
-        return structures[0]
+        return structures
 
     def prepare_data(self, file_column_name: str = None, overwrite: bool = False):
         r"""Default preparation for crystal datasets.
@@ -146,13 +146,12 @@ class CrystalDataset(MemoryGraphDataset):
         if os.path.exists(self.pymatgen_json_file_path) and not overwrite:
             self.info("Pickled pymatgen structures already exist. Do nothing.")
             return self
-        pymatgen_file_made = False
 
         self.info("Searching for structure files in '%s'" % self.file_directory_path)
         structs = self.collect_files_in_file_directory(
             file_column_name=file_column_name, table_file_path=None,
             read_method_file=self._pymatgen_parse_file_to_structure, update_counter=self._default_loop_update_info,
-            append_file_content=True
+            append_file_content=True, read_method_return_list=True
         )
         self.save_structures_to_json_file(structs)
         return self

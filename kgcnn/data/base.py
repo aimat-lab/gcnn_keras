@@ -515,7 +515,8 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def collect_files_in_file_directory(self, file_column_name: str = None, table_file_path: str = None,
                                         read_method_file: Callable = None, update_counter: int = 1000,
-                                        append_file_content: bool = True) -> list:
+                                        append_file_content: bool = True,
+                                        read_method_return_list: bool = False) -> list:
         r"""Utility function to collect single files in :obj:`file_directory` by names in CSV table file.
 
         Args:
@@ -524,6 +525,7 @@ class MemoryGraphDataset(MemoryGraphList):
             read_method_file (Callable): Callable read-file method to return (processed) file content.
             update_counter (int): Loop counter to show progress. Default is 1000.
             append_file_content (bool): Whether to append or add return of :obj:`read_method_file`.
+            read_method_return_list (bool): Whether :obj:`read_method_file` returns list of items or the item itself.
 
         Returns:
             list: File content loaded from single files.
@@ -551,9 +553,15 @@ class MemoryGraphDataset(MemoryGraphList):
             # Only one file per path
             file_loaded = read_method_file(os.path.join(self.file_directory_path, x))
             if append_file_content:
-                out_list.append(file_loaded)
+                if read_method_return_list:
+                    out_list.append(file_loaded[0])
+                else:
+                    out_list.append(file_loaded)
             else:
-                out_list += file_loaded
+                if read_method_return_list:
+                    out_list += file_loaded
+                else:
+                    out_list += [file_loaded]
             if i % update_counter == 0:
                 self.info("... Read {0} file {1} from {2}".format(os.path.splitext(x)[1], i, num_files))
         return out_list

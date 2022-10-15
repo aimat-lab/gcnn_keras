@@ -1,6 +1,9 @@
 import os
 import numpy as np
-from typing import Union
+import pandas as pd
+from typing import Union, Callable, List, Dict
+from collections import defaultdict
+from kgcnn.mol.base import MolGraphInterface
 from kgcnn.scaler.mol import QMGraphLabelScaler
 from sklearn.preprocessing import StandardScaler
 from kgcnn.data.base import MemoryGraphDataset
@@ -9,9 +12,10 @@ from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
 from kgcnn.mol.module_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
 from kgcnn.data.utils import pandas_data_frame_columns_to_numpy
 from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
+from kgcnn.data.moleculenet import MolGraphCallbacks
 
 
-class QMDataset(MemoryGraphDataset):
+class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
     r"""This is a base class for QM (quantum mechanical) datasets.
 
     It generates graph properties from a xyz-file, which stores atomic coordinates.
@@ -58,6 +62,16 @@ class QMDataset(MemoryGraphDataset):
         self.label_units = None
         self.label_names = None
 
+    @property
+    def file_path_mol(self):
+        """Try to determine a file name for the mol information to store."""
+        return os.path.splitext(self.file_path)[0] + ".sdf"
+
+    @property
+    def file_path_xyz(self):
+        """Try to determine a file name for the mol information to store."""
+        return os.path.splitext(self.file_path)[0] + ".xyz"
+
     @classmethod
     def _make_mol_list(cls, atoms_coordinates_xyz: list):
         """Make mol-blocks from list of multiple molecules.
@@ -76,9 +90,21 @@ class QMDataset(MemoryGraphDataset):
             mol_list.append(mol_str)
         return mol_list
 
-    @staticmethod
-    def _parse_geom_singe_file(file_path: str):
-        return read_xyz_file(file_path)[0]
+    def get_geom_from_xyz_file(self, file_path: str):
+        if file_path is None:
+            file_path = self.file_path_xyz
+        return read_xyz_file(file_path)
+
+    def get_mol_blocks_from_sdf_file(self, file_path: str):
+        if file_path is None:
+            file_path = self.file_path_mol
+        if not os.path.exists(file_path):
+            raise FileNotFoundError("Can not load SDF for dataset %s" % self.dataset_name)
+        # Loading the molecules and the csv data
+        mol_list = read_mol_list_from_sdf_file(file_path)
+        if mol_list is None:
+            self.warning("Failed to load bond information from SDF file.")
+        return mol_list
 
     def prepare_data(self, overwrite: bool = False, xyz_column_name: str = None, make_sdf: bool = True):
         r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
@@ -102,8 +128,8 @@ class QMDataset(MemoryGraphDataset):
         if not os.path.exists(self.file_path_xyz):
             xyz_list = self.collect_files_in_file_directory(
                 file_column_name=xyz_column_name, table_file_path=None,
-                read_method_file=self._parse_geom_singe_file, update_counter=self._default_loop_update_info,
-                append_file_content=True
+                read_method_file=self.get_geom_from_xyz_file, update_counter=self._default_loop_update_info,
+                append_file_content=True, read_method_return_list=True
             )
             write_list_to_xyz_file(self.file_path_xyz, xyz_list)
 
@@ -111,20 +137,10 @@ class QMDataset(MemoryGraphDataset):
         if make_sdf:
             if xyz_list is None:
                 self.info("Reading single xyz-file.")
-                xyz_list = read_xyz_file(self.file_path_xyz)
+                xyz_list = self.get_geom_from_xyz_file(self.file_path_xyz)
             self.info("Converting xyz to mol information.")
             write_mol_block_list_to_sdf(self._make_mol_list(xyz_list), self.file_path_mol)
         return self
-
-    @property
-    def file_path_mol(self):
-        """Try to determine a file name for the mol information to store."""
-        return os.path.splitext(self.file_path)[0] + ".sdf"
-
-    @property
-    def file_path_xyz(self):
-        """Try to determine a file name for the mol information to store."""
-        return os.path.splitext(self.file_path)[0] + ".xyz"
 
     def read_in_memory_xyz(self, file_path: str = None):
         """Read XYZ-file with geometric information into memory.
@@ -135,9 +151,7 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        if file_path is None:
-            file_path = self.file_path_xyz
-        xyz_list = read_xyz_file(file_path)
+        xyz_list = self.get_geom_from_xyz_file(file_path)
         symbol = [np.array(x[0]) for x in xyz_list]
         coord = [np.array(x[1], dtype="float")[:, :3] for x in xyz_list]
         nodes = [np.array([self._global_proton_dict[x] for x in y[0]], dtype="int") for y in xyz_list]
@@ -155,38 +169,21 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        if file_path is None:
-            file_path = self.file_path_mol
-
-        if not os.path.exists(file_path):
-            self.warning("Can not load SDF-file for dataset %s" % self.dataset_name)
-            return self
-
-        # Load sdf file here.
-        mol_list = read_mol_list_from_sdf_file(file_path)
-        if mol_list is None:
-            self.warning("Failed to load bond information from SDF file.")
-            return self
-
-        # Parse information
-        self.info("Parsing mol information ...")
-        bond_number = []
-        edge_index = []
-        edge_attr = []
-        for x in mol_list:
-            # Must not change number of atoms or coordinates here.
-            mol = MolecularGraphOpenBabel().from_mol_block(x, keep_hs=True)
-            if mol is None:
-                bond_number.append(None)
-                edge_index.append(None)
-                continue
-
-            temp_edge = mol.edge_number
-            bond_number.append(np.array(temp_edge[1], dtype="int"))
-            edge_index.append(np.array(temp_edge[0], dtype="int"))
-
-        self.assign_property("edge_indices", edge_index)
-        self.assign_property("edge_number", bond_number)
+        callbacks = {
+            "node_symbol": lambda mg, ds: mg.node_symbol,
+            "node_number": lambda mg, ds: mg.node_number,
+            "edge_indices": lambda mg, ds: mg.edge_number[0],
+            "edge_number": lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
+        }
+        self._map_molecule_callbacks(
+            self.get_mol_blocks_from_sdf_file(file_path),
+            self.read_in_table_file().data_frame,
+            callbacks=callbacks,
+            add_hydrogen=True,
+            custom_transform=None,
+            make_directed=False,
+            mol_interface_class=MolecularGraphOpenBabel
+        )
         return self
 
     def read_in_memory(self, label_column_name: Union[str, list] = None):
@@ -199,7 +196,7 @@ class QMDataset(MemoryGraphDataset):
         # 1. Read labels.
         self.read_in_table_file()
         if self.data_frame is not None and label_column_name is not None:
-            labels = pandas_data_frame_columns_to_numpy(self.data_frame, label_column_name)
+            labels = self.data_frame.loc[label_column_name]
             self.assign_property("graph_labels", [x for x in labels])
         else:
             self.warning("Can not read '%s' from CSV table for assigning graph labels." % label_column_name)
@@ -214,4 +211,3 @@ class QMDataset(MemoryGraphDataset):
         else:
             self.error("Can not read .sdf from file, no file '%s' found." % self.file_path_mol)
         return self
-
