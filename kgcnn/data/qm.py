@@ -196,7 +196,7 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
         # 1. Read labels.
         self.read_in_table_file()
         if self.data_frame is not None and label_column_name is not None:
-            labels = self.data_frame.loc[label_column_name]
+            labels = self.data_frame[label_column_name]
             self.assign_property("graph_labels", [x for x in labels])
         else:
             self.warning("Can not read '%s' from CSV table for assigning graph labels." % label_column_name)
