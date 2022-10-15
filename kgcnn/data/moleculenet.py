@@ -108,7 +108,7 @@ class MolGraphCallbacks:
         # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one molecule in the dataset.
         if data is None:
-            self.info("Received not pandas data.")
+            self.info("Received no pandas data.")
 
         value_lists = defaultdict(list)
         for index, sm in enumerate(mol_list):
