@@ -9,7 +9,7 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
-from kgcnn.data.moleculenet import MolGraphCallbacks
+from kgcnn.data.moleculenet import map_molecule_callbacks
 
 try:
     from openbabel import openbabel
@@ -24,7 +24,7 @@ except ImportError:
     rdkit, MolecularGraphRDKit = None, None
 
 
-class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
+class QMDataset(MemoryGraphDataset):
     r"""This is a base class for QM (quantum mechanical) datasets.
 
     It generates graph properties from a xyz-file, which stores atomic coordinates.
@@ -189,11 +189,10 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
         self.assign_property("node_number", nodes)
         return self
 
-    def read_in_memory_sdf(self, file_path: str = None, label_column_name: Union[str, list] = None):
+    def set_attributes(self, label_column_name: Union[str, list] = None):
         """Read SDF-file with chemical structure information into memory.
 
         Args:
-            file_path (str): Filepath to SDF file.
             label_column_name (str, list): Name of labels for columns in CSV file.
 
         Returns:
@@ -209,15 +208,21 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
         if label_column_name:
             callbacks.update({'graph_labels': lambda mg, ds: ds[label_column_name]})
 
-        self._map_molecule_callbacks(
-            self.get_mol_blocks_from_sdf_file(file_path),
+        value_list = map_molecule_callbacks(
+            self.get_mol_blocks_from_sdf_file(),
             self.read_in_table_file().data_frame,
             callbacks=callbacks,
             add_hydrogen=True,
             custom_transform=None,
             make_directed=False,
-            mol_interface_class=MolecularGraphOpenBabel
+            mol_interface_class=MolecularGraphOpenBabel,
+            logger=self.logger,
+            loop_update_info=self._default_loop_update_info
         )
+
+        for name, values in value_list.items():
+            self.assign_property(name, values)
+
         return self
 
     def read_in_memory(self, label_column_name: Union[str, list] = None):
@@ -230,7 +235,7 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
         """
         if os.path.exists(self.file_path_mol) and openbabel is not None:
             self.info("Reading structures from SDF file.")
-            self.read_in_memory_sdf(label_column_name=label_column_name)
+            self.set_attributes(label_column_name=label_column_name)
         else:
             # 1. Read labels and xyz-file without openbabel.
             self.read_in_table_file()

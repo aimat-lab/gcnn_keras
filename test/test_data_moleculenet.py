@@ -9,7 +9,7 @@ import pandas as pd
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
-from kgcnn.data.moleculenet import MoleculeNetDataset
+from kgcnn.data.moleculenet import MoleculeNetDataset, map_molecule_callbacks
 from kgcnn.mol.encoder import OneHotEncoder
 
 
@@ -195,8 +195,11 @@ class TestMoleculeNetDataset(unittest.TestCase):
         )
         # This method will automatically add properties with the string key names of the "callbacks" dict to the
         # underlying GraphList based on the transformations defined by the callback functions.
-        molnet._map_molecule_callbacks(
-            molnet.get_mol_blocks_from_sdf_file(), molnet.read_in_table_file().data_frame, callbacks)
+        mol_values = map_molecule_callbacks(
+            molnet.get_mol_blocks_from_sdf_file(), molnet.read_in_table_file().data_frame, callbacks=callbacks)
+
+        for key, value in mol_values.items():
+            molnet.assign_property(key, value)
 
         molecule = molnet[1]
         self.assertIn('name', molecule)

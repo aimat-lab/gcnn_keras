@@ -4,7 +4,7 @@ import pandas as pd
 
 from typing import Dict, Callable, Union, List
 from collections import defaultdict
-
+from kgcnn.mol.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.base import MolGraphInterface
 from kgcnn.mol.module_rdkit import MolecularGraphRDKit
@@ -13,154 +13,108 @@ from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_fil
 from kgcnn.mol.convert import MolConverter
 
 
-class MolGraphCallbacks:
+def map_molecule_callbacks(mol_list: List[str],
+                           data: Union[pd.Series, pd.DataFrame],
+                           callbacks: Dict[str, Callable[[MolGraphInterface, pd.Series], None]],
+                           custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None,
+                           add_hydrogen: bool = False,
+                           make_directed: bool = False,
+                           mol_interface_class=None,
+                           logger=None,
+                           loop_update_info: int = 5000
+                           ) -> dict:
+    r"""This method receive the list of molecules, as well as the data from a pandas data series.
+    It then iterates over all the molecules / data rows and invokes the callbacks for each.
 
-    _default_node_attributes = [
-        'Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
-        'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
-    _default_node_encoders = {
-        'Symbol': OneHotEncoder(
-            ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
-            dtype="str"
-        ),
-        'Hybridization': OneHotEncoder([2, 3, 4, 5, 6]),
-        'TotalDegree': OneHotEncoder([0, 1, 2, 3, 4, 5], add_unknown=False),
-        'TotalNumHs': OneHotEncoder([0, 1, 2, 3, 4], add_unknown=False),
-        'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str'),
-        "ChiralityPossible": OneHotEncoder(["1"], add_unknown=False, dtype='str'),
-    }
-    _default_edge_attributes = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
-    _default_edge_encoders = {
-        'BondType': OneHotEncoder([1, 2, 3, 12], add_unknown=False),
-        'Stereo': OneHotEncoder([0, 1, 2, 3], add_unknown=False)
-    }
-    _default_graph_attributes = ['ExactMolWt', 'NumAtoms']
-    _default_graph_encoders = {}
+    The "callbacks" parameter is supposed to be a dictionary whose keys are string names of attributes which are
+    supposed to be derived from the molecule / data and the values are function objects which define how to
+    derive that data. Those callback functions get two parameters:
 
-    _default_loop_update_info = 1000
+        - mg: The :obj:`MolGraphInterface` instance for the current molecule
+        - ds: A pandas data series that match data in the CSV file for the specific molecule.
 
-    def __init__(self, *args, **kwargs):
-        super(MolGraphCallbacks, self).__init__(*args, **kwargs)
+    The string keys of the "callbacks" directory are also the string names which are later used to assign the
+    properties of the underlying :obj:`GraphList`. This means that each element of the dataset will then have a
+    field with the same name.
 
-    def _map_molecule_callbacks(self,
-                                mol_list: List[str],
-                                data: Union[pd.Series, pd.DataFrame],
-                                callbacks: Dict[str, Callable[[MolGraphInterface, pd.Series], None]],
-                                custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None,
-                                add_hydrogen: bool = False,
-                                make_directed: bool = False,
-                                assign_to_self: bool = True,
-                                mol_interface_class=None,
-                                ) -> dict:
-        r"""This method receive the list of molecules, as well as the data from a pandas data series.
-        It then iterates over all the molecules / data rows and invokes the callbacks for each.
+    .. note::
 
-        The "callbacks" parameter is supposed to be a dictionary whose keys are string names of attributes which are
-        supposed to be derived from the molecule / data and the values are function objects which define how to
-        derive that data. Those callback functions get two parameters:
+        If a molecule cannot be properly loaded by :obj:`MolGraphInterface`, then for all attributes
+        "None" is added without invoking the callback!
 
-            - mg: The :obj:`MolecularGraphRDKit` instance for the current molecule
-            - ds: A pandas data series that match data in the CSV file for the specific molecule.
+    Example:
 
-        The string keys of the "callbacks" directory are also the string names which are later used to assign the
-        properties of the underlying :obj:`GraphList`. This means that each element of the dataset will then have a
-        field with the same name.
+    .. code-block:: python
 
-        .. note::
+        mol_net = MoleculeNetDataset()
+        mol_net.prepare_data()
 
-            If a molecule cannot be properly loaded by :obj:`MolecularGraphRDKit`, then for all attributes
-            "None" is added without invoking the callback!
+        mol_values = map_molecule_callbacks(
+            mol_net.get_mol_blocks_from_sdf_file(),
+            mol_net.read_in_table_file().data_frame,
+            callbacks={
+                'graph_size': lambda mg, dd: len(mg.node_number),
+                'index': lambda mg, dd: dd['index']
+            }
+        )
 
-        Example:
+        for key, value in mol_values.items():
+            mol_net.assign_property(key, value)
 
-        .. code-block:: python
-
-            mol_net = MoleculeNetDataset()
-            mol_net.prepare_data()
-
-            mol_net._map_molecule_callbacks(
-                mol_net.get_mol_blocks_from_sdf_file(),
-                mol_net.read_in_table_file().data_frame,
-                callbacks={
-                    'graph_size': lambda mg, dd: len(mg.node_number),
-                    'index': lambda mg, dd: dd['index']
-                }
-            )
-
-            mol: dict = mol_net[0]
-            assert 'graph_size' in mol.keys()
-            assert 'index' in mol.keys()
+        mol: dict = mol_net[0]
+        assert 'graph_size' in mol.keys()
+        assert 'index' in mol.keys()
 
 
-        Args:
-            mol_list (list): List of mol strings.
-            data (pd.DataFrame): Pandas data frame or series matching list of mol-strings.
-            callbacks (dict): Dictionary of callbacks to perform on MolecularGraph object and table entries.
-            add_hydrogen (bool): Whether to add hydrogen when making a :obj:`MolecularGraphRDKit` instance.
-            make_directed (bool): Whether to have directed or undirected bonds. Default is False.
-            custom_transform (Callable): Custom transformation function to modify the generated
-                :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
-                :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
-            mol_interface_class: Interface for molecular graphs. Must be a :obj:`MolGraphInterface`.
+    Args:
+        mol_list (list): List of mol strings.
+        data (pd.DataFrame): Pandas data frame or series matching list of mol-strings.
+        callbacks (dict): Dictionary of callbacks to perform on MolecularGraph object and table entries.
+        add_hydrogen (bool): Whether to add hydrogen when making a :obj:`MolecularGraphRDKit` instance.
+        make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+        custom_transform (Callable): Custom transformation function to modify the generated
+            :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
+            :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
+        mol_interface_class: Interface for molecular graphs. Must be a :obj:`MolGraphInterface`.
+        logger: Logger to report error and progress.
+        loop_update_info (int): Updates for processed molecules.
 
-        Returns:
-            dict: Values of callbacks.
-        """
-        # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
-        # lists corresponds to one molecule in the dataset.
-        if data is None:
-            self.error("Received no pandas data.")
+    Returns:
+        dict: Values of callbacks.
+    """
+    # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
+    # lists corresponds to one molecule in the dataset.
+    if data is None:
+        if logger is not None:
+            logger.error("Received no pandas data.")
+    if mol_list is None:
+        raise ValueError("Expected list of mol-string. But got '%s'" % mol_list)
 
-        value_lists = defaultdict(list)
-        for index, sm in enumerate(mol_list):
-            mg = mol_interface_class(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
+    value_lists = defaultdict(list)
+    for index, sm in enumerate(mol_list):
+        mg = mol_interface_class(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
 
-            if custom_transform is not None:
-                mg = custom_transform(mg)
+        if custom_transform is not None:
+            mg = custom_transform(mg)
 
-            for name, callback in callbacks.items():
-                if mg.mol is None:
-                    value_lists[name].append(None)
+        for name, callback in callbacks.items():
+            if mg.mol is None:
+                value_lists[name].append(None)
+            else:
+                if data is not None:
+                    data_dict = data.loc[index]
                 else:
-                    if data is not None:
-                        data_dict = data.loc[index]
-                    else:
-                        data_dict = None
-                    value = callback(mg, data_dict)
-                    value_lists[name].append(value)
-            if index % self._default_loop_update_info == 0:
-                self.info(" ... process molecules {0} from {1}".format(index, len(mol_list)))
+                    data_dict = None
+                value = callback(mg, data_dict)
+                value_lists[name].append(value)
+        if index % loop_update_info == 0:
+            if logger is not None:
+                logger.info(" ... process molecules {0} from {1}".format(index, len(mol_list)))
 
-        # The string key names of the original "callbacks" dict are also used as the names of the properties which are
-        # assigned.
-        if assign_to_self:
-            if hasattr(self, "assign_property"):
-                for name, values in value_lists.items():
-                    self.assign_property(name, values)
-
-        return value_lists
-
-    @staticmethod
-    def _deserialize_encoder(encoder_identifier):
-        """Deserialization of encoder class.
-
-        Args:
-            encoder_identifier: Identifier, class or function of an encoder.
-
-        Returns:
-            obj: Deserialized encoder.
-        """
-        # TODO: Can extend deserialization to any callable encoder.
-        if isinstance(encoder_identifier, dict):
-            if encoder_identifier["class_name"] == "OneHotEncoder":
-                return OneHotEncoder.from_config(encoder_identifier["config"])
-        elif hasattr(encoder_identifier, "__call__"):
-            return encoder_identifier
-        else:
-            raise ValueError("Unable to deserialize encoder %s " % encoder_identifier)
+    return value_lists
 
 
-class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
+class MoleculeNetDataset(MemoryGraphDataset):
     r"""Class for using 'MoleculeNet' datasets.
 
     The concept is to load a table of smiles and corresponding targets an convert them into a tensor representation
@@ -188,7 +142,31 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
 
     Attribute generation is carried out via the :obj:`MolecularGraphRDKit` class and requires RDKit as backend.
     """
-    _default_loop_update_info = 1000
+
+    _default_node_attributes = [
+        'Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
+        'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"
+    ]
+    _default_node_encoders = {
+        'Symbol': OneHotEncoder(
+            ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
+            dtype="str"
+        ),
+        'Hybridization': OneHotEncoder([2, 3, 4, 5, 6]),
+        'TotalDegree': OneHotEncoder([0, 1, 2, 3, 4, 5], add_unknown=False),
+        'TotalNumHs': OneHotEncoder([0, 1, 2, 3, 4], add_unknown=False),
+        'CIPCode': OneHotEncoder(['R', 'S'], add_unknown=False, dtype='str'),
+        "ChiralityPossible": OneHotEncoder(["1"], add_unknown=False, dtype='str'),
+    }
+    _default_edge_attributes = ['BondType', 'IsAromatic', 'IsConjugated', 'IsInRing', 'Stereo']
+    _default_edge_encoders = {
+        'BondType': OneHotEncoder([1, 2, 3, 12], add_unknown=False),
+        'Stereo': OneHotEncoder([0, 1, 2, 3], add_unknown=False)
+    }
+    _default_graph_attributes = ['ExactMolWt', 'NumAtoms']
+    _default_graph_encoders = {}
+
+    _default_loop_update_info = 5000
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10):
@@ -312,8 +290,8 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
                        add_hydrogen: bool = False,
                        make_directed: bool = False,
                        has_conformers: bool = True,
-                       additional_callbacks: Dict[str, Callable[[MolecularGraphRDKit, dict], None]] = None,
-                       custom_transform: Callable[[MolecularGraphRDKit], MolecularGraphRDKit] = None):
+                       additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
+                       custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
         path information in the constructor of this class.
 
@@ -398,7 +376,7 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         # Deserializing encoders
         for encoder in [encoder_nodes, encoder_edges, encoder_graph]:
             for key, value in encoder.items():
-                encoder[key] = self._deserialize_encoder(value)
+                encoder[key] = deserialize_encoder(value)
 
         callbacks = {
             'node_symbol': lambda mg, ds: mg.node_symbol,
@@ -422,15 +400,20 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         # Additional callbacks. Could check for duplicate names here.
         callbacks.update(additional_callbacks)
 
-        self._map_molecule_callbacks(
+        value_lists = map_molecule_callbacks(
             self.get_mol_blocks_from_sdf_file(),
             self.read_in_table_file().data_frame,
             callbacks=callbacks,
             add_hydrogen=add_hydrogen,
             custom_transform=custom_transform,
             make_directed=make_directed,
-            mol_interface_class=MolecularGraphRDKit
+            mol_interface_class=MolecularGraphRDKit,
+            logger=self.logger,
+            loop_update_info=self._default_loop_update_info
         )
+
+        for name, values in value_lists.items():
+            self.assign_property(name, values)
 
         if self.logger.getEffectiveLevel() < 20:
             for encoder in [encoder_nodes, encoder_edges, encoder_graph]:
@@ -441,4 +424,3 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         return self
 
     read_in_memory = set_attributes
-
