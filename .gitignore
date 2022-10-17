@@ -4,7 +4,7 @@
 *.zip
 /training/results/*/*/*.npz
 /training/results/*/*/scaler*.npz
-/training/results/*/*/sacler*.pickle
+/training/results/*/*/*.pickle
 /develop/
 build
 dist

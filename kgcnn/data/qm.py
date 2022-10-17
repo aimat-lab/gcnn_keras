@@ -229,6 +229,7 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
             self
         """
         if os.path.exists(self.file_path_mol) and openbabel is not None:
+            self.info("Reading structures from SDF file.")
             self.read_in_memory_sdf(label_column_name=label_column_name)
         else:
             # 1. Read labels and xyz-file without openbabel.

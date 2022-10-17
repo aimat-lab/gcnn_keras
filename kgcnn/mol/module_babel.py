@@ -140,15 +140,14 @@ class MolecularGraphOpenBabel(MolGraphInterface):
     @property
     def node_coordinates(self):
         """Return a list of atomic coordinates of the molecule."""
-        if self.mol.Has3D():
-            xyz = []
-            for i in range(self.mol.NumAtoms()):
-                ats = self.mol.GetAtomById(i)
-                # ats = mol.GetAtom(i+1)
-                xyz.append([ats.GetX(), ats.GetY(), ats.GetZ()])
-            return np.array(xyz)
-        else:
-            return None
+        xyz = []
+        for i in range(self.mol.NumAtoms()):
+            ats = self.mol.GetAtomById(i)
+            # ats = mol.GetAtom(i+1)
+            xyz.append([ats.GetX(), ats.GetY(), ats.GetZ()])
+        if len(xyz) <= 0:
+            return
+        return np.array(xyz)
 
     @property
     def edge_indices(self):
