@@ -3,6 +3,8 @@
 *.txt
 *.zip
 /training/results/*/*/*.npz
+/training/results/*/*/scaler*.npz
+/training/results/*/*/sacler*.pickle
 /develop/
 build
 dist

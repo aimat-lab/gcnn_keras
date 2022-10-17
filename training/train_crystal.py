@@ -4,7 +4,7 @@ import numpy as np
 import time
 import os
 import argparse
-from kgcnn.data.utils import save_json_file
+from kgcnn.data.utils import save_pickle_file
 from datetime import timedelta
 from tensorflow_addons import optimizers
 from kgcnn.scaler.scaler import StandardScaler
@@ -194,7 +194,7 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
 
 # Save full history.
-save_json_file(history_list, os.path.join(filepath, f"scaler_weights{postfix_file}"))
+save_pickle_file(history_list, os.path.join(filepath, f"scaler_weights{postfix_file}"))
 
 # Save scaler.
 scaler.save_weights(os.path.join(filepath, f"scaler_weights{postfix_file}"))
