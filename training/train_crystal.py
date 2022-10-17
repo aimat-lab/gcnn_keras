@@ -194,7 +194,8 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
 
 # Save full history.
-save_pickle_file(history_list, os.path.join(filepath, f"scaler_weights{postfix_file}"))
+save_pickle_file([x.history for x in history_list],
+                 os.path.join(filepath, f"histories_all{postfix_file}.pickle"))
 
 # Save scaler.
 scaler.save_weights(os.path.join(filepath, f"scaler_weights{postfix_file}"))
