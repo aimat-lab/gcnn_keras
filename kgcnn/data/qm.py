@@ -202,6 +202,7 @@ class QMDataset(MemoryGraphDataset, MolGraphCallbacks):
         callbacks = {
             "node_symbol": lambda mg, ds: mg.node_symbol,
             "node_number": lambda mg, ds: mg.node_number,
+            "node_coordinates": lambda mg, ds: mg.node_coordinates,
             "edge_indices": lambda mg, ds: mg.edge_number[0],
             "edge_number": lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
         }

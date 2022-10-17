@@ -15,6 +15,8 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Reworked ``kgcnn.graph.adj.get_angle_index`` with additional function arguments. Default behaviour remains identical. For periodic system an additional `allow_reverse_edges=True` is now required.
 * Added input embedding for edges in ``kgcnn.literature.EGNN`` and changed order of input tensors. Debugged model.
 * Reworked ``kgcnn.literature.PAiNN`` to simplify normalization option and add equivariant initialization method.
+* Reworked ``kgcnn.data.qm`` including all qm7-qm9 datasets. Improved documentation. If error occur, please run `QM9Dataset(reload=True)`.
+
 
 v2.1.0
 

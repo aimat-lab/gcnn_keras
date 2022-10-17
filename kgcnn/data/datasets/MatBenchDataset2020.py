@@ -138,10 +138,8 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         file_name_download = self.download_file_name if self.extract_file_name is None else self.extract_file_name
         # file_name_base = os.path.splitext(self.file_name)[0]
 
-        if all([os.path.exists(os.path.join(self.data_directory, self._get_pymatgen_file_name())),
-               os.path.exists(os.path.join(self.data_directory, self.file_name)),
-               not overwrite]):
-            self.info("Found %s of structures." % self._get_pymatgen_file_name())
+        if all([os.path.exists(self.pymatgen_json_file_path), os.path.exists(self.file_path), not overwrite]):
+            self.info("Found '%s' of structures." % self.pymatgen_json_file_path)
             return self
 
         self.info("Load dataset '%s' to memory..." % self.dataset_name)
@@ -156,8 +154,8 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
                 break
         py_mat_list = [x[index_structure] for x in data["data"]]
 
-        self.info("Write structures or compositions '%s' to file." % self._get_pymatgen_file_name())
-        save_json_file(py_mat_list, os.path.join(self.data_directory, self._get_pymatgen_file_name()))
+        self.info("Write structures or compositions '%s' to file." % self.pymatgen_json_file_path)
+        save_json_file(py_mat_list, self.pymatgen_json_file_path)
         df_dict = {"index": data["index"]}
         for i, col in enumerate(data_columns):
             if i != index_structure:
