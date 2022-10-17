@@ -15,8 +15,9 @@ from kgcnn.mol.convert import MolConverter
 
 class MolGraphCallbacks:
 
-    _default_node_attributes = ['Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
-                                'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
+    _default_node_attributes = [
+        'Symbol', 'TotalDegree', 'FormalCharge', 'NumRadicalElectrons', 'Hybridization',
+        'IsAromatic', 'IsInRing', 'TotalNumHs', 'CIPCode', "ChiralityPossible", "ChiralTag"]
     _default_node_encoders = {
         'Symbol': OneHotEncoder(
             ['B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'As', 'Se', 'Br', 'Te', 'I', 'At'],
@@ -300,7 +301,7 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         self.info("Read molecules from mol-file.")
         return read_mol_list_from_sdf_file(self.file_path_mol)
 
-    def read_in_memory(self,
+    def set_attributes(self,
                        label_column_name: Union[str, list] = None,
                        nodes: list = None,
                        edges: list = None,
@@ -439,5 +440,5 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
 
         return self
 
-    # Use alias for `set_attributes`.
-    set_attributes = read_in_memory
+    read_in_memory = set_attributes
+
