@@ -118,11 +118,8 @@ def make_model(name: str = None,
     node_input = ks.layers.Input(**inputs[0])
     xyz_input = ks.layers.Input(**inputs[1])
     edge_index_input = ks.layers.Input(**inputs[2])
-    if use_edge_attributes:
-        edge_input = ks.layers.Input(**inputs[3])
-        ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[3]['shape']) < 2)(edge_input)
-    else:
-        edge_input, ed = None, None
+    edge_input = ks.layers.Input(**inputs[3])
+    ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[3]['shape']) < 2)(edge_input)
 
     # embedding, if no feature dimension
     h0 = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
@@ -185,8 +182,6 @@ def make_model(name: str = None,
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
-    if use_edge_attributes:
-        model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, edge_input], outputs=out, name=name)
-    else:
-        model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out, name=name)
+    model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, edge_input], outputs=out, name=name)
+
     return model

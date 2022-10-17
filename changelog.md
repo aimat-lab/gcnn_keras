@@ -13,9 +13,10 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Add ``kgcnn.literature.MXMNet`` model.
 * Fixed error in ``ClinToxDataset`` label index.
 * Reworked ``kgcnn.graph.adj.get_angle_index`` with additional function arguments. Default behaviour remains identical. For periodic system an additional `allow_reverse_edges=True` is now required.
-* Added input embedding for edges in ``kgcnn.literature.EGNN`` and changed order of input tensors. Debugged model.
+* Added input embedding for edges in ``kgcnn.literature.EGNN``. Debugged model.
 * Reworked ``kgcnn.literature.PAiNN`` to simplify normalization option and add equivariant initialization method.
-* Reworked ``kgcnn.data.qm`` including all qm7-qm9 datasets. Improved documentation. If error occur, please run `QM9Dataset(reload=True)`.
+* Refactored ``kgcnn.data.qm`` including all qm7-qm9 datasets. Improved documentation. If error occurs, please run `QM9Dataset(reload=True)`.
+* Refactored ``kgcnn.data.moleculenet``. Interface and behaviour does not change.
 
 
 v2.1.0
