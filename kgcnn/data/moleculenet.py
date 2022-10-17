@@ -108,7 +108,7 @@ class MolGraphCallbacks:
         # Dictionaries values are lists, one for each attribute defines in "callbacks" and each value in those
         # lists corresponds to one molecule in the dataset.
         if data is None:
-            self.info("Received no pandas data.")
+            self.error("Received no pandas data.")
 
         value_lists = defaultdict(list)
         for index, sm in enumerate(mol_list):
@@ -208,9 +208,9 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         """Try to determine a file path for the mol information to store."""
         return os.path.splitext(self.file_path)[0] + ".sdf"
 
-    def _smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
-                            make_conformers: bool = True, optimize_conformer: bool = True,
-                            external_program: dict = None, num_workers: int = None):
+    def _convert_smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
+                                    make_conformers: bool = True, optimize_conformer: bool = True,
+                                    external_program: dict = None, num_workers: int = None):
         r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
         Conversion is done via the :obj:`MolConverter` class.
 
@@ -284,7 +284,7 @@ class MoleculeNetDataset(MemoryGraphDataset, MolGraphCallbacks):
         self.read_in_table_file()
         smiles = self.data_frame[smiles_column_name].values
 
-        mb = self._smiles_to_mol_list(
+        mb = self._convert_smiles_to_mol_list(
             smiles, add_hydrogen=add_hydrogen, sanitize=sanitize,
             make_conformers=make_conformers, optimize_conformer=optimize_conformer,
             external_program=external_program, num_workers=num_workers)

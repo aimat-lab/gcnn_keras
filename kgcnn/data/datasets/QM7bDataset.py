@@ -47,7 +47,7 @@ class QM7bDataset(QMDataset, DownloadDataset):
         self.fits_in_memory = True
         self.verbose = verbose
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
-        self.file_name = "qm7b.xyz"
+        self.file_name = "qm7b.csv"
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload)
@@ -55,8 +55,9 @@ class QM7bDataset(QMDataset, DownloadDataset):
         if self.fits_in_memory:
             self.read_in_memory(label_column_name=self.label_names)
 
-    def prepare_data(self, overwrite: bool = False, xyz_column_name: str = None, make_sdf: bool = True):
-        if not os.path.exists(os.path.join(self.data_directory, self.file_name)) or overwrite:
+    def prepare_data(self, overwrite: bool = False, file_column_name: str = None, make_sdf: bool = True):
+
+        if not os.path.exists(self.file_path_xyz) or overwrite:
             mat = scipy.io.loadmat(os.path.join(self.data_directory, self.download_info["download_file_name"]))
             coulomb_mat = mat["X"]
             graph_len = [int(np.around(np.sum(np.diagonal(x) > 0))) for x in coulomb_mat]
@@ -69,21 +70,21 @@ class QM7bDataset(QMDataset, DownloadDataset):
             atoms = [[inverse_global_proton_dict[i] for i in x] for x in proton]
             atoms_pos = [[x, y] for x, y in zip(atoms, pos)]
             self.info("Writing XYZ file from coulomb matrix information.")
-            write_list_to_xyz_file(os.path.join(self.data_directory, "qm7b.xyz"), atoms_pos)
+            write_list_to_xyz_file(self.file_path_xyz, atoms_pos)
         else:
             self.info("Found XYZ file for qm7b already created.")
 
-        file_path = os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".csv")
-        if not os.path.exists(file_path) or overwrite:
+        if not os.path.exists(self.file_path) or overwrite:
             mat = scipy.io.loadmat(os.path.join(self.data_directory, self.download_info["download_file_name"]))
             labels = mat["T"]
             targets = pd.DataFrame(labels, columns=self.label_names)
             self.info("Writing CSV file of graph labels.")
-            targets.to_csv(file_path, index=False)
+            targets.to_csv(self.file_path, index=False)
         else:
             self.info("Found CSV file of graph labels.")
 
         return super(QM7bDataset, self).prepare_data(
-            overwrite=overwrite, xyz_column_name=xyz_column_name, make_sdf=make_sdf)
+            overwrite=overwrite, file_column_name=file_column_name, make_sdf=make_sdf)
 
-# data = QM7bDataset(reload=True)
+
+# data = QM7bDataset(reload=False)

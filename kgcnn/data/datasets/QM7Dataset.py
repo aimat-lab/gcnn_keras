@@ -44,7 +44,7 @@ class QM7Dataset(QMDataset, DownloadDataset):
         self.fits_in_memory = True
         self.verbose = verbose
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
-        self.file_name = "qm7.xyz"
+        self.file_name = "qm7.csv"
 
         if self.require_prepare_data:
             self.prepare_data(overwrite=reload)
@@ -52,9 +52,9 @@ class QM7Dataset(QMDataset, DownloadDataset):
         if self.fits_in_memory:
             self.read_in_memory(label_column_name=self.label_names)
 
-    def prepare_data(self, overwrite: bool = False, xyz_column_name: str = None, make_sdf: bool = True):
-        file_path = os.path.join(self.data_directory, self.file_name)
-        if not os.path.exists(file_path) or overwrite:
+    def prepare_data(self, overwrite: bool = False, file_column_name: str = None, make_sdf: bool = True):
+
+        if not os.path.exists(self.file_path_xyz) or overwrite:
             mat = scipy.io.loadmat(os.path.join(self.data_directory, self.download_info["download_file_name"]))
             graph_len = [int(np.around(np.sum(x > 0))) for x in mat["Z"]]
             proton = [x[:i] for i, x in zip(graph_len, mat["Z"])]
@@ -63,28 +63,27 @@ class QM7Dataset(QMDataset, DownloadDataset):
             atoms_pos = [[x, y] for x, y in zip(atoms, pos)]
             np.save(os.path.join(self.data_directory, "qm7_splits.npy"), mat["P"])
             self.info("Writing XYZ file from coulomb matrix information.")
-            write_list_to_xyz_file(file_path, atoms_pos)
+            write_list_to_xyz_file(self.file_path_xyz, atoms_pos)
         else:
             self.info("Found XYZ file for qm7b already created.")
 
-        file_path = os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".csv")
-        if not os.path.exists(file_path) or overwrite:
+        if not os.path.exists(self.file_path) or overwrite:
             mat = scipy.io.loadmat(os.path.join(self.data_directory, self.download_info["download_file_name"]))
             labels = mat["T"][0]
             targets = pd.DataFrame(labels, columns=self.label_names)
             self.info("Writing CSV file of graph labels.")
-            targets.to_csv(file_path, index=False)
+            targets.to_csv(self.file_path, index=False)
         else:
             self.info("Found CSV file of graph labels.")
 
         return super(QM7Dataset, self).prepare_data(
-            overwrite=overwrite, xyz_column_name=xyz_column_name, make_sdf=make_sdf)
+            overwrite=overwrite, file_column_name=file_column_name, make_sdf=make_sdf)
 
     def _get_cross_validation_splits(self):
         return np.load(os.path.join(self.data_directory, "qm7_splits.npy"))
 
-    def read_in_memory(self, label_column_name: Union[str, list] = None):
-        super(QM7Dataset, self).read_in_memory(label_column_name=label_column_name)
+    def read_in_memory(self, **kwargs):
+        super(QM7Dataset, self).read_in_memory( **kwargs)
         splits = self._get_cross_validation_splits()
         property_split = []
         for i in range(len(self)):
@@ -94,9 +93,6 @@ class QM7Dataset(QMDataset, DownloadDataset):
                     is_in_split.append(j)
             property_split.append(np.array(is_in_split, dtype="int"))
         self.assign_property("kfold", property_split)
-
-    def read_in_memory_sdf(self, **kwargs):
-        super(QM7Dataset, self).read_in_memory_sdf()
 
         # Mean molecular weight mmw
         mass_dict = {'H': 1.0079, 'C': 12.0107, 'N': 14.0067, 'O': 15.9994, 'F': 18.9984, 'S': 32.065, "C3": 12.0107}
