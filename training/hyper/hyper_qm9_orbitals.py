@@ -363,9 +363,9 @@ hyper = {
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
-                "node_pooling_args": {"pooling_method": "sum"},
+                "node_pooling_args": {"pooling_method": "mean"},
                 "output_embedding": "graph", "output_to_tensor": True,
-                "use_output_mlp": False,
+                "use_output_mlp": True,
                 "output_mlp": {"use_bias": [True], "units": [1],
                                "activation": ["linear"]}
             }
@@ -399,7 +399,7 @@ hyper = {
                             "config": {"with_std": True, "with_mean": True, "copy": True}}
                            ]
             }},
-            "multi_target_indices": [5]  # 5, 6, 7 = Homo, Lumo, Gap or combination
+            "multi_target_indices": [6]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {
             "dataset": {
@@ -423,7 +423,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_HOMO",
+            "postfix_file": "_LUMO",
             "kgcnn_version": "2.1.1"
         }
     },
