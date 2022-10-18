@@ -5,6 +5,7 @@ from typing import Union, Callable, List, Dict
 from kgcnn.mol.base import MolGraphInterface
 from kgcnn.scaler.mol import QMGraphLabelScaler
 from sklearn.preprocessing import StandardScaler
+from kgcnn.mol.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
@@ -12,16 +13,9 @@ from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
 from kgcnn.data.moleculenet import map_molecule_callbacks
 
 try:
-    from openbabel import openbabel
     from kgcnn.mol.module_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
-except ImportError:
-    openbabel, convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel = None, None, None
-
-try:
-    import rdkit
-    from kgcnn.mol.module_rdkit import MolecularGraphRDKit
-except ImportError:
-    rdkit, MolecularGraphRDKit = None, None
+except ModuleNotFoundError:
+    convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel = None, None
 
 
 class QMDataset(MemoryGraphDataset):
@@ -74,6 +68,7 @@ class QMDataset(MemoryGraphDataset):
                                     file_directory=file_directory)
         self.label_units = None
         self.label_names = None
+        self._mol_graph_interface = MolecularGraphOpenBabel
 
     @property
     def file_path_mol(self):
@@ -184,12 +179,23 @@ class QMDataset(MemoryGraphDataset):
         symbol = [np.array(x[0]) for x in xyz_list]
         coord = [np.array(x[1], dtype="float")[:, :3] for x in xyz_list]
         nodes = [np.array([self._global_proton_dict[x] for x in y[0]], dtype="int") for y in xyz_list]
-        self.assign_property("node_coordinates", coord)
-        self.assign_property("node_symbol", symbol)
-        self.assign_property("node_number", nodes)
+        for key, value in {"node_coordinates": coord, "node_symbol": symbol, "node_number": nodes}.items():
+            self.assign_property(key, value)
         return self
 
-    def set_attributes(self, label_column_name: Union[str, list] = None):
+    def set_attributes(self,
+                       label_column_name: Union[str, list] = None,
+                       nodes: list = None,
+                       edges: list = None,
+                       graph: list = None,
+                       encoder_nodes: dict = None,
+                       encoder_edges: dict = None,
+                       encoder_graph: dict = None,
+                       add_hydrogen: bool = True,
+                       make_directed: bool = False,
+                       additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
+                       custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None
+                       ):
         """Read SDF-file with chemical structure information into memory.
 
         Args:
@@ -198,23 +204,39 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
+        additional_callbacks = additional_callbacks if additional_callbacks is not None else {}
+
+        # Deserializing encoders.
+        for encoder in [encoder_nodes, encoder_edges, encoder_graph]:
+            if encoder is not None:
+                for key, value in encoder.items():
+                    encoder[key] = deserialize_encoder(value)
+
         callbacks = {
             "node_symbol": lambda mg, ds: mg.node_symbol,
             "node_number": lambda mg, ds: mg.node_number,
             "node_coordinates": lambda mg, ds: mg.node_coordinates,
             "edge_indices": lambda mg, ds: mg.edge_number[0],
             "edge_number": lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
+            **additional_callbacks
         }
+        # Label callback.
         if label_column_name:
             callbacks.update({'graph_labels': lambda mg, ds: ds[label_column_name]})
+        # Attributes callback.
+        for attrib, name, encoder in zip([nodes, edges, graph],
+                                         ["node_attributes", "edge_attributes", "graph_attributes"],
+                                         [encoder_nodes, encoder_edges, encoder_graph]):
+            if attrib:
+                callbacks.update({name: lambda mg, ds: np.array(getattr(mg, name)(attrib, encoder), dtype='float32')})
 
         value_list = map_molecule_callbacks(
             self.get_mol_blocks_from_sdf_file(),
             self.read_in_table_file().data_frame,
             callbacks=callbacks,
-            add_hydrogen=True,
-            custom_transform=None,
-            make_directed=False,
+            add_hydrogen=add_hydrogen,
+            custom_transform=custom_transform,
+            make_directed=make_directed,
             mol_interface_class=MolecularGraphOpenBabel,
             logger=self.logger,
             loop_update_info=self._default_loop_update_info
@@ -233,14 +255,14 @@ class QMDataset(MemoryGraphDataset):
         Returns:
             self
         """
-        if os.path.exists(self.file_path_mol) and openbabel is not None:
+        if os.path.exists(self.file_path_mol) and self._mol_graph_interface is not None:
             self.info("Reading structures from SDF file.")
             self.set_attributes(label_column_name=label_column_name)
         else:
-            # 1. Read labels and xyz-file without openbabel.
+            # 1. Read labels and xyz-file without mol-interface.
             self.read_in_table_file()
             if self.data_frame is not None and label_column_name is not None:
                 labels = self.data_frame[label_column_name]
-                self.assign_property("graph_labels", [x for _, x in labels.iterrows()])
-                self.read_in_memory_xyz()
+                self.assign_property("graph_labels", [np.array(x) for _, x in labels.iterrows()])
+            self.read_in_memory_xyz()
         return self

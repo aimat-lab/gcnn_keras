@@ -7,10 +7,14 @@ from collections import defaultdict
 from kgcnn.mol.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.base import MolGraphInterface
-from kgcnn.mol.module_rdkit import MolecularGraphRDKit
 from kgcnn.mol.encoder import OneHotEncoder
 from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
 from kgcnn.mol.convert import MolConverter
+
+try:
+    from kgcnn.mol.module_rdkit import MolecularGraphRDKit
+except ModuleNotFoundError:
+    MolecularGraphRDKit = None
 
 
 def map_molecule_callbacks(mol_list: List[str],
@@ -181,6 +185,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose)
+        self._mol_graph_interface = MemoryGraphDataset
 
     @property
     def file_path_mol(self):
@@ -407,7 +412,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             add_hydrogen=add_hydrogen,
             custom_transform=custom_transform,
             make_directed=make_directed,
-            mol_interface_class=MolecularGraphRDKit,
+            mol_interface_class=self._mol_graph_interface,
             logger=self.logger,
             loop_update_info=self._default_loop_update_info
         )
