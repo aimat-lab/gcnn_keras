@@ -200,6 +200,21 @@ class QMDataset(MemoryGraphDataset):
 
         Args:
             label_column_name (str, list): Name of labels for columns in CSV file.
+            nodes (list): A list of node attributes as string. In place of names also functions can be added.
+            edges (list): A list of edge attributes as string. In place of names also functions can be added.
+            graph (list): A list of graph attributes as string. In place of names also functions can be added.
+            encoder_nodes (dict): A dictionary of callable encoder where the key matches the attribute.
+            encoder_edges (dict): A dictionary of callable encoder where the key matches the attribute.
+            encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
+            add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
+            make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+            additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
+                dataset are supposed to have and the elements are callback function objects which implement how those
+                attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
+                row of the CSV file.
+            custom_transform (Callable): Custom transformation function to modify the generated
+                :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
+                :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
 
         Returns:
             self
@@ -259,7 +274,7 @@ class QMDataset(MemoryGraphDataset):
             self.info("Reading structures from SDF file.")
             self.set_attributes(label_column_name=label_column_name)
         else:
-            # 1. Read labels and xyz-file without mol-interface.
+            # Try to read labels and xyz-file without mol-interface.
             self.read_in_table_file()
             if self.data_frame is not None and label_column_name is not None:
                 labels = self.data_frame[label_column_name]
