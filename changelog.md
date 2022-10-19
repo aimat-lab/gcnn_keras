@@ -17,7 +17,7 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Reworked ``kgcnn.literature.PAiNN`` to simplify normalization option and add equivariant initialization method.
 * Refactored ``kgcnn.data.qm`` including all qm7-qm9 datasets. Improved documentation. If error occurs, please run `QM9Dataset(reload=True)`.
 * Refactored ``kgcnn.data.moleculenet``. Interface and behaviour does not change.
-
+* Renamed ``kgcnn.mol.graph_babel`` and ``kgcnn.mol.graph_rdkit`` and move conversion into ``kgcnn.mol.convert``.
 
 v2.1.0
 
