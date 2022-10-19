@@ -114,7 +114,7 @@ def load_hyper_file(file_name: str, **kwargs) -> dict:
     if type_ending == "json":
         return load_json_file(file_name, **kwargs)
     elif type_ending == "yaml":
-        return load_yaml_file(file_name, **kwargs)
+        return load_yaml_file(file_name)
     elif type_ending == "pickle":
         return load_pickle_file(file_name, **kwargs)
     elif type_ending == "py":
