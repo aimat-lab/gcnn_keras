@@ -1,30 +1,105 @@
 import os
 import logging
 import uuid
+from openbabel import openbabel
 from typing import Callable
-from concurrent.futures import ThreadPoolExecutor  # ,ProcessPoolExecutor
-from kgcnn.mol.external.ballloon import BalloonInterface
 from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
+from concurrent.futures import ThreadPoolExecutor  # , ProcessPoolExecutor
+from kgcnn.mol.external.ballloon import BalloonInterface
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+
+# RDkit
 try:
-    from kgcnn.mol.module_rdkit import convert_smile_to_mol_rdkit as rdkit_smile_to_mol
+    import rdkit
+    import rdkit.Chem
+    import rdkit.Chem.AllChem
+
+    def rdkit_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
+                           optimize_conformer: bool = True):
+        try:
+            m = rdkit.Chem.MolFromSmiles(smile)
+            if sanitize:
+                rdkit.Chem.SanitizeMol(m)
+            if add_hydrogen:
+                m = rdkit.Chem.AddHs(m)  # add H's to the molecule
+            m.SetProp("_Name", smile)
+            if make_conformers:
+                rdkit.Chem.RemoveStereochemistry(m)
+                rdkit.Chem.AssignStereochemistry(m)
+                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+            if optimize_conformer and make_conformers:
+                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+                rdkit.Chem.AssignStereochemistryFrom3D(m)
+                rdkit.Chem.AssignStereochemistry(m)
+        except:
+            m = None
+
+        if m is not None:
+            return rdkit.Chem.MolToMolBlock(m)
+
+        return None
+
 except ImportError:
-    module_logger.error("Can not import RDKit module for conversion.")
+    module_logger.error("Can not import `RDKit` package for conversion.")
     rdkit_smile_to_mol = None
 
 try:
-    from kgcnn.mol.module_babel import convert_smile_to_mol_openbabel as openbabel_smile_to_mol
-    # There are problems with openbabel if system variable is not set.
+    # There problems with openbabel if system variable is not set.
     # Openbabel may not be fully threadsafe, but is improved in version 3.0.
+    from openbabel import openbabel
+
     if "BABEL_DATADIR" not in os.environ:
         module_logger.warning(
             "In case openbabel fails, you can set `kgcnn.mol.convert.openbabel_smile_to_mol` to `None` for disable.")
+
+    def convert_smile_to_mol_openbabel(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
+                                       make_conformers: bool = True, optimize_conformer: bool = True,
+                                       stop_logging: bool = False):
+        if stop_logging:
+            openbabel.obErrorLog.StopLogging()
+
+        try:
+            m = openbabel.OBMol()
+            ob_conversion = openbabel.OBConversion()
+            format_okay = ob_conversion.SetInAndOutFormats("smi", "mol")
+            read_okay = ob_conversion.ReadString(m, smile)
+            is_okay = {"format_okay": format_okay, "read_okay": read_okay}
+            if make_conformers:
+                # We need to make conformer with builder
+                builder = openbabel.OBBuilder()
+                build_okay = builder.Build(m)
+                is_okay.update({"build_okay": build_okay})
+            if add_hydrogen:
+                # it seems h's are made after build, an get embedded too
+                m.AddHydrogens()
+            if optimize_conformer and make_conformers:
+                ff = openbabel.OBForceField.FindType("mmff94")
+                ff_setup_okay = ff.Setup(m)
+                ff.SteepestDescent(100)  # defaults are 50-500 in pybel
+                ff.GetCoordinates(m)
+                is_okay.update({"ff_setup_okay": ff_setup_okay})
+            all_okay = all(list(is_okay.values()))
+            if not all_okay:
+                print("WARNING: Openbabel returned false flag %s" % [key for key, value in is_okay.items() if not value])
+        except:
+            m = None
+            ob_conversion = None
+
+        # Set back to default
+        if stop_logging:
+            openbabel.obErrorLog.StartLogging()
+
+        if m is not None:
+            return ob_conversion.WriteString(m)
+        return None
+
 except ImportError:
-    module_logger.error("Can not import OpenBabel module for conversion.")
+    module_logger.error("Can not import `OpenBabel` package for conversion.")
     openbabel_smile_to_mol = None
 
 
@@ -76,6 +151,8 @@ class MolConverter:
                           ):
         if num_workers is None:
             num_workers = os.cpu_count()
+        if rdkit_smile_to_mol is None and openbabel_smile_to_mol is None:
+            raise ModuleNotFoundError("Can not convert smiles. Missing `RDkit` or `OpenBabel` packages.")
 
         if num_workers == 1:
             mol_list = [conversion_method(x, *args) for x in smile_list]

@@ -12,7 +12,7 @@ from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_fil
 from kgcnn.mol.convert import MolConverter
 
 try:
-    from kgcnn.mol.module_rdkit import MolecularGraphRDKit
+    from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
 except ModuleNotFoundError:
     MolecularGraphRDKit = None
 

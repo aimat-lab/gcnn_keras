@@ -1,10 +1,10 @@
 import numpy as np
 import os
 import logging
-from openbabel import openbabel
 from kgcnn.mol.base import MolGraphInterface
+from openbabel import openbabel
 
-# Module logger
+# Module logger.
 logging.basicConfig()
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
@@ -15,7 +15,7 @@ if "BABEL_DATADIR" not in os.environ:
 
 
 class MolecularGraphOpenBabel(MolGraphInterface):
-    r"""A graph object representing a strict molecular graph, e.g. only chemical bonds. """
+    r"""A graph object representing a strict molecular graph, e.g. only chemical bonds."""
 
     def __init__(self, mol=None, make_directed: bool = False):
         """Set the mol attribute for composition. This mol instances will be the backends molecule class.
@@ -236,48 +236,6 @@ class MolecularGraphOpenBabel(MolGraphInterface):
             list: List of attributes after processed by the encoder.
         """
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
-
-
-def convert_smile_to_mol_openbabel(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
-                                   make_conformers: bool = True, optimize_conformer: bool = True,
-                                   stop_logging: bool = False):
-    if stop_logging:
-        openbabel.obErrorLog.StopLogging()
-
-    try:
-        m = openbabel.OBMol()
-        ob_conversion = openbabel.OBConversion()
-        format_okay = ob_conversion.SetInAndOutFormats("smi", "mol")
-        read_okay = ob_conversion.ReadString(m, smile)
-        is_okay = {"format_okay": format_okay, "read_okay": read_okay}
-        if make_conformers:
-            # We need to make conformer with builder
-            builder = openbabel.OBBuilder()
-            build_okay = builder.Build(m)
-            is_okay.update({"build_okay": build_okay})
-        if add_hydrogen:
-            # it seems h's are made after build, an get embedded too
-            m.AddHydrogens()
-        if optimize_conformer and make_conformers:
-            ff = openbabel.OBForceField.FindType("mmff94")
-            ff_setup_okay = ff.Setup(m)
-            ff.SteepestDescent(100)  # defaults are 50-500 in pybel
-            ff.GetCoordinates(m)
-            is_okay.update({"ff_setup_okay": ff_setup_okay})
-        all_okay = all(list(is_okay.values()))
-        if not all_okay:
-            print("WARNING: Openbabel returned false flag %s" % [key for key, value in is_okay.items() if not value])
-    except:
-        m = None
-        ob_conversion = None
-
-    # Set back to default
-    if stop_logging:
-        openbabel.obErrorLog.StartLogging()
-
-    if m is not None:
-        return ob_conversion.WriteString(m)
-    return None
 
 
 def convert_xyz_to_mol_openbabel(xyz_string: str, stop_logging: bool = False):

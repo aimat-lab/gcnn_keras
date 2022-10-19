@@ -13,7 +13,7 @@ from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
 from kgcnn.data.moleculenet import map_molecule_callbacks
 
 try:
-    from kgcnn.mol.module_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
+    from kgcnn.mol.graph_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
 except ModuleNotFoundError:
     convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel = None, None
 

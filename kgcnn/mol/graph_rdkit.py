@@ -433,33 +433,3 @@ class MolecularGraphRDKit(MolGraphInterface):
             else:
                 attr.append(temp)
         return attr
-
-
-def convert_smile_to_mol_rdkit(smile: str,
-                               sanitize: bool = True,
-                               add_hydrogen: bool = True,
-                               make_conformers: bool = True,
-                               optimize_conformer: bool = True):
-    try:
-        m = rdkit.Chem.MolFromSmiles(smile)
-        if sanitize:
-            rdkit.Chem.SanitizeMol(m)
-        if add_hydrogen:
-            m = rdkit.Chem.AddHs(m)  # add H's to the molecule
-        m.SetProp("_Name", smile)
-        if make_conformers:
-            rdkit.Chem.RemoveStereochemistry(m)
-            rdkit.Chem.AssignStereochemistry(m)
-            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-        if optimize_conformer and make_conformers:
-            rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-            rdkit.Chem.AssignStereochemistryFrom3D(m)
-            rdkit.Chem.AssignStereochemistry(m)
-    except:
-        m = None
-
-    if m is not None:
-        return rdkit.Chem.MolToMolBlock(m)
-
-    return None
