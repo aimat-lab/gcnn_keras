@@ -2,7 +2,6 @@ import pickle
 import logging
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 import yaml
 import json
 import os
@@ -13,9 +12,8 @@ logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
-# TODO: Check arguments to dump and pass them from function call.
 
-def save_pickle_file(obj, file_path: str):
+def save_pickle_file(obj, file_path: str, **kwargs):
     """Save pickle file.
 
     Args:
@@ -26,10 +24,10 @@ def save_pickle_file(obj, file_path: str):
         None.
     """
     with open(file_path, 'wb') as f:
-        pickle.dump(obj, f)
+        pickle.dump(obj, f, **kwargs)
 
 
-def load_pickle_file(file_path: str):
+def load_pickle_file(file_path: str, **kwargs):
     """Load pickle file.
 
     Args:
@@ -39,11 +37,11 @@ def load_pickle_file(file_path: str):
         obj: Python-object of file.
     """
     with open(file_path, 'rb') as f:
-        obj = pickle.load(f)
+        obj = pickle.load(f, **kwargs)
     return obj
 
 
-def save_json_file(obj, file_path: str):
+def save_json_file(obj, file_path: str, **kwargs):
     """Save json file.
 
     Args:
@@ -54,10 +52,10 @@ def save_json_file(obj, file_path: str):
         None.
     """
     with open(file_path, 'w') as json_file:
-        json.dump(obj, json_file)
+        json.dump(obj, json_file, **kwargs)
 
 
-def load_json_file(file_path: str):
+def load_json_file(file_path: str, **kwargs):
     """Load json file.
 
     Args:
@@ -67,7 +65,7 @@ def load_json_file(file_path: str):
         obj: Python-object of file.
     """
     with open(file_path, 'r') as json_file:
-        file_read = json.load(json_file)
+        file_read = json.load(json_file, **kwargs)
     return file_read
 
 
@@ -85,7 +83,7 @@ def load_yaml_file(file_path: str):
     return obj
 
 
-def save_yaml_file(obj, file_path: str, default_flow_style: bool = False):
+def save_yaml_file(obj, file_path: str, default_flow_style: bool = False, **kwargs):
     """Save yaml file.
 
     Args:
@@ -97,10 +95,10 @@ def save_yaml_file(obj, file_path: str, default_flow_style: bool = False):
         None.
     """
     with open(file_path, 'w') as yaml_file:
-        yaml.dump(obj, yaml_file, default_flow_style=default_flow_style)
+        yaml.dump(obj, yaml_file, default_flow_style=default_flow_style, **kwargs)
 
 
-def load_hyper_file(file_name: str) -> dict:
+def load_hyper_file(file_name: str, **kwargs) -> dict:
     """Load hyperparameter from file. File type can be '.yaml', '.json', '.pickle' or '.py'
 
     Args:
@@ -114,11 +112,11 @@ def load_hyper_file(file_name: str) -> dict:
         return {}
     type_ending = file_name.split(".")[-1]
     if type_ending == "json":
-        return load_json_file(file_name)
+        return load_json_file(file_name, **kwargs)
     elif type_ending == "yaml":
-        return load_yaml_file(file_name)
+        return load_yaml_file(file_name, **kwargs)
     elif type_ending == "pickle":
-        return load_pickle_file(file_name)
+        return load_pickle_file(file_name, **kwargs)
     elif type_ending == "py":
         path = os.path.realpath(file_name)
         hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(), "hyper")
