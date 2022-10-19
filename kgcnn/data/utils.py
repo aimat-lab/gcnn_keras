@@ -13,6 +13,7 @@ logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
+# TODO: Check arguments to dump and pass them from function call.
 
 def save_pickle_file(obj, file_path: str):
     """Save pickle file.
