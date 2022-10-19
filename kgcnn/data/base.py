@@ -347,7 +347,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     @property
     def file_path(self):
-        """Construct filepath from 'file_name' given in `init`."""
+        r"""Construct filepath from 'file_name' given in `init`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
@@ -360,8 +360,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     @property
     def file_directory_path(self):
-        """Construct file-directory path from 'file_name' and 'file_directory' given in `init`."""
-        r"""Returns path information of `file_directory`."""
+        r"""Construct file-directory path from 'data_directory' and 'file_directory' given in `init`."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
@@ -564,6 +563,7 @@ class MemoryGraphDataset(MemoryGraphList):
                     out_list += [file_loaded]
             if i % update_counter == 0:
                 self.info("... Read {0} file {1} from {2}".format(os.path.splitext(x)[1], i, num_files))
+
         return out_list
 
     def set_methods(self, method_list: List[dict]) -> None:
