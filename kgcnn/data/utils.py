@@ -157,39 +157,6 @@ def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
                                             np.array([len(x) for x in numpy_list], dtype=dtype))
 
 
-def pandas_data_frame_columns_to_numpy(data_frame, label_column_name, print_context: str = ""):
-    """Convert a selection of columns from a pandas' data frame to a single numpy array.
-
-    Args:
-        data_frame (pd.DataFrame): Pandas Data Frame.
-        label_column_name (list, str): Name or list of columns to convert to a numpy array.
-        print_context (str): Context for error message. Default is "".
-
-    Returns:
-        np.ndarray: Numpy array of the data in data_frame selected by label_column_name.
-    """
-    if isinstance(label_column_name, str):
-        out_array = np.expand_dims(np.array(data_frame[label_column_name]), axis=-1)
-    elif isinstance(label_column_name, list):
-        out_array = []
-        for x in label_column_name:
-            if isinstance(x, int):
-                x_col = np.array(data_frame.iloc[:, x])
-            elif isinstance(x, str):
-                x_col = np.array(data_frame[x])
-            else:
-                raise ValueError(print_context + "Column list must contain name or position but got %s" % x)
-            if len(x_col.shape) <= 1:
-                x_col = np.expand_dims(x_col, axis=-1)
-            out_array.append(x_col)
-        out_array = np.concatenate(out_array, axis=-1)
-    elif isinstance(label_column_name, slice):
-        out_array = np.array(data_frame.iloc[:, label_column_name])
-    else:
-        raise ValueError(print_context + "Column definition must be list or string, got %s" % label_column_name)
-    return out_array
-
-
 def pad_np_array_list_batch_dim(values: list):
     r"""Pad a list of numpy arrays along first dimension.
 
