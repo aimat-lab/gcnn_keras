@@ -8,6 +8,7 @@ from kgcnn.data.utils import save_pickle_file
 from datetime import timedelta
 from tensorflow_addons import optimizers
 from kgcnn.scaler.scaler import StandardScaler
+from kgcnn.scaler.mol import QMGraphLabelScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score
@@ -89,6 +90,9 @@ if multi_target_indices is not None:
         label_units = [label_units[i] for i in multi_target_indices]
 print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape))
 
+# For Crystals, also the atomic number is required to properly pre-scale extensive quantities like total energy.
+atoms = dataset.obtain_property("node_number")
+
 # Cross-validation via random KFold split form `sklearn.model_selection`.
 kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
@@ -117,20 +121,29 @@ for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 
     # kwargs of the keras `Input` layers ('name' and 'ragged').
     x_train, y_train = dataset[train_index].tensor(hyper["model"]["config"]["inputs"]), labels[train_index]
     x_test, y_test = dataset[test_index].tensor(hyper["model"]["config"]["inputs"]), labels[test_index]
-    # Also keep the same information for atomic numbers of the molecules.
+    # Also keep the same information for atomic numbers of the structures.
+    atoms_test = [atoms[i] for i in test_index]
+    atoms_train = [atoms[i] for i in train_index]
 
     # Normalize training and test targets via a sklearn `StandardScaler`. No other scaler are used at the moment.
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     if "scaler" in hyper["training"]:
         print("Using StandardScaler.")
-        scaler = StandardScaler(**hyper["training"]["scaler"]["config"])
-        y_train = scaler.fit_transform(y_train)
-        y_test = scaler.transform(y_test)
+        if hyper["training"]["scaler"]["class_name"] == "QMGraphLabelScaler":
+            scaler = QMGraphLabelScaler(**hyper["training"]["scaler"]["config"]).fit(y_train, atoms_train)
+            y_train = scaler.fit_transform(y_train, atoms_train)
+            y_test = scaler.transform(y_test, atoms_test)
+            scaler_shape = np.expand_dims(scaler.scale_, axis=0).shape
+        else:
+            scaler = StandardScaler(**hyper["training"]["scaler"]["config"])
+            y_train = scaler.fit_transform(y_train)
+            y_test = scaler.transform(y_test)
+            scaler_shape = (1, 1)
 
         # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
         # directly log the original target values, but the scaled ones.
-        mae_metric = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-        rms_metric = ScaledRootMeanSquaredError((1, 1), name="scaled_root_mean_squared_error")
+        mae_metric = ScaledMeanAbsoluteError(scaler_shape, name="scaled_mean_absolute_error")
+        rms_metric = ScaledRootMeanSquaredError(scaler_shape, name="scaled_root_mean_squared_error")
         if scaler.scale_ is not None:
             mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
             rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))

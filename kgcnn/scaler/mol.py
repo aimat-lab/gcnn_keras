@@ -1,7 +1,7 @@
-from sklearn.linear_model import Ridge
 import matplotlib.pyplot as plt
 import numpy as np
-
+from typing import Union
+from sklearn.linear_model import Ridge
 from kgcnn.scaler.scaler import StandardScaler
 
 
