@@ -1,6 +1,6 @@
 import numpy as np
 import os
-import logging
+# import logging
 
 from kgcnn.data.base import MemoryGraphDataset
 
@@ -22,21 +22,21 @@ class GraphTUDataset(MemoryGraphDataset):
         There are also further TU-datasets in :obj:`kgcnn.data.datasets`, if further processing is used in literature.
         Not all datasets can provide all types of graph properties like `edge_attributes` etc.
 
-    The file structure of :obj:`GraphTUDataset` for a given `dataset_name`.
+    The file structure of :obj:`GraphTUDataset` for a given dataset 'DS' (replace DS with dataset name).
 
     .. code-block:: type
 
         ├── data_directory
-            ├── `dataset_name`_graph_indicator.txt
-            ├── `dataset_name`_A.txt
-            ├── `dataset_name`_node_labels.txt
-            ├── `dataset_name`_node_attributes.txt
-            ├── `dataset_name`_edge_labels.txt
-            ├── `dataset_name`_edge_attributes.txt
-            ├── `dataset_name`_graph_labels.txt
-            ├── `dataset_name`_graph_attributes.txt
+            ├── DS_graph_indicator.txt
+            ├── DS_A.txt
+            ├── DS_node_labels.txt
+            ├── DS_node_attributes.txt
+            ├── DS_edge_labels.txt
+            ├── DS_edge_attributes.txt
+            ├── DS_graph_labels.txt
+            ├── DS_graph_attributes.txt
             ├──  ...
-            └── `dataset_name`.kgcnn.pickle
+            └── dataset_name.kgcnn.pickle
 
     Setting up a
     """
@@ -83,7 +83,7 @@ class GraphTUDataset(MemoryGraphDataset):
         g_n_id = np.array(self.read_csv_simple(os.path.join(path, name_dataset + "_graph_indicator.txt"), dtype=int),
                           dtype="int")
 
-        # Try read in labels and attributes (optional)
+        # Try read in labels.
         try:
             g_labels = np.array(
                 self.read_csv_simple(os.path.join(path, name_dataset + "_graph_labels.txt"), dtype=float))
@@ -126,7 +126,7 @@ class GraphTUDataset(MemoryGraphDataset):
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
-            self.info("Shift start of graph id to zero for '%s' to match python indexing." % name_dataset)
+            self.info("Shift start of graph ID to zero for '%s' to match python indexing." % name_dataset)
             g_a = g_a - 1
             g_n_id = g_n_id - 1
 
@@ -143,19 +143,19 @@ class GraphTUDataset(MemoryGraphDataset):
         # edge_indicator
         graph_id_edge = g_n_id[g_a[:, 0]]  # is the same for adj_matrix[:,1]
         graph_id2, counts_edge = np.unique(graph_id_edge, return_counts=True)
-        edgelen = np.zeros(num_graphs, dtype="int")
-        edgelen[graph_id2] = counts_edge
+        edge_len = np.zeros(num_graphs, dtype="int")
+        edge_len[graph_id2] = counts_edge
 
         if e_attr is not None:
-            e_attr = np.split(e_attr, np.cumsum(edgelen)[:-1])
+            e_attr = np.split(e_attr, np.cumsum(edge_len)[:-1])
         if e_labels is not None:
-            e_labels = np.split(e_labels, np.cumsum(edgelen)[:-1])
+            e_labels = np.split(e_labels, np.cumsum(edge_len)[:-1])
 
         # edge_indices
         node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
         edge_indices = node_index[g_a]
         edge_indices = np.concatenate([edge_indices[:, 1:], edge_indices[:, :1]], axis=-1)  # switch indices
-        edge_indices = np.split(edge_indices, np.cumsum(edgelen)[:-1])
+        edge_indices = np.split(edge_indices, np.cumsum(edge_len)[:-1])
 
         # Check if unconnected
         all_cons = []
@@ -164,10 +164,10 @@ class GraphTUDataset(MemoryGraphDataset):
             test_cons = np.sort(np.unique(cons[edge_indices[i]].flatten()))
             is_cons = np.zeros_like(cons, dtype="bool")
             is_cons[test_cons] = True
-            all_cons.append(np.sum(is_cons == False))
+            all_cons.append(np.sum(np.invert(is_cons)))
         all_cons = np.array(all_cons)
 
-        self.info("Graph index which has unconnected %s with %s in total %s" % (
+        self.info("Graph index which has unconnected '%s' with '%s' in total '%s'." % (
             np.arange(len(all_cons))[all_cons > 0], all_cons[all_cons > 0], len(all_cons[all_cons > 0])))
 
         node_degree = [np.zeros(x, dtype="int") for x in graphlen]
@@ -175,14 +175,15 @@ class GraphTUDataset(MemoryGraphDataset):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts
 
-        self.assign_property("node_degree", node_degree)
-        self.assign_property("node_attributes", n_attr)
-        self.assign_property("edge_attributes", e_attr)
-        self.assign_property("graph_attributes", g_attr)
-        self.assign_property("edge_indices", edge_indices)
-        self.assign_property("node_labels", n_labels)
-        self.assign_property("edge_labels", e_labels)
-        self.assign_property("graph_labels", [x for x in g_labels])
+        # Assert list for graph items.
+        g_attr = [x for x in g_attr] if g_attr is not None else None
+        g_labels = [x for x in g_labels] if g_labels is not None else None
+
+        # Assign to self.
+        for key, value in {"node_degree": node_degree, "node_attributes": n_attr, "node_labels": n_labels,
+                           "edge_attributes": e_attr, "edge_indices": edge_indices, "edge_labels": e_labels,
+                           "graph_attributes": g_attr, "graph_labels": g_labels}.items():
+            self.assign_property(key, value)
 
         return self
 
