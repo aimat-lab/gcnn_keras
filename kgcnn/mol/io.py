@@ -224,7 +224,7 @@ def read_smiles_file(file_path):
         list: List of smiles.
     """
     with open(file_path, "r") as f:
-        smile_list = f.readlines()
+        smile_list = [line.rstrip() for line in f]
     return smile_list
 
 
