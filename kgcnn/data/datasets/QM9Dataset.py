@@ -160,7 +160,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
 
 # from kgcnn.data.qm import QMGraphLabelScaler
-# dataset = QM9Dataset(reload=True)
+# dataset = QM9Dataset(reload=False)
 # scaler = QMGraphLabelScaler([{"class_name": "StandardScaler", "config": {}},
 #                              {"class_name": "ExtensiveMolecularScaler", "config": {}},
 #                              {"class_name": "ExtensiveMolecularScaler", "config": {}}])
