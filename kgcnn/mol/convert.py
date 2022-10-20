@@ -26,7 +26,7 @@ try:
                 rdkit.Chem.SanitizeMol(m)
             if add_hydrogen:
                 m = rdkit.Chem.AddHs(m)  # add H's to the molecule
-            m.SetProp("_Name", smile)
+            m.SetProp("_Name", smile.strip())
             if make_conformers:
                 rdkit.Chem.RemoveStereochemistry(m)
                 rdkit.Chem.AssignStereochemistry(m)
