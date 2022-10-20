@@ -132,13 +132,13 @@ class GraphTUDataset(MemoryGraphDataset):
 
         # split into separate graphs
         graph_id, counts = np.unique(g_n_id, return_counts=True)
-        graphlen = np.zeros(num_graphs, dtype="int")
-        graphlen[graph_id] = counts
+        graph_len = np.zeros(num_graphs, dtype="int")
+        graph_len[graph_id] = counts
 
         if n_attr is not None:
-            n_attr = np.split(n_attr, np.cumsum(graphlen)[:-1])
+            n_attr = np.split(n_attr, np.cumsum(graph_len)[:-1])
         if n_labels is not None:
-            n_labels = np.split(n_labels, np.cumsum(graphlen)[:-1])
+            n_labels = np.split(n_labels, np.cumsum(graph_len)[:-1])
 
         # edge_indicator
         graph_id_edge = g_n_id[g_a[:, 0]]  # is the same for adj_matrix[:,1]
@@ -152,7 +152,7 @@ class GraphTUDataset(MemoryGraphDataset):
             e_labels = np.split(e_labels, np.cumsum(edge_len)[:-1])
 
         # edge_indices
-        node_index = np.concatenate([np.arange(x) for x in graphlen], axis=0)
+        node_index = np.concatenate([np.arange(x) for x in graph_len], axis=0)
         edge_indices = node_index[g_a]
         edge_indices = np.concatenate([edge_indices[:, 1:], edge_indices[:, :1]], axis=-1)  # switch indices
         edge_indices = np.split(edge_indices, np.cumsum(edge_len)[:-1])
@@ -160,7 +160,7 @@ class GraphTUDataset(MemoryGraphDataset):
         # Check if unconnected
         all_cons = []
         for i in range(num_graphs):
-            cons = np.arange(graphlen[i])
+            cons = np.arange(graph_len[i])
             test_cons = np.sort(np.unique(cons[edge_indices[i]].flatten()))
             is_cons = np.zeros_like(cons, dtype="bool")
             is_cons[test_cons] = True
@@ -170,7 +170,7 @@ class GraphTUDataset(MemoryGraphDataset):
         self.info("Graph index which has unconnected '%s' with '%s' in total '%s'." % (
             np.arange(len(all_cons))[all_cons > 0], all_cons[all_cons > 0], len(all_cons[all_cons > 0])))
 
-        node_degree = [np.zeros(x, dtype="int") for x in graphlen]
+        node_degree = [np.zeros(x, dtype="int") for x in graph_len]
         for i, x in enumerate(edge_indices):
             nod_id, nod_counts = np.unique(x[:, 0], return_counts=True)
             node_degree[i][nod_id] = nod_counts
