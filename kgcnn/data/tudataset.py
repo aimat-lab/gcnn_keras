@@ -21,6 +21,24 @@ class GraphTUDataset(MemoryGraphDataset):
         Note that subclasses of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
         There are also further TU-datasets in :obj:`kgcnn.data.datasets`, if further processing is used in literature.
         Not all datasets can provide all types of graph properties like `edge_attributes` etc.
+
+    The file structure of :obj:`GraphTUDataset` for a given `dataset_name`.
+
+    .. code-block:: type
+
+        ├── data_directory
+            ├── `dataset_name`_graph_indicator.txt
+            ├── `dataset_name`_A.txt
+            ├── `dataset_name`_node_labels.txt
+            ├── `dataset_name`_node_attributes.txt
+            ├── `dataset_name`_edge_labels.txt
+            ├── `dataset_name`_edge_attributes.txt
+            ├── `dataset_name`_graph_labels.txt
+            ├── `dataset_name`_graph_attributes.txt
+            ├──  ...
+            └── `dataset_name`.kgcnn.pickle
+
+    Setting up a
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
