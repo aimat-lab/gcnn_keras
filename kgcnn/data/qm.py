@@ -48,6 +48,7 @@ class QMDataset(MemoryGraphDataset):
     _global_proton_dict = global_proton_dict
     _inverse_global_proton_dict = inverse_global_proton_dict
     _default_loop_update_info = 5000
+    _mol_graph_interface = MolecularGraphOpenBabel
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10, file_directory: str = None):
@@ -68,7 +69,6 @@ class QMDataset(MemoryGraphDataset):
                                     file_directory=file_directory)
         self.label_units = None
         self.label_names = None
-        self._mol_graph_interface = MolecularGraphOpenBabel
 
     @property
     def file_path_mol(self):

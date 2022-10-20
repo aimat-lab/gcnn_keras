@@ -8,7 +8,7 @@ from kgcnn.mol.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.base import MolGraphInterface
 from kgcnn.mol.encoder import OneHotEncoder
-from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file
+from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_smiles_file
 from kgcnn.mol.convert import MolConverter
 
 try:
@@ -96,6 +96,7 @@ def map_molecule_callbacks(mol_list: List[str],
 
     value_lists = defaultdict(list)
     for index, sm in enumerate(mol_list):
+
         mg = mol_interface_class(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
 
         if custom_transform is not None:
@@ -171,6 +172,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     _default_graph_encoders = {}
 
     _default_loop_update_info = 5000
+    _mol_graph_interface = MolecularGraphRDKit
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10):
@@ -185,51 +187,16 @@ class MoleculeNetDataset(MemoryGraphDataset):
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose)
-        self._mol_graph_interface = MemoryGraphDataset
 
     @property
     def file_path_mol(self):
         """Try to determine a file path for the mol information to store."""
         return os.path.splitext(self.file_path)[0] + ".sdf"
 
-    def _convert_smiles_to_mol_list(self, smiles: list, add_hydrogen: bool = True, sanitize: bool = True,
-                                    make_conformers: bool = True, optimize_conformer: bool = True,
-                                    external_program: dict = None, num_workers: int = None):
-        r"""Convert a list of smiles as string into a list of mol-information, namely mol-block as string.
-        Conversion is done via the :obj:`MolConverter` class.
-
-        Args:
-            smiles (list): A list of smiles for each molecule in dataset.
-            add_hydrogen (bool): Whether to add hydrogen after smile translation.
-            sanitize (bool): Whether to sanitize molecule.
-            make_conformers (bool): Try to generate 3D coordinates
-            optimize_conformer (bool): Whether to optimize conformer via force field.
-                Only possible with :obj:`make_conformers`. Default is True.
-            external_program (dict): External program for translating smiles. Default is None.
-                If you want to use an external program you have to supply a dictionary of the form:
-                {"class_name": "balloon", "config": {"balloon_executable_path": ..., ...}}.
-                Note that usually the parameters like :obj:`add_hydrogen` are ignored. And you need to control the
-                SDF file generation within `config` of the :obj:`external_program`.
-            num_workers (int): Parallel execution for translating smiles.
-
-        Returns:
-            list: A list of mol-block information as sting.
-        """
-        if len(smiles) == 0:
-            self.error("Can not translate smiles, received empty list for %s." % self.dataset_name)
-
-        self.info("Generating molecules and store %s to disk..." % self.file_path_mol)
-        molecule_list = []
-        conv = MolConverter(base_path=self.data_directory,
-                            add_hydrogen=add_hydrogen, sanitize=sanitize,
-                            make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-                            external_program=external_program, num_workers=num_workers)
-        for i in range(0, len(smiles), self._default_loop_update_info):
-            mg = conv.smile_to_mol(smiles[i:i + self._default_loop_update_info])
-            molecule_list = molecule_list + mg
-            self.info(" ... converted molecules {0} from {1}".format(i + len(mg), len(smiles)))
-
-        return molecule_list
+    @property
+    def file_path_smiles(self):
+        """Try to determine a file path for the smiles information to store."""
+        return os.path.splitext(self.file_path)[0] + ".SMILES"
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
                      add_hydrogen: bool = True, sanitize: bool = True,
@@ -267,13 +234,19 @@ class MoleculeNetDataset(MemoryGraphDataset):
 
         self.read_in_table_file()
         smiles = self.data_frame[smiles_column_name].values
+        if len(smiles) == 0:
+            self.error("Can not translate smiles, received empty list for '%s'." % self.dataset_name)
+        write_smiles_file(self.file_path_smiles, smiles)
 
-        mb = self._convert_smiles_to_mol_list(
-            smiles, add_hydrogen=add_hydrogen, sanitize=sanitize,
+        # Make structure
+        self.info("Generating molecules and store %s to disk..." % self.file_path_mol)
+        conv = MolConverter()
+        conv.smile_to_mol(
+            self.file_path_smiles, self.file_path_mol, add_hydrogen=add_hydrogen, sanitize=sanitize,
             make_conformers=make_conformers, optimize_conformer=optimize_conformer,
-            external_program=external_program, num_workers=num_workers)
-
-        write_mol_block_list_to_sdf(mb, self.file_path_mol)
+            external_program=external_program, num_workers=num_workers,
+            logger=self.logger, batch_size=self._default_loop_update_info
+        )
         return self
 
     def get_mol_blocks_from_sdf_file(self):

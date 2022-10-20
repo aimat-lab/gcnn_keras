@@ -3,7 +3,7 @@ import logging
 import uuid
 from openbabel import openbabel
 from typing import Callable
-from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file
+from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file, read_smiles_file, write_mol_block_list_to_sdf
 from concurrent.futures import ThreadPoolExecutor  # , ProcessPoolExecutor
 from kgcnn.mol.external.ballloon import BalloonInterface
 
@@ -11,12 +11,12 @@ logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
-
 # RDkit
 try:
     import rdkit
     import rdkit.Chem
     import rdkit.Chem.AllChem
+
 
     def rdkit_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
                            optimize_conformer: bool = True):
@@ -57,9 +57,10 @@ try:
         module_logger.warning(
             "In case openbabel fails, you can set `kgcnn.mol.convert.openbabel_smile_to_mol` to `None` for disable.")
 
-    def convert_smile_to_mol_openbabel(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
-                                       make_conformers: bool = True, optimize_conformer: bool = True,
-                                       stop_logging: bool = False):
+
+    def openbabel_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
+                               make_conformers: bool = True, optimize_conformer: bool = True,
+                               stop_logging: bool = False):
         if stop_logging:
             openbabel.obErrorLog.StopLogging()
 
@@ -85,7 +86,8 @@ try:
                 is_okay.update({"ff_setup_okay": ff_setup_okay})
             all_okay = all(list(is_okay.values()))
             if not all_okay:
-                print("WARNING: Openbabel returned false flag %s" % [key for key, value in is_okay.items() if not value])
+                print(
+                    "WARNING: Openbabel returned false flag %s" % [key for key, value in is_okay.items() if not value])
         except:
             m = None
             ob_conversion = None
@@ -105,42 +107,21 @@ except ImportError:
 
 class MolConverter:
 
-    def __init__(self,
-                 base_path: str = None,
-                 external_program: dict = None,
-                 num_workers: int = None,
-                 sanitize: bool = True,
-                 add_hydrogen: bool = True,
-                 make_conformers: bool = True,
-                 optimize_conformer: bool = True):
+    def __init__(self, base_path: str = None):
         """Initialize a converter to transform smile or coordinates into mol block information.
 
         Args:
-            base_path (str):
-            external_program (dict):
-            num_workers (int):
-            sanitize (bool):
-            add_hydrogen (bool):
-            make_conformers (bool):
-            optimize_conformer (bool):
+            base_path (str): Base path for temporary files.
         """
         self.base_path = base_path
-        self.external_program = external_program
-        self.num_workers = num_workers
-        self.sanitize = sanitize
-        self.add_hydrogen = add_hydrogen
-        self.make_conformers = make_conformers
-        self.optimize_conformer = optimize_conformer
 
         if base_path is None:
             self.base_path = os.path.realpath(__file__)
-        if num_workers is None:
-            self.num_workers = os.cpu_count()
 
     @staticmethod
-    def _check_is_correct_length(a, b):
+    def _check_is_same_length(a, b):
         if len(a) != len(b):
-            module_logger.error("Mismatch in number of converted. Found %s vs. %s" % (len(a), len(b)))
+            module_logger.error("Mismatch in number of converted. Found '%s' vs. '%s'" % (len(a), len(b)))
             raise ValueError("Conversion was not successful")
 
     @staticmethod
@@ -151,6 +132,7 @@ class MolConverter:
                           ):
         if num_workers is None:
             num_workers = os.cpu_count()
+
         if rdkit_smile_to_mol is None and openbabel_smile_to_mol is None:
             raise ModuleNotFoundError("Can not convert smiles. Missing `RDkit` or `OpenBabel` packages.")
 
@@ -182,43 +164,65 @@ class MolConverter:
             if mol is not None:
                 return mol
 
-        module_logger.warning("Failed conversion for smile %s" % smile)
+        module_logger.warning("Failed conversion for smile '%s'." % smile)
         return None
 
-    def smile_to_mol(self, smile_list: list):
+    def smile_to_mol(self,
+                     smiles_path: str,
+                     sdf_path: str,
+                     external_program: dict = None,
+                     num_workers: int = None,
+                     sanitize: bool = True,
+                     add_hydrogen: bool = True,
+                     make_conformers: bool = True,
+                     optimize_conformer: bool = True,
+                     logger=None,
+                     batch_size: int = 5000):
+        """Convert a smiles file to SDF structure file.
 
-        if self.external_program is None:
-            # Default via rdkit and openbabel
-            mol_list = self._convert_parallel(self._single_smile_to_mol,
-                                              smile_list,
-                                              self.num_workers,
-                                              self.sanitize,
-                                              self.add_hydrogen,
-                                              self.make_conformers,
-                                              self.optimize_conformer)
+        Args:
+            smiles_path:
+            sdf_path:
+            external_program:
+            num_workers:
+            sanitize:
+            add_hydrogen:
+            make_conformers:
+            optimize_conformer:
+            logger:
+            batch_size:
+
+        Returns:
+            list: List of mol-strings.
+        """
+        # Default via python packages RDkit and OpenBabel.
+        if external_program is None:
+            smiles_list = read_smiles_file(smiles_path)
+            mol_list = []
+            for i in range(0, len(smiles_list), batch_size):
+                mg = self._convert_parallel(
+                    self._single_smile_to_mol, smiles_list[i:i + batch_size], num_workers,
+                    # All args for _single_smile_to_mol.
+                    sanitize, add_hydrogen, make_conformers, optimize_conformer
+                )
+                mol_list = mol_list + mg
+                if logger is not None:
+                    logger.info(" ... converted molecules {0} from {1}".format(i + len(mg), len(smiles_list)))
             # Check success
-            self._check_is_correct_length(smile_list, mol_list)
+            self._check_is_same_length(smiles_list, mol_list)
+            if sdf_path is not None:
+                write_mol_block_list_to_sdf(mol_list, sdf_path)
             return mol_list
 
         # External programs
+        smiles_list = read_smiles_file(smiles_path)
 
-        # Write out temporary smiles file.
-        smile_file = os.path.join(self.base_path, str(uuid.uuid4()) + ".smi")
-        mol_file = os.path.splitext(smile_file)[0] + ".sdf"
-
-        write_smiles_file(smile_file, smile_list)
-
-        if self.external_program["class_name"] == "balloon":
-            ext_program = BalloonInterface(**self.external_program["config"])
-            ext_program.run(input_file=smile_file, output_file=mol_file, output_format="sdf")
+        if external_program["class_name"] == "balloon":
+            ext_program = BalloonInterface(**external_program["config"])
+            ext_program.run(input_file=smiles_path, output_file=sdf_path, output_format="sdf")
         else:
-            raise ValueError("Unknown program for conversion of smiles %s" % self.external_program)
+            raise ValueError("Unknown program for conversion of smiles '%s'" % external_program)
 
-        mol_list = read_mol_list_from_sdf_file(mol_file)
-        # Clean up
-        os.remove(mol_file)
-        os.remove(smile_file)
-
-        # Check success
-        self._check_is_correct_length(smile_list, mol_list)
+        mol_list = read_mol_list_from_sdf_file(sdf_path)
+        self._check_is_same_length(smiles_list, mol_list)
         return mol_list
