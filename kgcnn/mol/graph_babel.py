@@ -236,34 +236,3 @@ class MolecularGraphOpenBabel(MolGraphInterface):
             list: List of attributes after processed by the encoder.
         """
         raise NotImplementedError("ERROR:kgcnn: Method for `MolGraphInterface` must be implemented in sub-class.")
-
-
-def convert_xyz_to_mol_openbabel(xyz_string: str, stop_logging: bool = False):
-    """Convert xyz-string to mol-string.
-
-    The order of atoms in the list should be the same as output. Uses openbabel for conversion.
-
-    Args:
-        xyz_string (str): Convert the xyz string to mol-string
-        stop_logging (bool): Whether to stop logging. Default is False.
-
-    Returns:
-        str: Mol-string. Generates bond information in addition to coordinates from xyz-string.
-    """
-    if stop_logging:
-        openbabel.obErrorLog.StopLogging()
-
-    ob_conversion = openbabel.OBConversion()
-    ob_conversion.SetInAndOutFormats("xyz", "mol")
-    # ob_conversion.SetInFormat("xyz")
-
-    mol = openbabel.OBMol()
-    ob_conversion.ReadString(mol, xyz_string)
-    # print(xyz_str)
-
-    out_mol = ob_conversion.WriteString(mol)
-
-    # Set back to default
-    if stop_logging:
-        openbabel.obErrorLog.StartLogging()
-    return out_mol

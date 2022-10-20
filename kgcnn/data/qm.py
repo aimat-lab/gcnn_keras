@@ -10,12 +10,13 @@ from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
 from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
+from kgcnn.mol.convert import MolConverter
 from kgcnn.data.moleculenet import map_molecule_callbacks
 
 try:
-    from kgcnn.mol.graph_babel import convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel
+    from kgcnn.mol.graph_babel import MolecularGraphOpenBabel
 except ModuleNotFoundError:
-    convert_xyz_to_mol_openbabel, MolecularGraphOpenBabel = None, None
+    MolecularGraphOpenBabel = None
 
 
 class QMDataset(MemoryGraphDataset):
@@ -80,24 +81,6 @@ class QMDataset(MemoryGraphDataset):
         """Try to determine a file name for the mol information to store."""
         return os.path.splitext(self.file_path)[0] + ".xyz"
 
-    @classmethod
-    def _convert_xyz_to_mol_list(cls, atoms_coordinates_xyz: list):
-        """Make mol-blocks from list of multiple molecules.
-
-        Args:
-            atoms_coordinates_xyz (list): Nested list of xyz information for each molecule such as
-                `[[['C', 'H', ... ], [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], ... ]], ... ]`.
-
-        Returns:
-            list: A list of mol-blocks as string.
-        """
-        mol_list = []
-        for x in atoms_coordinates_xyz:
-            xyz_str = parse_list_to_xyz_str(x)
-            mol_str = convert_xyz_to_mol_openbabel(xyz_str)
-            mol_list.append(mol_str)
-        return mol_list
-
     def get_geom_from_xyz_file(self, file_path: str) -> list:
         """Get a list of xyz items from file.
 
@@ -159,11 +142,9 @@ class QMDataset(MemoryGraphDataset):
 
         # Additionally, try to make SDF file. Requires openbabel.
         if make_sdf:
-            if xyz_list is None:
-                self.info("Reading single xyz-file.")
-                xyz_list = self.get_geom_from_xyz_file(self.file_path_xyz)
             self.info("Converting xyz to mol information.")
-            write_mol_block_list_to_sdf(self._convert_xyz_to_mol_list(xyz_list), self.file_path_mol)
+            converter = MolConverter()
+            converter.xyz_to_mol(self.file_path_xyz, self.file_path_mol)
         return self
 
     def read_in_memory_xyz(self, file_path: str = None):

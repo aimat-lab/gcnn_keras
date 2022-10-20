@@ -1,9 +1,8 @@
 import os
 import logging
-import uuid
-from openbabel import openbabel
 from typing import Callable
-from kgcnn.mol.io import read_mol_list_from_sdf_file, write_smiles_file, read_smiles_file, write_mol_block_list_to_sdf
+from kgcnn.mol.io import read_mol_list_from_sdf_file, read_xyz_file, read_smiles_file, write_mol_block_list_to_sdf, \
+    parse_list_to_xyz_str
 from concurrent.futures import ThreadPoolExecutor  # , ProcessPoolExecutor
 from kgcnn.mol.external.ballloon import BalloonInterface
 
@@ -100,9 +99,40 @@ try:
             return ob_conversion.WriteString(m)
         return None
 
+
+    def openbabel_xyz_to_mol(xyz_string: str, stop_logging: bool = False):
+        """Convert xyz-string to mol-string.
+
+        The order of atoms in the list should be the same as output. Uses openbabel for conversion.
+
+        Args:
+            xyz_string (str): Convert the xyz string to mol-string
+            stop_logging (bool): Whether to stop logging. Default is False.
+
+        Returns:
+            str: Mol-string. Generates bond information in addition to coordinates from xyz-string.
+        """
+        if stop_logging:
+            openbabel.obErrorLog.StopLogging()
+
+        ob_conversion = openbabel.OBConversion()
+        ob_conversion.SetInAndOutFormats("xyz", "mol")
+        # ob_conversion.SetInFormat("xyz")
+
+        mol = openbabel.OBMol()
+        ob_conversion.ReadString(mol, xyz_string)
+        # print(xyz_str)
+
+        out_mol = ob_conversion.WriteString(mol)
+
+        # Set back to default
+        if stop_logging:
+            openbabel.obErrorLog.StartLogging()
+        return out_mol
+
 except ImportError:
     module_logger.error("Can not import `OpenBabel` package for conversion.")
-    openbabel_smile_to_mol = None
+    openbabel_smile_to_mol, openbabel_xyz_to_mol = None, None
 
 
 class MolConverter:
@@ -225,4 +255,27 @@ class MolConverter:
 
         mol_list = read_mol_list_from_sdf_file(sdf_path)
         self._check_is_same_length(smiles_list, mol_list)
+        return mol_list
+
+    def xyz_to_mol(self, xyz_path: str, sdf_path: str):
+        """Convert xyz info to structure file.
+
+        Args:
+            xyz_path:
+            sdf_path:
+
+        Returns:
+
+        """
+        if openbabel_xyz_to_mol is None:
+            raise ModuleNotFoundError("Can not convert XYZ to SDF format, missing package `OpenBabel` or `RDkit`.")
+        xyz_list = read_xyz_file(xyz_path)
+        mol_list = []
+        for x in xyz_list:
+            xyz_str = parse_list_to_xyz_str(x)
+            mol_str = openbabel_xyz_to_mol(xyz_str)
+            mol_list.append(mol_str)
+        self._check_is_same_length(xyz_list, mol_list)
+        if sdf_path is not None:
+            write_mol_block_list_to_sdf(mol_list, sdf_path)
         return mol_list
