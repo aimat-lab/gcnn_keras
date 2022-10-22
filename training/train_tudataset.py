@@ -23,9 +23,9 @@ from kgcnn.utils.devices import set_devices_gpu
 parser = argparse.ArgumentParser(description='Train a GNN on a TUDataset.')
 parser.add_argument("--model", required=False, help="Graph model to train.", default="MEGAN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MUTAGDataset")
+                    default="MutagenicityDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_mutag.py")
+                    default="hyper/hyper_mutagenicity.py")
 parser.add_argument("--make", required=False, help="Name of the make function for model.",
                     default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
@@ -153,18 +153,18 @@ plot_predict_true(predicted_y, true_y,
                   model_name=model_name, dataset_name=dataset_name,
                   file_name=f"predict{postfix_file}.png")
 
-# Save keras-model to output-folder.
-model.save(os.path.join(filepath, f"model{postfix_file}"))
-
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
-
-# Save hyperparameter again, which were used for this fit. Format is '.json'
-# If non-serialized parameters were in the hyperparameter config file, this operation may fail.
-hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
+
+# Save hyperparameter again, which were used for this fit. Format is '.json'
+# If non-serialized parameters were in the hyperparameter config file, this operation may fail.
+hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
+
+# Save keras-model to output-folder.
+model.save(os.path.join(filepath, f"model{postfix_file}"))
