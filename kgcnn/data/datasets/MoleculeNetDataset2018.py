@@ -78,7 +78,7 @@ class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
             self.download_info.update({"download_url": "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/" +
                                                        self.download_info["download_file_name"]})
         else:
-            raise ValueError("ERROR:kgcnn: Can not resolve %s as a Molecule. Pick " % dataset_name,
+            raise ValueError("Can not resolve '%s' as a Molecule. Pick: " % dataset_name,
                              self.datasets_download_info.keys(),
                              "For new dataset, add to `datasets_download_info` list manually.")
 

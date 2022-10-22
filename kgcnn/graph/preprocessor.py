@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from typing import Union
-from kgcnn.graph.base import GraphPreProcessorBase, GraphDict
+from kgcnn.graph.base import GraphPreProcessorBase
 from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map
@@ -27,6 +27,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
     """
     def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
                  remove_duplicates: bool = True, sort_indices: bool = True, name="make_undirected_edges", **kwargs):
+        # "^edge_(?!indices$).*"
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
@@ -194,7 +195,7 @@ class NormalizeEdgeWeightsSymmetric(GraphPreProcessorBase):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_weights": edge_weights})
         self._to_assign = edge_weights
-        self._silent = edge_weights
+        self._silent = ["edge_weights"]
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_weights": edge_weights})
 
     def call(self, *, edge_indices: np.ndarray, edge_weights: np.ndarray):
@@ -325,7 +326,7 @@ class SetAngle(GraphPreProcessorBase):
                              "allow_self_edges": allow_self_edges, "edge_pairing": edge_pairing,
                              "allow_reverse_edges": allow_reverse_edges, "check_sorted": check_sorted}
         self._to_assign = [angle_indices, angle_indices_nodes, angle_attributes]
-        self._silent = node_coordinates
+        self._silent = ["node_coordinates"]
         self._config_kwargs.update({
             "node_coordinates": node_coordinates, "range_indices": range_indices, "angle_indices": angle_indices,
             "angle_indices_nodes": angle_indices_nodes, "angle_attributes": angle_attributes, **self._call_kwargs})
@@ -376,7 +377,7 @@ class SetRangePeriodic(GraphPreProcessorBase):
         self._to_obtain.update({"node_coordinates": node_coordinates, "graph_lattice": graph_lattice})
         self._call_kwargs = {
             "max_distance": max_distance, "max_neighbours": max_neighbours, "exclusive": exclusive,
-            "do_invert_distance": do_invert_distance, "self_loops":self_loops}
+            "do_invert_distance": do_invert_distance, "self_loops": self_loops}
         self._to_assign = [range_indices, range_image, range_attributes]
         self._config_kwargs.update({
             "node_coordinates": node_coordinates, "range_indices": range_indices, "graph_lattice": graph_lattice,

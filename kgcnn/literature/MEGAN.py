@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from tensorflow.python.keras.engine import compile_utils
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.modules import DenseEmbedding
+from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.modules import ActivationEmbedding, DropoutEmbedding
 from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
@@ -412,6 +412,7 @@ class MEGAN(ks.models.Model):
 
 
 def make_model(inputs: Optional[list] = None,
+               input_embedding: dict = None,
                **kwargs
                ):
 
@@ -420,8 +421,13 @@ def make_model(inputs: Optional[list] = None,
 
     # Wrapping the actual model inside a keras functional model to be able to account for the input shapes
     # definitions which are provided.
-    inputs = [ks.layers.Input(**kwargs) for kwargs in inputs]
-    outputs = megan(inputs)
-    model = ks.models.Model(inputs=inputs, outputs=outputs)
+    layer_inputs = [ks.layers.Input(**kwargs) for kwargs in inputs]
+    megan_inputs = [x for x in layer_inputs]
 
+    if len(inputs[0]["shape"]) < 2 and input_embedding is not None:
+        megan_inputs[0] = OptionalInputEmbedding(
+            **input_embedding["node"], use_embedding=len(inputs[0]["shape"]) < 2)(megan_inputs[0])
+
+    outputs = megan(megan_inputs)
+    model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
     return model
