@@ -514,7 +514,7 @@ hyper = {
             "module_name": "kgcnn.literature.MEGAN",
             "config": {
                 'name': "MEGAN",
-                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64, "use_embedding": True}},
                 'units': [60, 50, 40, 30],
                 'importance_units': [],
                 'final_units': [50, 30, 10, 1],

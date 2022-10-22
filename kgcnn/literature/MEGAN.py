@@ -33,6 +33,7 @@ class MEGAN(ks.models.Model):
                  use_bias: bool = True,
                  dropout_rate: float = 0.0,
                  use_edge_features: bool = True,
+                 input_embedding: dict = None,
                  # node/edge importance related arguments
                  importance_units: List[int] = [],
                  importance_channels: int = 2,
@@ -59,6 +60,7 @@ class MEGAN(ks.models.Model):
             activation: The activation function to be used within the attention layers of the network
             use_bias: Whether the layers of the network should use bias weights at all
             dropout_rate: The dropout rate to be applied after *each* of the attention layers of the network.
+            input_embedding: Dictionary of embedding kwargs for input embedding layer.
             use_edge_features: Whether edge features should be used. Generally the network supports the
                 usage of edge features, but if the input data does not contain edge features, this should be
                 set to False.
@@ -103,6 +105,7 @@ class MEGAN(ks.models.Model):
         self.use_bias = use_bias
         self.dropout_rate = dropout_rate
         self.use_edge_features = use_edge_features
+        self.input_embedding = input_embedding
         self.importance_units = importance_units
         self.importance_channels = importance_channels
         self.importance_activation = importance_activation
@@ -120,6 +123,8 @@ class MEGAN(ks.models.Model):
         self.return_importances = return_importances
 
         # ~ MAIN CONVOLUTIONAL / ATTENTION LAYERS
+        if self.input_embedding:
+            self.embedding_nodes = OptionalInputEmbedding(**self.input_embedding["node"])
         self.attention_layers: List[GraphBaseLayer] = []
         for u in self.units:
             lay = MultiHeadGATV2Layer(
@@ -205,7 +210,8 @@ class MEGAN(ks.models.Model):
             "final_pooling": self.final_pooling,
             "regression_limits": self.regression_limits,
             "regression_reference": self.regression_reference,
-            "return_importances": self.return_importances
+            "return_importances": self.return_importances,
+            "input_embedding": self.input_embedding
         })
 
         return config
@@ -221,6 +227,8 @@ class MEGAN(ks.models.Model):
 
         node_input, edge_input, edge_index_input = inputs
 
+        if self.input_embedding:
+            node_input = self.embedding_nodes(node_input, training=training)
         # First of all we apply all the graph convolutional / attention layers. Each of those layers outputs
         # the attention logits alpha additional to the node embeddings. We collect all the attention logits
         # in a list so that we can later sum them all up.
@@ -412,22 +420,14 @@ class MEGAN(ks.models.Model):
 
 
 def make_model(inputs: Optional[list] = None,
-               input_embedding: dict = None,
                **kwargs
                ):
-
     # Building the actual model
     megan = MEGAN(**kwargs)
 
     # Wrapping the actual model inside a keras functional model to be able to account for the input shapes
     # definitions which are provided.
     layer_inputs = [ks.layers.Input(**kwargs) for kwargs in inputs]
-    megan_inputs = [x for x in layer_inputs]
-
-    if len(inputs[0]["shape"]) < 2 and input_embedding is not None:
-        megan_inputs[0] = OptionalInputEmbedding(
-            **input_embedding["node"], use_embedding=len(inputs[0]["shape"]) < 2)(megan_inputs[0])
-
-    outputs = megan(megan_inputs)
+    outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
     return model
