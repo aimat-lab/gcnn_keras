@@ -592,5 +592,53 @@ class MemoryGraphDataset(MemoryGraphList):
                 else:
                     self.error("Class does not have method '%s'." % method)
 
+    def get_split_indices(self, name: str = "kfold", return_as_train_test: bool = True,
+                          shuffle: bool = True, seed: int = None):
+        """Gather split ids from graph properties and return k-fold splits.
+
+        Args:
+            name (str): Name of property containing split assignment. Default is "kfold".
+            return_as_train_test (bool): Whether to return the splits as train test indices. Default is True.
+            shuffle (bool): Whether to shuffle splits. Default is True.
+            seed (int): Random seed for shuffle. Default is None.
+
+        Returns:
+            list: List of splits.
+        """
+        split_indices = [[]]
+
+        def check_and_extend_splits(to_split):
+            if to_split - len(split_indices) + 1 > 0:
+                for _ in range(to_split - len(split_indices) + 1):
+                    split_indices.append([])
+
+        graphs = self.obtain_property(name)
+        for i, s in enumerate(graphs):
+            if s is None:
+                self.error("Split assignment on graph '%s' is not defined." % i)
+                continue
+            for x in s:
+                check_and_extend_splits(x)
+                split_indices[int(x)].append(i)
+
+        split_indices = [np.array(x, dtype="int") for x in split_indices]
+
+        if shuffle:
+            np.random.seed(seed)
+            for x in split_indices:
+                np.random.shuffle(x)
+
+        if not return_as_train_test:
+            return split_indices
+
+        train_test = []
+
+        for i in range(len(split_indices)):
+            train = np.concatenate([x for j, x in enumerate(split_indices) if j != i], axis=0)
+            test = split_indices[i]
+            train_test.append([train, test])
+
+        return train_test
+
 
 MemoryGeometricGraphDataset = MemoryGraphDataset

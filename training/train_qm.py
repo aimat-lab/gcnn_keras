@@ -94,7 +94,13 @@ print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape)
 atoms = dataset.obtain_property("node_number")
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
-kf = KFold(**hyper["training"]["cross_validation"]["config"])
+# Or from dataset information.
+if "cross_validation" in hyper["training"]:
+    kf = KFold(**hyper["training"]["cross_validation"]["config"])
+    train_test_indices = [
+        [train_index, test_index] for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels)]
+else:
+    train_test_indices = dataset.get_split_indices()
 
 # Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
@@ -104,7 +110,7 @@ splits_done = 0
 history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
 
-for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
+for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.
     if execute_folds:

@@ -102,6 +102,3 @@ class QM7Dataset(QMDataset, DownloadDataset):
             return np.array([np.mean(mass), len(mass)])
 
         self.assign_property("graph_attributes", [mmw(x) for x in self.obtain_property("node_symbol")])
-
-
-# data = QM7Dataset(reload=False)
