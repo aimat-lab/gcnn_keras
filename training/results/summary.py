@@ -176,7 +176,7 @@ benchmark_datasets = {
         "general_info": [
             "QM7 dataset is a subset of GDB-13. ",
             "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
-            "We use a random 5-fold cross-validation. "
+            "We use dataset-specific 5-fold cross-validation. "
             "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
         ],
         "targets": [

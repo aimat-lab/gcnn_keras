@@ -1,6 +1,6 @@
 import os
-
 import numpy as np
+from typing import Union
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.download import DownloadDataset
 
@@ -19,7 +19,17 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
         "paracetamol_dft": {"download_file_name": "paracetamol_dft.npz"},
         "salicylic_dft": {"download_file_name": "salicylic_dft.npz"},
         "toluene_dft": {"download_file_name": "toluene_dft.npz"},
-        "uracil_dft": {"download_file_name": "toluene_dft.npz"}
+        "uracil_dft": {"download_file_name": "toluene_dft.npz"},
+        "aspirin_ccsd": {"download_file_name": "aspirin_ccsd.zip", "unpack_zip": True,
+                         "unpack_directory_name": "aspirin_ccsd"},
+        "benzene_ccsd_t": {"download_file_name": "benzene_ccsd_t.zip", "unpack_zip": True,
+                         "unpack_directory_name": "benzene_ccsd_t"},
+        "ethanol_ccsd_t": {"download_file_name": "ethanol_ccsd_t.zip", "unpack_zip": True,
+                         "unpack_directory_name": "ethanol_ccsd_t"},
+        "malonaldehyde_ccsd_t": {"download_file_name": "malonaldehyde_ccsd_t.zip", "unpack_zip": True,
+                                 "unpack_directory_name": "malonaldehyde_ccsd_t"},
+        "toluene_ccsd_t": {"download_file_name": "toluene_ccsd_t.zip", "unpack_zip": True,
+                           "unpack_directory_name": "toluene_ccsd_t"},
     }
 
     def __init__(self, trajectory_name: str = None, reload=False, verbose=10):
@@ -46,26 +56,60 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
 
         DownloadDataset.__init__(self, dataset_name="MD17", data_directory_name="MD17", **self.download_info,
                                  reload=reload, verbose=verbose)
-        self.file_name = self.download_file_name
-        self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
+
+        self.file_name = str(self.download_file_name) if not self.unpack_zip else [
+            os.path.splitext(self.download_file_name)[0] + "-train.npz",
+            os.path.splitext(self.download_file_name)[0] + "-test.npz"
+        ]
+        if self.unpack_directory_name is None:
+            self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
+        else:
+            self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name)
+
         self.dataset_name = self.dataset_name + "_" + self.trajectory_name
         if self.fits_in_memory:
             self.read_in_memory()
 
-    def _get_trajectory_from_npz(self, file_path: str = None):
-        if file_path is None:
-            file_dir = os.path.join(self.data_directory)
-            file_path = os.path.join(file_dir, self.file_name)
-        return np.load(file_path)
+    def _get_trajectory_from_npz(self, file_path: Union[str, list, tuple] = None):
+        # If a filepath is given.
+        if file_path is not None:
+            if isinstance(file_path, (list, tuple)):
+                return [np.load(x) for x in file_path]
+            return np.load(file_path)
+
+        # Determine filepath from dataset information.
+        if isinstance(self.file_name, str):
+            file_path = os.path.join(self.data_directory, self.file_name)
+            return np.load(file_path)
+        elif isinstance(self.file_name, (list, tuple)):
+            file_path = [os.path.join(self.data_directory, x) for x in self.file_name]
+        else:
+            TypeError("Unknown type for file name '%s'." % self.file_name)
+        return [np.load(x) for x in file_path]
 
     def read_in_memory(self):
-        data = self._get_trajectory_from_npz()
-        self.data_keys = list(data.keys())
-        for key in ["R", "E", "F"]:
-            self.assign_property(key, [x for x in data[key]])
-        for key in ["z", 'name', 'type', 'md5', "theory"]:
-            value = data[key]
-            self.assign_property(key, [np.array(value) for _ in range(len(self))])
-        return self
+        data_loaded = self._get_trajectory_from_npz()
 
-# ds = MD17Dataset("aspirin_dft")
+        def make_dict_from_data(data, is_split=None):
+            out_dict = {}
+            data_keys = list(data.keys())
+            for key in ["R", "E", "F"]:
+                out_dict.update({key: [np.array(x) for x in data[key]]})
+            num_data_points = len(out_dict["R"])
+            for key in ["z", 'name', 'type', 'md5', "theory"]:
+                value = data[key]
+                out_dict.update({key: [np.array(value) for _ in range(num_data_points)]})
+            if is_split is not None:
+                out_dict.update({"train_test": [np.array([is_split]) for _ in range(num_data_points)]})
+            return out_dict
+
+        if isinstance(data_loaded, (list, tuple)):
+            prop_dicts = [make_dict_from_data(x, is_split=i) for i, x in enumerate(data_loaded)]
+            for key_prop in prop_dicts[0].keys():
+                # note: use from itertools import chain for multiple splits.
+                self.assign_property(key_prop, prop_dicts[0][key_prop] + prop_dicts[1][key_prop])
+        else:
+            for key_prop, value_prop in make_dict_from_data(data_loaded).items():
+                self.assign_property(key_prop, value_prop)
+
+        return self

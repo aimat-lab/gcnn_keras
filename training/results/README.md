@@ -109,6 +109,7 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 | GIN         | 2.1.0   |      300 | 0.8185 &pm; 0.0127     | **0.8734 &pm; 0.0094** |
 | GraphSAGE   | 2.1.0   |      500 | 0.8165 &pm; 0.0061     | 0.8530 &pm; 0.0089     |
 | INorp       | 2.1.0   |      500 | 0.7955 &pm; 0.0037     | 0.8255 &pm; 0.0047     |
+| MEGAN       | 2.1.1   |      500 | 0.8137 &pm; 0.0117     | 0.8591 &pm; 0.0077     |
 
 ## MUTAGDataset
 
@@ -124,6 +125,7 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | GIN         | 2.1.0   |      300 | **0.8512 &pm; 0.0485** | **0.8861 &pm; 0.0922** |
 | GraphSAGE   | 2.1.0   |      500 | 0.8193 &pm; 0.0445     | 0.8560 &pm; 0.0651     |
 | INorp       | 2.1.0   |      500 | 0.8407 &pm; 0.0829     | 0.8549 &pm; 0.0705     |
+| MEGAN       | 2.1.1   |      500 | 0.7977 &pm; 0.0663     | 0.8810 &pm; 0.0568     |
 
 ## FreeSolvDataset
 
@@ -202,7 +204,7 @@ ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs app
 
 ## QM7Dataset
 
-QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use a random 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
+QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
 | model     | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|

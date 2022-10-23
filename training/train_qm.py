@@ -96,6 +96,7 @@ atoms = dataset.obtain_property("node_number")
 # Cross-validation via random KFold split form `sklearn.model_selection`.
 # Or from dataset information.
 if hyper["training"]["cross_validation"] is None:
+    print("Using dataset splits.")
     train_test_indices = dataset.get_split_indices()
 else:
     kf = KFold(**hyper["training"]["cross_validation"]["config"])

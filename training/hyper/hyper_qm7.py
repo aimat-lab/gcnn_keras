@@ -62,7 +62,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
     "Megnet": {
@@ -131,7 +131,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
     "NMPN": {
@@ -194,7 +194,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
     "PAiNN": {
@@ -260,7 +260,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
     "DimeNetPP": {
@@ -333,7 +333,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
     "MXMNet": {
@@ -550,7 +550,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.1.1"
         }
     },
 }
