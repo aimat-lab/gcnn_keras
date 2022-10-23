@@ -502,47 +502,50 @@ hyper = {
             "module_name": "kgcnn.literature.MEGAN",
             "config": {
                 'name': "MEGAN",
-                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64, "use_embedding": True}},
                 'units': [60, 50, 40, 30],
                 'importance_units': [],
                 'final_units': [50, 30, 10, 1],
-                "final_activation": "sigmoid",
+                "final_activation": "linear",
                 'dropout_rate': 0.3,
                 'final_dropout_rate': 0.00,
                 'importance_channels': 3,
                 'return_importances': False,
-                'use_edge_features': False,
-                'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                'use_edge_features': True,
+                'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None, 20), 'name': "range_attributes", 'dtype': 'float32', 'ragged': True},
                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
             }
         },
         "training": {
             "fit": {
                 "batch_size": 64,
-                "epochs": 500,
+                "epochs": 400,
                 "validation_freq": 1,
                 "verbose": 2,
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                            "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
+                            "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 400,
                             "verbose": 0}
                     }
                 ]
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
+                "loss": "mean_absolute_error"
             },
             "cross_validation": None,
         },
         "data": {
             "dataset": {
-                "class_name": "MutagenicityDataset",
-                "module_name": "kgcnn.data.datasets.MutagenicityDataset",
+                "class_name": "QM7Dataset",
+                "module_name": "kgcnn.data.datasets.QM7Dataset",
                 "config": {},
                 "methods": [
+                    {"map_list": {"method": "set_range", "max_distance": 4.0, "max_neighbours": 10000}},
+                    {"map_list": {"method": "expand_distance_gaussian_basis", "distance": 4.0, "bins": 20,
+                                  "expand_dims": False}}
                 ]
             },
             "data_unit": ""

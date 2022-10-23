@@ -502,9 +502,11 @@ def invert_distance(d, nan=0, pos_inf=0, neg_inf=0):
     return c
 
 
-def distance_to_gauss_basis(inputs, bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0):
+def distance_to_gauss_basis(inputs, bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0,
+                            axis: int = -1, expand_dims: bool = True):
     r"""Convert distance array to smooth one-hot representation using Gaussian functions.
-    Changes shape for Gaussian distance expansion from `(..., )` to (..., #bins).
+    Changes shape for Gaussian distance expansion from `(..., )` to (..., bins) by default.
+
     Note: The default values match realistic units in Angstrom for atoms or molecules.
 
     Args:
@@ -513,19 +515,21 @@ def distance_to_gauss_basis(inputs, bins: int = 20, distance: float = 4.0, sigma
         distance (value): Maximum distance to be captured by bins. Default is 4.0.
         sigma (value): Sigma of the Gaussian function, determining the width/sharpness. Default is 0.4.
         offset (float): Possible offset to center Gaussian. Default is 0.0.
+        axis (int): Axis to expand distance. Defaults to -1.
+        expand_dims (bool): Whether to expand dims. Default to True.
 
     Returns:
         np.ndarray: Array of Gaussian distance with expanded last axis `(..., #bins)`
     """
     gamma = 1 / sigma / sigma * (-1) / 2
-    d_shape = inputs.shape
-    edge_dist_grid = np.expand_dims(inputs, axis=-1)
-    edge_gauss_bin = np.arange(0, bins, 1) / bins * distance
-    edge_gauss_bin = np.broadcast_to(edge_gauss_bin, np.append(np.ones(len(d_shape), dtype=np.int32),
-                                                               edge_gauss_bin.shape))  # shape (1,1,...,GBins)
-    edge_gauss_bin = np.square(edge_dist_grid - edge_gauss_bin - offset) * gamma  # (N,M,...,1) - (1,1,...,GBins)
-    edge_gauss_bin = np.exp(edge_gauss_bin)
-    return edge_gauss_bin
+    if expand_dims:
+        inputs = np.expand_dims(inputs, axis=axis)
+    gauss_bins = np.arange(0, bins, 1) / bins * distance
+    expanded_shape = [1]*len(inputs.shape)
+    expanded_shape[axis] = len(gauss_bins)
+    gauss_bins = np.broadcast_to(gauss_bins, expanded_shape)
+    output = np.square(inputs - gauss_bins - offset) * gamma  # (N,M,...,1) - (1,1,...,GBins)
+    return np.exp(output)
 
 
 def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_neighbours=np.inf, exclusive=True,

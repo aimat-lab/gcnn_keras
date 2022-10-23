@@ -4,7 +4,8 @@ from typing import Union
 from kgcnn.graph.base import GraphPreProcessorBase
 from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, invert_distance, \
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
-    rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map
+    rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map, \
+    distance_to_gauss_basis
 from kgcnn.graph.geom import range_neighbour_lattice
 
 logging.basicConfig()  # Module logger
@@ -25,6 +26,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
         remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
         sort_indices (bool): Sort indices after adding edges. Default is True.
     """
+
     def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
                  remove_duplicates: bool = True, sort_indices: bool = True, name="make_undirected_edges", **kwargs):
         # "^edge_(?!indices$).*"
@@ -39,7 +41,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
 
     def call(self, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool):
         if edge_indices is None:
-            return None, [None]*len(edge_attributes)
+            return None, [None] * len(edge_attributes)
         return add_edges_reverse_indices(
             edge_indices, *edge_attributes, remove_duplicates=remove_duplicates, sort_indices=sort_indices,
             return_nested=True)
@@ -58,6 +60,7 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
         sort_indices (bool): To sort indices after adding self-loops. Default is True.
         fill_value (in): The fill_value for all other edge properties.
     """
+
     def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
                  remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0,
                  name="add_edge_self_loops", **kwargs):
@@ -73,7 +76,7 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list, remove_duplicates: bool, sort_indices: bool,
              fill_value: bool):
         if edge_indices is None:
-            return None, [None]*len(edge_attributes)
+            return None, [None] * len(edge_attributes)
         return add_self_loops_to_edge_indices(
             edge_indices, *edge_attributes, remove_duplicates=remove_duplicates,
             sort_indices=sort_indices, fill_value=fill_value, return_nested=True)
@@ -87,6 +90,7 @@ class SortEdgeIndices(GraphPreProcessorBase):
         edge_attributes (str): Name of related edge values or attributes.
             This can be a match-string or list of names. Default is "^edge_.*".
     """
+
     def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
                  name="sort_edge_indices", **kwargs):
         super().__init__(name=name, **kwargs)
@@ -97,7 +101,7 @@ class SortEdgeIndices(GraphPreProcessorBase):
 
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list):
         if edge_indices is None:
-            return None, [None]*len(edge_attributes)
+            return None, [None] * len(edge_attributes)
         return sort_edge_indices(edge_indices, *edge_attributes, return_nested=True)
 
 
@@ -114,6 +118,7 @@ class SetEdgeIndicesReverse(GraphPreProcessorBase):
         edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
         edge_indices_reverse (str): Name of reverse indices to store output. Default is "edge_indices_reverse"
     """
+
     def __init__(self, *, edge_indices: str = "edge_indices", edge_indices_reverse: str = "edge_indices_reverse",
                  name="set_edge_indices_reverse", **kwargs):
         super().__init__(name=name, **kwargs)
@@ -135,6 +140,7 @@ class PadProperty(GraphPreProcessorBase):
         pad_width (list, int): Width to pad tensor.
         mode (str): Padding mode.
     """
+
     def __init__(self, *, key: str, pad_width: Union[int, list, tuple, np.ndarray], mode: str = "constant",
                  name="pad_property", **kwargs):
         call_kwargs = {"pad_width": pad_width, "mode": mode}
@@ -220,6 +226,7 @@ class SetRangeFromEdges(GraphPreProcessorBase):
         range_attributes (str): Name of range distance to set in dictionary. Default is "range_attributes".
         do_invert_distance (bool): Invert distance when computing  :obj:`range_attributes`. Default is False.
     """
+
     def __init__(self, *, edge_indices: str = "edge_indices", range_indices: str = "range_indices",
                  node_coordinates: str = "node_coordinates", range_attributes: str = "range_attributes",
                  do_invert_distance: bool = False, name="set_range_from_edges", **kwargs):
@@ -314,6 +321,7 @@ class SetAngle(GraphPreProcessorBase):
             the nodes are unique. Default is False.
         compute_angles (bool): Whether to also compute angles.
     """
+
     def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  angle_indices: str = "angle_indices", angle_indices_nodes: str = "angle_indices_nodes",
                  angle_attributes: str = "angle_attributes",
@@ -368,6 +376,7 @@ class SetRangePeriodic(GraphPreProcessorBase):
         do_invert_distance (bool): Whether to invert the distance. Default is False.
         self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
     """
+
     def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  graph_lattice: str = "graph_lattice", range_image: str = "range_image",
                  range_attributes: str = "range_attributes", max_distance: float = 4.0, max_neighbours: int = None,
@@ -401,3 +410,33 @@ class SetRangePeriodic(GraphPreProcessorBase):
             dist = np.expand_dims(dist, axis=-1)
         # Assign attributes to instance.
         return indices, images, dist
+
+
+class ExpandDistanceGaussianBasis(GraphPreProcessorBase):
+    r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
+    Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
+    The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
+    Does not affect other edge-properties and only sets :obj:`edge_weights`.
+
+    Args:
+        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
+        edge_weights (str): Name of edge weights indices to set in dictionary. Default is "edge_weights".
+    """
+
+    def __init__(self, *, range_attributes: str = "range_attributes",
+                 bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0, axis: int = -1,
+                 expand_dims: bool = True,
+                 name="expand_distance_gaussian_basis", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"range_attributes": range_attributes})
+        self._to_assign = range_attributes
+        self._call_kwargs = {"bins": bins, "distance": distance, "sigma": sigma, "offset": offset, "axis": axis,
+                             "expand_dims": expand_dims}
+        self._config_kwargs.update({"range_attributes": range_attributes, **self._call_kwargs})
+
+    def call(self, *, range_attributes: np.ndarray,
+             bins: int, distance: float, sigma: float, offset: float, axis: int, expand_dims: bool):
+        if range_attributes is None:
+            return None
+        return distance_to_gauss_basis(range_attributes, bins=bins, distance=distance, sigma=sigma, offset=offset,
+                                       axis=axis, expand_dims=expand_dims)

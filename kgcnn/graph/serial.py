@@ -14,7 +14,8 @@ def get_preprocessor(name, **kwargs):
         "set_range_from_edges": "SetRangeFromEdges",
         "set_range": "SetRange",
         "set_angle": "SetAngle",
-        "set_range_periodic": "SetRangePeriodic"
+        "set_range_periodic": "SetRangePeriodic",
+        "expand_distance_gaussian_basis": "ExpandDistanceGaussianBasis"
     }
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.preprocessor")), str(preprocessor_identifier[name]))
     return obj_class(**kwargs)
