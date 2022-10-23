@@ -514,7 +514,7 @@ hyper = {
                 'use_edge_features': True,
                 'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
                            {'shape': (None, 20), 'name': "range_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
+                           {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64', 'ragged': True}],
             }
         },
         "training": {

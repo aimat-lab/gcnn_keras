@@ -413,14 +413,16 @@ class SetRangePeriodic(GraphPreProcessorBase):
 
 
 class ExpandDistanceGaussianBasis(GraphPreProcessorBase):
-    r"""Normalize :obj:`edge_weights` using the node degree of each row or column of the adjacency matrix.
-    Normalize edge weights as :math:`\tilde{e}_{i,j} = d_{i,i}^{-0.5} \, e_{i,j} \, d_{j,j}^{-0.5}`.
-    The node degree is defined as :math:`D_{i,i} = \sum_{j} A_{i, j}`. Requires the property :obj:`edge_indices`.
-    Does not affect other edge-properties and only sets :obj:`edge_weights`.
+    r"""Expand distance into Gaussian basis a features or attributes.
 
     Args:
-        edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
-        edge_weights (str): Name of edge weights indices to set in dictionary. Default is "edge_weights".
+        range_attributes (str): Name of distances in dictionary. Default is "range_attributes".
+        bins (int): Number of bins to sample distance from. Default is 20.
+        distance (value): Maximum distance to be captured by bins. Default is 4.0.
+        sigma (value): Sigma of the Gaussian function, determining the width/sharpness. Default is 0.4.
+        offset (float): Possible offset to center Gaussian. Default is 0.0.
+        axis (int): Axis to expand distance. Defaults to -1.
+        expand_dims (bool): Whether to expand dims. Default to True.
     """
 
     def __init__(self, *, range_attributes: str = "range_attributes",
