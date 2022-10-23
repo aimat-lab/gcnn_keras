@@ -27,8 +27,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -95,8 +94,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -160,8 +158,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -220,8 +217,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 32, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -293,8 +289,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 10, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -374,8 +369,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 64, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
@@ -436,10 +430,10 @@ hyper = {
             "module_name": "kgcnn.literature.EGNN",
             "config": {
                 "name": "EGNN",
-                "inputs": [{"shape": (None, ), "name": "node_number", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
                            {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                            {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
-                           {"shape": (None, ), "name": "edge_number", "dtype": "float32", "ragged": True}],
+                           {"shape": (None,), "name": "edge_number", "dtype": "float32", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                     "edge": {"input_dim": 95, "output_dim": 64}},
                 "depth": 4,
@@ -464,8 +458,7 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
             "fit": {
                 "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -519,8 +512,8 @@ hyper = {
                 'importance_channels': 3,
                 'return_importances': False,
                 'use_edge_features': False,
-                'inputs': [{'shape': (None, ), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, ), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+                'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+                           {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
                            {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}],
             }
         },
@@ -533,8 +526,8 @@ hyper = {
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
-                        "verbose": 0}
+                            "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 200, "epo": 400,
+                            "verbose": 0}
                     }
                 ]
             },
@@ -542,8 +535,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "binary_crossentropy", "metrics": ["accuracy", "AUC"]
             },
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "cross_validation": None,
         },
         "data": {
             "dataset": {
