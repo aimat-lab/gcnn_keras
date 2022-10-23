@@ -536,6 +536,12 @@ hyper = {
                 "loss": "mean_absolute_error"
             },
             "cross_validation": None,
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "StandardScaler",
+                            "config": {"with_std": True, "with_mean": True, "copy": True}}
+                           ]
+            }},
+            "multi_target_indices": None
         },
         "data": {
             "dataset": {
@@ -548,7 +554,7 @@ hyper = {
                                   "expand_dims": False}}
                 ]
             },
-            "data_unit": ""
+            "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
