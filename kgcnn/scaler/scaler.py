@@ -16,9 +16,10 @@ class StandardScaler(StandardScalerSklearn):
         return super(StandardScaler, self).fit(X=X, y=y, sample_weight=sample_weight)
 
     def partial_fit(self, X, y=None, sample_weight=None, atomic_number=None):
+        # For partial fit internally uses args and not kwargs.
         return super(StandardScaler, self).partial_fit(X=X, y=y, sample_weight=sample_weight)
 
-    def fit_transform(self, X, y=None, *, atomic_number=None, **fit_params):
+    def fit_transform(self, X, *, y=None, atomic_number=None, **fit_params):
         return super(StandardScaler, self).fit_transform(X=X, y=y, **fit_params)
 
     def transform(self, X, *, copy=None, atomic_number=None):

@@ -14,6 +14,7 @@ class ExtensiveMolecularScaler:
     .. code-block:: python
 
         import numpy as np
+        from kgcnn.scaler.mol import ExtensiveMolecularScaler
         data = np.random.rand(5).reshape((5,1))
         mol_num = [np.array([6, 1, 1, 1, 1]), np.array([7, 1, 1, 1]),
             np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
@@ -47,7 +48,7 @@ class ExtensiveMolecularScaler:
         self._fit_atom_selection = None
         self.scale_ = None
 
-    def fit(self, X, y=None, sample_weight=None, atomic_number=None):
+    def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
         r"""Fit atomic number to the molecular properties.
 
         Args:
@@ -142,7 +143,7 @@ class ExtensiveMolecularScaler:
         """
         return (X - self.predict(atomic_number)) / np.expand_dims(self.scale_, axis=0)
 
-    def fit_transform(self, X, y=None, sample_weight=None, atomic_number=None):
+    def fit_transform(self, X, *, y=None, sample_weight=None, atomic_number=None):
         """Combine fit and transform methods in one call.
 
         Args:
@@ -236,7 +237,7 @@ class QMGraphLabelScaler:
             else:
                 raise ValueError("Unsupported scaler %s" % x["name"])
 
-    def fit_transform(self, X, y=None, sample_weight=None, atomic_number=None):
+    def fit_transform(self, X, *, y=None, sample_weight=None, atomic_number=None):
         r"""Fit and transform all target labels for QM9.
 
         Args:
@@ -270,7 +271,7 @@ class QMGraphLabelScaler:
         out_labels = np.concatenate(out_labels, axis=-1)
         return out_labels
 
-    def fit(self, X, y=None, sample_weight=None, atomic_number=None):
+    def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
         r"""Fit scaling of QM9 graph labels or targets.
 
         Args:
