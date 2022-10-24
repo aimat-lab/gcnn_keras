@@ -88,6 +88,3 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
         self.assign_property("multi_train_test", property_split)
 
         return self
-
-
-# ds = MD17RevisedDataset("azobenzene")
