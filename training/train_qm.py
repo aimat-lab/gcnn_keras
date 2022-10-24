@@ -20,7 +20,7 @@ from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a QMDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="MEGAN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="QM7Dataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
@@ -133,22 +133,22 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     atoms_train = [atoms[i] for i in train_index]
 
     # Normalize training and test targets. For QM datasets this training script uses the `QMGraphLabelScaler` class.
-    # Note that the QMGraphLabelScaler must receive a (serialized) list of individual scalers, one per each target.
-    # These are extensive or intensive scalers, but could be expanded to have other normalization methods.
+    # Note that the QMGraphLabelScaler must receive a (serialized) list of individual scaler, one per each target.
+    # These are extensive or intensive scaler, but could be expanded to have other normalization methods.
     if "scaler" in hyper["training"]:
         print("Using QMGraphLabelScaler.")
         # Atomic number argument here!
-        scaler = QMGraphLabelScaler(**hyper["training"]["scaler"]["config"]).fit(y_train, atoms_train)
-        y_train = scaler.fit_transform(y_train, atoms_train)
-        y_test = scaler.transform(y_test, atoms_test)
+        scaler = QMGraphLabelScaler(**hyper["training"]["scaler"]["config"]).fit(X=y_train, atomic_number=atoms_train)
+        y_train = scaler.transform(X=y_train, atomic_number=atoms_train)
+        y_test = scaler.transform(X=y_test, atomic_number=atoms_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
-        scaler_scale = np.expand_dims(scaler.scale_, axis=0)
+        scaler_scale = scaler.get_scaling()
         mae_metric = ScaledMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
         rms_metric = ScaledRootMeanSquaredError(scaler_scale.shape, name="scaled_root_mean_squared_error")
         if scaler.scale_ is not None:
-            mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-            rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
+            mae_metric.set_scale(scaler_scale)
+            rms_metric.set_scale(scaler_scale)
         metrics = [mae_metric, rms_metric]
     else:
         print("Not using QMGraphLabelScaler.")
