@@ -85,6 +85,6 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
                 if i in split:
                     is_in_split[1] = j + 1
             property_split.append(np.array(is_in_split, dtype="int"))
-        self.assign_property("multi_train_test", property_split)
+        self.assign_property("train_test", property_split)
 
         return self

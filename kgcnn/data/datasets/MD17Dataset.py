@@ -93,6 +93,7 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
         def make_dict_from_data(data, is_split=None):
             out_dict = {}
             data_keys = list(data.keys())
+            # note: Could check if all keys are available here.
             for key in ["R", "E", "F"]:
                 out_dict.update({key: [np.array(x) for x in data[key]]})
             num_data_points = len(out_dict["R"])
@@ -100,11 +101,12 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
                 value = data[key]
                 out_dict.update({key: [np.array(value) for _ in range(num_data_points)]})
             if is_split is not None:
-                out_dict.update({"train_test": [np.array([is_split]) for _ in range(num_data_points)]})
+                out_dict.update({"train_test": [np.array(is_split) for _ in range(num_data_points)]})
             return out_dict
 
         if isinstance(data_loaded, (list, tuple)):
-            prop_dicts = [make_dict_from_data(x, is_split=i) for i, x in enumerate(data_loaded)]
+            split_defaults = [[1, 0], [0, 1]]
+            prop_dicts = [make_dict_from_data(x, is_split=split_defaults[i]) for i, x in enumerate(data_loaded)]
             for key_prop in prop_dicts[0].keys():
                 # note: use from itertools import chain for multiple splits.
                 self.assign_property(key_prop, prop_dicts[0][key_prop] + prop_dicts[1][key_prop])
