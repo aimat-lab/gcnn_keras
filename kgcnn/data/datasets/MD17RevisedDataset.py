@@ -1,6 +1,6 @@
 import os
-
 import numpy as np
+import pandas as pd
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.download import DownloadDataset
 
@@ -51,6 +51,15 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
             file_path = os.path.join(file_dir, self.file_name)
         return np.load(file_path)
 
+    def _get_cross_validation_splits(self):
+        file_dir = os.path.join(self.data_directory, "splits")
+
+        def read_splits(file_name: str) -> list:
+            return [
+                np.squeeze(pd.read_csv(
+                    os.path.join(file_dir, file_name % i), header=None).values, axis=-1) for i in range(1, 6)]
+        return read_splits("index_train_0%i.csv"), read_splits("index_test_0%i.csv")
+
     def read_in_memory(self,):
         """Read dataset trajectory into memory.
 
@@ -63,6 +72,22 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
             self.assign_property(key, [x for x in data[key]])
         node_number = data["nuclear_charges"]
         self.assign_property("nuclear_charges", [np.array(node_number) for _ in range(len(self))])
+
+        # Add splits to self.
+        splits_train, splits_test = self._get_cross_validation_splits()
+        property_split = []
+        for i in range(len(self)):
+            is_in_split = [0, 0]  # train, test
+            for j, split in enumerate(splits_train):
+                if i in split:
+                    is_in_split[0] = j + 1
+            for j, split in enumerate(splits_test):
+                if i in split:
+                    is_in_split[1] = j + 1
+            property_split.append(np.array(is_in_split, dtype="int"))
+        self.assign_property("multi_train_test", property_split)
+
         return self
 
-# ds = MD17RevisedDataset("aspirin")
+
+# ds = MD17RevisedDataset("azobenzene")
