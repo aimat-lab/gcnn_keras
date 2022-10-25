@@ -1,7 +1,7 @@
 import os.path
 import numpy as np
 from sklearn.preprocessing import StandardScaler as StandardScalerSklearn
-from kgcnn.data.utils import save_json_file
+from kgcnn.data.utils import save_json_file, load_json_file
 
 
 class StandardScaler(StandardScalerSklearn):
@@ -28,9 +28,19 @@ class StandardScaler(StandardScalerSklearn):
     def inverse_transform(self, X, *, copy=None, atomic_number=None):
         return super(StandardScaler, self).inverse_transform(X=X, copy=copy)
 
+    def get_scaling(self):
+        if not hasattr(self, "scale_"):
+            return
+        scale = np.array(self.scale_)
+        scale = np.expand_dims(scale, axis=0)
+        return scale
+
     def get_config(self):
         config = super(StandardScaler, self).get_params()
         return config
+
+    def set_config(self, config):
+        self.set_params(**config)
 
     def get_weights(self) -> dict:
         weight_dict = dict()
@@ -50,10 +60,6 @@ class StandardScaler(StandardScalerSklearn):
             else:
                 print("`StandardScaler` got unknown weight '%s'." % item)
 
-    def save_config(self, file_path: str):
-        config = self.get_config()
-        save_json_file(config, os.path.splitext(file_path)[0] + ".json")
-
     def save_weights(self, file_path: str):
         weights = self.get_weights()
         # Make them all numpy arrays for save.
@@ -62,15 +68,17 @@ class StandardScaler(StandardScalerSklearn):
         if len(weights) > 0:
             np.savez(os.path.splitext(file_path)[0] + ".npz", **weights)
         else:
-            print("Error no weights to save.")
+            print("Error no weights to save for `StandardScaler`.")
 
     def save(self, file_path: str):
-        self.save_config(file_path)
-        self.save_weights(file_path)
+        conf = self.get_config()
+        weights = self.get_weights()
+        full_info = {"class_name": type(self).__name__, "module_name": type(self).__module__,
+                     "config": conf, "weights": weights}
+        save_json_file(full_info, os.path.splitext(file_path)[0] + ".json")
 
-    def get_scaling(self):
-        if not hasattr(self, "scale_"):
-            return
-        scale = np.array(self.scale_)
-        scale = np.expand_dims(scale, axis=0)
-        return scale
+    def load(self, file_path: str):
+        full_info = load_json_file(file_path)
+        # Could verify class_name and module_name here.
+        self.set_config(full_info["config"])
+        self.set_weights(full_info["weights"])

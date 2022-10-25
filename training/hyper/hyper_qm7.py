@@ -209,6 +209,7 @@ hyper = {
                     {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
+                "equiv_initialize_kwargs": {"dim": 3, "method": "eps"},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                 "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
                 "update_args": {"units": 128}, "depth": 3, "verbose": 10,

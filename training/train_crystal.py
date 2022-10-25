@@ -209,5 +209,4 @@ save_pickle_file([x.history for x in history_list],
                  os.path.join(filepath, f"histories_all{postfix_file}.pickle"))
 
 # Save scaler.
-scaler.save_weights(os.path.join(filepath, f"scaler_weights{postfix_file}"))
-scaler.save_config(os.path.join(filepath, f"scaler_configs{postfix_file}"))
+scaler.save(os.path.join(filepath, f"scaler_{postfix_file}"))
