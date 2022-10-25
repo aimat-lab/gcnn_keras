@@ -246,8 +246,22 @@ class QMGraphLabelScaler:
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.scaler.mol import QMGraphLabelScaler
-
+        from kgcnn.scaler.mol import QMGraphLabelScaler, ExtensiveMolecularScaler
+        from kgcnn.scaler.scaler import StandardScaler
+        data = np.random.rand(10).reshape((5,2))
+        mol_num = [np.array([6, 1, 1, 1, 1]), np.array([7, 1, 1, 1]),
+            np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
+        ]
+        scaler = QMGraphLabelScaler([ExtensiveMolecularScaler(), StandardScaler()])
+        scaler.fit(X=data, atomic_number=mol_num)
+        print(scaler.get_weights())
+        print(scaler.get_config())
+        print(scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
+        print(data)
+        scaler.save("example.json")
+        new_scaler = QMGraphLabelScaler([ExtensiveMolecularScaler(), StandardScaler()])
+        new_scaler.load("example.json")
+        print(new_scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
     """
 
     def __init__(self, scaler: list):
