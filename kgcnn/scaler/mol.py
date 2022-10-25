@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from typing import Union
+# from typing import Union
 from sklearn.linear_model import Ridge
 from kgcnn.scaler.scaler import StandardScaler
 from kgcnn.data.utils import save_json_file, load_json_file
