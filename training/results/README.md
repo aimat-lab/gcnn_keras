@@ -88,13 +88,15 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 
 Materials Project dataset from Matbench with 1,265 crystal structures and their corresponding vibration properties in [1/cm]. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]          |
-|:--------------------------|:--------|---------:|:------------------------|:------------------------|
-| MEGAN                     | 2.1.1   |      400 | 50.3682 &pm; 7.2162     | 121.6629 &pm; 27.4599   |
-| Megnet.make_crystal_model | 2.1.0   |     1000 | **29.2085 &pm; 2.8130** | **53.9366 &pm; 7.0800** |
-| NMPN.make_crystal_model   | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
-| PAiNN.make_crystal_model  | 2.1.1   |      800 | 47.2212 &pm; 3.8855     | 82.7834 &pm; 6.0730     |
-| Schnet.make_crystal_model | 2.1.0   |      800 | 39.6044 &pm; 2.1223     | 78.6854 &pm; 15.0636    |
+| model                        | kgcnn   |   epochs | MAE [eV/atom]           | RMSE [eV/atom]          |
+|:-----------------------------|:--------|---------:|:------------------------|:------------------------|
+| CGCNN.make_crystal_model     | 2.1.1   |     1000 | 46.1204 &pm; 3.2640     | 106.4514 &pm; 16.9401   |
+| DimeNetPP.make_crystal_model | 2.1.1   |      780 | 36.7288 &pm; 1.3484     | 81.5038 &pm; 10.3550    |
+| MEGAN                        | 2.1.1   |      400 | 50.3682 &pm; 7.2162     | 121.6629 &pm; 27.4599   |
+| Megnet.make_crystal_model    | 2.1.0   |     1000 | **29.2085 &pm; 2.8130** | **53.9366 &pm; 7.0800** |
+| NMPN.make_crystal_model      | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
+| PAiNN.make_crystal_model     | 2.1.1   |      800 | 47.2212 &pm; 3.8855     | 82.7834 &pm; 6.0730     |
+| Schnet.make_crystal_model    | 2.1.0   |      800 | 39.6044 &pm; 2.1223     | 78.6854 &pm; 15.0636    |
 
 ## MutagenicityDataset
 
@@ -211,10 +213,11 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
 | DimeNetPP | 2.1.1   |      872 | 2.8634 &pm; 0.1360     | 6.0549 &pm; 1.7723     |
 | EGNN      | 2.1.1   |      800 | 1.6182 &pm; 0.1712     | 3.8677 &pm; 0.7640     |
-| Megnet    | 2.1.0   |      800 | 1.4922 &pm; 0.0680     | **2.8795 &pm; 0.5466** |
+| MEGAN     | 2.1.1   |      800 | 10.4494 &pm; 1.6076    | 11.5596 &pm; 1.5710    |
+| Megnet    | 2.1.1   |      800 | 1.4626 &pm; 0.0818     | **3.1522 &pm; 0.2409** |
 | MXMNet    | 2.1.1   |      872 | 5.9999 &pm; 3.4727     | 19.8145 &pm; 9.2640    |
-| NMPN      | 2.1.0   |      500 | 6.5715 &pm; 0.4977     | 34.9752 &pm; 8.0740    |
-| PAiNN     | 2.1.0   |      872 | **1.2690 &pm; 0.0938** | 4.5825 &pm; 2.2684     |
+| NMPN      | 2.1.1   |      500 | 6.4698 &pm; 0.8256     | 35.0397 &pm; 4.3985    |
+| PAiNN     | 2.1.1   |      872 | **1.2715 &pm; 0.0235** | 4.4958 &pm; 1.8048     |
 | Schnet    | 2.1.1   |      800 | 2.5840 &pm; 0.3479     | 10.3788 &pm; 9.1047    |
 
 ## QM9Dataset

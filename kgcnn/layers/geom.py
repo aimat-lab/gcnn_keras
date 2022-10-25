@@ -235,6 +235,10 @@ class ScalarProduct(GraphBaseLayer):
     def build(self, input_shape):
         """Build layer."""
         super(ScalarProduct, self).build(input_shape)
+        axis = get_positive_axis(self.axis, len(input_shape[0]))
+        axis2 = get_positive_axis(self.axis, len(input_shape[1]))
+        assert axis2 == axis, "Axis parameter must match on the two input vectors for scalar product."
+        self.axis = axis
 
     @staticmethod
     def _scalar_product(inputs: list, axis: int, **kwargs):
@@ -261,17 +265,7 @@ class ScalarProduct(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Scalar product of shape `(batch, [N], ...)`
         """
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
-            axis = get_positive_axis(self.axis, inputs[0].shape.rank)
-            axis2 = get_positive_axis(self.axis, inputs[1].shape.rank)
-            assert axis2 == axis
-            if all([x.ragged_rank == 1 for x in inputs]) and axis > 1:
-                v1, v2 = inputs[0].values, inputs[1].values
-                out = self._scalar_product([v1, v2], axis=axis-1)
-                return tf.RaggedTensor.from_row_splits(out, inputs[0].row_splits, validate=self.ragged_validate)
-        # Default
-        out = self._scalar_product(inputs, axis=self.axis)
-        return out
+        return self.call_on_values_tensor_of_ragged(self._scalar_product, inputs, axis=self.axis)
 
     def get_config(self):
         """Update config."""
@@ -435,11 +429,7 @@ class VectorAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Calculated Angle between vector 1 and 2 of shape `(batch, [M], 1)`.
         """
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):  # Possibly faster
-            if all([x.ragged_rank == 1 for x in inputs]):
-                angle = self._compute_vector_angle([inputs[0].values, inputs[1].values])
-                return tf.RaggedTensor.from_row_splits(angle, inputs[0].row_splits, validate=self.ragged_validate)
-        return self._compute_vector_angle(inputs)
+        return self.call_on_values_tensor_of_ragged(self._compute_vector_angle, inputs)
 
     def get_config(self):
         """Update config."""
@@ -568,12 +558,9 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
-        # Possibly faster RaggedRank==1
-        if isinstance(inputs, tf.RaggedTensor):
-            if inputs.ragged_rank == 1:
-                out = self._compute_gauss_basis(inputs.values, self.offset, self.gamma, self.bins, self.distance)
-                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        return self._compute_gauss_basis(inputs, self.offset, self.gamma, self.bins, self.distance)
+        return self.call_on_values_tensor_of_ragged(
+            self._compute_gauss_basis, inputs,
+            offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
 
     def get_config(self):
         """Update config."""
@@ -642,7 +629,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
         return self.call_on_values_tensor_of_ragged(
-            self._compute_gauss_basis, inputs,
+            self._compute_fourier_encoding, inputs,
             dim_half=self.dim_half, wave_length=self.wave_length, include_frequencies=self.include_frequencies)
 
     def get_config(self):
@@ -733,12 +720,7 @@ class BesselBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], num_radial)`.
         """
-        # Possibly faster RaggedRank==1
-        if isinstance(inputs, tf.RaggedTensor):
-            if inputs.ragged_rank == 1:
-                out = self.expand_bessel_basis(inputs.values)
-                return tf.RaggedTensor.from_row_splits(out, inputs.row_splits, validate=self.ragged_validate)
-        return self.expand_bessel_basis(inputs)
+        return self.call_on_values_tensor_of_ragged(self.expand_bessel_basis, inputs)
 
     def get_config(self):
         """Update config."""
