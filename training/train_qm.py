@@ -186,8 +186,8 @@ predicted_y = model.predict(x_test)
 true_y = y_test
 
 if scaler:
-    predicted_y = scaler.inverse_transform(predicted_y, atoms_test)
-    true_y = scaler.inverse_transform(true_y, atoms_test)
+    predicted_y = scaler.inverse_transform(X=predicted_y, atomic_number=atoms_test)
+    true_y = scaler.inverse_transform(X=true_y, atomic_number=atoms_test)
 
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=label_units,
