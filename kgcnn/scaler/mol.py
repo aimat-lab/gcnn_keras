@@ -28,10 +28,13 @@ class ExtensiveMolecularScaler:
         scaler._plot_predict(data, mol_num)  # For debugging.
         print(scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
         print(data)
+        scaler.save("example.json")
+        new_scaler = ExtensiveMolecularScaler()
+        new_scaler.load("example.json")
+        print(new_scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
     """
 
-    _attributes_list_sklearn = ["n_features_in_"]
-    _attributes_list_sklearn_np_array = ["coef_", "intercept_", "n_iter_", "feature_names_in_"]
+    _attributes_list_sklearn = ["n_features_in_", "coef_", "intercept_", "n_iter_", "feature_names_in_"]
     _attributes_list_mol = ["scale_", "_fit_atom_selection", "_fit_atom_selection_mask"]
     max_atomic_number = 95
 
@@ -191,9 +194,6 @@ class ExtensiveMolecularScaler:
             weights.update({x: np.array(getattr(self, x)).tolist()})
         for x in self._attributes_list_sklearn:
             if hasattr(self.ridge, x):
-                weights.update({x: np.array(getattr(self.ridge, x))})
-        for x in self._attributes_list_sklearn_np_array:
-            if hasattr(self.ridge, x):
                 weights.update({x: np.array(getattr(self.ridge, x)).tolist()})
         return weights
 
@@ -202,8 +202,6 @@ class ExtensiveMolecularScaler:
             if item in self._attributes_list_mol:
                 setattr(self, item, np.array(value))
             elif item in self._attributes_list_sklearn:
-                setattr(self.ridge, item, value)
-            elif item in self._attributes_list_sklearn_np_array:
                 setattr(self.ridge, item, np.array(value))
             else:
                 print("`ExtensiveMolecularScaler` got unknown weight '%s'." % item)
@@ -377,8 +375,11 @@ class QMGraphLabelScaler:
             self.scaler_list[i].set_weights(x)
 
     def save_weights(self, file_path: str):
-        weights = self.get_weights()
         all_weights = {}
+        for i, x in enumerate(self.scaler_list):
+            w = x.get_weights()
+            for key, value in w.items():
+                all_weights[str(key) + "_%i" % i] = np.array(value)
         np.savez(os.path.splitext(file_path)[0] + ".npz", **all_weights)
 
     def get_config(self):
