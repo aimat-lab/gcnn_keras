@@ -208,3 +208,4 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
+
