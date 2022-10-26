@@ -5,6 +5,26 @@ from kgcnn.data.utils import save_json_file, load_json_file
 
 
 class StandardScaler(StandardScalerSklearn):
+    r"""Standard scaler that inherits from :obj:`sklearn.preprocessing.StandardScaler`.
+    Added functionality to save and load weights of this scaler. Included dummy kwarg 'atomic_number' to be compatible
+    with molar scaler.
+
+    .. code-block:: python
+
+        import numpy as np
+        from kgcnn.scaler.scaler import StandardScaler
+        data = np.random.rand(5).reshape((5,1))
+        scaler = StandardScaler()
+        scaler.fit(X=data)
+        print(scaler.get_weights())
+        print(scaler.get_config())
+        print(scaler.inverse_transform(scaler.transform(X=data)))
+        print(data)
+        scaler.save("example.json")
+        new_scaler = StandardScaler()
+        new_scaler.load("example.json")
+        print(new_scaler.inverse_transform(scaler.transform(X=data)))
+    """
 
     _attributes_list_sklearn = ["n_features_in_", "mean_", "scale_", "var_", "feature_names_in_", "n_samples_seen_"]
 
@@ -16,6 +36,7 @@ class StandardScaler(StandardScalerSklearn):
 
     def partial_fit(self, X, y=None, sample_weight=None, atomic_number=None):
         # For partial fit internally uses args and not kwargs.
+        # Can not request kwargs after argument X here.
         return super(StandardScaler, self).partial_fit(X=X, y=y, sample_weight=sample_weight)
 
     def fit_transform(self, X, *, y=None, atomic_number=None, **fit_params):
@@ -28,6 +49,7 @@ class StandardScaler(StandardScalerSklearn):
         return super(StandardScaler, self).inverse_transform(X=X, copy=copy)
 
     def get_scaling(self):
+        """Get scale of shape (1, n_properties)."""
         if not hasattr(self, "scale_"):
             return
         scale = np.array(self.scale_)
@@ -35,13 +57,20 @@ class StandardScaler(StandardScalerSklearn):
         return scale
 
     def get_config(self):
+        """Get configuration for scaler."""
         config = super(StandardScaler, self).get_params()
         return config
 
     def set_config(self, config):
+        """Set configuration for scaler.
+
+        Args:
+            config (dict): Config dictionary.
+        """
         self.set_params(**config)
 
     def get_weights(self) -> dict:
+        """Get weights for this scaler after fit."""
         weight_dict = dict()
         for x in self._attributes_list_sklearn:
             if hasattr(self, x):
@@ -51,6 +80,11 @@ class StandardScaler(StandardScalerSklearn):
         return weight_dict
 
     def set_weights(self, weights: dict):
+        """Set weights for this scaler.
+
+        Args:
+            weights (dict): Weight dictionary.
+        """
         for item, value in weights.items():
             if item in self._attributes_list_sklearn:
                 setattr(self, item, np.array(value))
@@ -58,6 +92,11 @@ class StandardScaler(StandardScalerSklearn):
                 print("`StandardScaler` got unknown weight '%s'." % item)
 
     def save_weights(self, file_path: str):
+        """Save weights as numpy to file.
+
+        Args:
+            file_path: Filepath to save weights.
+        """
         weights = self.get_weights()
         # Make them all numpy arrays for save.
         for key, value in weights.items():
@@ -68,6 +107,11 @@ class StandardScaler(StandardScalerSklearn):
             print("Error no weights to save for `StandardScaler`.")
 
     def save(self, file_path: str):
+        """Save scaler serialization to file.
+
+        Args:
+            file_path: Filepath to save scaler serialization.
+        """
         conf = self.get_config()
         weights = self.get_weights()
         full_info = {"class_name": type(self).__name__, "module_name": type(self).__module__,
@@ -75,6 +119,11 @@ class StandardScaler(StandardScalerSklearn):
         save_json_file(full_info, os.path.splitext(file_path)[0] + ".json")
 
     def load(self, file_path: str):
+        """Load scaler serialization from file.
+
+        Args:
+            file_path: Filepath to load scaler serialization.
+        """
         full_info = load_json_file(file_path)
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])

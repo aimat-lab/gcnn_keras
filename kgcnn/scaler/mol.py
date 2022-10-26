@@ -8,7 +8,7 @@ from kgcnn.data.utils import save_json_file, load_json_file
 
 
 class ExtensiveMolecularScaler:
-    """Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
+    r"""Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
     contributions. Interface is designed after scikit-learn standard scaler. Internally Ridge regression ist used.
     Only the atomic number is used as extensive scaler. This could be further improved by also taking bonds and
     interactions into account, e.g. as energy contribution.
@@ -185,10 +185,15 @@ class ExtensiveMolecularScaler:
         return self.ridge.get_params()
 
     def set_config(self, config):
-        """Get configuration for scaler."""
+        """Set configuration for scaler.
+
+        Args:
+            config (dict): Config dictionary.
+        """
         return self.ridge.set_params(**config)
 
     def get_weights(self) -> dict:
+        """Get weights for this scaler after fit."""
         weights = dict()
         for x in self._attributes_list_mol:
             weights.update({x: np.array(getattr(self, x)).tolist()})
@@ -198,6 +203,11 @@ class ExtensiveMolecularScaler:
         return weights
 
     def set_weights(self, weights: dict):
+        """Set weights for this scaler.
+
+        Args:
+            weights (dict): Weight dictionary.
+        """
         for item, value in weights.items():
             if item in self._attributes_list_mol:
                 setattr(self, item, np.array(value))
@@ -207,6 +217,11 @@ class ExtensiveMolecularScaler:
                 print("`ExtensiveMolecularScaler` got unknown weight '%s'." % item)
 
     def save_weights(self, file_path: str):
+        """Save weights as numpy to file.
+
+        Args:
+            file_path: Filepath to save weights.
+        """
         weights = self.get_weights()
         # Make them all numpy arrays for save.
         for key, value in weights.items():
@@ -217,11 +232,17 @@ class ExtensiveMolecularScaler:
             print("Error no weights to save for `ExtensiveMolecularScaler`.")
 
     def get_scaling(self):
+        """Get scale of shape (1, n_properties)."""
         if self.scale_ is None:
             return
         return np.expand_dims(self.scale_, axis=0)
 
     def save(self, file_path: str):
+        """Save scaler serialization to file.
+
+        Args:
+            file_path: Filepath to save scaler serialization.
+        """
         conf = self.get_config()
         weights = self.get_weights()
         full_info = {"class_name": type(self).__name__, "module_name": type(self).__module__,
@@ -229,6 +250,11 @@ class ExtensiveMolecularScaler:
         save_json_file(full_info, os.path.splitext(file_path)[0] + ".json")
 
     def load(self, file_path: str):
+        """Load scaler serialization from file.
+
+        Args:
+            file_path: Filepath to load scaler serialization.
+        """
         full_info = load_json_file(file_path)
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])
@@ -236,7 +262,7 @@ class ExtensiveMolecularScaler:
 
 
 class QMGraphLabelScaler:
-    """A scaler that scales QM targets differently. For now, the main difference is that intensive and extensive
+    r"""A scaler that scales QM targets differently. For now, the main difference is that intensive and extensive
     properties are scaled differently. In principle, also dipole, polarizability or rotational constants
     could to be standardized differently.
 
@@ -374,21 +400,34 @@ class QMGraphLabelScaler:
 
     @property
     def scale_(self):
+        """Composite scale of all scaler in list."""
         return np.concatenate([x.scale_ for x in self.scaler_list], axis=0)
 
     def get_scaling(self):
+        """Get scale of shape (1, n_properties)."""
         return np.expand_dims(self.scale_, axis=0)
 
     def get_weights(self):
+        """Get weights for this scaler after fit."""
         weights = {"scaler": [x.get_weights() for x in self.scaler_list]}
         return weights
 
     def set_weights(self, weights: dict):
+        """Set weights for this scaler.
+
+        Args:
+            weights (dict): Weight dictionary.
+        """
         scaler_weights = weights["scaler"]
         for i, x in enumerate(scaler_weights):
             self.scaler_list[i].set_weights(x)
 
     def save_weights(self, file_path: str):
+        """Save weights as numpy to file.
+
+        Args:
+            file_path: Filepath to save weights.
+        """
         all_weights = {}
         for i, x in enumerate(self.scaler_list):
             w = x.get_weights()
@@ -397,6 +436,7 @@ class QMGraphLabelScaler:
         np.savez(os.path.splitext(file_path)[0] + ".npz", **all_weights)
 
     def get_config(self):
+        """Get configuration for scaler."""
         config = {"scaler": [
             {"class_name": type(x).__name__, "module_name": type(x).__module__,
              "config": x.get_config()} for x in self.scaler_list]
@@ -404,11 +444,21 @@ class QMGraphLabelScaler:
         return config
 
     def set_config(self, config):
+        """Set configuration for scaler.
+
+        Args:
+            config (dict): Config dictionary.
+        """
         scaler_conf = config["scaler"]
         for i, x in enumerate(scaler_conf):
             self.scaler_list[i].set_config(x["config"])
 
     def save(self, file_path: str):
+        """Save scaler serialization to file.
+
+        Args:
+            file_path: Filepath to save scaler serialization.
+        """
         conf = self.get_config()
         weights = self.get_weights()
         full_info = {"class_name": type(self).__name__, "module_name": type(self).__module__,
@@ -416,6 +466,11 @@ class QMGraphLabelScaler:
         save_json_file(full_info, os.path.splitext(file_path)[0] + ".json")
 
     def load(self, file_path: str):
+        """Load scaler serialization from file.
+
+        Args:
+            file_path: Filepath to load scaler serialization.
+        """
         full_info = load_json_file(file_path)
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])
