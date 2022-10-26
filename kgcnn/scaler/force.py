@@ -7,7 +7,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
     r"""Extensive scaler for energy and forces jointly.
     Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` but makes use of `X`, `y`, `force`, `atomic_number`
     input parameters, in contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` which uses only
-    `X` and `atomic_number`.
+    `X` and `atomic_number`. The coordinates are not scaled at the moment but can be added in current class layout.
 
     .. note::
 
