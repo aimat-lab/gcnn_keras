@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-# from typing import Union
+from typing import Union
 from sklearn.linear_model import Ridge
 from kgcnn.scaler.scaler import StandardScaler
 from kgcnn.data.utils import save_json_file, load_json_file
@@ -53,7 +53,7 @@ class ExtensiveMolecularScaler:
         self._fit_atom_selection = None
         self.scale_ = None
 
-    def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
+    def fit(self, X, *, y: Union[None, np.ndarray] = None, sample_weight=None, atomic_number=None):
         r"""Fit atomic number to the molecular properties.
 
         Args:
@@ -173,7 +173,7 @@ class ExtensiveMolecularScaler:
         Args:
             X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`
             copy (bool): Not yet implemented.
-            atomic_number (list): List of array of atomic numbers. Shape is `(n_samples, <#atoms>)`.
+            atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
         Returns:
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
