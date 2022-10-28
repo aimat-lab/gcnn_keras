@@ -96,7 +96,7 @@ Materials Project dataset from Matbench with 1,265 crystal structures and their 
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | **29.2085 &pm; 2.8130** | **53.9366 &pm; 7.0800** |
 | NMPN.make_crystal_model      | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
 | PAiNN.make_crystal_model     | 2.1.1   |      800 | 47.2212 &pm; 3.8855     | 82.7834 &pm; 6.0730     |
-| Schnet.make_crystal_model    | 2.1.0   |      800 | 39.6044 &pm; 2.1223     | 78.6854 &pm; 15.0636    |
+| Schnet.make_crystal_model    | 2.1.1   |      800 | 40.7416 &pm; 1.9105     | 80.2000 &pm; 10.1010    |
 
 ## MutagenicityDataset
 
@@ -211,7 +211,7 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 
 | model     | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
 |:----------|:--------|---------:|:-----------------------|:-----------------------|
-| DimeNetPP | 2.1.1   |      872 | 2.8634 &pm; 0.1360     | 6.0549 &pm; 1.7723     |
+| DimeNetPP | 2.1.1   |      872 | 2.7266 &pm; 0.1022     | 6.1305 &pm; 0.9606     |
 | EGNN      | 2.1.1   |      800 | 1.6182 &pm; 0.1712     | 3.8677 &pm; 0.7640     |
 | MEGAN     | 2.1.1   |      800 | 10.4494 &pm; 1.6076    | 11.5596 &pm; 1.5710    |
 | Megnet    | 2.1.1   |      800 | 1.4626 &pm; 0.0818     | **3.1522 &pm; 0.2409** |

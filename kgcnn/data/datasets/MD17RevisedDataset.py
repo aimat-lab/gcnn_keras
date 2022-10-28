@@ -51,7 +51,7 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
             file_path = os.path.join(file_dir, self.file_name)
         return np.load(file_path)
 
-    def _get_cross_validation_splits(self):
+    def _get_train_test_splits(self):
         file_dir = os.path.join(self.data_directory, "splits")
 
         def read_splits(file_name: str) -> list:
@@ -74,17 +74,28 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
         self.assign_property("nuclear_charges", [np.array(node_number) for _ in range(len(self))])
 
         # Add splits to self.
-        splits_train, splits_test = self._get_cross_validation_splits()
-        property_split = []
+        splits_train, splits_test = self._get_train_test_splits()
+        property_train = []
+        property_test = []
         for i in range(len(self)):
-            is_in_split = [0, 0]  # train, test
+            is_train = []
+            is_test = []
             for j, split in enumerate(splits_train):
                 if i in split:
-                    is_in_split[0] = j + 1
+                    is_train.append(j + 1)
             for j, split in enumerate(splits_test):
                 if i in split:
-                    is_in_split[1] = j + 1
-            property_split.append(np.array(is_in_split, dtype="int"))
-        self.assign_property("train_test", property_split)
+                    is_test.append(j + 1)
+            # Add to list
+            if len(is_train) > 0:
+                property_train.append(np.array(is_train, dtype="int"))
+            else:
+                property_train.append(None)
+            if len(is_test) > 0:
+                property_test.append(np.array(is_test, dtype="int"))
+            else:
+                property_test.append(None)
+        self.assign_property("train", property_train)
+        self.assign_property("test", property_test)
 
         return self

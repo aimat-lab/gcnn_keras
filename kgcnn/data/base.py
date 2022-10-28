@@ -594,7 +594,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def get_split_indices(self, name: str = "kfold", return_as_train_test: bool = True,
                           shuffle: bool = True, seed: int = None):
-        """Gather split ids from graph properties and return k-fold splits.
+        """Gather split ids from split graph property and return k-fold splits.
 
         Args:
             name (str): Name of property containing split assignment. Default is "kfold".
@@ -639,6 +639,43 @@ class MemoryGraphDataset(MemoryGraphList):
             train_test.append([train, test])
 
         return train_test
+
+    def get_train_test_indices(self, train: str = "train", test: str = "test", valid: str = None,
+                               split_index: Union[int, list] = 1):
+        """Get train and test indices from graph list. The 'train' and 'test' properties must be set on the graph.
+        They can also be a list of split assignment if more than one train-test split is required.
+
+        Args:
+            train (str): Name of graph property that has train split assignment. Defaults to 'train'.
+            test (str): Name of graph property that has test split assignment. Defaults to 'test'.
+            valid (str): Name of graph property that has validation assignment. Defaults to None.
+            split_index (int, list): Split index to get indices for. Can also be list.
+
+        Returns:
+            list: list of train, test, validation split indices.
+        """
+        out_indices = []
+        if not isinstance(split_index, (list, tuple)):
+            split_index = [split_index]
+        for s in [train, test, valid]:
+            if s is None:
+                out_indices.append(None)
+                continue
+            s_list = []
+            split_prop = self.obtain_property(s)
+            for j in split_index:
+                split_list = []
+                for i, x in enumerate(split_prop):
+                    if x is not None:
+                        if j in x:
+                            split_list.append(i)
+                s_list.append(split_list)
+            if len(s_list) == 1:
+                out_indices.append(s_list[0])
+            else:
+                out_indices.append(s_list[0])
+
+        return out_indices
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset
