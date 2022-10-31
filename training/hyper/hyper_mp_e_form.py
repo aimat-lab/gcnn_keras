@@ -156,7 +156,7 @@ hyper = {
                 "pooling_args": {"pooling_method": "mean"},
                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                 "update_args": {"units": 128}, "depth": 3, "verbose": 10,
-                "equiv_normalization": False, "node_normalization": False,
+                "equiv_normalization": True, "node_normalization": False,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
             }

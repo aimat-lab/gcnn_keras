@@ -79,10 +79,13 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
 
-| model                     | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
-|:--------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| Megnet.make_crystal_model | 2.1.0   |     1000 | **0.0247 &pm; 0.0006** | **0.0639 &pm; 0.0028** |
-| PAiNN.make_crystal_model  | 2.1.0   |      800 | 0.0296 &pm; 0.0012     | 0.0676 &pm; 0.0016     |
+| model                        | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.1.1   |     1000 | 0.0369 &pm; 0.0003     | 0.0873 &pm; 0.0026     |
+| DimeNetPP.make_crystal_model | 2.1.1   |      780 | 0.0233 &pm; 0.0005     | 0.0644 &pm; 0.0020     |
+| Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0247 &pm; 0.0006     | 0.0639 &pm; 0.0028     |
+| PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0251 &pm; 0.0000     | 0.1112 &pm; 0.0000     |
+| Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
 
 ## MatProjectPhononsDataset
 
