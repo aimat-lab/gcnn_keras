@@ -126,10 +126,7 @@ def make_model(inputs: list = None,
 
     # Rename to short names and make embedding, if no feature dimension.
     x = xyz_input
-    if len(inputs[0]["shape"]) < 2:
-        n = EmbeddingDimeBlock(**input_embedding["node"])(node_input)
-    else:
-        n = node_input
+    n = EmbeddingDimeBlock(**input_embedding["node"])(node_input) if len(inputs[0]["shape"]) < 2 else node_input
     ed = OptionalInputEmbedding(**input_embedding['edge'], use_embedding=len(inputs[2]['shape']) < 2)(edge_input)
     ei_l = edge_index_input
     ri_g = range_index_input

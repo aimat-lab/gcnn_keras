@@ -356,20 +356,21 @@ hyper = {
             "class_name": "make_model",
             "module_name": "kgcnn.literature.MEGAN",
             "config": {
-                'name': "MEGAN",
+                "name": "MEGAN",
                 "input_embedding": {"node": {"input_dim": 96, "output_dim": 64, "use_embedding": True}},
-                'units': [60, 50, 40, 30],
-                'importance_units': [],
-                'final_units': [50, 30, 10, 1],
+                "units": [60, 50, 40, 30],
+                "importance_units": [],
+                "final_units": [50, 30, 10, 1],
                 "final_activation": "linear",
-                'dropout_rate': 0.3,
-                'final_dropout_rate': 0.00,
-                'importance_channels': 3,
-                'return_importances': False,
-                'use_edge_features': True,
-                'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 25), 'name': "range_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64', 'ragged': True}],
+                "final_pooling": "mean",
+                "dropout_rate": 0.1,
+                "final_dropout_rate": 0.00,
+                "importance_channels": 3,
+                "return_importances": False,
+                "use_edge_features": True,
+                "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 25), "name": "range_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
             }
         },
         "training": {
@@ -381,13 +382,13 @@ hyper = {
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 800,
+                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 5, "epo": 800,
                         "verbose": 0}
                     }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
                 "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",

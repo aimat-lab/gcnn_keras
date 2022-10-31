@@ -1,0 +1,1 @@
+{"class_name": "StandardScaler", "module_name": "kgcnn.scaler.scaler", "config": {"copy": true, "with_mean": true, "with_std": true}, "weights": {"n_features_in_": 1, "mean_": [-1.4123264810922869], "scale_": [1.1592410207471877], "var_": [1.3438397441829817], "n_samples_seen_": 106112}}
