@@ -406,7 +406,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         self.bessel_n_zeros = spherical_bessel_jn_zeros(num_spherical, num_radial)
         self.bessel_norm = spherical_bessel_jn_normalization_prefactor(num_spherical, num_radial)
 
-        self.layer_gather_out = GatherNodesOutgoing(**self._kgcnn_info)
+        self.layer_gather_out = GatherNodesOutgoing()
 
     @tf.function
     def envelope(self, inputs):

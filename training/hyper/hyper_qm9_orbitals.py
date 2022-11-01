@@ -414,6 +414,7 @@ hyper = {
                                   "angle_indices_nodes": "angle_indices_nodes_1",
                                   "angle_attributes": "angle_attributes_1"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "ik",
+                                  "allow_self_edges": True,
                                   "angle_indices": "angle_indices_2",
                                   "angle_indices_nodes": "angle_indices_nodes_2",
                                   "angle_attributes": "angle_attributes_2"}}
