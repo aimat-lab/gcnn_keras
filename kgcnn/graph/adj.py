@@ -305,13 +305,14 @@ def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = 
     Args:
         idx (np.ndarray): List of edge indices referring to nodes of shape `(N, 2)`
         check_sorted (bool): Whether to sort for new angle indices. Default is True.
-        allow_self_edges (bool): Whether to allow the exact same edge in an angle pairing.
+        allow_self_edges (bool): Whether to allow the exact same edge in an angle pairing. Overrides multi and reverse
+            edge checking.
         allow_multi_edges (bool): Whether to keep angle pairs with same node indices,
             such as angle pairings of sort `ij`, `ij`.
         allow_reverse_edges (bool): Whether to keep angle pairs with reverse node indices,
             such as angle pairings of sort `ij`, `ji`.
         edge_pairing (str): Determines which edge pairs for angle computation are chosen. Default is 'jk'.
-            Alternatives are for example: 'ik', 'kj', 'ki'.
+            Alternatives are for example: 'ik', 'kj', 'ki', where 'k' denotes the variable index as 'i', 'j' are fixed.
 
     Returns:
         tuple: idx, idx_ijk, idx_ijk_ij
@@ -338,23 +339,24 @@ def get_angle_indices(idx, check_sorted: bool = True, allow_multi_edges: bool = 
     idx_ijk = []  # index triples that form an angle as (i, j, k)
     idx_ij_k = []  # New indices that refer to edges to form an angle as ij, `edge_pairing`
     for n, ij in enumerate(idx):
-        if allow_self_edges:
-            matching_edges = idx
-            matching_labels = label_ij
-        else:
-            matching_edges = np.delete(idx, n, axis=0)
-            matching_labels = np.delete(label_ij, n, axis=0)
+        matching_edges = idx
+        matching_labels = label_ij
 
+        # Condition to find matching xk or kx.
         mask = matching_edges[:, pos_fix] == ij[pos_ij]
-        matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
 
         if not allow_multi_edges:
-            mask = np.logical_or(matching_edges[:, 0] != ij[0], matching_edges[:, 1] != ij[1])
-            matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
+            mask = np.logical_and(mask, np.logical_or(matching_edges[:, 0] != ij[0], matching_edges[:, 1] != ij[1]))
 
         if not allow_reverse_edges:
-            mask = np.logical_or(matching_edges[:, 0] != ij[1], matching_edges[:, 1] != ij[0])
-            matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]
+            mask = np.logical_and(mask, np.logical_or(matching_edges[:, 0] != ij[1], matching_edges[:, 1] != ij[0]))
+
+        if allow_self_edges:
+            mask[n] = True
+        else:
+            mask[n] = False
+
+        matching_edges, matching_labels = matching_edges[mask], matching_labels[mask]  # apply mask
 
         if len(matching_edges) == 0:
             idx_ijk.append(np.empty((0, 3), dtype=idx.dtype))

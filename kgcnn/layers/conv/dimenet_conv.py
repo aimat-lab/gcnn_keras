@@ -430,7 +430,7 @@ class SphericalBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded angle/distance basis. Shape is (batch, [K], #Radial * #Spherical)
         """
-        self.assert_ragged_input_rank(inputs)
+        inputs = self.assert_ragged_input_rank(inputs)
         edge, edge_part = inputs[0].values, inputs[0].row_splits
         angles, angle_part = inputs[1].values, inputs[1].row_splits
 

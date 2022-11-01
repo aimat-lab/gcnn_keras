@@ -25,7 +25,7 @@ class MXMGlobalMP(GraphBaseLayer):
         self.x_edge_mlp = GraphMLP(self.dim, activation="swish")
         self.linear = DenseEmbedding(self.dim, use_bias=False, activation="linear")
 
-        self.gather = GatherEmbeddingSelection([0,1])
+        self.gather = GatherEmbeddingSelection([0, 1])
         self.pool = PoolingLocalMessages()
         self.cat = LazyConcatenate()
         self.multiply_edge = LazyMultiply()
