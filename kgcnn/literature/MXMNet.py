@@ -140,7 +140,7 @@ def make_model(inputs: list = None,
     rbf_l = BesselBasisLayer(**bessel_basis_local)(d_l)
     v12_l = LazySubtract()([pos1_l, pos2_l])
     a_l_1 = EdgeAngle()([v12_l, ai_1])
-    a_l_2 = EdgeAngle()([v12_l, ai_2])
+    a_l_2 = EdgeAngle(vector_scale=[1.0, -1.0])([v12_l, ai_2])
     sbf_l_1 = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l_1, ai_1])
     sbf_l_2 = SphericalBasisLayer(**spherical_basis_local)([d_l, a_l_2, ai_2])
 

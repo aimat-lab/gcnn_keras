@@ -5,6 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
 from kgcnn.layers.modules import LazySubtract, LazyMultiply, LazyAdd
 from kgcnn.ops.axis import get_positive_axis
+
 ks = tf.keras
 
 
@@ -183,7 +184,7 @@ class EuclideanNorm(GraphBaseLayer):
             if no_nan:
                 out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
             else:
-                out = 1/out
+                out = 1 / out
         return out
 
     def call(self, inputs, **kwargs):
@@ -456,15 +457,23 @@ class EdgeAngle(GraphBaseLayer):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, vector_scale: list = None, **kwargs):
         """Initialize layer."""
         super(EdgeAngle, self).__init__(**kwargs)
         self.layer_gather_vectors = GatherNodesSelection([0, 1])
         self.layer_angle = VectorAngle()
+        self.vector_scale = vector_scale
+        if vector_scale:
+            assert len(vector_scale) == 2, "Need scale for both vectors to compute angle."
+        self._tf_vec_scale = [tf.constant(x) for x in self.vector_scale] if self.vector_scale else None
 
     def build(self, input_shape):
         """Build layer."""
         super(EdgeAngle, self).build(input_shape)
+
+    @staticmethod
+    def _scale_vector(x, scale):
+        return x * tf.cast(scale, dtype=x.dtype)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -479,11 +488,15 @@ class EdgeAngle(GraphBaseLayer):
             tf.RaggedTensor: Edge angles between edges that match the indices. Shape is `(batch, [K], 1)`.
         """
         v1, v2 = self.layer_gather_vectors(inputs)
+        if self.vector_scale:
+            v1, v2 = [self.call_on_values_tensor_of_ragged(self._scale_vector, x, scale=self._tf_vec_scale[i]) for i, x
+                      in enumerate([v1, v2])]
         return self.layer_angle([v1, v2])
 
     def get_config(self):
         """Update config."""
         config = super(EdgeAngle, self).get_config()
+        config.update({"vector_scale": self.vector_scale})
         return config
 
 
@@ -608,7 +621,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
         k = -math.log(wave_length)
-        steps = tf.range(dim_half, dtype=inputs.dtype)/dim_half
+        steps = tf.range(dim_half, dtype=inputs.dtype) / dim_half
         freq = tf.exp(k * steps)
         scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
         arg = inputs * scales
@@ -870,17 +883,17 @@ class DisplacementVectorsASU(GraphBaseLayer):
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
         in_frac_coords = in_frac_coords.values
         out_frac_coords = out_frac_coords.values
-        
+
         # Affine Transformation
         out_frac_coords_ = tf.concat(
             [out_frac_coords, tf.expand_dims(tf.ones_like(out_frac_coords[:, 0]), axis=1)], axis=1)
         affine_matrices = symmops
         out_frac_coords = tf.einsum('ij,ikj->ik', out_frac_coords_, affine_matrices)[:, :-1]
         out_frac_coords = out_frac_coords - tf.floor(out_frac_coords)  # All values should be in [0,1) interval
-        
+
         # Cell translation
         out_frac_coords = out_frac_coords + cell_translations
-        
+
         offset = in_frac_coords - out_frac_coords
         return tf.RaggedTensor.from_row_splits(offset, edge_indices.row_splits, validate=self.ragged_validate)
 
@@ -921,7 +934,7 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
 
         # Gather sending and receiving coordinates.
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
-        
+
         # Cell translation
         out_frac_coords = self.lazy_add([out_frac_coords, cell_translations], **kwargs)
         offset = self.lazy_sub([in_frac_coords, out_frac_coords], **kwargs)
@@ -958,5 +971,5 @@ class FracToRealCoordinates(GraphBaseLayer):
         frac_coords = inputs[0]
         lattice_matrices = inputs[1]
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
-        real_coords = tf.einsum('ij,ikj->ik', frac_coords.values,  lattice_matrices_)
+        real_coords = tf.einsum('ij,ikj->ik', frac_coords.values, lattice_matrices_)
         return tf.RaggedTensor.from_row_splits(real_coords, frac_coords.row_splits, validate=self.ragged_validate)
