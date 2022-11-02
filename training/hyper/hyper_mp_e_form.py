@@ -406,7 +406,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectEFormDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 40}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 15}},
                     {"map_list": {"method": "expand_distance_gaussian_basis", "distance": 5.0, "bins": 25,
                                   "expand_dims": False}}
                 ]

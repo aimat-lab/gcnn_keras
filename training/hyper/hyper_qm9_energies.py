@@ -349,23 +349,23 @@ hyper = {
                            {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64, "embeddings_initializer": {
+                    "node": {"input_dim": 95, "output_dim": 128, "embeddings_initializer": {
                         "class_name": "RandomUniform",
                         "config": {"minval": -1.7320508075688772, "maxval": 1.7320508075688772}}},
-                    "edge": {"input_dim": 32, "output_dim": 64}},
+                    "edge": {"input_dim": 32, "output_dim": 128}},
                 "bessel_basis_local": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "bessel_basis_global": {"num_radial": 16, "cutoff": 5.0, "envelope_exponent": 5},
                 "spherical_basis_local": {"num_spherical": 7, "num_radial": 6, "cutoff": 5.0, "envelope_exponent": 5},
-                "mlp_rbf_kwargs": {"units": 64, "activation": "swish"},
-                "mlp_sbf_kwargs": {"units": 64, "activation": "swish"},
-                "global_mp_kwargs": {"units": 64},
-                "local_mp_kwargs": {"units": 64, "output_units": 1},
+                "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
+                "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
+                "global_mp_kwargs": {"units": 128},
+                "local_mp_kwargs": {"units": 128, "output_units": 1},
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
                 "node_pooling_args": {"pooling_method": "sum"},
                 "output_embedding": "graph", "output_to_tensor": True,
-                "use_output_mlp": False,
+                "use_output_mlp": True,
                 "output_mlp": {"use_bias": [True], "units": [1],
                                "activation": ["linear"]}
             }
@@ -399,7 +399,7 @@ hyper = {
                             "config": {}}
                            ]
             }},
-            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
         },
         "data": {
             "dataset": {
@@ -424,7 +424,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U0",
+            "postfix_file": "_U",
             "kgcnn_version": "2.1.1"
         }
     }
