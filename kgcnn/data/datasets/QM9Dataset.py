@@ -33,13 +33,15 @@ class QM9Dataset(QMDataset, DownloadDataset):
         QMDataset.__init__(self, verbose=verbose, dataset_name="QM9")
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
-        self.label_names = ['A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H',
-                             'G', 'Cv']
-        self.label_units = ["GHz", "GHz", "GHz", "D", r"a_0^3", "eV", "eV", "eV", r"a_0^2", "eV", "eV", "eV", "eV",
-                             "eV", r"cal/mol K"]
+        self.label_names = [
+            'A', 'B', 'C', 'mu', 'alpha', 'homo', 'lumo', 'gap', 'r2', 'zpve', 'U0', 'U', 'H', 'G', 'Cv',
+            'U0_atom', 'U_atom', 'H_atom', 'G_atom', 'Cv_atom']
+        self.label_units = [
+            "GHz", "GHz", "GHz", "D", r"a_0^3", "eV", "eV", "eV", r"a_0^2", "eV", "eV", "eV", "eV", "eV", r"cal/mol K",
+            "eV", "eV", "eV", "eV", r"cal/mol K"]
         self.label_unit_conversion = np.array(
-            [[1.0, 1.0, 1.0, 1.0, 1.0, 27.2114, 27.2114, 27.2114, 1.0, 27.2114, 27.2114, 27.2114,
-              27.2114, 27.2114, 1.0]]
+            [[1.0, 1.0, 1.0, 1.0, 1.0, 27.2114, 27.2114, 27.2114, 1.0, 27.2114, 27.2114, 27.2114, 27.2114, 27.2114, 1.0,
+              27.2114, 27.2114, 27.2114, 27.2114, 1.0]]
         )  # Pick always same units for training
         self.dataset_name = "QM9"
         self.require_prepare_data = True
@@ -47,6 +49,15 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.verbose = verbose
         self.data_directory = os.path.join(self.data_main_dir, self.data_directory_name)
         self.file_name = "qm9.csv"
+        self.__removed_uncharacterized = False
+        self.__atom_ref = {
+            # units are in hartree of original dataset.
+            "U0": {"H": -0.500273, "C": -37.846772, "N": -54.583861, "O": -75.064579, "F": -99.718730},
+            "U": {"H": -0.498857, "C": -37.845355, "N": -54.582445, "O": -75.063163, "F": -99.717314},
+            "H": {"H": -0.497912, "C": -37.844411, "N": -54.581501, "O": -75.062219, "F": -99.716370},
+            "G": {"H": -0.510927, "C": -37.861317, "N": -54.598897, "O": -75.079532, "F": -99.733544},
+            "CV": {"H": 2.981, "C": 2.981, "N": 2.981, "O": 2.981, "F": 2.981},
+        }
 
         # We try to download also additional files here.
         self.download_database(path=self.data_directory, filename="readme.txt", logger=None,
@@ -62,7 +73,8 @@ class QM9Dataset(QMDataset, DownloadDataset):
             self.prepare_data(overwrite=reload)
 
         if self.fits_in_memory:
-            self.read_in_memory(label_column_name=self.label_names)
+            self.read_in_memory(
+                label_column_name=["%s [%s]" % (a, b) for a, b in zip(self.label_names, self.label_units)])
 
     def prepare_data(self, overwrite: bool = False, file_column_name: str = None, make_sdf: bool = True):
         """Process data by loading all single xyz-files and store all pickled information to file.
@@ -78,7 +90,8 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         if os.path.exists(self.file_path) and os.path.exists(self.file_path_xyz) and not overwrite:
             self.info("Single XYZ file and CSV table with labels already created.")
-            return super(QM9Dataset, self).prepare_data(overwrite=overwrite)
+            return super(QM9Dataset, self).prepare_data(
+                overwrite=overwrite, file_column_name=file_column_name, make_sdf=make_sdf)
 
         # Reading files.
         if not os.path.exists(os.path.join(path, 'dsgdb9nsd.xyz')):
@@ -134,13 +147,14 @@ class QM9Dataset(QMDataset, DownloadDataset):
         write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms_pos)
 
         # Creating Table file with labels.
-        labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag here
-        # ids = [x for x in labels[:, 0]]
-        actual_labels = self.label_unit_conversion*labels[:, 1:]
-        actual_labels = [x for x in actual_labels]
-        targets = pd.DataFrame(actual_labels, columns=self.label_names)
+        labels = np.array([x[1][1:] if len(x[1]) == 17 else x[1] for x in qm9])  # Remove 'gdb' tag if not done already.
+        atom_energy = [[sum([self.__atom_ref[t][a] for a in x]) for t in ["U0", "U", "H", "G", "CV"]] for x in atoms]
+        targets_atom = labels[:, 11:] - np.array(atom_energy)
+        targets = np.concatenate([labels[:, 1:], targets_atom], axis=-1)*self.label_unit_conversion
+        df = pd.DataFrame(targets, columns=["%s [%s]" % (a, b) for a, b in zip(self.label_names, self.label_units)])
+        df.insert(targets.shape[1], "ID", labels[:, 0].astype(dtype="int"))  # add id at the end for reference.
         self.info("Writing CSV file of graph labels.")
-        targets.to_csv(self.file_path, index=False)
+        df.to_csv(self.file_path, index=False)
 
         return super(QM9Dataset, self).prepare_data(
             overwrite=overwrite, file_column_name=file_column_name, make_sdf=make_sdf)
@@ -158,6 +172,18 @@ class QM9Dataset(QMDataset, DownloadDataset):
         self.assign_property("graph_attributes", [mmw(x) for x in self.obtain_property("node_symbol")])
         return self
 
+    def remove_uncharacterized(self):
+        if self.__removed_uncharacterized:
+            self.error("Uncharacterized molecules have already been removed. Continue.")
+            return
+
+        with open(os.path.join(self.data_directory, "uncharacterized.txt"), "r") as f:
+            data = f.readlines()[9:-1]
+        data = [x.strip().split(" ") for x in data]
+        data = [[y for y in x if y != ""] for x in data]
+        indices = np.array([x[0] for x in data], dtype="int") - 1
+
+        return indices
 
 # from kgcnn.data.qm import QMGraphLabelScaler
 # dataset = QM9Dataset(reload=False)

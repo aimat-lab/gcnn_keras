@@ -132,7 +132,6 @@ class QMDataset(MemoryGraphDataset):
             return self
 
         # Try collect single xyz files in directory
-        xyz_list = None
         if not os.path.exists(self.file_path_xyz):
             xyz_list = self.collect_files_in_file_directory(
                 file_column_name=file_column_name, table_file_path=None,
