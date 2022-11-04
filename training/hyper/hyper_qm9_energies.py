@@ -359,22 +359,23 @@ hyper = {
                 "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
                 "global_mp_kwargs": {"units": 128},
-                "local_mp_kwargs": {"units": 128, "output_units": 1, "output_kernel_initializer": "zeros"},
+                "local_mp_kwargs": {"units": 128, "output_units": 1,
+                                    "output_kernel_initializer": "glorot_uniform"},
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
                 "node_pooling_args": {"pooling_method": "sum"},
                 "output_embedding": "graph", "output_to_tensor": True,
-                "use_output_mlp": True,
+                "use_output_mlp": False,
                 "output_mlp": {"use_bias": [True], "units": [1],
                                "activation": ["linear"]}
             }
         },
         "training": {
             "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 128, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2, "callbacks": []
             },
             "compile": {
                 "optimizer": {
@@ -394,12 +395,13 @@ hyper = {
                 },
                 "loss": "mean_absolute_error"
             },
-            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}}
-                           ]
-            }},
-            "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G'  or combination
+            # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+            #     "scaler": [{"class_name": "ExtensiveMolecularScaler",
+            #                 "config": {}}
+            #                ]
+            # }},
+            # "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
+            "multi_target_indices": [15]  # 15, 16, 17, 18 = 'U0_atom', 'U_atom', 'H_atom', 'G_atom' or combination
         },
         "data": {
             "dataset": {
@@ -425,7 +427,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U",
+            "postfix_file": "_U0",
             "kgcnn_version": "2.1.1"
         }
     }
