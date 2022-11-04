@@ -37,7 +37,7 @@ model_default = {
     "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
     "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
     "global_mp_kwargs": {"units": 32},
-    "local_mp_kwargs": {"units": 32},
+    "local_mp_kwargs": {"units": 32, "output_units": 1, "output_kernel_initializer": "zeros"},
     "use_edge_attributes": False,
     "depth": 3,
     "verbose": 10,

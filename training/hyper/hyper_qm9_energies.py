@@ -359,7 +359,7 @@ hyper = {
                 "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
                 "global_mp_kwargs": {"units": 128},
-                "local_mp_kwargs": {"units": 128, "output_units": 1},
+                "local_mp_kwargs": {"units": 128, "output_units": 1, "output_kernel_initializer": "zeros"},
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
