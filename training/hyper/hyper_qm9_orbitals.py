@@ -359,13 +359,13 @@ hyper = {
                 "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
                 "global_mp_kwargs": {"units": 128},
-                "local_mp_kwargs": {"units": 128, "output_units": 1, "output_kernel_initializer": "zeros"},
+                "local_mp_kwargs": {"units": 128, "output_units": 1, "output_kernel_initializer": "glorot_uniform"},
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
-                "node_pooling_args": {"pooling_method": "mean"},
+                "node_pooling_args": {"pooling_method": "sum"},
                 "output_embedding": "graph", "output_to_tensor": True,
-                "use_output_mlp": True,
+                "use_output_mlp": False,
                 "output_mlp": {"use_bias": [True], "units": [1],
                                "activation": ["linear"]}
             }
@@ -394,11 +394,11 @@ hyper = {
                 },
                 "loss": "mean_absolute_error"
             },
-            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "StandardScaler",
-                            "config": {"with_std": True, "with_mean": True, "copy": True}}
-                           ]
-            }},
+            # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+            #     "scaler": [{"class_name": "StandardScaler",
+            #                 "config": {"with_std": True, "with_mean": True, "copy": True}}
+            #                ]
+            # }},
             "multi_target_indices": [6]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {
@@ -448,14 +448,16 @@ hyper = {
                 "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
                 "use_normalized_difference": False,
                 "expand_distance_kwargs": None,
-                "coord_mlp_kwargs": {"units": [128, 1], "activation": ["swish", "linear"]},  # option: "tanh" at the end
+                "coord_mlp_kwargs": None,  # {"units": [128, 1], "activation": ["swish", "linear"]} or "tanh" at the end
                 "pooling_coord_kwargs": {"pooling_method": "mean"},
                 "pooling_edge_kwargs": {"pooling_method": "sum"},
                 "node_normalize_kwargs": None,
+                "use_node_attributes": False,
                 "node_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
                 "use_skip": True,
                 "verbose": 10,
-                "node_pooling_kwargs": {"pooling_method": "mean"},
+                "node_decoder_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
+                "node_pooling_kwargs": {"pooling_method": "sum"},
                 "output_embedding": "graph",
                 "output_to_tensor": True,
                 "output_mlp": {"use_bias": [True, True], "units": [128, 1],
@@ -466,7 +468,7 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "batch_size": 96, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
                     #     "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,

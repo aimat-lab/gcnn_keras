@@ -393,7 +393,13 @@ hyper = {
                         "average_decay": 0.999
                     }
                 },
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [
+                    "mean_absolute_error", "mean_squared_error",
+                    # No scaling needed.
+                    {"class_name": "RootMeanSquaredError", "config": {"name": "scaled_root_mean_squared_error"}},
+                    {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
+                ]
             },
             # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
             #     "scaler": [{"class_name": "ExtensiveMolecularScaler",

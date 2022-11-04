@@ -35,9 +35,11 @@ model_default = {
     "pooling_coord_kwargs": {"pooling_method": "mean"},
     "pooling_edge_kwargs": {"pooling_method": "sum"},
     "node_normalize_kwargs": None,
+    "use_node_attributes": False,
     "node_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
     "use_skip": True,
     "verbose": 10,
+    "node_decoder_kwargs": None,
     "node_pooling_kwargs": {"pooling_method": "sum"},
     "output_embedding": "graph",
     "output_to_tensor": True,
@@ -61,9 +63,11 @@ def make_model(name: str = None,
                pooling_coord_kwargs: dict = None,
                pooling_edge_kwargs: dict = None,
                node_normalize_kwargs: dict = None,
+               use_node_attributes: bool = None,
                node_mlp_kwargs: dict = None,
                use_skip: bool = None,
                verbose: int = None,
+               node_decoder_kwargs: dict = None,
                node_pooling_kwargs: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
@@ -102,9 +106,11 @@ def make_model(name: str = None,
         pooling_coord_kwargs (dict):
         pooling_edge_kwargs (dict):
         node_normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphLayerNormalization` layer.
+        use_node_attributes (bool): Whether to add node attributes before node MLP.
         node_mlp_kwargs (dict):
         use_skip (bool):
         verbose (int): Level of verbosity.
+        node_decoder_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer after graph network.
         node_pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
@@ -132,7 +138,7 @@ def make_model(name: str = None,
         pos1, pos2 = NodePosition()([x, edi])
         diff_x = LazySubtract()([pos1, pos2])
         norm_x = EuclideanNorm(keepdims=True, axis=2)(diff_x)
-        # Original code as normalize option for coord-differences
+        # Original code has a normalize option for coord-differences.
         if use_normalized_difference:
             diff_x = EdgeDirectionNormalized()([pos1, pos2])
         if expand_distance_kwargs:
@@ -161,6 +167,8 @@ def make_model(name: str = None,
         m_i = PoolingLocalEdges(**pooling_edge_kwargs)([h, m_ij, edi])
         if node_mlp_kwargs:
             m_i = LazyConcatenate()([h, m_i])
+            if use_node_attributes:
+                m_i = LazyConcatenate()([m_i, h0])
             m_i = GraphMLP(**node_mlp_kwargs)(m_i)
         if node_normalize_kwargs:
             h = GraphLayerNormalization(**node_normalize_kwargs)(h)
@@ -170,7 +178,12 @@ def make_model(name: str = None,
             h = m_i
 
     # Output embedding choice
-    n = h
+    if node_decoder_kwargs:
+        n = GraphMLP(**node_mlp_kwargs)(h)
+    else:
+        n = h
+
+    # Final step.
     if output_embedding == 'graph':
         out = PoolingNodes(**node_pooling_kwargs)(n)
         out = MLP(**output_mlp)(out)
