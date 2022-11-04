@@ -407,6 +407,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
+                    {"remove_uncharacterized": {}},
                     {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
