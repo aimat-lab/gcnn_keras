@@ -443,6 +443,7 @@ hyper = {
                                     "edge": {"input_dim": 95, "output_dim": 128}},
                 "depth": 7,
                 "node_mlp_initialize": None,
+                "euclidean_norm_kwargs": {"keepdims": True, "axis": 2, "square_norm": True},
                 "use_edge_attributes": False,
                 "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
                 "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
@@ -471,7 +472,7 @@ hyper = {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    #     "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                    #     "learning_rate_start": 1e-03, "learning_rate_stop": 5e-06, "epo_min": 100, "epo": 1000,
                     #     "verbose": 0}
                     #  }
                 ]

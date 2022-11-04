@@ -26,6 +26,7 @@ model_default = {
                         "edge": {"input_dim": 95, "output_dim": 64}},
     "depth": 4,
     "node_mlp_initialize": None,
+    "euclidean_norm_kwargs": {"keepdims": True, "axis": 2},
     "use_edge_attributes": True,
     "edge_mlp_kwargs": {"units": [64, 64], "activation": ["swish", "linear"]},
     "edge_attention_kwargs": None,  # {"units: 1", "activation": "sigmoid"}
@@ -53,6 +54,7 @@ def make_model(name: str = None,
                inputs: list = None,
                input_embedding: dict = None,
                depth: int = None,
+               euclidean_norm_kwargs: dict = None,
                node_mlp_initialize: dict = None,
                use_edge_attributes: bool = None,
                edge_mlp_kwargs: dict = None,
@@ -96,6 +98,7 @@ def make_model(name: str = None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
+        euclidean_norm_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`EuclideanNorm`.
         node_mlp_initialize (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer for start embedding.
         use_edge_attributes (bool): Whether to use edge attributes including for example further edge information.
         edge_mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphMLP` layer.
@@ -137,7 +140,7 @@ def make_model(name: str = None,
     for i in range(0, depth):
         pos1, pos2 = NodePosition()([x, edi])
         diff_x = LazySubtract()([pos1, pos2])
-        norm_x = EuclideanNorm(keepdims=True, axis=2)(diff_x)
+        norm_x = EuclideanNorm(**euclidean_norm_kwargs)(diff_x)
         # Original code has a normalize option for coord-differences.
         if use_normalized_difference:
             diff_x = EdgeDirectionNormalized()([pos1, pos2])

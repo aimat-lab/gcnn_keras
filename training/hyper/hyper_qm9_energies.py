@@ -384,7 +384,7 @@ hyper = {
                             "class_name": "Adam", "config": {
                                 "learning_rate": {
                                     "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
+                                        "learning_rate": 0.0001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
                                         "decay_rate": 0.01
                                     }
                                 }, "amsgrad": True

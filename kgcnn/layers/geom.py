@@ -137,7 +137,7 @@ class EuclideanNorm(GraphBaseLayer):
     """
 
     def __init__(self, axis: int = -1, keepdims: bool = False, invert_norm: bool = False, add_eps: bool = False,
-                 no_nan: bool = True, **kwargs):
+                 no_nan: bool = True, square_norm: bool = False, **kwargs):
         """Initialize layer.
 
         Args:
@@ -151,6 +151,7 @@ class EuclideanNorm(GraphBaseLayer):
         self.axis = axis
         self.keepdims = keepdims
         self.invert_norm = invert_norm
+        self.square_norm = square_norm
         self.add_eps = add_eps
         self.no_nan = no_nan
 
@@ -161,7 +162,7 @@ class EuclideanNorm(GraphBaseLayer):
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
-                                add_eps: bool = False, no_nan: bool = True):
+                                add_eps: bool = False, no_nan: bool = True, square_norm: bool = False):
         """Function to compute euclidean norm for inputs.
 
         Args:
@@ -170,6 +171,7 @@ class EuclideanNorm(GraphBaseLayer):
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
             invert_norm (bool): Whether to invert the results. Defaults to False.
             add_eps (bool): Whether to add epsilon before taking square root. Default is False.
+            square_norm (bool): Whether to square the results. Defaults to False.
 
         Returns:
             tf.Tensor: Euclidean norm of inputs.
@@ -179,7 +181,8 @@ class EuclideanNorm(GraphBaseLayer):
         # out = tf.norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
         if add_eps:
             out = out + ks.backend.epsilon()
-        out = tf.sqrt(out)
+        if not square_norm:
+            out = tf.sqrt(out)
         if invert_norm:
             if no_nan:
                 out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
@@ -199,13 +202,13 @@ class EuclideanNorm(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(
             self._compute_euclidean_norm, inputs,
             axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
-            no_nan=self.no_nan)
+            no_nan=self.no_nan, square_norm=self.square_norm)
 
     def get_config(self):
         """Update config."""
         config = super(EuclideanNorm, self).get_config()
         config.update({"axis": self.axis, "keepdims": self.keepdims, "invert_norm": self.invert_norm,
-                       "add_eps": self.add_eps, "no_nan": self.no_nan})
+                       "add_eps": self.add_eps, "no_nan": self.no_nan, "square_norm": self.square_norm})
         return config
 
 
