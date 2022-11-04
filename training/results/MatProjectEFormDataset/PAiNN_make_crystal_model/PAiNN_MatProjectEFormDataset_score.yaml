@@ -1,145 +1,53 @@
 data_unit: eV/atom
-date_time: '2022-10-30 00:34:47'
+date_time: '2022-11-03 23:59:34'
 epochs:
 - 800
-- 800
-- 800
-- 800
-- 800
 execute_folds:
-- 0
-- 1
-- 2
-- 3
 - 4
 kgcnn_version: 2.1.1
 loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.0016023125499486923
 lr:
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
 - 1.0128571375389583e-05
 max_loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.19654947519302368
 max_lr:
-- 9.999999747378752e-05
-- 9.999999747378752e-05
-- 9.999999747378752e-05
-- 9.999999747378752e-05
 - 9.999999747378752e-05
 max_scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.2283785045146942
 max_scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.39582377672195435
 max_val_loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.055565245449543
 max_val_scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.06456330418586731
 max_val_scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 1.0964372158050537
 min_loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.0016023125499486923
 min_lr:
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
-- 1.0128571375389583e-05
 - 1.0128571375389583e-05
 min_scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.001861784840002656
 min_scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.009706128388643265
 min_val_loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.021279538050293922
 min_val_scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.024725530296564102
 min_val_scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.05559341982007027
 model_class: make_crystal_model
 model_name: PAiNN
 multi_target_indices: null
-number_histories: 5
+number_histories: 1
 scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.001861784840002656
 scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.009706128388643265
 val_loss:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.021601364016532898
 val_scaled_mean_absolute_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.025099454447627068
 val_scaled_root_mean_squared_error:
 - .nan
-- .nan
-- .nan
-- .nan
-- 0.11122019588947296

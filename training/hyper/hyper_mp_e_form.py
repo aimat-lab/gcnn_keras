@@ -152,7 +152,7 @@ hyper = {
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
-                "equiv_initialize_kwargs": {"dim": 3, "method": "eps"},
+                "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "pooling_args": {"pooling_method": "mean"},
                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
                 "update_args": {"units": 128}, "depth": 3, "verbose": 10,

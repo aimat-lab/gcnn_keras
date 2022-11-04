@@ -1,16 +1,26 @@
 import os
-import pickle
+# import pickle
 import numpy as np
 import json
 import pandas as pd
-from typing import Union
+# from typing import Union
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 from kgcnn.mol.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):
-    """Store and process QM9 dataset."""
+    """Store and process QM9 benchmark dataset of of 134k stable small organic molecules made up of C,H,O,N,F.
+
+    Labels include geometric, energetic, electronic, and thermodynamic properties. Typically, a random 10% validation
+    and 10% test set are used. In literature, test errors are given as MAE and for energies are in [eV].
+
+    .. code-block:: pytho
+
+        from kgcnn.data.qm import QMGraphLabelScaler
+        dataset = QM9Dataset(reload=True)
+        print(dataset[0])
+    """
 
     download_info = {
         "dataset_name": "QM9",
@@ -173,23 +183,18 @@ class QM9Dataset(QMDataset, DownloadDataset):
         return self
 
     def remove_uncharacterized(self):
+        """Remove 3054 uncharacterized molecules that failed structure test from this dataset."""
         if self.__removed_uncharacterized:
             self.error("Uncharacterized molecules have already been removed. Continue.")
             return
-
         with open(os.path.join(self.data_directory, "uncharacterized.txt"), "r") as f:
             data = f.readlines()[9:-1]
         data = [x.strip().split(" ") for x in data]
         data = [[y for y in x if y != ""] for x in data]
         indices = np.array([x[0] for x in data], dtype="int") - 1
-
-        return indices
-
-# from kgcnn.data.qm import QMGraphLabelScaler
-# dataset = QM9Dataset(reload=False)
-# scaler = QMGraphLabelScaler([{"class_name": "StandardScaler", "config": {}},
-#                              {"class_name": "ExtensiveMolecularScaler", "config": {}},
-#                              {"class_name": "ExtensiveMolecularScaler", "config": {}}])
-# trafo_labels = scaler.fit_transform(np.array(dataset.graph_labels)[:, :3], dataset.node_number)
-# rev_labels = scaler.inverse_transform(dataset.node_number, tafo_labels
-# print(np.amax(np.abs(dataset.graph_labels-rev_labels)))
+        indices_backward = np.flip(np.sort(indices))
+        for i in indices_backward:
+            self._list.pop(int(i))  # Ideally use public pop() here.
+        self.info("Removed %s uncharacterized molecules." % len(indices_backward))
+        self.__removed_uncharacterized = True
+        return indices_backward
