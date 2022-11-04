@@ -169,9 +169,9 @@ class EuclideanNorm(GraphBaseLayer):
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input to compute norm for.
             axis (int): Axis of coordinates. Defaults to -1.
             keepdims (bool): Whether to keep the axis for sum. Defaults to False.
-            invert_norm (bool): Whether to invert the results. Defaults to False.
             add_eps (bool): Whether to add epsilon before taking square root. Default is False.
             square_norm (bool): Whether to square the results. Defaults to False.
+            invert_norm (bool): Whether to invert the results. Defaults to False.
 
         Returns:
             tf.Tensor: Euclidean norm of inputs.
