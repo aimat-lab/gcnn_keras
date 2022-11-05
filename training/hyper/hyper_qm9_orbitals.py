@@ -359,7 +359,8 @@ hyper = {
                 "mlp_rbf_kwargs": {"units": 128, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
                 "global_mp_kwargs": {"units": 128},
-                "local_mp_kwargs": {"units": 128, "output_units": 1, "output_kernel_initializer": "glorot_uniform"},
+                "local_mp_kwargs": {"units": 128, "output_units": 1,
+                                    "output_kernel_initializer": "glorot_uniform"},
                 "use_edge_attributes": False,
                 "depth": 6,
                 "verbose": 10,
@@ -374,7 +375,11 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    # {"class_name": "kgcnn>LinearWarmupExponentialLearningRateScheduler", "config": {
+                    #     "lr_start": 1e-04, "decay_gamma": 261, "epo_warmup": 1}}
+                ]
             },
             "compile": {
                 "optimizer": {
@@ -383,16 +388,23 @@ hyper = {
                             "class_name": "Adam", "config": {
                                 "learning_rate": {
                                     "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
-                                        "decay_rate": 0.01
+                                        "learning_rate": 0.001, "warmup_steps": 921, "decay_steps": 921,
+                                        "decay_rate": 0.9961697
                                     }
-                                }, "amsgrad": True
+                                },
+                                "amsgrad": True
                             }
                         },
                         "average_decay": 0.999
                     }
                 },
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [
+                    "mean_absolute_error", "mean_squared_error",
+                    # No scaling needed.
+                    {"class_name": "RootMeanSquaredError", "config": {"name": "scaled_root_mean_squared_error"}},
+                    {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
+                ]
             },
             # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
             #     "scaler": [{"class_name": "StandardScaler",

@@ -20,6 +20,9 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Renamed ``kgcnn.mol.graph_babel`` and ``kgcnn.mol.graph_rdkit`` and move conversion into ``kgcnn.mol.convert``.
 * Added ``kgcnn.data.datasets.MD17Dataset`` and ``kgcnn.data.datasets.MD17RevisedDataset``
 * Refactored ``kgcnn.scaler`` module to follow sklearn definitions. Changed input naming and order for scaler. Add config and weights functionality.
+* Changed ``kgcnn.training.scheduler.LinearWarmupExponentialLearningRateScheduler`` to take correctly lifetime parameter. 
+* Reworked ``kgcnn.data.datasets.QM9Dataset`` to offer atomization energies and uncharacterized molecules. Please run reload=True.
+* 
 
 
 v2.1.0

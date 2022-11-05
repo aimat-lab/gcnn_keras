@@ -4,27 +4,27 @@ import tensorflow as tf
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
 class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRateScheduler):
-    """Callback for linear change of the learning rate. This class inherits from
+    r"""Callback for exponential the learning rate. This class inherits from
     tf.keras.callbacks.LearningRateScheduler."""
 
-    def __init__(self, lr_start: float, decay_gamma: float, epo_warmup: int = 10, lr_min: float = 0.0,
+    def __init__(self, lr_start: float, decay_lifetime: float, epo_warmup: int = 10, lr_min: float = 0.0,
                  verbose: int = 0):
         """Set the parameters for the learning rate scheduler.
 
         Args:
             lr_start (float): Learning rate at the start of the exp. decay.
-            decay_gamma (float): Gamma parameter in the exponential.
+            decay_lifetime (float): Tau parameter in the exponential for epochs.
             epo_warmup (int): Number of warm-up steps. Default is 10.
             lr_min (float): Minimum learning rate allowed during the decay. Default is 0.0.
             verbose (int): Verbosity. Default is 0.
         """
-        self.decay_gamma = decay_gamma
+        self.decay_lifetime = decay_lifetime
         self.lr_start = lr_start
         self.lr_min = lr_min
         self.epo_warmup = max(epo_warmup, 0)
         self.verbose = verbose
-        super(LinearWarmupExponentialLearningRateScheduler, self).__init__(schedule=self.schedule_epoch_lr,
-                                                                           verbose=verbose)
+        super(LinearWarmupExponentialLearningRateScheduler, self).__init__(
+            schedule=self.schedule_epoch_lr, verbose=verbose)
 
     def schedule_epoch_lr(self, epoch, lr):
         """Reduce the learning rate."""
@@ -33,12 +33,12 @@ class LinearWarmupExponentialLearningRateScheduler(tf.keras.callbacks.LearningRa
         elif epoch == self.epo_warmup:
             new_lr = max(self.lr_start, self.lr_min)
         else:
-            new_lr = max(self.lr_start * np.exp(-(epoch - self.epo_warmup) / self.decay_gamma), self.lr_min)
+            new_lr = max(self.lr_start * np.exp(-(epoch - self.epo_warmup) / self.decay_lifetime), self.lr_min)
         return float(new_lr)
 
     def get_config(self):
         config = super(LinearWarmupExponentialLearningRateScheduler, self).get_config()
-        config.update({"lr_start": self.lr_start, "decay_gamma": self.decay_gamma, "epo_warmup": self.epo_warmup,
+        config.update({"lr_start": self.lr_start, "decay_lifetime": self.decay_lifetime, "epo_warmup": self.epo_warmup,
                        "lr_min": self.lr_min, "verbose": self.verbose})
         return config
 

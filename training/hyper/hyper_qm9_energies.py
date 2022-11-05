@@ -375,19 +375,25 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    # {"class_name": "kgcnn>LinearWarmupExponentialLearningRateScheduler", "config": {
+                    #     "lr_start": 1e-04, "decay_lifetime": 261, "epo_warmup": 1}}
+                ]
             },
             "compile": {
                 "optimizer": {
                     "class_name": "Addons>MovingAverage", "config": {
                         "optimizer": {
                             "class_name": "Adam", "config": {
+                                # "learning_rate": 1e-04,
                                 "learning_rate": {
                                     "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.0001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
-                                        "decay_rate": 0.01
+                                        "learning_rate": 0.0001, "warmup_steps": 921, "decay_steps": 921,
+                                        "decay_rate": 0.9961697
                                     }
-                                }, "amsgrad": True
+                                },
+                                "amsgrad": True
                             }
                         },
                         "average_decay": 0.999
