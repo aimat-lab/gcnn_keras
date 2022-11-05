@@ -483,10 +483,8 @@ hyper = {
             "fit": {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    #     "learning_rate_start": 1e-03, "learning_rate_stop": 5e-06, "epo_min": 100, "epo": 1000,
-                    #     "verbose": 0}
-                    #  }
+                    {"class_name": "kgcnn>CosineAnnealingLR", "config": {
+                        "lr_start": 1e-03, "lr_min": 0.0, "epoch_max": 1000}}
                 ]
             },
             "compile": {
@@ -495,12 +493,7 @@ hyper = {
                     "class_name": "Addons>MovingAverage", "config": {
                         "optimizer": {
                             "class_name": "Adam", "config": {
-                                "learning_rate": {
-                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 3000.0, "decay_steps": 4000000.0,
-                                        "decay_rate": 0.01
-                                    }
-                                }, "amsgrad": True
+                                "learning_rate": 1e-03, "amsgrad": True
                             }
                         },
                         "average_decay": 0.999
@@ -521,7 +514,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 8, "max_neighbours": 10000}}
+                    {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000}}
                 ]
             },
             "data_unit": "eV"
