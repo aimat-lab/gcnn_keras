@@ -83,8 +83,9 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 |:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | CGCNN.make_crystal_model     | 2.1.1   |     1000 | 0.0369 &pm; 0.0003     | 0.0873 &pm; 0.0026     |
 | DimeNetPP.make_crystal_model | 2.1.1   |      780 | 0.0233 &pm; 0.0005     | 0.0644 &pm; 0.0020     |
+| MEGAN                        | 2.1.1   |      800 | 0.0397 &pm; 0.0009     | 0.0902 &pm; 0.0041     |
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0247 &pm; 0.0006     | 0.0639 &pm; 0.0028     |
-| PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0251 &pm; 0.0000     | 0.1112 &pm; 0.0000     |
+| PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0244 &pm; 0.0002     | 0.0568 &pm; 0.0032     |
 | Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
 
 ## MatProjectPhononsDataset
@@ -218,7 +219,7 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 | EGNN      | 2.1.1   |      800 | 1.6182 &pm; 0.1712     | 3.8677 &pm; 0.7640     |
 | MEGAN     | 2.1.1   |      800 | 10.4494 &pm; 1.6076    | 11.5596 &pm; 1.5710    |
 | Megnet    | 2.1.1   |      800 | 1.4626 &pm; 0.0818     | **3.1522 &pm; 0.2409** |
-| MXMNet    | 2.1.1   |      872 | 5.9999 &pm; 3.4727     | 19.8145 &pm; 9.2640    |
+| MXMNet    | 2.1.1   |      872 | 5.5895 &pm; 3.5028     | 22.0722 &pm; 8.9221    |
 | NMPN      | 2.1.1   |      500 | 6.4698 &pm; 0.8256     | 35.0397 &pm; 4.3985    |
 | PAiNN     | 2.1.1   |      872 | **1.2715 &pm; 0.0235** | 4.4958 &pm; 1.8048     |
 | Schnet    | 2.1.1   |      800 | 2.5840 &pm; 0.3479     | 10.3788 &pm; 9.1047    |
