@@ -28,7 +28,7 @@ class CosineAnnealingLR(ks.callbacks.LearningRateScheduler):
     def schedule_epoch_lr(self, epoch, lr):
         """Reduce the learning rate."""
         new_lr = self.lr_min + (self.lr_start - self.lr_min) * (
-                1 + math.cos(math.pi * self.epoch / self.epoch_max)) / 2
+                1 + math.cos(math.pi * epoch / self.epoch_max)) / 2
         return float(new_lr)
 
     def get_config(self):
