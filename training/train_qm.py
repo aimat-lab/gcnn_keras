@@ -182,7 +182,7 @@ plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Plot prediction
-predicted_y = model.predict(x_test)
+predicted_y = model.predict(x_test, verbose=0)
 true_y = y_test
 
 if scaler:

@@ -267,7 +267,7 @@ class QMGraphLabelScaler:
     could to be standardized differently.
 
     The class is simply a list of separate scaler and scales each target of shape [N_samples, target] with a scaler
-    from its list. This is like a scaler list class.
+    from its list. :obj:`QMGraphLabelScaler` is intended as a scaler list class.
 
     .. code-block:: python
 

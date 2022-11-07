@@ -377,28 +377,23 @@ hyper = {
             "fit": {
                 "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    # {"class_name": "kgcnn>LinearWarmupExponentialLearningRateScheduler", "config": {
-                    #     "lr_start": 1e-04, "decay_lifetime": 261, "epo_warmup": 1}}
+                    {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
+                        "lr_start": 1e-04, "gamma": 0.9961697, "epo_warmup": 1, "verbose": 1}}
                 ]
             },
             "compile": {
-                "optimizer": {
-                    "class_name": "Addons>MovingAverage", "config": {
-                        "optimizer": {
-                            "class_name": "Adam", "config": {
-                                # "learning_rate": 1e-04,
-                                "learning_rate": {
-                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.0001, "warmup_steps": 921, "decay_steps": 921,
-                                        "decay_rate": 0.9961697
-                                    }
-                                },
-                                "amsgrad": True
-                            }
-                        },
-                        "average_decay": 0.999
-                    }
-                },
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04, "global_clipnorm": 1000}},
+                # "optimizer": {
+                #     "class_name": "Addons>MovingAverage", "config": {
+                #         "optimizer": {
+                #             "class_name": "Adam", "config": {
+                #                 "learning_rate": 1e-04,
+                #                 "amsgrad": False, "global_clipnorm": 1000
+                #             }
+                #         },
+                #         "average_decay": 0.999
+                #     }
+                # },
                 "loss": "mean_absolute_error",
                 "metrics": [
                     "mean_absolute_error", "mean_squared_error",

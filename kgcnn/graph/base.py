@@ -259,7 +259,7 @@ class GraphPreProcessorBase:
         self._to_obtain = {}
         self._to_assign = None
         self._call_kwargs = {}
-        self._search = {"resolve": [], "ignore": []}
+        self._search = []
         self._quite = []
         self._in_place = in_place
 
@@ -267,9 +267,8 @@ class GraphPreProcessorBase:
         obtained_properties = {}
         for key, name in self._to_obtain.items():
             if isinstance(name, str):
-                if name in self._search["resolve"]:
+                if name in self._search:
                     names = graph.search_properties(name)  # Will be sorted list and existing only
-                    names = [x for x in names if x not in self._search["ignore"]]
                     obtained_properties[key] = [graph.obtain_property(x) for x in names]
                 else:
                     if not graph.has_valid_key(name) and key not in self._quite:
@@ -297,9 +296,8 @@ class GraphPreProcessorBase:
 
         def _assign_single(name, single_graph_property):
             if isinstance(name, str):
-                if name in self._search["resolve"]:
+                if name in self._search:
                     names = graph.search_properties(name)  # Will be sorted list and existing only
-                    names = [x for x in names if x not in self._search["ignore"]]
                     # Assume that names matches graph_properties
                     _check_list_property(names, single_graph_property)
                     for x, gp in zip(names, single_graph_property):

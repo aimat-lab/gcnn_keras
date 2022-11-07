@@ -4,10 +4,18 @@ import math
 ks = tf.keras
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CosineAnnealingLR')
-class CosineAnnealingLR(ks.callbacks.LearningRateScheduler):
-    r"""Callback for exponential learning rate schedule with warmup. This class inherits from
-    ks.callbacks.LearningRateScheduler."""
+@ks.utils.register_keras_serializable(package='kgcnn', name='CosineAnnealingLRScheduler')
+class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):
+    r"""Callback for cosine learning rate (LR) schedule with linear warmup. This class inherits from
+    :obj:`ks.callbacks.LearningRateScheduler` and applies :obj:`schedule_epoch_lr`.
+    Proposed by `SGDR <https://arxiv.org/abs/1608.03983>`_.
+    The cosine part without restarts for the LR Schedule follows:
+
+    .. math::
+
+        \eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})\left(1 +
+        \cos\left(\frac{T_{cur}}{T_{max}}\pi\right)\right)
+    """
 
     def __init__(self, lr_start: float, epoch_max: int, lr_min: float = 0, verbose: int = 0):
         """Set the parameters for the learning rate scheduler.
@@ -22,7 +30,7 @@ class CosineAnnealingLR(ks.callbacks.LearningRateScheduler):
         self.lr_min = lr_min
         self.lr_start = lr_start
         self.verbose = verbose
-        super(CosineAnnealingLR, self).__init__(
+        super(CosineAnnealingLRScheduler, self).__init__(
             schedule=self.schedule_epoch_lr, verbose=verbose)
 
     def schedule_epoch_lr(self, epoch, lr):
@@ -32,7 +40,7 @@ class CosineAnnealingLR(ks.callbacks.LearningRateScheduler):
         return float(new_lr)
 
     def get_config(self):
-        config = super(CosineAnnealingLR, self).get_config()
+        config = super(CosineAnnealingLRScheduler, self).get_config()
         config.update({"lr_start": self.lr_start, "epoch_max": self.epoch_max,
                        "lr_min": self.lr_min, "verbose": self.verbose})
         return config
@@ -172,7 +180,6 @@ class LinearWarmupLinearLearningRateScheduler(ks.callbacks.LearningRateScheduler
         Args:
             learning_rate_start (float): Initial learning rate. Default is 1e-3.
             learning_rate_stop (float): End learning rate. Default is 1e-5.
-            epo_min (int): Minimum number of epochs to keep the learning-rate constant before decrease. Default is 0.
             epo (int): Total number of epochs. Default is 500.
             eps (float): Numerical epsilon which bounds minimum learning rate.
             verbose (int): Verbosity. Default is 0.

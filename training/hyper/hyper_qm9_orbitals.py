@@ -462,7 +462,7 @@ hyper = {
                 "use_normalized_difference": False,
                 "expand_distance_kwargs": None,
                 "coord_mlp_kwargs": None,  # {"units": [128, 1], "activation": ["swish", "linear"]} or "tanh" at the end
-                "pooling_coord_kwargs": {"pooling_method": "mean"},
+                "pooling_coord_kwargs": None,  # {"pooling_method": "mean"},
                 "pooling_edge_kwargs": {"pooling_method": "sum"},
                 "node_normalize_kwargs": None,
                 "use_node_attributes": False,
@@ -481,24 +481,14 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 96, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>CosineAnnealingLR", "config": {
-                        "lr_start": 1e-03, "lr_min": 0.0, "epoch_max": 1000}}
+                    {"class_name": "kgcnn>CosineAnnealingLRScheduler", "config": {
+                        "lr_start": 1e-03, "lr_min": 0.0, "epoch_max": 1000, "verbose": 1}}
                 ]
             },
             "compile": {
-                # "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
-                "optimizer": {
-                    "class_name": "Addons>MovingAverage", "config": {
-                        "optimizer": {
-                            "class_name": "Adam", "config": {
-                                "learning_rate": 1e-03, "amsgrad": True
-                            }
-                        },
-                        "average_decay": 0.999
-                    }
-                },
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {

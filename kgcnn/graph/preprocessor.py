@@ -27,13 +27,12 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
         sort_indices (bool): Sort indices after adding edges. Default is True.
     """
 
-    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_(?!indices$).*",
                  remove_duplicates: bool = True, sort_indices: bool = True, name="make_undirected_edges", **kwargs):
-        # "^edge_(?!indices$).*"
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
+        self._search = [edge_attributes]
         self._call_kwargs = {
             "remove_duplicates": remove_duplicates, "sort_indices": sort_indices}
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
@@ -61,13 +60,13 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
         fill_value (in): The fill_value for all other edge properties.
     """
 
-    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+    def __init__(self, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_(?!indices$).*",
                  remove_duplicates: bool = True, sort_indices: bool = True, fill_value: int = 0,
                  name="add_edge_self_loops", **kwargs):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
+        self._search = [edge_attributes]
         self._call_kwargs = {
             "remove_duplicates": remove_duplicates, "sort_indices": sort_indices, "fill_value": fill_value}
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes,
@@ -91,12 +90,12 @@ class SortEdgeIndices(GraphPreProcessorBase):
             This can be a match-string or list of names. Default is "^edge_.*".
     """
 
-    def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_.*",
+    def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_(?!indices$).*",
                  name="sort_edge_indices", **kwargs):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
         self._to_assign = [edge_indices, edge_attributes]
-        self._search = {"resolve": [edge_attributes], "ignore": [edge_indices]}
+        self._search = [edge_attributes]
         self._config_kwargs.update({"edge_indices": edge_indices, "edge_attributes": edge_attributes})
 
     def call(self, *, edge_indices: np.ndarray, edge_attributes: list):
