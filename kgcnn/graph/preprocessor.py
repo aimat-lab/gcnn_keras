@@ -441,3 +441,25 @@ class ExpandDistanceGaussianBasis(GraphPreProcessorBase):
             return None
         return distance_to_gauss_basis(range_attributes, bins=bins, distance=distance, sigma=sigma, offset=offset,
                                        axis=axis, expand_dims=expand_dims)
+
+
+class AtomicChargesRepresentation(GraphPreProcessorBase):
+    r"""Generate a node representation based on atomic charges.
+
+    Args:
+        node_number (str): Name of atomic charges in dictionary. Default is "node_number".
+        node_attributes (str): Name of related attributes to assign output. Defaults to "node_attributes"
+    """
+
+    def __init__(self, *, node_number: str = "node_number", node_attributes: str = "node_attributes",
+                 name="atomic_charge_representation", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"node_number": node_number})
+        self._to_assign = [node_attributes]
+        self._config_kwargs.update({"node_number": node_number, "node_attributes": node_attributes})
+
+    def call(self, *, node_number: np.ndarray):
+        if node_number is None:
+            return None
+        out = None
+        return out
