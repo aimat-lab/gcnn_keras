@@ -445,21 +445,36 @@ class ExpandDistanceGaussianBasis(GraphPreProcessorBase):
 
 class AtomicChargesRepresentation(GraphPreProcessorBase):
     r"""Generate a node representation based on atomic charges.
+    Multiplies a one-hot representation of charges with multiple powers of the (scaled) charge itself.
+    This has been used by `EGNN <https://arxiv.org/abs/2102.09844>`_.
 
     Args:
         node_number (str): Name of atomic charges in dictionary. Default is "node_number".
-        node_attributes (str): Name of related attributes to assign output. Defaults to "node_attributes"
+        node_attributes (str): Name of related attributes to assign output. Defaults to "node_attributes".
+        one_hot (list): List of possible charges. Default is [1, 6, 7, 8, 9].
+        charge_scale (float): Scale by which the charges are scaled for power. Default is 9.0.
+        charge_power (int): Maximum power up to which compute charge powers. Default is 2.
     """
 
     def __init__(self, *, node_number: str = "node_number", node_attributes: str = "node_attributes",
-                 name="atomic_charge_representation", **kwargs):
+                 name="atomic_charge_representation", one_hot: list = None, charge_scale: float = 9.0,
+                 charge_power: int = 2, **kwargs):
         super().__init__(name=name, **kwargs)
+        if one_hot is None:
+            one_hot = [1, 6, 7, 8, 9]
         self._to_obtain.update({"node_number": node_number})
-        self._to_assign = [node_attributes]
-        self._config_kwargs.update({"node_number": node_number, "node_attributes": node_attributes})
+        self._to_assign = node_attributes
+        self._call_kwargs = {"one_hot": one_hot, "charge_scale": charge_scale, "charge_power": charge_power}
+        self._config_kwargs.update({"node_number": node_number, "node_attributes": node_attributes,
+                                    **self._call_kwargs})
 
-    def call(self, *, node_number: np.ndarray):
+    def call(self, *, node_number: np.ndarray, one_hot: list, charge_scale: float, charge_power: int):
         if node_number is None:
             return None
-        out = None
-        return out
+        if len(node_number.shape) <= 1:
+            node_number = np.expand_dims(node_number, axis=-1)
+        oh = np.array(node_number == np.array([one_hot], dtype="int"), dtype="float")  # (N, ohe)
+        charge_tensor = np.power(node_number/charge_scale, np.arange(charge_power + 1))   # (N, power)
+        atom_scalars = np.expand_dims(oh, axis=-1) * np.expand_dims(charge_tensor, axis=1)  # (N, ohe, power)
+        return atom_scalars.reshape((len(node_number), -1))
+

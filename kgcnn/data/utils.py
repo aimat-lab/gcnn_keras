@@ -99,7 +99,7 @@ def save_yaml_file(obj, file_path: str, default_flow_style: bool = False, **kwar
 
 
 def load_hyper_file(file_name: str, **kwargs) -> dict:
-    """Load hyperparameter from file. File type can be '.yaml', '.json', '.pickle' or '.py'
+    """Load hyperparameter from file. File type can be '.yaml', '.json', '.pickle' or '.py'.
 
     Args:
         file_name (str): Path or name of the file containing hyperparameter.

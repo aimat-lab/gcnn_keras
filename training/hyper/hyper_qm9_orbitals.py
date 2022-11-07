@@ -447,14 +447,14 @@ hyper = {
             "module_name": "kgcnn.literature.EGNN",
             "config": {
                 "name": "EGNN",
-                "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                "inputs": [{"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
                            {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
                            {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
                                     "edge": {"input_dim": 95, "output_dim": 128}},
                 "depth": 7,
-                "node_mlp_initialize": None,
+                "node_mlp_initialize": {"units": 128, "activation": "linear"},
                 "euclidean_norm_kwargs": {"keepdims": True, "axis": 2, "square_norm": True},
                 "use_edge_attributes": False,
                 "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
@@ -504,6 +504,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.QM9Dataset",
                 "config": {},
                 "methods": [
+                    {"map_list": {"method": "atomic_charge_representation"}},
                     {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000}}
                 ]
             },
