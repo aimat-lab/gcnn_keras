@@ -377,27 +377,12 @@ hyper = {
             "fit": {
                 "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    # {"class_name": "kgcnn>LinearWarmupExponentialLearningRateScheduler", "config": {
-                    #     "lr_start": 1e-04, "decay_gamma": 261, "epo_warmup": 1}}
+                    {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
+                        "lr_start": 1e-03, "gamma": 0.9961697, "epo_warmup": 1, "verbose": 1}}
                 ]
             },
             "compile": {
-                "optimizer": {
-                    "class_name": "Addons>MovingAverage", "config": {
-                        "optimizer": {
-                            "class_name": "Adam", "config": {
-                                "learning_rate": {
-                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 921, "decay_steps": 921,
-                                        "decay_rate": 0.9961697
-                                    }
-                                },
-                                "amsgrad": True
-                            }
-                        },
-                        "average_decay": 0.999
-                    }
-                },
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03, "global_clipnorm": 1000}},
                 "loss": "mean_absolute_error",
                 "metrics": [
                     "mean_absolute_error", "mean_squared_error",
@@ -406,12 +391,7 @@ hyper = {
                     {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
                 ]
             },
-            # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-            #     "scaler": [{"class_name": "StandardScaler",
-            #                 "config": {"with_std": True, "with_mean": True, "copy": True}}
-            #                ]
-            # }},
-            "multi_target_indices": [6]  # 5, 6, 7 = Homo, Lumo, Gap or combination
+            "multi_target_indices": [5]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {
             "dataset": {
@@ -437,7 +417,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_LUMO",
+            "postfix_file": "_HOMO",
             "kgcnn_version": "2.1.1"
         }
     },
@@ -481,21 +461,21 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
+                "batch_size": 96, "epochs": 800, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>CosineAnnealingLRScheduler", "config": {
-                        "lr_start": 1e-03, "lr_min": 0.0, "epoch_max": 1000, "verbose": 1}}
+                        "lr_start": 0.5e-03, "lr_min": 0.0, "epoch_max": 800, "verbose": 1}}
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.5e-03}},
                 "loss": "mean_absolute_error"
             },
             "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "StandardScaler",
-                            "config": {"with_std": True, "with_mean": True, "copy": True}}
-                           ]
-            }},
+                "scaler": [
+                    {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}]
+                }
+            },
             "multi_target_indices": [5]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {

@@ -383,17 +383,6 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04, "global_clipnorm": 1000}},
-                # "optimizer": {
-                #     "class_name": "Addons>MovingAverage", "config": {
-                #         "optimizer": {
-                #             "class_name": "Adam", "config": {
-                #                 "learning_rate": 1e-04,
-                #                 "amsgrad": False, "global_clipnorm": 1000
-                #             }
-                #         },
-                #         "average_decay": 0.999
-                #     }
-                # },
                 "loss": "mean_absolute_error",
                 "metrics": [
                     "mean_absolute_error", "mean_squared_error",
@@ -402,11 +391,6 @@ hyper = {
                     {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
                 ]
             },
-            # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-            #     "scaler": [{"class_name": "ExtensiveMolecularScaler",
-            #                 "config": {}}
-            #                ]
-            # }},
             # "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
             "multi_target_indices": [15]  # 15, 16, 17, 18 = 'U0_atom', 'U_atom', 'H_atom', 'G_atom' or combination
         },
