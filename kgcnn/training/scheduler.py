@@ -10,6 +10,9 @@ module_logger.setLevel(logging.INFO)
 
 
 class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
+    """
+
+    """
 
     def __init__(self, schedule=None, verbose: int = 0,
                  steps_per_epoch: int = None, lr_start: float = None, epo_warmup: int = 0):
@@ -99,7 +102,7 @@ class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):
 @ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLRScheduler')
 class LinearWarmupExponentialLRScheduler(LinearWarmUpScheduler):
     r"""Callback for exponential learning rate schedule with warmup. This class inherits from
-    ks.callbacks.LearningRateScheduler."""
+    LinearWarmUpScheduler and which inherits from ks.callbacks.LearningRateScheduler."""
 
     def __init__(self, lr_start: float, gamma: float, epo_warmup: int = 10, lr_min: float = 0.0,
                  verbose: int = 0, steps_per_epoch: int = None):
