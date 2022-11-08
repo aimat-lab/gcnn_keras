@@ -358,13 +358,14 @@ hyper = {
                 "mlp_rbf_kwargs": {"units": 32, "activation": "swish"},
                 "mlp_sbf_kwargs": {"units": 32, "activation": "swish"},
                 "global_mp_kwargs": {"units": 32},
-                "local_mp_kwargs": {"units": 32},
+                "local_mp_kwargs": {"units": 32, "output_units": 1,
+                                    "output_kernel_initializer": "glorot_uniform"},
                 "use_edge_attributes": False,
-                "depth": 3,
+                "depth": 4,
                 "verbose": 10,
                 "node_pooling_args": {"pooling_method": "sum"},
                 "output_embedding": "graph", "output_to_tensor": True,
-                "use_output_mlp": True,
+                "use_output_mlp": False,
                 "output_mlp": {"use_bias": [True], "units": [1],
                                "activation": ["linear"]}
             }
@@ -372,31 +373,22 @@ hyper = {
         "training": {
             "cross_validation": None,
             "fit": {
-                "batch_size": 64, "epochs": 872, "validation_freq": 10, "verbose": 2, "callbacks": []
+                "batch_size": 128, "epochs": 900, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
+                        "lr_start": 1e-03, "gamma": 0.9961697, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 45}}
+                ]
             },
             "compile": {
-                "optimizer": {
-                    "class_name": "Addons>MovingAverage", "config": {
-                        "optimizer": {
-                            "class_name": "Adam", "config": {
-                                "learning_rate": {
-                                    "class_name": "kgcnn>LinearWarmupExponentialDecay", "config": {
-                                        "learning_rate": 0.001, "warmup_steps": 150.0, "decay_steps": 200000.0,
-                                        "decay_rate": 0.01
-                                    }
-                                }, "amsgrad": True
-                            }
-                        },
-                        "average_decay": 0.999
-                    }
-                },
-                "loss": "mean_absolute_error"
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03, "global_clipnorm": 1000}},
+                "loss": "mean_absolute_error",
+                "metrics": [
+                    "mean_absolute_error", "mean_squared_error",
+                    # No scaling needed.
+                    {"class_name": "RootMeanSquaredError", "config": {"name": "scaled_root_mean_squared_error"}},
+                    {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
+                ]
             },
-            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "StandardScaler",
-                            "config": {"with_std": True, "with_mean": True, "copy": True}}
-                           ]
-            }},
             "multi_target_indices": None
         },
         "data": {
