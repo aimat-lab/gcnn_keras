@@ -391,7 +391,7 @@ hyper = {
                     {"class_name": "MeanAbsoluteError", "config": {"name": "scaled_mean_absolute_error"}},
                 ]
             },
-            "multi_target_indices": [5]  # 5, 6, 7 = Homo, Lumo, Gap or combination
+            "multi_target_indices": [6]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {
             "dataset": {
@@ -417,7 +417,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_HOMO",
+            "postfix_file": "_LUMO",
             "kgcnn_version": "2.1.1"
         }
     },
@@ -476,7 +476,7 @@ hyper = {
                     {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}]
                 }
             },
-            "multi_target_indices": [5]  # 5, 6, 7 = Homo, Lumo, Gap or combination
+            "multi_target_indices": [6]  # 5, 6, 7 = Homo, Lumo, Gap or combination
         },
         "data": {
             "dataset": {
@@ -492,7 +492,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_HOMO",
+            "postfix_file": "_LUMO",
             "kgcnn_version": "2.1.1"
         }
     },

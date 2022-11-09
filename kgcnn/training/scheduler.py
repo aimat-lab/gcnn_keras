@@ -226,7 +226,7 @@ class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
             eps (float): Minimum learning rate. Default is 1e-08.
             verbose (int): Verbosity. Default is 0.
             steps_per_epoch (int): Number of steps per epoch. Required for warm-up to linearly increase between epochs.
-            lr_start (int): Ignored set to `learning_rate_start`.
+            lr_start (int): Ignored, set to `learning_rate_start`.
         """
         super(LinearWarmupLinearLearningRateScheduler, self).__init__(
             schedule=self.schedule_epoch_lr, verbose=verbose, lr_start=learning_rate_start, epo_warmup=epo_warmup,

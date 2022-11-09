@@ -392,7 +392,7 @@ hyper = {
                 ]
             },
             # "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
-            "multi_target_indices": [16]  # 15, 16, 17, 18 = 'U0_atom', 'U_atom', 'H_atom', 'G_atom' or combination
+            "multi_target_indices": [18]  # 15, 16, 17, 18 = 'U0_atom', 'U_atom', 'H_atom', 'G_atom' or combination
         },
         "data": {
             "dataset": {
@@ -418,7 +418,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_U",
+            "postfix_file": "_G",
             "kgcnn_version": "2.1.1"
         }
     }
