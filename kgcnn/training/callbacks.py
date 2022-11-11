@@ -1,13 +1,17 @@
-import numpy as np
+# import numpy as np
 import tensorflow as tf
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
-    """Callback logging the learning rate. This does not work universally yet.
-    Will be improved in the future."""
+    """Callback logging the learning rate"""
 
     def __init__(self, verbose: int = 0):
+        """Initialize class.
+
+        Args:
+            verbose (int): Verbosity. Default is 0.
+        """
         super(LearningRateLoggingCallback, self).__init__()
         self.verbose = verbose
 
@@ -15,7 +19,7 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         """Read out the learning rate on epoch end.
 
         Args:
-            epoch (int): Number of current epoch ended.
+            epoch (int): Number of current epoch.
             logs (dict): Dictionary of the logs.
 
         Returns:
@@ -26,10 +30,9 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         logs = logs or {}
         logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
         if self.verbose > 0:
-            print('\nEpoch %05d: LearningRateScheduler reducing learning '
-                  'rate to %s.' % (epoch + 1, lr))
+            print("\nEpoch %05d: Finished epoch with learning rate: %s.\n" % (epoch + 1, float(lr)))
 
     def get_config(self):
-        """Get config."""
+        """Get config for this class."""
         config = {"verbose": self.verbose}
         return config

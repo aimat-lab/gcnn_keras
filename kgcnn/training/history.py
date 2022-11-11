@@ -21,6 +21,8 @@ def save_history_score(
 ):
     r"""Save fit results from fit histories to file.
 
+    This function is used in training scripts to record final training and validation metrics.
+
     Args:
         histories (list): List of :obj:`tf.keras.callbacks.History()` objects.
         filepath (str): Full path where to save plot to, without the name of the file. Default is "".

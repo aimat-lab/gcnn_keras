@@ -57,7 +57,7 @@ def deserialize(obj_dict: dict) -> Any:
         if hasattr(obj, "set_methods"):
             obj.set_methods(method_list)
         else:
-            # Try setting the manually.
+            # Try setting them manually.
             for method_item in method_list:
                 for method, kwargs in method_item.items():
                     if hasattr(obj, method):

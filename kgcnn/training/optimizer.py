@@ -5,14 +5,57 @@ ks = tf.keras
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='Adan')
 class Adan(ks.optimizers.Optimizer):
+    r"""Optimizer `Adan <https://arxiv.org/abs/2208.06677>`_: Adaptive Nesterov Momentum Algorithm for
+    Faster Optimizing Deep Models.
+
+    'Adan develops a Nesterov momentum estimation method to estimate stable and accurate first
+    and second momentums of gradient in adaptive gradient algorithms for acceleration'.
+
+    Algorithm of Adan:
+
+    Input: Initialization :math:`θ_0`, step size :math:`\eta`, average parameter
+    :math:`(β_1, β_2, β_3) \in [0, 1]^3`, stable parameter :math:`\epsilon > 0`,
+    weight decays :math:`\lambda_k > 0`, restart condition.
+
+    Output: some average of :math:`\{\theta_k\}^K_{k=1}`.
+
+    (set :math:`m_0 = g_0` and :math:`v_1 = g_1 - g_0`)
+    while :math:`k < K` do:
+
+    .. math::
+
+        m_k &= (1 − \beta_1)m_{k−1} + \beta_1 g_k  \\\\
+        v_k &= (1 − \beta_2)v_{k−1} + \beta_2(g_k − g_{k−1}) \\\\
+        n_k = (1 − \beta_3)n_{k−1} + \beta_3[g_k + (1 − \beta_2)(g_k − g_{k−1})]^2 \\\\
+        \eta_k = \eta / \sqrt{n_k + \epsilon}  \\\\
+        θ_{k+1} = (1 + \lambda_k \eta)^{-1} [\theta_k − \eta_k \dot (m_k + (1 − \beta_2) v_k)] \\\\
+        \text{if restart condition holds:} \\\\
+        \text{   get stochastic gradient estimator } g_0 \text{at } \theta_{k+1} \\\\
+        \text{   set } m_0 = g_0, \; v_0 = 0, \; n_0 = g_0^2, \; k = 1 \\\\
+        \text{   update } \theta_k
+    """
 
     # Reference pytorch implementations:
     # https://github.com/frgfm/Holocron/blob/main/holocron/optim/functional.py
     # https://github.com/sail-sg/Adan/blob/main/adan.py
     # https://github.com/lucidrains/Adan-pytorch
 
-    def __init__(self, learning_rate=1e-3, name="Adan", beta_1=0.98, beta_2=0.92, beta_3=0.99, eps=1e-8,
-                 weight_decay=0.0, no_prox=False, amsgrad= False, **kwargs):
+    def __init__(self, learning_rate: float = 1e-3, name: str = "Adan",
+                 beta_1: float = 0.98, beta_2: float = 0.92, beta_3: float = 0.99, eps: float = 1e-8,
+                 weight_decay: float = 0.0, no_prox: bool = False, amsgrad: bool = False, **kwargs):
+        """Initialize optimizer.
+
+        Args:
+            learning_rate (float): Learning rate. Default is 1e-3.
+            name (str): Name of the optimizer. Defaults to 'Adan'.
+            beta_1 (float): Beta 1 parameter. Default is 0.98.
+            beta_2 (float): Beta 2 parameter. Default is 0.92.
+            beta_3 (float): Beta 3 parameter. Default is 0.99.
+            eps (float): Numerical epsilon for denominators. Default is 1e-8.
+            weight_decay (float): Decoupled weight decay. Default is 0.0.
+            no_prox (bool): How to perform the decoupled weight decay. Default is False.
+            amsgrad (bool): Use the maximum of all 2nd moment running averages. Default is False.
+        """
         super(Adan, self).__init__(name=name, **kwargs)
 
         if not 0.0 <= learning_rate:
