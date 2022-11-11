@@ -202,11 +202,11 @@ benchmark_datasets = {
             {"metric": "val_scaled_mean_absolute_error", "name": "LUMO [eV]", "find_best": "min",
              "multi_target_indices": [6]},
             {"metric": "val_scaled_mean_absolute_error", "name": "U0 [eV]", "find_best": "min",
-             "multi_target_indices": [10]},
+             "multi_target_indices": [[10], [15]]},
             {"metric": "val_scaled_mean_absolute_error", "name": "H [eV]", "find_best": "min",
-             "multi_target_indices": [12]},
+             "multi_target_indices": [[12], [17]]},
             {"metric": "val_scaled_mean_absolute_error", "name": "G [eV]", "find_best": "min",
-             "multi_target_indices": [13]}
+             "multi_target_indices": [[13], [18]]},
         ]
     },
     "SIDERDataset": {
@@ -292,7 +292,9 @@ with open("README.md", "w") as f:
                             if "multi_target_indices" not in x:
                                 continue
                             info_idx = x["multi_target_indices"]
-                            if info_idx != target_idx:
+                            if not isinstance(info_idx[0], list):
+                                info_idx = [info_idx]  # Make list of list.
+                            if target_idx not in info_idx:
                                 continue
                     target_res = target_res[~np.isnan(target_res)]
                     result_dict[x["name"]] = (np.mean(target_res), np.std(target_res))

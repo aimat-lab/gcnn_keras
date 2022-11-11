@@ -421,5 +421,80 @@ hyper = {
             "postfix_file": "_G",
             "kgcnn_version": "2.1.1"
         }
-    }
+    },
+    "EGNN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.EGNN",
+            "config": {
+                "name": "EGNN",
+                "inputs": [{"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
+                                    "edge": {"input_dim": 95, "output_dim": 128}},
+                "depth": 7,
+                "node_mlp_initialize": {"units": 128, "activation": "linear"},
+                "euclidean_norm_kwargs": {"keepdims": True, "axis": 2, "square_norm": True},
+                "use_edge_attributes": False,
+                "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
+                "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
+                "use_normalized_difference": False,
+                "expand_distance_kwargs": None,
+                "coord_mlp_kwargs": None,  # {"units": [128, 1], "activation": ["swish", "linear"]} or "tanh" at the end
+                "pooling_coord_kwargs": None,  # {"pooling_method": "mean"},
+                "pooling_edge_kwargs": {"pooling_method": "sum"},
+                "node_normalize_kwargs": None,
+                "use_node_attributes": False,
+                "node_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
+                "use_skip": True,
+                "verbose": 10,
+                "node_decoder_kwargs": {"units": [128, 128], "activation": ["swish", "linear"]},
+                "node_pooling_kwargs": {"pooling_method": "sum"},
+                "output_embedding": "graph",
+                "output_to_tensor": True,
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1],
+                               "activation": ["swish", "linear"]}
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 96, "epochs": 800, "validation_freq": 1, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>CosineAnnealingLRScheduler", "config": {
+                        "lr_start": 0.5e-03, "lr_min": 0.0, "epoch_max": 800, "verbose": 1}}
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.5e-03}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+                "scaler": [{"class_name": "ExtensiveMolecularScaler",
+                            "config": {}}
+                           ]
+            }},
+            "multi_target_indices": [10]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
+        },
+        "data": {
+            "dataset": {
+                "class_name": "QM9Dataset",
+                "module_name": "kgcnn.data.datasets.QM9Dataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "atomic_charge_representation"}},
+                    {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000}}
+                ]
+            },
+            "data_unit": "eV"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "_U",
+            "kgcnn_version": "2.1.1"
+        }
+    },
 }
