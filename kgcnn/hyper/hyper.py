@@ -17,6 +17,9 @@ class HyperParameter:
     or the expected version of :obj:`kgcnn`. The class methods will extract and possibly serialize or deserialized the
     necessary kwargs from the hyperparameter dictionary.
 
+    .. code-block:: python
+
+        hyper = HyperParameter({"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})
     """
 
     def __init__(self, hyper_info: Union[str, dict],
@@ -257,6 +260,3 @@ class HyperParameter:
         """
         # Must make more refined saving and serialization here.
         save_json_file(self._hyper, file_path)
-
-
-# hyper = HyperParameter({"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})

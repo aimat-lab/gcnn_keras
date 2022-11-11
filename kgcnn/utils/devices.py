@@ -13,7 +13,7 @@ def set_devices_gpu(gpu_ids_list: Union[list, int], restrict_memory: bool = True
 
     .. note::
         Important is to restrict memory growth since a single tensorflow process will allocate almost all
-        GPU memory, so two fits can not run on same GPU.
+        GPU memory, so for example two fits can not run on same GPU.
 
     Args:
         gpu_ids_list (list): Device list.
