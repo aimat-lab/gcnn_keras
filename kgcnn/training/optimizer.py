@@ -167,6 +167,7 @@ class Adan(ks.optimizers.Optimizer):
         raise NotImplementedError("Sparse gradient updates are not supported.")
 
     def get_config(self):
+        """Get config dictionary."""
         config = super(Adan, self).get_config()
         config.update(
             {
