@@ -20,6 +20,8 @@ class Adan(ks.optimizers.Optimizer):
     Output: some average of :math:`\{\theta_k\}^K_{k=1}`.
 
     (set :math:`m_0 = g_0` and :math:`v_1 = g_1 - g_0`)
+
+
     while :math:`k < K` do:
 
     .. math::
