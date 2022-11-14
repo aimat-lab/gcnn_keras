@@ -1,3 +1,8 @@
+v2.2.0
+
+*
+
+
 v2.1.1
 
 * Removed `kgcnn.graph.adapter` and switched to completed ``kgcnn.graph.preprocessor``. The interface to `MemoryGraphList` and datasets does not change. How to update:
@@ -22,7 +27,7 @@ SortEdgeIndices(in_place=True)(GraphDict())
 * Refactored ``kgcnn.scaler`` module to follow sklearn definitions. Changed input naming and order for scaler. Add config and weights functionality.
 * Changed ``kgcnn.training.scheduler.LinearWarmupExponentialLearningRateScheduler`` to take correctly lifetime parameter. 
 * Reworked ``kgcnn.data.datasets.QM9Dataset`` to offer atomization energies and uncharacterized molecules. Please run reload=True.
-* 
+* Improved docs for `kgcnn.training`.
 
 
 v2.1.0
