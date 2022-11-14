@@ -20,18 +20,10 @@ kgcnn.crystal.graph\_builder module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.crystal.module\_pymatgen module
--------------------------------------
+kgcnn.crystal.preprocessor module
+---------------------------------
 
-.. automodule:: kgcnn.crystal.module_pymatgen
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.crystal.module\_pyxtal module
------------------------------------
-
-.. automodule:: kgcnn.crystal.module_pyxtal
+.. automodule:: kgcnn.crystal.preprocessor
    :members:
    :undoc-members:
    :show-inheritance:
