@@ -7,12 +7,14 @@ hyper = {
                 "name": "Schnet",
                 "class_name": "make_model",
                 "nested_model_config": True,
+                "output_to_tensor": False,
+                "output_squeeze_states": True,
                 "module_name": "kgcnn.literature.Schnet",
                 "config": {
                     "name": "SchnetEnergy",
                     "inputs": [
-                        {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                     ],
                     "input_embedding": {
@@ -24,8 +26,8 @@ hyper = {
                         "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
                     },
                     "node_pooling_args": {"pooling_method": "sum"},
-                    "depth": 4,
-                    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                    "depth": 6,
+                    "gauss_args": {"bins": 30, "distance": 6, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
                     "output_embedding": "graph",
                     "use_output_mlp": False,
                     "output_mlp": None,
@@ -34,21 +36,20 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "energy", "force": "force", "atomic_number": "node_number",
-                "coordinates": "node_coordinates"},
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
+                "energy": "E", "force": "F", "atomic_number": "z",
+                "coordinates": "R"},
+            "train_test_indices": {},
             "fit": {
-                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 1500, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-06, "epo_min": 150, "epo": 1500,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
             },
             "scaler": {"class_name": "EnergyForceExtensiveScaler",
                        "config": {}},
@@ -58,15 +59,16 @@ hyper = {
             "dataset": {
                 "class_name": "MD17Dataset",
                 "module_name": "kgcnn.data.datasets.MD17Dataset",
-                "config": {"trajectory_name": "aspirin_dft"},
+                "config": {"trajectory_name": "aspirin_ccsd"},
                 "methods": [
-                    {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
+                    {"map_list": {"method": "set_range", "max_distance": 6, "max_neighbours": 10000,
+                                  "node_coordinates": "R"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_dft",
+            "postfix_file": "_aspirin_ccsd",
             "kgcnn_version": "2.2.0"
         }
     },

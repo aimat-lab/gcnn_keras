@@ -10,7 +10,8 @@ ks = tf.keras
 class EnergyForceModel(ks.models.Model):
     def __init__(self, module_name, class_name, config, coordinate_input: Union[int, str] = 1,
                  output_as_dict: bool = False, ragged_validate: bool = False, output_to_tensor: bool = True,
-                 output_squeeze_states: bool = False, nested_model_config: bool = True, **kwargs):
+                 output_squeeze_states: bool = False, nested_model_config: bool = True, is_physical_force: bool = True,
+                 **kwargs):
         super(EnergyForceModel, self).__init__(self, **kwargs)
         self.model_config = config
         self.ragged_validate = ragged_validate
@@ -21,6 +22,7 @@ class EnergyForceModel(ks.models.Model):
         self.output_as_dict = output_as_dict
         self.output_to_tensor = output_to_tensor
         self.output_squeeze_states = output_squeeze_states
+        self.is_physical_force = is_physical_force
 
     def call(self, inputs, training=False, **kwargs):
         x = inputs[self.coordinate_input]
@@ -40,6 +42,9 @@ class EnergyForceModel(ks.models.Model):
             eng = self.energy_model(inputs_energy, training=training, **kwargs)
         e_grad = tape.batch_jacobian(eng, x_pad)
         e_grad = tf.transpose(e_grad, perm=[0, 2, 3, 1])
+
+        if self.is_physical_force:
+            e_grad = -e_grad
 
         if self.output_squeeze_states:
             e_grad = tf.squeeze(e_grad, axis=-1)

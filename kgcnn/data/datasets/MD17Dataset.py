@@ -112,8 +112,7 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
                 # note: use from itertools import chain for multiple splits.
                 self.assign_property(key_prop, prop_dicts[0][key_prop] + prop_dicts[1][key_prop])
         else:
-            print(make_dict_from_data(data_loaded))
-            for key_prop, value_prop in make_dict_from_data(data_loaded, ).items():
+            for key_prop, value_prop in make_dict_from_data(data_loaded).items():
                 self.assign_property(key_prop, value_prop)
 
         return self

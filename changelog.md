@@ -2,6 +2,7 @@ v2.2.0
 
 * Removed deprecated modules in ``kgcnn.utils``.
 * Moved ``kgcnn.utils.model`` to `kgcnn.model.utils`.
+* Fixed behaviour for ``kgcnn.data.base.MemoryGraphDataset.get_train_test_indices`` to return list of train-test index tuples.
 
 
 v2.1.1

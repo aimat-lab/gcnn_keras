@@ -1,0 +1,52 @@
+data_unit: ''
+date_time: '2022-11-14 19:54:25'
+epochs:
+- 800
+execute_folds: null
+kgcnn_version: 2.2.0
+loss:
+- 0.3179515302181244
+lr:
+- 1.06999996205559e-05
+max_loss:
+- 4.4239325523376465
+max_lr:
+- 0.0005000000237487257
+max_output_1_loss:
+- 0.8389813303947449
+max_output_2_loss:
+- 3.584951162338257
+max_val_loss:
+- 4.420422554016113
+max_val_output_1_loss:
+- 0.8505276441574097
+max_val_output_2_loss:
+- 3.5698940753936768
+min_loss:
+- 0.31699392199516296
+min_lr:
+- 1.06999996205559e-05
+min_output_1_loss:
+- 0.0395544208586216
+min_output_2_loss:
+- 0.27706754207611084
+min_val_loss:
+- 0.4652252495288849
+min_val_output_1_loss:
+- 0.12242934852838516
+min_val_output_2_loss:
+- 0.3426494896411896
+model_class: EnergyForceModel
+model_name: Schnet
+multi_target_indices: 1
+number_histories: 1
+output_1_loss:
+- 0.04088400676846504
+output_2_loss:
+- 0.27706754207611084
+val_loss:
+- 0.4712768495082855
+val_output_1_loss:
+- 0.12862738966941833
+val_output_2_loss:
+- 0.3426494896411896

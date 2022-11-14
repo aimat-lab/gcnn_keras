@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 import matplotlib as mpl
 # mpl.use('Agg')
 import time
@@ -17,6 +18,8 @@ from kgcnn.hyper.hyper import HyperParameter
 from kgcnn.utils.devices import set_devices_gpu
 from kgcnn.scaler.force import EnergyForceExtensiveScaler
 from kgcnn.metrics.loss import RaggedMeanAbsoluteError
+from kgcnn.data.utils import ragged_tensor_from_nested_numpy
+
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
@@ -70,6 +73,7 @@ dataset = deserialize_dataset(hyper["data"]["dataset"])
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
 # Example 'edge_indices' or 'node_attributes'. This couples the keras model to the dataset.
 if "nested_model_config" in hyper["model"]["config"]:
+    # This is for Model containing the config within config.
     model_config = hyper["model"]["config"]["config"]
 else:
     model_config = hyper["model"]["config"]
@@ -77,7 +81,7 @@ dataset.assert_valid_model_input(model_config["inputs"])
 
 # Filter the dataset for invalid graphs. At the moment invalid graphs are graphs which do not have the property set,
 # which is required by the model's input layers, or if a tensor-like property has zero length.
-dataset.clean(hyper["model"]["config"]["inputs"])
+dataset.clean(model_config["inputs"])
 data_length = len(dataset)  # Length of the cleaned dataset.
 
 # For ForceDataset, train on energy and force output, also the atomic number is required
@@ -103,13 +107,18 @@ print("Energy '%s' in '%s' has shape '%s'." % (label_names, label_units, energy.
 
 # Cross-validation via random KFold split form `sklearn.model_selection`.
 # Or from dataset information.
-if hyper["training"]["cross_validation"] is None:
-    print("Using dataset splits.")
-    train_test_indices = dataset.get_split_indices()
-else:
+if "cross_validation" in hyper["training"]:
     kf = KFold(**hyper["training"]["cross_validation"]["config"])
     train_test_indices = [
         [train_index, test_index] for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=energy)]
+elif "split_indices" in hyper["training"]:
+    print("Using dataset splits.")
+    train_test_indices = dataset.get_split_indices(**hyper["training"]["split_indices"])
+elif "train_test_indices" in hyper["training"]:
+    print("Using dataset train test indices.")
+    train_test_indices = dataset.get_train_test_indices(**hyper["training"]["train_test_indices"])
+else:
+    raise ValueError("No information about model validation.")
 
 # Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
@@ -117,8 +126,8 @@ if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
-model, hist, x_test, y_test, scaler, atoms_test, coord_test = None, None, None, None, None, None, None
-
+model, hist, x_test, scaler, atoms_test, coord_test = None, None, None, None, None, None
+energy_test, force_test = None, None
 for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.
@@ -166,19 +175,21 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         scaler_scale = scaler.get_scaling()
         if scaler.scale_ is not None:
             pass
-        metrics = []
+        metrics = None
     else:
         print("Not using QMGraphLabelScaler.")
         metrics = None
 
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(loss=["mean_absolute_error", RaggedMeanAbsoluteError()], metrics=metrics))
+    model.predict(x_test)
     print(model.summary())
 
+    force_train, force_test = [ragged_tensor_from_nested_numpy(x) for x in [force_train, force_test]]
     # Start and time training
     start = time.process_time()
-    hist = model.fit(x_train, [energy_train, force_train],
-                     validation_data=(x_test, [energy_test, force_test]),
+    hist = model.fit(x_train, [tf.constant(energy_train), force_train],
+                     validation_data=(x_test, [tf.constant(energy_test), force_test]),
                      **hyper.fit())
     stop = time.process_time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
@@ -200,14 +211,14 @@ plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
 
 # Plot prediction
 predicted_y = model.predict(x_test, verbose=0)
-true_y = y_test
+true_y = [energy_test, force_test]
 
 if scaler:
     _, rescaled_predicted_energy, rescaled_predicted_force = scaler.inverse_transform(
         X=coord_test, y=predicted_y[0], force=predicted_y[1], atomic_number=atoms_test)
     predicted_y = [rescaled_predicted_energy, rescaled_predicted_force]
     _, true_energy, true_force = scaler.inverse_transform(
-        X=coord_test, y=predicted_y[0], force=predicted_y[1], atomic_number=atoms_test)
+        X=coord_test, y=true_y[0], force=true_y[1], atomic_number=atoms_test)
     true_y = [true_energy, true_force]
 
 plot_predict_true(predicted_y[0], true_y[0],
@@ -215,7 +226,7 @@ plot_predict_true(predicted_y[0], true_y[0],
                   model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                   file_name=f"predict_energy{postfix_file}.png")
 
-plot_predict_true(predicted_y[1], true_y[1],
+plot_predict_true(np.concatenate(predicted_y[1], axis=0), np.concatenate(true_y[1], axis=0),
                   filepath=filepath, data_unit=label_units,
                   model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                   file_name=f"predict_force{postfix_file}.png")

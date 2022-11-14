@@ -641,7 +641,7 @@ class MemoryGraphDataset(MemoryGraphList):
         return train_test
 
     def get_train_test_indices(self, train: str = "train", test: str = "test", valid: str = None,
-                               split_index: Union[int, list] = 1):
+                               split_index: Union[int, list] = 1, shuffle: bool = False, seed: int = None):
         """Get train and test indices from graph list. The 'train' and 'test' properties must be set on the graph.
         They can also be a list of split assignment if more than one train-test split is required.
 
@@ -650,31 +650,35 @@ class MemoryGraphDataset(MemoryGraphList):
             test (str): Name of graph property that has test split assignment. Defaults to 'test'.
             valid (str): Name of graph property that has validation assignment. Defaults to None.
             split_index (int, list): Split index to get indices for. Can also be list.
+            shuffle (bool): Whether to shuffle splits. Default is True.
+            seed (int): Random seed for shuffle. Default is None.
 
         Returns:
-            list: list of train, test, validation split indices.
+            list: List of tuples (or triples) of train, test, (validation) split indices.
         """
         out_indices = []
         if not isinstance(split_index, (list, tuple)):
             split_index = [split_index]
-        for s in [train, test, valid]:
-            if s is None:
-                out_indices.append(None)
-                continue
-            s_list = []
-            split_prop = self.obtain_property(s)
-            for j in split_index:
-                split_list = []
+
+        for j in split_index:
+            split_list = []
+            for s in [train, test, valid]:
+                if s is None:
+                    # out_indices.append(None)
+                    continue
+                s_list = []
+                split_prop = self.obtain_property(s)
                 for i, x in enumerate(split_prop):
                     if x is not None:
                         if j in x:
-                            split_list.append(i)
-                s_list.append(split_list)
-            if len(s_list) == 1:
-                out_indices.append(s_list[0])
-            else:
-                out_indices.append(s_list[0])
-
+                            s_list.append(i)
+                s_list = np.array(s_list)
+                split_list.append(s_list)
+            if shuffle:
+                np.random.seed(seed)
+                for x in split_list:
+                    np.random.shuffle(x)
+            out_indices.append(split_list)
         return out_indices
 
 
