@@ -5,7 +5,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePositi
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 

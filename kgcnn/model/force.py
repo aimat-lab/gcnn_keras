@@ -1,7 +1,8 @@
 import tensorflow as tf
 from typing import Union
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.utils.models import get_model_class
+from kgcnn.model.utils import get_model_class
+
 ks = tf.keras
 
 

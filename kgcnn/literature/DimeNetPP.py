@@ -5,7 +5,7 @@ from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, LazyAdd, LazySubtract
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.mlp import MLP
 
 ks = tf.keras

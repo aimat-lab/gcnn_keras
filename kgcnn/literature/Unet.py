@@ -5,7 +5,8 @@ from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, LazyAdd, O
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
 from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
+
 ks = tf.keras
 
 # Implementation of Unet in `tf.keras` from paper:

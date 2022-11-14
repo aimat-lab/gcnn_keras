@@ -4,7 +4,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding, LazyConcatenate, LazySubtract, LazyAdd
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer, EmbeddingDimeBlock
 from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
 

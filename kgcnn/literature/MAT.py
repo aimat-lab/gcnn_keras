@@ -3,7 +3,7 @@ from typing import Union
 from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix, MATReduceMask, MATGlobalPool, MATExpandMask
 
 ks = tf.keras

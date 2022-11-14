@@ -4,7 +4,7 @@ from kgcnn.layers.conv.gcn_conv import GCN
 from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.utils.models import update_model_kwargs, generate_embedding
+from kgcnn.model.utils import generate_embedding, update_model_kwargs
 
 ks = tf.keras
 

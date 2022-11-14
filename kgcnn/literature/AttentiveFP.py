@@ -4,7 +4,7 @@ from kgcnn.layers.conv.attentivefp_conv import AttentiveHeadFP, PoolingNodesAtte
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 
 # import tensorflow.keras as ks
 ks = tf.keras

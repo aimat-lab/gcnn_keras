@@ -5,7 +5,7 @@ from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenat
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.norm import GraphLayerNormalization
 
 ks = tf.keras

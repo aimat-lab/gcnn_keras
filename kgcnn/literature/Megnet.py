@@ -5,7 +5,7 @@ from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding, Opti
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 
 # from kgcnn.layers.casting import ChangeTensorType
 ks = tf.keras

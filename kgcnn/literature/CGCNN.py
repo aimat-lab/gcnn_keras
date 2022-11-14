@@ -5,7 +5,7 @@ from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCel
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract, DenseEmbedding
 from kgcnn.layers.mlp import MLP
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 

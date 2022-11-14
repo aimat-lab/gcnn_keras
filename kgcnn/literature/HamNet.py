@@ -3,7 +3,7 @@ from math import inf
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.mlp import MLP, GraphMLP
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding, DenseEmbedding, ActivationEmbedding, ZerosLike
 from kgcnn.layers.pooling import PoolingNodes, PoolingEmbeddingAttention
 from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator, HamNetGRUUnion, \

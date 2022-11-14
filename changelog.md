@@ -1,6 +1,7 @@
 v2.2.0
 
-*
+* Removed deprecated modules in ``kgcnn.utils``.
+* Moved ``kgcnn.utils.model`` to `kgcnn.model.utils`.
 
 
 v2.1.1

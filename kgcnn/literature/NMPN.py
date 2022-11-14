@@ -6,7 +6,7 @@ from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, OptionalInputE
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
-from kgcnn.utils.models import update_model_kwargs
+from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer, ShiftPeriodicLattice
 
 ks = tf.keras
