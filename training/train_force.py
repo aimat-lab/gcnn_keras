@@ -166,9 +166,9 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         # Note that `EnergyForceExtensiveScaler` does not use X argument at the moment.
         scaler = EnergyForceExtensiveScaler(**hyper["training"]["scaler"]["config"]).fit(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        _, energy_train, force_train = scaler.transform(
+        coord_train, energy_train, force_train = scaler.transform(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        _, energy_test, force_test = scaler.transform(
+        coord_test, energy_test, force_test = scaler.transform(
             X=coord_test, y=energy_test, atomic_number=atoms_test, force=force_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
