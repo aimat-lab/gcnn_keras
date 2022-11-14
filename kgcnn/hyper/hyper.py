@@ -59,7 +59,6 @@ class HyperParameter:
             self._hyper = self._hyper_all[model_name_class]
         else:
             raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
-
         self.verify()
 
     def verify(self):

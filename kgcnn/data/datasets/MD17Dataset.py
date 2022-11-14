@@ -100,8 +100,9 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
             for key in ["z", 'name', 'type', 'md5', "theory"]:
                 value = data[key]
                 out_dict.update({key: [np.array(value) for _ in range(num_data_points)]})
-            for key, value in is_split.items():
-                out_dict.update({key: [value for _ in range(num_data_points)]})
+            if is_split is not None:
+                for key, value in is_split.items():
+                    out_dict.update({key: [value for _ in range(num_data_points)]})
             return out_dict
 
         if isinstance(data_loaded, (list, tuple)):
@@ -111,7 +112,8 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
                 # note: use from itertools import chain for multiple splits.
                 self.assign_property(key_prop, prop_dicts[0][key_prop] + prop_dicts[1][key_prop])
         else:
-            for key_prop, value_prop in make_dict_from_data(data_loaded).items():
+            print(make_dict_from_data(data_loaded))
+            for key_prop, value_prop in make_dict_from_data(data_loaded, ).items():
                 self.assign_property(key_prop, value_prop)
 
         return self

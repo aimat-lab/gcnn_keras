@@ -1,32 +1,41 @@
 hyper = {
-    "Schnet": {
+    "Schnet.EnergyForceModel": {
         "model": {
-            "class_name": "make_model",
-            "module_name": "kgcnn.literature.Schnet",
+            "class_name": "EnergyForceModel",
+            "module_name": "kgcnn.model.force",
             "config": {
                 "name": "Schnet",
-                "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
-                ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64}
-                },
-                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
-                "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
-                },
-                "node_pooling_args": {"pooling_method": "sum"},
-                "depth": 4,
-                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
-                "output_embedding": "graph",
-                "use_output_mlp": False,
-                "output_mlp": None,
+                "class_name": "make_model",
+                "nested_model_config": True,
+                "module_name": "kgcnn.literature.Schnet",
+                "config": {
+                    "name": "SchnetEnergy",
+                    "inputs": [
+                        {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    ],
+                    "input_embedding": {
+                        "node": {"input_dim": 95, "output_dim": 64}
+                    },
+                    "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
+                                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                    "interaction_args": {
+                        "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    },
+                    "node_pooling_args": {"pooling_method": "sum"},
+                    "depth": 4,
+                    "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                    "output_embedding": "graph",
+                    "use_output_mlp": False,
+                    "output_mlp": None,
+                }
             }
         },
         "training": {
+            "target_property_names": {
+                "energy": "energy", "force": "force", "atomic_number": "node_number",
+                "coordinates": "node_coordinates"},
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 10, "random_state": 42, "shuffle": True}},
             "fit": {
@@ -41,14 +50,15 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}}
             },
-            "scaler": {"class_name": "QMGraphLabelScaler", "config": {}},
+            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+                       "config": {}},
             "multi_target_indices": 1,  # Number of states
         },
         "data": {
             "dataset": {
                 "class_name": "MD17Dataset",
                 "module_name": "kgcnn.data.datasets.MD17Dataset",
-                "config": {},
+                "config": {"trajectory_name": "aspirin_dft"},
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}}
                 ]
@@ -56,7 +66,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "",
+            "postfix_file": "_aspirin_dft",
             "kgcnn_version": "2.2.0"
         }
     },
