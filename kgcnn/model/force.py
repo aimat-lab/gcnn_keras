@@ -6,10 +6,11 @@ from kgcnn.model.utils import get_model_class
 ks = tf.keras
 
 
+@ks.utils.register_keras_serializable(package='kgcnn', name='EnergyForceModel')
 class EnergyForceModel(ks.models.Model):
     def __init__(self, module_name, class_name, config, coordinate_input: Union[int, str] = 1,
                  output_as_dict: bool = False, ragged_validate: bool = False, output_to_tensor: bool = True,
-                 output_squeeze_states: bool = False, **kwargs):
+                 output_squeeze_states: bool = False, nested_model_config: bool = True, **kwargs):
         super(EnergyForceModel, self).__init__(self, **kwargs)
         self.model_config = config
         self.ragged_validate = ragged_validate
