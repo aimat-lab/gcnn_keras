@@ -20,6 +20,14 @@ kgcnn.literature.CGCNN module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.literature.CMPNN module
+-----------------------------
+
+.. automodule:: kgcnn.literature.CMPNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.DMPNN module
 -----------------------------
 
@@ -32,6 +40,14 @@ kgcnn.literature.DimeNetPP module
 ---------------------------------
 
 .. automodule:: kgcnn.literature.DimeNetPP
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.EGNN module
+----------------------------
+
+.. automodule:: kgcnn.literature.EGNN
    :members:
    :undoc-members:
    :show-inheritance:
@@ -96,6 +112,30 @@ kgcnn.literature.INorp module
 -----------------------------
 
 .. automodule:: kgcnn.literature.INorp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.MAT module
+---------------------------
+
+.. automodule:: kgcnn.literature.MAT
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.MEGAN module
+-----------------------------
+
+.. automodule:: kgcnn.literature.MEGAN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.MXMNet module
+------------------------------
+
+.. automodule:: kgcnn.literature.MXMNet
    :members:
    :undoc-members:
    :show-inheritance:

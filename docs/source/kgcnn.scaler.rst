@@ -4,6 +4,14 @@ kgcnn.scaler package
 Submodules
 ----------
 
+kgcnn.scaler.force module
+-------------------------
+
+.. automodule:: kgcnn.scaler.force
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.scaler.mol module
 -----------------------
 
@@ -16,6 +24,14 @@ kgcnn.scaler.scaler module
 --------------------------
 
 .. automodule:: kgcnn.scaler.scaler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.scaler.serial module
+--------------------------
+
+.. automodule:: kgcnn.scaler.serial
    :members:
    :undoc-members:
    :show-inheritance:

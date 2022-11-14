@@ -12,6 +12,14 @@ kgcnn.layers.conv.attention module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.attentivefp\_conv module
+------------------------------------------
+
+.. automodule:: kgcnn.layers.conv.attentivefp_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.cgcnn\_conv module
 ------------------------------------
 
@@ -32,6 +40,14 @@ kgcnn.layers.conv.dmpnn\_conv module
 ------------------------------------
 
 .. automodule:: kgcnn.layers.conv.dmpnn_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv.gat\_conv module
+----------------------------------
+
+.. automodule:: kgcnn.layers.conv.gat_conv
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,6 +76,14 @@ kgcnn.layers.conv.hamnet\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.mat\_conv module
+----------------------------------
+
+.. automodule:: kgcnn.layers.conv.mat_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.megnet\_conv module
 -------------------------------------
 
@@ -84,6 +108,14 @@ kgcnn.layers.conv.mpnn\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.mxmnet\_conv module
+-------------------------------------
+
+.. automodule:: kgcnn.layers.conv.mxmnet_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.painn\_conv module
 ------------------------------------
 
@@ -104,14 +136,6 @@ kgcnn.layers.conv.schnet\_conv module
 -------------------------------------
 
 .. automodule:: kgcnn.layers.conv.schnet_conv
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.conv.sparse module
--------------------------------
-
-.. automodule:: kgcnn.layers.conv.sparse
    :members:
    :undoc-members:
    :show-inheritance:

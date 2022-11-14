@@ -4,14 +4,6 @@ kgcnn.graph package
 Submodules
 ----------
 
-kgcnn.graph.adapter module
---------------------------
-
-.. automodule:: kgcnn.graph.adapter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 kgcnn.graph.adj module
 ----------------------
 
@@ -32,6 +24,22 @@ kgcnn.graph.geom module
 -----------------------
 
 .. automodule:: kgcnn.graph.geom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.graph.preprocessor module
+-------------------------------
+
+.. automodule:: kgcnn.graph.preprocessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.graph.serial module
+-------------------------
+
+.. automodule:: kgcnn.graph.serial
    :members:
    :undoc-members:
    :show-inheritance:

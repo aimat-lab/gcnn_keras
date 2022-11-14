@@ -15,10 +15,10 @@ Subpackages
    kgcnn.layers
    kgcnn.literature
    kgcnn.metrics
+   kgcnn.model
    kgcnn.mol
    kgcnn.ops
    kgcnn.scaler
-   kgcnn.selection
    kgcnn.training
    kgcnn.utils
 

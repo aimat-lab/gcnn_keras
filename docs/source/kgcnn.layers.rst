@@ -45,6 +45,14 @@ kgcnn.layers.geom module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.message module
+---------------------------
+
+.. automodule:: kgcnn.layers.message
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.mlp module
 -----------------------
 

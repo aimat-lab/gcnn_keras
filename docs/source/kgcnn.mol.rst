@@ -36,6 +36,22 @@ kgcnn.mol.encoder module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.mol.graph\_babel module
+-----------------------------
+
+.. automodule:: kgcnn.mol.graph_babel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.mol.graph\_rdkit module
+-----------------------------
+
+.. automodule:: kgcnn.mol.graph_rdkit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.mol.io module
 -------------------
 
@@ -52,18 +68,10 @@ kgcnn.mol.methods module
    :undoc-members:
    :show-inheritance:
 
-kgcnn.mol.module\_babel module
-------------------------------
+kgcnn.mol.serial module
+-----------------------
 
-.. automodule:: kgcnn.mol.module_babel
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.mol.module\_rdkit module
-------------------------------
-
-.. automodule:: kgcnn.mol.module_rdkit
+.. automodule:: kgcnn.mol.serial
    :members:
    :undoc-members:
    :show-inheritance:

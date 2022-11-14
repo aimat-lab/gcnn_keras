@@ -4,6 +4,14 @@ kgcnn.data.datasets package
 Submodules
 ----------
 
+kgcnn.data.datasets.ClinToxDataset module
+-----------------------------------------
+
+.. automodule:: kgcnn.data.datasets.ClinToxDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.CoraDataset module
 --------------------------------------
 
@@ -28,6 +36,14 @@ kgcnn.data.datasets.ESOLDataset module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.FreeSolvDataset module
+------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.FreeSolvDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.GraphTUDataset2020 module
 ---------------------------------------------
 
@@ -40,6 +56,22 @@ kgcnn.data.datasets.LipopDataset module
 ---------------------------------------
 
 .. automodule:: kgcnn.data.datasets.LipopDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MD17Dataset module
+--------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MD17Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MD17RevisedDataset module
+---------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MD17RevisedDataset
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,6 +100,22 @@ kgcnn.data.datasets.MatProjectEFormDataset module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.MatProjectIsMetalDataset module
+---------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectIsMetalDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectPhononsDataset module
+---------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectPhononsDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.MoleculeNetDataset2018 module
 -------------------------------------------------
 
@@ -92,10 +140,58 @@ kgcnn.data.datasets.PROTEINSDataset module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.QM7Dataset module
+-------------------------------------
+
+.. automodule:: kgcnn.data.datasets.QM7Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.QM7bDataset module
+--------------------------------------
+
+.. automodule:: kgcnn.data.datasets.QM7bDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.QM8Dataset module
+-------------------------------------
+
+.. automodule:: kgcnn.data.datasets.QM8Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.QM9Dataset module
 -------------------------------------
 
 .. automodule:: kgcnn.data.datasets.QM9Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.QM9MolNetDataset module
+-------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.QM9MolNetDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.SIDERDataset module
+---------------------------------------
+
+.. automodule:: kgcnn.data.datasets.SIDERDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.Tox21MolNetDataset module
+---------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.Tox21MolNetDataset
    :members:
    :undoc-members:
    :show-inheritance:

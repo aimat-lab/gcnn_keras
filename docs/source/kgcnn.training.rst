@@ -12,6 +12,22 @@ kgcnn.training.callbacks module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.training.history module
+-----------------------------
+
+.. automodule:: kgcnn.training.history
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.training.optimizer module
+-------------------------------
+
+.. automodule:: kgcnn.training.optimizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.training.schedule module
 ------------------------------
 
