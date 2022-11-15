@@ -50,8 +50,10 @@ class EnergyForceModel(ks.models.Model):
             e_grad = tf.squeeze(e_grad, axis=-1)
         if not self.output_to_tensor:
             e_grad = self._cast_coordinates_pad_to_ragged(e_grad, x_mask, self.ragged_validate)
-
-        return eng, e_grad
+        if self.output_as_dict:
+            return eng, e_grad
+        else:
+            return {"energy": eng, "force": e_grad}
 
     # Temporary solution.
     @staticmethod

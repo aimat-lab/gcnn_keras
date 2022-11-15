@@ -222,6 +222,17 @@ benchmark_datasets = {
             {"metric": "max_val_auc", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}
         ]
     },
+    "MD17Dataset": {
+        "general_info": [
+            "Energies and forces for molecular dynamics trajectories of eight organic molecules. ",
+            "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
+            "We use preset train-test split. Errors are MAE for forces.",
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
+             "trajectory_name": ""},
+        ]
+    },
 }
 
 
@@ -292,6 +303,16 @@ with open("README.md", "w") as f:
                             if "multi_target_indices" not in x:
                                 continue
                             info_idx = x["multi_target_indices"]
+                            if not isinstance(info_idx[0], list):
+                                info_idx = [info_idx]  # Make list of list.
+                            if target_idx not in info_idx:
+                                continue
+                    if "trajectory_name" in results:
+                        target_idx = results["trajectory_name"]
+                        if target_idx is not None:
+                            if "trajectory_name" not in x:
+                                continue
+                            info_idx = x["trajectory_name"]
                             if not isinstance(info_idx[0], list):
                                 info_idx = [info_idx]  # Make list of list.
                             if target_idx not in info_idx:

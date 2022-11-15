@@ -4,6 +4,7 @@ import logging
 from typing import Union
 from copy import deepcopy
 from kgcnn.data.utils import load_hyper_file, save_json_file
+
 ks = tf.keras
 
 logging.basicConfig()  # Module logger
@@ -13,33 +14,41 @@ module_logger.setLevel(logging.INFO)
 
 class HyperParameter:
     r"""A class to store hyperparameter for a specific dataset and model, exposing them for model training scripts.
+
     This includes training parameters and a set of general information like a path for output of the training stats
-    or the expected version of :obj:`kgcnn`. The class methods will extract and possibly serialize or deserialized the
+    or the expected version of :obj:`kgcnn`. The class methods will extract and possibly serialize or deserialize the
     necessary kwargs from the hyperparameter dictionary.
 
     .. code-block:: python
 
-        hyper = HyperParameter({"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})
+        hyper = HyperParameter(hyper_info={"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})
     """
 
     def __init__(self, hyper_info: Union[str, dict],
                  model_name: str = None, model_module: str = None,
-                 model_class: str = "make_model", dataset_name: str = None):
-        """Make a hyperparameter class instance. Required is the hyperparameter dictionary or path to a config
-        file containing the hyperparameter. Furthermore, name of the dataset and model can be provided.
+                 model_class: str = "make_model", dataset_name: str = None, dataset_class: str = None,
+                 dataset_module: str = None):
+        r"""Make a hyperparameter class instance. Required is the hyperparameter dictionary or path to a config
+        file containing the hyperparameter. Furthermore, name of the dataset and model can be provided for checking
+        the information in :obj:`hyper_info`.
 
         Args:
             hyper_info (str, dict): Hyperparameter dictionary or path to file.
             model_name (str): Name of the model.
-            model_module (str): Name of the module of the model. Defaults 'kgcnn.literature.model_name'.
-            model_class (str): Class name or make function for model.
+            model_module (str): Name of the module of the model. Defaults to None.
+            model_class (str): Class name or make function for model. Defaults to 'make_model'.
             dataset_name (str): Name of the dataset.
+            dataset_class (str): Class name of the dataset.
+            dataset_module (str): Module name of the dataset.
         """
         self._hyper = None
         self.dataset_name = dataset_name
         self.model_name = model_name
-        self.model_module = "kgcnn.literature.%s" % model_name if model_name and model_module is None else None
+        self.model_module = model_module
         self.model_class = model_class
+        self.dataset_name = dataset_name
+        self.dataset_class = dataset_class
+        self.dataset_module = dataset_module
 
         if isinstance(hyper_info, str):
             self._hyper_all = load_hyper_file(hyper_info)
@@ -47,10 +56,10 @@ class HyperParameter:
             self._hyper_all = hyper_info
         else:
             raise TypeError("`HyperParameter` requires valid hyper dictionary or path to file.")
-        
+
         # If model and training section in hyper-dictionary, then this is a valid hyper setting.
         # If hyper is itself a dictionary with many models, pick the right model if model name is given.
-        model_name_class = "%s.%s" % (model_name, model_class)        
+        model_name_class = "%s.%s" % (model_name, model_class)
         if "model" in self._hyper_all and "training" in self._hyper_all:
             self._hyper = self._hyper_all
         elif model_name is not None and model_class == "make_model" and model_name in self._hyper_all:
@@ -58,11 +67,15 @@ class HyperParameter:
         elif model_name is not None and model_class != "make_model" and model_name_class in self._hyper_all:
             self._hyper = self._hyper_all[model_name_class]
         else:
-            raise ValueError("Not a valid hyper dictionary. Please provide model_name.")
+            raise ValueError("".join(
+                ["Not a valid hyper dictionary. If there are multiple hyperparameter settings in `hyper_info`,",
+                 "please set `model_name` and `model_class`."]))
+
         self.verify()
 
     def verify(self):
         """Logic to verify and optionally update hyperparameter dictionary."""
+
         # Update some optional parameters in hyper.
         if "config" not in self._hyper["model"] and "inputs" in self._hyper["model"]:
             # Older model config setting.
@@ -84,7 +97,7 @@ class HyperParameter:
             module_logger.info("Adding 'multi_target_indices' to 'training' category in hyperparameter.")
             self._hyper["training"].update({"multi_target_indices": None})
         if "data_unit" not in self._hyper["data"]:
-            module_logger.info("Adding 'data_unit' to 'data' category in hyperparameter.")
+            module_logger.info("Adding empty 'data_unit' to 'data' category in hyperparameter.")
             self._hyper["data"].update({"data_unit": ""})
 
         # Errors if missmatch is found between class definition and information in hyper-dictionary.
@@ -117,10 +130,14 @@ class HyperParameter:
         r"""Generate kwargs for :obj:`tf.keras.Model.compile` from hyperparameter and default parameter.
 
         This function should handle deserialization of hyperparameter and, if not specified, fill them from default.
-        Loss, optimizer are overwritten from hyperparameter, if available. Metrics are added to the list from function
-        arguments. Note that otherwise metrics can not be deserialized, since `metrics` can include nested
-        lists and a dictionary of model output names. When using deserialization with this function, you must not
-        name your model output "class_name" and "config".
+        Loss, optimizer are overwritten from hyperparameter, if available. Metrics in hyperparameter are added from
+        function arguments. Note that otherwise metrics can not be deserialized, since `metrics` can include nested
+        lists and a dictionary of model output names.
+
+        .. warning::
+
+            When using deserialization with this function, you must not name your model output "class_name",
+            "module_name" and "config".
 
         Args:
             loss: Default loss for fit. Default is None.
@@ -131,67 +148,83 @@ class HyperParameter:
         Returns:
             dict: Deserialized compile kwargs from hyperparameter.
         """
-        if metrics is None:
-            metrics = []
-        if weighted_metrics is None:
-            weighted_metrics = []
-        if "compile" in self._hyper["training"]:
-            hyper_compile = deepcopy(self._hyper["training"]["compile"])
-        else:
-            hyper_compile = {}
-
+        hyper_compile = deepcopy(self._hyper["training"]["compile"]) if "compile" in self._hyper["training"] else {}
+        if len(hyper_compile) == 0:
+            module_logger.warning("Found no information for `compile` in hyperparameter.")
         reserved_compile_arguments = ["loss", "optimizer", "weighted_metrics", "metrics"]
-        hyper_compile_additional = {key: value for key, value in hyper_compile.items() if
-                                    key not in reserved_compile_arguments}
+        hyper_compile_additional = {
+            key: value for key, value in hyper_compile.items() if key not in reserved_compile_arguments}
 
-        if "loss" in hyper_compile:
-            loss = hyper_compile["loss"]
-        if "optimizer" in hyper_compile:
-            optimizer = hyper_compile["optimizer"]
-        if "metrics" in hyper_compile:
-            metrics += hyper_compile["metrics"]
-        if "weighted_metrics" in hyper_compile:
-            weighted_metrics += hyper_compile["weighted_metrics"]
-
-        def loss_deserialize(lo):
-            if isinstance(lo, dict):
-                if "class_name" in lo and "config" in lo:
-                    try:
-                        return ks.losses.get(lo)
-                    except ValueError:
-                        return ks.utils.deserialize_keras_object(lo)
-            return lo
-
-        def optimizer_deserialize(o):
-            if isinstance(o, dict):
-                if "class_name" in o and "config" in o:
-                    try:
-                        return ks.optimizers.get(o)
-                    except ValueError:
-                        return ks.utils.deserialize_keras_object(o)
-            return o
-
-        def metrics_nested_deserialize(m):
+        def nested_deserialize(m, get):
+            """Deserialize nested list or dict objects for keras model output like loss or metrics."""
             if isinstance(m, (list, tuple)):
-                return [metrics_nested_deserialize(x) for x in m]
-            elif isinstance(m, dict):
-                if "class_name" in m and "config" in m:
+                return [nested_deserialize(x, get) for x in m]
+            if isinstance(m, dict):
+                if "class_name" in m and "config" in m:  # Here we have a serialization dict.
                     try:
-                        return ks.metrics.get(m)
+                        return get(m)
                     except ValueError:
                         return ks.utils.deserialize_keras_object(m)
-                else:
-                    return {key: metrics_nested_deserialize(value) for key, value in m.items()}
-            else:
+                else:  # Model outputs as dict.
+                    return {key: nested_deserialize(value, get) for key, value in m.items()}
+            return m
+
+        # Optimizer
+        optimizer = nested_deserialize(
+            (hyper_compile["optimizer"] if "optimizer" in hyper_compile else optimizer), ks.optimizers.get)
+
+        # Loss
+        loss = nested_deserialize((hyper_compile["loss"] if "loss" in hyper_compile else loss), ks.losses.get)
+
+        # Metrics
+        metrics = nested_deserialize(metrics, ks.metrics.get)
+        weighted_metrics = nested_deserialize(weighted_metrics, ks.metrics.get)
+        hyper_metrics = nested_deserialize(
+            hyper_compile["metrics"], ks.metrics.get) if "metrics" in hyper_compile else None
+        hyper_weighted_metrics = nested_deserialize(
+            hyper_compile["weighted_metrics"], ks.metrics.get) if "weighted_metrics" in hyper_compile else None
+
+        def merge_metrics(m1, m2):
+            """Merge two metric lists or dicts of `ks.metrics` objects."""
+            if m1 is None:
+                return m2
+            if m2 is None:
+                return m1
+            # Dict case with multiple named outputs.
+            if isinstance(m1, dict) and isinstance(m2, dict):
+                keys = set(list(m1.keys()) + list(m2.keys()))
+                m = {key: [] for key in keys}
+                for mu in [m1, m2]:
+                    for key, value in mu.items():
+                        if value is not None:
+                            m[key] = m[key] + (list(value) if isinstance(value, (list, tuple)) else [value])
                 return m
+            # Lists for single model output.
+            m1 = [m1] if not isinstance(m1, (list, tuple)) else m1
+            m2 = [m2] if not isinstance(m2, (list, tuple)) else m2
+            if all([not isinstance(x1, (list, tuple)) for x1 in m1] + [not isinstance(x2, (list, tuple)) for x2 in m2]):
+                return m1 + m2
+            # List for multiple model output with nested lists.
+            if len(m1) == len(m2):
+                m = [[]] * len(m1)
+                for i in range(len(m)):
+                    for mu in [m1, m2]:
+                        if mu[i] is not None:
+                            m[i] = m[i] + (list(mu[i]) if isinstance(mu[i], (list, tuple)) else [mu[i]])
+                return m
+            else:
+                module_logger.error("For multiple model outputs require same length of metrics list to merge.")
+            module_logger.error("Can not merge metrics '%s' and '%s'." % (m1, m2))
+            return None
 
-        metrics = metrics_nested_deserialize(metrics)
-        weighted_metrics = metrics_nested_deserialize(weighted_metrics)
-        loss = loss_deserialize(loss)
-        optimizer = optimizer_deserialize(optimizer)
+        metrics = merge_metrics(hyper_metrics, metrics)
+        weighted_metrics = merge_metrics(hyper_weighted_metrics, weighted_metrics)
 
-        return {"loss": loss, "optimizer": optimizer, "metrics": metrics, "weighted_metrics": weighted_metrics,
-                **hyper_compile_additional}
+        # Output deserialized compile kwargs.
+        output = {"loss": loss, "optimizer": optimizer, "metrics": metrics, "weighted_metrics": weighted_metrics,
+                  **hyper_compile_additional}
+        module_logger.info("Deserialized compile kwargs '%s'." % output)
+        return output
 
     def fit(self, epochs: int = 1, validation_freq: int = 1, batch_size: int = None, callbacks: list = None):
         """Select fit hyperparameter. Additional default values for the training scripts are given as

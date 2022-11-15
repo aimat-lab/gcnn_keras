@@ -38,7 +38,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {},
+            "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
@@ -49,11 +49,12 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "loss_weights": [1.0, 9.0]
             },
             "scaler": {"class_name": "EnergyForceExtensiveScaler",
                        "config": {}},
-            "multi_target_indices": 1,  # Number of states
+            "multi_target_indices": 1,
         },
         "data": {
             "dataset": {

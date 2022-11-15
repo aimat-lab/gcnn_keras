@@ -15,6 +15,7 @@ from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.utils import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, RaggedScaledMeanAbsoluteError
 from kgcnn.utils.devices import set_devices_gpu
 from kgcnn.scaler.force import EnergyForceExtensiveScaler
 from kgcnn.metrics.loss import RaggedMeanAbsoluteError
@@ -163,33 +164,37 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     if "scaler" in hyper["training"]:
         print("Using `EnergyForceExtensiveScaler`.")
         # Atomic number force and energy argument here!
-        # Note that `EnergyForceExtensiveScaler` does not use X argument at the moment.
+        # Note that `EnergyForceExtensiveScaler` must not use X argument.
         scaler = EnergyForceExtensiveScaler(**hyper["training"]["scaler"]["config"]).fit(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        coord_train, energy_train, force_train = scaler.transform(
+        _, energy_train, force_train = scaler.transform(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        coord_test, energy_test, force_test = scaler.transform(
+        _, energy_test, force_test = scaler.transform(
             X=coord_test, y=energy_test, atomic_number=atoms_test, force=force_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
+        mae_metric_energy = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
+        mae_metric_force = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
         if scaler.scale_ is not None:
-            pass
-        metrics = None
+            mae_metric_energy.set_scale(scaler_scale)
+            mae_metric_force.set_scale(scaler_scale)
+        metrics = {"energy": [mae_metric_energy], "force": [mae_metric_force]}
     else:
         print("Not using QMGraphLabelScaler.")
         metrics = None
 
     # Compile model with optimizer and loss
-    model.compile(**hyper.compile(loss=["mean_absolute_error", RaggedMeanAbsoluteError()], metrics=metrics))
+    model.compile(
+        **hyper.compile(loss={"energy": "mean_absolute_error", "force": RaggedMeanAbsoluteError()}, metrics=metrics))
     model.predict(x_test)
     print(model.summary())
 
     force_train, force_test = [ragged_tensor_from_nested_numpy(x) for x in [force_train, force_test]]
     # Start and time training
     start = time.process_time()
-    hist = model.fit(x_train, [tf.constant(energy_train), force_train],
-                     validation_data=(x_test, [tf.constant(energy_test), force_test]),
+    hist = model.fit(x_train, {"energy": tf.constant(energy_train), "force": force_train},
+                     validation_data=(x_test, {"energy":tf.constant(energy_test), "force": force_test}),
                      **hyper.fit())
     stop = time.process_time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
@@ -244,4 +249,5 @@ hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
-                   filepath=filepath, file_name=f"score{postfix_file}.yaml")
+                   filepath=filepath, file_name=f"score{postfix_file}.yaml",
+                   trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None))
