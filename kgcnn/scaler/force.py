@@ -40,8 +40,9 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
 
     """
 
-    def __init__(self, **kwargs):
-        super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
+    def __init__(self, standardize_scale: bool = True, **kwargs):
+        super(EnergyForceExtensiveScaler, self).__init__(standardize_scale=standardize_scale, **kwargs)
+        self._standardize_scale = standardize_scale
 
     def fit(self, X, *, y=None, sample_weight=None, force=None, atomic_number=None):
         """Fit Scaler to data.
@@ -88,8 +89,11 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             list: Scaled [X, y, force].
         """
         self._verify_input(y, force, atomic_number)
-        y_scaled = (y - self.predict(atomic_number)) / np.expand_dims(self.scale_, axis=0)
-        force_scaled = [f / np.expand_dims(self.scale_, axis=0) for f in force]
+        y_scaled = (y - self.predict(atomic_number))
+        force_scaled = force
+        if self._standardize_scale:
+            y_scaled = y_scaled / np.expand_dims(self.scale_, axis=0)
+            force_scaled = [f / np.expand_dims(self.scale_, axis=0) for f in force_scaled]
         return X, y_scaled, force_scaled
 
     def inverse_transform(self, X: Union[list, np.ndarray], *, y=None, copy=None, force=None, atomic_number=None):
@@ -106,8 +110,12 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             list: Rescaled [X, y, force].
         """
         self._verify_input(y, force, atomic_number)
-        y_scaled = y * np.expand_dims(self.scale_, axis=0) + self.predict(atomic_number)
-        force_scaled = [f * np.expand_dims(self.scale_, axis=0) for f in force]
+        y_scaled = y
+        force_scaled = force
+        if self._standardize_scale:
+            y_scaled = y_scaled * np.expand_dims(self.scale_, axis=0)
+            force_scaled = [f * np.expand_dims(self.scale_, axis=0) for f in force_scaled]
+        y_scaled = y_scaled + self.predict(atomic_number)
         return X, y_scaled, force_scaled
 
     @staticmethod
@@ -115,3 +123,9 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         for name, value in zip(["y", "force", "atomic_number"], [y, force, atomic_number]):
             if value is None:
                 raise ValueError("`EnergyForceExtensiveScaler` requires '%s' argument, but got 'None'." % name)
+
+    def get_config(self):
+        """Get configuration for scaler."""
+        config = super(EnergyForceExtensiveScaler, self).get_config()
+        config.update({"standardize_scale": self._standardize_scale})
+        return config

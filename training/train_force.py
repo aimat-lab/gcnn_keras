@@ -167,16 +167,20 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         # Note that `EnergyForceExtensiveScaler` must not use X argument.
         scaler = EnergyForceExtensiveScaler(**hyper["training"]["scaler"]["config"]).fit(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        _, energy_train, force_train = scaler.transform(
+        coord_train, energy_train, force_train = scaler.transform(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        _, energy_test, force_test = scaler.transform(
+        coord_test, energy_test, force_test = scaler.transform(
             X=coord_test, y=energy_test, atomic_number=atoms_test, force=force_test)
+
+        # Replace (potentially) scaled coordinates in input.
+        x_train[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_train)
+        x_test[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
         mae_metric_energy = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-        mae_metric_force = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-        if scaler.scale_ is not None:
+        mae_metric_force = RaggedScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
+        if scaler_scale is not None:
             mae_metric_energy.set_scale(scaler_scale)
             mae_metric_force.set_scale(scaler_scale)
         metrics = {"energy": [mae_metric_energy], "force": [mae_metric_force]}
@@ -190,11 +194,14 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     model.predict(x_test)
     print(model.summary())
 
+    # Convert targets into tensors.
     force_train, force_test = [ragged_tensor_from_nested_numpy(x) for x in [force_train, force_test]]
+    energy_train, energy_test = [tf.constant(x) for x in [energy_train, energy_test]]
+
     # Start and time training
     start = time.process_time()
-    hist = model.fit(x_train, {"energy": tf.constant(energy_train), "force": force_train},
-                     validation_data=(x_test, {"energy":tf.constant(energy_test), "force": force_test}),
+    hist = model.fit(x_train, {"energy": energy_train, "force": force_train},
+                     validation_data=(x_test, {"energy": energy_test, "force": force_test}),
                      **hyper.fit())
     stop = time.process_time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
@@ -220,7 +227,7 @@ true_y = [energy_test, force_test]
 
 if scaler:
     _, rescaled_predicted_energy, rescaled_predicted_force = scaler.inverse_transform(
-        X=coord_test, y=predicted_y[0], force=predicted_y[1], atomic_number=atoms_test)
+        X=coord_test, y=predicted_y["energy"], force=predicted_y["force"], atomic_number=atoms_test)
     predicted_y = [rescaled_predicted_energy, rescaled_predicted_force]
     _, true_energy, true_force = scaler.inverse_transform(
         X=coord_test, y=true_y[0], force=true_y[1], atomic_number=atoms_test)

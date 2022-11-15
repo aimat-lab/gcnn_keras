@@ -38,17 +38,18 @@ class ExtensiveMolecularScaler:
     _attributes_list_mol = ["scale_", "_fit_atom_selection", "_fit_atom_selection_mask"]
     max_atomic_number = 95
 
-    def __init__(self, alpha: float = 1e-9, fit_intercept: bool = False, **kwargs):
+    def __init__(self, alpha: float = 1e-9, fit_intercept: bool = False, standardize_scale: bool = True, **kwargs):
         r"""Initialize scaler with parameters directly passed to scikit-learns :obj:`Ridge()`.
 
         Args:
             alpha (float): Regularization parameter for regression.
             fit_intercept (bool): Whether to allow a constant offset per target.
+            standardize_scale (bool): Whether to standardize output after offset removal.
             kwargs: Additional arguments passed to :obj:`Ridge()`.
         """
 
         self.ridge = Ridge(alpha=alpha, fit_intercept=fit_intercept, **kwargs)
-
+        self._standardize_scale = standardize_scale
         self._fit_atom_selection_mask = None
         self._fit_atom_selection = None
         self.scale_ = None
@@ -89,7 +90,10 @@ class ExtensiveMolecularScaler:
         total_number = np.array(total_number)
         self.ridge.fit(total_number, molecular_property, sample_weight=sample_weight)
         diff = molecular_property - self.ridge.predict(total_number)
-        self.scale_ = np.std(diff, axis=0)
+        if self._standardize_scale:
+            self.scale_ = np.std(diff, axis=0)
+        else:
+            self.scale_ = np.ones(diff.shape[1:], dtype="float")
         return self
 
     def predict(self, atomic_number):
@@ -147,7 +151,10 @@ class ExtensiveMolecularScaler:
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        return (X - self.predict(atomic_number)) / np.expand_dims(self.scale_, axis=0)
+        x_scaled = X - self.predict(atomic_number)
+        if self._standardize_scale:
+            x_scaled / np.expand_dims(self.scale_, axis=0)
+        return x_scaled
 
     def fit_transform(self, X, *, y=None, copy=None, sample_weight=None, atomic_number=None):
         """Combine fit and transform methods in one call.
@@ -178,11 +185,17 @@ class ExtensiveMolecularScaler:
         Returns:
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
         """
-        return X * np.expand_dims(self.scale_, axis=0) + self.predict(atomic_number)
+        x_rescaled = X
+        if self._standardize_scale:
+            x_rescaled = x_rescaled * np.expand_dims(self.scale_, axis=0)
+        return x_rescaled + self.predict(atomic_number)
 
     def get_config(self):
         """Get configuration for scaler."""
-        return self.ridge.get_params()
+        config = {}
+        config.update(self.ridge.get_params())
+        config.update({"standardize_scale": self._standardize_scale})
+        return config
 
     def set_config(self, config):
         """Set configuration for scaler.
@@ -190,7 +203,10 @@ class ExtensiveMolecularScaler:
         Args:
             config (dict): Config dictionary.
         """
-        return self.ridge.set_params(**config)
+        self._standardize_scale = config["standardize_scale"]
+        config_ridge = {key: value for key, value in config.items() if key not in ["standardize_scale"]}
+        self.ridge.set_params(**config_ridge)
+        return self
 
     def get_weights(self) -> dict:
         """Get weights for this scaler after fit."""
@@ -259,6 +275,7 @@ class ExtensiveMolecularScaler:
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])
         self.set_weights(full_info["weights"])
+        return self
 
 
 class QMGraphLabelScaler:
@@ -452,6 +469,7 @@ class QMGraphLabelScaler:
         scaler_conf = config["scaler"]
         for i, x in enumerate(scaler_conf):
             self.scaler_list[i].set_config(x["config"])
+        return self
 
     def save(self, file_path: str):
         """Save scaler serialization to file.
@@ -475,3 +493,4 @@ class QMGraphLabelScaler:
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])
         self.set_weights(full_info["weights"])
+        return self

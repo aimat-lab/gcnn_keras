@@ -10,6 +10,7 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "module_name": "kgcnn.literature.Schnet",
+                "coordinate_input": 1,
                 "config": {
                     "name": "SchnetEnergy",
                     "inputs": [
@@ -18,7 +19,7 @@ hyper = {
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                     ],
                     "input_embedding": {
-                        "node": {"input_dim": 95, "output_dim": 64}
+                        "node": {"input_dim": 95, "output_dim": 128}
                     },
                     "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                                  "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
@@ -42,25 +43,24 @@ hyper = {
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 1000,
-                        "verbose": 0}
-                     }
+                    {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
+                        "lr_start": 1e-03, "gamma": 0.995, "epo_warmup": 1, "verbose": 1}}
                 ]
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss_weights": [1.0, 9.0]
+                "loss_weights": [1.0, 49.0]
             },
             "scaler": {"class_name": "EnergyForceExtensiveScaler",
-                       "config": {}},
-            "multi_target_indices": 1,
+                       "config": {"standardize_scale": True}},
         },
         "data": {
             "dataset": {
                 "class_name": "MD17Dataset",
                 "module_name": "kgcnn.data.datasets.MD17Dataset",
-                "config": {"trajectory_name": "aspirin_ccsd"},
+                "config": {
+                    "trajectory_name": "toluene_ccsd_t"  # toluene_ccsd_t, aspirin_ccsd
+                },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
                                   "node_coordinates": "R"}}
@@ -69,7 +69,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_toluene_ccsd_t",
             "kgcnn_version": "2.2.0"
         }
     },
