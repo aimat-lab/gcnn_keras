@@ -89,8 +89,8 @@ hyper = {
                 "config": {
                     "name": "PAiNNEnergy",
                     "inputs": [
-                        {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
+                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                     ],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
