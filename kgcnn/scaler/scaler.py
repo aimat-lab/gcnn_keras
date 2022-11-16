@@ -128,3 +128,4 @@ class StandardScaler(StandardScalerSklearn):
         # Could verify class_name and module_name here.
         self.set_config(full_info["config"])
         self.set_weights(full_info["weights"])
+        return self

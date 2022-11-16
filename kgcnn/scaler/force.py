@@ -40,9 +40,9 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
 
     """
 
-    def __init__(self, standardize_scale: bool = True, **kwargs):
-        super(EnergyForceExtensiveScaler, self).__init__(standardize_scale=standardize_scale, **kwargs)
-        self._standardize_scale = standardize_scale
+    def __init__(self, standardize_coordinates: bool = True, **kwargs):
+        super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
+        self._standardize_coordinates = standardize_coordinates
 
     def fit(self, X, *, y=None, sample_weight=None, force=None, atomic_number=None):
         """Fit Scaler to data.
@@ -127,5 +127,15 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
     def get_config(self):
         """Get configuration for scaler."""
         config = super(EnergyForceExtensiveScaler, self).get_config()
-        config.update({"standardize_scale": self._standardize_scale})
+        config.update({"standardize_coordinates": self._standardize_coordinates})
         return config
+
+    def set_config(self, config):
+        """Set configuration for scaler.
+
+        Args:
+            config (dict): Config dictionary.
+        """
+        self._standardize_coordinates = config["standardize_coordinates"]
+        config_super = {key: value for key, value in config.items() if key not in ["standardize_coordinates"]}
+        return super(EnergyForceExtensiveScaler, self).set_config(config_super)

@@ -258,7 +258,7 @@ SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse dr
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17.
 
-| model                   | kgcnn   |   epochs | Aspirin                | Toluene                |
-|:------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| Schnet.EnergyForceModel | 2.2.0   |     1000 | **1.0747 &pm; 0.0000** | **0.6014 &pm; 0.0000** |
+| model                   | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| Schnet.EnergyForceModel | 2.2.0   |     1000 | **1.0747 &pm; nan** | **0.6014 &pm; nan** | **0.5739 &pm; nan** | **0.2945 &pm; nan** | **0.3579 &pm; nan** |
 

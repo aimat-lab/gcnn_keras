@@ -233,11 +233,16 @@ benchmark_datasets = {
             {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
              "trajectory_name": "aspirin_ccsd"},
             {"metric": "val_force_scaled_mean_absolute_error", "name": "Toluene", "find_best": "min",
-             "trajectory_name": "toluene_ccsd_t"}
+             "trajectory_name": "toluene_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Malonaldehyde", "find_best": "min",
+             "trajectory_name": "malonaldehyde_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Benzene", "find_best": "min",
+             "trajectory_name": "benzene_ccsd_t"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Ethanol", "find_best": "min",
+             "trajectory_name": "ethanol_ccsd_t"}
         ]
     },
 }
-
 
 def load_yaml_file(file_path: str):
     with open(file_path, 'r') as stream:
@@ -321,7 +326,10 @@ with open("README.md", "w") as f:
                             if target_idx not in info_idx:
                                 continue
                     target_res = target_res[~np.isnan(target_res)]
-                    result_dict[x["name"]] = (np.mean(target_res), np.std(target_res))
+                    if len(target_res) <= 1:
+                        result_dict[x["name"]] = (np.mean(target_res), nan)
+                    else:
+                        result_dict[x["name"]] = (np.mean(target_res), np.std(target_res))
             df = pd.concat([df, pd.DataFrame({key: [value] for key, value in result_dict.items()})])
 
         # Pandas style does not seem to support mark-down formatting.

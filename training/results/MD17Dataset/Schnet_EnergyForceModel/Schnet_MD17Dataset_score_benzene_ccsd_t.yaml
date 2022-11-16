@@ -1,0 +1,77 @@
+data_unit: ''
+date_time: '2022-11-16 10:40:20'
+energy_loss:
+- 0.03104044683277607
+energy_scaled_mean_absolute_error:
+- 0.07562220841646194
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.11834683269262314
+force_scaled_mean_absolute_error:
+- 0.2883221507072449
+kgcnn_version: 2.2.0
+loss:
+- 5.830035209655762
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 57.02040100097656
+max_energy_scaled_mean_absolute_error:
+- 138.91578674316406
+max_force_loss:
+- 6.528224468231201
+max_force_scaled_mean_absolute_error:
+- 15.90436840057373
+max_loss:
+- 320.7237548828125
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 38.7363395690918
+max_val_energy_scaled_mean_absolute_error:
+- 94.37129974365234
+max_val_force_loss:
+- 6.517701148986816
+max_val_force_scaled_mean_absolute_error:
+- 15.878728866577148
+max_val_loss:
+- 320.2027282714844
+min_energy_loss:
+- 0.02422896958887577
+min_energy_scaled_mean_absolute_error:
+- 0.059027742594480515
+min_force_loss:
+- 0.11791742593050003
+min_force_scaled_mean_absolute_error:
+- 0.28727591037750244
+min_loss:
+- 5.802586555480957
+min_lr:
+- 0.0
+min_val_energy_loss:
+- 0.01888890005648136
+min_val_energy_scaled_mean_absolute_error:
+- 0.04601803421974182
+min_val_force_loss:
+- 0.12020771205425262
+min_val_force_scaled_mean_absolute_error:
+- 0.29285570979118347
+min_val_loss:
+- 5.9145026206970215
+model_class: EnergyForceModel
+model_name: Schnet
+multi_target_indices: null
+number_histories: 1
+trajectory_name: benzene_ccsd_t
+val_energy_loss:
+- 0.02262003906071186
+val_energy_scaled_mean_absolute_error:
+- 0.05510800704360008
+val_force_loss:
+- 0.12089718878269196
+val_force_scaled_mean_absolute_error:
+- 0.29453539848327637
+val_loss:
+- 5.946581840515137

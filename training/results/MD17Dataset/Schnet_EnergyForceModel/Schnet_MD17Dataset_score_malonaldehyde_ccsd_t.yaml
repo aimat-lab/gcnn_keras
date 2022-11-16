@@ -1,0 +1,77 @@
+data_unit: ''
+date_time: '2022-11-16 09:11:55'
+energy_loss:
+- 0.027993738651275635
+energy_scaled_mean_absolute_error:
+- 0.12072060257196426
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.08670549839735031
+force_scaled_mean_absolute_error:
+- 0.37391000986099243
+kgcnn_version: 2.2.0
+loss:
+- 4.2765631675720215
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 8.036192893981934
+max_energy_scaled_mean_absolute_error:
+- 34.6553955078125
+max_force_loss:
+- 5.251461029052734
+max_force_scaled_mean_absolute_error:
+- 22.646474838256836
+max_loss:
+- 258.1075134277344
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 15.547223091125488
+max_val_energy_scaled_mean_absolute_error:
+- 67.04606628417969
+max_val_force_loss:
+- 5.325111389160156
+max_val_force_scaled_mean_absolute_error:
+- 22.964088439941406
+max_val_loss:
+- 261.78485107421875
+min_energy_loss:
+- 0.02241995371878147
+min_energy_scaled_mean_absolute_error:
+- 0.09668413549661636
+min_force_loss:
+- 0.08670549839735031
+min_force_scaled_mean_absolute_error:
+- 0.37391000986099243
+min_loss:
+- 4.274186611175537
+min_lr:
+- 0.0
+min_val_energy_loss:
+- 0.024556005373597145
+min_val_energy_scaled_mean_absolute_error:
+- 0.10589566081762314
+min_val_force_loss:
+- 0.13208171725273132
+min_val_force_scaled_mean_absolute_error:
+- 0.5695910453796387
+min_val_loss:
+- 6.501079559326172
+model_class: EnergyForceModel
+model_name: Schnet
+multi_target_indices: null
+number_histories: 1
+trajectory_name: malonaldehyde_ccsd_t
+val_energy_loss:
+- 0.03850958123803139
+val_energy_scaled_mean_absolute_error:
+- 0.16606923937797546
+val_force_loss:
+- 0.13308045268058777
+val_force_scaled_mean_absolute_error:
+- 0.5738981366157532
+val_loss:
+- 6.55945348739624
