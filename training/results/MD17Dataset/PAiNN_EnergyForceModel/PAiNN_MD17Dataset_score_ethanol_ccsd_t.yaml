@@ -1,0 +1,77 @@
+data_unit: ''
+date_time: '2022-11-16 18:44:12'
+energy_loss:
+- 0.008911805227398872
+energy_scaled_mean_absolute_error:
+- 0.04090948775410652
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.0014773063594475389
+force_scaled_mean_absolute_error:
+- 0.00678155105561018
+kgcnn_version: 2.2.0
+loss:
+- 0.08129982650279999
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 1.5835084915161133
+max_energy_scaled_mean_absolute_error:
+- 7.269067764282227
+max_force_loss:
+- 4.526451110839844
+max_force_scaled_mean_absolute_error:
+- 20.77859878540039
+max_loss:
+- 222.6125946044922
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 0.8298476934432983
+max_val_energy_scaled_mean_absolute_error:
+- 3.8094022274017334
+max_val_force_loss:
+- 4.559831619262695
+max_val_force_scaled_mean_absolute_error:
+- 20.931835174560547
+max_val_loss:
+- 224.26162719726562
+min_energy_loss:
+- 0.008886821568012238
+min_energy_scaled_mean_absolute_error:
+- 0.04079480469226837
+min_force_loss:
+- 0.0013382986653596163
+min_force_scaled_mean_absolute_error:
+- 0.006143431644886732
+min_loss:
+- 0.07462665438652039
+min_lr:
+- 0.0
+min_val_energy_loss:
+- 0.01911589689552784
+min_val_energy_scaled_mean_absolute_error:
+- 0.08775120228528976
+min_val_force_loss:
+- 0.12152516096830368
+min_val_force_scaled_mean_absolute_error:
+- 0.5578592419624329
+min_val_loss:
+- 5.974122524261475
+model_class: EnergyForceModel
+model_name: PAiNN
+multi_target_indices: null
+number_histories: 1
+trajectory_name: ethanol_ccsd_t
+val_energy_loss:
+- 0.020870210602879524
+val_energy_scaled_mean_absolute_error:
+- 0.095804363489151
+val_force_loss:
+- 0.12164586782455444
+val_force_scaled_mean_absolute_error:
+- 0.5584133267402649
+val_loss:
+- 5.981517791748047

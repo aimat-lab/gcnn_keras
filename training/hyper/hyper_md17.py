@@ -95,7 +95,7 @@ hyper = {
                     ],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
                     "equiv_initialize_kwargs": {"dim": 3, "method": "eps"},
-                    "bessel_basis": {"num_radial": 25, "cutoff": 5.0, "envelope_exponent": 5},
+                    "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
                     "pooling_args": {"pooling_method": "sum"}, "conv_args": {"units": 128, "cutoff": None},
                     "update_args": {"units": 128}, "depth": 6, "verbose": 10,
                     "output_embedding": "graph",
@@ -128,7 +128,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MD17Dataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "ethanol_ccsd_t"
+                    "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
@@ -138,7 +138,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_ethanol_ccsd_t",
+            "postfix_file": "_aspirin_ccsd",
             "kgcnn_version": "2.2.0"
         }
     },

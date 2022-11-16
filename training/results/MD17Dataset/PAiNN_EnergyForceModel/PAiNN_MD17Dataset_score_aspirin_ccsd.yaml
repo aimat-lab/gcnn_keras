@@ -1,0 +1,77 @@
+data_unit: ''
+date_time: '2022-11-16 21:50:13'
+energy_loss:
+- 0.01626480743288994
+energy_scaled_mean_absolute_error:
+- 0.10612598061561584
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.005725846625864506
+force_scaled_mean_absolute_error:
+- 0.03736049309372902
+kgcnn_version: 2.2.0
+loss:
+- 0.296831339597702
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 3.8511595726013184
+max_energy_scaled_mean_absolute_error:
+- 25.128372192382812
+max_force_loss:
+- 3.74516224861145
+max_force_scaled_mean_absolute_error:
+- 24.43675422668457
+max_loss:
+- 187.3641357421875
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 3.871394634246826
+max_val_energy_scaled_mean_absolute_error:
+- 25.260400772094727
+max_val_force_loss:
+- 3.7318177223205566
+max_val_force_scaled_mean_absolute_error:
+- 24.34967803955078
+max_val_loss:
+- 186.73045349121094
+min_energy_loss:
+- 0.015870265662670135
+min_energy_scaled_mean_absolute_error:
+- 0.10355165600776672
+min_force_loss:
+- 0.005725846625864506
+min_force_scaled_mean_absolute_error:
+- 0.03736049309372902
+min_loss:
+- 0.296831339597702
+min_lr:
+- 0.0
+min_val_energy_loss:
+- 0.028625480830669403
+min_val_energy_scaled_mean_absolute_error:
+- 0.18677793443202972
+min_val_force_loss:
+- 0.1106489896774292
+min_val_force_scaled_mean_absolute_error:
+- 0.721971869468689
+min_val_loss:
+- 5.450809955596924
+model_class: EnergyForceModel
+model_name: PAiNN
+multi_target_indices: null
+number_histories: 1
+trajectory_name: aspirin_ccsd
+val_energy_loss:
+- 0.029781486839056015
+val_energy_scaled_mean_absolute_error:
+- 0.19432073831558228
+val_force_loss:
+- 0.11082465201616287
+val_force_scaled_mean_absolute_error:
+- 0.723118007183075
+val_loss:
+- 5.460189342498779
