@@ -43,6 +43,8 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
         with connect(os.path.join(self.data_directory, "reference.db")) as conn:
             for row in conn.select(limit=10):
                 print(row.numbers)
+                print(row.id)
+                print(str(row.toatoms().symbols))
                 print(row.positions)
                 print(row.symbols)
                 print(row['total_energy'])
