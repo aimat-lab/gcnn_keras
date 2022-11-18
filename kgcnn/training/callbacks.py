@@ -4,13 +4,13 @@ import tensorflow as tf
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
 class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
-    """Callback logging the learning rate"""
+    """Callback logging the learning rate."""
 
-    def __init__(self, verbose: int = 0):
+    def __init__(self, verbose: int = 1):
         """Initialize class.
 
         Args:
-            verbose (int): Verbosity. Default is 0.
+            verbose (int): Verbosity. Default is 1.
         """
         super(LearningRateLoggingCallback, self).__init__()
         self.verbose = verbose

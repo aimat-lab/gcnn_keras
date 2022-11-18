@@ -329,7 +329,7 @@ hyper = {
                         {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
                         {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                        {"shape": [1], "name": "train", "dtype": "float32", "ragged": False}
+                        {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
                     ],
                     "input_embedding": {"node": {"input_dim": 100, "output_dim": 16},
                                         "graph": {"input_dim": 100, "output_dim": 64}},
@@ -376,6 +376,7 @@ hyper = {
                     "trajectory_name": "toluene_ccsd_t"
                 },
                 "methods": [
+                    {"map_list": {"method": "principal_moments_of_inertia", "node_mass": "z", "node_coordinates": "R"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
                                   "node_coordinates": "R"}}
                 ]
@@ -538,7 +539,7 @@ hyper = {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>CosineAnnealingLRScheduler", "config": {
-                        "lr_start": 0.5e-03, "lr_min": 0.0, "epoch_max": 800, "verbose": 1}}
+                        "lr_start": 0.5e-03, "lr_min": 0.0, "epoch_max": 1000, "verbose": 1}}
                 ]
             },
             "compile": {

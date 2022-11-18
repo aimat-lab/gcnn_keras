@@ -17,6 +17,7 @@ def get_preprocessor(name, **kwargs):
         "set_range_periodic": "SetRangePeriodic",
         "expand_distance_gaussian_basis": "ExpandDistanceGaussianBasis",
         "atomic_charge_representation": "AtomicChargesRepresentation",
+        "principal_moments_of_inertia": "PrincipalMomentsOfInertia",
     }
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.preprocessor")), str(preprocessor_identifier[name]))
     return obj_class(**kwargs)

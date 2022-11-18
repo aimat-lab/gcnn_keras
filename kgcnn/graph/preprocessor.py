@@ -6,7 +6,7 @@ from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, in
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map, \
     distance_to_gauss_basis
-from kgcnn.graph.geom import range_neighbour_lattice
+from kgcnn.graph.geom import range_neighbour_lattice, get_principal_moments_of_inertia
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -478,3 +478,30 @@ class AtomicChargesRepresentation(GraphPreProcessorBase):
         atom_scalars = np.expand_dims(oh, axis=-1) * np.expand_dims(charge_tensor, axis=1)  # (N, ohe, power)
         return atom_scalars.reshape((len(node_number), -1))
 
+
+class PrincipalMomentsOfInertia(GraphPreProcessorBase):
+    r"""Store the principle moments of the matrix of inertia for a set of node coordinates and masses into
+    a graph property defined by :obj:`graph_inertia`.
+
+    Args:
+        node_mass (str): Name of node mass in dictionary. Default is "node_mass".
+        node_coordinates (str): Name of node coordinates. Defaults to "node_coordinates".
+        graph_inertia (str): Name of output property to store moments. Default is "graph_inertia".
+        shift_center_of_mass (bool): Whether to shift to center of mass. Default is True.
+    """
+
+    def __init__(self, *, node_mass: str = "node_mass", node_coordinates: str = "node_coordinates",
+                 graph_inertia: str = "graph_inertia", name="principal_moments_of_inertia",
+                 shift_center_of_mass: bool = True, **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"node_mass": node_mass, "node_coordinates": node_coordinates})
+        self._to_assign = graph_inertia
+        self._call_kwargs = {"shift_center_of_mass": shift_center_of_mass}
+        self._config_kwargs.update({"node_mass": node_mass, "node_coordinates": node_coordinates,
+                                    "graph_inertia": graph_inertia, **self._call_kwargs})
+
+    def call(self, *, node_mass: np.ndarray, node_coordinates: np.ndarray, shift_center_of_mass: bool):
+        if node_mass is None or node_coordinates is None:
+            return None
+        return get_principal_moments_of_inertia(
+            masses=node_mass, coordinates=node_coordinates, shift_center_of_mass=shift_center_of_mass)

@@ -364,3 +364,31 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     out_indices = dist_indices_sort[mask]
 
     return [out_indices, out_images, out_dist]
+
+
+def get_principal_moments_of_inertia(masses: np.ndarray, coordinates: np.ndarray, shift_center_of_mass: bool = True):
+
+    def translate_to_center_of_mass(m, xyz):
+        if len(m.shape) <= 1:
+            m = np.expand_dims(m, axis=-1)
+        com = (np.sum(m * xyz, axis=0, keepdims=True) / np.sum(m))
+        return xyz - com
+
+    def get_inertia_matrix(m, xyz):
+        x, y, z = xyz.T
+        Ixx = np.sum(m * (y ** 2 + z ** 2))
+        Iyy = np.sum(m * (x ** 2 + z ** 2))
+        Izz = np.sum(m * (x ** 2 + y ** 2))
+        Ixy = -np.sum(m * x * y)
+        Iyz = -np.sum(m * y * z)
+        Ixz = -np.sum(m * x * z)
+        return np.array([[Ixx, Ixy, Ixz], [Ixy, Iyy, Iyz], [Ixz, Iyz, Izz]])
+
+    coordinates = translate_to_center_of_mass(masses, coordinates) if shift_center_of_mass else coordinates
+    inertia_matrix = get_inertia_matrix(masses, coordinates)
+    pc = np.linalg.eigvals(inertia_matrix)
+    pc = np.sort(pc)
+
+    # Maybe do some unit conversions here.
+    # ...
+    return pc
