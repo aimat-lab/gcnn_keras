@@ -1,0 +1,77 @@
+data_unit: kcal/mol
+date_time: '2022-11-18 16:39:14'
+energy_loss:
+- 0.1852990984916687
+energy_scaled_mean_absolute_error:
+- 1.0370702743530273
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.18001742660999298
+force_scaled_mean_absolute_error:
+- 1.0075101852416992
+kgcnn_version: 2.2.0
+loss:
+- 9.006153106689453
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 3.3209941387176514
+max_energy_scaled_mean_absolute_error:
+- 18.586729049682617
+max_force_loss:
+- 3.894040822982788
+max_force_scaled_mean_absolute_error:
+- 21.79391860961914
+max_loss:
+- 194.1289825439453
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 4.352612018585205
+max_val_energy_scaled_mean_absolute_error:
+- 24.36042594909668
+max_val_force_loss:
+- 3.9005014896392822
+max_val_force_scaled_mean_absolute_error:
+- 21.830080032348633
+max_val_loss:
+- 192.28359985351562
+min_energy_loss:
+- 0.17213833332061768
+min_energy_scaled_mean_absolute_error:
+- 0.9634125828742981
+min_force_loss:
+- 0.17987489700317383
+min_force_scaled_mean_absolute_error:
+- 1.0067124366760254
+min_loss:
+- 8.990074157714844
+min_lr:
+- 6.721010777255287e-06
+min_val_energy_loss:
+- 0.1633957475423813
+min_val_energy_scaled_mean_absolute_error:
+- 0.9144829511642456
+min_val_force_loss:
+- 0.18680445849895477
+min_val_force_scaled_mean_absolute_error:
+- 1.0454952716827393
+min_val_loss:
+- 9.31844425201416
+model_class: EnergyForceModel
+model_name: Megnet
+multi_target_indices: null
+number_histories: 1
+trajectory_name: toluene_ccsd_t
+val_energy_loss:
+- 0.16556471586227417
+val_energy_scaled_mean_absolute_error:
+- 0.9266220331192017
+val_force_loss:
+- 0.1871795952320099
+val_force_scaled_mean_absolute_error:
+- 1.0475951433181763
+val_loss:
+- 9.33736515045166

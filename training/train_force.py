@@ -173,8 +173,9 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
             X=coord_test, y=energy_test, atomic_number=atoms_test, force=force_test)
 
         # Replace (potentially) scaled coordinates in input.
-        x_train[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_train)
-        x_test[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_test)
+        if scaler._standardize_coordinates:
+            x_train[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_train)
+            x_test[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
@@ -233,12 +234,13 @@ if scaler:
         X=coord_test, y=true_y[0], force=true_y[1], atomic_number=atoms_test)
     true_y = [true_energy, true_force]
 
-plot_predict_true(predicted_y[0], true_y[0],
+plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
                   filepath=filepath, data_unit=label_units,
                   model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                   file_name=f"predict_energy{postfix_file}.png")
 
-plot_predict_true(np.concatenate(predicted_y[1], axis=0), np.concatenate(true_y[1], axis=0),
+plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
+                  np.concatenate([np.array(f) for f in true_y[1]], axis=0),
                   filepath=filepath, data_unit=label_units,
                   model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                   file_name=f"predict_force{postfix_file}.png")

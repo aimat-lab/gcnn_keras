@@ -1,0 +1,77 @@
+data_unit: kcal/mol
+date_time: '2022-11-18 16:04:47'
+energy_loss:
+- 0.05144957825541496
+energy_scaled_mean_absolute_error:
+- 0.2879497706890106
+epochs:
+- 1000
+execute_folds: null
+force_loss:
+- 0.08368853479623795
+force_scaled_mean_absolute_error:
+- 0.46838271617889404
+kgcnn_version: 2.2.0
+loss:
+- 4.152187824249268
+lr:
+- 6.721010777255287e-06
+max_energy_loss:
+- 8.623920440673828
+max_energy_scaled_mean_absolute_error:
+- 48.26582336425781
+max_force_loss:
+- 3.8486876487731934
+max_force_scaled_mean_absolute_error:
+- 21.54009437561035
+max_loss:
+- 190.93482971191406
+max_lr:
+- 0.0010000000474974513
+max_val_energy_loss:
+- 16.251943588256836
+max_val_energy_scaled_mean_absolute_error:
+- 90.95784759521484
+max_val_force_loss:
+- 3.855642557144165
+max_val_force_scaled_mean_absolute_error:
+- 21.579017639160156
+max_val_loss:
+- 189.6937255859375
+min_energy_loss:
+- 0.05144957825541496
+min_energy_scaled_mean_absolute_error:
+- 0.2879497706890106
+min_force_loss:
+- 0.08368853479623795
+min_force_scaled_mean_absolute_error:
+- 0.46838271617889404
+min_loss:
+- 4.152187824249268
+min_lr:
+- 6.721010777255287e-06
+min_val_energy_loss:
+- 0.051665645092725754
+min_val_energy_scaled_mean_absolute_error:
+- 0.28915902972221375
+min_val_force_loss:
+- 0.12394161522388458
+min_val_force_scaled_mean_absolute_error:
+- 0.6936686038970947
+min_val_loss:
+- 6.126026630401611
+model_class: EnergyForceModel
+model_name: NMPN
+multi_target_indices: null
+number_histories: 1
+trajectory_name: toluene_ccsd_t
+val_energy_loss:
+- 0.05270743370056152
+val_energy_scaled_mean_absolute_error:
+- 0.2949896454811096
+val_force_loss:
+- 0.12395284324884415
+val_force_scaled_mean_absolute_error:
+- 0.693731427192688
+val_loss:
+- 6.126396179199219

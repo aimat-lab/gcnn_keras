@@ -226,8 +226,9 @@ benchmark_datasets = {
         "general_info": [
             "Energies and forces for molecular dynamics trajectories of eight organic molecules. ",
             "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
-            "We use preset train-test split. Errors are MAE for forces. ",
-            "Results are for the CCSD and CCSD(T) data in MD17."
+            "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
+            "Errors are MAE for forces. ",
+            "Results are for the CCSD and CCSD(T) data in MD17. "
         ],
         "targets": [
             {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
