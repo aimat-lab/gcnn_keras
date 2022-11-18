@@ -255,7 +255,7 @@ hyper = {
                     "name": "NMPNEnergy",
                     "inputs": [{"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
                                {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
-                               {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
+                               {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                         "edge": {"input_dim": 95, "output_dim": 64}},
                     "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
