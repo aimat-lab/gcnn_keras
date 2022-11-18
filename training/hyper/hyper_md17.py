@@ -228,7 +228,7 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
                                   "node_coordinates": "R"}},
-                    {"map_list": {"method": "set_angle"}}
+                    {"map_list": {"method": "set_angle", "node_coordinates": "R"}}
                 ]
             },
             "data_unit": "kcal/mol"
@@ -467,12 +467,12 @@ hyper = {
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
                                   "node_coordinates": "R"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
-                                  "angle_indices": "angle_indices_1",
+                                  "angle_indices": "angle_indices_1", "node_coordinates": "R",
                                   "angle_indices_nodes": "angle_indices_nodes_1",
                                   "angle_attributes": "angle_attributes_1"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "ik",
                                   "allow_self_edges": True,
-                                  "angle_indices": "angle_indices_2",
+                                  "angle_indices": "angle_indices_2", "node_coordinates": "R",
                                   "angle_indices_nodes": "angle_indices_nodes_2",
                                   "angle_attributes": "angle_attributes_2"}}
                 ]
