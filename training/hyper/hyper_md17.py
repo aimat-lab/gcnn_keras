@@ -463,8 +463,12 @@ hyper = {
                     "trajectory_name": "toluene_ccsd_t"
                 },
                 "methods": [
+                    # we have to make edges via range cutoff.
+                    {"map_list": {"method": "set_range", "max_distance": 2.0, "max_neighbours": 1000,
+                                  "node_coordinates": "R", "range_indices": "edge_indices",
+                                  "range_attributes": "edge_distance"}},
                     {"map_list": {"method": "set_edge_weights_uniform"}},
-                    {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
+                    {"map_list": {"method": "set_range", "max_distance": 5.0, "max_neighbours": 1000,
                                   "node_coordinates": "R"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
                                   "angle_indices": "angle_indices_1", "node_coordinates": "R",
