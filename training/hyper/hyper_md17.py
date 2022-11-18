@@ -329,7 +329,7 @@ hyper = {
                         {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
                         {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                        {"shape": [2], "name": "graph_attributes", "dtype": "float32", "ragged": False}
+                        {"shape": [1], "name": "train", "dtype": "float32", "ragged": False}
                     ],
                     "input_embedding": {"node": {"input_dim": 100, "output_dim": 16},
                                         "graph": {"input_dim": 100, "output_dim": 64}},
