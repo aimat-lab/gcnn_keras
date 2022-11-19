@@ -56,8 +56,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
@@ -135,8 +135,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
@@ -219,8 +219,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
@@ -292,8 +292,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
@@ -369,8 +369,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
@@ -456,10 +456,10 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
@@ -555,8 +555,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MD17Dataset",
-                "module_name": "kgcnn.data.datasets.MD17Dataset",
+                "class_name": "MD17RevisedDataset",
+                "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
                     "trajectory_name": "aspirin_ccsd"
