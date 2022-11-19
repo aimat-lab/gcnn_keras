@@ -14,8 +14,8 @@ hyper = {
                 "config": {
                     "name": "SchnetEnergy",
                     "inputs": [
-                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                        {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                     ],
                     "input_embedding": {
@@ -37,8 +37,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -59,18 +59,18 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
-                                  "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -89,8 +89,8 @@ hyper = {
                 "config": {
                     "name": "PAiNNEnergy",
                     "inputs": [
-                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                        {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                     ],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
@@ -105,8 +105,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -138,18 +138,18 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
-                                  "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -167,8 +167,8 @@ hyper = {
                 "coordinate_input": 1,
                 "config": {
                     "name": "DimeNetPPEnergy",
-                    "inputs": [{"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                               {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    "inputs": [{"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                               {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                                {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128,
@@ -189,8 +189,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 10, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -222,20 +222,20 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
-                                  "node_coordinates": "R"}},
-                    {"map_list": {"method": "set_angle", "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}},
+                    {"map_list": {"method": "set_angle", "node_coordinates": "coords"}}
                 ]
             },
             "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -253,8 +253,8 @@ hyper = {
                 "coordinate_input": 1,
                 "config": {
                     "name": "NMPNEnergy",
-                    "inputs": [{"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                               {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    "inputs": [{"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                               {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                                {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
                                         "edge": {"input_dim": 95, "output_dim": 64}},
@@ -273,8 +273,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -295,19 +295,19 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
-                                  "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}}
                 ]
             },
             "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -326,8 +326,8 @@ hyper = {
                 "config": {
                     "name": "MegnetEnergy",
                     "inputs": [
-                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                        {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                         {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                         {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
                     ],
@@ -350,8 +350,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -372,20 +372,21 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
-                    {"map_list": {"method": "principal_moments_of_inertia", "node_mass": "z", "node_coordinates": "R"}},
+                    {"map_list": {"method": "principal_moments_of_inertia", "node_mass": "nuclear_charges",
+                                  "node_coordinates": "coords"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
-                                  "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}}
                 ]
             },
             "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -403,8 +404,8 @@ hyper = {
                 "coordinate_input": 1,
                 "config": {
                     "name": "MXMNetEnergy",
-                    "inputs": [{"shape": (None,), "name": "z", "dtype": "float32", "ragged": True},
-                               {"shape": (None, 3), "name": "R", "dtype": "float32", "ragged": True},
+                    "inputs": [{"shape": (None,), "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                               {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
                                {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
                                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
                                {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
@@ -437,8 +438,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -460,23 +461,23 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene, aspirin, malonaldehyde, benzene, ethanol
-                    "trajectory_name": "aspirin_ccsd"
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     # we have to make edges via range cutoff.
                     {"map_list": {"method": "set_range", "max_distance": 2.0, "max_neighbours": 1000,
-                                  "node_coordinates": "R", "range_indices": "edge_indices",
+                                  "node_coordinates": "coords", "range_indices": "edge_indices",
                                   "range_attributes": "edge_distance"}},
                     {"map_list": {"method": "set_edge_weights_uniform"}},
                     {"map_list": {"method": "set_range", "max_distance": 5.0, "max_neighbours": 1000,
-                                  "node_coordinates": "R"}},
+                                  "node_coordinates": "coords"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "jk",
-                                  "angle_indices": "angle_indices_1", "node_coordinates": "R",
+                                  "angle_indices": "angle_indices_1", "node_coordinates": "coords",
                                   "angle_indices_nodes": "angle_indices_nodes_1",
                                   "angle_attributes": "angle_attributes_1"}},
                     {"map_list": {"method": "set_angle", "range_indices": "edge_indices", "edge_pairing": "ik",
                                   "allow_self_edges": True,
-                                  "angle_indices": "angle_indices_2", "node_coordinates": "R",
+                                  "angle_indices": "angle_indices_2", "node_coordinates": "coords",
                                   "angle_indices_nodes": "angle_indices_nodes_2",
                                   "angle_attributes": "angle_attributes_2"}}
                 ]
@@ -485,7 +486,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
@@ -504,7 +505,7 @@ hyper = {
                 "config": {
                     "name": "EGNNEnergy",
                     "inputs": [{"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": (None, 3), "name": "R", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
                            {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
                            {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
                     "input_embedding": {"node": {"input_dim": 95, "output_dim": 128},
@@ -536,8 +537,8 @@ hyper = {
         },
         "training": {
             "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
+                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
+                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -558,20 +559,20 @@ hyper = {
                 "class_name": "MD17RevisedDataset",
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
-                    # toluene_ccsd_t, aspirin_ccsd, malonaldehyde_ccsd_t, benzene_ccsd_t, ethanol_ccsd_t
-                    "trajectory_name": "aspirin_ccsd"
+                    # toluene, aspirin, malonaldehyde, benzene, ethanol
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
-                    {"map_list": {"method": "atomic_charge_representation", "node_number": "z"}},
+                    {"map_list": {"method": "atomic_charge_representation", "node_number": "nuclear_charges"}},
                     {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000,
-                                  "node_coordinates": "R"}}
+                                  "node_coordinates": "coords"}}
                 ]
             },
             "data_unit": "kcal/mol"
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin_ccsd",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },

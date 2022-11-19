@@ -24,11 +24,11 @@ from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
-parser.add_argument("--model", required=False, help="Name of graph model to train.", default="PAiNN")
+parser.add_argument("--model", required=False, help="Name of graph model to train.", default="Schnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MD17Dataset")
+                    default="MD17RevisedDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_md17.py")
+                    default="hyper/hyper_md17_revised.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="EnergyForceModel")
 parser.add_argument("--module", required=False, help="Name of the module for model.",
@@ -164,7 +164,7 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     if "scaler" in hyper["training"]:
         print("Using `EnergyForceExtensiveScaler`.")
         # Atomic number force and energy argument here!
-        # Note that `EnergyForceExtensiveScaler` must not use X argument.
+        # Note that `EnergyForceExtensiveScaler` uses both energy and forces to scale.
         scaler = EnergyForceExtensiveScaler(**hyper["training"]["scaler"]["config"]).fit(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
         coord_train, energy_train, force_train = scaler.transform(
