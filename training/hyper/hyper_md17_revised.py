@@ -39,7 +39,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
@@ -107,7 +107,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": []
@@ -191,7 +191,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 10, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": []
@@ -275,7 +275,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
@@ -352,7 +352,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
@@ -439,7 +439,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
@@ -538,7 +538,7 @@ hyper = {
             "target_property_names": {
                 "energy": "E", "force": "F", "atomic_number": "z",
                 "coordinates": "R"},
-            "train_test_indices": {"train": "train", "test": "test"},
+            "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [

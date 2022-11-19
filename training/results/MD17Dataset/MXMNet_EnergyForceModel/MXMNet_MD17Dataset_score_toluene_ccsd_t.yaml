@@ -1,77 +1,77 @@
-data_unit: ''
-date_time: '2022-11-18 18:31:19'
+data_unit: kcal/mol
+date_time: '2022-11-18 18:42:03'
 energy_loss:
-- 0.055229511111974716
+- 0.1759139597415924
 energy_scaled_mean_absolute_error:
-- 0.36036616563796997
+- 0.1759139597415924
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.09734731167554855
+- 0.18215760588645935
 force_scaled_mean_absolute_error:
-- 0.6351799964904785
+- 0.18215759098529816
 kgcnn_version: 2.2.0
 loss:
-- 4.8252482414245605
+- 9.10163688659668
 lr:
 - 6.721010777255287e-06
 max_energy_loss:
-- 8.712677001953125
+- 128426.75
 max_energy_scaled_mean_absolute_error:
-- 56.849220275878906
+- 128426.75
 max_force_loss:
-- 3.521608829498291
+- 63452.921875
 max_force_scaled_mean_absolute_error:
-- 22.978092193603516
+- 63452.921875
 max_loss:
-- 175.53074645996094
+- 3237620.0
 max_lr:
 - 0.0010000000474974513
 max_val_energy_loss:
-- 20.66316795349121
+- 12862.400390625
 max_val_energy_scaled_mean_absolute_error:
-- 134.8247833251953
+- 12862.400390625
 max_val_force_loss:
-- 3.460017681121826
+- 6964.43896484375
 max_val_force_scaled_mean_absolute_error:
-- 22.576217651367188
+- 6964.43896484375
 max_val_loss:
-- 174.3083038330078
+- 354119.9375
 min_energy_loss:
-- 0.055229511111974716
+- 0.1758769005537033
 min_energy_scaled_mean_absolute_error:
-- 0.36036616563796997
+- 0.1758769005537033
 min_force_loss:
-- 0.09734731167554855
+- 0.18215760588645935
 min_force_scaled_mean_absolute_error:
-- 0.6351799964904785
+- 0.18215759098529816
 min_loss:
-- 4.8252482414245605
+- 9.10163688659668
 min_lr:
 - 6.721010777255287e-06
 min_val_energy_loss:
-- 0.06180131062865257
+- 0.2371080219745636
 min_val_energy_scaled_mean_absolute_error:
-- 0.4032464325428009
+- 0.2371080219745636
 min_val_force_loss:
-- 0.1624862104654312
+- 0.9969224333763123
 min_val_force_scaled_mean_absolute_error:
-- 1.0602039098739624
+- 0.996922492980957
 min_val_loss:
-- 8.029313087463379
+- 49.416324615478516
 model_class: EnergyForceModel
-model_name: Schnet
+model_name: MXMNet
 multi_target_indices: null
 number_histories: 1
-trajectory_name: aspirin_ccsd
+trajectory_name: toluene_ccsd_t
 val_energy_loss:
-- 0.06342098861932755
+- 0.23752979934215546
 val_energy_scaled_mean_absolute_error:
-- 0.413814514875412
+- 0.23752979934215546
 val_force_loss:
-- 0.16280384361743927
+- 1.0635850429534912
 val_force_scaled_mean_absolute_error:
-- 1.0622762441635132
+- 1.063584804534912
 val_loss:
-- 8.040807723999023
+- 52.353187561035156
