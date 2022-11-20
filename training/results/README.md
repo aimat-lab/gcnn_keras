@@ -256,14 +256,28 @@ SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse dr
 
 ## MD17Dataset
 
-Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries.Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
+Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
 
-| model                      | kgcnn   |   epochs | Aspirin          | Toluene             | Malonaldehyde    | Benzene          | Ethanol          |
-|:---------------------------|:--------|---------:|:-----------------|:--------------------|:-----------------|:-----------------|:-----------------|
-| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **nan &pm; nan** | **0.2380 &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** |
-| EGNN.EnergyForceModel      | 2.2.0   |     1000 | nan &pm; nan     | 2.1840 &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
-| Megnet.EnergyForceModel    | 2.2.0   |     1000 | nan &pm; nan     | 1.0476 &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
-| NMPN.EnergyForceModel      | 2.2.0   |     1000 | nan &pm; nan     | 0.6937 &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
-| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.7231 &pm; nan  | 0.2679 &pm; nan     | nan &pm; nan     | nan &pm; nan     | 0.5584 &pm; nan  |
-| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 1.0747 &pm; nan  | 0.5730 &pm; nan     | 0.5739 &pm; nan  | 0.2945 &pm; nan  | 0.3579 &pm; nan  |
+| model                      | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:---------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5366 &pm; nan** | **0.2380 &pm; nan** | **0.3653 &pm; nan** | 0.0861 &pm; nan     | **0.2221 &pm; nan** |
+| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 15.4038 &pm; nan    | 2.1840 &pm; nan     | 0.8188 &pm; nan     | 0.5941 &pm; nan     | 0.7883 &pm; nan     |
+| Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.2431 &pm; nan     | 1.0476 &pm; nan     | 1.7242 &pm; nan     | 0.5225 &pm; nan     | 1.4967 &pm; nan     |
+| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.9915 &pm; nan     | 1.0636 &pm; nan     | 1.0197 &pm; nan     | 0.3669 &pm; nan     | 0.5037 &pm; nan     |
+| NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.1429 &pm; nan     | 0.6937 &pm; nan     | 0.6134 &pm; nan     | 0.4112 &pm; nan     | 0.3220 &pm; nan     |
+| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.8348 &pm; nan     | 0.2679 &pm; nan     | 0.7042 &pm; nan     | **0.0463 &pm; nan** | 0.5494 &pm; nan     |
+| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 1.0623 &pm; nan     | 0.5730 &pm; nan     | 0.6557 &pm; nan     | 0.2999 &pm; nan     | 0.4200 &pm; nan     |
+
+## MD17RevisedDataset
+
+Energies and forces for molecular dynamics trajectories. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. 
+
+| model                   | kgcnn   |   epochs | Aspirin                | Toluene          | Malonaldehyde    | Benzene          | Ethanol          |
+|:------------------------|:--------|---------:|:-----------------------|:-----------------|:-----------------|:-----------------|:-----------------|
+| EGNN.EnergyForceModel   | 2.2.0   |     1000 | 10.8898 &pm; 8.7078    | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** | **nan &pm; nan** |
+| Megnet.EnergyForceModel | 2.2.0   |     1000 | 2.3214 &pm; 0.2942     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
+| MXMNet.EnergyForceModel | 2.2.0   |     1000 | 1.7482 &pm; 0.0541     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
+| NMPN.EnergyForceModel   | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
+| PAiNN.EnergyForceModel  | 2.2.0   |     1000 | **0.7802 &pm; 0.0124** | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
+| Schnet.EnergyForceModel | 2.2.0   |     1000 | 0.9777 &pm; 0.0134     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     | nan &pm; nan     |
 

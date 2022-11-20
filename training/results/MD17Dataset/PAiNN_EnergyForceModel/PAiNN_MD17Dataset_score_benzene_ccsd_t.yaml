@@ -1,71 +1,71 @@
 data_unit: ''
-date_time: '2022-11-19 10:42:42'
+date_time: '2022-11-19 10:34:13'
 energy_loss:
-- 0.01056912075728178
+- 0.0017164414748549461
 energy_scaled_mean_absolute_error:
-- 0.0485173724591732
+- 0.004181675612926483
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.010339396074414253
+- 0.013422975316643715
 force_scaled_mean_absolute_error:
-- 0.0474628284573555
+- 0.03270169347524643
 kgcnn_version: 2.2.0
 loss:
-- 0.5171995759010315
+- 0.6594421863555908
 max_energy_loss:
-- 2.9816439151763916
+- 3.1682422161102295
 max_energy_scaled_mean_absolute_error:
-- 13.687183380126953
+- 7.718620300292969
 max_force_loss:
-- 3.7611916065216064
+- 5.120720386505127
 max_force_scaled_mean_absolute_error:
-- 17.265687942504883
+- 12.47533893585205
 max_loss:
-- 186.6952362060547
+- 254.08351135253906
 max_val_energy_loss:
-- 4.441028594970703
+- 2.408737897872925
 max_val_energy_scaled_mean_absolute_error:
-- 20.3864688873291
+- 5.868281364440918
 max_val_force_loss:
-- 2.526728630065918
+- 2.349468231201172
 max_val_force_scaled_mean_absolute_error:
-- 11.598906517028809
+- 5.723886013031006
 max_val_loss:
-- 128.250732421875
+- 117.53266906738281
 min_energy_loss:
-- 0.01054650079458952
+- 0.0016451928531751037
 min_energy_scaled_mean_absolute_error:
-- 0.048413533717393875
+- 0.0040080915205180645
 min_force_loss:
-- 0.010335066355764866
+- 0.013415433466434479
 min_force_scaled_mean_absolute_error:
-- 0.0474429577589035
+- 0.03268330171704292
 min_loss:
-- 0.5169873237609863
+- 0.6590706706047058
 min_val_energy_loss:
-- 0.01743382029235363
+- 0.0018442258005961776
 min_val_energy_scaled_mean_absolute_error:
-- 0.08002965897321701
+- 0.004492992535233498
 min_val_force_loss:
-- 0.11967233568429947
+- 0.01901373267173767
 min_val_force_scaled_mean_absolute_error:
-- 0.5493537187576294
+- 0.04632215201854706
 min_val_loss:
-- 5.881444454193115
+- 0.9335643649101257
 model_class: EnergyForceModel
 model_name: PAiNN
 multi_target_indices: null
 number_histories: 1
-trajectory_name: ethanol_ccsd_t
+trajectory_name: benzene_ccsd_t
 val_energy_loss:
-- 0.017470194026827812
+- 0.0019445240031927824
 val_energy_scaled_mean_absolute_error:
-- 0.08019661903381348
+- 0.004737348295748234
 val_force_loss:
-- 0.11968109011650085
+- 0.01902269572019577
 val_force_scaled_mean_absolute_error:
-- 0.5493940114974976
+- 0.046343982219696045
 val_loss:
-- 5.881843090057373
+- 0.9340566396713257

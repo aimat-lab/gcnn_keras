@@ -1,71 +1,71 @@
-data_unit: ''
-date_time: '2022-11-19 10:42:42'
+data_unit: kcal/mol
+date_time: '2022-11-19 14:45:36'
 energy_loss:
-- 0.01056912075728178
+- 0.004564602393656969
 energy_scaled_mean_absolute_error:
-- 0.0485173724591732
+- 0.011120500974357128
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.010339396074414253
+- 0.02659059874713421
 force_scaled_mean_absolute_error:
-- 0.0474628284573555
+- 0.06478124111890793
 kgcnn_version: 2.2.0
 loss:
-- 0.5171995759010315
+- 1.3075038194656372
 max_energy_loss:
-- 2.9816439151763916
+- 3.2627177238464355
 max_energy_scaled_mean_absolute_error:
-- 13.687183380126953
+- 7.948785305023193
 max_force_loss:
-- 3.7611916065216064
+- 3.060049057006836
 max_force_scaled_mean_absolute_error:
-- 17.265687942504883
+- 7.4550347328186035
 max_loss:
-- 186.6952362060547
+- 152.80801391601562
 max_val_energy_loss:
-- 4.441028594970703
+- 4.479274272918701
 max_val_energy_scaled_mean_absolute_error:
-- 20.3864688873291
+- 10.912620544433594
 max_val_force_loss:
-- 2.526728630065918
+- 1.6066174507141113
 max_val_force_scaled_mean_absolute_error:
-- 11.598906517028809
+- 3.9141170978546143
 max_val_loss:
-- 128.250732421875
+- 81.66152954101562
 min_energy_loss:
-- 0.01054650079458952
+- 0.00450517050921917
 min_energy_scaled_mean_absolute_error:
-- 0.048413533717393875
+- 0.01097570825368166
 min_force_loss:
-- 0.010335066355764866
+- 0.026573045179247856
 min_force_scaled_mean_absolute_error:
-- 0.0474429577589035
+- 0.06473846733570099
 min_loss:
-- 0.5169873237609863
+- 1.3066495656967163
 min_val_energy_loss:
-- 0.01743382029235363
+- 0.004783004056662321
 min_val_energy_scaled_mean_absolute_error:
-- 0.08002965897321701
+- 0.011652578599750996
 min_val_force_loss:
-- 0.11967233568429947
+- 0.03532232344150543
 min_val_force_scaled_mean_absolute_error:
-- 0.5493537187576294
+- 0.08605390787124634
 min_val_loss:
-- 5.881444454193115
+- 1.735824704170227
 model_class: EnergyForceModel
-model_name: PAiNN
+model_name: DimeNetPP
 multi_target_indices: null
 number_histories: 1
-trajectory_name: ethanol_ccsd_t
+trajectory_name: benzene_ccsd_t
 val_energy_loss:
-- 0.017470194026827812
+- 0.0050592971965670586
 val_energy_scaled_mean_absolute_error:
-- 0.08019661903381348
+- 0.012325695715844631
 val_force_loss:
-- 0.11968109011650085
+- 0.03535890951752663
 val_force_scaled_mean_absolute_error:
-- 0.5493940114974976
+- 0.08614303171634674
 val_loss:
-- 5.881843090057373
+- 1.7376461029052734

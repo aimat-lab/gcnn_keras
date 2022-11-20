@@ -1,71 +1,77 @@
-data_unit: ''
-date_time: '2022-11-19 10:42:42'
+data_unit: kcal/mol
+date_time: '2022-11-19 11:49:36'
 energy_loss:
-- 0.01056912075728178
+- 0.5945537090301514
 energy_scaled_mean_absolute_error:
-- 0.0485173724591732
+- 1.4484797716140747
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.010339396074414253
+- 0.2094365507364273
 force_scaled_mean_absolute_error:
-- 0.0474628284573555
+- 0.5102391242980957
 kgcnn_version: 2.2.0
 loss:
-- 0.5171995759010315
+- 10.856945037841797
+lr:
+- 6.721010777255287e-06
 max_energy_loss:
-- 2.9816439151763916
+- 8.799076080322266
 max_energy_scaled_mean_absolute_error:
-- 13.687183380126953
+- 21.436721801757812
 max_force_loss:
-- 3.7611916065216064
+- 6.528950214385986
 max_force_scaled_mean_absolute_error:
-- 17.265687942504883
+- 15.90613842010498
 max_loss:
-- 186.6952362060547
+- 321.5953369140625
+max_lr:
+- 0.0010000000474974513
 max_val_energy_loss:
-- 4.441028594970703
+- 20.711894989013672
 max_val_energy_scaled_mean_absolute_error:
-- 20.3864688873291
+- 50.45930099487305
 max_val_force_loss:
-- 2.526728630065918
+- 6.518373489379883
 max_val_force_scaled_mean_absolute_error:
-- 11.598906517028809
+- 15.88036823272705
 max_val_loss:
-- 128.250732421875
+- 320.3101501464844
 min_energy_loss:
-- 0.01054650079458952
+- 0.5891932249069214
 min_energy_scaled_mean_absolute_error:
-- 0.048413533717393875
+- 1.435420274734497
 min_force_loss:
-- 0.010335066355764866
+- 0.2090299129486084
 min_force_scaled_mean_absolute_error:
-- 0.0474429577589035
+- 0.5092485547065735
 min_loss:
-- 0.5169873237609863
+- 10.831658363342285
+min_lr:
+- 6.721010777255287e-06
 min_val_energy_loss:
-- 0.01743382029235363
+- 0.7498589754104614
 min_val_energy_scaled_mean_absolute_error:
-- 0.08002965897321701
+- 1.8268417119979858
 min_val_force_loss:
-- 0.11967233568429947
+- 0.21316948533058167
 min_val_force_scaled_mean_absolute_error:
-- 0.5493537187576294
+- 0.5193336009979248
 min_val_loss:
-- 5.881444454193115
+- 11.206581115722656
 model_class: EnergyForceModel
-model_name: PAiNN
+model_name: Megnet
 multi_target_indices: null
 number_histories: 1
-trajectory_name: ethanol_ccsd_t
+trajectory_name: benzene_ccsd_t
 val_energy_loss:
-- 0.017470194026827812
+- 0.7634400129318237
 val_energy_scaled_mean_absolute_error:
-- 0.08019661903381348
+- 1.8599287271499634
 val_force_loss:
-- 0.11968109011650085
+- 0.21447567641735077
 val_force_scaled_mean_absolute_error:
-- 0.5493940114974976
+- 0.5225157737731934
 val_loss:
-- 5.881843090057373
+- 11.272747993469238

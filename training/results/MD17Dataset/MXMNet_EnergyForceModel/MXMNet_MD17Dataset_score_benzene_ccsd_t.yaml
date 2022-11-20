@@ -1,71 +1,77 @@
-data_unit: ''
-date_time: '2022-11-19 10:42:42'
+data_unit: kcal/mol
+date_time: '2022-11-19 11:13:13'
 energy_loss:
-- 0.01056912075728178
+- 0.0723237544298172
 energy_scaled_mean_absolute_error:
-- 0.0485173724591732
+- 0.0723237544298172
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.010339396074414253
+- 0.24273277819156647
 force_scaled_mean_absolute_error:
-- 0.0474628284573555
+- 0.24273277819156647
 kgcnn_version: 2.2.0
 loss:
-- 0.5171995759010315
+- 11.966229438781738
+lr:
+- 6.721010777255287e-06
 max_energy_loss:
-- 2.9816439151763916
+- 59800.44140625
 max_energy_scaled_mean_absolute_error:
-- 13.687183380126953
+- 59800.44140625
 max_force_loss:
-- 3.7611916065216064
+- 23010.0390625
 max_force_scaled_mean_absolute_error:
-- 17.265687942504883
+- 23010.0390625
 max_loss:
-- 186.6952362060547
+- 1187292.375
+max_lr:
+- 0.0010000000474974513
 max_val_energy_loss:
-- 4.441028594970703
+- 718.0859985351562
 max_val_energy_scaled_mean_absolute_error:
-- 20.3864688873291
+- 718.0859985351562
 max_val_force_loss:
-- 2.526728630065918
+- 765.3218994140625
 max_val_force_scaled_mean_absolute_error:
-- 11.598906517028809
+- 765.32177734375
 max_val_loss:
-- 128.250732421875
+- 38218.85546875
 min_energy_loss:
-- 0.01054650079458952
+- 0.07119236886501312
 min_energy_scaled_mean_absolute_error:
-- 0.048413533717393875
+- 0.07119236886501312
 min_force_loss:
-- 0.010335066355764866
+- 0.24273277819156647
 min_force_scaled_mean_absolute_error:
-- 0.0474429577589035
+- 0.24273277819156647
 min_loss:
-- 0.5169873237609863
+- 11.966229438781738
+min_lr:
+- 6.721010777255287e-06
 min_val_energy_loss:
-- 0.01743382029235363
+- 0.07170303165912628
 min_val_energy_scaled_mean_absolute_error:
-- 0.08002965897321701
+- 0.07170303165912628
 min_val_force_loss:
-- 0.11967233568429947
+- 0.3667072057723999
 min_val_force_scaled_mean_absolute_error:
-- 0.5493537187576294
+- 0.3667072355747223
 min_val_loss:
-- 5.881444454193115
+- 18.041210174560547
 model_class: EnergyForceModel
-model_name: PAiNN
+model_name: MXMNet
 multi_target_indices: null
 number_histories: 1
-trajectory_name: ethanol_ccsd_t
+trajectory_name: benzene_ccsd_t
 val_energy_loss:
-- 0.017470194026827812
+- 0.0847984179854393
 val_energy_scaled_mean_absolute_error:
-- 0.08019661903381348
+- 0.0847984179854393
 val_force_loss:
-- 0.11968109011650085
+- 0.3668886423110962
 val_force_scaled_mean_absolute_error:
-- 0.5493940114974976
+- 0.3668886125087738
 val_loss:
-- 5.881843090057373
+- 18.062341690063477
