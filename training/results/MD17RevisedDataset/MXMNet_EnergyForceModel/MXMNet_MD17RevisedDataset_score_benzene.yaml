@@ -1,0 +1,213 @@
+data_unit: kcal/mol
+date_time: '2022-11-20 17:42:26'
+energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+epochs:
+- 1000
+- 1000
+- 1000
+- 1000
+- 1000
+execute_folds: null
+force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+kgcnn_version: 2.2.0
+loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+lr:
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+max_energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_lr:
+- 0.0010000000474974513
+- 0.0010000000474974513
+- 0.0010000000474974513
+- 0.0010000000474974513
+- 0.0010000000474974513
+max_val_energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_val_energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_val_force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_val_force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+max_val_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_lr:
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+- 6.721010777255287e-06
+min_val_energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_val_energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_val_force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_val_force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+min_val_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+model_class: EnergyForceModel
+model_name: MXMNet
+multi_target_indices: null
+number_histories: 5
+trajectory_name: benzene
+val_energy_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+val_energy_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+val_force_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+val_force_scaled_mean_absolute_error:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
+val_loss:
+- .nan
+- .nan
+- .nan
+- .nan
+- .nan
