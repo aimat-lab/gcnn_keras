@@ -58,12 +58,12 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
         "unpack_directory_name": "iso17"
     }
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload=False, verbose=10):
         r"""Initialize full :obj:`ISO17Dataset` dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where. Default is 10.
         """
         # Use default base class init()
         self.data_keys = None
@@ -71,8 +71,10 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
         MemoryGraphDataset.__init__(self, dataset_name="ISO17", verbose=verbose)
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
+        self.file_name = ["reference.db", "reference_eq.db", "test_within.db", "test_other.db", "test_eq.db"]
         self.data_directory = os.path.join(
             self.data_main_dir, self.data_directory_name, self.unpack_directory_name, "iso17")
+        self.file_directory = self.data_directory
 
         if self.fits_in_memory:
             self.read_in_memory()
