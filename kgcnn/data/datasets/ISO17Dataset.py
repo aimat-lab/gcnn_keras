@@ -85,11 +85,11 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
 
         The data is partitioned as used in the SchNet paper [6]:
 
-            - reference.db - 80% of steps of 80% of MD trajectories
-            - reference_eq.db - equilibrium conformations of those molecules
-            - test_within.db - remaining 20% unseen steps of reference trajectories
-            - test_other.db - remaining 20% unseen MD trajectories
-            - test_eq.db - equilibrium conformations of test trajectories
+            - reference.db: 80% of steps of 80% of MD trajectories
+            - reference_eq.db: equilibrium conformations of those molecules
+            - test_within.db: remaining 20% unseen steps of reference trajectories
+            - test_other.db: remaining 20% unseen MD trajectories
+            - test_eq.db: equilibrium conformations of test trajectories
 
         Where 'reference.db' and 'reference_eq.db' have 'train' property with index 0, 1, respectively, and
         'test_within', 'test_other', 'test_eq' have 'test' property 0, 1, 2, respectively.
