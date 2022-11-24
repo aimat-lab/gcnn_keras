@@ -40,12 +40,14 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
         [3] `Blum, V. et al. Ab Initio Molecular Simulations with Numeric Atom-Centered Orbitals.
             Comput. Phys. Commun. 2009, 180 (11), 2175–2196
             <https://www.sciencedirect.com/science/article/pii/S0010465509002033>`_.
-        [4] Perdew, J. P. et al. Generalized Gradient Approximation Made Simple. Phys. Rev. Lett. 1996, 77 (18),
-            3865–3868.
-        [5] Tkatchenko, A. et al. Accurate Molecular Van Der Waals Interactions from Ground-State Electron Density and
-            Free-Atom Reference Data. Phys. Rev. Lett. 2009, 102 (7), 73005.
-        [6] Schütt, K. T., et al. SchNet: A continuous-filter convolutional neural network for modeling quantum
+        [4] `Perdew, J. P. et al. Generalized Gradient Approximation Made Simple. Phys. Rev. Lett. 1996, 77 (18),
+            3865–3868 <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.77.3865>`_.
+        [5] `Tkatchenko, A. et al. Accurate Molecular Van Der Waals Interactions from Ground-State Electron Density and
+            Free-Atom Reference Data. Phys. Rev. Lett. 2009, 102 (7), 73005
+            <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.102.073005>`_.
+        [6] `Schütt, K. T., et al. SchNet: A continuous-filter convolutional neural network for modeling quantum
             interactions. Advances in Neural Information Processing System (accepted). 2017.
+            <https://arxiv.org/abs/1706.08566>`_
     """
 
     download_info = {
@@ -99,6 +101,7 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
 
         data = {"formula": [], "numbers": [], "symbols": [], "positions": [],
                 "atomic_forces": [], "total_energy": [], "id": [], "train": [], "test": []}
+        # Add them in the order as given in doc string. 'reference' prefix are training data.
         for db_name, train, test in [("reference.db", 0, None), ("reference_eq.db", 1, None),
                                      ("test_within.db", None, 0), ("test_other.db", None, 1), ("test_eq.db", None, 2)]:
             with connect(os.path.join(self.data_directory, db_name)) as conn:
