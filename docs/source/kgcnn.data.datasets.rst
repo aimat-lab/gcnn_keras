@@ -52,6 +52,14 @@ kgcnn.data.datasets.GraphTUDataset2020 module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.ISO17Dataset module
+---------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.ISO17Dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.LipopDataset module
 ---------------------------------------
 
