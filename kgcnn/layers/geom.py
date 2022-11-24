@@ -595,12 +595,33 @@ class GaussBasisLayer(GraphBaseLayer):
 @ks.utils.register_keras_serializable(package='kgcnn', name='FourierBasisLayer')
 class PositionEncodingBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Positional Encoding basis from `Transformer <https://arxiv.org/pdf/1706.03762.pdf>`_
-    models, with :math:`\sin()` and :math:`\sin()` functions, adapted to distance-like positions.
+    models, with :math:`\sin()` and :math:`\cos()` functions, which was slightly adapted for geometric distance
+    information in edge features.
 
+    The original encoding is defined in `<https://arxiv.org/pdf/1706.03762.pdf>`_ as:
 
+    .. math::
+
+        PE_{(pos,2i)} & = \sin(pos/10000^{2i/d_{model}}) \\\\
+        PE_{(pos,2i+1)} & = \cos(pos/10000^{2i/d_{model}} )
+
+    where :math:`pos` is the position and :math:`i` is the dimension. That is, each dimension of the positional encoding
+    corresponds to a sinusoid. The wavelengths form a geometric progression from :math:`2\pi` to
+    :math:`10000 \times 2\pi`.
+
+    In the definition of this layer we chose a formulation with :math:`x := pos`, wavelength :math:`\lambda` and
+    :math:`i = 0 \dots d_{h}` with :math:`d_h := d_{model}/2` in the form :math:`\sin(\frac{2 \pi}{\lambda} x)`:
+
+    .. math::
+
+        \sin(x/10000^{2i/d_{model}}) = \sin(x \; 2\pi \; / (2\pi \, 10000^{i/d_{h}}))
+        \equiv \sin(x \frac{2 \pi}{\lambda})
+
+    and consequently :math:`\lambda = 2\pi \, 10000^{i/d_{h}}`. Instead of
     """
 
-    def __init__(self, dim_half: int = 8, wave_length: float = 10, include_frequencies: bool = False, **kwargs):
+    def __init__(self, dim_half: int = 8, wave_length: float = 10, include_frequencies: bool = False,
+                 interleave_sin_cos: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
         Args:
@@ -608,17 +629,19 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
                 even 3 * `dim_half`, if `include_frequencies` is set to `True`. Defaults to 8.
             wave_length (float): Wavelength for positional sin and cos expansion. Defaults to 10.0.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
+            interleave_sin_cos (bool): Whether to interleave sin and cos terms as in the original definition of the
+                layer. Default is False.
         """
         super(PositionEncodingBasisLayer, self).__init__(**kwargs)
-        # Layer variables
         self.dim_half = dim_half
         self.wave_length = wave_length
         self.include_frequencies = include_frequencies
+        self.interleave_sin_cos = interleave_sin_cos
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
-    def _compute_fourier_encoding(inputs,
-                                  dim_half: int = 4, wave_length: float = 10.0, include_frequencies: bool = False):
+    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length: float = 10.0,
+                                  include_frequencies: bool = False, interleave_sin_cos: bool = False):
         r"""Expand into fourier basis.
 
         Args:
@@ -629,13 +652,14 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        k = -math.log(wave_length)
         steps = tf.range(dim_half, dtype=inputs.dtype) / dim_half
+        k = -math.log(wave_length)
         freq = tf.exp(k * steps)
         scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
         arg = inputs * scales
-        # We would have to make an alternate, concatenate via additional axis and flatten it after,
-        # but it is unclear, why this would make a difference for subsequent NN.
+        # We have to make an alternate, concatenate via additional axis and flatten it after.
+        if interleave_sin_cos:
+            raise NotImplementedError()
         out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], dim=-1)
         if include_frequencies:
             out = tf.concat([out, freq], dim=-1)
@@ -651,13 +675,13 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
         return self.call_on_values_tensor_of_ragged(
-            self._compute_fourier_encoding, inputs,
-            dim_half=self.dim_half, wave_length=self.wave_length, include_frequencies=self.include_frequencies)
+            self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length=self.wave_length,
+            include_frequencies=self.include_frequencies, interleave_sin_cos=self.interleave_sin_cos)
 
     def get_config(self):
         """Update config."""
         config = super(PositionEncodingBasisLayer, self).get_config()
-        config.update({"dim_half": self.dim_half,
+        config.update({"dim_half": self.dim_half, "interleave_sin_cos": self.interleave_sin_cos,
                        "wave_length": self.wave_length, "include_frequencies": self.include_frequencies})
         return config
 
@@ -665,7 +689,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
 @ks.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
 class BesselBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
-    `Klicpera et al. (2020) <https://arxiv.org/abs/2011.14115>`_.
+    `Gasteiger et al. (2020) <https://arxiv.org/abs/2011.14115>`_.
 
     For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
     :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
@@ -709,7 +733,7 @@ class BesselBasisLayer(GraphBaseLayer):
         self.envelope_type = str(envelope_type)
 
         if self.envelope_type not in ["poly"]:
-            raise ValueError("Unknown envelope type %s in BesselBasisLayer." % self.envelope_type)
+            raise ValueError("Unknown envelope type '%s' in `BesselBasisLayer`." % self.envelope_type)
 
         # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):
