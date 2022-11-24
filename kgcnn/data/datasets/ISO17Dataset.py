@@ -31,19 +31,19 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
 
     References:
 
-        [1] R. Ramakrishnan et al. Quantum chemistry structures and properties of 134 kilo molecules.
+        (1) R. Ramakrishnan et al. Quantum chemistry structures and properties of 134 kilo molecules.
             Scientific Data, 1. (2014) `<https://www.nature.com/articles/sdata201422>`_.
-        [2] Schütt, K. T. et al. Quantum-chemical insights from deep tensor neural networks.
+        (2) Schütt, K. T. et al. Quantum-chemical insights from deep tensor neural networks.
             Nature Communications, 8, 13890. (2017) `<https://www.nature.com/articles/ncomms13890>`_.
-        [3] Blum, V. et al. Ab Initio Molecular Simulations with Numeric Atom-Centered Orbitals.
+        (3) Blum, V. et al. Ab Initio Molecular Simulations with Numeric Atom-Centered Orbitals.
             Comput. Phys. Commun. 2009, 180 (11), 2175–2196
             `<https://www.sciencedirect.com/science/article/pii/S0010465509002033>`_.
-        [4] Perdew, J. P. et al. Generalized Gradient Approximation Made Simple. Phys. Rev. Lett. 1996, 77 (18),
+        (4) Perdew, J. P. et al. Generalized Gradient Approximation Made Simple. Phys. Rev. Lett. 1996, 77 (18),
             3865–3868 `<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.77.3865>`_.
-        [5] Tkatchenko, A. et al. Accurate Molecular Van Der Waals Interactions from Ground-State Electron Density and
+        (5) Tkatchenko, A. et al. Accurate Molecular Van Der Waals Interactions from Ground-State Electron Density and
             Free-Atom Reference Data. Phys. Rev. Lett. 2009, 102 (7), 73005
             `<https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.102.073005>`_.
-        [6] Schütt, K. T., et al. SchNet: A continuous-filter convolutional neural network for modeling quantum
+        (6) Schütt, K. T., et al. SchNet: A continuous-filter convolutional neural network for modeling quantum
             interactions. Advances in Neural Information Processing System (accepted). 2017.
             `<https://arxiv.org/abs/1706.08566>`_
     """
