@@ -80,6 +80,7 @@ class ShiftPeriodicLattice(GraphBaseLayer):
     :math:`\vec{n} = (n_1, n_2, n_3)`, then this layer is supposed to return:
 
     .. math::
+
         \vec{x} = \vec{x_0} + n_1\vec{a}_1 + n_2\vec{a}_2 + n_3\vec{a}_3 = \vec{x_0} + \vec{n} \mathbf{a}
 
     The layer expects ragged tensor input for :math:`\vec{x_0}` and :math:`\vec{n}` with multiple positions and their
@@ -129,6 +130,7 @@ class EuclideanNorm(GraphBaseLayer):
     This amounts for a specific :obj:`axis` along which to sum the coordinates:
 
     .. math::
+
         ||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}
 
     Vector based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension `D`.
@@ -220,6 +222,7 @@ class ScalarProduct(GraphBaseLayer):
     The layer simply does for positions :
 
     .. math::
+
         <\vec{a}, \vec{b}> = \vec{a} \cdot \vec{b} = \sum_i a_i b_i
 
     Code example:
@@ -285,11 +288,11 @@ class NodeDistanceEuclidean(GraphBaseLayer):
     Let :math:`\vec{x}_1` and :math:`\vec{x}_2` be the position of two nodes, then the output is given by:
 
     .. math::
+
         || \vec{x}_1 - \vec{x}_2 ||_2.
 
     Calls :obj:`EuclideanNorm` on the difference of the inputs, which are position of nodes in space and for example
     the output of :obj:`NodePosition`.
-
     """
 
     def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
@@ -332,6 +335,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     the normalized distance is given by:
 
     .. math::
+
         \frac{\vec{r}_{ij}}{||r_{ij}||} = \frac{\vec{r}_{i} - \vec{r}_{j}}{||\vec{r}_{i} - \vec{r}_{j}||}.
 
     Note that the difference is defined here as :math:`\vec{r}_{i} - \vec{r}_{j}`.
@@ -386,13 +390,14 @@ class VectorAngle(GraphBaseLayer):
     mark vector directions of :math:`i\leftarrow j, j \leftarrow k`.
 
     .. note::
+
         However, this layer directly takes the vector :math:`\vec{v}_1` and :math:`\vec{v}_2` as input.
 
     The angle :math:`\theta` is computed via:
 
     .. math::
-        \theta = \tan^{-1} \; \frac{\vec{v}_1 \cdot \vec{v}_2}{|| \vec{v}_1 \times \vec{v}_2 ||}
 
+        \theta = \tan^{-1} \; \frac{\vec{v}_1 \cdot \vec{v}_2}{|| \vec{v}_1 \times \vec{v}_2 ||}
     """
 
     def __init__(self, **kwargs):
@@ -448,12 +453,14 @@ class EdgeAngle(GraphBaseLayer):
     The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` span an angles as:
 
     .. math::
+
         \theta = \tan^{-1} \; \frac{\vec{v}_1 \cdot \vec{v}_2}{|| \vec{v}_1 \times \vec{v}_2 ||}
 
     The geometric angle is computed between edge tuples of index :math:`(i, j)`, where :math`:i, j` refer to two edges.
     The edge features are consequently a geometric vector (3D-space) for each edge.
 
     .. note::
+
         Here, the indices :math:`(i, j)` refer to edges and not to node positions!
 
     The layer uses :obj:`GatherEmbeddingSelection` and :obj:`VectorAngle` to compute angles.
@@ -511,6 +518,7 @@ class GaussBasisLayer(GraphBaseLayer):
     The distance :math:`d_{ij} = || \mathbf{r}_i - \mathbf{r}_j ||` is expanded in radial basis functions:
 
     .. math::
+
         e_k(\mathbf{r}_i - \mathbf{r}_j) = \exp{(- \gamma || d_{ij} - \mu_k ||^2 )}
 
     where :math:`\mu_k` represents centers located at originally :math:`0\le \mu_k \le 30  \mathring{A}`
@@ -520,7 +528,6 @@ class GaussBasisLayer(GraphBaseLayer):
     :math:`\gamma = \frac{1}{2\sigma^2}`. The Gaussian, or the :math:`\mu_k`, is placed equally
     between :obj:`offset` and :obj:`distance` and the spacing can be defined by the number of :obj:`bins` that is
     simply '(distance-offset)/bins'. The width is controlled by the layer argument :obj:`sigma`.
-
     """
 
     def __init__(self, bins: int = 20, distance: float = 4.0, sigma: float = 0.4, offset: float = 0.0,
@@ -601,7 +608,6 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
                 even 3 * `dim_half`, if `include_frequencies` is set to `True`. Defaults to 8.
             wave_length (float): Wavelength for positional sin and cos expansion. Defaults to 10.0.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
-
         """
         super(PositionEncodingBasisLayer, self).__init__(**kwargs)
         # Layer variables
@@ -667,6 +673,7 @@ class BesselBasisLayer(GraphBaseLayer):
     :math:`\tilde{e}_{\text{RBF}} \in \mathbb{R}^{N_{\text{RBF}}}`:
 
     .. math::
+
         \tilde{e}_{\text{RBF}, n} (d) = \sqrt{\frac{2}{c}} \frac{\sin{\left(\frac{n\pi}{c} d\right)}}{d}
 
     Additionally, applies an envelope function :math:`u(d)` for continuous differentiability on the basis
@@ -674,6 +681,7 @@ class BesselBasisLayer(GraphBaseLayer):
     By Default this is a polynomial of the form:
 
     .. math::
+
         u(d) = 1 − \frac{(p + 1)(p + 2)}{2} d^p + p(p + 2)d^{p+1} − \frac{p(p + 1)}{2} d^{p+2},
 
     where :math:`p \in \mathbb{N}_0` and typically :math:`p=6`.
@@ -754,14 +762,13 @@ class CosCutOffEnvelope(GraphBaseLayer):
     For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
     .. math::
+
         f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
 
     This layer only computes the cutoff envelope but does not apply it.
     """
 
-    def __init__(self,
-                 cutoff,
-                 **kwargs):
+    def __init__(self, cutoff, **kwargs):
         r"""Initialize layer.
 
         Args:
@@ -806,6 +813,7 @@ class CosCutOff(GraphBaseLayer):
     For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
     .. math::
+
         f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
 
     This layer computes the cutoff envelope and applies it to the input by simply multiplying with the envelope.

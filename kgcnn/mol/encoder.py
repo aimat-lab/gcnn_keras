@@ -10,9 +10,9 @@ class OneHotEncoder:
     r"""Simple One-Hot-Encoding for python lists.
 
     Uses a list of possible values for a one-hot encoding of a single value.
-    The translated values must support :obj:``__eq__`` operator.
+    The translated values must support :obj:`__eq__` operator.
     The list of possible values must be set beforehand. Is used as a basic encoder example for
-    :obj:``MolecularGraphRDKit``. There can not be different dtypes in categories.
+    :obj:`MolecularGraphRDKit`. There can not be different dtypes in categories.
     """
 
     _dtype_translate = {"int": int, "float": float, "str": str, "bool": bool}
