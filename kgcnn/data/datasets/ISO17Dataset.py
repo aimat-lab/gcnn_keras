@@ -33,10 +33,9 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
 
     References:
 
-        [1] `R. Ramakrishnan et al. Quantum chemistry structures and properties of 134 kilo molecules.
-            Scientific Data, 1. (2014) <https://www.nature.com/articles/sdata201422>`_.
+        [1] `R. Ramakrishnan et al. Quantum chemistry structures and properties of 134 kilo molecules. Scientific Data, 1. (2014) <https://www.nature.com/articles/sdata201422>`_.
         [2] `Schütt, K. T. et al. Quantum-chemical insights from deep tensor neural networks.
-            Nature Communications, 8, 13890. (2017) <https://www.nature.com/articles/ncomms13890>`_.
+        Nature Communications, 8, 13890. (2017) <https://www.nature.com/articles/ncomms13890>`_.
         [3] `Blum, V. et al. Ab Initio Molecular Simulations with Numeric Atom-Centered Orbitals.
             Comput. Phys. Commun. 2009, 180 (11), 2175–2196
             <https://www.sciencedirect.com/science/article/pii/S0010465509002033>`_.
@@ -87,11 +86,11 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
 
         The data is partitioned as used in the SchNet paper [6]:
 
-            reference.db - 80% of steps of 80% of MD trajectories
-            reference_eq.db - equilibrium conformations of those molecules
-            test_within.db - remaining 20% unseen steps of reference trajectories
-            test_other.db - remaining 20% unseen MD trajectories
-            test_eq.db - equilibrium conformations of test trajectories
+            - reference.db - 80% of steps of 80% of MD trajectories
+            - reference_eq.db - equilibrium conformations of those molecules
+            - test_within.db - remaining 20% unseen steps of reference trajectories
+            - test_other.db - remaining 20% unseen MD trajectories
+            - test_eq.db - equilibrium conformations of test trajectories
 
         Where 'reference.db' and 'reference_eq.db' have 'train' property with index 0, 1, respectively, and
         'test_within', 'test_other', 'test_eq' have 'test' property 0, 1, 2, respectively.
