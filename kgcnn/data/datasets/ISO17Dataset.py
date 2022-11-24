@@ -80,6 +80,7 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
     def read_in_memory(self):
         r"""Load complete :obj:`ISO17Dataset` data into memory. Additionally, the different train and validation
         properties are set according to `http://quantum-machine.org/datasets/ <http://quantum-machine.org/datasets/>`_.
+
         The data is partitioned as used in the SchNet paper [6]:
 
             reference.db - 80% of steps of 80% of MD trajectories
