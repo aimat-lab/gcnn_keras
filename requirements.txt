@@ -7,3 +7,4 @@ scikit-learn
 requests
 pyyaml
 networkx
+ase

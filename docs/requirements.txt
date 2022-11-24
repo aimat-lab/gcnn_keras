@@ -10,3 +10,4 @@ scikit-learn
 rdkit-pypi
 pyyaml
 pymatgen
+ase

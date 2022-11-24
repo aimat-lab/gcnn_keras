@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from ase.db import connect
 
 from kgcnn.data.base import MemoryGraphDataset
@@ -113,10 +114,10 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
         for name, values in data.items():
             self.assign_property(name, values)
 
+        # Validation indices are for the first part that is 'reference.db' which are at the beginning of the dataset.
+        # Can be simply added by index.
         with open(os.path.join(self.data_directory, "validation_ids.txt")) as f:
-            valid_indices = f.readlines()
-        # print(valid_indices)
+            valid_indices = [int(x.strip()) for x in f.readlines()]
+        for i in valid_indices:
+            self[i-1].update({"valid": np.array(0)})
         return self
-
-
-ds = ISO17Dataset()
