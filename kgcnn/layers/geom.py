@@ -628,7 +628,8 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
                  include_frequencies: bool = False, interleave_sin_cos: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
-        The actual output-dimension will be 2(:obj:`dim_half` +1) or 3(:obj:`dim_half` +1), if including frequencies.
+        The actual output-dimension will be :math:`2 \times` :obj:`dim_half` or
+        :math:`3 \times` :obj:`dim_half` , if including frequencies. Tge
 
         .. note::
 
@@ -651,8 +652,8 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         self.interleave_sin_cos = interleave_sin_cos
         if self.num_mult <= 1:
             raise ValueError("`num_mult` must be >1. Reduce `wave_length_min` if necessary.")
-        if self.dim_half < 1:
-            raise ValueError("`dim_half` must be >= 1.")
+        if self.dim_half <= 1:
+            raise ValueError("`dim_half` must be > 1.")
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
@@ -674,7 +675,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        steps = tf.range(dim_half + 1, dtype=inputs.dtype) / dim_half
+        steps = tf.range(dim_half, dtype=inputs.dtype) / (dim_half - 1)
         log_num = tf.constant(-math.log(num_mult), dtype=inputs.dtype)
         log_wave = tf.constant(-math.log(wave_length_min), dtype=inputs.dtype)
         freq = tf.exp(log_num * steps + log_wave)
