@@ -663,7 +663,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
 
         Args:
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
-                Tensor must have a distance dimension, e.g. shape (N, 1).
+                Tensor must have a distance dimension, e.g. shape (N, 1). Tensor must be type 'float'.
             dim_half (int): Dimension of the half output embedding space. Defaults to 10.
             wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
@@ -676,7 +676,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         """
         steps = tf.range(dim_half+1, dtype=inputs.dtype) / dim_half
         freq = tf.exp(-math.log(num_mult) * steps - math.log(wave_length_min))
-        scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
+        scales = tf.cast(freq, dtype=inputs.dtype) * math.pi * 2.0
         arg = inputs * scales
         # We have to make an alternate, concatenate via additional axis and flatten it after.
         if interleave_sin_cos:
