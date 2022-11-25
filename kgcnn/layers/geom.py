@@ -629,7 +629,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
         The actual output-dimension will be :math:`2 \times` :obj:`dim_half` or
-        :math:`3 \times` :obj:`dim_half` , if including frequencies. Tge
+        :math:`3 \times` :obj:`dim_half` , if including frequencies. The half output dimension must be larger than 1.
 
         .. note::
 
@@ -678,7 +678,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         steps = tf.range(dim_half, dtype=inputs.dtype) / (dim_half - 1)
         log_num = tf.constant(-math.log(num_mult), dtype=inputs.dtype)
         log_wave = tf.constant(-math.log(wave_length_min), dtype=inputs.dtype)
-        freq = tf.exp(log_num * steps + log_wave)
+        freq = tf.exp(log_num * steps + log_wave)  # tf.exp is better than power.
         scales = tf.cast(freq, dtype=inputs.dtype) * math.pi * 2.0
         arg = inputs * scales
         if interleave_sin_cos:
