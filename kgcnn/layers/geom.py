@@ -86,7 +86,6 @@ class ShiftPeriodicLattice(GraphBaseLayer):
 
     The layer expects ragged tensor input for :math:`\vec{x_0}` and :math:`\vec{n}` with multiple positions and their
     images but a single (tensor) lattice matrix per sample.
-
     """
 
     def __init__(self, **kwargs):
@@ -963,11 +962,17 @@ class DisplacementVectorsASU(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsUnitCell')
 class DisplacementVectorsUnitCell(GraphBaseLayer):
-    """Computes displacements vectors for edges that require sending node to be displaced or translated into an image
-    of the unit cell in a periodic system.
+    r"""Computes displacements vectors for edges that require the sending node to be displaced or translated
+    into an image of the unit cell in a periodic system.
 
-    with edge
+    with node position :math:`\vec{x}` , edge :math:`e_{ij}` and the shift or translation vector :math:`\vec{m}_{ij}`
+    the operation of :obj:`DisplacementVectorsUnitCell` performs:
 
+     .. math::
+
+        \vec{d}_{ij} = \vec{x}_i - (\vec{x}_j + \vec{m}_{ij})
+
+    The direction follows the default index conventions of :obj:`NodePosition` layer.
     """
 
     def __init__(self, **kwargs):
@@ -1005,8 +1010,18 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='FracToRealCoordinates')
 class FracToRealCoordinates(GraphBaseLayer):
-    """TODO: Add docs.
+    r"""Layer to compute real-space coordinates from fractional coordinates and the lattice matrix.
 
+    With lattice matrix :math:`\mathbf{A}` of a periodic lattice with lattice vectors
+    :math:`\mathbf{A} = (\vec{a}_1 , \vec{a}_2 , \vec{a}_3)` and fractional coordinates
+    :math:`\vec{f} = (f_1, f_2, f_3)` the layer performs for each node and with a lattice matrix per sample:
+
+    .. math::
+
+        \vec{r} = \vec{f} \; \mathbf{A}
+
+    Note that the definition of the lattice matrix has lattice vectors in rows, which is the default definition from
+    :obj:`pymatgen`.
     """
 
     def __init__(self, **kwargs):
@@ -1030,7 +1045,7 @@ class FracToRealCoordinates(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Real-space node coordinates of shape `(batch, [N], 3)`.
         """
-        frac_coords = inputs[0]
+        frac_coords = self.assert_ragged_input_rank(inputs[0], ragged_rank=1)
         lattice_matrices = inputs[1]
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
         real_coords = tf.einsum('ij,ikj->ik', frac_coords.values, lattice_matrices_)
