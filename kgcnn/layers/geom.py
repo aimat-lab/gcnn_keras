@@ -624,18 +624,19 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
     :obj:`interleave_sin_cos`, which is `False` by default.
     """
 
-    def __init__(self, dim_half: int = 8, wave_length_min: float = 0.1, num_mult: Union[float, int] = 100,
+    def __init__(self, dim_half: int = 10, wave_length_min: float = 0.1, num_mult: Union[float, int] = 100,
                  include_frequencies: bool = False, interleave_sin_cos: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
+        The actual output-dimension will be 2(:obj:`dim_half` +1) or 3(:obj:`dim_half` +1), if including frequencies.
+
         .. note::
 
-            In the original definition, defaults are :obj:`wave_length_min`=:math:`2 \pi`, :obj:`num_mult`=10000,
-            and :obj:`interleave_sin_cos`=True.
+            In the original definition, defaults are :obj:`wave_length_min` = :math:`2 \pi` , :obj:`num_mult` = 10000,
+            and :obj:`interleave_sin_cos` = True.
 
         Args:
-            dim_half (int): Dimension of the half output embedding space. Final basis will be 2 * `dim_half`, or
-                even 3 * `dim_half`, if `include_frequencies` is set to `True`. Defaults to 8.
+            dim_half (int): Dimension of the half output embedding space. Defaults to 10.
             wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
@@ -650,17 +651,20 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         self.interleave_sin_cos = interleave_sin_cos
         if self.num_mult <= 1:
             raise ValueError("`num_mult` must be >1. Reduce `wave_length_min` if necessary.")
+        if self.dim_half < 1:
+            raise ValueError("`dim_half` must be >= 1.")
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
-    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length_min: float = 0.1,
+    def _compute_fourier_encoding(inputs, dim_half: int = 10, wave_length_min: float = 0.1,
                                   num_mult: Union[float, int] = 100, include_frequencies: bool = False,
                                   interleave_sin_cos: bool = False):
         r"""Expand into fourier basis.
 
         Args:
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
-            dim_half (int): Dimension of the half output embedding space.
+                Tensor must have a distance dimension, e.g. shape (N, 1).
+            dim_half (int): Dimension of the half output embedding space. Defaults to 10.
             wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
@@ -670,15 +674,18 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        steps = tf.range(dim_half, dtype=inputs.dtype) / dim_half
-        k = -math.log(wave_length_min)
-        freq = tf.exp(k * steps)
+        steps = tf.range(dim_half+1, dtype=inputs.dtype) / dim_half
+        freq = tf.exp(-math.log(num_mult) * steps - math.log(wave_length_min))
         scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
         arg = inputs * scales
         # We have to make an alternate, concatenate via additional axis and flatten it after.
         if interleave_sin_cos:
-            raise NotImplementedError()
-        out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], dim=-1)
+            out = tf.concat([tf.math.sin(tf.expand_dims(arg, axis=-1)),
+                             tf.math.cos(tf.expand_dims(arg, axis=-1))], axis=-1)
+            out = tf.reshape(
+                out, tf.concat([tf.shape(out)[:-2], tf.expand_dims(tf.shape(out)[-2]*2, axis=-1)], axis=0))
+        else:
+            out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], axis=-1)
         if include_frequencies:
             out = tf.concat([out, freq], dim=-1)
         return out
