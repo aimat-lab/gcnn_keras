@@ -674,16 +674,17 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        steps = tf.range(dim_half+1, dtype=inputs.dtype) / dim_half
-        freq = tf.exp(-math.log(num_mult) * steps - math.log(wave_length_min))
+        steps = tf.range(dim_half + 1, dtype=inputs.dtype) / dim_half
+        log_num = tf.constant(-math.log(num_mult), dtype=inputs.dtype)
+        log_wave = tf.constant(-math.log(wave_length_min), dtype=inputs.dtype)
+        freq = tf.exp(log_num * steps + log_wave)
         scales = tf.cast(freq, dtype=inputs.dtype) * math.pi * 2.0
         arg = inputs * scales
-        # We have to make an alternate, concatenate via additional axis and flatten it after.
         if interleave_sin_cos:
-            out = tf.concat([tf.math.sin(tf.expand_dims(arg, axis=-1)),
-                             tf.math.cos(tf.expand_dims(arg, axis=-1))], axis=-1)
+            out = tf.concat(
+                [tf.math.sin(tf.expand_dims(arg, axis=-1)), tf.math.cos(tf.expand_dims(arg, axis=-1))], axis=-1)
             out = tf.reshape(
-                out, tf.concat([tf.shape(out)[:-2], tf.expand_dims(tf.shape(out)[-2]*2, axis=-1)], axis=0))
+                out, tf.concat([tf.shape(out)[:-2], tf.expand_dims(tf.shape(out)[-2] * 2, axis=-1)], axis=0))
         else:
             out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], axis=-1)
         if include_frequencies:
