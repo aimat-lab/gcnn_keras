@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding
+from kgcnn.layers.modules import Dense, LazyConcatenate, Activation
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 
 
@@ -55,17 +55,17 @@ class AttentiveHeadFP(GraphBaseLayer):
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = DenseEmbedding(units, activation="linear", use_bias=use_bias, **kernel_args)
-        self.lay_alpha_activation = DenseEmbedding(units, activation=activation, use_bias=use_bias, **kernel_args)
-        self.lay_alpha = DenseEmbedding(1, activation="linear", use_bias=False, **kernel_args)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
-        self.lay_final_activ = ActivationEmbedding(activation=activation_context)
+        self.lay_final_activ = Activation(activation=activation_context)
         if use_edge_features:
-            self.lay_fc1 = DenseEmbedding(units, activation=activation, use_bias=use_bias, **kernel_args)
-            self.lay_fc2 = DenseEmbedding(units, activation=activation, use_bias=use_bias, **kernel_args)
+            self.lay_fc1 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+            self.lay_fc2 = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
             self.lay_concat_edge = LazyConcatenate(axis=-1)
 
     def build(self, input_shape):
@@ -180,13 +180,13 @@ class PoolingNodesAttentive(GraphBaseLayer):
                     "recurrent_constraint": recurrent_constraint, "bias_constraint": bias_constraint,
                     "dropout": dropout, "recurrent_dropout": recurrent_dropout, "reset_after": reset_after}
 
-        self.lay_linear_trafo = DenseEmbedding(units, activation="linear", **kernel_args)
-        self.lay_alpha = DenseEmbedding(1, activation=activation, **kernel_args)
+        self.lay_linear_trafo = Dense(units, activation="linear", **kernel_args)
+        self.lay_alpha = Dense(1, activation=activation, **kernel_args)
         self.lay_gather_s = GatherState()
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_start = PoolingNodes(pooling_method=self.pooling_method)
         self.lay_pool_attention = PoolingNodesAttention()
-        self.lay_final_activ = ActivationEmbedding(activation=activation_context)
+        self.lay_final_activ = Activation(activation=activation_context)
         self.lay_gru = tf.keras.layers.GRUCell(units=units, activation="tanh", **gru_args)
 
     def build(self, input_shape):

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding, \
+from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
@@ -122,10 +122,10 @@ def make_model(name: str = None,
     # Make first edge hidden h0
     h_n0 = GatherNodesOutgoing()([n, edi])
     h0 = LazyConcatenate(axis=-1)([h_n0, ed])
-    h0 = DenseEmbedding(**edge_initialize)(h0)
+    h0 = Dense(**edge_initialize)(h0)
 
     # One Dense layer for all message steps
-    edge_dense_all = DenseEmbedding(**edge_dense)  # Should be linear activation
+    edge_dense_all = Dense(**edge_dense)  # Should be linear activation
 
     # Model Loop
     h = h0
@@ -133,13 +133,13 @@ def make_model(name: str = None,
         m_vw = DMPNNPPoolingEdgesDirected()([n, h, edi, ed_pairs])
         h = edge_dense_all(m_vw)
         h = LazyAdd()([h, h0])
-        h = ActivationEmbedding(**edge_activation)(h)
+        h = Activation(**edge_activation)(h)
         if dropout is not None:
-            h = DropoutEmbedding(**dropout)(h)
+            h = Dropout(**dropout)(h)
 
     mv = PoolingLocalEdges(**pooling_args)([n, h, edi])
     mv = LazyConcatenate(axis=-1)([mv, n])
-    hv = DenseEmbedding(**node_dense)(mv)
+    hv = Dense(**node_dense)(mv)
 
     # Output embedding choice
     n = hv

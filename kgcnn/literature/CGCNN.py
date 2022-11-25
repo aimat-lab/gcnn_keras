@@ -3,7 +3,7 @@ from kgcnn.layers.conv.cgcnn_conv import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoordinates, \
     EuclideanNorm, GaussBasisLayer, NodePosition
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
-from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract, DenseEmbedding
+from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.model.utils import update_model_kwargs
 
@@ -148,7 +148,7 @@ def make_crystal_model(inputs: list = None,
     n = OptionalInputEmbedding(**input_embedding['node'],
                                use_embedding=len(inputs[0]['shape']) < 2)(atom_attributes)
 
-    n = DenseEmbedding(conv_layer_args["units"], activation='linear')(n)
+    n = Dense(conv_layer_args["units"], activation='linear')(n)
     for _ in range(depth):
         n = CGCNNLayer(**conv_layer_args)([n, edge_distances, edge_indices])
 

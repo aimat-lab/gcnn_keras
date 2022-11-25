@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherEmbeddingSelection
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
-from kgcnn.layers.modules import LazySubtract, DenseEmbedding, DropoutEmbedding, LazyConcatenate, ActivationEmbedding
+from kgcnn.layers.modules import LazySubtract, Dense, Dropout, LazyConcatenate, Activation
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
 # import tensorflow.keras as ks
 # import tensorflow.python.keras as ks
@@ -62,7 +62,7 @@ class HamNetNaiveUnion(GraphBaseLayer):
                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-        self.lay_dense = DenseEmbedding(units=units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_dense = Dense(units=units, activation=activation, use_bias=use_bias, **kernel_args)
         self.lay_concat = LazyConcatenate()
 
     def build(self, input_shape):
@@ -166,13 +166,13 @@ class HamNetGlobalReadoutAttend(GraphBaseLayer):
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
         self.gather_state = GatherState()
         if self.use_dropout:
-            self.dropout_layer = DropoutEmbedding(rate=rate, noise_shape=noise_shape, seed=seed)
-        self.dense_attend = DenseEmbedding(units=units, activation=activation, use_bias=use_bias, **kernel_args)
-        self.dense_align = DenseEmbedding(1, activation="linear", use_bias=use_bias, **kernel_args)
+            self.dropout_layer = Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
+        self.dense_attend = Dense(units=units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.dense_align = Dense(1, activation="linear", use_bias=use_bias, **kernel_args)
         self.lay_concat = LazyConcatenate(axis=-1)
         self.pool_attention = PoolingNodesAttention()
-        self.final_activ = ActivationEmbedding(activation=activation_last,
-                                               activity_regularizer=activity_regularizer)
+        self.final_activ = Activation(activation=activation_last,
+                                      activity_regularizer=activity_regularizer)
 
     def build(self, input_shape):
         """Build layer."""
@@ -328,7 +328,7 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
                     "recurrent_constraint": recurrent_constraint, "bias_constraint": bias_constraint,
                     "dropout": dropout, "recurrent_dropout": recurrent_dropout, "reset_after": reset_after}
         self.pool_nodes = PoolingNodes(pooling_method=self.pooling_method)
-        self.vertex2mol = DenseEmbedding(
+        self.vertex2mol = Dense(
             units=units, activation=activation, use_bias=use_bias, **kernel_args)
 
         self.readouts = [HamNetGlobalReadoutAttend(
@@ -338,8 +338,8 @@ class HamNetFingerprintGenerator(GraphBaseLayer):
 
         self.unions = [ks.layers.GRUCell(
             units=units, activation="tanh", **gru_args) for _ in range(self.depth)]
-        self.final_activ = ActivationEmbedding(activation=activation,
-                                               activity_regularizer=activity_regularizer)
+        self.final_activ = Activation(activation=activation,
+                                      activity_regularizer=activity_regularizer)
 
     def build(self, input_shape):
         """Build layer."""
@@ -474,13 +474,13 @@ class HamNaiveDynMessage(GraphBaseLayer):
         self.lay_concat_align = LazyConcatenate(axis=-1)
         self.lay_concat_edge = LazyConcatenate(axis=-1)
         if self.use_dropout:
-            self.dropout_layer = DropoutEmbedding(rate=rate, noise_shape=noise_shape, seed=seed)
-        self.dense_attend = DenseEmbedding(units=units, use_bias=use_bias, activation=activation, **kernel_args)
-        self.dense_align = DenseEmbedding(1, activation="linear", use_bias=use_bias, **kernel_args)
-        self.dense_e = DenseEmbedding(units=units_edge, activation=activation, use_bias=use_bias, **kernel_args)
+            self.dropout_layer = Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
+        self.dense_attend = Dense(units=units, use_bias=use_bias, activation=activation, **kernel_args)
+        self.dense_align = Dense(1, activation="linear", use_bias=use_bias, **kernel_args)
+        self.dense_e = Dense(units=units_edge, activation=activation, use_bias=use_bias, **kernel_args)
         self.pool_attention = PoolingLocalEdgesAttention()
-        self.final_activ = ActivationEmbedding(activation=activation_last,
-                                               activity_regularizer=activity_regularizer)
+        self.final_activ = Activation(activation=activation_last,
+                                      activity_regularizer=activity_regularizer)
 
     def build(self, input_shape):
         """Build layer."""
@@ -565,8 +565,8 @@ class HamNaiveDynMessage(GraphBaseLayer):
 #                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
 #                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
 #                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-#         self.dense_atom = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
-#         self.dense_edge = DenseEmbedding(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+#         self.dense_atom = Dense(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
+#         self.dense_edge = Dense(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
 #
 #     def build(self, input_shape):
 #         """Build layer."""

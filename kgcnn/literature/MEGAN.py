@@ -5,8 +5,8 @@ import tensorflow as tf
 
 from tensorflow.python.keras.engine import compile_utils
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
-from kgcnn.layers.modules import ActivationEmbedding, DropoutEmbedding
+from kgcnn.layers.modules import Dense, OptionalInputEmbedding
+from kgcnn.layers.modules import Activation, Dropout
 from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
 from kgcnn.layers.pooling import PoolingLocalEdges
@@ -138,10 +138,10 @@ class MEGAN(ks.models.Model):
             )
             self.attention_layers.append(lay)
 
-        self.lay_dropout = DropoutEmbedding(rate=self.dropout_rate)
+        self.lay_dropout = Dropout(rate=self.dropout_rate)
 
         # ~ EDGE IMPORTANCES
-        self.lay_act_importance = ActivationEmbedding(activation=self.importance_activation)
+        self.lay_act_importance = Activation(activation=self.importance_activation)
         self.lay_concat_alphas = LazyConcatenate(axis=-1)
 
         self.lay_pool_edges_in = PoolingLocalEdges(pooling_method='mean', pooling_index=0)
@@ -153,7 +153,7 @@ class MEGAN(ks.models.Model):
         self.node_importance_acts = ['relu' for _ in importance_units] + ['linear']
         self.node_importance_layers = []
         for u, act in zip(self.node_importance_units, self.node_importance_acts):
-            lay = DenseEmbedding(
+            lay = Dense(
                 units=u,
                 activation=act,
                 use_bias=use_bias
@@ -163,7 +163,7 @@ class MEGAN(ks.models.Model):
         # ~ OUTPUT / MLP TAIL END
         self.lay_pool_out = PoolingNodes(pooling_method=self.final_pooling)
         self.lay_concat_out = LazyConcatenate(axis=-1)
-        self.lay_final_dropout = DropoutEmbedding(rate=self.final_dropout_rate)
+        self.lay_final_dropout = Dropout(rate=self.final_dropout_rate)
 
         self.final_acts = ["relu" for _ in self.final_units]
         self.final_acts[-1] = self.final_activation
@@ -171,7 +171,7 @@ class MEGAN(ks.models.Model):
         self.final_biases[-1] = False
         self.final_layers = []
         for u, act, bias in zip(self.final_units, self.final_acts, self.final_biases):
-            lay = DenseEmbedding(
+            lay = Dense(
                 units=u,
                 activation=act,
                 use_bias=use_bias

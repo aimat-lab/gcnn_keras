@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gcn_conv import GCN
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
 from kgcnn.model.utils import generate_embedding, update_model_kwargs
@@ -88,7 +88,7 @@ def make_model(inputs: list = None,
     edi = edge_index_input
 
     # Model
-    n = DenseEmbedding(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
     for i in range(0, depth):
         n = GCN(**gcn_args)([n, ed, edi])
 
@@ -184,7 +184,7 @@ def make_model_weighted(inputs: list = None,
     nw = node_weights_input
 
     # Model
-    n = DenseEmbedding(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
+    n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
     for i in range(0, depth):
         n = GCN(**gcn_args)([n, ed, edi])
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.message import MessagePassingBase
 from kgcnn.layers.norm import GraphBatchNormalization
-from kgcnn.layers.modules import ActivationEmbedding, LazyMultiply, LazyConcatenate, LazyAdd, DenseEmbedding
+from kgcnn.layers.modules import Activation, LazyMultiply, LazyConcatenate, LazyAdd, Dense
 ks = tf.keras
 
 
@@ -51,15 +51,15 @@ class CGCNNLayer(MessagePassingBase):
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.activation_f_layer = ActivationEmbedding(activation="sigmoid", activity_regularizer=activity_regularizer)
-        self.activation_s_layer = ActivationEmbedding(activation_s, activity_regularizer=activity_regularizer)
-        self.activation_out_layer = ActivationEmbedding(activation_out, activity_regularizer=activity_regularizer)
+        self.activation_f_layer = Activation(activation="sigmoid", activity_regularizer=activity_regularizer)
+        self.activation_s_layer = Activation(activation_s, activity_regularizer=activity_regularizer)
+        self.activation_out_layer = Activation(activation_out, activity_regularizer=activity_regularizer)
         if batch_normalization:
             self.batch_norm_f = GraphBatchNormalization()
             self.batch_norm_s = GraphBatchNormalization()
             self.batch_norm_out = GraphBatchNormalization()
-        self.f = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
-        self.s = DenseEmbedding(self.units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.f = Dense(self.units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.s = Dense(self.units, activation="linear", use_bias=use_bias, **kernel_args)
         self.lazy_mult = LazyMultiply()
         self.lazy_add = LazyAdd()
         self.lazy_concat = LazyConcatenate(axis=2)

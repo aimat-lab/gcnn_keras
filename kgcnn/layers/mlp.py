@@ -1,6 +1,6 @@
 import tensorflow as tf
 import kgcnn.ops.activ
-from kgcnn.layers.modules import DenseEmbedding, ActivationEmbedding, DropoutEmbedding
+from kgcnn.layers.modules import Dense, Activation, Dropout
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
 
@@ -261,14 +261,14 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
 
-        self.mlp_dense_layer_list = [DenseEmbedding(
+        self.mlp_dense_layer_list = [Dense(
             **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
 
-        self.mlp_activation_layer_list = [ActivationEmbedding(
+        self.mlp_activation_layer_list = [Activation(
             **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
 
         self.mlp_dropout_layer_list = [
-            DropoutEmbedding(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
+            Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
             in range(self._depth)]
 
         self.mlp_norm_layer_list = [None] * self._depth

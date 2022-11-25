@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.attentivefp_conv import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.conv.mpnn_conv import GRUUpdate
-from kgcnn.layers.modules import DenseEmbedding, DropoutEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import Dense, Dropout, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.model.utils import update_model_kwargs
 
@@ -96,14 +96,14 @@ def make_model(inputs: list = None,
     edi = edge_index_input
 
     # Model
-    nk = DenseEmbedding(units=attention_args['units'])(n)
+    nk = Dense(units=attention_args['units'])(n)
     ck = AttentiveHeadFP(use_edge_features=True, **attention_args)([nk, ed, edi])
     nk = GRUUpdate(units=attention_args['units'])([nk, ck])
 
     for i in range(1, depthato):
         ck = AttentiveHeadFP(**attention_args)([nk, ed, edi])
         nk = GRUUpdate(units=attention_args['units'])([nk, ck])
-        nk = DropoutEmbedding(rate=dropout)(nk)
+        nk = Dropout(rate=dropout)(nk)
     n = nk
 
     # Output embedding choice

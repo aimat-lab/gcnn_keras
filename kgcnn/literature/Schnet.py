@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -118,7 +118,7 @@ def make_model(inputs: list = None,
         ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
-    n = DenseEmbedding(interaction_args["units"], activation='linear')(n)
+    n = Dense(interaction_args["units"], activation='linear')(n)
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 
@@ -250,7 +250,7 @@ def make_crystal_model(inputs: list = None,
         ed = GaussBasisLayer(**gauss_args)(ed)
 
     # Model
-    n = DenseEmbedding(interaction_args["units"], activation='linear')(n)
+    n = Dense(interaction_args["units"], activation='linear')(n)
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, edi])
 

@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.modules import LazyAdd, ActivationEmbedding
+from kgcnn.layers.modules import LazyAdd, Activation
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GIN')
@@ -120,8 +120,8 @@ class GINE(GraphBaseLayer):
         self.layer_gather = GatherNodesOutgoing()
         self.layer_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.layer_add = LazyAdd()
-        self.layer_act = ActivationEmbedding(activation=activation,
-                                             activity_regularizer=activity_regularizer)
+        self.layer_act = Activation(activation=activation,
+                                    activity_regularizer=activity_regularizer)
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,

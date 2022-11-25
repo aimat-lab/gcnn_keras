@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.conv.megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, LazyAdd, DropoutEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import Dense, LazyAdd, Dropout, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 from kgcnn.layers.pool.set2set import PoolingSet2Set
@@ -153,8 +153,8 @@ def make_model(inputs: list = None,
 
         # skip connection
         if dropout is not None:
-            vp2 = DropoutEmbedding(dropout, name='dropout_atom_%d' % i)(vp2)
-            ep2 = DropoutEmbedding(dropout, name='dropout_bond_%d' % i)(ep2)
+            vp2 = Dropout(dropout, name='dropout_atom_%d' % i)(vp2)
+            ep2 = Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
             up2 = ks.layers.Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
         vp = LazyAdd()([vp2, vp])
@@ -162,8 +162,8 @@ def make_model(inputs: list = None,
         up = ks.layers.Add()([up2, up])
 
     if use_set2set:
-        vp = DenseEmbedding(set2set_args["channels"], activation='linear')(vp)  # to match units
-        ep = DenseEmbedding(set2set_args["channels"], activation='linear')(ep)  # to match units
+        vp = Dense(set2set_args["channels"], activation='linear')(vp)  # to match units
+        ep = Dense(set2set_args["channels"], activation='linear')(ep)  # to match units
         vp = PoolingSet2Set(**set2set_args)(vp)
         ep = PoolingSet2Set(**set2set_args)(ep)
     else:
@@ -331,8 +331,8 @@ def make_crystal_model(inputs: list = None,
 
         # skip connection
         if dropout is not None:
-            vp2 = DropoutEmbedding(dropout, name='dropout_atom_%d' % i)(vp2)
-            ep2 = DropoutEmbedding(dropout, name='dropout_bond_%d' % i)(ep2)
+            vp2 = Dropout(dropout, name='dropout_atom_%d' % i)(vp2)
+            ep2 = Dropout(dropout, name='dropout_bond_%d' % i)(ep2)
             up2 = ks.layers.Dropout(dropout, name='dropout_state_%d' % i)(up2)
 
         vp = LazyAdd()([vp2, vp])
@@ -340,8 +340,8 @@ def make_crystal_model(inputs: list = None,
         up = ks.layers.Add()([up2, up])
 
     if use_set2set:
-        vp = DenseEmbedding(set2set_args["channels"], activation='linear')(vp)  # to match units
-        ep = DenseEmbedding(set2set_args["channels"], activation='linear')(ep)  # to match units
+        vp = Dense(set2set_args["channels"], activation='linear')(vp)  # to match units
+        ep = Dense(set2set_args["channels"], activation='linear')(ep)  # to match units
         vp = PoolingSet2Set(**set2set_args)(vp)
         ep = PoolingSet2Set(**set2set_args)(ep)
     else:

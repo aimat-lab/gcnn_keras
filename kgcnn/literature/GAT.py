@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gat_conv import AttentionHeadGAT
-from kgcnn.layers.modules import LazyConcatenate, DenseEmbedding, LazyAverage, ActivationEmbedding, \
+from kgcnn.layers.modules import LazyConcatenate, Dense, LazyAverage, Activation, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
@@ -93,14 +93,14 @@ def make_model(inputs: list = None,
     edi = edge_index_input
 
     # Model
-    nk = DenseEmbedding(units=attention_args["units"], activation="linear")(n)
+    nk = Dense(units=attention_args["units"], activation="linear")(n)
     for i in range(0, depth):
         heads = [AttentionHeadGAT(**attention_args)([nk, ed, edi]) for _ in range(attention_heads_num)]
         if attention_heads_concat:
             nk = LazyConcatenate(axis=-1)(heads)
         else:
             nk = LazyAverage()(heads)
-            nk = ActivationEmbedding(activation=attention_args["activation"])(nk)
+            nk = Activation(activation=attention_args["activation"])(nk)
     n = nk
 
     # Output embedding choice

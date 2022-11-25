@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, LazyAverage, ActivationEmbedding
+from kgcnn.layers.modules import Dense, LazyConcatenate, LazyAverage, Activation
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention
 
 
@@ -61,14 +61,14 @@ class AttentionHeadGAT(GraphBaseLayer):
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = DenseEmbedding(units, activation="linear", use_bias=use_bias, **kernel_args)
-        self.lay_alpha = DenseEmbedding(1, activation=activation, use_bias=False, **kernel_args)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
-            self.lay_final_activ = ActivationEmbedding(activation=activation)
+            self.lay_final_activ = Activation(activation=activation)
 
     def build(self, input_shape):
         """Build layer."""
@@ -171,15 +171,15 @@ class AttentionHeadGATV2(GraphBaseLayer):
                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
 
-        self.lay_linear_trafo = DenseEmbedding(units, activation="linear", use_bias=use_bias, **kernel_args)
-        self.lay_alpha_activation = DenseEmbedding(units, activation=activation, use_bias=use_bias, **kernel_args)
-        self.lay_alpha = DenseEmbedding(1, activation="linear", use_bias=False, **kernel_args)
+        self.lay_linear_trafo = Dense(units, activation="linear", use_bias=use_bias, **kernel_args)
+        self.lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias, **kernel_args)
+        self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
         if self.use_final_activation:
-            self.lay_final_activ = ActivationEmbedding(activation=activation)
+            self.lay_final_activ = Activation(activation=activation)
 
     def build(self, input_shape):
         """Build layer."""
@@ -249,9 +249,9 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
 
         self.head_layers = []
         for _ in range(num_heads):
-            lay_linear = DenseEmbedding(units, activation=activation, use_bias=use_bias)
-            lay_alpha_activation = DenseEmbedding(units, activation=activation, use_bias=use_bias)
-            lay_alpha = DenseEmbedding(1, activation='linear', use_bias=False)
+            lay_linear = Dense(units, activation=activation, use_bias=use_bias)
+            lay_alpha_activation = Dense(units, activation=activation, use_bias=use_bias)
+            lay_alpha = Dense(1, activation='linear', use_bias=False)
 
             self.head_layers.append((lay_linear, lay_alpha_activation, lay_alpha))
 

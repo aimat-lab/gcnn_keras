@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.conv.gin_conv import GIN, GINE
-from kgcnn.layers.modules import DenseEmbedding, OptionalInputEmbedding
+from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -88,7 +88,7 @@ def make_model(inputs: list = None,
     # Model
     # Map to the required number of units.
     n_units = gin_mlp["units"][-1] if isinstance(gin_mlp["units"], list) else int(gin_mlp["units"])
-    n = DenseEmbedding(n_units, use_bias=True, activation='linear')(n)
+    n = Dense(n_units, use_bias=True, activation='linear')(n)
     list_embeddings = [n]
     for i in range(0, depth):
         n = GIN(**gin_args)([n, edi])
@@ -197,8 +197,8 @@ def make_model_edge(inputs: list = None,
     # Model
     # Map to the required number of units.
     n_units = gin_mlp["units"][-1] if isinstance(gin_mlp["units"], list) else int(gin_mlp["units"])
-    n = DenseEmbedding(n_units, use_bias=True, activation='linear')(n)
-    ed = DenseEmbedding(n_units, use_bias=True, activation='linear')(ed)
+    n = Dense(n_units, use_bias=True, activation='linear')(n)
+    ed = Dense(n_units, use_bias=True, activation='linear')(ed)
     list_embeddings = [n]
     for i in range(0, depth):
         n = GINE(**gin_args)([n, edi, ed])

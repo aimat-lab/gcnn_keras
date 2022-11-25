@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingWeightedLocalEdges
-from kgcnn.layers.modules import ActivationEmbedding, DenseEmbedding
+from kgcnn.layers.modules import Activation, Dense
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GCN')
@@ -61,9 +61,9 @@ class GCN(GraphBaseLayer):
 
         # Layers
         self.lay_gather = GatherNodesOutgoing()
-        self.lay_dense = DenseEmbedding(units=self.units, activation='linear', **kernel_args)
+        self.lay_dense = Dense(units=self.units, activation='linear', **kernel_args)
         self.lay_pool = PoolingWeightedLocalEdges(**pool_args)
-        self.lay_act = ActivationEmbedding(activation)
+        self.lay_act = Activation(activation)
 
     def build(self, input_shape):
         """Build layer."""

@@ -3,7 +3,7 @@ from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutpu
     SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, LazyAdd, LazySubtract
+from kgcnn.layers.modules import Dense, LazyConcatenate, LazyAdd, LazySubtract
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.mlp import MLP
@@ -144,11 +144,11 @@ def make_model(inputs: list = None,
                               envelope_exponent=envelope_exponent)([d, a, adi])
 
     # Embedding block
-    rbf_emb = DenseEmbedding(emb_size, use_bias=True, activation=activation,
-                             kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
+    rbf_emb = Dense(emb_size, use_bias=True, activation=activation,
+                    kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
     n_pairs = GatherNodes()([n, edi])
     x = LazyConcatenate(axis=-1)([n_pairs, rbf_emb])
-    x = DenseEmbedding(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
+    x = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
     ps = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
                            output_kernel_initializer=output_init)([n, x, rbf, edi])
 
@@ -315,11 +315,11 @@ def make_crystal_model(inputs: list = None,
                               envelope_exponent=envelope_exponent)([d, a, adi])
 
     # Embedding block
-    rbf_emb = DenseEmbedding(emb_size, use_bias=True, activation=activation,
-                             kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
+    rbf_emb = Dense(emb_size, use_bias=True, activation=activation,
+                    kernel_initializer="kgcnn>glorot_orthogonal")(rbf)
     n_pairs = GatherNodes()([n, edi])
     x = LazyConcatenate(axis=-1)([n_pairs, rbf_emb])
-    x = DenseEmbedding(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
+    x = Dense(emb_size, use_bias=True, activation=activation, kernel_initializer="kgcnn>glorot_orthogonal")(x)
     ps = DimNetOutputBlock(emb_size, out_emb_size, num_dense_output, num_targets=num_targets,
                            output_kernel_initializer=output_init)([n, x, rbf, edi])
 

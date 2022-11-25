@@ -2,7 +2,7 @@ import tensorflow as tf
 from typing import Union
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate, ActivationEmbedding, LazyAdd, DropoutEmbedding, \
+from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding, LazySubtract, LazyMultiply
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
@@ -116,8 +116,8 @@ def make_model(name: str = None,
                                 use_embedding=len(inputs[1]['shape']) < 2)(edge_input)
     edi = edge_index_input
 
-    h0 = DenseEmbedding(**node_initialize)(n)
-    he0 = DenseEmbedding(**edge_initialize)(ed)
+    h0 = Dense(**node_initialize)(n)
+    he0 = Dense(**edge_initialize)(ed)
 
     # Model Loop
     h = h0
@@ -134,18 +134,18 @@ def make_model(name: str = None,
         h_out = GatherNodesOutgoing()([h, edi])
         e_rev = DMPNNGatherEdgesPairs()([he, ed_pairs])
         he = LazySubtract()([h_out, e_rev])
-        he = DenseEmbedding(**edge_dense)(he)
+        he = Dense(**edge_dense)(he)
         he = LazyAdd()([he, he0])
-        he = ActivationEmbedding(**edge_activation)(he)
+        he = Activation(**edge_activation)(he)
         if dropout:
-            he = DropoutEmbedding(**dropout)(he)
+            he = Dropout(**dropout)(he)
 
     # Last step
     m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
     m_max = PoolingLocalEdges(pooling_method="segment_max")([h, he, edi])
     m = LazyMultiply()([m_pool, m_max])
     h_final = LazyConcatenate()([m, h, h0])
-    h_final = DenseEmbedding(**node_dense)(h_final)
+    h_final = Dense(**node_dense)(h_final)
 
     n = h_final
     if output_embedding == 'graph':

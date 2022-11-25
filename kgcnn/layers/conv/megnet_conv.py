@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.modules import DenseEmbedding, LazyConcatenate
+from kgcnn.layers.modules import Dense, LazyConcatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
 ks = tf.keras
@@ -55,16 +55,16 @@ class MEGnetBlock(GraphBaseLayer):
                        "bias_initializer": bias_initializer, "use_bias": use_bias}
 
         # Node
-        self.lay_phi_n = DenseEmbedding(units=self.node_embed[0], activation=activation, **kernel_args)
-        self.lay_phi_n_1 = DenseEmbedding(units=self.node_embed[1], activation=activation, **kernel_args)
-        self.lay_phi_n_2 = DenseEmbedding(units=self.node_embed[2], activation='linear', **kernel_args)
+        self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **kernel_args)
+        self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **kernel_args)
+        self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args)
         self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.lay_gather_un = GatherState()
         self.lay_conc_nu = LazyConcatenate(axis=-1)
         # Edge
-        self.lay_phi_e = DenseEmbedding(units=self.edge_embed[0], activation=activation, **kernel_args)
-        self.lay_phi_e_1 = DenseEmbedding(units=self.edge_embed[1], activation=activation, **kernel_args)
-        self.lay_phi_e_2 = DenseEmbedding(units=self.edge_embed[2], activation='linear', **kernel_args)
+        self.lay_phi_e = Dense(units=self.edge_embed[0], activation=activation, **kernel_args)
+        self.lay_phi_e_1 = Dense(units=self.edge_embed[1], activation=activation, **kernel_args)
+        self.lay_phi_e_2 = Dense(units=self.edge_embed[2], activation='linear', **kernel_args)
         self.lay_gather_n = GatherNodes()
         self.lay_gather_ue = GatherState()
         self.lay_conc_enu = LazyConcatenate(axis=-1)

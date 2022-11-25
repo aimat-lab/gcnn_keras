@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.mlp import GraphMLP
-from kgcnn.layers.modules import LazyAdd, DenseEmbedding, LazyConcatenate, LazyMultiply
+from kgcnn.layers.modules import LazyAdd, Dense, LazyConcatenate, LazyMultiply
 from kgcnn.layers.conv.dimenet_conv import ResidualLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection, GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalMessages
@@ -23,7 +23,7 @@ class MXMGlobalMP(GraphBaseLayer):
         self.add_res = LazyAdd()
 
         self.x_edge_mlp = GraphMLP(self.dim, activation="swish")
-        self.linear = DenseEmbedding(self.dim, use_bias=False, activation="linear")
+        self.linear = Dense(self.dim, use_bias=False, activation="linear")
 
         self.gather = GatherEmbeddingSelection([0, 1])
         self.pool = PoolingLocalMessages()
@@ -101,20 +101,20 @@ class MXMLocalMP(GraphBaseLayer):
 
         self.mlp_sbf1 = GraphMLP([self.dim, self.dim], activation=activation)
         self.mlp_sbf2 = GraphMLP([self.dim, self.dim], activation=activation)
-        self.lin_rbf1 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
-        self.lin_rbf2 = DenseEmbedding(self.dim, use_bias=False, activation="linear")
+        self.lin_rbf1 = Dense(self.dim, use_bias=False, activation="linear")
+        self.lin_rbf2 = Dense(self.dim, use_bias=False, activation="linear")
 
         self.res1 = ResidualLayer(self.dim)
         self.res2 = ResidualLayer(self.dim)
         self.res3 = ResidualLayer(self.dim)
 
-        self.lin_rbf_out = DenseEmbedding(self.dim, use_bias=False, activation="linear")
+        self.lin_rbf_out = Dense(self.dim, use_bias=False, activation="linear")
 
         self.h_mlp = GraphMLP(self.dim, activation=activation)
 
         self.y_mlp = GraphMLP([self.dim, self.dim, self.dim], activation=activation)
-        self.y_W = DenseEmbedding(self.output_dim, activation="linear",
-                                  kernel_initializer=output_kernel_initializer)
+        self.y_W = Dense(self.output_dim, activation="linear",
+                         kernel_initializer=output_kernel_initializer)
         self.add_res = LazyAdd()
 
         self.gather_nodes = GatherEmbeddingSelection([0, 1])
