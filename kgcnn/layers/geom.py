@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from typing import Union
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection, GatherState
@@ -617,43 +618,60 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         \sin(x/10000^{2i/d_{model}}) = \sin(x \; 2\pi \; / (2\pi \, 10000^{i/d_{h}}))
         \equiv \sin(x \frac{2 \pi}{\lambda})
 
-    and consequently :math:`\lambda = 2\pi \, 10000^{i/d_{h}}`. Instead of
+    and consequently :math:`\lambda = 2\pi \, 10000^{i/d_{h}}`. Inplace of :math:`2 \pi`, :math:`d_h` and
+    :math:`N=10000` this layer has parameters :obj:`wave_length_min`, :obj:`dim_half` and :obj:`num_mult`.
+    Whether :math:`\sin()` and :math:`\cos()` has to be mixed as in the original definition can be controlled by
+    :obj:`interleave_sin_cos`, which is `False` by default.
     """
 
-    def __init__(self, dim_half: int = 8, wave_length: float = 10, include_frequencies: bool = False,
-                 interleave_sin_cos: bool = False, **kwargs):
+    def __init__(self, dim_half: int = 8, wave_length_min: float = 0.1, num_mult: Union[float, int] = 100,
+                 include_frequencies: bool = False, interleave_sin_cos: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
+
+        .. note::
+
+            In the original definition, defaults are :obj:`wave_length_min`=:math:`2 \pi`, :obj:`num_mult`=10000,
+            and :obj:`interleave_sin_cos`=True.
 
         Args:
             dim_half (int): Dimension of the half output embedding space. Final basis will be 2 * `dim_half`, or
                 even 3 * `dim_half`, if `include_frequencies` is set to `True`. Defaults to 8.
-            wave_length (float): Wavelength for positional sin and cos expansion. Defaults to 10.0.
+            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
+            num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
             interleave_sin_cos (bool): Whether to interleave sin and cos terms as in the original definition of the
                 layer. Default is False.
         """
         super(PositionEncodingBasisLayer, self).__init__(**kwargs)
         self.dim_half = dim_half
-        self.wave_length = wave_length
+        self.num_mult = num_mult
+        self.wave_length_min = wave_length_min
         self.include_frequencies = include_frequencies
         self.interleave_sin_cos = interleave_sin_cos
+        if self.num_mult <= 1:
+            raise ValueError("`num_mult` must be >1. Reduce `wave_length_min` if necessary.")
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
-    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length: float = 10.0,
-                                  include_frequencies: bool = False, interleave_sin_cos: bool = False):
+    def _compute_fourier_encoding(inputs, dim_half: int = 4, wave_length_min: float = 0.1,
+                                  num_mult: Union[float, int] = 100, include_frequencies: bool = False,
+                                  interleave_sin_cos: bool = False):
         r"""Expand into fourier basis.
 
         Args:
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
             dim_half (int): Dimension of the half output embedding space.
-            include_frequencies (float): Whether to add
+            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
+            num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
+            include_frequencies (bool): Whether to also include the frequencies. Default is False.
+            interleave_sin_cos (bool): Whether to interleave sin and cos terms as in the original definition of the
+                layer. Default is False.
 
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
         steps = tf.range(dim_half, dtype=inputs.dtype) / dim_half
-        k = -math.log(wave_length)
+        k = -math.log(wave_length_min)
         freq = tf.exp(k * steps)
         scales = tf.cast(freq, dtype=inputs.dtype) * 2 * math.pi
         arg = inputs * scales
@@ -675,14 +693,15 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
         return self.call_on_values_tensor_of_ragged(
-            self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length=self.wave_length,
-            include_frequencies=self.include_frequencies, interleave_sin_cos=self.interleave_sin_cos)
+            self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length_min=self.wave_length_min,
+            num_mult=self.num_mult, include_frequencies=self.include_frequencies,
+            interleave_sin_cos=self.interleave_sin_cos)
 
     def get_config(self):
         """Update config."""
         config = super(PositionEncodingBasisLayer, self).get_config()
-        config.update({"dim_half": self.dim_half, "interleave_sin_cos": self.interleave_sin_cos,
-                       "wave_length": self.wave_length, "include_frequencies": self.include_frequencies})
+        config.update({"dim_half": self.dim_half, "wave_length_min": self.wave_length_min, "num_mult": self.num_mult,
+                       "include_frequencies": self.include_frequencies, "interleave_sin_cos": self.interleave_sin_cos})
         return config
 
 
