@@ -5,6 +5,9 @@ v2.2.0
 * Fixed behaviour for ``kgcnn.data.base.MemoryGraphDataset.get_train_test_indices`` to return list of train-test index tuples.
 * Updated ``kgcnn.hyper.hyper.HyperParameter`` to deserialize metrics and loss for multi-output models.
 * Added `trajectory_name` in `summary.py` and `history.py`. 
+* Fixed ``kgcnn.layers.geom.PositionEncodingBasisLayer``
+* Removed deprecated ``kgcnn.layers.conv.attention`` and ``kgcnn.layers.conv.message``
+* Updated ``setup.py`` for requirements.
 
 
 v2.1.1

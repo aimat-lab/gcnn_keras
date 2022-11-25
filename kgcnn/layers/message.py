@@ -16,7 +16,7 @@ class MessagePassingBase(GraphBaseLayer):
     The original message passing scheme was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
     """
 
-    def __init__(self, pooling_method="sum", **kwargs):
+    def __init__(self, pooling_method: str = "sum", **kwargs):
         r"""Initialize :obj:`MessagePassingBase` layer.
 
         Args:
