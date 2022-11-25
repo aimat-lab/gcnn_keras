@@ -624,7 +624,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
     :obj:`interleave_sin_cos`, which is `False` by default.
     """
 
-    def __init__(self, dim_half: int = 10, wave_length_min: float = 0.1, num_mult: Union[float, int] = 100,
+    def __init__(self, dim_half: int = 10, wave_length_min: float = 1, num_mult: Union[float, int] = 100,
                  include_frequencies: bool = False, interleave_sin_cos: bool = False, **kwargs):
         r"""Initialize :obj:`FourierBasisLayer` layer.
 
@@ -638,7 +638,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
 
         Args:
             dim_half (int): Dimension of the half output embedding space. Defaults to 10.
-            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
+            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
             interleave_sin_cos (bool): Whether to interleave sin and cos terms as in the original definition of the
@@ -657,7 +657,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         # Note: For arbitrary axis the code must be adapted.
 
     @staticmethod
-    def _compute_fourier_encoding(inputs, dim_half: int = 10, wave_length_min: float = 0.1,
+    def _compute_fourier_encoding(inputs, dim_half: int = 10, wave_length_min: float = 1,
                                   num_mult: Union[float, int] = 100, include_frequencies: bool = False,
                                   interleave_sin_cos: bool = False):
         r"""Expand into fourier basis.
@@ -666,7 +666,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
             inputs (tf.Tensor, tf.RaggedTensor): Tensor input with position or distance to expand into encodings.
                 Tensor must have a distance dimension, e.g. shape (N, 1). Tensor must be type 'float'.
             dim_half (int): Dimension of the half output embedding space. Defaults to 10.
-            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 0.1.
+            wave_length_min (float): Wavelength for positional sin and cos expansion. Defaults to 1.
             num_mult (int, float): Number of the geometric expansion multiplier. Default is 100.
             include_frequencies (bool): Whether to also include the frequencies. Default is False.
             interleave_sin_cos (bool): Whether to interleave sin and cos terms as in the original definition of the
@@ -963,7 +963,10 @@ class DisplacementVectorsASU(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsUnitCell')
 class DisplacementVectorsUnitCell(GraphBaseLayer):
-    """TODO: Add docs.
+    """Computes displacements vectors for edges that require sending node to be displaced or translated into an image
+    of the unit cell in a periodic system.
+
+    with edge
 
     """
 
@@ -991,13 +994,9 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Displacement vector for edges of shape `(batch, [M], 3)`.
         """
-        frac_coords = inputs[0]
-        edge_indices = inputs[1]
-        cell_translations = inputs[2]
-
+        frac_coords, edge_indices, cell_translations = inputs[0], inputs[1], inputs[2]
         # Gather sending and receiving coordinates.
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
-
         # Cell translation
         out_frac_coords = self.lazy_add([out_frac_coords, cell_translations], **kwargs)
         offset = self.lazy_sub([in_frac_coords, out_frac_coords], **kwargs)

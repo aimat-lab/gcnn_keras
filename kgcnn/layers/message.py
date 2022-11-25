@@ -9,16 +9,19 @@ from kgcnn.layers.pooling import PoolingLocalEdges
 class MessagePassingBase(GraphBaseLayer):
     r"""Base layer for Message passing type networks. This is a general frame to implement custom message and
     update functions. The idea is to create a subclass of :obj:`MessagePassingBase` and then just implement the methods
-    :obj:`message_function` and :obj:`update_nodes`. The pooling is handled by built-in :obj:`PoolingLocalEdges`.
+    :obj:`message_function` and :obj:`update_nodes`. The pooling or aggregating is handled by built-in
+    :obj:`PoolingLocalEdges`.
+
     Alternatively also :obj:`aggregate_message` could be overwritten.
     The original message passing scheme was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
-
-    Args:
-        pooling_method (str): Aggregation method of edges. Default is "sum".
     """
 
     def __init__(self, pooling_method="sum", **kwargs):
-        """Initialize MessagePassingBase layer."""
+        r"""Initialize :obj:`MessagePassingBase` layer.
+
+        Args:
+            pooling_method (str): Aggregation method of edges. Default is "sum".
+        """
         super(MessagePassingBase, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.lay_gather = GatherEmbeddingSelection([0, 1])
