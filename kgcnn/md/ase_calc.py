@@ -74,8 +74,9 @@ class KgcnnCalculator(ase.calculators.calculator.Calculator):
 
     def __init__(self,
                  models=None,
+                 inputs: list = None,
                  converter: AtomsToGraphConverter = None,
-                 graph_preprocessors: Union[list, dict, GraphPreProcessorBase] = None,
+                 graph_preprocessors: Union[list[dict]] = None,
                  scaler=None,
                  **kwargs):
         super(KgcnnCalculator, self).__init__(**kwargs)
