@@ -89,9 +89,9 @@ class RelationalDense(GraphBaseLayer):
             bias_constraint: Constraint function applied to the bias vector.
         """
         super(RelationalDense, self).__init__(**kwargs)
-        self.num_relations = num_relations
         self.units = units
         self.use_bias = use_bias
+        self.num_relations = num_relations
         self.num_bases = num_bases
         self.num_blocks = num_blocks
         self.kernel_initializer = ks.initializers.get(kernel_initializer)
@@ -184,6 +184,7 @@ class RelationalDense(GraphBaseLayer):
         return single_initializer
 
     def _construct_kernel_weights(self):
+        """Assemble the actual relational kernel from bases or blocks."""
         if self.num_blocks is not None:
             matrix_list = [tf.linalg.LinearOperatorFullMatrix(self.kernel[i]) for i in range(self.kernel.shape[0])]
             operator = tf.linalg.LinearOperatorBlockDiag(matrix_list)
@@ -220,6 +221,9 @@ class RelationalDense(GraphBaseLayer):
         config.update({
             "units": self.units,
             "use_bias": self.use_bias,
+            "num_relations": self.num_relations,
+            "num_bases": self.num_bases,
+            "num_blocks": self.num_blocks,
             "kernel_initializer": ks.initializers.serialize(self.kernel_initializer),
             "bias_initializer": ks.initializers.serialize(self.bias_initializer),
             "kernel_regularizer": ks.regularizers.serialize(self.kernel_regularizer),
