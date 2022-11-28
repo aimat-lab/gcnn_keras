@@ -20,9 +20,9 @@ class AtomsToGraphConverter:
 
         import numpy as np
         from ase import Atoms
-        from kgcnn.md.ase_calc import AtomsToGraphTransform
+        from kgcnn.md.ase_calc import AtomsToGraphConverter
         atoms = Atoms('N2', positions=[[0, 0, -1], [0, 0, 1]])
-        trans = AtomsToGraphTransform({
+        trans = AtomsToGraphConverter({
             "node_number": "get_atomic_numbers", "node_coordinates": "get_positions",
             "node_symbol": "get_chemical_symbols"})
         print(trans(atoms))
