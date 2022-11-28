@@ -21,12 +21,41 @@ class RelationalDense(GraphBaseLayer):
     This has been proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ for graph networks.
     Additionally, there are a set of regularization schemes to improve performance and reduce the number of learnable
     parameters proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ .
+    Here, the following is implemented: basis-, block-diagonal-decomposition.
+    With the basis decom-position, each :math:`\mathbf{W}_r` is defined as follows:
 
+     .. math::
+
+        \mathbf{W}_r = \sum_{b=1}^{B} a_{rb}\; \mathbf{V}_b
+
+    i.e. as a linear combination of basis transformations :math:`V_b \in \mathbb{R}^{d' \times d}` with coefficients
+    :math:`a_{rb}` such that only the coefficients depend on :math:`r`.
+    In the block-diagonal decomposition, let each :math:`W_r` be defined through the direct sum over a set of
+    low-dimensional matrices:
+
+    .. math::
+
+        \mathbf{W}_r = \otimes_{b=1}^{B} \mathbf{Q}_{br}
+
+    Thereby, :math:`W_r` are block-diagonal matrices: :math:`diag(Q_{1r} , \dots , Q_{Br})` with
+    :math:`Q_{br} \in \mathbb{R}^{(d'/B)\times(d/B)}`.
+    Usage:
+
+    .. code-block:: python
+
+        import tensorflow as tf
+        from kgcnn.layers.relational import RelationalDense
+        f = tf.ragged.constant([[[1.0, 0.0 ]], [[1.0, 4.0], [2.0, 2.0]], [[3.0, 5.0]]],
+            inner_shape=(2,), ragged_rank=1)
+        r = tf.ragged.constant([[1], [1, 2], [3]], ragged_rank=1)
+        out = RelationalDense(6, num_relations=5, num_bases=3, num_blocks=2)([f, r])
     """
 
     def __init__(self,
                  units: int,
                  num_relations: int,
+                 num_bases: int = None,
+                 num_blocks: int = None,
                  activation=None,
                  use_bias: bool = True,
                  kernel_initializer='glorot_uniform',
@@ -37,11 +66,13 @@ class RelationalDense(GraphBaseLayer):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        r"""Initialize layer like :obj:`ks.layers.RelationalDense`.
+        r"""Initialize layer similar to :obj:`ks.layers.Dense`.
 
          Args:
             units: Positive integer, dimensionality of the output space.
             num_relations: Number of relations expected to construct weights.
+            num_bases: Number of kernel basis functions to construct relations. Default is None.
+            num_blocks:  Number of block-matrices to get
             activation: Activation function to use.
                 If you don't specify anything, no activation is applied
                 (ie. "linear" activation: `a(x) = x`).
@@ -61,6 +92,8 @@ class RelationalDense(GraphBaseLayer):
         self.num_relations = num_relations
         self.units = units
         self.use_bias = use_bias
+        self.num_bases = num_bases
+        self.num_blocks = num_blocks
         self.kernel_initializer = ks.initializers.get(kernel_initializer)
         self.bias_initializer = ks.initializers.get(bias_initializer)
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
@@ -97,18 +130,46 @@ class RelationalDense(GraphBaseLayer):
             )
         assert feature_shape.rank - 1 == relation_shape.rank, "Relations must be without feature dimension."
 
+        # Find kernel shape.
+        if self.num_bases is not None:
+            num_multi_kernels = self.num_bases
+        else:
+            num_multi_kernels = self.num_relations
+        if self.num_blocks is not None:
+            assert (last_dim % self.num_blocks == 0
+                    and self.units % self.num_blocks == 0), "`num_blocks` must divide in- and output dimension."
+            in_kernel_dim = int(last_dim / self.num_blocks)
+            out_kernel_dim = int(self.units / self.num_blocks)
+        else:
+            in_kernel_dim = last_dim
+            out_kernel_dim = self.units
+        kernel_shape = [num_multi_kernels, in_kernel_dim, out_kernel_dim]
+        if self.num_blocks is not None:
+            kernel_shape = [self.num_blocks] + kernel_shape
+        # Make kernel
         self.kernel = self.add_weight(
             "kernel",
-            shape=[self.num_relations, last_dim, self.units],
-            initializer=self.kernel_initializer,
+            shape=kernel_shape,
+            initializer=self._multi_kernel_initializer(self.kernel_initializer),
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
             dtype=self.dtype, trainable=True,
         )
+        if self.num_bases is not None:
+                self.lin_bases = self.add_weight(
+                "lin_bases",
+                shape=[self.num_relations, self.num_bases],
+                initializer=self.kernel_initializer,
+                regularizer=self.kernel_regularizer,
+                constraint=self.kernel_constraint,
+                dtype=self.dtype, trainable=True,
+            )
+        else:
+            self.lin_bases = None
         if self.use_bias:
             self.bias = self.add_weight(
                 "bias",
-                shape=[self.units,],
+                shape=[self.units, ],
                 initializer=self.bias_initializer,
                 regularizer=self.bias_regularizer,
                 constraint=self.bias_constraint,
@@ -118,6 +179,20 @@ class RelationalDense(GraphBaseLayer):
             self.bias = None
 
         self.built = True
+
+    def _multi_kernel_initializer(self, single_initializer):
+        return single_initializer
+
+    def _construct_kernel_weights(self):
+        if self.num_blocks is not None:
+            matrix_list = [tf.linalg.LinearOperatorFullMatrix(self.kernel[i]) for i in range(self.kernel.shape[0])]
+            operator = tf.linalg.LinearOperatorBlockDiag(matrix_list)
+            kernel = operator.to_dense()
+        else:
+            kernel = self.kernel
+        if self.num_bases is not None:
+            kernel = tf.tensordot(self.lin_bases, kernel, [1, 0])
+        return kernel
 
     def call(self, inputs, **kwargs):
         r"""Forward pass. Here, the relation is assumed to be encoded at axis=1.
@@ -132,7 +207,8 @@ class RelationalDense(GraphBaseLayer):
             tf.RaggedTensor: Processed feature tensor. Shape is `(batch, [N], units)` of dtype 'float'.
         """
         features, relations = self.assert_ragged_input_rank(inputs, ragged_rank=1)
-        kernel_per_feature = tf.gather(self.kernel, relations.values)
+        built_kernel = self._construct_kernel_weights()
+        kernel_per_feature = tf.gather(built_kernel, relations.values)
         new_features = ks.backend.batch_dot(features.values, kernel_per_feature)
         if self.use_bias:
             new_features = new_features + self.bias
@@ -157,7 +233,3 @@ class RelationalDense(GraphBaseLayer):
             "activity_regularizer": config_act["activity_regularizer"]
         })
         return config
-
-# f = tf.ragged.constant([[[1.0, 0.0 ]],[[1.0, 4.0], [2.0, 2.0]],[[3.0, 5.0]]], inner_shape=(2,), ragged_rank=1)
-# r = tf.ragged.constant([[1],[1,2],[3]], ragged_rank=1)
-# out = RelationalDense(5, 5)([f, r])
