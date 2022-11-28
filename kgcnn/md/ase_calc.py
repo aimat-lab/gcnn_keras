@@ -11,7 +11,10 @@ from typing import Union, List
 class AtomsToGraphConverter:
     r"""Convert :obj:`ase.Atoms` object to a :obj:`GraphDict` dictionary.
 
-    Simple tool to get named properties from :obj:`ase.Atoms`. Example usage:
+    Simple tool to get named properties from :obj:`ase.Atoms`. Note that the actual graph indices and connections
+    have to be generated with :obj:`GraphPreProcessorBase` instances.
+
+    Example usage:
 
      .. code-block:: python
 
