@@ -145,12 +145,12 @@ class RelationalDense(GraphBaseLayer):
             out_kernel_dim = self.units
         kernel_shape = [num_multi_kernels, in_kernel_dim, out_kernel_dim]
         if self.num_blocks is not None:
-            kernel_shape = [self.num_blocks] + kernel_shape
+            kernel_shape = [num_multi_kernels, self.num_blocks, in_kernel_dim, out_kernel_dim]
         # Make kernel
         self.kernel = self.add_weight(
             "kernel",
             shape=kernel_shape,
-            initializer=self._multi_kernel_initializer(self.kernel_initializer),
+            initializer=self._multi_kernel_initializer,
             regularizer=self.kernel_regularizer,
             constraint=self.kernel_constraint,
             dtype=self.dtype, trainable=True,
@@ -180,13 +180,34 @@ class RelationalDense(GraphBaseLayer):
 
         self.built = True
 
-    def _multi_kernel_initializer(self, single_initializer):
-        return single_initializer
+    def _multi_kernel_initializer(self, shape, dtype=None, **kwargs):
+        """Initialize multiple relational kernels.
+
+        Args:
+            shape: Shape of multi-kernel tensor.
+            dtype: Optional dtype of the tensor.
+            kwargs: Additional keyword arguments.
+
+        Returns:
+            tf.Tensor: Tensor for initialization.
+        """
+        # For blocks the ks.initialize seems to have proper behaviour.
+        # Each block is treated as a convolution field.
+        if len(shape) < 3:
+            return self.kernel_initializer(shape, dtype=dtype, **kwargs)
+        # Initialize each kernel separately.
+        separate_kernels = [
+            tf.expand_dims(self.kernel_initializer(shape[1:], dtype=dtype, **kwargs), axis=0) for _ in range(shape[0])]
+        relational_kernel = tf.concat(separate_kernels, axis=0)
+        return relational_kernel
 
     def _construct_kernel_weights(self):
         """Assemble the actual relational kernel from bases or blocks."""
         if self.num_blocks is not None:
-            matrix_list = [tf.linalg.LinearOperatorFullMatrix(self.kernel[i]) for i in range(self.kernel.shape[0])]
+            matrix_list = [
+                tf.linalg.LinearOperatorFullMatrix(
+                    tf.gather(self.kernel, i, axis=1)) for i in range(self.kernel.shape[1])
+            ]
             operator = tf.linalg.LinearOperatorBlockDiag(matrix_list)
             kernel = operator.to_dense()
         else:
