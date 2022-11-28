@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import Union, List
 
 
-class AtomsToGraphTransform:
+class AtomsToGraphConverter:
     r"""Convert :obj:`ase.Atoms` object to a :obj:`GraphDict` dictionary.
 
     Simple tool to get named properties from :obj:`ase.Atoms`. Example usage:
@@ -27,6 +27,11 @@ class AtomsToGraphTransform:
     """
 
     def __init__(self, properties: dict = None):
+        r"""Set up :obj:`AtomsToGraphConverter` converter.
+
+        Args:
+            properties:
+        """
         if properties is None:
             properties = {"node_number": "get_atomic_numbers", "node_coordinates": "get_positions",
                           "node_symbol": "get_chemical_symbols"}
@@ -64,7 +69,8 @@ class KgcnnCalculator(ase.calculators.calculator.Calculator):
 
     def __init__(self,
                  models=None,
-                 graph_preprocessors=None,
+                 converter: AtomsToGraphConverter = None,
+                 graph_preprocessors: Union[list, dict, GraphPreProcessorBase] = None,
                  scaler=None,
                  **kwargs):
         super(KgcnnCalculator, self).__init__(**kwargs)
