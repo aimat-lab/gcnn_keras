@@ -1,0 +1,163 @@
+import tensorflow as tf
+from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.modules import Activation
+
+ks = tf.keras
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='RelationalDense')
+class RelationalDense(GraphBaseLayer):
+    r"""Relational :obj:`Dense` layer for (ragged) tensors, representing embeddings or features.
+
+    A :obj:`RelationalDense` layer computes a densely-connected NN layer, i.e. a linear transformation of the input
+    :math:`\mathbf{x}` with the kernel weights matrix :math:`\mathbf{W}_r` and bias :math:`\mathbf{b}`
+    plus (possibly non-linear) activation function :math:`\sigma` for each type of relation :math:`r` that underlies
+    the feature or embedding. Examples are different edge or node types such as chemical bonds and atomic species.
+
+    .. math::
+
+        \mathbf{x}'_r = \sigma (\mathbf{x}_r \mathbf{W}_r + \mathbf{b})
+
+    This has been proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ for graph networks.
+    Additionally, there are a set of regularization schemes to improve performance and reduce the number of learnable
+    parameters proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ .
+
+    """
+
+    def __init__(self,
+                 units: int,
+                 num_relations: int,
+                 activation=None,
+                 use_bias: bool = True,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 **kwargs):
+        r"""Initialize layer like :obj:`ks.layers.RelationalDense`.
+
+         Args:
+            units: Positive integer, dimensionality of the output space.
+            num_relations: Number of relations expected to construct weights.
+            activation: Activation function to use.
+                If you don't specify anything, no activation is applied
+                (ie. "linear" activation: `a(x) = x`).
+            use_bias: Boolean, whether the layer uses a bias vector.
+            kernel_initializer: Initializer for the `kernel` weights matrix.
+            bias_initializer: Initializer for the bias vector.
+            kernel_regularizer: Regularizer function applied to
+                the `kernel` weights matrix.
+            bias_regularizer: Regularizer function applied to the bias vector.
+            activity_regularizer: Regularizer function applied to
+                the output of the layer (its "activation").
+            kernel_constraint: Constraint function applied to
+                the `kernel` weights matrix.
+            bias_constraint: Constraint function applied to the bias vector.
+        """
+        super(RelationalDense, self).__init__(**kwargs)
+        self.num_relations = num_relations
+        self.units = units
+        self.use_bias = use_bias
+        self.kernel_initializer = ks.initializers.get(kernel_initializer)
+        self.bias_initializer = ks.initializers.get(bias_initializer)
+        self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
+        self.bias_regularizer = ks.regularizers.get(bias_regularizer)
+        self.kernel_constraint = ks.constraints.get(kernel_constraint)
+        self.bias_constraint = ks.constraints.get(bias_constraint)
+        self._layer_activation = Activation(activation=activation, activity_regularizer=activity_regularizer)
+
+    def build(self, input_shape):
+        """Build layer, i.e. check input and construct weights for this layer.
+
+        Args:
+            input_shape: Shape of the input.
+
+        Returns:
+            None.
+        """
+        assert len(input_shape) == 2, "`RelationalDense` layer requires feature plus relation information."
+        dtype = tf.as_dtype(self.dtype or ks.backend.floatx())
+        if not (dtype.is_floating or dtype.is_complex):
+            raise TypeError(
+                "A Dense layer can only be built with a floating-point "
+                f"dtype. Received: dtype={dtype}"
+            )
+
+        feature_shape = tf.TensorShape(input_shape[0])
+        relation_shape = tf.TensorShape(input_shape[1])
+        last_dim = tf.compat.dimension_value(feature_shape[-1])
+        if last_dim is None:
+            raise ValueError(
+                "The last dimension of the inputs to a Dense layer "
+                "should be defined. Found None. "
+                f"Full input shape received: {feature_shape}"
+            )
+        assert feature_shape.rank - 1 == relation_shape.rank, "Relations must be without feature dimension."
+
+        self.kernel = self.add_weight(
+            "kernel",
+            shape=[self.num_relations, last_dim, self.units],
+            initializer=self.kernel_initializer,
+            regularizer=self.kernel_regularizer,
+            constraint=self.kernel_constraint,
+            dtype=self.dtype, trainable=True,
+        )
+        if self.use_bias:
+            self.bias = self.add_weight(
+                "bias",
+                shape=[self.units,],
+                initializer=self.bias_initializer,
+                regularizer=self.bias_regularizer,
+                constraint=self.bias_constraint,
+                dtype=self.dtype, trainable=True,
+            )
+        else:
+            self.bias = None
+
+        self.built = True
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass. Here, the relation is assumed to be encoded at axis=1.
+
+        Args:
+            inputs: [features, relations]
+
+                - features (tf.RaggedTensor, tf.Tensor): Feature tensor of shape `(batch, [N], F)` of dtype 'float'.
+                - relations (tf.RaggedTensor, tf.Tensor): Relation tensor of shape `(batch, [N])` of dtype 'int'.
+
+        Returns:
+            tf.RaggedTensor: Processed feature tensor. Shape is `(batch, [N], units)` of dtype 'float'.
+        """
+        features, relations = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        kernel_per_feature = tf.gather(self.kernel, relations.values)
+        new_features = ks.backend.batch_dot(features.values, kernel_per_feature)
+        if self.use_bias:
+            new_features = new_features + self.bias
+        new_features = self._layer_activation(new_features, **kwargs)
+        return tf.RaggedTensor.from_row_splits(new_features, features.row_splits, validate=self.ragged_validate)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "units": self.units,
+            "use_bias": self.use_bias,
+            "kernel_initializer": ks.initializers.serialize(self.kernel_initializer),
+            "bias_initializer": ks.initializers.serialize(self.bias_initializer),
+            "kernel_regularizer": ks.regularizers.serialize(self.kernel_regularizer),
+            "bias_regularizer": ks.regularizers.serialize(self.bias_regularizer),
+            "kernel_constraint": ks.constraints.serialize(self.kernel_constraint),
+            "bias_constraint": ks.constraints.serialize(self.bias_constraint),
+        })
+        config_act = self._layer_activation.get_config()
+        config.update({
+            "activation": config_act["activation"],
+            "activity_regularizer": config_act["activity_regularizer"]
+        })
+        return config
+
+# f = tf.ragged.constant([[[1.0, 0.0 ]],[[1.0, 4.0], [2.0, 2.0]],[[3.0, 5.0]]], inner_shape=(2,), ragged_rank=1)
+# r = tf.ragged.constant([[1],[1,2],[3]], ragged_rank=1)
+# out = RelationalDense(5, 5)([f, r])

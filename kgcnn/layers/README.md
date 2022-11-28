@@ -11,6 +11,7 @@ The layers for `kgcnn` should accept ragged tensor input and are sorted as follo
     * `kgcnn.layers.modules` Keras layers and modules to support ragged tensor input.
     * `kgcnn.layers.pooling` General layers for standard aggregation and pooling.
     * `kgcnn.layers.message` Message passing base layer.
+    * `kgcnn.layers.relational` Relational message processing.
 
 
 * Model specific pooling and convolutional layers (they should make use of existing modules in `kgcnn.layers`) are sorted into:
