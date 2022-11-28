@@ -30,7 +30,9 @@ class AtomsToGraphConverter:
         r"""Set up :obj:`AtomsToGraphConverter` converter.
 
         Args:
-            properties:
+            properties (dict): Dictionary of graph properties linked to :obj:`ase.Atoms` get attribute methods.
+                Default is {"node_number": "get_atomic_numbers", "node_coordinates": "get_positions",
+                "node_symbol": "get_chemical_symbols"}.
         """
         if properties is None:
             properties = {"node_number": "get_atomic_numbers", "node_coordinates": "get_positions",
@@ -65,7 +67,7 @@ class AtomsToGraphConverter:
 
 
 class KgcnnCalculator(ase.calculators.calculator.Calculator):
-    """ASE calculator for machine learning models."""
+    r"""ASE calculator for machine learning models from :obj:`kgcnn`."""
 
     def __init__(self,
                  models=None,
