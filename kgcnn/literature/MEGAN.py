@@ -15,6 +15,10 @@ from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
 ks = tf.keras
 
 
+def shifted_sigmoid(x, shift=5, multiplier=1):
+    return ks.backend.sigmoid((x - shift) / multiplier)
+
+
 class MEGAN(ks.models.Model):
     """
     MEGAN: Multi Explanation Graph Attention Network
@@ -54,7 +58,6 @@ class MEGAN(ks.models.Model):
                  **kwargs):
         """
         Args:
-
             units: A list of ints where each element configures an additional attention layer. The numeric
                 value determines the number of hidden units to be used in the attention heads of that layer
             activation: The activation function to be used within the attention layers of the network
@@ -183,7 +186,8 @@ class MEGAN(ks.models.Model):
         self.compiled_bce_loss = compile_utils.LossesContainer(self.bce_loss)
 
         self.mse_loss = ks.losses.MeanSquaredError()
-        self.compiled_mse_loss = compile_utils.LossesContainer(self.mse_loss)
+        self.mae_loss = ks.losses.MeanAbsoluteError()
+        self.compiled_regression_loss = compile_utils.LossesContainer(self.mae_loss)
 
         if self.regression_limits is not None:
             self.regression_width = np.abs(self.regression_limits[1] - self.regression_limits[0])
@@ -294,10 +298,21 @@ class MEGAN(ks.models.Model):
             return out
 
     def regression_augmentation(self,
-                                out_true):
+                                out_true: tf.RaggedTensor):
+        """
+        Given the tensor ([B], 1) of true regression target values, this method will return two derived
+        tensors: The first one is a ([B], 2) tensor of normalized distances of the corresponding true
+        values to ``self.regression_reference`` and the second is a ([B], 2) boolean mask tensor.
+
+        Args:
+            out_true: A tensor of shape ([B], 1) of the true target values of the current batch.
+
+        Returns:
+            A tuple of two tensors each with the shape ([B], 2)
+        """
         center_distances = tf.abs(out_true - self.regression_reference)
-        center_distances = (center_distances * self.importance_multiplier) / (0.5 * self.regression_width)
-        center_distances = tf.expand_dims(center_distances, axis=-1)
+        center_distances = (center_distances * self.importance_multiplier) / (
+                    0.5 * self.regression_width)
 
         # So we need two things: a "samples" tensor and a "mask" tensor. We are going to use the samples
         # tensor as the actual ground truth which acts as the regression target during the explanation
@@ -306,99 +321,88 @@ class MEGAN(ks.models.Model):
 
         # The "lower" part is all the samples which have a target value below the reference value.
         lo_mask = tf.where(out_true < self.regression_reference, 1.0, 0.0)
-        lo_mask = tf.expand_dims(lo_mask, axis=-1)
-
         # The "higher" part all of the samples above reference
         hi_mask = tf.where(out_true > self.regression_reference, 1.0, 0.0)
-        hi_mask = tf.expand_dims(hi_mask, axis=-1)
 
         samples = tf.concat([center_distances, center_distances], axis=-1)
         mask = tf.concat([lo_mask, hi_mask], axis=-1)
+
         return samples, mask
 
-    def train_step_explanation(self, x, y):
-
-        if self.return_importances:
-            out_true, _, _ = y
-        else:
-            out_true = y
-
-        exp_loss = 0
-        with tf.GradientTape() as tape:
-
-            y_pred = self(x, training=True, return_importances=True)
-            out_pred, ni_pred, ei_pred = y_pred
-
-            # First of all we need to assemble the approximated model output, which is simply calculated
-            # by applying a global pooling operation on the corresponding slice of the node importances.
-            # So for each slice (each importance channel) we get a single value, which we then concatenate
-            # into an output vector with K dimensions.
-            outs = []
-            for k in range(self.importance_channels):
-                node_importances_slice = tf.expand_dims(ni_pred[:, :, k], axis=-1)
-                out = self.lay_pool_out(node_importances_slice)
-
-                outs.append(out)
-
-            # outs: ([batch], K)
-            outs = self.lay_concat_out(outs)
-
-            if self.doing_regression:
-                out_true, mask = self.regression_augmentation(out_true)
-                out_pred = outs
-                exp_loss = self.compiled_mse_loss(out_true * mask, out_pred * mask)
-
-            else:
-                out_pred = ks.backend.sigmoid(outs)
-                exp_loss = self.compiled_bce_loss(out_true, out_pred)
-
-            exp_loss *= self.importance_factor
-
-        # Compute gradients
-        trainable_vars = self.trainable_variables
-        exp_gradients = tape.gradient(exp_loss, trainable_vars)
-
-        # Update weights
-        self.optimizer.apply_gradients(zip(exp_gradients, trainable_vars))
-
-        return {'exp_loss': exp_loss}
-
     def train_step(self, data):
+        """
+        The method which is called for each individual batch of the training step. In this method a forward
+        pass of the input data of the batch is performed, the loss is calculated, the gradients of this loss
+        w.r.t to the model parameters are calculated and these gradients are used to update the weights of
+        the model.
+
+        This custom train step implements the "explanation co-training": Additionally to the main prediction
+        loss there is also a loss term which uses only the node importance values to approximate a
+        normalized versions of the target values.
+
+        Args:
+            data: Tuple of two tensors (X, Y) where X is the batch tensor of all the inputs and Y is the
+                batch tensor of the target output values.
+
+        Returns:
+            A dictionary whose keys are the names of metrics and the values are the corresponding values
+            of these metrics for this iteration of the training.
+        """
         if len(data) == 3:
             x, y, sample_weight = data
         else:
             sample_weight = None
             x, y = data
 
-        # The "train_step_explanation" method will execute the entire explanation train step once. This
-        # mainly involves creating an approximate solution of the original regression / classification
-        # problem using ONLY the node importances of the different channels and then performing one
-        # complete weight update based on the corresponding loss.
-        if self.importance_factor != 0:
-            exp_metrics = self.train_step_explanation(x, y)
-        else:
-            exp_metrics = {}
-
         with tf.GradientTape() as tape:
-            y_pred = self(x, training=True)
             if self.return_importances:
                 out_true, ni_true, ei_true = y
-                out_pred, ni_pred, ei_pred = self(x, training=True)
-                loss = self.compiled_loss(
-                    [out_true, ni_true, ei_true],
-                    [out_pred, ni_pred, ei_pred],
-                    sample_weight=sample_weight,
-                    regularization_losses=self.losses,
-                )
             else:
                 out_true = y
-                out_pred = self(x, training=True)
-                loss = self.compiled_loss(
-                    out_true,
-                    out_pred,
-                    sample_weight=sample_weight,
-                    regularization_losses=self.losses,
-                )
+
+            y_pred = self(x, training=True, return_importances=True)
+            out_pred, ni_pred, ei_pred = y_pred
+            loss = self.compiled_loss(
+                y,
+                y_pred,
+                sample_weight=sample_weight,
+                regularization_losses=self.losses,
+            )
+
+            exp_metrics = {}
+            if self.importance_factor != 0:
+                # ~ explanation loss
+                # First of all we need to assemble the approximated model output, which is simply calculated
+                # by applying a global pooling operation on the corresponding slice of the node importances.
+                # So for each slice (each importance channel) we get a single value, which we then
+                # concatenate into an output vector with K dimensions.
+                outs = []
+                for k in range(self.importance_channels):
+                    node_importances_slice = tf.expand_dims(ni_pred[:, :, k], axis=-1)
+                    out = self.lay_pool_out(node_importances_slice)
+
+                    outs.append(out)
+
+                # outs: ([batch], K)
+                outs = self.lay_concat_out(outs)
+
+                if self.doing_regression:
+                    out_true, mask = self.regression_augmentation(out_true)
+                    out_pred = outs
+                    exp_loss = self.importance_channels * self.compiled_regression_loss(out_true * mask,
+                                                                                        out_pred * mask)
+
+                else:
+                    out_pred = shifted_sigmoid(
+                        outs,
+                        shift=self.importance_multiplier,
+                        multiplier=(self.importance_multiplier / 5)
+                    )
+                    exp_loss = self.compiled_classification_loss(out_true, out_pred)
+
+                exp_loss *= self.importance_factor
+                exp_metrics['exp_loss'] = exp_loss
+                loss += exp_loss
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
@@ -407,7 +411,7 @@ class MEGAN(ks.models.Model):
 
         self.compiled_metrics.update_state(
             y,
-            y_pred,
+            out_pred if not self.return_importances else [out_pred, ni_pred, ei_pred],
             sample_weight=sample_weight
         )
 
