@@ -299,6 +299,10 @@ class QMGraphLabelScaler:
     The class is simply a list of separate scaler and scales each target of shape [N_samples, target] with a scaler
     from its list. :obj:`QMGraphLabelScaler` is intended as a scaler list class.
 
+    The scaler uses `y` argument but for compatibility reason will also work with labels assigned to `X`
+    argument in :obj:`fit`, :obj:`transform` etc. Each label is passed to the corresponding scaler in list simply
+    as first argument without keyword `X` or `y`.
+
     .. code-block:: python
 
         import numpy as np

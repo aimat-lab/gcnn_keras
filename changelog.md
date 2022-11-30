@@ -9,6 +9,7 @@ v2.2.0
 * Removed deprecated ``kgcnn.layers.conv.attention`` and ``kgcnn.layers.conv.message``
 * Updated ``setup.py`` for requirements.
 * HOTFIX: Error in ``kgcnn.scaler.mol.ExtensiveMolecuarScaler``, where scale was not properly applied. However, this was only present in development (master) version, not in release.
+* Added ``kgcnn.layers.rational`` with relation dense layer.
 
 
 v2.1.1
