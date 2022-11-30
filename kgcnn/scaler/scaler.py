@@ -7,7 +7,7 @@ from kgcnn.data.utils import save_json_file, load_json_file
 class StandardScaler(StandardScalerSklearn):
     r"""Standard scaler that inherits from :obj:`sklearn.preprocessing.StandardScaler`.
     Added functionality to save and load weights of this scaler. Included dummy kwarg 'atomic_number' to be compatible
-    with molar scaler.
+    with material oriented scaler.
 
     .. code-block:: python
 
@@ -24,6 +24,7 @@ class StandardScaler(StandardScalerSklearn):
         new_scaler = StandardScaler()
         new_scaler.load("example.json")
         print(new_scaler.inverse_transform(scaler.transform(X=data)))
+
     """
 
     _attributes_list_sklearn = ["n_features_in_", "mean_", "scale_", "var_", "feature_names_in_", "n_samples_seen_"]

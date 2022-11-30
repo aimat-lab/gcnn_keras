@@ -8,6 +8,7 @@ v2.2.0
 * Fixed ``kgcnn.layers.geom.PositionEncodingBasisLayer``
 * Removed deprecated ``kgcnn.layers.conv.attention`` and ``kgcnn.layers.conv.message``
 * Updated ``setup.py`` for requirements.
+* HOTFIX: Error in ``kgcnn.scaler.mol.ExtensiveMolecuarScaler``, where scale was not properly applied. However, this was only present in development (master) version, not in release.
 
 
 v2.1.1

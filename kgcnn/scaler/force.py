@@ -4,14 +4,16 @@ from kgcnn.scaler.mol import ExtensiveMolecularScaler
 
 
 class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
-    r"""Extensive scaler for energy and forces jointly.
+    r"""Extensive scaler for scaling jointly energy, forces and optinally coordinates.
+
     Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` but makes use of `X`, `y`, `force`, `atomic_number`
     input parameters, in contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` which uses only
-    `X` and `atomic_number`. The coordinates are not scaled at the moment but can be added in current class layout.
+    `X` and `atomic_number`. The coordinates are expected to be the `X` argument and the output, that is an energy, as
+    the `y` argument to match the convention of the `Scaler` classes.
 
     .. note::
 
-        Note that units for energy and forces must match.
+        Units for energy and forces must match.
 
     Code example for scaler:
 
@@ -44,20 +46,20 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
 
-    def fit(self, X, *, y=None, sample_weight=None, force=None, atomic_number=None):
+    def fit(self, *, X=None, y=None, sample_weight=None, force=None, atomic_number=None):
         """Fit Scaler to data.
 
         Args:
             X (list): List of coordinates as numpy arrays.
             y (np.ndarray): Array of energy of shape `(n_samples, n_states)`.
             sample_weight (np.ndarray): Weights for each sample.
-            force list (list): List of forces as numpy arrays
+            force (list): List of forces as numpy arrays
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
         """
         return super(EnergyForceExtensiveScaler, self).fit(
             X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, X, *, y=None, copy=None, force=None, atomic_number=None, **fit_params):
+    def fit_transform(self, *, X=None, y=None, copy=None, force=None, atomic_number=None, **fit_params):
         """Fit Scaler to data.
 
         Args:
@@ -75,7 +77,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         self.fit(X=X, y=y, atomic_number=atomic_number, force=force, **fit_params)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
-    def transform(self, X: Union[list, np.ndarray], *, y=None, copy=None, force=None, atomic_number=None):
+    def transform(self, *, X=None, y=None, copy=None, force=None, atomic_number=None):
         """Perform scaling of atomic energies and forces.
 
         Args:
@@ -96,7 +98,8 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             force_scaled = [f / np.expand_dims(self.scale_, axis=0) for f in force_scaled]
         return X, y_scaled, force_scaled
 
-    def inverse_transform(self, X: Union[list, np.ndarray], *, y=None, copy=None, force=None, atomic_number=None):
+    def inverse_transform(self, *, X=None, y=None, copy=None, force=None,
+                          atomic_number=None):
         """Scale back data for atoms.
 
         Args:

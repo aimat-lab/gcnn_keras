@@ -32,6 +32,7 @@ class ExtensiveMolecularScaler:
         new_scaler = ExtensiveMolecularScaler()
         new_scaler.load("example.json")
         print(new_scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
+
     """
 
     _attributes_list_sklearn = ["n_features_in_", "coef_", "intercept_", "n_iter_", "feature_names_in_"]
@@ -140,29 +141,35 @@ class ExtensiveMolecularScaler:
         plt.legend(loc='upper left', fontsize='x-small')
         plt.show()
 
-    def transform(self, X, *, copy=None, atomic_number):
+    def transform(self, X, *, y=None, copy=True, atomic_number):
         """Transform any atomic number list with matching properties based on previous fit. Also std-scaled.
 
         Args:
             X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
-            copy (bool): Not yet implemented.
+            y (np.ndarray): Ignored.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        x_scaled = X - self.predict(atomic_number)
-        if self._standardize_scale:
-            x_scaled / np.expand_dims(self.scale_, axis=0)
-        return x_scaled
+        if copy:
+            X = X - self.predict(atomic_number)
+            if self._standardize_scale:
+                X = X / np.expand_dims(self.scale_, axis=0)
+        else:
+            X -= self.predict(atomic_number)
+            if self._standardize_scale:
+                X /= np.expand_dims(self.scale_, axis=0)
+        return X
 
-    def fit_transform(self, X, *, y=None, copy=None, sample_weight=None, atomic_number=None):
+    def fit_transform(self, X, *, y=None, copy=True, sample_weight=None, atomic_number=None):
         """Combine fit and transform methods in one call.
 
         Args:
             X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
             y (np.ndarray): Ignored.
-            copy (bool): Not yet implemented.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
@@ -174,21 +181,27 @@ class ExtensiveMolecularScaler:
         self.fit(X=X, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
         return self.transform(X=X, copy=copy, atomic_number=atomic_number)
 
-    def inverse_transform(self, X, *, copy=None, atomic_number):
+    def inverse_transform(self, X, *, y=None, copy=True, atomic_number):
         """Reverse the transform method to original properties without offset and scaled to original units.
 
         Args:
             X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`
-            copy (bool): Not yet implemented.
+            y (np.ndarray): Ignored.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
         Returns:
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
         """
-        x_rescaled = X
-        if self._standardize_scale:
-            x_rescaled = x_rescaled * np.expand_dims(self.scale_, axis=0)
-        return x_rescaled + self.predict(atomic_number)
+        if copy:
+            if self._standardize_scale:
+                X = X * np.expand_dims(self.scale_, axis=0)
+            X = X + self.predict(atomic_number)
+        else:
+            if self._standardize_scale:
+                X *= np.expand_dims(self.scale_, axis=0)
+            X += self.predict(atomic_number)
+        return X
 
     def get_config(self):
         """Get configuration for scaler."""
@@ -296,15 +309,16 @@ class QMGraphLabelScaler:
             np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
         ]
         scaler = QMGraphLabelScaler([ExtensiveMolecularScaler(), StandardScaler()])
-        scaler.fit(X=data, atomic_number=mol_num)
+        scaler.fit(y=data, atomic_number=mol_num)
         print(scaler.get_weights())
         print(scaler.get_config())
-        print(scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
+        print(scaler.inverse_transform(scaler.transform(y=data, atomic_number=mol_num), atomic_number=mol_num))
         print(data)
         scaler.save("example.json")
         new_scaler = QMGraphLabelScaler([ExtensiveMolecularScaler(), StandardScaler()])
         new_scaler.load("example.json")
-        print(new_scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
+        print(new_scaler.inverse_transform(scaler.transform(y=data, atomic_number=mol_num), atomic_number=mol_num))
+
     """
 
     def __init__(self, scaler: list):
@@ -321,9 +335,9 @@ class QMGraphLabelScaler:
 
             # Otherwise, must be serialized version of a scaler.
             if not isinstance(x, dict):
-                raise TypeError("Single scaler for `QMGraphLabelScaler` must be dict, got '%s'." % x)
+                raise TypeError("Single scaler for `QMGraphLabelScaler` deserialization must be dict, got '%s'." % x)
             if "class_name" not in x:
-                raise ValueError("Scaler class for single target must be defined, got '%s'" % x)
+                raise ValueError("Scaler class for single target must be defined, got '%s'." % x)
 
             # Pick allowed scaler.
             if x["class_name"] == "StandardScaler":
@@ -331,89 +345,100 @@ class QMGraphLabelScaler:
             elif x["class_name"] == "ExtensiveMolecularScaler":
                 self.scaler_list.append(ExtensiveMolecularScaler(**x["config"]))
             else:
-                raise ValueError("Unsupported scaler %s" % x["name"])
+                raise ValueError("Unsupported scaler '%s'." % x["name"])
 
-    def fit_transform(self, X, *, y=None, copy=None, sample_weight=None, atomic_number=None):
-        r"""Fit and transform all target labels for QM9.
+    def fit_transform(self, y=None, *, X=None, copy=True, sample_weight=None, atomic_number=None):
+        r"""Fit and transform all target labels for QM.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
-            y (np.ndarray): Not used.
-            copy (bool): Not fully supported.
+            y (np.ndarray): Array of atomic labels of shape `(n_samples, n_labels)`.
+            X (np.ndarray): Not used.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
-            np.ndarray: Transformed labels of shape `(N, 15)`.
+            np.ndarray: Transformed labels of shape `(n_samples, n_labels)`.
         """
         self.fit(X=X, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform(X=X, copy=copy, atomic_number=atomic_number)
+        return self.transform(X=X, y=y, copy=copy, atomic_number=atomic_number)
 
-    def transform(self, X, *, copy=None, atomic_number: list = None):
+    def transform(self, y=None, *, X=None, copy=True, atomic_number: list = None):
         r"""Transform all target labels for QM. Requires :obj:`fit()` called previously.
 
         Args:
-            X (np.ndarray): Array of QM unscaled labels of shape `(N, #labels)`.
-            copy (bool): Not fully supported.
+            y (np.ndarray): Array of QM unscaled labels of shape `(n_samples, n_labels)`.
+            X (np.ndarray): Not used.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of atomic numbers for each molecule. E.g. `[np.array([6,1,1,1]), ...]`.
 
         Returns:
-            np.ndarray: Transformed labels of shape `(N, #labels)`.
+            np.ndarray: Transformed labels of shape `(n_samples, n_labels)`.
         """
-        self._check_input(atomic_number, X)
+        labels = self._check_input(atomic_number,  X, y)
 
-        out_labels = []
-        for i, x in enumerate(self.scaler_list):
-            labels = X[:, i:i+1]
-            out_labels.append(x.transform(X=labels, atomic_number=atomic_number))
-
-        out_labels = np.concatenate(out_labels, axis=-1)
+        if copy:
+            out_labels = []
+            for i, x in enumerate(self.scaler_list):
+                out_labels.append(x.transform(X=labels[:, i:i+1], atomic_number=atomic_number, copy=copy))
+            out_labels = np.concatenate(out_labels, axis=-1)
+        else:
+            for i, x in enumerate(self.scaler_list):
+                x.transform(X=labels[:, i:i+1], atomic_number=atomic_number, copy=copy)
+            out_labels = labels
         return out_labels
 
-    def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
+    def fit(self, y=None, *, X=None, sample_weight=None, atomic_number=None):
         r"""Fit scaling of QM graph labels or targets.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
-            y (np.ndarray): Ignored.
+            y (np.ndarray): Array of atomic labels of shape `(n_samples, n_labels)`.
+            X (np.ndarray): Ignored.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
             self
         """
-        self._check_input(atomic_number, X)
+        labels = self._check_input(atomic_number, X, y)
 
         for i, x in enumerate(self.scaler_list):
-            labels = X[:, i:i + 1]
-            x.fit(X=labels, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
+            x.fit(labels[:, i:i + 1], atomic_number=atomic_number, sample_weight=sample_weight)
 
         return self
 
-    def inverse_transform(self, X, *, copy: bool = None, atomic_number: list = None):
+    def inverse_transform(self, y, *, X=None, copy: bool = True, atomic_number: list = None):
         r"""Back-transform all target labels for QM.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
-            copy (bool): Not fully supported.
+            y (np.ndarray): Array of atomic labels of shape `(n_samples, n_labels)`.
+            X (np.ndarray): Not used.
+            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
         Returns:
-            np.ndarray: Back-transformed labels of shape `(N, 15)`.
+            np.ndarray: Back-transformed labels of shape `(n_samples, n_labels)`.
         """
-        self._check_input(atomic_number, X)
+        labels = self._check_input(atomic_number, X, y)
 
-        out_labels = []
-        for i, x in enumerate(self.scaler_list):
-            labels = X[:, i:i + 1]
-            out_labels.append(x.inverse_transform(X=labels, atomic_number=atomic_number))
+        if copy:
+            out_labels = []
+            for i, x in enumerate(self.scaler_list):
+                out_labels.append(x.inverse_transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy))
+            out_labels = np.concatenate(out_labels, axis=-1)
+        else:
+            for i, x in enumerate(self.scaler_list):
+                x.inverse_transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy)
+            out_labels = labels
 
-        out_labels = np.concatenate(out_labels, axis=-1)
         return out_labels
 
-    def _check_input(self, node_number, graph_labels):
+    def _check_input(self, node_number, X, y):
+        assert X is not None or y is not None, "`QMGraphLabelScaler` did not get properties or labels."
+        graph_labels = X if (y is None and X is not None) else y
         assert len(node_number) == len(graph_labels), "`QMGraphLabelScaler` input length does not match."
         assert graph_labels.shape[-1] == len(self.scaler_list), "`QMGraphLabelScaler` got wrong number of labels."
+        return graph_labels
 
     @property
     def scale_(self):
