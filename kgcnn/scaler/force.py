@@ -4,7 +4,7 @@ from kgcnn.scaler.mol import ExtensiveMolecularScaler
 
 
 class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
-    r"""Extensive scaler for scaling jointly energy, forces and optinally coordinates.
+    r"""Extensive scaler for scaling jointly energy, forces and optionally coordinates.
 
     Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` but makes use of `X`, `y`, `force`, `atomic_number`
     input parameters, in contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` which uses only
@@ -46,6 +46,8 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
     def __init__(self, standardize_coordinates: bool = True, **kwargs):
         super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
+        if not self._standardize_coordinates:
+            raise NotImplementedError("Scaling of coordinates is not yet supported.")
 
     def fit(self, *, X=None, y=None, sample_weight=None, force=None, atomic_number=None):
         """Fit Scaler to data.
@@ -84,7 +86,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         Args:
             X (list, np.ndarray): List of coordinates as numpy arrays.
             y (np.ndarray): Array of energy of shape `(n_samples, n_states)`.
-            copy (bool): Not yet implemented.
+            copy (bool): Whether to copy array or change inplace.
             force (list): List of forces as numpy arrays.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
@@ -106,7 +108,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         Args:
             X (list, np.ndarray): List of coordinates as numpy arrays.
             y (np.ndarray): Array of energy of shape `(n_samples, n_states)`.
-            copy (bool): Not yet implemented.
+            copy (bool): Whether to copy array or change inplace.
             force (list): List of forces as numpy arrays.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
 
