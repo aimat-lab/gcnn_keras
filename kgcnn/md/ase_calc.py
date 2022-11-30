@@ -78,11 +78,11 @@ class EnergyForceExtensivePostProcessor:
     def __init__(self, scaler: None):
         self.scaler = scaler
 
-    def __call__(self, model_output_dict: dict, atoms):
-        energy, forces = model_output_dict["energy"], model_output_dict["forces"]
-        _, energy, forces = self.scaler(X=None, y=energy, force=forces)
-        model_output_dict.update({"energy": energy, "forces": forces})
-        return model_output_dict
+    def __call__(self, result_dict: dict, atoms):
+        energy, forces = result_dict["energy"], result_dict["forces"]
+        _, energy, forces = self.scaler(X=None, y=energy, force=forces, atom_number=atoms.get_atomic_numbers())
+        result_dict.update({"energy": energy, "forces": forces})
+        return result_dict
 
 
 class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
@@ -141,7 +141,6 @@ class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
         output_dict = {key: value.numpy() for key, value in tensor_dict.items()}
 
         return output_dict
-
 
     # Interface to ASE calculator scheme.
     def calculate(self, atoms=None, properties=None, system_changes=None):
