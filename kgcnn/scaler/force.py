@@ -10,6 +10,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
     input parameters, in contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularScaler` which uses only
     `X` and `atomic_number`. The coordinates are expected to be the `X` argument and the output, that is an energy, as
     the `y` argument to match the convention of the `Scaler` classes.
+    Interface is designed after scikit-learn scaler.
 
     .. note::
 

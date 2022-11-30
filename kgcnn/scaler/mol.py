@@ -9,7 +9,7 @@ from kgcnn.data.utils import save_json_file, load_json_file
 
 class ExtensiveMolecularScaler:
     r"""Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
-    contributions. Interface is designed after scikit-learn standard scaler. Internally Ridge regression ist used.
+    contributions. Interface is designed after scikit-learn scaler. Internally Ridge regression ist used.
     Only the atomic number is used as extensive scaler. This could be further improved by also taking bonds and
     interactions into account, e.g. as energy contribution.
 
@@ -294,7 +294,7 @@ class ExtensiveMolecularScaler:
 class QMGraphLabelScaler:
     r"""A scaler that scales QM targets differently. For now, the main difference is that intensive and extensive
     properties are scaled differently. In principle, also dipole, polarizability or rotational constants
-    could to be standardized differently.
+    could to be standardized differently. Interface is designed after scikit-learn scaler.
 
     The class is simply a list of separate scaler and scales each target of shape [N_samples, target] with a scaler
     from its list. :obj:`QMGraphLabelScaler` is intended as a scaler list class.
