@@ -101,7 +101,7 @@ def partition_row_indexing(tensor_index, part_target, part_index,
                            to_indexing: str = 'batch'):
     """Change the indices in an index-tensor to reference within row partition. Assuming the indices refer to the rows
     of a values tensor, introducing a row-partition for value and index tensor requires the indices to be shifted
-    accordingly. Provided the the first dimension is the batch-dimension, the change of indices would then change from
+    accordingly. Provided the first dimension is the batch-dimension, the change of indices would then change from
     a sample to a batch assignment or vice versa. For graph networks this can be between e.g. edge-indices referring to
     nodes in each graph or in case of batch-assignment, this is equivalent to the so-called disjoint representation.
     To change indices, the row partition of index and target tensor must be known.
