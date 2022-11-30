@@ -8,8 +8,16 @@ import tempfile
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as ks
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 from kgcnn.literature.MEGAN import MEGAN
+from kgcnn.literature.MEGAN import shifted_sigmoid
+
+from .utils import ASSETS_PATH
+
+
+mpl.use('TkAgg')
 
 
 class TestMegan(unittest.TestCase):
@@ -34,6 +42,33 @@ class TestMegan(unittest.TestCase):
         )
 
     # -- UNITTESTS --
+
+    def test_plot_shifted_sigmoid(self):
+
+        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(10, 10))
+        xs = np.linspace(0, 20, 1000)
+
+        ax.set_title('Shifted sigmoid for MEGAN')
+        ax.plot(xs, shifted_sigmoid(xs, multiplier=1), label='multiplier: 1')
+        ax.plot(xs, shifted_sigmoid(xs, multiplier=2), label='multiplier: 2')
+        ax.plot(xs, shifted_sigmoid(xs, multiplier=3), label='multiplier: 3')
+        ax.legend()
+
+        pdf_path = os.path.join(ASSETS_PATH, 'megan_shifted_sigmoid.pdf')
+        fig.savefig(pdf_path)
+
+    def test_shifted_sigmoid_setting_rules(self):
+        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(10, 10))
+        xs = np.linspace(0, 40, 1000)
+
+        ax.set_title('Shifted sigmoid for MEGAN')
+        ax.plot(xs, shifted_sigmoid(xs, shift=5, multiplier=1), label='shift: 5')
+        ax.plot(xs, shifted_sigmoid(xs, shift=10, multiplier=2), label='shift: 10')
+        ax.plot(xs, shifted_sigmoid(xs, shift=15, multiplier=3), label='shift: 15')
+        ax.legend()
+
+        pdf_path = os.path.join(ASSETS_PATH, 'megan_shifted_sigmoid_setting_rules.pdf')
+        fig.savefig(pdf_path)
 
     def test_construction_basically_works(self):
         model = MEGAN(units=[1])
