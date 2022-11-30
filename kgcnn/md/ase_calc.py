@@ -4,6 +4,7 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
 from kgcnn.graph.base import GraphDict, GraphPreProcessorBase
 from kgcnn.graph.serial import get_preprocessor
+from kgcnn.data.base import MemoryGraphList
 from copy import deepcopy
 from typing import Union, List
 
@@ -42,14 +43,14 @@ class AtomsToGraphConverter:
                           "node_symbol": "get_chemical_symbols"}
         self.properties = deepcopy(properties)
 
-    def __call__(self, atoms: Union[List[Atoms], Atoms]) -> list:
+    def __call__(self, atoms: Union[List[Atoms], Atoms]) -> MemoryGraphList:
         r"""Make :obj:`GraphDict` objects from :obj:`ase.Atoms`.
 
         Args:
             atoms (list): List of :obj:`ase.Atoms` objects or single ASE atoms object.
 
         Returns:
-            list: List of :obj:`GraphDict` objects.
+            MemoryGraphList: List of :obj:`GraphDict` objects.
         """
         if isinstance(atoms, Atoms):
             atoms = [atoms]
@@ -61,7 +62,7 @@ class AtomsToGraphConverter:
                 g.update({key: np.array(getattr(Atoms, value)(x))})
             graph_list.append(g)
 
-        return graph_list
+        return MemoryGraphList(graph_list)
 
     def get_config(self):
         """Get config for this class."""
@@ -73,13 +74,66 @@ class KgcnnCalculator(ase.calculators.calculator.Calculator):
     r"""ASE calculator for machine learning models from :obj:`kgcnn`."""
 
     def __init__(self,
-                 models=None,
-                 inputs: list = None,
+                 models: list = None,
+                 model_inputs: Union[list, dict] = None,
+                 model_outputs: Union[list, dict] = None,
                  converter: AtomsToGraphConverter = None,
-                 graph_preprocessors: Union[list[dict]] = None,
-                 scaler=None,
+                 graph_preprocessors: List[dict] = None,
+                 scaler: list = None,
                  **kwargs):
         super(KgcnnCalculator, self).__init__(**kwargs)
 
-    def calculate(self, atoms=None, properties=None, system_changes=None):
+        self.converter = converter
+        self.models = models
+        self.model_inputs = model_inputs
+        self.model_outputs = model_outputs
+        self.graph_preprocessors = graph_preprocessors
+        self.scaler = scaler
+
+    def _model_load(self, file_path: Union[List[str], str]) -> list:
         pass
+
+    @staticmethod
+    def _translate_properties(properties, translation) -> dict:
+        if isinstance(translation, list):
+            assert isinstance(properties, list), "With '%s' require list for '%s'." % (translation, properties)
+            output = {key: properties[i] for i, key in enumerate(translation)}
+        elif isinstance(translation, dict):
+            assert isinstance(properties, dict), "With '%s' require dict for '%s'." % (translation, properties)
+            output = {key: properties[value] for key, value in translation.items()}
+        elif isinstance(translation, str):
+            assert not isinstance(properties, (list, dict)), "Must be array for str '%s'." % properties
+            output = {translation: properties}
+        else:
+            raise TypeError("'%s' output translation must be 'str', 'dict' or 'list'." % properties)
+        return output
+
+    def _model_predict(self, atoms: Union[List[Atoms], Atoms]):
+        graph_list = self.converter(atoms)  # type MemoryGraphList
+        graph_list.map_list(self.graph_preprocessors)
+        tensor_input = graph_list.tensor(self.model_inputs)
+        outputs = {}
+        for s, m in zip(self.scaler, self.models):
+
+            try:
+                tensor_output = m(tensor_input, training=False)
+            except ValueError:
+                tensor_output = m.predict(tensor_input)
+
+            # Translate output
+            tensor_output = self._translate_properties(tensor_output, self.model_outputs)
+
+            # Rescale output
+            if s is not None:
+                if hasattr(s, "_standardize_coordinates"):
+                    assert s._standardize_coordinates is False, "Scaling of model input is not supported."
+                tensor_output = s.inverse_transform(tensor_output)
+
+            # Prepare output.
+
+    # Interface to ASE calculator scheme.
+    def calculate(self, atoms=None, properties=None, system_changes=None):
+
+        if not self.calculation_required(atoms, properties):
+            # Nothing to do.
+            return
