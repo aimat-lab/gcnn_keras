@@ -2,9 +2,8 @@ import ase
 import tensorflow as tf
 import numpy as np
 from ase import Atoms
-from ase.calculators.calculator import Calculator, all_changes
-from kgcnn.graph.base import GraphDict, GraphPreProcessorBase
-from kgcnn.graph.serial import get_preprocessor
+from ase.calculators.calculator import Calculator
+from kgcnn.graph.base import GraphDict
 from kgcnn.data.base import MemoryGraphList
 from copy import deepcopy
 from typing import Union, List
@@ -73,90 +72,25 @@ class AtomsToGraphConverter:
         return config
 
 
-class EnergyForceExtensivePostProcessor:
-
-    def __init__(self, scaler: None):
-        self.scaler = scaler
-
-    def __call__(self, result_dict: dict, atoms):
-        energy, forces = result_dict["energy"], result_dict["forces"]
-        _, energy, forces = self.scaler(X=None, y=energy, force=forces, atom_number=atoms.get_atomic_numbers())
-        result_dict.update({"energy": energy, "forces": forces})
-        return result_dict
-
-
 class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
     r"""ASE calculator for machine learning models from :obj:`kgcnn`."""
 
     def __init__(self,
-                 model: ks.models.Model = None,
-                 model_inputs: Union[list, dict] = None,
-                 model_outputs: Union[list, dict] = None,
+                 model_predictor=None,
                  atoms_converter: AtomsToGraphConverter = None,
-                 graph_preprocessors: List[dict] = None,
-                 results_postprocessors=None,
                  **kwargs):
         super(KgcnnSingleCalculator, self).__init__(**kwargs)
-
+        self.model_predictor = model_predictor
         self.atoms_converter = atoms_converter
-        self.model = model
-        self.model_inputs = model_inputs
-        self.model_outputs = model_outputs
-        self.graph_preprocessors = graph_preprocessors
-        self.results_postprocessors = results_postprocessors
-
-    def _model_load(self, file_path: str) -> list:
-        pass
-
-    @staticmethod
-    def _translate_properties(properties, translation) -> dict:
-        if isinstance(translation, list):
-            assert isinstance(properties, list), "With '%s' require list for '%s'." % (translation, properties)
-            output = {key: properties[i] for i, key in enumerate(translation)}
-        elif isinstance(translation, dict):
-            assert isinstance(properties, dict), "With '%s' require dict for '%s'." % (translation, properties)
-            output = {key: properties[value] for key, value in translation.items()}
-        elif isinstance(translation, str):
-            assert not isinstance(properties, (list, dict)), "Must be array for str '%s'." % properties
-            output = {translation: properties}
-        else:
-            raise TypeError("'%s' output translation must be 'str', 'dict' or 'list'." % properties)
-        return output
-
-    def _model_predict(self, atoms: Union[List[Atoms], Atoms]) -> dict:
-        graph_list = self.atoms_converter(atoms)  # type MemoryGraphList
-
-        graph_list.map_list(self.graph_preprocessors)
-        tensor_input = graph_list.tensor(self.model_inputs)
-            
-        try:
-            tensor_output = self.model(tensor_input, training=False)
-        except ValueError:
-            tensor_output = self.model.predict(tensor_input)
-
-        # Translate output
-        tensor_dict = self._translate_properties(tensor_output, self.model_outputs)
-
-        # Cast to numpy
-        output_dict = {key: value.numpy() for key, value in tensor_dict.items()}
-
-        return output_dict
 
     # Interface to ASE calculator scheme.
     def calculate(self, atoms=None, properties=None, system_changes=None):
-
         if not self.calculation_required(atoms, properties):
             # Nothing to do.
             return
 
-        output_dict = self._model_predict(atoms)
+        graph_list = self.atoms_converter(atoms)
+        output_dict = self.model_predictor(graph_list)
 
-        # Apply PostProcessor
-        if self.results_postprocessors:
-            if isinstance(self.results_postprocessors, (list, tuple)):
-                for mpp in self.results_postprocessors:
-                    output_dict = mpp(output_dict, atoms)
-            else:
-                output_dict = self.results_postprocessors(output_dict, atoms)
-
+        # Update.
         self.results = output_dict
