@@ -46,7 +46,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
     def __init__(self, standardize_coordinates: bool = True, **kwargs):
         super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
-        if not self._standardize_coordinates:
+        if self._standardize_coordinates:
             raise NotImplementedError("Scaling of coordinates is not yet supported.")
 
     def fit(self, *, X=None, y=None, sample_weight=None, force=None, atomic_number=None):
