@@ -20,8 +20,7 @@ def shifted_sigmoid(x, shift=5, multiplier=1):
 
 
 class MEGAN(ks.models.Model):
-    """
-    MEGAN: Multi Explanation Graph Attention Network
+    """MEGAN: Multi Explanation Graph Attention Network
 
     This model currently supports graph regression and graph classification problems. It was mainly designed
     with a focus on explainable AI (XAI). Along the main prediction, this model is able to output multiple
@@ -424,8 +423,16 @@ class MEGAN(ks.models.Model):
 
 
 def make_model(inputs: Optional[list] = None,
-               **kwargs
-               ):
+               **kwargs):
+    r"""Functional model definition of MEGAN. Please check documentation of :obj:`kgcnn.literature.MEGAN` .
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        kwargs: Kwargs for MEGAN model. Please check documentation of :obj:`kgcnn.literature.MEGAN` .
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
     # Building the actual model
     megan = MEGAN(**kwargs)
 
