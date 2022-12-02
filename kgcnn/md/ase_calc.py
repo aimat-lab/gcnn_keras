@@ -88,6 +88,7 @@ class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
         if not self.calculation_required(atoms, properties):
             # Nothing to do.
             return
+        super(KgcnnSingleCalculator, self).calculate(atoms=atoms,properties=properties, system_changes=system_changes)
 
         graph_list = self.atoms_converter(atoms)
         output_dict = self.model_predictor(graph_list)

@@ -252,32 +252,24 @@ class GraphDict(dict):
 GraphNumpyContainer = GraphDict
 
 
-class GraphPreProcessorBase:
+class GraphProcessorBase:
 
-    def __init__(self, *, in_place: bool = False, name: str = None):
-        self._config_kwargs = {"in_place": in_place, "name": name}
-        self._to_obtain = {}
-        self._to_assign = None
-        self._call_kwargs = {}
-        self._search = []
-        self._quite = []
-        self._in_place = in_place
-
-    def _obtain_properties(self, graph: GraphDict):
+    @staticmethod
+    def _obtain_properties(graph: GraphDict, to_obtain, to_search, to_quite):
         obtained_properties = {}
-        for key, name in self._to_obtain.items():
+        for key, name in to_obtain.items():
             if isinstance(name, str):
-                if name in self._search:
+                if name in to_search:
                     names = graph.search_properties(name)  # Will be sorted list and existing only
                     obtained_properties[key] = [graph.obtain_property(x) for x in names]
                 else:
-                    if not graph.has_valid_key(name) and key not in self._quite:
+                    if not graph.has_valid_key(name) and key not in to_quite:
                         module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
                     obtained_properties[key] = graph.obtain_property(name)
             elif isinstance(name, (list, tuple)):
                 prop_list = []
                 for x in name:
-                    if not graph.has_valid_key(x) and key not in self._quite:
+                    if not graph.has_valid_key(x) and key not in to_quite:
                         module_logger.warning("Missing '%s' in '%s'" % (x, type(graph).__name__))
                     prop_list.append(graph.obtain_property(x))
                 obtained_properties[key] = prop_list
@@ -285,7 +277,9 @@ class GraphPreProcessorBase:
                 raise ValueError("Unsupported property identifier %s" % name)
         return obtained_properties
 
-    def _assign_properties(self, graph: GraphDict, graph_properties: Union[list, np.ndarray]):
+    @staticmethod
+    def _assign_properties(graph: GraphDict, graph_properties: Union[list, np.ndarray],
+                           to_assign, to_search, in_place=False):
         out_graph = GraphDict()
 
         def _check_list_property(n, p):
@@ -296,7 +290,7 @@ class GraphPreProcessorBase:
 
         def _assign_single(name, single_graph_property):
             if isinstance(name, str):
-                if name in self._search:
+                if name in to_search:
                     names = graph.search_properties(name)  # Will be sorted list and existing only
                     # Assume that names matches graph_properties
                     _check_list_property(names, single_graph_property)
@@ -314,22 +308,76 @@ class GraphPreProcessorBase:
             return
 
         # Process assignment here.
-        if isinstance(self._to_assign, str):
-            _assign_single(self._to_assign, graph_properties)
-        elif isinstance(self._to_assign, (list, tuple)):
-            _check_list_property(self._to_assign, graph_properties)
-            for key, value in zip(self._to_assign, graph_properties):
+        if isinstance(to_assign, str):
+            _assign_single(to_assign, graph_properties)
+        elif isinstance(to_assign, (list, tuple)):
+            _check_list_property(to_assign, graph_properties)
+            for key, value in zip(to_assign, graph_properties):
                 _assign_single(key, value)
+
+        if in_place:
+            graph.update(out_graph)
         return out_graph
+
+    @staticmethod
+    def has_special_characters(query, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
+        return pat.search(query) is not None
+
+
+class GraphPreProcessorBase(GraphProcessorBase):
+
+    def __init__(self, *, in_place: bool = False, name: str = None):
+        self._config_kwargs = {"in_place": in_place, "name": name}
+        self._to_obtain = {}
+        self._to_assign = None
+        self._call_kwargs = {}
+        self._search = []
+        self._quite = []
+        self._in_place = in_place
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
 
     def __call__(self, graph: GraphDict):
-        graph_properties = self._obtain_properties(graph)
+        graph_properties = self._obtain_properties(graph, self._to_obtain, self._search, self._quite)
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
-        out_graph = self._assign_properties(graph, processed_properties)
+        out_graph = self._assign_properties(graph, processed_properties, self._to_assign, self._search)
+        if self._in_place:
+            graph.update(out_graph)
+            return graph
+        return out_graph
+
+    def get_config(self):
+        config = deepcopy(self._config_kwargs)
+        return config
+
+
+class GraphPostProcessorBase(GraphProcessorBase):
+
+    def __init__(self, *, in_place: bool = False, name: str = None):
+        self._config_kwargs = {"in_place": in_place, "name": name}
+        self._to_obtain_y = {}
+        self._to_obtain_x = {}
+        self._to_assign_y = None
+        self._call_kwargs = {}
+        self._search = []
+        self._quite = []
+        self._in_place = in_place
+
+    def call(self, **kwargs):
+        raise NotImplementedError("Must be implemented in sub-class.")
+
+    def __call__(self, graph: GraphDict, pre_graph: GraphDict = None):
+        graph_properties_y = self._obtain_properties(graph, self._to_obtain_y, self._search, self._quite)
+
+        if pre_graph is not None:
+            graph_properties_x = self._obtain_properties(pre_graph, self._to_obtain_x, self._search, self._quite)
+            processed_properties = self.call(**graph_properties_y, **graph_properties_x, **self._call_kwargs)
+        else:
+            processed_properties = self.call(**graph_properties_y, **self._call_kwargs)
+
+        out_graph = self._assign_properties(graph, processed_properties, self._to_assign_y, self._search)
         if self._in_place:
             graph.update(out_graph)
             return graph
