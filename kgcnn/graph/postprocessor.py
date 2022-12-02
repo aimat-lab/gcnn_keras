@@ -20,6 +20,8 @@ class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
             {"scaler": serialize(self.scaler), "energy": energy, "force": force, "atomic_number": atomic_number,
              "coordinates": coordinates})
 
-    def call(self, **kwargs):
-        _, energy, forces = self.scaler.inverse_transform(**kwargs)
-        return energy, forces
+    def call(self, X, y, force, atomic_number):
+        # Need batch with one energy etc.
+        _, energy, forces = self.scaler.inverse_transform(
+            X=[X], y=np.array([y]), force=[force], atomic_number=[atomic_number])
+        return energy[0], forces[0]
