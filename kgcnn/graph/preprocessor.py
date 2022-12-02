@@ -22,7 +22,7 @@ class MakeUndirectedEdges(GraphPreProcessorBase):
     Args:
         edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
         edge_attributes (str): Name of related edge values or attributes.
-            This can be a match-string or list of names. Default is "^edge_.*".
+            This can be a match-string or list of names. Default is "^edge_(?!indices$).*".
         remove_duplicates (bool): Whether to remove duplicates within the new edges. Default is True.
         sort_indices (bool): Sort indices after adding edges. Default is True.
     """
@@ -54,7 +54,7 @@ class AddEdgeSelfLoops(GraphPreProcessorBase):
     Args:
         edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
         edge_attributes (str): Name of related edge values or attributes.
-            This can be a match-string or list of names. Default is "^edge_.*".
+            This can be a match-string or list of names. Default is "^edge_(?!indices$).*".
         remove_duplicates (bool): Whether to remove duplicates. Default is True.
         sort_indices (bool): To sort indices after adding self-loops. Default is True.
         fill_value (in): The fill_value for all other edge properties.
@@ -87,7 +87,7 @@ class SortEdgeIndices(GraphPreProcessorBase):
     Args:
         edge_indices (str): Name of indices in dictionary. Default is "edge_indices".
         edge_attributes (str): Name of related edge values or attributes.
-            This can be a match-string or list of names. Default is "^edge_.*".
+            This can be a match-string or list of names. Default is "^edge_(?!indices$).*".
     """
 
     def __init__(self, *, edge_indices: str = "edge_indices", edge_attributes: str = "^edge_(?!indices$).*",

@@ -53,7 +53,10 @@ class MolDynamicsModelPredictor:
 
         num_samples = len(graph_list)
         for gp in self.graph_preprocessors:
-            graph_list.map_list(gp)
+            if isinstance(gp, dict):
+                graph_list.map_list(**gp)
+            else:
+                graph_list.map_list(gp)
         tensor_input = graph_list.tensor(self.model_inputs)
 
         try:
