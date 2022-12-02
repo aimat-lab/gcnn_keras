@@ -238,7 +238,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     center_indices = np.indices((len(node_index), len(node_index)))
     center_indices = center_indices.transpose(np.append(np.arange(1, 3), 0))  # NxNx2
     center_dist = np.expand_dims(coordinates, axis=0) - np.expand_dims(coordinates, axis=1)  # NxNx3
-    center_image = np.zeros(center_dist.shape)
+    center_image = np.zeros(center_dist.shape, dtype="int")
     if not self_loops:
         def remove_self_loops(x):
             m = np.logical_not(np.eye(len(x), dtype="bool"))
