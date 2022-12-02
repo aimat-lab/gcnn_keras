@@ -93,4 +93,5 @@ class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
         output_dict = self.model_predictor(graph_list)
 
         # Update.
-        self.results = output_dict
+        assert len(output_dict) == 1, "ASE Calculator updates only one structure for now."
+        self.results.update(output_dict[0])
