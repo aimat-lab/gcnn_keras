@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Optional, Any
+import typing as t
 
 import numpy as np
 import tensorflow as tf
@@ -11,6 +11,7 @@ from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
+from kgcnn.xai.base import ImportanceExplanationMixin
 
 ks = tf.keras
 
@@ -19,7 +20,25 @@ def shifted_sigmoid(x, shift=5, multiplier=1):
     return ks.backend.sigmoid((x - shift) / multiplier)
 
 
-class MEGAN(ks.models.Model):
+
+class ExplanationSparsityRegularization(GraphBaseLayer):
+
+    def __init__(self,
+                 factor: float = 1.0,
+                 **kwargs):
+        super(ExplanationSparsityRegularization, self).__init__(**kwargs)
+        self.factor = factor
+
+    def call(self, inputs):
+        # importances: ([batch], [N], K)
+        importances = inputs
+
+        loss = tf.reduce_mean(tf.math.abs(importances))
+        self.add_loss(loss * self.factor)
+
+
+
+class MEGAN(ks.models.Model, ImportanceExplanationMixin):
     """
     MEGAN: Multi Explanation Graph Attention Network
 
@@ -32,14 +51,14 @@ class MEGAN(ks.models.Model):
 
     def __init__(self,
                  # convolutional network related arguments
-                 units: List[int],
+                 units: t.List[int],
                  activation: str = "kgcnn>leaky_relu",
                  use_bias: bool = True,
                  dropout_rate: float = 0.0,
                  use_edge_features: bool = True,
                  input_embedding: dict = None,
                  # node/edge importance related arguments
-                 importance_units: List[int] = [],
+                 importance_units: t.List[int] = [],
                  importance_channels: int = 2,
                  importance_activation: str = "sigmoid",  # do not change
                  importance_dropout_rate: float = 0.0,  # do not change
@@ -48,12 +67,12 @@ class MEGAN(ks.models.Model):
                  sparsity_factor: float = 0.0,
                  concat_heads: bool = True,
                  # mlp tail end related arguments
-                 final_units: List[int] = [1],
+                 final_units: t.List[int] = [1],
                  final_dropout_rate: float = 0.0,
                  final_activation: str = 'linear',
                  final_pooling: str = 'sum',
-                 regression_limits: Optional[Tuple[float, float]] = None,
-                 regression_reference: Optional[float] = None,
+                 regression_limits: t.Optional[t.Tuple[float, float]] = None,
+                 regression_reference: t.Optional[float] = None,
                  return_importances: bool = True,
                  **kwargs):
         """
@@ -128,7 +147,7 @@ class MEGAN(ks.models.Model):
         # ~ MAIN CONVOLUTIONAL / ATTENTION LAYERS
         if self.input_embedding:
             self.embedding_nodes = OptionalInputEmbedding(**self.input_embedding["node"])
-        self.attention_layers: List[GraphBaseLayer] = []
+        self.attention_layers: t.List[GraphBaseLayer] = []
         for u in self.units:
             lay = MultiHeadGATV2Layer(
                 units=u,
@@ -162,6 +181,8 @@ class MEGAN(ks.models.Model):
                 use_bias=use_bias
             )
             self.node_importance_layers.append(lay)
+            
+        self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
 
         # ~ OUTPUT / MLP TAIL END
         self.lay_pool_out = PoolingNodes(pooling_method=self.final_pooling)
@@ -183,7 +204,7 @@ class MEGAN(ks.models.Model):
 
         # ~ EXPLANATION ONLY TRAIN STEP
         self.bce_loss = ks.losses.BinaryCrossentropy()
-        self.compiled_bce_loss = compile_utils.LossesContainer(self.bce_loss)
+        self.compiled_classification_loss = compile_utils.LossesContainer(self.bce_loss)
 
         self.mse_loss = ks.losses.MeanSquaredError()
         self.mae_loss = ks.losses.MeanAbsoluteError()
@@ -268,6 +289,7 @@ class MEGAN(ks.models.Model):
         node_importances_tilde = self.lay_act_importance(node_importances_tilde)
 
         node_importances = node_importances_tilde * pooled_edges
+        self.lay_sparsity(node_importances)
 
         # Here we apply the global pooling. It is important to note that we do K separate pooling operations
         # were each time we use the same node embeddings x but a different slice of the node importances as
@@ -364,7 +386,7 @@ class MEGAN(ks.models.Model):
             out_pred, ni_pred, ei_pred = y_pred
             loss = self.compiled_loss(
                 y,
-                y_pred,
+                y_pred if self.return_importances else out_pred,
                 sample_weight=sample_weight,
                 regularization_losses=self.losses,
             )
@@ -395,8 +417,10 @@ class MEGAN(ks.models.Model):
                 else:
                     out_pred = shifted_sigmoid(
                         outs,
+                        #shift=self.importance_multiplier,
+                        #multiplier=(self.importance_multiplier / 5)
                         shift=self.importance_multiplier,
-                        multiplier=(self.importance_multiplier / 5)
+                        multiplier=1,
                     )
                     exp_loss = self.compiled_classification_loss(out_true, out_pred)
 
@@ -422,8 +446,15 @@ class MEGAN(ks.models.Model):
             **exp_metrics
         }
 
+    def explain_importances(self,
+                            x: t.Sequence[tf.Tensor],
+                            **kwargs
+                            ) -> t.Tuple[tf.RaggedTensor, tf.RaggedTensor]:
+        y, node_importances, edge_importances = self(x, return_importances=True)
+        return node_importances, edge_importances
 
-def make_model(inputs: Optional[list] = None,
+
+def make_model(inputs: t.Optional[list] = None,
                **kwargs
                ):
     # Building the actual model
@@ -434,4 +465,5 @@ def make_model(inputs: Optional[list] = None,
     layer_inputs = [ks.layers.Input(**kwargs) for kwargs in inputs]
     outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
-    return model
+
+    return megan

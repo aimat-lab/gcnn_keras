@@ -3,11 +3,15 @@ Module for handling Visual Graph Datasets (VGD).
 """
 import os
 import typing as t
+from functools import cache, lru_cache
+
+import numpy as np
 
 from visual_graph_datasets.config import Config
 from visual_graph_datasets.util import get_dataset_path
 from visual_graph_datasets.web import PROVIDER_CLASS_MAP, AbstractFileShare
 from visual_graph_datasets.data import load_visual_graph_dataset
+from visual_graph_datasets.visualization.importances import create_importances_pdf
 
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.graph.base import GraphDict
@@ -86,7 +90,81 @@ class VisualGraphDataset(MemoryGraphDataset):
         self.logger.info(f'initialized empty list with {len(self.index_data_map)} elements')
 
         for index, data in sorted(self.index_data_map.items(), key=lambda t: t[0]):
-            graph_dict = GraphDict(data['graph'])
+            g = data['metadata']['graph']
+
+            # In the visual_graph_dataset framework, the train and test split indications are part of the
+            # metadata and not the graph itself. We need to set them as graph properties with these
+            # specific names however, such that later on the existing base method "get_train_test_indices"
+            # of the dataset class can be used.
+            g['train'] = data['metadata']['train_split']
+            g['test'] = data['metadata']['test_split']
+
+            # Otherwise the basic structure of the dict from the visual graph dataset should be compatible
+            # such that it can be directly used as a GraphDict
+            graph_dict = GraphDict(g)
             self[index] = graph_dict
 
         self.logger.info(f'loaded dataset as MemoryGraphList')
+
+    def visualize_importances(self,
+                              output_path: str,
+                              gt_importances_suffix: str,
+                              node_importances_list: t.List[np.ndarray],
+                              edge_importances_list: t.List[np.ndarray],
+                              indices: t.List[int],
+                              title: str = 'Model',
+                              ) -> None:
+        data_list = [self.index_data_map[index] for index in indices]
+
+        suffix = gt_importances_suffix
+        create_importances_pdf(
+            output_path=output_path,
+            graph_list=[data['metadata']['graph'] for data in data_list],
+            image_path_list=[data['image_path'] for data in data_list],
+            node_positions_list=[data['metadata']['graph']['image_node_positions'] for data in data_list],
+            importances_map={
+                'Ground Truth': (
+                    [data['metadata']['graph'][f'node_importances_{suffix}'] for data in data_list],
+                    [data['metadata']['graph'][f'edge_importances_{suffix}'] for data in data_list],
+                ),
+                title: (
+                    node_importances_list,
+                    edge_importances_list
+                )
+            }
+        )
+
+    # This method loops through all the elements of the dataset which makes it quite computationally
+    # expensive, which is why the value will be cached to be more efficient if it is called multiple
+    # time redundantly
+    @cache
+    def has_importances(self, suffix: t.Union[str, int]) -> bool:
+        suffix = str(suffix)
+
+        node_condition = all([f'node_importances_{suffix}' in data['metadata']['graph']
+                              for data in self.index_data_map.values()])
+
+        edge_condition = all([f'edge_importances_{suffix}' in data['metadata']['graph']
+                              for data in self.index_data_map.values()])
+
+        return node_condition and edge_condition
+
+    def get_importances(self,
+                        suffix: str,
+                        indices: t.Optional[t.List[int]] = None
+                        ) -> t.Tuple[t.List[np.ndarray], t.List[np.ndarray]]:
+        if indices is None:
+            indices = list(self.index_data_map.keys())
+
+        node_importances_list: t.List[np.ndarray] = []
+        edge_importances_list: t.List[np.ndarray] = []
+        for index in indices:
+            data = self.index_data_map[index]
+            g = data['metadata']['graph']
+            node_importances_list.append(g[f'node_importances_{suffix}'])
+            edge_importances_list.append(g[f'edge_importances_{suffix}'])
+
+        return node_importances_list, edge_importances_list
+
+    def __hash__(self):
+        return hash(self.dataset_name)

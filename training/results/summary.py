@@ -263,6 +263,18 @@ benchmark_datasets = {
              "trajectory_name": "ethanol"}
         ]
     },
+    "VgdMockDataset": {
+        "general_info": [
+            "Synthetic classification dataset containing 100 small, randomly generated graphs, ",
+            "where half of them were seeded with a triangular subgraph motif, ",
+            "which is the explanation ground truth for the target class distinction."
+        ],
+        "targets": [
+            {"metric": "val_categorical_accuracy", "name": "Categorical Accuracy", "find_best": "max"},
+            {"metric": "val_node_auc", "name": "Node AUC", "find_best": "max"},
+            {"metric": "val_edge_auc", "name": "Edge AUC", "find_best": "max"},
+        ]
+    }
 }
 
 def load_yaml_file(file_path: str):
