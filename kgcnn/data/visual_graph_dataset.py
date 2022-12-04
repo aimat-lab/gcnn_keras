@@ -8,7 +8,7 @@ from functools import cache, lru_cache
 import numpy as np
 
 from visual_graph_datasets.config import Config
-from visual_graph_datasets.util import get_dataset_path
+from visual_graph_datasets.util import get_dataset_path, ensure_folder
 from visual_graph_datasets.web import PROVIDER_CLASS_MAP, AbstractFileShare
 from visual_graph_datasets.data import load_visual_graph_dataset
 from visual_graph_datasets.visualization.importances import create_importances_pdf
@@ -51,7 +51,7 @@ class VisualGraphDataset(MemoryGraphDataset):
             # corresponding dataset folder there, an exception is raised.
             self.data_directory = get_dataset_path(self.dataset_name)
             return
-        except FileNotFoundError as e:
+        except (FileNotFoundError, IndexError) as e:
             self.logger.info(f'the visual graph dataset "{self.dataset_name}" was not found on the disk. '
                              f'The following exception was raised during lookup:')
             self.logger.info(str(e))
@@ -61,6 +61,7 @@ class VisualGraphDataset(MemoryGraphDataset):
 
         # For this we will first check if a dataset with the given name is even available at the remote
         # file share provider.
+        ensure_folder(self.vgd_config.get_datasets_path())
         file_share_provider: str = self.vgd_config.get_provider()
         file_share_class: type = PROVIDER_CLASS_MAP[file_share_provider]
         file_share: AbstractFileShare = file_share_class(config=self.vgd_config, logger=self.logger)

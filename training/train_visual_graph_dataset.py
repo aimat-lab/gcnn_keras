@@ -34,11 +34,6 @@ HYPER_PATH = os.path.join(PATH, 'hyper', 'hyper_vgd_mock.py')
               help='Split or fold indices to run')
 @click.option('--show-warnings', is_flag=True,
               help='Will suppress tensorflow warning by default. Use this flag to show them')
-@click.option('--output-dir', type=click.Path(dir_okay=True, file_okay=False, exists=True),
-              default=os.getcwd(),
-              help='The directory into which to save the result artifacts. The results will be contained '
-                   'within a folder called "_results". '
-                   'Default is the current working directory.')
 @click.option('--visualization-ratio', type=click.FloatRange(0, 1), default=1.0,
               help='The ratio of how many samples from the test set should be used to visualize the '
                    'generated explanations on')
@@ -50,7 +45,6 @@ def main(model: str,
          gpu: int,
          fold: int,
          show_warnings: bool,
-         output_dir: str,
          visualization_ratio: float):
     """
     Train a model of choice on a "Visual Graph Dataset" (VGD).
