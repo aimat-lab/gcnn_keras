@@ -7,6 +7,7 @@ scikit-learn
 requests
 pyyaml
 networkx
+functools
 ase
 rdkit
 visual_graph_datasets>=0.6.1

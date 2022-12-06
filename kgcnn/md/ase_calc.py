@@ -102,5 +102,6 @@ class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
         assert len(output_dict) == 1, "ASE Calculator updates only one structure for now."
         self.results.update(output_dict[0].to_dict())
         if self.squeeze_energy:
+            # For single energy only.
             if len(self.results["energy"].shape) > 0:
                 self.results["energy"] = np.squeeze(self.results["energy"])
