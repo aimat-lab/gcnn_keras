@@ -8,7 +8,7 @@ class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
     def __init__(self, scaler, energy: str = "energy",
                  force: str = "forces", atomic_number: str = "node_number",
                  coordinates: str = "node_coordinates",
-                 name="extensive_energy_force_scaler_postprocessor", **kwargs):
+                 name="extensive_energy_force_scaler", **kwargs):
         super(ExtensiveEnergyForceScalerPostprocessor, self).__init__(name=name, **kwargs)
         if isinstance(scaler, dict):
             self.scaler = deserialize(scaler)

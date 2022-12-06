@@ -1,7 +1,18 @@
 import importlib
+from kgcnn.utils.serial import deserialize
 
 
 def get_preprocessor(name, **kwargs):
+    """Get a preprocessor.
+
+    Args:
+        name (str, dict): Serialization dictionary of class. This can also be a name of former graph functions for
+            backward compatibility that now coincides with the processor's default name.
+        kwargs: Kwargs for processor initialization, if :obj:`name` is string.
+
+    Returns:
+        GraphPreProcessorBase: Instance of graph preprocessor.
+    """
     """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
         "make_undirected_edges": "MakeUndirectedEdges",
@@ -19,14 +30,30 @@ def get_preprocessor(name, **kwargs):
         "atomic_charge_representation": "AtomicChargesRepresentation",
         "principal_moments_of_inertia": "PrincipalMomentsOfInertia",
     }
+    if isinstance(name, dict):
+        return deserialize(name)
+    # if given as string name. Lookup identifier.
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.preprocessor")), str(preprocessor_identifier[name]))
     return obj_class(**kwargs)
 
 
 def get_postprocessor(name, **kwargs):
+    r"""Get a postprocessor.
+
+    Args:
+        name (str, dict): Serialization dictionary of class. This can also be a name of former graph functions for
+            backward compatibility that now coincides with the processor's default name.
+        kwargs: Kwargs for processor initialization, if :obj:`name` is string.
+
+    Returns:
+        GraphPostProcessorBase: Instance of graph postprocessor.
+    """
     """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
-        "": "ExtensiveEnergyForceScalerPostprocessor",
+        "extensive_energy_force_scaler": "ExtensiveEnergyForceScalerPostprocessor",
     }
+    if isinstance(name, dict):
+        return deserialize(name)
+    # if given as string. Lookup identifier.
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.postprocessor")), str(preprocessor_identifier[name]))
     return obj_class(**kwargs)
