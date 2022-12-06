@@ -182,8 +182,6 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
             
         self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
 
-        self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
-
         # ~ OUTPUT / MLP TAIL END
         self.lay_pool_out = PoolingNodes(pooling_method=self.final_pooling)
         self.lay_concat_out = LazyConcatenate(axis=-1)
@@ -454,6 +452,15 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
 def make_model(inputs: t.Optional[list] = None,
                **kwargs
                ):
+    r"""Functional model definition of MEGAN. Please check documentation of :obj:`kgcnn.literature.MEGAN` .
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        kwargs: Kwargs for MEGAN model. Please check documentation of :obj:`kgcnn.literature.MEGAN` .
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
     # Building the actual model
     megan = MEGAN(**kwargs)
 
