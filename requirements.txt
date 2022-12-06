@@ -1,5 +1,5 @@
 numpy
-tensorflow>=2.5.0
+tensorflow>=2.8.0
 scipy
 matplotlib
 pandas
@@ -8,4 +8,5 @@ requests
 pyyaml
 networkx
 ase
+rdkit
 visual_graph_datasets>=0.6.1
