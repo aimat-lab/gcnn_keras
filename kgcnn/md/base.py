@@ -1,17 +1,9 @@
 import tensorflow as tf
 from typing import Union, List, Callable, Dict
 from kgcnn.data.base import MemoryGraphList
+from kgcnn.graph.base import GraphDict
 
 ks = tf.keras
-
-
-class MolDynamicsModelPostprocessorBase:
-
-    def __init__(self, *args, **kwargs):
-        super(MolDynamicsModelPostprocessorBase, self).__init__(*args, **kwargs)
-
-    def __call__(self, x, y, **kwargs):
-        raise NotImplementedError("Postprocessing must be implemented in child classes.")
 
 
 class MolDynamicsModelPredictor:
@@ -49,11 +41,14 @@ class MolDynamicsModelPredictor:
             raise TypeError("'%s' output translation must be 'str', 'dict' or 'list'." % properties)
         return output
 
-    def __call__(self, graph_list: MemoryGraphList) -> List[Dict]:
+    def __call__(self, graph_list: MemoryGraphList) -> MemoryGraphList:
 
         num_samples = len(graph_list)
         for gp in self.graph_preprocessors:
-            graph_list.map_list(gp)
+            if isinstance(gp, dict):
+                graph_list.map_list(**gp)
+            else:
+                graph_list.map_list(gp)
         tensor_input = graph_list.tensor(self.model_inputs)
 
         try:
@@ -70,8 +65,10 @@ class MolDynamicsModelPredictor:
             temp_dict = {
                 key: value[i].numpy() for key, value in tensor_dict.items()
             }
+            temp_dict = GraphDict(temp_dict)
             for mp in self.model_postprocessors:
-                temp_dict = mp(x=graph_list[i], y=temp_dict)
+                post_temp = mp(graph=temp_dict, pre_graph=graph_list[i])
+                temp_dict.update(post_temp)
             output_list.append(temp_dict)
 
-        return output_list
+        return MemoryGraphList(output_list)

@@ -75,22 +75,32 @@ class AtomsToGraphConverter:
 class KgcnnSingleCalculator(ase.calculators.calculator.Calculator):
     r"""ASE calculator for machine learning models from :obj:`kgcnn`."""
 
+    implemented_properties = ["energy", "forces"]
+
     def __init__(self,
                  model_predictor=None,
                  atoms_converter: AtomsToGraphConverter = None,
+                 squeeze_energy: bool = True,
                  **kwargs):
         super(KgcnnSingleCalculator, self).__init__(**kwargs)
         self.model_predictor = model_predictor
         self.atoms_converter = atoms_converter
+        self.squeeze_energy = squeeze_energy
 
     # Interface to ASE calculator scheme.
     def calculate(self, atoms=None, properties=None, system_changes=None):
+
         if not self.calculation_required(atoms, properties):
             # Nothing to do.
             return
+        super(KgcnnSingleCalculator, self).calculate(atoms=atoms, properties=properties, system_changes=system_changes)
 
         graph_list = self.atoms_converter(atoms)
         output_dict = self.model_predictor(graph_list)
 
         # Update.
-        self.results = output_dict
+        assert len(output_dict) == 1, "ASE Calculator updates only one structure for now."
+        self.results.update(output_dict[0].to_dict())
+        if self.squeeze_energy:
+            if len(self.results["energy"].shape) > 0:
+                self.results["energy"] = np.squeeze(self.results["energy"])

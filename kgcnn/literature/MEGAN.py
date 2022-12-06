@@ -20,7 +20,6 @@ def shifted_sigmoid(x, shift=5, multiplier=1):
     return ks.backend.sigmoid((x - shift) / multiplier)
 
 
-
 class ExplanationSparsityRegularization(GraphBaseLayer):
 
     def __init__(self,
@@ -35,7 +34,6 @@ class ExplanationSparsityRegularization(GraphBaseLayer):
 
         loss = tf.reduce_mean(tf.math.abs(importances))
         self.add_loss(loss * self.factor)
-
 
 
 class MEGAN(ks.models.Model, ImportanceExplanationMixin):
@@ -184,6 +182,8 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
             
         self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
 
+        self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
+
         # ~ OUTPUT / MLP TAIL END
         self.lay_pool_out = PoolingNodes(pooling_method=self.final_pooling)
         self.lay_concat_out = LazyConcatenate(axis=-1)
@@ -325,16 +325,14 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
         Given the tensor ([B], 1) of true regression target values, this method will return two derived
         tensors: The first one is a ([B], 2) tensor of normalized distances of the corresponding true
         values to ``self.regression_reference`` and the second is a ([B], 2) boolean mask tensor.
-
         Args:
             out_true: A tensor of shape ([B], 1) of the true target values of the current batch.
-
         Returns:
             A tuple of two tensors each with the shape ([B], 2)
         """
         center_distances = tf.abs(out_true - self.regression_reference)
         center_distances = (center_distances * self.importance_multiplier) / (
-                    0.5 * self.regression_width)
+                0.5 * self.regression_width)
 
         # So we need two things: a "samples" tensor and a "mask" tensor. We are going to use the samples
         # tensor as the actual ground truth which acts as the regression target during the explanation
@@ -357,15 +355,12 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
         pass of the input data of the batch is performed, the loss is calculated, the gradients of this loss
         w.r.t to the model parameters are calculated and these gradients are used to update the weights of
         the model.
-
         This custom train step implements the "explanation co-training": Additionally to the main prediction
         loss there is also a loss term which uses only the node importance values to approximate a
         normalized versions of the target values.
-
         Args:
             data: Tuple of two tensors (X, Y) where X is the batch tensor of all the inputs and Y is the
                 batch tensor of the target output values.
-
         Returns:
             A dictionary whose keys are the names of metrics and the values are the corresponding values
             of these metrics for this iteration of the training.
@@ -417,8 +412,10 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
                 else:
                     out_pred = shifted_sigmoid(
                         outs,
-                        #shift=self.importance_multiplier,
-                        #multiplier=(self.importance_multiplier / 5)
+
+                        # shift=self.importance_multiplier,
+                        # multiplier=(self.importance_multiplier / 5)
+
                         shift=self.importance_multiplier,
                         multiplier=1,
                     )
@@ -466,4 +463,3 @@ def make_model(inputs: t.Optional[list] = None,
     outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
 
-    return megan

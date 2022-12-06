@@ -9,7 +9,7 @@ ks = tf.keras
 @ks.utils.register_keras_serializable(package='kgcnn', name='EnergyForceModel')
 class EnergyForceModel(ks.models.Model):
     def __init__(self, module_name, class_name, config, coordinate_input: Union[int, str] = 1,
-                 output_as_dict: bool = False, ragged_validate: bool = False, output_to_tensor: bool = True,
+                 output_as_dict: bool = True, ragged_validate: bool = False, output_to_tensor: bool = True,
                  output_squeeze_states: bool = False, nested_model_config: bool = True, is_physical_force: bool = True,
                  **kwargs):
         super(EnergyForceModel, self).__init__(self, **kwargs)
@@ -51,9 +51,9 @@ class EnergyForceModel(ks.models.Model):
         if not self.output_to_tensor:
             e_grad = self._cast_coordinates_pad_to_ragged(e_grad, x_mask, self.ragged_validate)
         if self.output_as_dict:
-            return eng, e_grad
-        else:
             return {"energy": eng, "force": e_grad}
+        else:
+            return eng, e_grad
 
     # Temporary solution.
     @staticmethod
