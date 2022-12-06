@@ -31,14 +31,11 @@ If you want to get in contact, feel free to [discuss](https://github.com/aimat-l
 <a name="requirements"></a>
 # Requirements
 
-For kgcnn, usually the latest version of tensorflow is required, but is listed as extra requirements in the `setup.py` for simplicity. 
-Standard python package requirements are placed in the `setup.py` and are installed automatically. 
+
+Standard python package requirements are placed in the `setup.py` and are installed automatically ([kgcnn](https://github.com/aimat-lab/gcnn_keras) >=2.2). 
 Packages which must be installed manually for full functionality:
 
-* [tensorflow](https://www.tensorflow.org/install) >=2.4.1
-* [rdkit](https://www.rdkit.org/docs/Install.html) >=2020.03.4
 * [openbabel](http://openbabel.org/wiki/Main_Page) >=3.0.1
-* [pymatgen](https://pymatgen.org/installation.html) >=2022.0.12
 
 <a name="installation"></a>
 # Installation

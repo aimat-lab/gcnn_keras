@@ -411,7 +411,7 @@ class GraphPreProcessorBase(GraphProcessorBase):
             def __init__(self, name="new_processor", node_property_name="node_number", **kwargs)
                 super().__init__(name=name, **kwargs):
                 self._to_obtain = {"nodes": node_property_name}  # what 'call' needs as properties
-                self._to_assign = ["new_nodes"]
+                self._to_assign = ["new_nodes"]  # will be the output of call()
                 self._call_kwargs = {"do_nothing": True}
                 self._config_kwargs.update({"node_property_name": node_property_name})
 
@@ -488,7 +488,8 @@ class GraphPostProcessorBase(GraphProcessorBase):
             def __init__(self, name="new_processor", node_property_name="node_number", **kwargs)
                 super().__init__(name=name, **kwargs):
                 self._to_obtain = {"nodes": node_property_name}  # what 'call' needs as properties
-                self._to_assign = ["new_nodes"]
+                self._to_obtain_pre = {}
+                self._to_assign = ["new_nodes"]  # will be the output of call()
                 self._call_kwargs = {"do_nothing": True}
                 self._config_kwargs.update({"node_property_name": node_property_name})
 
@@ -528,8 +529,8 @@ class GraphPostProcessorBase(GraphProcessorBase):
 
         Args:
             graph (GraphDict): Graph dictionary to process.
-            pre_graph (GraphDict): Additional graph dictionary to include in :obj:`call` . This is the main difference
-                to preprocessor. Defaults to None.
+            pre_graph (GraphDict): Additional graph dictionary with properties to include in :obj:`call` .
+                This is the main difference to preprocessor. Defaults to None.
 
         Returns:
             dict: Dictionary of new properties.

@@ -367,6 +367,16 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
 
 
 def get_principal_moments_of_inertia(masses: np.ndarray, coordinates: np.ndarray, shift_center_of_mass: bool = True):
+    """Compute principle moments of inertia for a point-cloud with given mass.
+
+    Args:
+        masses (np.ndarray): Array of mass values.
+        coordinates (np.ndarray): Coordinates of point-cloud.
+        shift_center_of_mass (bool): Whether to shift to center of mass for inertia matrix.
+
+    Returns:
+        np.ndarray: Eigenvalues of inertia matrix. Shape is (3, ).
+    """
 
     def translate_to_center_of_mass(m, xyz):
         if len(m.shape) <= 1:

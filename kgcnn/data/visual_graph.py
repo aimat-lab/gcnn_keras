@@ -18,6 +18,13 @@ from kgcnn.graph.base import GraphDict
 
 
 class VisualGraphDataset(MemoryGraphDataset):
+    r"""Visual graph datasets from external :obj:`visual_graph_datasets` python package.
+
+    Downloading and processing is given in :obj:`visual_graph_datasets` python package.
+    For documentation please find `<https://github.com/awa59kst120df/visual_graph_datasets>`_ .
+    This class constitutes an interface to kgcnn :obj:`MemoryGraphDataset` data representation.
+
+    """
     
     def __init__(self,
                  name: str):
