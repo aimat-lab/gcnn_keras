@@ -28,7 +28,10 @@ class MolDynamicsModelPredictor:
         self.model_postprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in model_postprocessors]
         self.batch_size = batch_size
 
-    def load(self, file_path: str) -> list:
+    def load(self, file_path: str):
+        raise NotImplementedError("Not yet supported.")
+
+    def save(self, file_path: str):
         raise NotImplementedError("Not yet supported.")
 
     @staticmethod

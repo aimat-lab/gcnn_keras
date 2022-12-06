@@ -26,6 +26,7 @@ def get_preprocessor(name, **kwargs):
 def get_postprocessor(name, **kwargs):
     """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
+        "": "ExtensiveEnergyForceScalerPostprocessor",
     }
     obj_class = getattr(importlib.import_module(str("kgcnn.graph.postprocessor")), str(preprocessor_identifier[name]))
     return obj_class(**kwargs)

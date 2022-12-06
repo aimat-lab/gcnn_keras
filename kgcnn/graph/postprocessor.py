@@ -7,15 +7,16 @@ class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
 
     def __init__(self, scaler, energy: str = "energy",
                  force: str = "forces", atomic_number: str = "node_number",
-                 coordinates: str = "node_coordinates", **kwargs):
-        super(ExtensiveEnergyForceScalerPostprocessor, self).__init__(**kwargs)
+                 coordinates: str = "node_coordinates",
+                 name="extensive_energy_force_scaler_postprocessor", **kwargs):
+        super(ExtensiveEnergyForceScalerPostprocessor, self).__init__(name=name, **kwargs)
         if isinstance(scaler, dict):
             self.scaler = deserialize(scaler)
         else:
             self.scaler = scaler
-        self._to_obtain_x = {"X": coordinates, "atomic_number": atomic_number}
-        self._to_obtain_y = {"y": energy, "force": force}
-        self._to_assign_y = [energy, force]
+        self._to_obtain_pre = {"X": coordinates, "atomic_number": atomic_number}
+        self._to_obtain = {"y": energy, "force": force}
+        self._to_assign = [energy, force]
         self._config_kwargs.update(
             {"scaler": serialize(self.scaler), "energy": energy, "force": force, "atomic_number": atomic_number,
              "coordinates": coordinates})

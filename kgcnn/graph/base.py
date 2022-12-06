@@ -233,7 +233,7 @@ class GraphDict(dict):
 
         Args:
             name: Name of a preprocessor that uses :obj:`kgcnn.graph.serial.get_preprocessor` for backward
-                compatibility,  or a proper serialization dictionary or type :obj:`GraphPreProcessorBase`.
+                compatibility, or a proper serialization dictionary or class :obj:`GraphPreProcessorBase`.
             kwargs: Optional kwargs for preprocessor. Only used in connection with
                 :obj:`kgcnn.graph.serial.get_preprocessor` if :obj:`name` is string.
 
@@ -271,7 +271,7 @@ class GraphProcessorBase:
                 self.node_property_name = node_property_name
                 self.name = name
 
-            def __call__(self, graph):
+            def __call__(self, graph: GraphDict) -> GraphDict:
                 # Do nothing but return the same property.
                 return GraphDict({self.node_property_name: graph[self.node_property_name]})
 
@@ -391,23 +391,67 @@ class GraphProcessorBase:
 
 
 class GraphPreProcessorBase(GraphProcessorBase):
-    """
+    r"""Base wrapper for a graph preprocessor to use general transformation functions.
+
+    This class inherits from :obj:`GraphProcessorBase` and makes use of :obj:`_obtain_properties` and
+    :obj:`_assign_properties` in a predefined :obj:`__call__` method. The base class :obj:`__call__` method retrieves
+    graph properties by name, passes them as kwargs to the :obj:`call` method, which must be implemented by subclasses,
+    and assigns the (array-like) output to a :obj:`GraphDict` by name. To specify the kwargs for call and the names that
+    are expected to be set in the graph dictionary, the class attributes :obj:`self._to_obtain` ,
+    :obj:`self._to_assign` , :obj:`self._to_assign` , :obj:`self._call_kwargs` , :obj:`self._search` must be set
+    appropriately in the constructor. The design of this class should be similar to :obj:`ks.layers.Layer` .
+    Example implementation for subclass:
+
+    .. code-block:: python
+
+        from kgcnn.graph.base import GraphDict, GraphPreProcessorBase
+
+        class NewProcessor(GraphPreProcessorBase):
+
+            def __init__(self, name="new_processor", node_property_name="node_number", **kwargs)
+                super().__init__(name=name, **kwargs):
+                self._to_obtain = {"nodes": node_property_name}  # what 'call' needs as properties
+                self._to_assign = ["new_nodes"]
+                self._call_kwargs = {"do_nothing": True}
+                self._config_kwargs.update({"node_property_name": node_property_name})
+
+            def call(self, nodes: np.ndarray, do_nothing: bool):
+                # Do nothing but return the same property.
+                return nodes
+
+    For proper serialization you should update :obj:`self._config_kwargs` . For information on :obj:`self._search` and
+    :obj:`self._quite` see docs of :obj:`GraphProcessorBase` .
 
     """
 
     def __init__(self, *, in_place: bool = False, name: str = None):
+        r"""Initialize class.
+
+        Args:
+            in_place (bool): Whether to update graph dict. Default is False.
+            name: Name of the preprocessor.
+        """
         self._config_kwargs = {"in_place": in_place, "name": name}
+        self._in_place = in_place
+        # Below attributes must be set by subclass.
         self._to_obtain = {}
         self._to_assign = None
         self._call_kwargs = {}
         self._search = []
         self._quite = []
-        self._in_place = in_place
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
 
     def __call__(self, graph: GraphDict):
+        r"""Processing the graph with function given in :obj:`call` .
+
+        Args:
+            graph (GraphDict): Graph dictionary to process.
+
+        Returns:
+            dict: Dictionary of new properties.
+        """
         graph_properties = self._obtain_properties(graph, self._to_obtain, self._search, self._quite)
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
@@ -418,44 +462,93 @@ class GraphPreProcessorBase(GraphProcessorBase):
         return out_graph
 
     def get_config(self):
+        r"""Copy config from :obj:`self._config_kwargs` ."""
         config = deepcopy(self._config_kwargs)
         return config
 
 
 class GraphPostProcessorBase(GraphProcessorBase):
+    r"""Base wrapper for a graph postprocessor to use general transformation functions.
+
+    This class inherits from :obj:`GraphProcessorBase` and makes use of :obj:`_obtain_properties` and
+    :obj:`_assign_properties` in a predefined :obj:`__call__` method. The base class :obj:`__call__` method retrieves
+    graph properties by name, passes them as kwargs to the :obj:`call` method, which must be implemented by subclasses,
+    and assigns the (array-like) output to a :obj:`GraphDict` by name. To specify the kwargs for call and the names that
+    are expected to be set in the graph dictionary, the class attributes :obj:`self._to_obtain` ,
+    :obj:`self._to_assign` , :obj:`self._to_assign` , :obj:`self._call_kwargs` , :obj:`self._search` must be set
+    appropriately in the constructor. The design of this class should be similar to :obj:`ks.layers.Layer` .
+    Example implementation for subclass:
+
+    .. code-block:: python
+
+        from kgcnn.graph.base import GraphDict, GraphPostProcessorBase
+
+        class NewProcessor(GraphPostProcessorBase):
+
+            def __init__(self, name="new_processor", node_property_name="node_number", **kwargs)
+                super().__init__(name=name, **kwargs):
+                self._to_obtain = {"nodes": node_property_name}  # what 'call' needs as properties
+                self._to_assign = ["new_nodes"]
+                self._call_kwargs = {"do_nothing": True}
+                self._config_kwargs.update({"node_property_name": node_property_name})
+
+            def call(self, nodes: np.ndarray, do_nothing: bool):
+                # Do nothing but return the same property.
+                return nodes
+
+    For proper serialization you should update :obj:`self._config_kwargs` . For information on :obj:`self._search` and
+    :obj:`self._quite` see docs of :obj:`GraphProcessorBase` .
+
+    Note that for :obj:`GraphPostProcessorBase` one can also set :obj:`self._to_obtain_pre` if information of the input
+    graph or a previous graph is required, which is common for postprocessing.
+    """
 
     def __init__(self, *, in_place: bool = False, name: str = None):
+        r"""Initialize class.
+
+        Args:
+            in_place (bool): Whether to update graph dict. Default is False.
+            name: Name of the preprocessor.
+        """
         self._config_kwargs = {"in_place": in_place, "name": name}
-        self._to_obtain_y = {}
-        self._to_obtain_x = {}
-        self._to_assign_y = None
+        self._in_place = in_place
+        # Below attributes must be set by subclass.
+        self._to_obtain = {}
+        self._to_obtain_pre = {}
+        self._to_assign = None
         self._call_kwargs = {}
         self._search = []
         self._quite = []
-        self._in_place = in_place
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
 
     def __call__(self, graph: GraphDict, pre_graph: GraphDict = None):
-        graph_properties_y = self._obtain_properties(graph, self._to_obtain_y, self._search, self._quite)
+        r"""Processing the graph with function given in :obj:`call` .
+
+        Args:
+            graph (GraphDict): Graph dictionary to process.
+            pre_graph (GraphDict): Additional graph dictionary to include in :obj:`call` . This is the main difference
+                to preprocessor. Defaults to None.
+
+        Returns:
+            dict: Dictionary of new properties.
+        """
+        graph_properties_y = self._obtain_properties(graph, self._to_obtain, self._search, self._quite)
 
         if pre_graph is not None:
-            graph_properties_x = self._obtain_properties(pre_graph, self._to_obtain_x, self._search, self._quite)
+            graph_properties_x = self._obtain_properties(pre_graph, self._to_obtain_pre, self._search, self._quite)
             processed_properties = self.call(**graph_properties_y, **graph_properties_x, **self._call_kwargs)
         else:
             processed_properties = self.call(**graph_properties_y, **self._call_kwargs)
 
-        out_graph = self._assign_properties(graph, processed_properties, self._to_assign_y, self._search)
+        out_graph = self._assign_properties(graph, processed_properties, self._to_assign, self._search)
         if self._in_place:
             graph.update(out_graph)
             return graph
         return out_graph
 
-    @staticmethod
-    def has_special_characters(query, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
-        return pat.search(query) is not None
-
     def get_config(self):
+        r"""Copy config from :obj:`self._config_kwargs` ."""
         config = deepcopy(self._config_kwargs)
         return config

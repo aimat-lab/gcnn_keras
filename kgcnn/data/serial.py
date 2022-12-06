@@ -19,6 +19,7 @@ def deserialize(dataset: Union[str, dict]):
 
     Furthermore, `prepare_data`, `read_in_memory` and `map_list` are possible for deserialization if manually
     set in 'methods' key as list. Tries to resolve datasets also without `module_name` key.
+    Otherwise, you can use general `kgcnn.utils.serial` .
 
     Args:
         dataset (str, dict): Dictionary of the dataset serialization.
