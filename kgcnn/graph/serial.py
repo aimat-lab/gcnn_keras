@@ -1,8 +1,9 @@
 import importlib
+from typing import Union
 from kgcnn.utils.serial import deserialize
 
 
-def get_preprocessor(name, **kwargs):
+def get_preprocessor(name: Union[str, dict], **kwargs):
     """Get a preprocessor.
 
     Args:
@@ -13,7 +14,6 @@ def get_preprocessor(name, **kwargs):
     Returns:
         GraphPreProcessorBase: Instance of graph preprocessor.
     """
-    """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
         "make_undirected_edges": "MakeUndirectedEdges",
         "add_edge_self_loops": "AddEdgeSelfLoops",
@@ -37,7 +37,7 @@ def get_preprocessor(name, **kwargs):
     return obj_class(**kwargs)
 
 
-def get_postprocessor(name, **kwargs):
+def get_postprocessor(name: Union[str, dict], **kwargs):
     r"""Get a postprocessor.
 
     Args:
@@ -48,7 +48,6 @@ def get_postprocessor(name, **kwargs):
     Returns:
         GraphPostProcessorBase: Instance of graph postprocessor.
     """
-    """Get Preprocessor by name, for compatibility to old class methods."""
     preprocessor_identifier = {
         "extensive_energy_force_scaler": "ExtensiveEnergyForceScalerPostprocessor",
     }

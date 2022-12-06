@@ -4,6 +4,17 @@ from kgcnn.graph.base import GraphPostProcessorBase, GraphDict
 
 
 class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
+    r"""Postprocessor to inverse transform energies and forces from a graph dictionary.
+
+    Args:
+        scaler: Fitted instance of :obj:`ExtensiveEnergyForceScaler` .
+        energy (str): Name of energy property in :obj:`graph` dict. Default is 'energy'.
+        force (str): Name of force property in :obj:`graph` dict. Default is 'forces'.
+        atomic_number (str): Name of atomic_number property in :obj:`pre_graph` dict. Default is 'node_number'.
+            Must be given in additional :obj:`pre_graph` that is passed to call.
+        coordinates (str): Name of coordinates property in :obj:`pre_graph` dict. Default is 'node_coordinates'.
+            Must be given in additional :obj:`pre_graph` that is passed to call.
+    """
 
     def __init__(self, scaler, energy: str = "energy",
                  force: str = "forces", atomic_number: str = "node_number",
