@@ -70,7 +70,7 @@ def main(model: str,
     # which may take a few seconds and which may print a few error messages. In principle that is not a bad
     # thing in general, but when invoking the script with the "--help" option we do not want either to
     # happen. We want only the help text to be printed as quickly as possible without any overhead
-    from kgcnn.data.visual_graph_dataset import VisualGraphDataset
+    from kgcnn.data.visual_graph import VisualGraphDataset
     from kgcnn.hyper.hyper import HyperParameter
     from kgcnn.data.serial import deserialize as deserialize_dataset
     from kgcnn.utils.cli import echo_info, echo_success, echo_error

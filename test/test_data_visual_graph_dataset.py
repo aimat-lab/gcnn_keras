@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from kgcnn.data.visual_graph_dataset import VisualGraphDataset
+from kgcnn.data.visual_graph import VisualGraphDataset
 
 
 class TestVisualGraphDataset(unittest.TestCase):
