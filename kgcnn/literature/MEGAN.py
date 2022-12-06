@@ -179,6 +179,8 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
                 use_bias=use_bias
             )
             self.node_importance_layers.append(lay)
+            
+        self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
 
         self.lay_sparsity = ExplanationSparsityRegularization(factor=self.sparsity_factor)
 
@@ -410,8 +412,10 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
                 else:
                     out_pred = shifted_sigmoid(
                         outs,
+
                         # shift=self.importance_multiplier,
                         # multiplier=(self.importance_multiplier / 5)
+
                         shift=self.importance_multiplier,
                         multiplier=1,
                     )
@@ -459,4 +463,3 @@ def make_model(inputs: t.Optional[list] = None,
     outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
 
-    return

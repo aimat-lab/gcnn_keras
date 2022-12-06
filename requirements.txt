@@ -8,3 +8,4 @@ requests
 pyyaml
 networkx
 ase
+visual_graph_datasets>=0.6.1

@@ -3,8 +3,10 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import os
+import typing as t
 from typing import Union, List, Callable
 from collections.abc import MutableMapping
+
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphDict
 
@@ -172,6 +174,7 @@ class MemoryGraphList(MutableMapping):
         raise ValueError("Can not set length. Please use 'empty()' to initialize an empty list.")
 
     def _to_tensor(self, item, make_copy=True):
+        # TODO: Document this
         if not make_copy:
             self.logger.warning("At the moment always a copy is made for tensor().")
         props = self.obtain_property(item["name"])  # Will be list.
@@ -592,8 +595,12 @@ class MemoryGraphDataset(MemoryGraphList):
                 else:
                     self.error("Class does not have method '%s'." % method)
 
-    def get_split_indices(self, name: str = "kfold", return_as_train_test: bool = True,
-                          shuffle: bool = True, seed: int = None):
+    def get_split_indices(self,
+                          name: str = "kfold",
+                          return_as_train_test: bool = True,
+                          shuffle: bool = True,
+                          seed: int = None
+                          ):
         """Gather split ids from split graph property and return k-fold splits.
 
         Args:
@@ -611,7 +618,6 @@ class MemoryGraphDataset(MemoryGraphList):
             if to_split - len(split_indices) + 1 > 0:
                 for _ in range(to_split - len(split_indices) + 1):
                     split_indices.append([])
-
         graphs = self.obtain_property(name)
         for i, s in enumerate(graphs):
             if s is None:
@@ -640,10 +646,28 @@ class MemoryGraphDataset(MemoryGraphList):
 
         return train_test
 
-    def get_train_test_indices(self, train: str = "train", test: str = "test", valid: str = None,
-                               split_index: Union[int, list] = 1, shuffle: bool = False, seed: int = None):
-        """Get train and test indices from graph list. The 'train' and 'test' properties must be set on the graph.
-        They can also be a list of split assignment if more than one train-test split is required.
+    def get_train_test_indices(self,
+                               train: str = "train",
+                               test: str = "test",
+                               valid: t.Optional[str] = None,
+                               split_index: Union[int, list] = 1,
+                               shuffle: bool = False,
+                               seed: int = None
+                               ) -> t.List[t.Union[t.Tuple[int, int], t.Tuple[int, int, int]]]:
+        """
+        Get train and test indices from graph list.
+        The 'train' and 'test' properties must be set on the graph, and optionally an additional property
+        for the validation split may be present. All of these properties may have either of the following
+        values:
+        - The property is a boolean integer value indicating whether the corresponding element of the
+          dataset belongs to that part of the split (train / test)
+        - The property is a list containing integer split indices, where each split index present within
+          that list implies that the corresponding dataset element is part of that particular split.
+          In this case the ``split_index`` parameter may also be a list of split indices that specifies
+          for which of these split indices the train test index split is to be returned by this method.
+
+        The return value of this method is a list with the same length as the ``split_index`` parameter,
+        which by default will be 1.
 
         Args:
             train (str): Name of graph property that has train split assignment. Defaults to 'train'.
@@ -658,27 +682,49 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         out_indices = []
         if not isinstance(split_index, (list, tuple)):
-            split_index = [split_index]
+            split_index_list: t.List[int] = [split_index]
+        else:
+            split_index_list: t.List[int] = split_index
 
-        for j in split_index:
-            split_list = []
-            for s in [train, test, valid]:
-                if s is None:
-                    # out_indices.append(None)
+        for split_index in split_index_list:
+
+            # This list will itself contain numpy arrays which are filled with graph indices of the dataset
+            # each element of this list will correspond to one property name (train, test...)
+            graph_index_split_list: t.List[np.ndarray] = []
+
+            for property_name in [train, test, valid]:
+
+                # It may be that we only seek train and test indices and not validation indices, in that
+                # case the property name for validation is None, in which case we want to skip
+                if property_name is None:
                     continue
-                s_list = []
-                split_prop = self.obtain_property(s)
-                for i, x in enumerate(split_prop):
-                    if x is not None:
-                        if j in x:
-                            s_list.append(i)
-                s_list = np.array(s_list)
-                split_list.append(s_list)
+
+                # This list will contain all the indices of the dataset elements (graphs) which are
+                # associated with the current iteration's split index for the current iteration's
+                # property name (train, test...)
+                graph_index_list: t.List[int] = []
+
+                # "obtain_property" returns a list which contains only the property values corresponding to
+                # the given property name for each graph inside the dataset in the same order.
+                # In this case, this is supposed to be a split list, which is a list that contains integer
+                # indices, each representing one particular dataset split. The split list of each graph
+                # only contains those split indices to which that graph is associated.
+                split_prop: t.List[t.List[int]] = self.obtain_property(property_name)
+                for index, split_list in enumerate(split_prop):
+                    if split_list is not None:
+                        if split_index in split_list:
+                            graph_index_list.append(index)
+
+                graph_index_array = np.array(graph_index_list)
+                graph_index_split_list.append(graph_index_array)
+
             if shuffle:
                 np.random.seed(seed)
-                for x in split_list:
-                    np.random.shuffle(x)
-            out_indices.append(split_list)
+                for graph_index_array in graph_index_split_list:
+                    np.random.shuffle(graph_index_array)
+
+            out_indices.append(graph_index_split_list)
+
         return out_indices
 
 
