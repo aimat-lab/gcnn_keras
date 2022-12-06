@@ -37,6 +37,7 @@ HYPER_PATH = os.path.join(PATH, 'hyper', 'hyper_vgd_mock.py')
 @click.option('--visualization-ratio', type=click.FloatRange(0, 1), default=1.0,
               help='The ratio of how many samples from the test set should be used to visualize the '
                    'generated explanations on')
+
 def main(model: str,
          xai_method: str,
          dataset: str,

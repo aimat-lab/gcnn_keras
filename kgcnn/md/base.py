@@ -2,6 +2,8 @@ import tensorflow as tf
 from typing import Union, List, Callable, Dict
 from kgcnn.data.base import MemoryGraphList
 from kgcnn.graph.base import GraphDict
+from kgcnn.graph.serial import get_preprocessor
+from kgcnn.utils.serial import deserialize, serialize
 
 ks = tf.keras
 
@@ -15,15 +17,19 @@ class MolDynamicsModelPredictor:
                  graph_preprocessors: List[Callable] = None,
                  model_postprocessors: List[Callable] = None,
                  batch_size: int = 32):
+        if graph_preprocessors is None:
+            graph_preprocessors = []
+        if model_postprocessors is None:
+            model_postprocessors = []
         self.model = model
         self.model_inputs = model_inputs
         self.model_outputs = model_outputs
-        self.graph_preprocessors = graph_preprocessors
-        self.model_postprocessors = model_postprocessors
+        self.graph_preprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in graph_preprocessors]
+        self.model_postprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in model_postprocessors]
         self.batch_size = batch_size
 
     def load(self, file_path: str) -> list:
-        pass
+        raise NotImplementedError("Not yet supported.")
 
     @staticmethod
     def _translate_properties(properties, translation) -> dict:
@@ -45,10 +51,8 @@ class MolDynamicsModelPredictor:
 
         num_samples = len(graph_list)
         for gp in self.graph_preprocessors:
-            if isinstance(gp, dict):
-                graph_list.map_list(**gp)
-            else:
-                graph_list.map_list(gp)
+            for i in range(num_samples):
+                graph_list[i].apply_preprocessor(gp)
         tensor_input = graph_list.tensor(self.model_inputs)
 
         try:

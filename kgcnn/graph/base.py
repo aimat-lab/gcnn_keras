@@ -232,8 +232,10 @@ class GraphDict(dict):
         r"""Apply a preprocessor on self.
 
         Args:
-            name: Name, serialized dictionary or type :obj:`GraphPreProcessorBase`.
-            kwargs: Optional kwargs for preprocessor.
+            name: Name of a preprocessor that uses :obj:`kgcnn.graph.serial.get_preprocessor` for backward
+                compatibility,  or a proper serialization dictionary or type :obj:`GraphPreProcessorBase`.
+            kwargs: Optional kwargs for preprocessor. Only used in connection with
+                :obj:`kgcnn.graph.serial.get_preprocessor` if :obj:`name` is string.
 
         Returns:
             self
@@ -246,16 +248,63 @@ class GraphDict(dict):
             proc_graph = name(self)
             self.update(proc_graph)
             return self
-        raise ValueError("Unsupported preprocessor %s" % name)
+        raise ValueError("Unsupported preprocessor '%s'." % name)
 
 
+# Deprecated alias for GraphDict.
 GraphNumpyContainer = GraphDict
 
 
 class GraphProcessorBase:
+    r"""General base class for graph processors.
+
+    A graph processor should be a subclass that implements a call methods and store all relevant information on how
+    to change the graph properties and how they are supposed to be named in the :obj:`GraphDict`.
+
+    .. code-block:: python
+
+        from kgcnn.graph.base import GraphDict, GraphProcessorBase
+
+        class NewProcessor(GraphProcessorBase):
+
+            def __init__(self, name="new_processor", node_property_name="node_number"):
+                self.node_property_name = node_property_name
+                self.name = name
+
+            def __call__(self, graph):
+                # Do nothing but return the same property.
+                return GraphDict({self.node_property_name: graph[self.node_property_name]})
+
+            def get_config(self):
+                return {"name": self.name, "node_property_name": self.node_property_name}
+
+    The class provides utility functions to assign and obtain graph properties to or from a :obj:`GraphDict` by name.
+    Since the namespace on how to name properties in a general :obj:`GraphDict` is not restricted, subclasses of
+    :obj:`GraphProcessorBase` must set the property names in class construction and then can use the utility functions
+    :obj:`_obtain_properties` and :obj:`_assign_properties`.
+
+    Additionally, :obj:`_obtain_properties` and :obj:`_assign_properties` can contain a flexible list of properties
+    or a search string that will return multiple properties. This is mainly required to extract a flexible list of
+    properties, for example all edge-related properties via the search string '^edge_(?!indices$).*' that starts with
+    'edge_' but not 'edge_indices'. Note that you can always cast to a networkx graph, operate your own functions,
+    then transform back into tensor form and wrap it as a :obj:`GraphProcessorBase`.
+    """
 
     @staticmethod
-    def _obtain_properties(graph: GraphDict, to_obtain, to_search, to_quite):
+    def _obtain_properties(graph: GraphDict, to_obtain: dict, to_search, to_quite) -> dict:
+        r"""Extract a dictionary of named properties from a :obj:`GraphDict`.
+
+        Args:
+            graph (GraphDict): Dictionary with of graph properties.
+            to_obtain (dict): Dictionary of keys that holds names or a list of names or a search string of graph
+                properties to fetch. The output dictionary will then have the same keys but with arrays in place of the
+                property name(s). The keys can be used as function arguments for some transform function.
+            to_search (list): A list of strings that should be considered search strings.
+            to_quite (list): A list of strings that suppress 'error not found' messages.
+
+        Returns:
+            dict: A dictionary of resolved graph properties in tensor form.
+        """
         obtained_properties = {}
         for key, name in to_obtain.items():
             if isinstance(name, str):
@@ -279,7 +328,23 @@ class GraphProcessorBase:
 
     @staticmethod
     def _assign_properties(graph: GraphDict, graph_properties: Union[list, np.ndarray],
-                           to_assign, to_search, in_place=False):
+                           to_assign, to_search, in_place=False) -> dict:
+        r"""Assign a list of arrays to a :obj:`GraphDict` by name.
+
+        Args:
+            graph (GraphDict): Dictionary with of graph properties. That can be changed in place. Also required to
+                resolve search strings.
+            graph_properties (list, np.ndarray): Array or list of arrays which are new graph properties
+            to_assign (str, list): Name-keys or list of name-keys for the :obj:`graph_properties`. If :obj:`to_assign`
+                is list, the length must match :obj:`graph_properties` .
+            to_search (list): A list of strings that should be considered search strings.
+                Note that in this case there must be a list of arrays in place of a single array, since search
+                strings will return a list of matching strings.
+            in_place (bool): Whether to update :obj:`graph` argument.
+
+        Returns:
+            dict: Dictionary of arrays matched with name-keys.
+        """
         out_graph = GraphDict()
 
         def _check_list_property(n, p):
@@ -321,10 +386,14 @@ class GraphProcessorBase:
 
     @staticmethod
     def has_special_characters(query, pat=re.compile("[@\\\\!#$%^&*()<>?/|}{~:]")):
+        """Whether a query string has special characters."""
         return pat.search(query) is not None
 
 
 class GraphPreProcessorBase(GraphProcessorBase):
+    """
+
+    """
 
     def __init__(self, *, in_place: bool = False, name: str = None):
         self._config_kwargs = {"in_place": in_place, "name": name}
