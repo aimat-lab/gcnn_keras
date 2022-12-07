@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers.gather import GatherNodesSelection
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding, LazyMultiply, LazyAdd, Activation
 from kgcnn.layers.pooling import PoolingLocalMessages
 from kgcnn.layers.mlp import GraphMLP, MLP
@@ -23,7 +23,7 @@ model_default = {
                {"shape": (None, ), "name": "edge_relations", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
     "dense_relation_kwargs": {"units": 64, "num_relations": 20},
-    "dense_kwargs": {"units": 64},
+    "dense_affine_kwargs": {"units": 64, "num_relations": 20},
     "activation_kwargs": {"activation": "swish"},
     "depth": 3, "verbose": 10,
     "output_embedding": 'graph', "output_to_tensor": True,
@@ -37,7 +37,7 @@ def make_model(inputs: list = None,
                input_embedding: dict = None,
                depth: int = None,
                dense_relation_kwargs: dict = None,
-               dense_kwargs: dict = None,
+               dense_affine_kwargs: dict = None,
                activation_kwargs: dict = None,
                name: str = None,
                verbose: int = None,
@@ -64,7 +64,7 @@ def make_model(inputs: list = None,
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
         dense_relation_kwargs (dict):  Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
-        dense_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer.
+        dense_affine_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
         activation_kwargs (dict):  Dictionary of layer arguments unpacked in :obj:`Activation` layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
@@ -79,8 +79,7 @@ def make_model(inputs: list = None,
     # Make input
     node_input = ks.layers.Input(**inputs[0])
     edge_index_input = ks.layers.Input(**inputs[1])
-    edge_weights = ks.layers.Input(**inputs[2])
-    edge_relations = ks.layers.Input(**inputs[3])
+    edge_relations = ks.layers.Input(**inputs[2])
 
     # Embedding, if no feature dimension
     n = OptionalInputEmbedding(**input_embedding['node'], use_embedding=len(inputs[0]['shape']) < 2)(node_input)
@@ -88,13 +87,15 @@ def make_model(inputs: list = None,
 
     # Model
     for i in range(0, depth):
-        n_j = GatherNodesOutgoing()([n, edi])
-        h0 = Dense(**dense_kwargs)(n)
+        n_i, n_j = GatherNodesSelection(selection_index=[0, 1])([n, edi])
+        # Note: This maybe could be done more efficiently.
+        gamma = RelationalDense(**dense_affine_kwargs)([n_i, edge_relations])
+        beta = RelationalDense(**dense_affine_kwargs)([n_i, edge_relations])
         h_j = RelationalDense(**dense_relation_kwargs)([n_j, edge_relations])
-        m = LazyMultiply()([h_j, edge_weights])
+        m = LazyMultiply()([h_j, gamma])
+        m = LazyAdd([m, beta])
         h = PoolingLocalMessages(pooling_method="sum")([n, m, edi])
-        n = LazyAdd()([h, h0])
-        n = Activation(**activation_kwargs)(n)
+        n = Activation(**activation_kwargs)(h)
 
     # Output embedding choice
     if output_embedding == "graph":
@@ -107,5 +108,5 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `GNNFilm`")
 
-    model = ks.models.Model(inputs=[node_input, edge_index_input, edge_weights, edge_relations], outputs=out, name=name)
+    model = ks.models.Model(inputs=[node_input, edge_index_input, edge_relations], outputs=out, name=name)
     return model
