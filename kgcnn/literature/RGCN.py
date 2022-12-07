@@ -94,7 +94,7 @@ def make_model(inputs: list = None,
         h0 = Dense(**dense_kwargs)(n)
         h_j = RelationalDense(**dense_relation_kwargs)([n_j, edge_relations])
         m = LazyMultiply()([h_j, edge_weights])
-        h = PoolingLocalMessages(pooling_method="sum")(m)
+        h = PoolingLocalMessages(pooling_method="sum")([n, m, edi])
         n = LazyAdd()[h, h0]
         n = Activation(**activation_kwargs)(n)
 

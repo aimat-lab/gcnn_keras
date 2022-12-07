@@ -291,7 +291,7 @@ class GraphProcessorBase:
     """
 
     @staticmethod
-    def _obtain_properties(graph: GraphDict, to_obtain: dict, to_search, to_quite) -> dict:
+    def _obtain_properties(graph: GraphDict, to_obtain: dict, to_search, to_silent) -> dict:
         r"""Extract a dictionary of named properties from a :obj:`GraphDict`.
 
         Args:
@@ -300,7 +300,7 @@ class GraphProcessorBase:
                 properties to fetch. The output dictionary will then have the same keys but with arrays in place of the
                 property name(s). The keys can be used as function arguments for some transform function.
             to_search (list): A list of strings that should be considered search strings.
-            to_quite (list): A list of strings that suppress 'error not found' messages.
+            to_silent (list): A list of strings that suppress 'error not found' messages.
 
         Returns:
             dict: A dictionary of resolved graph properties in tensor form.
@@ -312,13 +312,13 @@ class GraphProcessorBase:
                     names = graph.search_properties(name)  # Will be sorted list and existing only
                     obtained_properties[key] = [graph.obtain_property(x) for x in names]
                 else:
-                    if not graph.has_valid_key(name) and key not in to_quite:
+                    if not graph.has_valid_key(name) and key not in to_silent:
                         module_logger.warning("Missing '%s' in '%s'" % (name, type(graph).__name__))
                     obtained_properties[key] = graph.obtain_property(name)
             elif isinstance(name, (list, tuple)):
                 prop_list = []
                 for x in name:
-                    if not graph.has_valid_key(x) and key not in to_quite:
+                    if not graph.has_valid_key(x) and key not in to_silent:
                         module_logger.warning("Missing '%s' in '%s'" % (x, type(graph).__name__))
                     prop_list.append(graph.obtain_property(x))
                 obtained_properties[key] = prop_list
@@ -420,7 +420,7 @@ class GraphPreProcessorBase(GraphProcessorBase):
                 return nodes
 
     For proper serialization you should update :obj:`self._config_kwargs` . For information on :obj:`self._search` and
-    :obj:`self._quite` see docs of :obj:`GraphProcessorBase` .
+    :obj:`self._silent` see docs of :obj:`GraphProcessorBase` .
 
     """
 
@@ -438,7 +438,7 @@ class GraphPreProcessorBase(GraphProcessorBase):
         self._to_assign = None
         self._call_kwargs = {}
         self._search = []
-        self._quite = []
+        self._silent = []
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
@@ -452,7 +452,7 @@ class GraphPreProcessorBase(GraphProcessorBase):
         Returns:
             dict: Dictionary of new properties.
         """
-        graph_properties = self._obtain_properties(graph, self._to_obtain, self._search, self._quite)
+        graph_properties = self._obtain_properties(graph, self._to_obtain, self._search, self._silent)
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
         out_graph = self._assign_properties(graph, processed_properties, self._to_assign, self._search)
@@ -498,7 +498,7 @@ class GraphPostProcessorBase(GraphProcessorBase):
                 return nodes
 
     For proper serialization you should update :obj:`self._config_kwargs` . For information on :obj:`self._search` and
-    :obj:`self._quite` see docs of :obj:`GraphProcessorBase` .
+    :obj:`self._silent` see docs of :obj:`GraphProcessorBase` .
 
     Note that for :obj:`GraphPostProcessorBase` one can also set :obj:`self._to_obtain_pre` if information of the input
     graph or a previous graph is required, which is common for postprocessing.
@@ -519,7 +519,7 @@ class GraphPostProcessorBase(GraphProcessorBase):
         self._to_assign = None
         self._call_kwargs = {}
         self._search = []
-        self._quite = []
+        self._silent = []
 
     def call(self, **kwargs):
         raise NotImplementedError("Must be implemented in sub-class.")
@@ -535,10 +535,10 @@ class GraphPostProcessorBase(GraphProcessorBase):
         Returns:
             dict: Dictionary of new properties.
         """
-        graph_properties_y = self._obtain_properties(graph, self._to_obtain, self._search, self._quite)
+        graph_properties_y = self._obtain_properties(graph, self._to_obtain, self._search, self._silent)
 
         if pre_graph is not None:
-            graph_properties_x = self._obtain_properties(pre_graph, self._to_obtain_pre, self._search, self._quite)
+            graph_properties_x = self._obtain_properties(pre_graph, self._to_obtain_pre, self._search, self._silent)
             processed_properties = self.call(**graph_properties_y, **graph_properties_x, **self._call_kwargs)
         else:
             processed_properties = self.call(**graph_properties_y, **self._call_kwargs)
