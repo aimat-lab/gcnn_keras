@@ -55,7 +55,7 @@ def make_model(inputs: list = None,
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
-            - edge_indices (tf.RaggedTensor): Edge weights of shape `(batch, None, 1)`. Can depend on relations.
+            - edge_weights (tf.RaggedTensor): Edge weights of shape `(batch, None, 1)`. Can depend on relations.
             - edge_relations (tf.RaggedTensor): Edge relations of shape `(batch, None)` .
 
     Outputs:
