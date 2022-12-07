@@ -55,7 +55,8 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | Megnet              | 2.1.0   |      800 | 0.5446 &pm; 0.0142     | 0.7651 &pm; 0.0410     |
 | NMPN                | 2.1.0   |      800 | 0.5045 &pm; 0.0217     | 0.7092 &pm; 0.0482     |
 | PAiNN               | 2.1.0   |      250 | **0.4291 &pm; 0.0164** | **0.6014 &pm; 0.0238** |
-| Schnet              | 2.1.0   |      800 | 0.4579 &pm; 0.0259     | 0.6527 &pm; 0.0411     |
+| RGCN                | 2.2.0   |      800 | 0.5014 &pm; 0.0274     | 0.7028 &pm; 0.0332     |
+| Schnet              | 2.2.0   |      800 | 0.4664 &pm; 0.0188     | 0.6511 &pm; 0.0373     |
 
 ## LipopDataset
 
@@ -281,4 +282,12 @@ Energies and forces for molecular dynamics trajectories. All geometries in A, en
 | NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | 0.6971 &pm; 0.0772     | 0.6197 &pm; 0.0327     | 0.3596 &pm; 0.0401 | 0.3444 &pm; 0.0219     |
 | PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.7802 &pm; 0.0124     | 0.2496 &pm; 0.0058     | 0.7427 &pm; 0.0116     | 0.0424 &pm; 0.0017 | 0.5627 &pm; 0.0236     |
 | Schnet.EnergyForceModel    | 2.2.0   |     1000 | 0.9777 &pm; 0.0134     | 0.5378 &pm; 0.0100     | 0.6173 &pm; 0.0095     | 0.2537 &pm; 0.0034 | 0.4246 &pm; 0.0269     |
+
+## VgdMockDataset
+
+Synthetic classification dataset containing 100 small, randomly generated graphs, where half of them were seeded with a triangular subgraph motif, which is the explanation ground truth for the target class distinction.
+
+| model   | kgcnn   |   epochs | Categorical Accuracy   | Node AUC               | Edge AUC               |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| MEGAN   | 2.2.0   |      100 | **0.9700 &pm; 0.0400** | **0.7702 &pm; 0.1772** | **0.7895 &pm; 0.1594** |
 

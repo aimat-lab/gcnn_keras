@@ -23,7 +23,7 @@ model_default = {
                {"shape": (None, ), "name": "edge_relations", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
     "dense_relation_kwargs": {"units": 64, "num_relations": 20},
-    "dense_modulation_kwargs": {"units": 64, "num_relations": 20},
+    "dense_modulation_kwargs": {"units": 64, "num_relations": 20, "activation": "sigmoid"},
     "activation_kwargs": {"activation": "swish"},
     "depth": 3, "verbose": 10,
     "output_embedding": 'graph', "output_to_tensor": True,
@@ -93,7 +93,7 @@ def make_model(inputs: list = None,
         beta = RelationalDense(**dense_modulation_kwargs)([n_i, edge_relations])
         h_j = RelationalDense(**dense_relation_kwargs)([n_j, edge_relations])
         m = LazyMultiply()([h_j, gamma])
-        m = LazyAdd([m, beta])
+        m = LazyAdd()([m, beta])
         h = PoolingLocalMessages(pooling_method="sum")([n, m, edi])
         n = Activation(**activation_kwargs)(h)
 
