@@ -249,8 +249,7 @@ You can find a [table](training/results/README.md) of common benchmark datasets 
 Some known issues to be aware of, if using and making new models or layers with `kgcnn`.
 * RaggedTensor can not yet be used as a keras model output [(issue)](https://github.com/tensorflow/tensorflow/issues/42320), which has been mostly resolved in TF 2.8.
 * Using `RaggedTensor`'s for arbitrary ragged rank apart from `kgcnn.layers.modules` can cause significant performance decrease. This is due to shape check during add, multiply or concatenate (we think). 
-  We therefore use lazy add and concat in the `kgcnn.layers.modules` layers or directly operate on the value tensor for possible rank. 
-* With tensorflow version <=2.5 there is a problem with numpy version >=1.20 also affect `kgcnn` [(issue)](https://github.com/tensorflow/tensorflow/issues/47691) 
+  We therefore use lazy add and concat in the `kgcnn.layers.modules` layers or directly operate on the value tensor for possible rank.  
 
 <a name="citing"></a>
 # Citing

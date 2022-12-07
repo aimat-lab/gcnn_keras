@@ -23,7 +23,7 @@ model_default = {
                {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
                {"shape": (None, ), "name": "edge_relations", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
-    "dense_relation_kwargs": {"units": 64, },
+    "dense_relation_kwargs": {"units": 64, "num_relations": 20},
     "dense_kwargs": {"units": 64},
     "activation_kwargs": {"activation": "swish"},
     "depth": 3, "verbose": 10,
@@ -95,7 +95,7 @@ def make_model(inputs: list = None,
         h_j = RelationalDense(**dense_relation_kwargs)([n_j, edge_relations])
         m = LazyMultiply()([h_j, edge_weights])
         h = PoolingLocalMessages(pooling_method="sum")([n, m, edi])
-        n = LazyAdd()[h, h0]
+        n = LazyAdd()([h, h0])
         n = Activation(**activation_kwargs)(n)
 
     # Output embedding choice

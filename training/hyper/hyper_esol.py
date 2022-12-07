@@ -1112,7 +1112,7 @@ hyper = {
                     {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
                     {"shape": [None], "name": "edge_number", "dtype": "int64", "ragged": True}],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
-                "dense_relation_kwargs": {"units": 64, "num_relations": 10},
+                "dense_relation_kwargs": {"units": 64, "num_relations": 20},
                 "dense_kwargs": {"units": 64},
                 "activation_kwargs": {"activation": "swish"},
                 "depth": 5, "verbose": 10,
