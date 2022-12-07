@@ -23,7 +23,7 @@ model_default = {
                {"shape": (None, ), "name": "edge_relations", "dtype": "int64", "ragged": True}],
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
     "dense_relation_kwargs": {"units": 64, "num_relations": 20},
-    "dense_affine_kwargs": {"units": 64, "num_relations": 20},
+    "dense_modulation_kwargs": {"units": 64, "num_relations": 20},
     "activation_kwargs": {"activation": "swish"},
     "depth": 3, "verbose": 10,
     "output_embedding": 'graph', "output_to_tensor": True,
@@ -37,7 +37,7 @@ def make_model(inputs: list = None,
                input_embedding: dict = None,
                depth: int = None,
                dense_relation_kwargs: dict = None,
-               dense_affine_kwargs: dict = None,
+               dense_modulation_kwargs: dict = None,
                activation_kwargs: dict = None,
                name: str = None,
                verbose: int = None,
@@ -63,8 +63,8 @@ def make_model(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        dense_relation_kwargs (dict):  Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
-        dense_affine_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
+        dense_relation_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
+        dense_modulation_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalDense` layer.
         activation_kwargs (dict):  Dictionary of layer arguments unpacked in :obj:`Activation` layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
@@ -89,8 +89,8 @@ def make_model(inputs: list = None,
     for i in range(0, depth):
         n_i, n_j = GatherNodesSelection(selection_index=[0, 1])([n, edi])
         # Note: This maybe could be done more efficiently.
-        gamma = RelationalDense(**dense_affine_kwargs)([n_i, edge_relations])
-        beta = RelationalDense(**dense_affine_kwargs)([n_i, edge_relations])
+        gamma = RelationalDense(**dense_modulation_kwargs)([n_i, edge_relations])
+        beta = RelationalDense(**dense_modulation_kwargs)([n_i, edge_relations])
         h_j = RelationalDense(**dense_relation_kwargs)([n_j, edge_relations])
         m = LazyMultiply()([h_j, gamma])
         m = LazyAdd([m, beta])
