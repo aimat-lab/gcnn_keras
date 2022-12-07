@@ -13,9 +13,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
-    install_requires=["tensorflow>=2.8.0", "tensorflow-gpu>=2.8.0", "tensorflow-addons", "keras-tuner",
-                      "numpy", "scikit-learn", "pandas", "scipy",  "matplotlib",
-                      "requests", "networkx", "sympy", "pyyaml", "ase", "click", "visual_graph_datasets>=0.6.1"],
+    install_requires=["numpy>=1.23.0", "scikit-learn>=1.1.3", "pandas>=1.5.2", "scipy>=1.9.3",  "matplotlib>=3.6.0", "rdkit>=2022.9.2", "pymatgen>=2022.11.7",
+		      "tensorflow>=2.10.0", "tensorflow-gpu>=2.10.0", "tensorflow-addons>=0.18.0", "keras-tuner>=1.1.3",
+                      "requests>=2.28.1", "networkx>=2.8.8", "sympy>=1.11.1", "pyyaml>=6.0", "ase>=3.22.1", "click>=7.1.2", "visual_graph_datasets>=0.6.1"],
     extras_require={
         "openbabel": ["openbabel"],
     },
