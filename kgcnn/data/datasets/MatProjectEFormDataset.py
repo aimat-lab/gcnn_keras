@@ -3,16 +3,17 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 class MatProjectEFormDataset(MatBenchDataset2020):
     r"""Store and process :obj:`MatProjectEFormDataset` from `MatBench <https://matbench.materialsproject.org/>`_
-    database.
+    database.  Name within Matbench: 'matbench_mp_e_form'.
 
-    Matbench v0.1 test dataset for predicting DFT formation energy from structure.
+    Matbench test dataset for predicting DFT formation energy from structure.
     Adapted from Materials Project database. Removed entries having formation energy more than 2.5eV and those
     containing noble gases. Retrieved April 2, 2019. For benchmarking w/ nested cross validation,
     the order of the dataset must be identical to the retrieved data; refer to the Automatminer/Matbench publication
     for more details.
-    Number of samples: 132752.
-    Task type: regression.
-    Input type: structure.
+
+        * Number of samples: 132752.
+        * Task type: regression.
+        * Input type: structure.
 
     """
 

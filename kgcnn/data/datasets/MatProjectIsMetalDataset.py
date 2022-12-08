@@ -3,7 +3,16 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 class MatProjectIsMetalDataset(MatBenchDataset2020):
     r"""Store and process :obj:`MatProjectEFormDataset` from `MatBench <https://matbench.materialsproject.org/>`_
-    database.
+    database. Name within Matbench: 'matbench_mp_is_metal'.
+
+    Matbench test dataset for predicting DFT metallicity from structure. Adapted from Materials Project database.
+    Removed entries having a formation energy (or energy above the convex hull) more than 150meV and those containing
+    noble gases. Retrieved April 2, 2019. For benchmarking w/ nested cross validation, the order of the dataset must
+    be identical to the retrieved data; refer to the Automatminer/Matbench publication for more details.
+
+        * Number of samples: 106113.
+        * Task type: classification.
+        * Input type: structure.
 
     """
 

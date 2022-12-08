@@ -2,7 +2,23 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectPhononsDataset(MatBenchDataset2020):
-    """Store and process 'matbench_mp_e_form' dataset."""
+    """Store and process :obj:`MatProjectEFormDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    database. Name within Matbench: 'matbench_phonons'.
+
+    Matbench test dataset for predicting vibration properties from crystal structure. Original data retrieved
+    from Petretto et al. Original calculations done via ABINIT in the harmonic approximation based on density
+    functional perturbation theory. Removed entries having a formation energy (or energy above the convex hull)
+    more than 150meV. For benchmarking w/ nested cross validation, the order of the dataset must be identical to the
+    retrieved data; refer to the Automatminer/Matbench publication for more details.
+
+        * Number of samples: 1265
+        * Task type: regression
+        * Input type: structure
+
+    last phdos peak: Target variable. Frequency of the highest frequency optical phonon mode peak, in units of 1/cm;
+    may be used as an estimation of dominant longitudinal optical phonon frequency.
+
+    """
 
     def __init__(self, reload=False, verbose=1):
         r"""Initialize 'matbench_mp_e_form' dataset.
@@ -15,7 +31,3 @@ class MatProjectPhononsDataset(MatBenchDataset2020):
         super(MatProjectPhononsDataset, self).__init__("matbench_phonons", reload=reload, verbose=verbose)
         self.label_names = "omega_max"
         self.label_units = "1/cm"
-
-
-# data = MatProjectPhononsDataset(reload=True)
-# data.map_list(method="set_range_periodic", max_distance=4, max_neighbours=65)
