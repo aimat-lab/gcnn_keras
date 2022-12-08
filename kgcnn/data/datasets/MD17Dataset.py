@@ -6,7 +6,9 @@ from kgcnn.data.download import DownloadDataset
 
 
 class MD17Dataset(DownloadDataset, MemoryGraphDataset):
-    """Store and process full MD17Dataset dataset."""
+    """Store and process full :obj:`MD17Dataset` dataset.
+
+    """
     datasets_download_info = {
         "CG-CG": {"download_file_name": "CG-CG.npz"},
         "aspirin_dft": {"download_file_name": "aspirin_dft.npz"},
