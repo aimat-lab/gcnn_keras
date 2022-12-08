@@ -7,7 +7,30 @@ from kgcnn.data.utils import load_json_file, save_json_file
 
 
 class MatBenchDataset2020(CrystalDataset, DownloadDataset):
-    """Downloader for DeepChem MoleculeNetDataset 2018 class.
+    r"""Base class for loading graph datasets from `MatBench <https://matbench.materialsproject.org/>`_ , collection
+    of materials datasets. For graph learning only those with structure are relevant.
+    Process and loads from serialized :obj:`pymatgen` structures.
+
+    .. note::
+
+        This class does not follow the interface of `MatBench <https://github.com/materialsproject/matbench>`_
+        and therefore also not the original splits required for submission of benchmark values.
+
+    Matbench is an automated leaderboard for benchmarking state of the art ML algorithms predicting a diverse range
+    of solid materials' properties. It is hosted and maintained by the
+    `Materials Project <https://materialsproject.org/>`_ .
+
+    `Matbench <https://www.nature.com/articles/s41524-020-00406-3>`_ is an `ImageNet <https://image-net.org/>`_
+    for materials science; a curated set of 13 supervised, pre-cleaned, ready-to-use ML tasks for benchmarking
+    and fair comparison.
+    The tasks span a wide domain of inorganic materials science applications including electronic, thermodynamic,
+    mechanical, and thermal properties among crystals, 2D materials, disordered metals, and more.
+
+    References:
+
+        (1) Dunn, A., Wang, Q., Ganose, A. et al. Benchmarking materials property prediction methods: the Matbench
+            test set and Automatminer reference algorithm. npj Comput Mater 6, 138 (2020).
+            `<https://doi.org/10.1038/s41524-020-00406-3>`_ .
 
     """
     datasets_download_info = {
@@ -165,7 +188,3 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         self.info("Write dataset table '%s' to file." % self.file_name)
         df.to_csv(self.file_path)
         return self
-
-
-# dataset = MatBenchDataset2020("matbench_mp_e_form", reload=False)
-# print("Okay")

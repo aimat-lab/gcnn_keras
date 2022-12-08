@@ -6,13 +6,22 @@ from kgcnn.data.download import DownloadDataset
 
 class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_. Datasets contain non-isomorphic graphs. This general base class has
-    functionality to load TUDatasets in a generic way.
+    <https://chrsmrrs.github.io/datasets>`_.
+
+    This general base class has functionality to load TUDatasets in a generic way.
 
     .. note::
-        Note that sub-classes of `GraphTUDataset` in :obj:``kgcnn.data.datasets`` should still be made,
+
+        Note that subclasses of `GraphTUDataset` in :obj:``kgcnn.data.datasets`` should still be made,
         if the dataset needs more refined post-precessing. Not all datasets can provide all types of graph
         properties like `edge_attributes` etc.
+
+    References:
+
+        (1) TUDataset: A collection of benchmark datasets for learning with graphs.
+            Christopher Morris and Nils M. Kriege and Franka Bause and Kristian Kersting and Petra Mutzel and
+            Marion Neumann, ICML 2020 Workshop on Graph Representation Learning and Beyond (GRL+ 2020)
+            `<www.graphlearning.io>`_ .
 
     """
 
@@ -90,5 +99,3 @@ class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
                 if line[:3] == "|**":
                     line_ids.append(line.split("**")[1])
         return line_ids
-
-# test = GraphTUDataset2020("AIDS", reload=True)
