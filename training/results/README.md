@@ -47,6 +47,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | GCN                 | 2.1.0   |      800 | 0.5917 &pm; 0.0301     | 0.8118 &pm; 0.0465     |
 | GIN                 | 2.1.0   |      300 | 0.5023 &pm; 0.0182     | 0.6997 &pm; 0.0300     |
 | GIN.make_model_edge | 2.1.0   |      300 | 0.4881 &pm; 0.0173     | 0.6759 &pm; 0.0229     |
+| GNNFilm             | 2.2.0   |      800 | 0.5145 &pm; 0.0158     | 0.7166 &pm; 0.0342     |
 | GraphSAGE           | 2.1.0   |      500 | 0.5003 &pm; 0.0445     | 0.7242 &pm; 0.0791     |
 | HamNet              | 2.1.0   |      400 | 0.5485 &pm; 0.0225     | 0.7605 &pm; 0.0210     |
 | INorp               | 2.1.0   |      500 | 0.4856 &pm; 0.0145     | 0.6801 &pm; 0.0252     |
