@@ -6,13 +6,13 @@ ks = tf.keras  # import tensorflow.keras as ks
 # There are limitations for RaggedTensor working with standard Keras layers, but which are successively reduced with
 # more recent tensorflow/keras versions (tf-version >= 2.2).
 # For backward compatibility we keep keras layer replacements to work with RaggedTensor in this module.
-# For example with tf-version==2.8, Dense is equivalent to ks.layers.Dense.
+# For example with tf-version==2.8, DenseEmbedding is equivalent to ks.layers.Dense.
 # Note that here are LazyAdd and LazyConcatenate etc. layers which are slightly different from keras layer, which also
 # work on RaggedTensor, but neglect shape check if 'ragged_validate' is set to False.
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='Dense')
-class Dense(GraphBaseLayer):
+@ks.utils.register_keras_serializable(package='kgcnn', name='DenseEmbedding')
+class DenseEmbedding(GraphBaseLayer):
     r"""Dense layer for ragged tensors representing a geometric or graph tensor such as node or edge embeddings.
     Latest tensorflow version now support ragged input for :obj:`ks.layers.Dense` with defined inner dimension.
     This layer is kept for backward compatibility but does not necessarily have to be used in models anymore.
@@ -57,7 +57,7 @@ class Dense(GraphBaseLayer):
                 the `kernel` weights matrix.
             bias_constraint: Constraint function applied to the bias vector.
         """
-        super(Dense, self).__init__(**kwargs)
+        super(DenseEmbedding, self).__init__(**kwargs)
         self._layer_dense = ks.layers.Dense(units=units, activation=activation,
                                             use_bias=use_bias, kernel_initializer=kernel_initializer,
                                             bias_initializer=bias_initializer,
@@ -87,12 +87,11 @@ class Dense(GraphBaseLayer):
         return self._layer_dense(inputs, **kwargs)
 
 
-# Deprecated Alias.
-DenseEmbedding = Dense
+Dense = DenseEmbedding
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='Activation')
-class Activation(GraphBaseLayer):
+@ks.utils.register_keras_serializable(package="kgcnn", name="ActivationEmbedding")
+class ActivationEmbedding(GraphBaseLayer):
     r"""Activation layer for ragged tensors representing a geometric or graph tensor such as node or edge embeddings.
     A :obj:`Activation` applies an activation function to an output, i.e. a transformation of the input
     :math:`\mathbf{x}` via activation function :math:`\sigma`.
@@ -113,7 +112,7 @@ class Activation(GraphBaseLayer):
                 built-in activation function, such as "relu".
             activity_regularizer: Regularizer function applied to the output of the layer (its "activation").
         """
-        super(Activation, self).__init__(**kwargs)
+        super(ActivationEmbedding, self).__init__(**kwargs)
         self._layer_act = ks.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
@@ -130,18 +129,17 @@ class Activation(GraphBaseLayer):
 
     def get_config(self):
         """Get config of layer."""
-        config = super(Activation, self).get_config()
+        config = super(ActivationEmbedding, self).get_config()
         act_reg = ks.regularizers.serialize(self._layer_act.activity_regularizer)
         config.update({"activity_regularizer": act_reg})
         return config
 
 
-# Deprecated Alias.
-ActivationEmbedding = Activation
+Activation = ActivationEmbedding
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='Dropout')
-class Dropout(GraphBaseLayer):
+@ks.utils.register_keras_serializable(package="kgcnn", name="DropoutEmbedding")
+class DropoutEmbedding(GraphBaseLayer):
     r"""Layer that applies Dropout to the input of e.g. geometric or graph tensor such as node or
     edge embeddings.
     The layer behaves as :obj:`ks.layers.Dropout` but is directly performed on the `values` tensor of the ragged
@@ -166,7 +164,7 @@ class Dropout(GraphBaseLayer):
                 you can use `noise_shape=(batch_size, 1, features)`.
             seed (int): A Python integer to use as random seed.
         """
-        super(Dropout, self).__init__(**kwargs)
+        super(DropoutEmbedding, self).__init__(**kwargs)
         self._layer_drop = ks.layers.Dropout(rate=rate, noise_shape=noise_shape, seed=seed)
         self._add_layer_config_to_self = {"_layer_drop": ["rate", "noise_shape", "seed"]}
 
@@ -182,7 +180,7 @@ class Dropout(GraphBaseLayer):
         return self.call_on_values_tensor_of_ragged(self._layer_drop, inputs, **kwargs)
 
 
-DropoutEmbedding = Dropout
+Dropout = DropoutEmbedding
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyAdd')
