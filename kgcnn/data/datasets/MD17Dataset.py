@@ -33,9 +33,10 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
     }
 
     def __init__(self, trajectory_name: str = None, reload=False, verbose=10):
-        """Initialize full Cora dataset.
+        """Initialize MD17Dataset dataset.
 
         Args:
+            trajectory_name (str): Name of a trajectory or molecule.
             reload (bool): Whether to reload the data and make new dataset. Default is False.
             verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
@@ -88,6 +89,7 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
         return [np.load(x) for x in file_path]
 
     def read_in_memory(self):
+        """Load a trajectory into memory."""
         data_loaded = self._get_trajectory_from_npz()
 
         def make_dict_from_data(data, is_split: dict = None):
