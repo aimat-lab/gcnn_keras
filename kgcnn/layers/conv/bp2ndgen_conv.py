@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.modules import LazyMultiply
 ks = tf.keras
@@ -12,6 +13,8 @@ class wACSFRad(GraphBaseLayer):
     def __init__(self, eta: list = None, mu: list = None, cutoff: float = 5, **kwargs):
         super(wACSFRad, self).__init__(**kwargs)
         self.lazy_mult = LazyMultiply()
+        self.layer_pos = NodePosition()
+        self.layer_dist = NodeDistanceEuclidean()
         self.pool_sum = PoolingLocalEdges(pooling_method="sum")
         self.cutoff = cutoff
         self.eta = eta
@@ -34,16 +37,18 @@ class wACSFRad(GraphBaseLayer):
         super(wACSFRad, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
-        n, ei, rij, w = inputs
+        xyz, eij, w = inputs
+        xi, xj = self.layer_pos([xyz, eij], **kwargs)
+        rij = self.layer_dist([xi, xj], **kwargs)
         fc = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
         gbasis = self.call_on_values_tensor_of_ragged(
             self._compute_gaussian_expansion, rij, eta=self.eta_mu[0], mu=self.eta_mu[1])
         rep = self.lazy_mult([w, gbasis, fc], **kwargs)
-        return self.pool_sum([n, ei, rep], **kwargs)
+        return self.pool_sum([xyz, eij, rep], **kwargs)
 
     def get_config(self):
         config = super(wACSFRad, self).get_config()
-        config.update({"cutoff": self.cutoff})
+        config.update({"cutoff": self.cutoff, "eta": self.eta, "mu": self.mu})
         return config
 
 
@@ -58,7 +63,7 @@ class wACSFAng(GraphBaseLayer):
         self.eta = zeta
         self.mu = mu
         self.lamda = lamda
-        self.eta_mu = tf.constant()
+        self.eta_mu_lambda = tf.constant()
 
     @staticmethod
     def _compute_fc(inputs: tf.Tensor, cutoff: float):
@@ -73,17 +78,14 @@ class wACSFAng(GraphBaseLayer):
         return tf.exp(-arg)
 
     def build(self, input_shape):
-        super(wACSFRad, self).build(input_shape)
+        super(wACSFAng, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
-        n, ei, rij, w = inputs
-        fc = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
-        gbasis = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, rij, eta=self.eta_mu[0], mu=self.eta_mu[1])
-        rep = self.lazy_mult([w, gbasis, fc], **kwargs)
-        return self.pool_sum([n, ei, rep], **kwargs)
+        n, theta, ijk, rij, rik, rjk, w = inputs
+        rep = None
+        return self.pool_sum([n, ijk, rep], **kwargs)
 
     def get_config(self):
-        config = super(wACSFRad, self).get_config()
+        config = super(wACSFAng, self).get_config()
         config.update({"cutoff": self.cutoff})
         return config
