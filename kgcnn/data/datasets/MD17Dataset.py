@@ -6,7 +6,92 @@ from kgcnn.data.download import DownloadDataset
 
 
 class MD17Dataset(DownloadDataset, MemoryGraphDataset):
-    """Store and process full :obj:`MD17Dataset` dataset.
+    r"""Store and process trajectories from the :obj:`MD17Dataset` dataset.
+    The dataset contains atomic coordinates of molecular dynamics trajectories, as well as the total energy
+    (in kcal/mol) and forces (kcal/mol/Angstrom) on each atom.
+    For reference data source, refer to the links `<http://www.sgdml.org/#datasets>`_ or
+    `<http://quantum-machine.org/gdml/data/>`_ .
+
+    Which trajectory is downloaded is determined by :obj:`trajectory_name` argument.
+    There are two different versions of trajectories, which are a long trajectory on DFT
+    level of theory and a short trajectory on coupled cluster level of theory marked in the name by
+    'dft' and 'ccsd_t' respectively.
+
+    Overview:
+
+        .. list-table::
+            :widths: 20 10 20 10
+            :header-rows: 1
+            * - Molecule
+              - Level of Theory
+              - trajectory_name
+              - graphs
+            * - Aspirin
+              - DFT
+              - aspirin_dft
+              - 211762
+            * - Azobenzene
+              - DFT
+              - azobenzene_dft
+              - 99999
+            * - Benzene
+              - DFT
+              - benzene2017_dft
+              - 627983
+            * - Benzene
+              - DFT
+              - benzene2018_dft
+              - 49863
+            * - Ethanol
+              - DFT
+              - ethanol_dft
+              - 555092
+            * - Malonaldehyde
+              - DFT
+              - malonaldehyde_dft
+              - 993237
+            * - Naphthalene
+              - DFT
+              - naphthalene_dft
+              - 326250
+            * - Paracetamol
+              - DFT
+              - paracetamol_dft
+              - 106490
+            * - Salicylic
+              - DFT
+              - salicylic_dft
+              - 320231
+            * - Toluene
+              - DFT
+              - toluene_dft
+              - 442790
+            * - Uracil
+              - DFT
+              - uracil_dft
+              - 133770
+            * - Aspirin_ccsd
+              - CCSD
+              - aspirin_ccsd
+              - 1500
+            * - Benzene
+              - CCSD
+              - benzene_ccsd_t
+              - 1500
+            * - Ethanol
+              - CCSD
+              - ethanol_ccsd_t
+              - 2000
+            * - Malonaldehyde
+              - CCSD
+              - malonaldehyde_ccsd_t
+              - 1500
+            * - Toluene
+              - CCSD
+              - toluene_ccsd_t
+              - 1501
+
+    It is recommended to use the given train-test splits. Only the requested trajectory is downloaded.
 
     """
     datasets_download_info = {
@@ -21,7 +106,7 @@ class MD17Dataset(DownloadDataset, MemoryGraphDataset):
         "paracetamol_dft": {"download_file_name": "paracetamol_dft.npz"},
         "salicylic_dft": {"download_file_name": "salicylic_dft.npz"},
         "toluene_dft": {"download_file_name": "toluene_dft.npz"},
-        "uracil_dft": {"download_file_name": "toluene_dft.npz"},
+        "uracil_dft": {"download_file_name": "uracil_dft.npz"},
         "aspirin_ccsd": {"download_file_name": "aspirin_ccsd.zip", "unpack_zip": True,
                          "unpack_directory_name": "aspirin_ccsd"},
         "benzene_ccsd_t": {"download_file_name": "benzene_ccsd_t.zip", "unpack_zip": True,
