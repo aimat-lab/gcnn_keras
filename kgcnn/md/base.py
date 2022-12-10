@@ -1,3 +1,4 @@
+import time
 import tensorflow as tf
 import numpy as np
 from typing import Union, List, Callable, Dict
@@ -127,4 +128,9 @@ class MolDynamicsModelPredictor:
         Returns:
             float: Time for one call.
         """
-        pass
+        assert repetitions >= 1, "Repetitions must be number of calls."
+        start = time.process_time()
+        for _ in range(repetitions):
+            output = self.__call__(graph_list)
+        stop = time.process_time()
+        return float(stop-start)/repetitions
