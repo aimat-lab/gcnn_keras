@@ -43,7 +43,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
 
     """
 
-    def __init__(self, standardize_coordinates: bool = True, **kwargs):
+    def __init__(self, standardize_coordinates: bool = False, **kwargs):
         super(EnergyForceExtensiveScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
         if self._standardize_coordinates:

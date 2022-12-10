@@ -3,7 +3,6 @@ import numpy as np
 from typing import Union, List, Callable, Dict
 from kgcnn.data.base import MemoryGraphList
 from kgcnn.graph.base import GraphDict
-from kgcnn.graph.serial import get_preprocessor
 from kgcnn.utils.serial import deserialize, serialize
 
 ks = tf.keras
@@ -118,3 +117,14 @@ class MolDynamicsModelPredictor:
             output_list.append(temp_dict)
 
         return MemoryGraphList(output_list)
+
+    def _test_timing(self, graph_list: MemoryGraphList, repetitions: int = 100) -> float:
+        """Evaluate timing for prediction.
+
+        Args:
+            graph_list (MemoryGraphList): List of graphs to predict e.g. energies and forces.
+
+        Returns:
+            float: Time for one call.
+        """
+        pass

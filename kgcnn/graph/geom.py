@@ -188,9 +188,11 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     :obj:`max_neighbours`, you can set :obj:`limit_only_max_neighbours` to `True`.
 
     .. warning::
+
         All atoms should be projected back into the primitive unit cell before calculating the range connections.
 
     .. note::
+
         For periodic structure, setting :obj:`max_distance` and :obj:`max_neighbours` to `inf` would also lead
         to an infinite number of neighbours and connections. If :obj:`exclusive` is set to `False`, having either
         :obj:`max_distance` or :obj:`max_neighbours` set to `inf`, will result in an infinite number of neighbours.
@@ -399,6 +401,22 @@ def get_principal_moments_of_inertia(masses: np.ndarray, coordinates: np.ndarray
     pc = np.linalg.eigvals(inertia_matrix)
     pc = np.sort(pc)
 
-    # Maybe do some unit conversions here.
-    # ...
     return pc
+
+
+def shift_coordinates_to_unit_cell(coordinates: np.ndarray, lattice: np.ndarray):
+    """Shift a set of coordinates into the unit cell of a periodic system.
+
+    Args:
+        coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
+        lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
+            The lattice vectors must be given in rows of the matrix!
+
+    Returns:
+        np.ndarray: Coordinates shifted into unit cell defined by lattice.
+    """
+    lattice_inv = np.linalg.inv(lattice)
+    frac_coordinates = np.dot(coordinates, lattice_inv)
+    shifted_frac_coordinates = frac_coordinates % 1.0 % 1.0
+    shifted_coordinates = np.dot(shifted_frac_coordinates, lattice)
+    return shifted_coordinates

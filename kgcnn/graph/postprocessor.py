@@ -4,7 +4,8 @@ from kgcnn.graph.base import GraphPostProcessorBase, GraphDict
 
 
 class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
-    r"""Postprocessor to inverse transform energies and forces from a graph dictionary.
+    r"""Postprocessor to inverse-transform energies and forces from a graph dictionary.
+    Note that this postprocessor requires the input- or pre-graph in call method as well.
 
     Args:
         scaler: Fitted instance of :obj:`ExtensiveEnergyForceScaler` .

@@ -6,7 +6,7 @@ from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, in
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map, \
     distance_to_gauss_basis
-from kgcnn.graph.geom import range_neighbour_lattice, get_principal_moments_of_inertia
+from kgcnn.graph.geom import range_neighbour_lattice, get_principal_moments_of_inertia, shift_coordinates_to_unit_cell
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -505,3 +505,26 @@ class PrincipalMomentsOfInertia(GraphPreProcessorBase):
             return None
         return get_principal_moments_of_inertia(
             masses=node_mass, coordinates=node_coordinates, shift_center_of_mass=shift_center_of_mass)
+
+
+class ShiftToUnitCell(GraphPreProcessorBase):
+    r"""Shift atomic coordinates into the Unit cell of a periodic lattice.
+
+    Args:
+        node_coordinates (str): Name of node coordinates. Defaults to "node_coordinates".
+        graph_lattice (str): Name of the graph lattice. Defaults to "graph_lattice".
+    """
+
+    def __init__(self, *, node_coordinates: str = "node_coordinates", graph_lattice: str = "graph_lattice",
+                 name="shift_to_unit_cell", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"node_coordinates": node_coordinates, "graph_lattice": graph_lattice})
+        self._to_assign = node_coordinates
+        self._call_kwargs = {}
+        self._config_kwargs.update({"node_coordinates": node_coordinates, "graph_lattice": graph_lattice,
+                                    **self._call_kwargs})
+
+    def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray, ):
+        if node_coordinates is None or graph_lattice is None:
+            return None
+        return shift_coordinates_to_unit_cell(coordinates=node_coordinates, lattice=graph_lattice)
