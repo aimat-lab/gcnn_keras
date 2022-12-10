@@ -35,7 +35,7 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
         - 'old_energies'      : The energy of each conformation taken from the original MD17 dataset
         - 'old_forces'        : The forces of each conformation taken from the original MD17 dataset
 
-    * Note that for Azobenzene, only 99988 samples are available due to 11 failed DFT calculations due to van der
+    Note that for Azobenzene, only 99988 samples are available due to 11 failed DFT calculations due to van der
     Walls clash, and the original dataset only contained 99999 structures.
 
     Data splits:
