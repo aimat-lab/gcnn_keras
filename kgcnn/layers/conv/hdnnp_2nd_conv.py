@@ -8,6 +8,7 @@ from kgcnn.layers.modules import LazyMultiply, LazySubtract, ExpandDims
 
 ks = tf.keras
 
+# Parameters for Weighted Atom-Centered Symmetry Functions (wACSF).
 # We set the unoptimized C default values as default for all 118 atomic species.
 # They are taken from https://aip.scitation.org/doi/suppl/10.1063/1.5019667/suppl_file/si.pdf .
 # We chose the 22:10 radial:angular as default values. Other combinations ranging from 0:32 to 32:0 .
