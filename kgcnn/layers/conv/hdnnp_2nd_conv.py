@@ -123,7 +123,7 @@ class wACSFRad(GraphBaseLayer):
         self.cutoff = cutoff
         self.add_eps = add_eps
         if eta_mu is None:
-            eta_mu = radial_eta_mu_defaults
+            eta_mu = radial_eta_mu_defaults[:, :, :2]
         self.eta_mu = np.array(eta_mu, dtype="float").tolist()
         self.use_external_weights = use_external_weights
         self.lazy_mult = LazyMultiply()
@@ -196,12 +196,12 @@ class wACSFRad(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='wACSFAng')
 class wACSFAng(GraphBaseLayer):
 
-    def __init__(self, eta_mu_zeta_lambda: list = None, cutoff: float = 8.0,
+    def __init__(self, eta_mu_lambda_zeta: list = None, cutoff: float = 8.0,
                  add_eps: bool = False, use_external_weights: bool = False, **kwargs):
         super(wACSFAng, self).__init__(**kwargs)
         self.add_eps = add_eps
         self.cutoff = cutoff
-        self.eta_mu_zeta_lambda = eta_mu_zeta_lambda
+        self.eta_mu_lambda_zeta = eta_mu_lambda_zeta
         self.use_external_weights = use_external_weights
         self.lazy_mult = LazyMultiply()
         self.layer_pos = NodePosition(selection_index=[0, 1, 2])
@@ -264,12 +264,12 @@ class wACSFAng(GraphBaseLayer):
         vij = self.lazy_sub([xi, xj])
         vik = self.lazy_sub([xi, xk])
         pow_cos_theta = self.call_on_values_tensor_of_ragged(
-            self._compute_pow_cos_angle_, [vij, vik, rij, rik], zeta=self.eta_mu_zeta_lambda[2],
+            self._compute_pow_cos_angle_, [vij, vik, rij, rik], zeta=self.eta_mu_lambda_zeta[2],
             lamda=self.eta_mu_zeta_lambda[3])
         rep = self.lazy_mult([w, pow_cos_theta, gij, gik, gjk, fij, fik, fjk])
         pool_ang = self.pool_sum([xyz, ijk, rep], **kwargs)
         out = self.call_on_values_tensor_of_ragged(
-            self._compute_pow_scale, pool_ang, zeta=self.self.eta_mu_zeta_lambda[2])
+            self._compute_pow_scale, pool_ang, zeta=self.self.eta_mu_lambda_zeta[2])
         return out
 
     def get_config(self):
