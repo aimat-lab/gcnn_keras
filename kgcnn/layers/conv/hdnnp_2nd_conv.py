@@ -10,7 +10,7 @@ ks = tf.keras
 
 # We set the unoptimized C default values as default for all 118 atomic species.
 # They are taken from https://aip.scitation.org/doi/suppl/10.1063/1.5019667/suppl_file/si.pdf .
-# We chose the 22:10 radial as default values. Other combinations ranging from 0:32 and 32:0 .
+# We chose the 22:10 radial:angular as default values. Other combinations ranging from 0:32 to 32:0 .
 radial_eta_mu_defaults = np.array(
     [[[4.5000000, 7.5000000], [4.5000000, 7.1667000], [4.5000000, 6.8333000], [4.5000000, 6.5000000],
       [4.5000000, 6.1667000], [4.5000000, 5.8333000], [4.5000000, 5.5000000], [4.5000000, 5.1667000],
@@ -65,7 +65,7 @@ class wACSFRad(GraphBaseLayer):
 
     .. math::
 
-        W_{i}^{rad} = \sum_{j \not i} \; g(Z_j) \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
+        W_{i}^{rad} = \sum_{j \neq i} \; g(Z_j) \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
 
     Here, for each atom type there is a set of parameters :math:`\eta` and :math:`\mu` .
     The cutoff function :math:`f_ij = f_c(R_{ij})` is given by:
