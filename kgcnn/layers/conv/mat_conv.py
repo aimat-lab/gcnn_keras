@@ -4,6 +4,7 @@ from typing import Union
 ks = tf.keras
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATGlobalPool')
 class MATGlobalPool(ks.layers.Layer):
 
     def __init__(self, pooling_method: str = "sum", **kwargs):
@@ -27,6 +28,7 @@ class MATGlobalPool(ks.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATDistanceMatrix')
 class MATDistanceMatrix(ks.layers.Layer):
 
     def __init__(self, trafo: Union[str, None] = "exp", **kwargs):
@@ -65,6 +67,7 @@ class MATDistanceMatrix(ks.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATReduceMask')
 class MATReduceMask(ks.layers.Layer):
 
     def __init__(self, axis: int, keepdims: bool, **kwargs):
@@ -84,6 +87,7 @@ class MATReduceMask(ks.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATExpandMask')
 class MATExpandMask(ks.layers.Layer):
 
     def __init__(self, axis: int, **kwargs):
@@ -102,6 +106,7 @@ class MATExpandMask(ks.layers.Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATAttentionHead')
 class MATAttentionHead(ks.layers.Layer):
 
     def __init__(self, units: int = 64,
