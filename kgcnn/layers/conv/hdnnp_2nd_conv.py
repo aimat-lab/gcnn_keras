@@ -105,11 +105,11 @@ class wACSFRad(GraphBaseLayer):
         W_{i}^{rad} = \sum_{j \neq i} \; g(Z_j) \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
 
     Here, for each atom type there is a set of parameters :math:`\eta` and :math:`\mu` .
-    The cutoff function :math:`f_ij = f_c(R_{ij})` is given by:
+    The cutoff function :math:`f_ij = f_c(r_{ij})` is given by:
 
     .. math::
 
-        f_c(R_{ij}) = 0.5 [\cos{\frac{\pi R_{ij}}{R_c}} + 1]
+        f_c(r_{ij}) = 0.5 [\cos{\frac{\pi r_{ij}}{R_c}} + 1]
 
     The cutoff radius is implemented as a float and can not be changed dependent on the atom type.
     Not that the parameters :math:`\eta` and :math:`\mu` of can be made trainable.
