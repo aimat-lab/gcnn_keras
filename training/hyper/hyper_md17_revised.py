@@ -517,7 +517,7 @@ hyper = {
                     "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
                     "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
                     "use_normalized_difference": False,
-                    "expand_distance_kwargs": {},
+                    "expand_distance_kwargs": {"dim_half": 64},
                     "coord_mlp_kwargs": None,  # {"units": [128, 1], "activation": ["swish", "linear"]} or "tanh" at the end
                     "pooling_coord_kwargs": None,  # {"pooling_method": "mean"},
                     "pooling_edge_kwargs": {"pooling_method": "sum"},

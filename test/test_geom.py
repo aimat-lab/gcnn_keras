@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import os
-from .util import ASSETS_PATH
+from .utils import ASSETS_PATH
 import tensorflow as tf
 from kgcnn.graph.adj import get_angle_indices
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition
