@@ -138,7 +138,8 @@ class wACSFRad(GraphBaseLayer):
         self.param_initializer = param_initializer
         self.param_regularizer = param_regularizer
         self.param_constraint = param_constraint
-        weight_shape = np.array(eta_mu).shape
+        np_eta_mu = np.array(eta_mu)
+        weight_shape = np_eta_mu.shape
         self._weight_eta_mu = self.add_weight(
             "eta_mu",
             shape=weight_shape,
@@ -147,7 +148,7 @@ class wACSFRad(GraphBaseLayer):
             constraint=self.param_constraint,
             dtype=self.dtype, trainable=False
         )
-        self.set_weights([np.array(eta_mu)])
+        self.set_weights([np_eta_mu])
 
     @staticmethod
     def _compute_fc(inputs: tf.Tensor, cutoff: float):
@@ -159,8 +160,10 @@ class wACSFRad(GraphBaseLayer):
     def _compute_gaussian_expansion(self, inputs: tf.Tensor):
         rij, zi = inputs
         params = tf.gather(self._weight_eta_mu, zi, axis=0)
-        eta, mu = tf.split(params, [1, 1], axis=-1)
-        arg = tf.square(inputs - mu) * eta
+        # eta, mu = tf.split(params, [1, 1], axis=-1)
+        # eta, mu = tf.squeeze(eta, axis=-1), tf.squeeze(mu, axis=-1)
+        eta, mu = tf.gather(params, 0, axis=-1), tf.gather(params, 1, axis=-1)
+        arg = tf.square(rij - mu) * eta
         return tf.exp(-arg)
 
     def build(self, input_shape):
@@ -173,14 +176,15 @@ class wACSFRad(GraphBaseLayer):
             z, xyz, eij = inputs
             zj = self.layer_gather_out([z, eij], **kwargs)
             w = self.layer_exp_dims(zj, **kwargs)
+        w = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w)
         xi, xj = self.layer_pos([xyz, eij], **kwargs)
         rij = self.layer_dist([xi, xj], **kwargs)
         fc = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
         zi = self.layer_gather_in([z, eij], **kwargs)
         gij = self.call_on_values_tensor_of_ragged(
             self._compute_gaussian_expansion, [rij, zi])
-        rep = self.lazy_mult([w, gij, fc], **kwargs)
-        return self.pool_sum([xyz, eij, rep], **kwargs)
+        rep = self.lazy_mult([gij, fc, w], **kwargs)
+        return self.pool_sum([xyz, rep, eij], **kwargs)
 
     def get_config(self):
         config = super(wACSFRad, self).get_config()
@@ -197,20 +201,39 @@ class wACSFRad(GraphBaseLayer):
 class wACSFAng(GraphBaseLayer):
 
     def __init__(self, eta_mu_lambda_zeta: list = None, cutoff: float = 8.0,
-                 add_eps: bool = False, use_external_weights: bool = False, **kwargs):
+                 add_eps: bool = False, use_external_weights: bool = False, param_initializer="zeros",
+                 param_regularizer=None, param_constraint=None, **kwargs):
         super(wACSFAng, self).__init__(**kwargs)
         self.add_eps = add_eps
         self.cutoff = cutoff
-        self.eta_mu_lambda_zeta = eta_mu_lambda_zeta
+        if eta_mu_lambda_zeta is None:
+            eta_mu_lambda_zeta = angular_eta_mu_lambda_zeta_defaults[:, :, :4]
+        self.eta_mu_lambda_zeta = np.array(eta_mu_lambda_zeta, dtype="float").tolist()
         self.use_external_weights = use_external_weights
         self.lazy_mult = LazyMultiply()
         self.layer_pos = NodePosition(selection_index=[0, 1, 2])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
         self.pool_sum = PoolingLocalEdges(pooling_method="sum")
         self.lazy_sub = LazySubtract()
+        self.layer_gather_in = GatherNodesIngoing()
         self.layer_gather_1 = GatherNodesSelection(selection_index=1)
         self.layer_gather_2 = GatherNodesSelection(selection_index=2)
         self.layer_exp_dims = ExpandDims(axis=2)
+        # We can do this in init since weights do not depend on input shape.
+        self.param_initializer = param_initializer
+        self.param_regularizer = param_regularizer
+        self.param_constraint = param_constraint
+        np_eta_mu_lambda_zeta = np.array(eta_mu_lambda_zeta)
+        weight_shape = np_eta_mu_lambda_zeta.shape
+        self._weight_eta_mu_lambda_zeta = self.add_weight(
+            "eta_mu_lambda_zeta",
+            shape=weight_shape,
+            initializer=self.param_initializer,
+            regularizer=self.param_regularizer,
+            constraint=self.param_constraint,
+            dtype=self.dtype, trainable=False
+        )
+        self.set_weights([np_eta_mu_lambda_zeta])
 
     @staticmethod
     def _compute_fc(inputs: tf.Tensor, cutoff: float):
@@ -219,23 +242,29 @@ class wACSFAng(GraphBaseLayer):
         # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
         return fc
 
-    @staticmethod
-    def _compute_gaussian_expansion(inputs: tf.Tensor, eta: tf.Tensor, mu: tf.Tensor):
-        arg = tf.square(inputs - mu) * eta
+    def _compute_gaussian_expansion(self, inputs: tf.Tensor):
+        rij, zi = inputs
+        params = tf.gather(self._weight_eta_mu_lambda_zeta, zi, axis=0)
+        eta, mu = tf.gather(params, 0, axis=-1), tf.gather(params, 1, axis=-1)
+        arg = tf.square(rij - mu) * eta
         return tf.exp(-arg)
 
-    @staticmethod
-    def _compute_pow_cos_angle_(inputs: list, zeta: tf.Tensor, lamda: tf.Tensor):
-        vij, vik, rij, rik = inputs
+    def _compute_pow_cos_angle_(self, inputs: list):
+        vij, vik, rij, rik, zi = inputs
+        params = tf.gather(self._weight_eta_mu_lambda_zeta, zi, axis=0)
+        lamda, zeta = tf.gather(params, 2, axis=-1), tf.gather(params, 3, axis=-1)
         cos_theta = tf.reduce_sum(vij * vik, axis=-1, keepdims=True) / rij / rik
         cos_term = cos_theta * lamda + 1.0
-        cos_term = tf.pow(cos_term, tf.expand_dims(zeta, axis=0))
+        cos_term = tf.pow(cos_term, zeta)
         return cos_term
 
-    @staticmethod
-    def _compute_pow_scale(inputs: tf.Tensor, zeta: tf.Tensor):
-        scale = tf.ones_like(inputs) * 2.0
-        return tf.pow(scale, 1.0 - tf.expand_dims(zeta, axis=0)) * inputs
+    def _compute_pow_scale(self, inputs: tf.Tensor):
+        to_scale, zi = inputs
+        params = tf.gather(self._weight_eta_mu_lambda_zeta, zi, axis=0)
+        zeta = tf.gather(params, 3, axis=-1)
+        scale = tf.ones_like(to_scale) * 2.0
+        scaled = tf.pow(scale, 1.0 - zeta) * to_scale
+        return scaled
 
     def build(self, input_shape):
         super(wACSFAng, self).build(input_shape)
@@ -243,11 +272,15 @@ class wACSFAng(GraphBaseLayer):
     def call(self, inputs, mask=None, **kwargs):
         if self.use_external_weights:
             z, xyz, ijk, w = inputs
+            w = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w)
         else:
             z, xyz, ijk = inputs
-            w1 = self.layer_gather_1([z, ijk], **kwargs)
-            w2 = self.layer_gather_2([z, ijk], **kwargs)
+            w1 = self.layer_gather_1([z, ijk], **kwargs)[0]
+            w2 = self.layer_gather_2([z, ijk], **kwargs)[0]
+            w1 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w1)
+            w2 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w2)
             w = self.lazy_mult([w1, w2], **kwargs)
+        w = self.layer_exp_dims(w, **kwargs)
         xi, xj, xk = self.layer_pos([xyz, ijk])
         rij = self.layer_dist([xi, xj])
         rik = self.layer_dist([xi, xk])
@@ -255,24 +288,29 @@ class wACSFAng(GraphBaseLayer):
         fij = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
         fik = self.call_on_values_tensor_of_ragged(self._compute_fc, rik, cutoff=self.cutoff)
         fjk = self.call_on_values_tensor_of_ragged(self._compute_fc, rjk, cutoff=self.cutoff)
+        zi = self.layer_gather_in([z, ijk], **kwargs)
         gij = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, rij, eta=self.eta_mu_zeta_lambda[0], mu=self.eta_mu_zeta_lambda[1])
+            self._compute_gaussian_expansion, [rij, zi])
         gik = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, rik, eta=self.eta_mu_zeta_lambda[0], mu=self.eta_mu_zeta_lambda[1])
+            self._compute_gaussian_expansion, [rik, zi])
         gjk = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, rjk, eta=self.eta_mu_zeta_lambda[0], mu=self.eta_mu_zeta_lambda[1])
+            self._compute_gaussian_expansion, [rjk, zi])
         vij = self.lazy_sub([xi, xj])
         vik = self.lazy_sub([xi, xk])
         pow_cos_theta = self.call_on_values_tensor_of_ragged(
-            self._compute_pow_cos_angle_, [vij, vik, rij, rik], zeta=self.eta_mu_lambda_zeta[2],
-            lamda=self.eta_mu_zeta_lambda[3])
-        rep = self.lazy_mult([w, pow_cos_theta, gij, gik, gjk, fij, fik, fjk])
-        pool_ang = self.pool_sum([xyz, ijk, rep], **kwargs)
-        out = self.call_on_values_tensor_of_ragged(
-            self._compute_pow_scale, pool_ang, zeta=self.self.eta_mu_lambda_zeta[2])
-        return out
+            self._compute_pow_cos_angle_, [vij, vik, rij, rik, zi])
+        rep = self.lazy_mult([pow_cos_theta, gij, gik, gjk, fij, fik, fjk, w])
+        pool_ang = self.pool_sum([xyz, rep, ijk], **kwargs)
+        return self.call_on_values_tensor_of_ragged(
+            self._compute_pow_scale, [pool_ang, z])
 
     def get_config(self):
         config = super(wACSFAng, self).get_config()
-        config.update({"cutoff": self.cutoff})
+        config.update({"eta_mu_lambda_zeta": self.eta_mu, "cutoff": self.cutoff,
+                       "use_external_weights": self.use_external_weights,
+                       "add_eps": self.add_eps,
+                       "param_constraint": self.param_constraint,
+                       "param_regularizer": self.param_regularizer,
+                       "param_initializer": self.param_initializer
+                       })
         return config
