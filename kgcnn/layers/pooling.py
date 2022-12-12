@@ -497,7 +497,7 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
                 - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [M], 1)
-                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], F)
+                - edge_indices (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)

@@ -37,7 +37,7 @@ class TestAttentionDisjoint(unittest.TestCase):
         result = layer([tf.RaggedTensor.from_row_lengths(np.array([[1.0],[1.0]]), np.array([1,1])),
                        tf.RaggedTensor.from_row_lengths(np.array([[100.0],[0.0],[100.0],[0.0]]),np.array([2,2])),
                        tf.RaggedTensor.from_row_lengths(np.array([[0.0],[1.0],[0.0],[1.0]]), np.array([2,2])),
-                       tf.RaggedTensor.from_row_lengths(np.array([[0,1],[0,0],[1,0],[1,0]]),np.array([2,2]))]
+                       tf.RaggedTensor.from_row_lengths(np.array([[0,0],[0,0],[0,0],[0,0]]),np.array([2,2]))]
                        )
         result = result[0].numpy()
         self.assertTrue(np.abs(result[0] - 100.0 * 1/(np.exp(1)+1) ) < 1e-4)

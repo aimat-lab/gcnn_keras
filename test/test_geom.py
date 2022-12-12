@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
-
+import os
+from .util import ASSETS_PATH
 import tensorflow as tf
 from kgcnn.graph.adj import get_angle_indices
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition
@@ -58,7 +59,7 @@ class TestSphericalBasisLayer(unittest.TestCase):
         angs = EdgeAngle()([vec, rag_a])
         bessel = SphericalBasisLayer(10,10,5.0)([dist, angs, rag_a])
 
-        loaded_reference = np.load("bessel_basis_reference.npz", allow_pickle=True)
+        loaded_reference = np.load(os.path.join(ASSETS_PATH, "bessel_basis_reference.npz"), allow_pickle=True)
         test = np.array(loaded_reference["spherical_basis_0"])
         test1 = np.array(loaded_reference["spherical_basis_1"])
         pred = np.array(bessel[0])
@@ -117,7 +118,7 @@ class TestBesselBasisLayer(unittest.TestCase):
         dist = NodeDistanceEuclidean()([a, b])
         bessel = BesselBasisLayer(10,5.0)(dist)
 
-        loaded_reference = np.load("bessel_basis_reference.npz", allow_pickle=True)
+        loaded_reference = np.load(os.path.join(ASSETS_PATH, "bessel_basis_reference.npz"), allow_pickle=True)
         test0 = np.array(loaded_reference["bessel_basis_0"])
         test1 = np.array(loaded_reference["bessel_basis_1"])
 
