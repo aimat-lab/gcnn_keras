@@ -359,7 +359,7 @@ class wACSFAng(GraphBaseLayer):
 
     def get_config(self):
         config = super(wACSFAng, self).get_config()
-        config.update({"eta_mu_lambda_zeta": self.eta_mu, "cutoff": self.cutoff,
+        config.update({"eta_mu_lambda_zeta": self.eta_mu_lambda_zeta, "cutoff": self.cutoff,
                        "use_external_weights": self.use_external_weights,
                        "add_eps": self.add_eps,
                        "param_constraint": self.param_constraint,
