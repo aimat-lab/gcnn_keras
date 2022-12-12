@@ -24,7 +24,7 @@ from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
-parser.add_argument("--model", required=False, help="Name of graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Name of graph model to train.", default="EGNN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="MD17RevisedDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
@@ -99,7 +99,8 @@ if len(energy.shape) <= 1:
 
 # Training on multiple targets for regression. This can is often required to train on orbital energies of ground
 # or excited state or energies and enthalpies etc.
-multi_target_indices = hyper["training"]["multi_target_indices"]
+multi_target_indices = hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper[
+    "training"] else None
 
 # Provide label names and units.
 label_names = dataset.label_names if hasattr(dataset, "label_names") else ""

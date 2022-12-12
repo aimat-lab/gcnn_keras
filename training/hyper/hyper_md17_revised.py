@@ -424,7 +424,7 @@ hyper = {
                     "mlp_sbf_kwargs": {"units": 128, "activation": "swish"},
                     "global_mp_kwargs": {"units": 128},
                     "local_mp_kwargs": {"units": 128, "output_units": 1,
-                                        "output_kernel_initializer": "glorot_uniform"},
+                                        "output_kernel_initializer": "zeros"},
                     "use_edge_attributes": False,
                     "depth": 6,
                     "verbose": 10,
@@ -453,7 +453,7 @@ hyper = {
                 "loss_weights": [1.0, 49.0]
             },
             "scaler": {"class_name": "EnergyForceExtensiveScaler",
-                       "config": {"standardize_scale": False}},
+                       "config": {"standardize_scale": True}},
         },
         "data": {
             "dataset": {
@@ -517,7 +517,7 @@ hyper = {
                     "edge_mlp_kwargs": {"units": [128, 128], "activation": ["swish", "swish"]},
                     "edge_attention_kwargs": {"units": 1, "activation": "sigmoid"},
                     "use_normalized_difference": False,
-                    "expand_distance_kwargs": None,
+                    "expand_distance_kwargs": {},
                     "coord_mlp_kwargs": None,  # {"units": [128, 1], "activation": ["swish", "linear"]} or "tanh" at the end
                     "pooling_coord_kwargs": None,  # {"pooling_method": "mean"},
                     "pooling_edge_kwargs": {"pooling_method": "sum"},
