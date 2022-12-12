@@ -1234,9 +1234,9 @@ hyper = {
                 ],
                 "w_acsf_ang_kwargs": {},
                 "w_acsf_rad_kwargs": {},
-                "mlp_kwargs": {"units": [128, 128, 128],
+                "mlp_kwargs": {"units": [128, 128, 128, 128],
                                "num_relations": 96,
-                               "activation": ["swish", "swish", "linear"]},
+                               "activation": ["swish", "swish", "swish", "linear"]},
                 "node_pooling_args": {"pooling_method": "sum"},
                 "verbose": 10,
                 "output_embedding": "graph", "output_to_tensor": True,
@@ -1250,10 +1250,10 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
-                "batch_size": 64, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 64, "epochs": 500, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 250, "epo": 1000,
+                        "learning_rate_start": 0.001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 500,
                         "verbose": 0}
                      }
                 ]

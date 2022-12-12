@@ -18,6 +18,11 @@ try:
 except ModuleNotFoundError:
     MolecularGraphOpenBabel = None
 
+try:
+    from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
+except ModuleNotFoundError:
+    MolecularGraphRDKit = None
+
 
 class QMDataset(MemoryGraphDataset):
     r"""This is a base class for QM (quantum mechanical) datasets.
@@ -44,13 +49,14 @@ class QMDataset(MemoryGraphDataset):
 
     For additional attributes, the :obj:`set_attributes` enables further features that require RDkit or Openbabel
     to be installed.
+    Note that for QMDataset the mol-information, if it is generated, is not cleaned during reading by default.
 
     """
 
     _global_proton_dict = global_proton_dict
     _inverse_global_proton_dict = inverse_global_proton_dict
     _default_loop_update_info = 5000
-    _mol_graph_interface = MolecularGraphOpenBabel
+    _mol_graph_interface = MolecularGraphRDKit  # other option is MolecularGraphOpenBabel
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
                  verbose: int = 10, file_directory: str = None):
@@ -174,6 +180,7 @@ class QMDataset(MemoryGraphDataset):
                        encoder_graph: dict = None,
                        add_hydrogen: bool = True,
                        make_directed: bool = False,
+                       sanitize: bool = False,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None
                        ):
@@ -189,6 +196,7 @@ class QMDataset(MemoryGraphDataset):
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+            sanitize (bool): Whether to sanitize molecule. Default is False.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -233,7 +241,8 @@ class QMDataset(MemoryGraphDataset):
             add_hydrogen=add_hydrogen,
             custom_transform=custom_transform,
             make_directed=make_directed,
-            mol_interface_class=MolecularGraphOpenBabel,
+            sanitize=sanitize,
+            mol_interface_class=self._mol_graph_interface,
             logger=self.logger,
             loop_update_info=self._default_loop_update_info
         )
@@ -252,6 +261,7 @@ class QMDataset(MemoryGraphDataset):
                        encoder_edges: dict = None,
                        encoder_graph: dict = None,
                        add_hydrogen: bool = True,
+                       sanitize: bool = False,
                        make_directed: bool = False,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None):
@@ -269,6 +279,7 @@ class QMDataset(MemoryGraphDataset):
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+            sanitize (bool): Whether to sanitize molecule. Default is False.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -285,7 +296,7 @@ class QMDataset(MemoryGraphDataset):
             self.set_attributes(
                 label_column_name=label_column_name, nodes=nodes, edges=edges, graph=graph, encoder_nodes=encoder_nodes,
                 encoder_edges=encoder_edges, encoder_graph=encoder_graph, add_hydrogen=add_hydrogen,
-                make_directed=make_directed, additional_callbacks=additional_callbacks,
+                make_directed=make_directed, additional_callbacks=additional_callbacks, sanitize=sanitize,
                 custom_transform=custom_transform
             )
         else:

@@ -23,6 +23,7 @@ def map_molecule_callbacks(mol_list: List[str],
                            custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None,
                            add_hydrogen: bool = False,
                            make_directed: bool = False,
+                           sanitize: bool = True,
                            mol_interface_class=None,
                            logger=None,
                            loop_update_info: int = 5000
@@ -76,6 +77,7 @@ def map_molecule_callbacks(mol_list: List[str],
         callbacks (dict): Dictionary of callbacks to perform on MolecularGraph object and table entries.
         add_hydrogen (bool): Whether to add hydrogen when making a :obj:`MolecularGraphRDKit` instance.
         make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+        sanitize (bool): Whether to sanitize molecule. Default is True.
         custom_transform (Callable): Custom transformation function to modify the generated
             :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
             :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
@@ -97,7 +99,8 @@ def map_molecule_callbacks(mol_list: List[str],
     value_lists = defaultdict(list)
     for index, sm in enumerate(mol_list):
 
-        mg = mol_interface_class(make_directed=make_directed).from_mol_block(sm, keep_hs=add_hydrogen)
+        mg = mol_interface_class(make_directed=make_directed).from_mol_block(
+            sm, keep_hs=add_hydrogen, sanitize=sanitize)
 
         if custom_transform is not None:
             mg = custom_transform(mg)
@@ -214,7 +217,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             overwrite (bool): Overwrite existing database mol-json file. Default is False.
             smiles_column_name (str): Column name where smiles are given in csv-file. Default is "smiles".
             add_hydrogen (bool): Whether to add H after smile translation. Default is True.
-            sanitize (bool): Whether to sanitize molecule.
+            sanitize (bool): Whether to sanitize molecule. Default is True.
             make_conformers (bool): Whether to make conformers. Default is True.
             optimize_conformer (bool): Whether to optimize conformer via force field.
                 Only possible with :obj:`make_conformers`. Default is True.
@@ -268,6 +271,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        add_hydrogen: bool = False,
                        make_directed: bool = False,
                        has_conformers: bool = True,
+                       sanitize: bool = True,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
@@ -330,6 +334,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
             has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+            sanitize (bool): Whether to sanitize molecule. Default is True.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -385,6 +390,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             add_hydrogen=add_hydrogen,
             custom_transform=custom_transform,
             make_directed=make_directed,
+            sanitize=sanitize,
             mol_interface_class=self._mol_graph_interface,
             logger=self.logger,
             loop_update_info=self._default_loop_update_info

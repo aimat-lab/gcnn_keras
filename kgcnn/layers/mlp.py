@@ -3,6 +3,7 @@ import kgcnn.ops.activ
 from kgcnn.layers.modules import Dense, Activation, Dropout
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.relational import RelationalDense
 
 ks = tf.keras
 
@@ -322,3 +323,94 @@ class MLP(MLPBase):
 
 
 GraphMLP = MLP
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='RelationalMLP')
+class RelationalMLP(MLPBase):
+    r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
+
+    .. note::
+
+        Please see layer arguments of :obj:`MLPBase` for configuration!
+
+    This layer adds normalization and dropout for normal tensor input. Please, see keras
+    `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
+    :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
+
+    Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
+    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'.
+
+    """
+
+    def __init__(self, units, num_relations: int, num_bases: int = None, num_blocks: int = None, **kwargs):
+        """Initialize MLP. See MLPBase."""
+        super(RelationalMLP, self).__init__(units=units, **kwargs)
+        self._conf_num_relations = num_relations
+        self._conf_num_bases = num_bases
+        self._conf_num_blocks = num_blocks
+        self._conf_relational_kwargs = {
+            "num_relations": self._conf_num_relations, "num_bases": self._conf_num_bases,
+            "num_blocks": self._conf_num_blocks
+        }
+
+        self.mlp_dense_layer_list = [RelationalDense(
+            **self._conf_mlp_dense_layer_kwargs[i], **self._conf_relational_kwargs) for i in range(self._depth)]
+
+        self.mlp_activation_layer_list = [Activation(
+            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
+
+        self.mlp_dropout_layer_list = [
+            Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
+            in range(self._depth)]
+
+        self.mlp_norm_layer_list = [None] * self._depth
+        for i in range(self._depth):
+            if self._conf_use_normalization[i]:
+                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization"]:
+                    self.mlp_norm_layer_list[i] = ks.layers.BatchNormalization(
+                        **self._conf_mlp_batch_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["graph_batch", "GraphBatchNormalization"]:
+                    self.mlp_norm_layer_list[i] = GraphBatchNormalization(
+                        **self._conf_mlp_batch_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization"]:
+                    self.mlp_norm_layer_list[i] = ks.layers.LayerNormalization(
+                        **self._conf_mlp_norm_layer_kwargs[i])
+                elif self._conf_normalization_technique[i] in ["graph_layer", "GraphLayerNormalization"]:
+                    self.mlp_norm_layer_list[i] = GraphLayerNormalization(
+                        **self._conf_mlp_norm_layer_kwargs[i])
+                else:
+                    raise NotImplementedError(
+                        "Normalization via %s not supported." % self._conf_normalization_technique[i])
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(RelationalMLP, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [features, relation]
+
+                - features (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not `None`.
+                - relation (tf.Tensor, tf.RaggedTensor): Input tensor with last relation information.
+
+        Returns:
+            tf.Tensor: MLP forward pass.
+        """
+        x, relations = inputs
+        for i in range(len(self._conf_units)):
+            x = self.mlp_dense_layer_list[i]([x, relations], **kwargs)
+            if self._conf_use_dropout[i]:
+                x = self.mlp_dropout_layer_list[i](x, **kwargs)
+            if self._conf_use_normalization[i]:
+                x = self.mlp_norm_layer_list[i](x, **kwargs)
+            x = self.mlp_activation_layer_list[i](x, **kwargs)
+        out = x
+        return out
+
+    def get_config(self):
+        """Update config."""
+        config = super(RelationalMLP, self).get_config()
+        config.update(self._conf_relational_kwargs)
+        return config

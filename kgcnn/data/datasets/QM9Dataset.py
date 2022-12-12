@@ -10,12 +10,12 @@ from kgcnn.mol.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):
-    """Store and process QM9 benchmark dataset of of 134k stable small organic molecules made up of C,H,O,N,F.
+    """Store and process QM9 benchmark dataset of 134k stable small organic molecules made up of C,H,O,N,F.
 
     Labels include geometric, energetic, electronic, and thermodynamic properties. Typically, a random 10% validation
     and 10% test set are used. In literature, test errors are given as MAE and for energies are in [eV].
 
-    .. code-block:: pytho
+    .. code-block:: python
 
         from kgcnn.data.qm import QMGraphLabelScaler
         dataset = QM9Dataset(reload=True)

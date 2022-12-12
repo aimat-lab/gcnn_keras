@@ -5,7 +5,7 @@ from kgcnn.layers.conv.wacsf_conv import wACSFAng, wACSFRad
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
-from kgcnn.layers.relational import RelationalMLP
+from kgcnn.layers.mlp import RelationalMLP
 
 ks = tf.keras
 

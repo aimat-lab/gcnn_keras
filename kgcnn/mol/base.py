@@ -81,6 +81,9 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
+    def clean(self):
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
     @property
     def node_number(self):
         """Return list of node numbers which is the atomic number of atoms in the molecule"""

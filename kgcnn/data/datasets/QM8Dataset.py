@@ -55,6 +55,3 @@ class QM8Dataset(QMDataset, DownloadDataset):
 
         if self.fits_in_memory:
             self.read_in_memory(label_column_name=self.label_names)
-
-
-# ds = QM8Dataset(reload=True)

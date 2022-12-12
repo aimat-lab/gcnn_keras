@@ -15,7 +15,7 @@ try:
     import rdkit
     import rdkit.Chem
     import rdkit.Chem.AllChem
-
+    import rdkit.Chem.rdDetermineBonds
 
     def rdkit_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
                            optimize_conformer: bool = True):
@@ -43,9 +43,32 @@ try:
 
         return None
 
+    def rdkit_xyz_to_mol(xyz_string: str, charge = 0):
+        """Convert xyz-string to mol-string.
+
+        The order of atoms in the list should be the same as output. Uses openbabel for conversion.
+
+        Args:
+            xyz_string (str): Convert the xyz string to mol-string
+
+        Returns:
+            str: Mol-string. Generates bond information in addition to coordinates from xyz-string.
+        """
+        try:
+            raw_mol = rdkit.Chem.MolFromXYZBlock(xyz_string)
+            out_mol = rdkit.Chem.Mol(raw_mol)
+            # rdkit.Chem.rdDetermineBonds.DetermineConnectivity(out_mol, charge=charge)
+            rdkit.Chem.rdDetermineBonds.DetermineBonds(out_mol, charge=charge)
+        except:
+            out_mol = None
+        if out_mol is not None:
+            return rdkit.Chem.MolToMolBlock(out_mol)
+        return None
+
 except ImportError:
     module_logger.error("Can not import `RDKit` package for conversion.")
     rdkit_smile_to_mol = None
+    rdkit_xyz_to_mol = None
 
 try:
     # There problems with openbabel if system variable is not set.
@@ -100,7 +123,7 @@ try:
         return None
 
 
-    def openbabel_xyz_to_mol(xyz_string: str, stop_logging: bool = False):
+    def openbabel_xyz_to_mol(xyz_string: str, charge = 0, stop_logging: bool = False):
         """Convert xyz-string to mol-string.
 
         The order of atoms in the list should be the same as output. Uses openbabel for conversion.
@@ -257,6 +280,21 @@ class MolConverter:
         self._check_is_same_length(smiles_list, mol_list)
         return mol_list
 
+    @staticmethod
+    def _single_xyz_to_mol(xyz_string, charge=0):
+        if rdkit_smile_to_mol is not None:
+            mol = rdkit_xyz_to_mol(xyz_string, charge)
+            if mol is not None:
+                return mol
+
+        if openbabel_smile_to_mol is not None:
+            mol = openbabel_xyz_to_mol(xyz_string, charge)
+            if mol is not None:
+                return mol
+
+        module_logger.warning("Failed conversion for xyz '%s'... ." % xyz_string[:20])
+        return None
+
     def xyz_to_mol(self, xyz_path: str, sdf_path: str):
         """Convert xyz info to structure file.
 
@@ -267,13 +305,15 @@ class MolConverter:
         Returns:
 
         """
-        if openbabel_xyz_to_mol is None:
+        if openbabel_xyz_to_mol is None and rdkit_xyz_to_mol is None:
             raise ModuleNotFoundError("Can not convert XYZ to SDF format, missing package `OpenBabel` or `RDkit`.")
+
         xyz_list = read_xyz_file(xyz_path)
         mol_list = []
         for x in xyz_list:
             xyz_str = parse_list_to_xyz_str(x)
-            mol_str = openbabel_xyz_to_mol(xyz_str)
+            # No parallel conversion here, not necessary.
+            mol_str = self._single_xyz_to_mol(xyz_str, charge=0)
             mol_list.append(mol_str)
         self._check_is_same_length(xyz_list, mol_list)
         if sdf_path is not None:
