@@ -112,7 +112,7 @@ class wACSFRad(GraphBaseLayer):
         f_c(r_{ij}) = 0.5 [\cos{\frac{\pi r_{ij}}{R_c}} + 1]
 
     The cutoff radius is implemented as a float and can not be changed dependent on the atom type.
-    Not that the parameters :math:`\eta` and :math:`\mu` of can be made trainable.
+    Not that the parameters :math:`\eta` and :math:`\mu` can be made trainable.
 
     """
 
@@ -169,11 +169,26 @@ class wACSFRad(GraphBaseLayer):
     def build(self, input_shape):
         super(wACSFRad, self).build(input_shape)
 
-    def call(self, inputs, mask=None, **kwargs):
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [z, xyz, ij] or [z, xyz, ij, w]  if `use_external_weights`
+
+                - z (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
+                - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
+                - ij (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - w (tf.RaggedTensor): Edge weight tensor of shape (batch, [M], 1)
+
+        Returns:
+            tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
+        """
         if self.use_external_weights:
             z, xyz, eij, w = inputs
+            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=eij.dtype)
         else:
             z, xyz, eij = inputs
+            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=eij.dtype)
             zj = self.layer_gather_out([z, eij], **kwargs)
             w = self.layer_exp_dims(zj, **kwargs)
         w = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w)
@@ -199,7 +214,30 @@ class wACSFRad(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='wACSFAng')
 class wACSFAng(GraphBaseLayer):
+    r"""Weighted atom-centered symmetry functions (wACSF) for high-dimensional neural network potentials (HDNNPs).
+    From `Gastegger et al. (2017) <https://arxiv.org/abs/1712.05861>`_ .
+    Default values can be found in `<https://aip.scitation.org/doi/suppl/10.1063/1.5019667>`_ .
+    This layer implements the radial part :math:`W_{i}^{ang}` :
 
+    .. math::
+
+        W_{i}^{ang} = 2^{1−\zeta} \; \sum_{j\neq i} \sum_{k\neq j,i} \; h(Z_j , Z_k) \;
+        (1 + \lambda\, \cos{\theta_{ijk}})^\zeta\;
+        \times \; e^{−\eta (r_{ij} −\mu )^2} \; e^{−\eta (r_{ik} −\mu )^2} \; e^{−\eta (r_{jk} −\mu )^2} \;
+        \times \; f_{ij} \; f_{ik} \; f_{jk}
+
+    Here, for each atom type there is a set of parameters :math:`\eta` , :math:`\mu` , :math:`\lambda`
+    and :math:`\zeta`.
+    The cutoff function :math:`f_ij = f_c(r_{ij})` is given by:
+
+    .. math::
+
+        f_c(r_{ij}) = 0.5 [\cos{\frac{\pi r_{ij}}{R_c}} + 1]
+
+    The cutoff radius is implemented as a float and can not be changed dependent on the atom type.
+    Not that the parameters :math:`\eta` to :math:`\lambda` can be made trainable.
+
+    """
     def __init__(self, eta_mu_lambda_zeta: list = None, cutoff: float = 8.0,
                  add_eps: bool = False, use_external_weights: bool = False, param_initializer="zeros",
                  param_regularizer=None, param_constraint=None, **kwargs):
@@ -269,18 +307,33 @@ class wACSFAng(GraphBaseLayer):
     def build(self, input_shape):
         super(wACSFAng, self).build(input_shape)
 
-    def call(self, inputs, mask=None, **kwargs):
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [z, xyz, ijk] or [z, xyz, ijk, w]  if `use_external_weights`
+
+                - z (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
+                - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
+                - ijk (tf.RaggedTensor): Angle indices referring to nodes of shape (batch, [M], 3)
+                - w (tf.RaggedTensor): Angle weight tensor of shape (batch, [M], 1)
+
+        Returns:
+            tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
+        """
         if self.use_external_weights:
             z, xyz, ijk, w = inputs
-            w = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w)
+            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=ijk.dtype)
+            w = self.call_on_values_tensor_of_ragged(tf.cast, w, dtype=self.dtype)
         else:
             z, xyz, ijk = inputs
+            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=ijk.dtype)
             w1 = self.layer_gather_1([z, ijk], **kwargs)[0]
             w2 = self.layer_gather_2([z, ijk], **kwargs)[0]
             w1 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w1)
             w2 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w2)
             w = self.lazy_mult([w1, w2], **kwargs)
-        w = self.layer_exp_dims(w, **kwargs)
+            w = self.layer_exp_dims(w, **kwargs)
         xi, xj, xk = self.layer_pos([xyz, ijk])
         rij = self.layer_dist([xi, xj])
         rik = self.layer_dist([xi, xk])

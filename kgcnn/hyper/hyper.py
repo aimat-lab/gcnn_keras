@@ -22,6 +22,7 @@ class HyperParameter:
     .. code-block:: python
 
         hyper = HyperParameter(hyper_info={"model": {"config":{}}, "training": {}, "data":{"dataset":{}}})
+
     """
 
     def __init__(self, hyper_info: Union[str, dict],
@@ -93,12 +94,6 @@ class HyperParameter:
         if "postfix_file" not in self._hyper["info"]:
             module_logger.info("Adding 'postfix_file' to 'info' category in hyperparameter.")
             self._hyper["info"].update({"postfix_file": ""})
-        if "multi_target_indices" not in self._hyper["training"]:
-            module_logger.info("Adding 'multi_target_indices' to 'training' category in hyperparameter.")
-            self._hyper["training"].update({"multi_target_indices": None})
-        if "data_unit" not in self._hyper["data"]:
-            module_logger.info("Adding empty 'data_unit' to 'data' category in hyperparameter.")
-            self._hyper["data"].update({"data_unit": ""})
 
         # Errors if missmatch is found between class definition and information in hyper-dictionary.
         # In principle all information regarding model and dataset can be stored in hyper-dictionary.

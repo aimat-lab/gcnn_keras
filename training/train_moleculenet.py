@@ -23,7 +23,7 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="HDNNP2nd")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
@@ -136,7 +136,7 @@ filepath = hyper.results_file_path()
 postfix_file = hyper["info"]["postfix_file"]
 
 # Plot training- and test-loss vs epochs for all splits.
-data_unit = hyper["data"]["data_unit"]
+data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"]["data_unit"] else ""
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")

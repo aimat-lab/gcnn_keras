@@ -81,7 +81,8 @@ if len(labels.shape) <= 1:
 
 # Training on multiple targets for regression. This can is often required to train on orbital energies of ground
 # or excited state or energies and enthalpies etc.
-multi_target_indices = hyper["training"]["multi_target_indices"]
+multi_target_indices = hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper[
+    "training"] else None
 if multi_target_indices is not None:
     labels = labels[:, multi_target_indices]
     if label_names is not None:
@@ -176,7 +177,7 @@ filepath = hyper.results_file_path()
 postfix_file = hyper["info"]["postfix_file"]
 
 # Plot training- and test-loss vs epochs for all splits.
-data_unit = hyper["data"]["data_unit"]
+data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"]["data_unit"] else ""
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
@@ -208,4 +209,3 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
-

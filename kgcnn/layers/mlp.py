@@ -246,6 +246,7 @@ class MLP(MLPBase):
     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
 
     .. note::
+
         Please see layer arguments of :obj:`MLPBase` for configuration!
 
     This layer adds normalization and dropout for normal tensor input. Please, see keras
