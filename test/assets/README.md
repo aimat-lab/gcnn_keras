@@ -7,7 +7,7 @@ The path to this folder is available from within a unittest via:
 
 ```python
 import os
-from .util import ASSETS_PATH
+from .utils import ASSETS_PATH
 file_path = os.path.join(ASSETS_PATH, 'README.md')
 ```
 
