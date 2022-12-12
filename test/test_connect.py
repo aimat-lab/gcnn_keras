@@ -23,7 +23,7 @@ class TestAdjacencyPower(unittest.TestCase):
 
     def test_attention_pooling(self):
 
-        result = AdjacencyPower(input_tensor_type="ragged")([self.nods,self.edges,self.inds])
+        result = AdjacencyPower()([self.nods,self.edges,self.inds])
         print(result)
 
         self.assertTrue(np.max(np.abs(result[1][0].numpy() -  np.array([[0, 0], [1, 1], [1, 2], [2, 1], [2, 2]]))) < 1e-4)
