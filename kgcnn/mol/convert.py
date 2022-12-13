@@ -29,7 +29,10 @@ try:
                 m = rdkit.Chem.AddHs(m)
             m.SetProp("_Name", smile.strip())
             if make_conformers:
-                rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
+                try:
+                    rdkit.Chem.AllChem.EmbedMolecule(m)
+                except:
+                    rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
             if optimize_conformer and make_conformers:
                 rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
                 rdkit.Chem.AssignAtomChiralTagsFromStructure(m)

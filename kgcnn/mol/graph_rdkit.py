@@ -168,6 +168,14 @@ class MolecularGraphRDKit(MolGraphInterface):
             return False
 
     def add_hs(self, **kwargs):
+        """Add hydrogen atoms.
+
+        Args:
+            kwargs: Kwargs for rdkit method, e.g. can specify explicit or implicit.
+
+        Returns:
+            self.
+        """
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `add_hs`.")
             return self
@@ -175,14 +183,23 @@ class MolecularGraphRDKit(MolGraphInterface):
         return self
 
     def remove_hs(self, **kwargs):
+        """Remove hydrogen atoms.
+
+        Args:
+            kwargs: Kwargs for rdkit method, e.g. can specify explicit or implicit.
+
+        Returns:
+            self.
+        """
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `remove_hs`.")
             return self
         self.mol = rdkit.Chem.RemoveHs(self.mol, **kwargs)  # add H's to the molecule
         return self
 
-    def clean(self):
-        rdkit.Chem.SanitizeMol(self.mol)
+    def clean(self, **kwargs):
+        """Clean or sanitize mol."""
+        rdkit.Chem.SanitizeMol(self.mol, **kwargs)
 
     def compute_charges(self, **kwargs):
         if self.mol is None:

@@ -31,10 +31,10 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         super().__init__(mol=mol, make_directed=make_directed)
         self.mol = mol
 
-    def make_conformer(self):
+    def make_conformer(self, **kwargs):
         if self.mol is None:
             return False
-        builder = openbabel.OBBuilder()
+        builder = openbabel.OBBuilder(**kwargs)
         build_okay = builder.Build(self.mol)
         return build_okay
 
@@ -47,11 +47,11 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         ff.GetCoordinates(self.mol)
         return ff_setup_okay
 
-    def add_hs(self):
-        self.mol.AddHydrogens()
+    def add_hs(self, **kwargs):
+        self.mol.AddHydrogens(**kwargs)
 
-    def remove_hs(self):
-        self.mol.DeleteHydrogens()
+    def remove_hs(self, **kwargs):
+        self.mol.DeleteHydrogens(**kwargs)
 
     def from_smiles(self, smile: str, sanitize: bool = True):
         """Make molecule from smile.
