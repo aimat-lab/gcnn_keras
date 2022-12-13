@@ -53,6 +53,11 @@ class MolecularGraphOpenBabel(MolGraphInterface):
     def remove_hs(self, **kwargs):
         self.mol.DeleteHydrogens(**kwargs)
 
+    def compute_charges(self, method="gasteiger", **kwargs):
+        mol = self.mol
+        ob_charge_model = openbabel.OBChargeModel.FindType(method)
+        return ob_charge_model.ComputeCharges(mol)
+
     def from_smiles(self, smile: str, sanitize: bool = True):
         """Make molecule from smile.
 

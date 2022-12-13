@@ -11,7 +11,7 @@ class MolGraphInterface:
 
     The method implementation to generate a molecule-instance from smiles etc. can be obtained from different backends
     like `RDkit`. The mol-instance of a chemical informatics package like `RDkit` is treated via composition.
-    The interface is designed to extract a graph from a mol instance not to make a mol object from a graph.
+    The interface is designed to extract a graph from a mol instance, not to make a mol object from a graph.
 
     """
 
@@ -84,7 +84,7 @@ class MolGraphInterface:
     def clean(self, **kwargs):
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def compute_charges(self, **kwargs):
+    def compute_charges(self, method="gasteiger", **kwargs):
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property

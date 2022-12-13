@@ -201,10 +201,12 @@ class MolecularGraphRDKit(MolGraphInterface):
         """Clean or sanitize mol."""
         rdkit.Chem.SanitizeMol(self.mol, **kwargs)
 
-    def compute_charges(self, **kwargs):
+    def compute_charges(self, method="gasteiger", **kwargs):
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `compute_charges`.")
             return self
+        if method != "gasteiger":
+            module_logger.error("Only 'gasteiger' for `compute_charges` is supported.")
         rdkit.Chem.AllChem.ComputeGasteigerCharges(self.mol, **kwargs)
         return self
 
@@ -214,6 +216,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         Args:
             smile (str): Smile string for the molecule.
             sanitize (bool): Whether to sanitize molecule.
+            kwargs: Kwargs for :obj:`MolFromSmiles` .
 
         Returns:
             self
