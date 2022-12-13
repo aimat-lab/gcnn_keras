@@ -201,7 +201,7 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Euclidean norm computed for specific axis of shape `(batch, [N], ...)`
         """
-        return self.call_on_values_tensor_of_ragged(
+        return self.map_values(
             self._compute_euclidean_norm, inputs,
             axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
             no_nan=self.no_nan, square_norm=self.square_norm)
@@ -272,7 +272,7 @@ class ScalarProduct(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Scalar product of shape `(batch, [N], ...)`
         """
-        return self.call_on_values_tensor_of_ragged(self._scalar_product, inputs, axis=self.axis)
+        return self.map_values(self._scalar_product, inputs, axis=self.axis)
 
     def get_config(self):
         """Update config."""
@@ -438,7 +438,7 @@ class VectorAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Calculated Angle between vector 1 and 2 of shape `(batch, [M], 1)`.
         """
-        return self.call_on_values_tensor_of_ragged(self._compute_vector_angle, inputs)
+        return self.map_values(self._compute_vector_angle, inputs)
 
     def get_config(self):
         """Update config."""
@@ -499,7 +499,7 @@ class EdgeAngle(GraphBaseLayer):
         """
         v1, v2 = self.layer_gather_vectors(inputs)
         if self.vector_scale:
-            v1, v2 = [self.call_on_values_tensor_of_ragged(self._scale_vector, x, scale=self._tf_vec_scale[i]) for i, x
+            v1, v2 = [self.map_values(self._scale_vector, x, scale=self._tf_vec_scale[i]) for i, x
                       in enumerate([v1, v2])]
         return self.layer_angle([v1, v2])
 
@@ -581,7 +581,7 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
-        return self.call_on_values_tensor_of_ragged(
+        return self.map_values(
             self._compute_gauss_basis, inputs,
             offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
 
@@ -700,7 +700,7 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
-        return self.call_on_values_tensor_of_ragged(
+        return self.map_values(
             self._compute_fourier_encoding, inputs, dim_half=self.dim_half, wave_length_min=self.wave_length_min,
             num_mult=self.num_mult, include_frequencies=self.include_frequencies,
             interleave_sin_cos=self.interleave_sin_cos)
@@ -795,7 +795,7 @@ class BesselBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], num_radial)`.
         """
-        return self.call_on_values_tensor_of_ragged(self.expand_bessel_basis, inputs)
+        return self.map_values(self.expand_bessel_basis, inputs)
 
     def get_config(self):
         """Update config."""
@@ -847,7 +847,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff envelope of shape `(batch, [M], 1)`.
         """
-        return self.call_on_values_tensor_of_ragged(self._compute_cutoff_envelope, inputs, cutoff=self.cutoff)
+        return self.map_values(self._compute_cutoff_envelope, inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""
@@ -898,7 +898,7 @@ class CosCutOff(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape `(batch, [M], D)`.
         """
-        return self.call_on_values_tensor_of_ragged(self._compute_cutoff, inputs, cutoff=self.cutoff)
+        return self.map_values(self._compute_cutoff, inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""

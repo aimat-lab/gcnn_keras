@@ -94,7 +94,7 @@ class GraphBaseLayer(ks.layers.Layer):
         # ...
         return inputs
 
-    def call_on_values_tensor_of_ragged(self, fun, inputs, **kwargs):
+    def map_values(self, fun, inputs, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor(s) of :obj:`inputs`.
         For ragged rank of one, the values is a :obj:`tf.Tensor` itself.
         The argument :obj:`inputs` must be a ragged tensors with ragged rank of one, or a list of ragged tensors.
@@ -154,3 +154,5 @@ class GraphBaseLayer(ks.layers.Layer):
             if any([isinstance(x, tf.RaggedTensor) for x in inputs]):
                 print("WARNING: Layer %s fail call on value Tensor for ragged Tensor in list." % self.name)
         return fun(inputs, **kwargs)
+
+    call_on_values_tensor_of_ragged = map_values

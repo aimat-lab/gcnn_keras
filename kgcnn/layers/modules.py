@@ -125,7 +125,7 @@ class ActivationEmbedding(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Output tensor with activation applied.
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_act, inputs, **kwargs)
+        return self.map_values(self._layer_act, inputs, **kwargs)
 
     def get_config(self):
         """Get config of layer."""
@@ -177,7 +177,7 @@ class DropoutEmbedding(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Output tensor of same shape.
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_drop, inputs, **kwargs)
+        return self.map_values(self._layer_drop, inputs, **kwargs)
 
 
 Dropout = DropoutEmbedding
@@ -209,7 +209,7 @@ class LazyAdd(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Single output tensor with same shape.
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_add, inputs, **kwargs)
+        return self.map_values(self._layer_add, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazySubtract')
@@ -238,7 +238,7 @@ class LazySubtract(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Single output tensor which is (inputs[0] - inputs[1]).
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_subtract, inputs, **kwargs)
+        return self.map_values(self._layer_subtract, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyAverage')
@@ -268,7 +268,7 @@ class LazyAverage(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Single output tensor with same shape.
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_avg, inputs, **kwargs)
+        return self.map_values(self._layer_avg, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyMultiply')
@@ -298,7 +298,7 @@ class LazyMultiply(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Single output tensor with same shape.
         """
-        return self.call_on_values_tensor_of_ragged(self._layer_mult, inputs, **kwargs)
+        return self.map_values(self._layer_mult, inputs, **kwargs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LazyConcatenate')
@@ -355,7 +355,7 @@ class LazyConcatenate(GraphBaseLayer):
         Returns:
             tf.tensor: Single concatenated tensor.
         """
-        return self.call_on_values_tensor_of_ragged(tf.concat, inputs, axis=self.axis)
+        return self.map_values(tf.concat, inputs, axis=self.axis)
 
     def get_config(self):
         """Get config of layer."""
@@ -407,7 +407,7 @@ class ExpandDims(GraphBaseLayer):
         Returns:
             tf.tensor: Single tensor with inserted dimension.
         """
-        return self.call_on_values_tensor_of_ragged(tf.expand_dims, inputs, axis=self.axis)
+        return self.map_values(tf.expand_dims, inputs, axis=self.axis)
 
     def get_config(self):
         """Get config of layer."""
@@ -443,7 +443,7 @@ class ZerosLike(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Zero-like tensor of input.
         """
-        return self.call_on_values_tensor_of_ragged(tf.zeros_like, inputs)
+        return self.map_values(tf.zeros_like, inputs)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='OptionalInputEmbedding')

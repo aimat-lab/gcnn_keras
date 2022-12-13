@@ -465,7 +465,7 @@ hyper = {
                 },
                 "methods": [
                     # we have to make edges via range cutoff.
-                    {"map_list": {"method": "set_range", "max_distance": 2.0, "max_neighbours": 1000,
+                    {"map_list": {"method": "set_range", "max_distance": 3.0, "max_neighbours": 1000,
                                   "node_coordinates": "coords", "range_indices": "edge_indices",
                                   "range_attributes": "edge_distance"}},
                     {"map_list": {"method": "set_edge_weights_uniform"}},

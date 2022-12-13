@@ -101,7 +101,7 @@ class GraphLayerNormalization(GraphBaseLayer):
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
         inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged_rank = 1.
-        return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
+        return self.map_values(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
         """Get layer configuration."""
@@ -213,7 +213,7 @@ class GraphBatchNormalization(GraphBaseLayer):
             tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
         """
         inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged_rank = 1.
-        return self.call_on_values_tensor_of_ragged(self._layer_norm, inputs, **kwargs)
+        return self.map_values(self._layer_norm, inputs, **kwargs)
 
     def get_config(self):
         """Get layer configuration."""

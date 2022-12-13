@@ -185,19 +185,18 @@ class wACSFRad(GraphBaseLayer):
         """
         if self.use_external_weights:
             z, xyz, eij, w = inputs
-            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=eij.dtype)
+            z = self.map_values(tf.cast, z, dtype=eij.dtype)
         else:
             z, xyz, eij = inputs
-            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=eij.dtype)
+            z = self.map_values(tf.cast, z, dtype=eij.dtype)
             zj = self.layer_gather_out([z, eij], **kwargs)
             w = self.layer_exp_dims(zj, **kwargs)
-        w = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w)
+        w = self.map_values(tf.cast, w, dtype=self.dtype)
         xi, xj = self.layer_pos([xyz, eij], **kwargs)
         rij = self.layer_dist([xi, xj], **kwargs)
-        fc = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
+        fc = self.map_values(self._compute_fc, rij, cutoff=self.cutoff)
         zi = self.layer_gather_in([z, eij], **kwargs)
-        gij = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, [rij, zi])
+        gij = self.map_values(self._compute_gaussian_expansion, [rij, zi])
         rep = self.lazy_mult([gij, fc, w], **kwargs)
         return self.pool_sum([xyz, rep, eij], **kwargs)
 
@@ -323,39 +322,34 @@ class wACSFAng(GraphBaseLayer):
         """
         if self.use_external_weights:
             z, xyz, ijk, w = inputs
-            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=ijk.dtype)
-            w = self.call_on_values_tensor_of_ragged(tf.cast, w, dtype=self.dtype)
+            z = self.map_values(tf.cast, z, dtype=ijk.dtype)
+            w = self.map_values(tf.cast, w, dtype=self.dtype)
         else:
             z, xyz, ijk = inputs
-            z = self.call_on_values_tensor_of_ragged(tf.cast, z, dtype=ijk.dtype)
+            z = self.map_values(tf.cast, z, dtype=ijk.dtype)
             w1 = self.layer_gather_1([z, ijk], **kwargs)[0]
             w2 = self.layer_gather_2([z, ijk], **kwargs)[0]
-            w1 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w1)
-            w2 = self.call_on_values_tensor_of_ragged(lambda t: tf.cast(t, dtype=self.dtype), w2)
+            w1 = self.map_values(tf.cast, w1, dtype=self.dtype)
+            w2 = self.map_values(tf.cast, w2, dtype=self.dtype)
             w = self.lazy_mult([w1, w2], **kwargs)
             w = self.layer_exp_dims(w, **kwargs)
         xi, xj, xk = self.layer_pos([xyz, ijk])
         rij = self.layer_dist([xi, xj])
         rik = self.layer_dist([xi, xk])
         rjk = self.layer_dist([xj, xk])
-        fij = self.call_on_values_tensor_of_ragged(self._compute_fc, rij, cutoff=self.cutoff)
-        fik = self.call_on_values_tensor_of_ragged(self._compute_fc, rik, cutoff=self.cutoff)
-        fjk = self.call_on_values_tensor_of_ragged(self._compute_fc, rjk, cutoff=self.cutoff)
+        fij = self.map_values(self._compute_fc, rij, cutoff=self.cutoff)
+        fik = self.map_values(self._compute_fc, rik, cutoff=self.cutoff)
+        fjk = self.map_values(self._compute_fc, rjk, cutoff=self.cutoff)
         zi = self.layer_gather_in([z, ijk], **kwargs)
-        gij = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, [rij, zi])
-        gik = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, [rik, zi])
-        gjk = self.call_on_values_tensor_of_ragged(
-            self._compute_gaussian_expansion, [rjk, zi])
+        gij = self.map_values(self._compute_gaussian_expansion, [rij, zi])
+        gik = self.map_values(self._compute_gaussian_expansion, [rik, zi])
+        gjk = self.map_values(self._compute_gaussian_expansion, [rjk, zi])
         vij = self.lazy_sub([xi, xj])
         vik = self.lazy_sub([xi, xk])
-        pow_cos_theta = self.call_on_values_tensor_of_ragged(
-            self._compute_pow_cos_angle_, [vij, vik, rij, rik, zi])
+        pow_cos_theta = self.map_values(self._compute_pow_cos_angle_, [vij, vik, rij, rik, zi])
         rep = self.lazy_mult([pow_cos_theta, gij, gik, gjk, fij, fik, fjk, w])
         pool_ang = self.pool_sum([xyz, rep, ijk], **kwargs)
-        return self.call_on_values_tensor_of_ragged(
-            self._compute_pow_scale, [pool_ang, z])
+        return self.map_values(self._compute_pow_scale, [pool_ang, z])
 
     def get_config(self):
         config = super(wACSFAng, self).get_config()
