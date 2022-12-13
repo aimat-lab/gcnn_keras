@@ -20,9 +20,11 @@ module_logger.setLevel(logging.INFO)
 
 class MolecularGraphRDKit(MolGraphInterface):
     r"""A graph object representing a strict molecular graph, e.g. only chemical bonds using a mol-object from
-    :obj:`rdkit` chemical informatics package.
+    :obj:`RDkit` chemical informatics package.
 
     Generate attributes for nodes, edges, and graph which are in a molecular graph atoms, bonds and the molecule itself.
+    The class is used to get a graph from a :obj:`RDkit` molecule object but also offers some functionality defined
+    in :obj:`MolGraphInterface` .
 
     """
     # Dictionary of predefined atom or node properties
@@ -120,9 +122,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         "fr_alkyl_halide": lambda m: rdkit.Chem.Fragments.fr_alkyl_halide(m),
     }
 
-    def __init__(self,
-                 mol = None,
-                 make_directed: bool = False):
+    def __init__(self, mol=None, make_directed: bool = False):
         r"""Initialize :obj:`MolecularGraphRDKit` with mol object.
 
         Args:
@@ -132,11 +132,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         """
         super().__init__(mol=mol, make_directed=make_directed)
 
-    def make_conformer(self, useRandomCoords: bool = True):
-        """Make conformer for mol-object.
+    def make_conformer(self, **kwargs):
+        r"""Make conformer for mol-object.
 
         Args:
-            useRandomCoords (bool): Whether ot use random coordinates. Default is True.
+            kwargs: Kwargs for rdkit :obj:`EmbedMolecule` .
 
         Returns:
             bool: Whether conformer generation was successful
@@ -145,58 +145,53 @@ class MolecularGraphRDKit(MolGraphInterface):
             return False
         m = self.mol
         try:
-            rdkit.Chem.RemoveStereochemistry(m)
-            rdkit.Chem.AssignStereochemistry(m)
-            rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=useRandomCoords)
+            rdkit.Chem.AllChem.EmbedMolecule(m, **kwargs)
             return True
         except ValueError:
-            logging.warning("`RDkit` could not embed molecule %s" % m.GetProp("_Name"))
+            logging.warning("`RDkit` could not embed molecule '%s'." % m.GetProp("_Name"))
             return False
 
     def optimize_conformer(self):
         r"""Optimize conformer. Requires an initial conformer. See :obj:`make_conformer`.
 
         Returns:
-            bool: Whether conformer generation was successful
+            bool: Whether conformer optimization was successful.
         """
         if self.mol is None:
             return False
         m = self.mol
         try:
             rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-            rdkit.Chem.AssignStereochemistryFrom3D(m)
-            rdkit.Chem.AssignStereochemistry(m)
             return True
         except ValueError:
-            module_logger.error("`RDkit` could not optimize conformer %s" % m.GetProp("_Name"))
+            module_logger.error("`RDkit` could not optimize conformer '%s'." % m.GetProp("_Name"))
             return False
 
-    def add_hs(self):
+    def add_hs(self, **kwargs):
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `add_hs`.")
             return self
-        self.mol = rdkit.Chem.AddHs(self.mol)  # add H's to the molecule
+        self.mol = rdkit.Chem.AddHs(self.mol, **kwargs)  # add H's to the molecule
         return self
 
-    def remove_hs(self):
+    def remove_hs(self, **kwargs):
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `remove_hs`.")
             return self
-        self.mol = rdkit.Chem.RemoveHs(self.mol)  # add H's to the molecule
+        self.mol = rdkit.Chem.RemoveHs(self.mol, **kwargs)  # add H's to the molecule
         return self
 
     def clean(self):
         rdkit.Chem.SanitizeMol(self.mol)
 
-    def compute_charge(self):
+    def compute_charges(self, **kwargs):
         if self.mol is None:
-            module_logger.error("Mol reference is `None`. Can not `compute_charge`.")
+            module_logger.error("Mol reference is `None`. Can not `compute_charges`.")
             return self
-        rdkit.Chem.AllChem.ComputeGasteigerCharges(self.mol)
+        rdkit.Chem.AllChem.ComputeGasteigerCharges(self.mol, **kwargs)
         return self
 
-    def from_smiles(self, smile, sanitize: bool = True):
+    def from_smiles(self, smile, sanitize: bool = True, **kwargs):
         r"""Make molecule from smile.
 
         Args:
@@ -207,7 +202,7 @@ class MolecularGraphRDKit(MolGraphInterface):
             self
         """
         # Make molecule from smile via rdkit
-        m = rdkit.Chem.MolFromSmiles(smile, sanitize=sanitize)
+        m = rdkit.Chem.MolFromSmiles(smile, sanitize=sanitize, **kwargs)
         if m is None:
             module_logger.error("Rdkit can not convert smile %s" % smile)
             return self
@@ -217,25 +212,28 @@ class MolecularGraphRDKit(MolGraphInterface):
 
         return self
 
-    def from_mol_block(self, mol_block, sanitize: bool = True, keep_hs: bool = True):
+    def from_mol_block(self, mol_block, sanitize: bool = True, keep_hs: bool = True, strictParsing: bool = True):
         r"""Set mol-instance from a mol-block string.
 
         Args:
             mol_block (str): Mol-block representation of a molecule.
             sanitize (bool): Whether to sanitize the mol-object.
             keep_hs (bool): Whether to keep hydrogen.
+            strictParsing (bool): If this is false, the parser is more lax about. correctness of the content.
+                Defaults to true.
 
         Returns:
             self
         """
         if mol_block is None or len(mol_block) == 0:
-            module_logger.error("Can not make mol-object for mol string %s" % mol_block)
+            module_logger.error("Can not make mol-object for mol string '%s'." % mol_block)
             return self
-        self.mol = rdkit.Chem.MolFromMolBlock(mol_block, removeHs=(not keep_hs), sanitize=sanitize)
+        self.mol = rdkit.Chem.MolFromMolBlock(mol_block, removeHs=(not keep_hs), sanitize=sanitize,
+                                              strictParsing=strictParsing)
 
         return self
 
-    def to_smiles(self):
+    def to_smiles(self, **kwargs):
         """Return a smile string representation of the mol instance.
 
         Returns:
@@ -243,9 +241,9 @@ class MolecularGraphRDKit(MolGraphInterface):
         """
         if self.mol is None:
             return
-        return rdkit.Chem.MolToSmiles(self.mol)
+        return rdkit.Chem.MolToSmiles(self.mol, **kwargs)
 
-    def to_mol_block(self):
+    def to_mol_block(self, **kwargs):
         """Make mol-block from mol-object.
 
         Returns:
@@ -254,7 +252,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         if self.mol is None:
             module_logger.error("Can not make mol string %s" % self.mol)
             return None
-        return rdkit.Chem.MolToMolBlock(self.mol)
+        return rdkit.Chem.MolToMolBlock(self.mol, **kwargs)
 
     @property
     def node_coordinates(self):

@@ -26,11 +26,11 @@ class MolGraphInterface:
         self.mol = mol
         self._make_directed = make_directed
 
-    def add_hs(self):
+    def add_hs(self, **kwargs):
         """Add hydrogen to molecule instance."""
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def remove_hs(self):
+    def remove_hs(self, **kwargs):
         """Remove hydrogen from molecule instance."""
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
@@ -53,7 +53,7 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def to_smiles(self):
+    def to_smiles(self, **kwargs):
         """Return a smile string representation of the mol instance.
 
         Returns:
@@ -73,7 +73,7 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def to_mol_block(self):
+    def to_mol_block(self, **kwargs):
         """Make a more extensive string representation containing coordinates and bond information from self.
 
         Returns:
@@ -81,7 +81,10 @@ class MolGraphInterface:
         """
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def clean(self):
+    def clean(self, **kwargs):
+        raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
+
+    def compute_charges(self, **kwargs):
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property

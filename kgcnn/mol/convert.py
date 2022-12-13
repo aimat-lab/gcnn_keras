@@ -19,22 +19,22 @@ try:
 
     def rdkit_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
                            optimize_conformer: bool = True):
+        # Order of parameters is important here.
         try:
             m = rdkit.Chem.MolFromSmiles(smile)
+            # rdkit.Chem.RemoveStereochemistry(m)
             if sanitize:
                 rdkit.Chem.SanitizeMol(m)
             if add_hydrogen:
-                m = rdkit.Chem.AddHs(m)  # add H's to the molecule
+                m = rdkit.Chem.AddHs(m)
             m.SetProp("_Name", smile.strip())
             if make_conformers:
-                rdkit.Chem.RemoveStereochemistry(m)
-                rdkit.Chem.AssignStereochemistry(m)
                 rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
             if optimize_conformer and make_conformers:
                 rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
                 rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
                 rdkit.Chem.AssignStereochemistryFrom3D(m)
-                rdkit.Chem.AssignStereochemistry(m)
+            rdkit.Chem.AssignStereochemistry(m)
         except:
             m = None
 
@@ -178,11 +178,7 @@ class MolConverter:
             raise ValueError("Conversion was not successful")
 
     @staticmethod
-    def _convert_parallel(conversion_method: Callable,
-                          smile_list: list,
-                          num_workers: int,
-                          *args
-                          ):
+    def _convert_parallel(conversion_method: Callable, smile_list: list, num_workers: int, *args):
         if num_workers is None:
             num_workers = os.cpu_count()
 
@@ -220,17 +216,9 @@ class MolConverter:
         module_logger.warning("Failed conversion for smile '%s'." % smile)
         return None
 
-    def smile_to_mol(self,
-                     smiles_path: str,
-                     sdf_path: str,
-                     external_program: dict = None,
-                     num_workers: int = None,
-                     sanitize: bool = True,
-                     add_hydrogen: bool = True,
-                     make_conformers: bool = True,
-                     optimize_conformer: bool = True,
-                     logger=None,
-                     batch_size: int = 5000):
+    def smile_to_mol(self, smiles_path: str, sdf_path: str, external_program: dict = None, num_workers: int = None,
+                     sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
+                     optimize_conformer: bool = True, logger=None, batch_size: int = 5000):
         """Convert a smiles file to SDF structure file.
 
         Args:
