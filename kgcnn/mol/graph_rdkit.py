@@ -5,6 +5,7 @@ import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
 import rdkit.Chem.Fragments
 import rdkit.Chem.rdMolDescriptors
+import rdkit.RDLogger
 import logging
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
@@ -16,6 +17,10 @@ from kgcnn.mol.base import MolGraphInterface
 logging.basicConfig()
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
+
+# Adjust RDLogger
+# We may have to intercept warnings from RDkit that are not critical.
+# rdkit.RDLogger.DisableLog("rdApp.warning")
 
 
 class MolecularGraphRDKit(MolGraphInterface):

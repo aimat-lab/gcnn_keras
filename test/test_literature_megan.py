@@ -7,7 +7,6 @@ import tempfile
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -16,8 +15,9 @@ from kgcnn.literature.MEGAN import shifted_sigmoid
 
 from .utils import ASSETS_PATH
 
-
-mpl.use('TkAgg')
+ks = tf.keras
+# mpl.use('TkAgg')
+mpl.use('Agg')
 
 
 class TestMegan(unittest.TestCase):

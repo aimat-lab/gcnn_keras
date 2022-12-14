@@ -134,6 +134,16 @@ class MemoryGraphList(MutableMapping):
     def __iter__(self):
         return iter(self._list)
 
+    def append(self, graph):
+        assert isinstance(graph, GraphDict), "Must append `GraphDict` to self."
+        self._list.append(graph)
+
+    def __add__(self, other):
+        assert isinstance(other, MemoryGraphList), "Must add `MemoryGraphList` to self."
+        new_list = MemoryGraphList()
+        new_list._set_internal_list(self._list + other._list)
+        return new_list
+
     def _set_internal_list(self, value: list):
         if not isinstance(value, list):
             raise TypeError("Must set list for `MemoryGraphList` internal assignment.")
@@ -193,7 +203,7 @@ class MemoryGraphList(MutableMapping):
             items (list): List of dictionaries that specify graph properties in list via 'name' key.
                 The dict-items match the tensor input for :obj:`tf.keras.layers.Input` layers.
                 Required dict-keys should be 'name' and 'ragged'.
-                Optionally shape information can be included via 'shape'.
+                Optionally shape information can be included via 'shape' and 'dtype'.
                 E.g.: `[{'name': 'edge_indices', 'ragged': True}, {...}, ...]`.
             make_copy (bool): Whether to copy the data. Default is True.
 
@@ -266,24 +276,24 @@ class MemoryGraphList(MutableMapping):
                 item_name = item
             props = self.obtain_property(item_name)
             if props is None:
-                self.logger.warning("Can not clean property %s as it was not assigned to any graph." % item)
+                self.logger.warning("Can not clean property '%s' as it was not assigned to any graph." % item)
                 continue
             for i, x in enumerate(props):
                 # If property is neither list nor np.array
                 if x is None or not hasattr(x, "__getitem__"):
-                    self.logger.info("Property %s is not defined for graph %s." % (item_name, i))
+                    self.logger.info("Property '%s' is not defined for graph '%s'." % (item_name, i))
                     invalid_graphs.append(i)
                 elif not isinstance(x, np.ndarray):
-                    self.logger.info("Property %s is not a numpy array for graph %s." % (item_name, i))
+                    self.logger.info("Property '%s' is not a numpy array for graph '%s'." % (item_name, i))
                     invalid_graphs.append(i)
                 elif len(x.shape) > 0:
                     if len(x) <= 0:
-                        self.logger.info("Property %s is an empty list for graph %s." % (item_name, i))
+                        self.logger.info("Property '%s' is an empty list for graph '%s'." % (item_name, i))
                         invalid_graphs.append(i)
         invalid_graphs = np.unique(np.array(invalid_graphs, dtype="int"))
         invalid_graphs = np.flip(invalid_graphs)  # Need descending order for pop()
         if len(invalid_graphs) > 0:
-            self.logger.warning("Found invalid graphs for properties. Removing graphs %s." % invalid_graphs)
+            self.logger.warning("Found invalid graphs for properties. Removing graphs '%s'." % invalid_graphs)
         else:
             self.logger.info("No invalid graphs for assigned properties found.")
         # Remove from the end via pop().

@@ -1,77 +1,77 @@
 data_unit: kcal/mol
-date_time: '2022-11-19 10:15:00'
+date_time: '2022-12-13 21:09:24'
 energy_loss:
-- 0.058956194669008255
+- 0.04929862916469574
 energy_scaled_mean_absolute_error:
-- 0.25424352288246155
+- 0.2125961184501648
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.147600457072258
+- 0.0817752555012703
 force_scaled_mean_absolute_error:
-- 0.6365143656730652
+- 0.35264870524406433
 kgcnn_version: 2.2.0
 loss:
-- 7.291379451751709
+- 4.056285858154297
 lr:
 - 1.2336995869333123e-09
 max_energy_loss:
-- 9.247110366821289
+- 4.180810451507568
 max_energy_scaled_mean_absolute_error:
-- 39.87736511230469
+- 18.02938461303711
 max_force_loss:
-- 5.36566162109375
+- 5.306750297546387
 max_force_scaled_mean_absolute_error:
-- 23.13895606994629
+- 22.884904861450195
 max_loss:
-- 267.2742004394531
+- 261.24884033203125
 max_lr:
 - 0.0005000000237487257
 max_val_energy_loss:
-- 11.741119384765625
+- 7.949090003967285
 max_val_energy_scaled_mean_absolute_error:
-- 50.63257598876953
+- 34.27976608276367
 max_val_force_loss:
-- 5.407754898071289
+- 4.978480815887451
 max_val_force_scaled_mean_absolute_error:
-- 23.320478439331055
+- 21.469268798828125
 max_val_loss:
-- 266.9208068847656
+- 244.78660583496094
 min_energy_loss:
-- 0.05884628742933273
+- 0.04919357970356941
 min_energy_scaled_mean_absolute_error:
-- 0.25376957654953003
+- 0.21214309334754944
 min_force_loss:
-- 0.14758187532424927
+- 0.08176478743553162
 min_force_scaled_mean_absolute_error:
-- 0.6364341974258423
+- 0.3526036739349365
 min_loss:
-- 7.290639877319336
+- 4.055723667144775
 min_lr:
 - 1.2336995869333123e-09
 min_val_energy_loss:
-- 0.05657890439033508
+- 0.057295847684144974
 min_val_energy_scaled_mean_absolute_error:
-- 0.2439916580915451
+- 0.24708342552185059
 min_val_force_loss:
-- 0.1897743046283722
+- 0.2226373851299286
 min_val_force_scaled_mean_absolute_error:
-- 0.8183852434158325
+- 0.9601045250892639
 min_val_loss:
-- 9.355823516845703
+- 10.968512535095215
 model_class: EnergyForceModel
 model_name: EGNN
 multi_target_indices: null
 number_histories: 1
 trajectory_name: malonaldehyde_ccsd_t
 val_energy_loss:
-- 0.05679148808121681
+- 0.05752447247505188
 val_energy_scaled_mean_absolute_error:
-- 0.244908407330513
+- 0.24806936085224152
 val_force_loss:
-- 0.1898597776889801
+- 0.22278010845184326
 val_force_scaled_mean_absolute_error:
-- 0.8187540769577026
+- 0.9607201814651489
 val_loss:
-- 9.359920501708984
+- 10.973750114440918

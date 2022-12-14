@@ -264,9 +264,9 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 | model                      | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
 |:---------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
 | DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5366 &pm; nan** | **0.2380 &pm; nan** | **0.3653 &pm; nan** | 0.0861 &pm; nan     | **0.2221 &pm; nan** |
-| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 15.4038 &pm; nan    | 2.1840 &pm; nan     | 0.8188 &pm; nan     | 0.5941 &pm; nan     | 0.7883 &pm; nan     |
+| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 2.4798 &pm; nan     | 0.8976 &pm; nan     | 0.9607 &pm; nan     | 0.3397 &pm; nan     | 0.5382 &pm; nan     |
 | Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.2431 &pm; nan     | 1.0476 &pm; nan     | 1.7242 &pm; nan     | 0.5225 &pm; nan     | 1.4967 &pm; nan     |
-| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.9915 &pm; nan     | 1.0636 &pm; nan     | 1.0197 &pm; nan     | 0.3669 &pm; nan     | 0.5037 &pm; nan     |
+| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.3700 &pm; nan     | 0.5998 &pm; nan     | 0.7752 &pm; nan     | 0.3669 &pm; nan     | 0.4451 &pm; nan     |
 | NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.1429 &pm; nan     | 0.6937 &pm; nan     | 0.6134 &pm; nan     | 0.4112 &pm; nan     | 0.3220 &pm; nan     |
 | PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.8348 &pm; nan     | 0.2679 &pm; nan     | 0.7042 &pm; nan     | **0.0463 &pm; nan** | 0.5494 &pm; nan     |
 | Schnet.EnergyForceModel    | 2.2.0   |     1000 | 1.0623 &pm; nan     | 0.5730 &pm; nan     | 0.6557 &pm; nan     | 0.2999 &pm; nan     | 0.4200 &pm; nan     |
