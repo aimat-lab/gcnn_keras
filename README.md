@@ -176,25 +176,46 @@ A version of the following models and variants thereof are implemented in [liter
 
 How to construct ragged tensors is shown [above](#implementation-details-input). 
 Moreover, some data handling classes are given in `kgcnn.data`.
-Graphs are represented by a dictionary of (numpy) tensors `GraphDict` and are stored in a list `MemoryGraphList`. 
-Both must fit into memory and are supposed to be handled just like a python dict or list, respectively.
+
+##### Graph
+
+Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which inherits from python `dict`.
+There are graph pre- and postprocessors in ``kgcnn.graph`` which take specific properties by name and apply a
+processing function or transformation.
 
 ```python
-from kgcnn.data.base import GraphDict, MemoryGraphList
+from kgcnn.data.base import GraphDict
 # Single graph.
-graph = GraphDict({"edge_indices": [[0, 1], [1, 0]]})
-print(graph)
+graph = GraphDict({"edge_indices": [[1, 0], [0, 1]], "node_label": [[0], [1]]})
+graph.set("graph_labels", [0])  # use set(), get() to assign (tensor) properties.
+graph.set("edge_labels", [[1], [2]])
+graph.to_networkx()
+# Modify with e.g. preprocessor.
+from kgcnn.graph.preprocessor import SortEdgeIndices
+SortEdgeIndices(edge_indices="edge_indices", in_place=True)(graph)
+```
+
+##### List of graphs
+
+A `MemoryGraphList` should behave identical to a python list but contain only `GraphDict` items.
+
+```python
+from kgcnn.data.base import MemoryGraphList
 # List of graph dicts.
-graph_list = MemoryGraphList([graph, {"edge_indices": [[0, 0]]}, {}])
+graph_list = MemoryGraphList([{"edge_indices": [[0, 1], [1, 0]]}, {"edge_indices": [[0, 0]]}, {}])
 graph_list.clean(["edge_indices"])  # Remove graphs without property
 graph_list.get("edge_indices")  # opposite is set()
-graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input; makes copy.
+# Easily cast to (ragged) tf-tensor; makes copy.
+tensor = graph_list.tensor([{"name": "edge_indices", "ragged": True}])  # config of keras `Input` layer
+# Or directly modify list.
+for i, x in enumerate(graph_list):
+    x.set("graph_number", [i])
+print(len(graph_list), graph_list[:2])  # Also supports index arrays.
 ```
 
 
 <a name="datasets"></a>
 # Datasets
-
 
 The `MemoryGraphDataset` inherits from `MemoryGraphList` but must be initialized with file information on disk that points to a `data_directory` for the dataset.
 The `data_directory` can have a subdirectory for files and/or single file such as a CSV file: 
@@ -216,7 +237,7 @@ dataset = MemoryGraphDataset(data_directory="ExampleDir/",
                              file_name=None, file_directory=None)
 ```
 
-The subclasses `QMDataset`, `MoleculeNetDataset`, `CrystalDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
+The subclasses `QMDataset`, `MoleculeNetDataset`, `CrystalDataset`, `VisualGraphDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
 Most subclasses implement `prepare_data()` and `read_in_memory()` with dataset dependent arguments.
 An example for `MoleculeNetDataset` is shown below. 
 For more details find tutorials in [notebooks](notebooks).
@@ -234,7 +255,7 @@ dataset.read_in_memory(label_column_name="label", add_hydrogen=False,
                        has_conformers=True)
 ```
 
-In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/) or [MoleculeNet](https://moleculenet.org/). 
+In [data.datasets](kgcnn/data/datasets) there are graph learning benchmark datasets as subclasses which are being *downloaded* from e.g. popular graph archives like [TUDatasets](https://chrsmrrs.github.io/datasets/), [MatBench](https://matbench.materialsproject.org/) or [MoleculeNet](https://moleculenet.org/). 
 The subclasses `GraphTUDataset2020`, `MatBenchDataset2020` and `MoleculeNetDataset2018` download and read the available datasets by name.
 There are also specific dataset subclasses for each dataset to handle additional processing or downloading from individual sources:
 

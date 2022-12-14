@@ -134,6 +134,9 @@ class MemoryGraphList(MutableMapping):
     def __iter__(self):
         return iter(self._list)
 
+    def __repr__(self):
+        return self._list.__repr__()
+
     def append(self, graph):
         assert isinstance(graph, GraphDict), "Must append `GraphDict` to self."
         self._list.append(graph)

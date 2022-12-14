@@ -28,6 +28,8 @@ class GraphDict(dict):
         import numpy as np
         from kgcnn.graph.base import GraphDict
         g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
+        graph.set("graph_labels", [0])  # use set(), get() to assign (tensor) properties
+        graph.set("edge_attributes", [[1.0], [2.0]])
         g.apply_preprocessor("add_edge_self_loops")
         g.apply_preprocessor("sort_edge_indices")
         print(g)
@@ -35,6 +37,9 @@ class GraphDict(dict):
 
     # Implementation details: Inherits from python-dict at the moment but can be changed if this causes problems,
     # alternatives would be: collections.UserDict or collections.abc.MutableMapping
+    # Also __setitem__ and update have not been altered in this version.
+    _tensor_conversion = np.array
+    _tensor_class = np.ndarray
 
     def __init__(self, sub_dict: dict = None):
         r"""Initialize a new :obj:`GraphDict` instance.
@@ -42,8 +47,6 @@ class GraphDict(dict):
         Args:
             sub_dict: Dictionary or key-value pair of numpy arrays.
         """
-        self._tensor_conversion = np.array
-        self._tensor_class = np.ndarray
         if sub_dict is None:
             sub_dict = {}
         elif isinstance(sub_dict, (dict, list)):
