@@ -177,7 +177,7 @@ A version of the following models and variants thereof are implemented in [liter
 How to construct ragged tensors is shown [above](#implementation-details-input). 
 Moreover, some data handling classes are given in `kgcnn.data`.
 
-##### Graph
+#### Graph dictionary
 
 Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which inherits from python `dict`.
 There are graph pre- and postprocessors in ``kgcnn.graph`` which take specific properties by name and apply a
@@ -195,7 +195,7 @@ from kgcnn.graph.preprocessor import SortEdgeIndices
 SortEdgeIndices(edge_indices="edge_indices", in_place=True)(graph)
 ```
 
-##### List of graphs
+#### List of graph dictionaries
 
 A `MemoryGraphList` should behave identical to a python list but contain only `GraphDict` items.
 
