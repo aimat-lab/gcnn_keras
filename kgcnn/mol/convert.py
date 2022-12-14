@@ -22,22 +22,26 @@ try:
         # Order of parameters is important here.
         try:
             m = rdkit.Chem.MolFromSmiles(smile)
-            # rdkit.Chem.RemoveStereochemistry(m)
             if sanitize:
                 rdkit.Chem.SanitizeMol(m)
-            if add_hydrogen:
-                m = rdkit.Chem.AddHs(m)
+
+            m = rdkit.Chem.AddHs(m)
             m.SetProp("_Name", smile.strip())
+
             if make_conformers:
-                try:
-                    rdkit.Chem.AllChem.EmbedMolecule(m)
-                except:
-                    rdkit.Chem.AllChem.EmbedMolecule(m, useRandomCoords=True)
-            if optimize_conformer and make_conformers:
-                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-                rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
-                rdkit.Chem.AssignStereochemistryFrom3D(m)
+                params = rdkit.Chem.AllChem.ETKDGv3()
+                params.useSmallRingTorsions = True
+                # params.useRandomCoords = True
+                success = rdkit.Chem.AllChem.EmbedMolecule(m, params=params)
+                if optimize_conformer:
+                    rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
+                    rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+                    rdkit.Chem.AssignStereochemistryFrom3D(m)
+            if not add_hydrogen:
+                m = rdkit.Chem.RemoveHs(m)
+
             rdkit.Chem.AssignStereochemistry(m)
+
         except:
             m = None
 
