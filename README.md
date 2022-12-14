@@ -210,7 +210,7 @@ tensor = graph_list.tensor([{"name": "edge_indices", "ragged": True}])  # config
 # Or directly modify list.
 for i, x in enumerate(graph_list):
     x.set("graph_number", [i])
-print(len(graph_list), graph_list[:2])  # Also supports index arrays.
+print(len(graph_list), graph_list[:2])  # Also supports indexing lists.
 ```
 
 
