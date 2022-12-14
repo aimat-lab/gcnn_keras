@@ -461,7 +461,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene, aspirin, malonaldehyde, benzene, ethanol
-                    "trajectory_name": "aspirin"
+                    "trajectory_name": "benzene"
                 },
                 "methods": [
                     # we have to make edges via range cutoff.
@@ -486,7 +486,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_aspirin",
+            "postfix_file": "_benzene",
             "kgcnn_version": "2.2.0"
         }
     },

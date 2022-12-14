@@ -10,6 +10,12 @@ v2.2.0
 * Updated ``setup.py`` for requirements.
 * HOTFIX: Error in ``kgcnn.scaler.mol.ExtensiveMolecuarScaler``, where scale was not properly applied. However, this was only present in development (master) version, not in release.
 * Added ``kgcnn.layers.rational`` with relation dense layer.
+* Added first draft of ``kgcnn.literature.HDNNP2nd``.
+* Added ``append`` and `add` to `MemoryGraphList`.
+* Fixed behaviour of ``GraphDict`` , which now is not making a copy of arrays.
+* Added explainable GNN from ``visual_graph_datasets``.
+* Ran training for ``train_force.py``
+* Changed backend to RDkit for ``QMDatasets``.
 
 
 v2.1.1

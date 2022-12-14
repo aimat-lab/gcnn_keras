@@ -43,13 +43,16 @@ class GraphDict(dict):
             sub_dict: Dictionary or key-value pair of numpy arrays.
         """
         self._tensor_conversion = np.array
+        self._tensor_class = np.ndarray
         if sub_dict is None:
             sub_dict = {}
         elif isinstance(sub_dict, (dict, list)):
             in_dict = dict(sub_dict)
-            sub_dict = {key: self._tensor_conversion(value) for key, value in in_dict.items()}
+            sub_dict = {key: value if isinstance(value, self._tensor_class) else self._tensor_conversion(value) for
+                        key, value in in_dict.items()}
         elif isinstance(sub_dict, GraphDict):
-            sub_dict = {key: self._tensor_conversion(value) for key, value in sub_dict.items()}
+            sub_dict = {key: value if isinstance(value, self._tensor_class) else self._tensor_conversion(value) for
+                        key, value in sub_dict.items()}
         super(GraphDict, self).__init__(sub_dict)
 
     def to_dict(self) -> dict:
@@ -100,7 +103,7 @@ class GraphDict(dict):
         node_attr = _attr_to_list(node_attributes)
         if node_labels is not None:
             node_attr += [node_labels]
-        node_attr_dict = {x: [None]*graph_size for x in node_attr}
+        node_attr_dict = {x: [None] * graph_size for x in node_attr}
         nodes_id = []
         for i, x in enumerate(graph_int.nodes.data()):
             nodes_id.append(x[0])
@@ -111,7 +114,7 @@ class GraphDict(dict):
 
         edge_id = []
         edges_attr = _attr_to_list(edge_attributes)
-        edges_attr_dict = {x: [None]*graph.number_of_edges() for x in edges_attr}
+        edges_attr_dict = {x: [None] * graph.number_of_edges() for x in edges_attr}
         for i, x in enumerate(graph_int.edges.data()):
             edge_id.append(x[:2])
             for d in edges_attr:
@@ -192,6 +195,7 @@ class GraphDict(dict):
             # No pattern matching for list input.
             return sorted([x for x in keys if x in self])
         return []
+
     # Old Alias
     find_graph_properties = search_properties
 
@@ -226,6 +230,7 @@ class GraphDict(dict):
 
     # Alias of internal assign and obtain property.
     set = assign_property
+
     # get = obtain_property  # Already has correct behaviour.
 
     def apply_preprocessor(self, name, **kwargs):

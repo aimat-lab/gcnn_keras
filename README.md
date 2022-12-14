@@ -16,7 +16,7 @@
 A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
 
 [General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
- | [Literature](#literature) | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)
+ | [Literature](#literature) | [Data](#data)  | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)
  
 
 <a name="general"></a>
@@ -170,8 +170,9 @@ A version of the following models and variants thereof are implemented in [liter
 * **[HDNNP2nd](kgcnn/literature/HDNNP2nd.py)**: [Atom-centered symmetry functions for constructing high-dimensional neural network potentials](https://aip.scitation.org/doi/abs/10.1063/1.3553717) by Jörg Behler (2011)
 </details>
 
-<a name="datasets"></a>
-# Datasets
+
+<a name="data"></a>
+# Data
 
 How to construct ragged tensors is shown [above](#implementation-details-input). 
 Moreover, some data handling classes are given in `kgcnn.data`.
@@ -189,6 +190,11 @@ graph_list.clean(["edge_indices"])  # Remove graphs without property
 graph_list.get("edge_indices")  # opposite is set()
 graph_list.tensor([{"name": "edge_indices", "ragged": True}]) # config of layers.Input; makes copy.
 ```
+
+
+<a name="datasets"></a>
+# Datasets
+
 
 The `MemoryGraphDataset` inherits from `MemoryGraphList` but must be initialized with file information on disk that points to a `data_directory` for the dataset.
 The `data_directory` can have a subdirectory for files and/or single file such as a CSV file: 
