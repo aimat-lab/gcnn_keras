@@ -570,7 +570,7 @@ hyper = {
                 ],
                 "w_acsf_ang_kwargs": {},
                 "w_acsf_rad_kwargs": {},
-                "mlp_kwargs": {"units": [128, 128, 128, 128],
+                "mlp_kwargs": {"units": [128, 128, 128, 1],
                                "num_relations": 96,
                                "activation": ["swish", "swish", "swish", "linear"]},
                 "node_pooling_args": {"pooling_method": "sum"},

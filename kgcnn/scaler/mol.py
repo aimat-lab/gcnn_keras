@@ -411,7 +411,7 @@ class QMGraphLabelScaler:
 
         return self
 
-    def inverse_transform(self, y, *, X=None, copy: bool = True, atomic_number: list = None):
+    def inverse_transform(self, y=None, *, X=None, copy: bool = True, atomic_number: list = None):
         r"""Back-transform all target labels for QM.
 
         Args:
