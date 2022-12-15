@@ -10,7 +10,7 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 if "BABEL_DATADIR" not in os.environ:
-    module_logger.error(
+    module_logger.warning(
         "System variable 'BABEL_DATADIR' is not set. Please set `os.environ['BABEL_DATADIR'] = ...` manually.")
 
 

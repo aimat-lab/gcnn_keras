@@ -151,7 +151,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
         # Creating XYZ file.
         self.info("Writing single xyz-file ...")
-        pos = [[y[1:] for y in x[2]] for x in qm9]
+        pos = [[y[1:4] for y in x[2]] for x in qm9]
         atoms = [[y[0] for y in x[2]] for x in qm9]
         atoms_pos = [[x, y] for x, y in zip(atoms, pos)]
         write_list_to_xyz_file(os.path.join(path, "qm9.xyz"), atoms_pos)
