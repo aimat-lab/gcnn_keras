@@ -235,6 +235,7 @@ from kgcnn.data.base import MemoryGraphDataset
 dataset = MemoryGraphDataset(data_directory="ExampleDir/", 
                              dataset_name="Example",
                              file_name=None, file_directory=None)
+dataset.save()  # opposite is load(). 
 ```
 
 The subclasses `QMDataset`, `MoleculeNetDataset`, `CrystalDataset`, `VisualGraphDataset` and `GraphTUDataset` further have functions required for the specific dataset type to convert and process files such as '.txt', '.sdf', '.xyz' etc. 
