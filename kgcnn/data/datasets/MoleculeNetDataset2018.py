@@ -5,7 +5,78 @@ from kgcnn.data.download import DownloadDataset
 
 
 class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
-    """Downloader for DeepChem MoleculeNetDataset 2018 class.
+    r"""Downloader for `MoleculeNet <https://moleculenet.org/>`_ datasets.
+    This class inherits from :obj:`MoleculeNetDataset` .
+    QM datasets are however excluded from this class as they have specific `kgcnn.data.datasets` which inherits from
+    :obj:`QMDatasets` .
+
+    MoleculeNet is a benchmark specially designed for testing machine learning methods of molecular properties.
+    Their work curates a number of dataset collections. All methods and datasets are integrated as parts
+    of the open source `DeepChem <https://deepchem.io/>`_ package (MIT license).
+
+    Stats:
+        .. list-table::
+            :widths: 20 10 10 10
+            :header-rows: 1
+
+            * - Name
+              - #graphs
+              - #features
+              - #classes
+            * - ESOL
+              - 1,128
+              - 9
+              - 1
+            * - FreeSolv
+              - 642
+              - 9
+              - 1
+            * - Lipophilicity
+              - 4,200
+              - 9
+              - 1
+            * - PCBA
+              - 437,929
+              - 9
+              - 128
+            * - MUV
+              - 93,087
+              - 9
+              - 17
+            * - HIV
+              - 41,127
+              - 9
+              - 1
+            * - BACE
+              - 1513
+              - 9
+              - 1
+            * - BBPB
+              - 2,050
+              - 9
+              - 1
+            * - Tox21
+              - 7,831
+              - 9
+              - 12
+            * - ToxCast
+              - 8,597
+              - 9
+              - 617
+            * - SIDER
+              - 1,427
+              - 9
+              - 27
+            * - ClinTox
+              - 1,484
+              - 9
+              - 2
+
+    References:
+
+        (1) Zhenqin Wu, Bharath Ramsundar, Evan N. Feinberg, Joseph Gomes, Caleb Geniesse, Aneesh S. Pappu, Karl
+            Leswing, Vijay Pande, MoleculeNet: A Benchmark for Molecular Machine Learning, arXiv preprint,
+            arXiv: 1703.00564, 2017.
 
     """
     datasets_download_info = {

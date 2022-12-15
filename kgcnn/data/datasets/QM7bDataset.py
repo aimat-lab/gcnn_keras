@@ -85,6 +85,3 @@ class QM7bDataset(QMDataset, DownloadDataset):
 
         return super(QM7bDataset, self).prepare_data(
             overwrite=overwrite, file_column_name=file_column_name, make_sdf=make_sdf)
-
-
-# data = QM7bDataset(reload=False)

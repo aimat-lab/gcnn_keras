@@ -6,7 +6,20 @@ from kgcnn.mol.encoder import OneHotEncoder
 
 
 class PROTEINSDataset(GraphTUDataset2020):
-    """Store and process PROTEINS dataset."""
+    r"""Store and process PROTEINS dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`_ .
+
+    In `Papers with Code <https://paperswithcode.com/dataset/proteins>`_ :
+    PROTEINS is a dataset of proteins that are classified as enzymes or non-enzymes.
+    Nodes represent the amino acids and two nodes are connected by an edge if they are less than 6 Angstroms apart.
+
+    References:
+
+        (1) K. M. Borgwardt, C. S. Ong, S. Schoenauer, S. V. N. Vishwanathan, A. J. Smola, and H. P. Kriegel.
+            Protein function prediction via graph kernels. Bioinformatics, 21(Suppl 1):i47–i56, Jun 2005.
+        (2) P. D. Dobson and A. J. Doig. Distinguishing enzyme structures from non-enzymes without alignments.
+            J. Mol. Biol., 330(4):771–783, Jul 2003.
+
+    """
 
     def __init__(self, reload=False, verbose=1):
         """Initialize MUTAG dataset.

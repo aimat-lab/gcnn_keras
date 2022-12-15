@@ -179,7 +179,9 @@ class QM9Dataset(QMDataset, DownloadDataset):
             mass = [mass_dict[x[:1]] for x in atoms]
             return np.array([np.mean(mass), len(mass)])
 
-        self.assign_property("graph_attributes", [mmw(x) for x in self.obtain_property("node_symbol")])
+        # TODO: Do this in graph_attributes mol interface.
+        self.assign_property("graph_attributes", [
+            mmw(x) if x is not None else None for x in self.obtain_property("node_symbol")])
         return self
 
     def remove_uncharacterized(self):
