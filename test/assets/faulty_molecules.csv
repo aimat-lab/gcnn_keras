@@ -1,0 +1,5 @@
+index,name,label,smiles
+57,compound 36,1,CN(C)Cc1ccc(CSCCNC2=C([N+]([O-])=O)C(Cc3ccccc3)=CN2)o1
+58,19,0,CNC(=NC#N)Nc1cccc(c1)c1csc(n1)N=C(N)N
+59,Y-G 14,1,n(ccc1)c(c1)CCNC
+60,15,1,O=N([O-])C1=C(CN=C1NCCSCc2ncccc2)Cc3ccccc3

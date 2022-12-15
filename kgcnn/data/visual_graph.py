@@ -23,21 +23,18 @@ class VisualGraphDataset(MemoryGraphDataset):
     Downloading and processing is given in :obj:`visual_graph_datasets` python package.
     For documentation please find `<https://github.com/awa59kst120df/visual_graph_datasets>`_ .
     This class constitutes an interface to kgcnn :obj:`MemoryGraphDataset` data representation.
-
     """
     
     def __init__(self,
-                 name: str):
+                 name: str,
+                 config: Config = Config()):
         super(VisualGraphDataset, self).__init__(
             dataset_name=name,
             file_directory=None,
             file_name=None,
             data_directory=None
         )
-
-        self.vgd_config = Config()
-        self.vgd_config.load()
-
+        self.vgd_config = config
         self.index_data_map: t.Dict[int, dict] = {}
 
     def ensure(self) -> None:
@@ -104,8 +101,10 @@ class VisualGraphDataset(MemoryGraphDataset):
             # metadata and not the graph itself. We need to set them as graph properties with these
             # specific names however, such that later on the existing base method "get_train_test_indices"
             # of the dataset class can be used.
-            g['train'] = data['metadata']['train_split']
-            g['test'] = data['metadata']['test_split']
+            if 'train_split' in data['metadata']:
+                g['train'] = data['metadata']['train_split']
+            if 'test_split' in data['metadata']:
+                g['test'] = data['metadata']['test_split']
 
             # Otherwise the basic structure of the dict from the visual graph dataset should be compatible
             # such that it can be directly used as a GraphDict

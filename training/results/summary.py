@@ -274,6 +274,20 @@ benchmark_datasets = {
             {"metric": "val_node_auc", "name": "Node AUC", "find_best": "max"},
             {"metric": "val_edge_auc", "name": "Edge AUC", "find_best": "max"},
         ]
+    },
+    "VgdRbMotifsDataset": {
+        "general_info": [
+            "Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, ",
+            "where some of them are seeded with special red- or blue-dominated subgraph motifs, where "
+            "blue motifs contribute negatively to a graph's overall target value and red motifs "
+            "contribute positively. The explanation ground truth for this datasets consists of these "
+            "motifs.",
+        ],
+        "targets": [
+            {"metric": "val_mean_squared_error", "name": "MSE", "find_best": "min"},
+            {"metric": "val_node_auc", "name": "Node AUC", "find_best": "max"},
+            {"metric": "val_edge_auc", "name": "Edge AUC", "find_best": "max"},
+        ]
     }
 }
 

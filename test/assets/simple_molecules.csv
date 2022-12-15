@@ -1,0 +1,5 @@
+index,name,label,smiles
+1,Propanolol,1,[Cl].CC(C)NCC(O)COc1cccc2ccccc12
+2,Terbutylchlorambucil,1,C(=O)(OC(C)(C)C)CCCc1ccc(cc1)N(CCCl)CCCl
+3,40730,1,c12c3c(N4CCN(C)CC4)c(F)cc1c(c(C(O)=O)cn2C(C)CO3)=O
+4,24,1,C1CCN(CC1)Cc1cccc(c1)OCCCNC(=O)C
