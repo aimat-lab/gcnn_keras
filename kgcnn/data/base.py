@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import typing as t
 from typing import Union, List, Callable
-from collections.abc import MutableMapping
+from collections.abc import MutableSequence
 
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphDict
@@ -15,7 +15,7 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class MemoryGraphList(MutableMapping):
+class MemoryGraphList(MutableSequence):
     r"""Class to store a list of graph dictionaries in memory.
 
     Contains a python list as property :obj:`_list`. The graph properties are defined by tensor-like (numpy) arrays
@@ -135,11 +135,15 @@ class MemoryGraphList(MutableMapping):
         return iter(self._list)
 
     def __repr__(self):
-        return self._list.__repr__()
+        return "<{} [{}]>".format(type(self).__name__, "" if len(self) == 0 else self[0].__repr__() + " ...")
 
     def append(self, graph):
         assert isinstance(graph, GraphDict), "Must append `GraphDict` to self."
         self._list.append(graph)
+
+    def insert(self, index: int, value) -> None:
+        assert isinstance(value, GraphDict), "Must insert `GraphDict` to self."
+        self._list.insert(index, value)
 
     def __add__(self, other):
         assert isinstance(other, MemoryGraphList), "Must add `MemoryGraphList` to self."
@@ -176,6 +180,12 @@ class MemoryGraphList(MutableMapping):
             raise ValueError("Length of empty list must be >=0.")
         self._list = [GraphDict() for _ in range(length)]
         return self
+
+    def update(self, other) -> None:
+        assert isinstance(other, MemoryGraphList), "Must update `MemoryGraphList`."
+        assert len(other) == len(self), "Length of list for update must match."
+        for i in range(len(self)):
+            self[i].update(other[i])
 
     @property
     def length(self):
@@ -739,6 +749,23 @@ class MemoryGraphDataset(MemoryGraphList):
             out_indices.append(graph_index_split_list)
 
         return out_indices
+
+    def relocate(self, data_directory: str = None, file_name: str = None, file_directory: str = None):
+        """Change file information. Does not copy files on disk!
+
+        Args:
+            data_directory (str): Full path to directory of the dataset. Default is None.
+            file_name (str): Generic filename for dataset to read into memory like a 'csv' file. Default is None.
+            file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
+                files. Default is None.
+
+        Returns:
+            self
+        """
+        self.data_directory = data_directory
+        self.file_name = file_name
+        self.file_directory = file_directory
+        return self
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset
