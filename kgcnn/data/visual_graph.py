@@ -51,19 +51,12 @@ class VisualGraphDataset(MemoryGraphDataset):
             None
         """
         # First of all we try to load the dataset, as it might already exist on the system.
-        try:
+        if os.path.exists(os.path.join(self.vgd_config.get_datasets_path(), self.dataset_name)):
             # This function will try to locate a dataset with the given name inside the system's global
             # default folder where all the visual graph datasets are stored. If it does not find a
             # corresponding dataset folder there, an exception is raised.
             self.data_directory = get_dataset_path(self.dataset_name)
             return
-
-        except FileNotFoundError as e:
-            self.logger.info(f'the visual graph dataset "{self.dataset_name}" was not found on the disk. '
-                             f'The following exception was raised during lookup:')
-            self.logger.info(str(e))
-        except IndexError:
-            pass
 
         # At this point we know that the folder does not already exist which means we need to download the
         # dataset.
