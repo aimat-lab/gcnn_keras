@@ -55,7 +55,7 @@ class VisualGraphDataset(MemoryGraphDataset):
             # This function will try to locate a dataset with the given name inside the system's global
             # default folder where all the visual graph datasets are stored. If it does not find a
             # corresponding dataset folder there, an exception is raised.
-            self.data_directory = get_dataset_path(self.dataset_name)
+            self.data_directory = get_dataset_path(self.dataset_name, config=self.vgd_config)
             return
 
         # At this point we know that the folder does not already exist which means we need to download the
