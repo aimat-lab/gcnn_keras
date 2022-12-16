@@ -1,8 +1,6 @@
 import os
-import pickle
 import numpy as np
 import scipy.io
-import json
 import pandas as pd
 
 from kgcnn.data.qm import QMDataset
@@ -14,7 +12,30 @@ from kgcnn.mol.methods import inverse_global_proton_dict
 
 
 class QM7bDataset(QMDataset, DownloadDataset):
-    """Store and process QM7b dataset."""
+    r"""Store and process QM7b dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ .
+
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    This dataset is an extension of the QM7 dataset for multitask learning where 13 additional properties
+    (e.g. polarizability, HOMO and LUMO eigenvalues, excitation energies) have to be predicted at different
+    levels of theory (ZINDO, SCS, PBE0, GW). Additional molecules comprising chlorine atoms are also included,
+    totalling 7211 molecules.
+
+    The dataset is composed of two multidimensional arrays X (7211 x 23 x 23) and T (7211 x 14) representing the inputs
+    (Coulomb matrices) and the labels (molecular properties) and one array names of size 14 listing the names of the
+    different properties.
+
+    Here, the Coulomb matrices are converted back into coordinates and with :obj:`QMDataset` to molecular structure.
+    Labels are not scaled but have original units.
+
+    References:
+
+        (1) L. C. Blum, J.-L. Reymond, 970 Million Druglike Small Molecules for Virtual Screening in
+            the Chemical Universe Database GDB-13, J. Am. Chem. Soc., 131:8732, 2009.
+        (2) G. Montavon, M. Rupp, V. Gobre, A. Vazquez-Mayagoitia, K. Hansen, A. Tkatchenko, K.-R. Müller,
+            O.A. von Lilienfeld, Machine Learning of Molecular Electronic Properties in Chemical Compound Space,
+            New J. Phys. 15 095003, 2013.
+
+    """
 
     download_info = {
         "dataset_name": "QM7b",

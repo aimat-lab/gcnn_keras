@@ -10,16 +10,44 @@ from kgcnn.mol.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):
-    """Store and process QM9 benchmark dataset of 134k stable small organic molecules made up of C,H,O,N,F.
+    r"""Store and process QM9 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ . dataset.
+
+    Dataset of 134k stable small organic molecules made up of C,H,O,N,F.
+
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    Computational de novo design of new drugs and materials requires rigorous and unbiased exploration of chemical
+    compound space. However, large uncharted territories persist due to its size scaling combinatorially with
+    molecular size. We report computed geometric, energetic, electronic, and thermodynamic properties for 134k stable
+    small organic molecules made up of CHONF. These molecules correspond to the subset of all 133,885 species with up
+    to nine heavy atoms (CONF) out of the GDB-17 chemical universe of 166 billion organic molecules. We report
+    geometries minimal in energy, corresponding harmonic frequencies, dipole moments, polarizabilities, along
+    with energies, enthalpies, and free energies of atomization. All properties were calculated at
+    the B3LYP/6-31G(2df,p) level of quantum chemistry. Furthermore, for the predominant stoichiometry, C7H10O2,
+    there are 6,095 constitutional isomers among the 134k molecules. We report energies, enthalpies, and free
+    energies of atomization at the more accurate G4MP2 level of theory for all of them. As such, this data set provides
+    quantum chemical properties for a relevant, consistent, and comprehensive chemical space of small organic molecules.
+    This database may serve the benchmarking of existing methods, development of new methods, such as hybrid quantum
+    mechanics/machine learning, and systematic identification of structure-property relationships.
 
     Labels include geometric, energetic, electronic, and thermodynamic properties. Typically, a random 10% validation
     and 10% test set are used. In literature, test errors are given as MAE and for energies are in [eV].
+
+    Molecules that have a different smiles code after convergence can be removed with :obj:`remove_uncharacterized` .
+    Also labels with removed atomization energy are generated.
 
     .. code-block:: python
 
         from kgcnn.data.qm import QMGraphLabelScaler
         dataset = QM9Dataset(reload=True)
         print(dataset[0])
+
+    References:
+
+        (1) L. Ruddigkeit, R. van Deursen, L. C. Blum, J.-L. Reymond, Enumeration of 166 billion organic small
+            molecules in the chemical universe database GDB-17, J. Chem. Inf. Model. 52, 2864–2875, 2012.
+        (2) R. Ramakrishnan, P. O. Dral, M. Rupp, O. A. von Lilienfeld, Quantum chemistry structures and properties
+            of 134 kilo molecules, Scientific Data 1, 140022, 2014.
+
     """
 
     download_info = {

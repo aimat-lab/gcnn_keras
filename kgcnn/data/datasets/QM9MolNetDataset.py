@@ -10,7 +10,19 @@ from kgcnn.data.download import DownloadDataset
 
 
 class QM9MolNetDataset(QMDataset, DownloadDataset):
-    """Store and process QM9 dataset."""
+    r"""Store and process QM9 dataset from `MoleculeNet <https://moleculenet.org/>`_ dataset.
+
+    This is the QM9 dataset as preprocessed from `MoleculeNet <https://moleculenet.org/>`_ with structure and labels.
+    See :obj:`kgcnn.data.datasets.QM9Dataset` for documentation and comparison.
+
+    References:
+
+        (1) L. Ruddigkeit, R. van Deursen, L. C. Blum, J.-L. Reymond, Enumeration of 166 billion organic small
+            molecules in the chemical universe database GDB-17, J. Chem. Inf. Model. 52, 2864–2875, 2012.
+        (2) R. Ramakrishnan, P. O. Dral, M. Rupp, O. A. von Lilienfeld, Quantum chemistry structures and properties
+            of 134 kilo molecules, Scientific Data 1, 140022, 2014.
+
+    """
 
     download_info = {
         "dataset_name": "QM9MolNet",

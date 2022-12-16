@@ -19,6 +19,3 @@ class SIDERDataset(MoleculeNetDataset2018):
         graph_labels = self.obtain_property("graph_labels")
         graph_labels = [np.array(x, dtype="float") for x in graph_labels]
         self.assign_property("graph_labels", graph_labels)
-
-
-# data = SIDERDataset(reload=False)

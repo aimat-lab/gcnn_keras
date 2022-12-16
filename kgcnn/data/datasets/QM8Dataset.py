@@ -1,16 +1,37 @@
 import os
-import pickle
 import numpy as np
-import scipy.io
-import json
-import pandas as pd
-from typing import Union
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 
 
 class QM8Dataset(QMDataset, DownloadDataset):
-    """Store and process QM8 dataset."""
+    r"""Store and process QM8 dataset from `MoleculeNet <https://moleculenet.org/>`_ datasets.
+
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    Due to its favorable computational efficiency, time-dependent (TD) density functional theory(DFT) enables
+    the prediction of electronic spectra in a high-throughput manner across chemical space. Its predictions,
+    however, can be quite inaccurate. We resolve this issue with machine learning models trained on deviations of
+    reference second-order approximate coupled-cluster (CC2) singles and doubles spectra from TDDFT counterparts,
+    or even from DFT gap. We applied this approach to low-lying singlet-singlet vertical electronic spectra of
+    over 20000 synthetically feasible small organic molecules with up to eight CONF atoms. The prediction errors
+    decay monotonously as a function of training set size. For a training set of 10000 molecules,
+    CC2 excitation energies can be reproduced to within ±0.1 eV for the remaining molecules.
+    Analysis of our spectral database via chromophore counting suggests that even higher accuracies can be achieved.
+    Based on the evidence collected, we discuss open challenges associated with data-driven modeling of
+    high-lying spectra and transition intensities.
+
+    .. note::
+
+        We take the pre-processed dataset from `MoleculeNet <https://moleculenet.org/>`_ .
+
+    References:
+
+        (1) L. Ruddigkeit, R. van Deursen, L. C. Blum, J.-L. Reymond, Enumeration of 166 billion organic small
+            molecules in the chemical universe database GDB-17, J. Chem. Inf. Model. 52, 2864–2875, 2012.
+        (2) R. Ramakrishnan, M. Hartmann, E. Tapavicza, O. A. von Lilienfeld, Electronic Spectra from TDDFT and
+            Machine Learning in Chemical Space, J. Chem. Phys. 143 084111, 2015.
+
+    """
 
     download_info = {
         "dataset_name": "QM8",
@@ -33,8 +54,8 @@ class QM8Dataset(QMDataset, DownloadDataset):
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)
 
         self.label_names = [
-            "E1-CC2", "E2-CC2", "f1-CC2", "f2-CC2", "E1-PBE0", "E2-PBE0","f1-PBE0",
-            "f2-PBE0","E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-CAM", "E2-CAM", "f1-CAM", "f2-CAM"
+            "E1-CC2", "E2-CC2", "f1-CC2", "f2-CC2", "E1-PBE0", "E2-PBE0", "f1-PBE0",
+            "f2-PBE0", "E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-CAM", "E2-CAM", "f1-CAM", "f2-CAM"
         ]
         self.label_units = ["[?]"]*len(self.label_names)
         self.label_unit_conversion = np.array([1.0] * 14)  # Pick always same units for training

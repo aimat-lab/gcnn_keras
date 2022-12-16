@@ -14,7 +14,32 @@ from kgcnn.mol.methods import inverse_global_proton_dict
 
 
 class QM7Dataset(QMDataset, DownloadDataset):
-    """Store and process QM7b dataset."""
+    r"""Store and process QM7 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ . dataset.
+
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    This dataset is a subset of GDB-13 (a database of nearly 1 billion stable and synthetically accessible
+    organic molecules) composed of all molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S),
+    totalling 7165 molecules. We provide the Coulomb matrix representation of these molecules and their atomization
+    energies computed similarly to the FHI-AIMS implementation of the Perdew-Burke-Ernzerhof hybrid functional (PBE0).
+    This dataset features a large variety of molecular structures such as double and triple bonds, cycles, carboxy,
+    cyanide, amide, alcohol and epoxy.
+    The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol.
+    The dataset is composed of three multidimensional arrays X (7165 x 23 x 23), Tm(7165) and P (5 x 1433)
+    representing the inputs (Coulomb matrices), the labels (atomization energies) and the splits for cross-validation,
+    respectively. The dataset also contain two additional multidimensional arrays Z (7165) and R (7165 x 3)
+    representing the atomic charge and the cartesian coordinate of each atom in the molecules.
+
+    Here, the coordinates are given and converted with :obj:`QMDataset` to molecular structure.
+    Labels are not scaled but have original units. Original splits are added to the dataset.
+
+    References:
+
+        (1) L. C. Blum, J.-L. Reymond, 970 Million Druglike Small Molecules for Virtual Screening in the Chemical
+            Universe Database GDB-13, J. Am. Chem. Soc., 131:8732, 2009.
+        (2) M. Rupp, A. Tkatchenko, K.-R. Müller, O. A. von Lilienfeld: Fast and Accurate Modeling of Molecular
+            Atomization Energies with Machine Learning, Physical Review Letters, 108(5):058301, 2012.
+
+    """
 
     download_info = {
         "dataset_name": "QM7",
