@@ -72,7 +72,10 @@ class VisualGraphDataset(MemoryGraphDataset):
 
         # If the dataset is available, then we can download it and then finally load the path
         file_share.download_dataset(self.dataset_name, self.vgd_config.get_datasets_path())
-        self.data_directory = get_dataset_path(self.dataset_name)
+        self.data_directory = get_dataset_path(
+            dataset_name=self.dataset_name,
+            datasets_path=self.vgd_config.get_datasets_path(),
+        )
         self.logger.info(f'visual graph dataset found @ {self.data_directory}')
 
     def read_in_memory(self) -> None:
