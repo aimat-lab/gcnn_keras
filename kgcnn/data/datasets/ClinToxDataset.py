@@ -5,8 +5,9 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 class ClinToxDataset(MoleculeNetDataset2018):
     r"""Store and process 'ClinTox' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
     Class inherits from :obj:`MoleculeNetDataset2018` and downloads dataset on class initialization.
+
     Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#clintox-datasets>`_ .
+    moleculenet.html#clintox-datasets>`_ reading:
     Qualitative data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons.
     Random splitting is recommended for this dataset.
 

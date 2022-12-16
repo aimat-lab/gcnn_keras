@@ -4,8 +4,10 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 class ESOLDataset(MoleculeNetDataset2018):
     r"""Store and process 'ESOL' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
     Class inherits from :obj:`MoleculeNetDataset2018` and downloads dataset on class initialization.
+
     Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#delaney-datasets>`_ .
+    moleculenet.html#delaney-datasets>`_  reading:
+
     Water solubility data(log solubility in mols per litre) for common organic small molecules.
     Random or Scaffold splitting is recommended for this dataset.
     Description in DeepChem reads: 'The Delaney (ESOL) dataset a regression dataset containing structures and water

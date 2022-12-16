@@ -3,7 +3,29 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 
 
 class Tox21MolNetDataset(MoleculeNetDataset2018):
-    """Store and process full Tox21 dataset."""
+    r"""Store and process 'TOX21' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
+
+    Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
+    moleculenet.html#freesolv-dataset>`_ reading:
+    The “Toxicology in the 21st Century” (Tox21) initiative created a public database measuring toxicity of compounds,
+    which has been used in the 2014 Tox21 Data Challenge. This dataset contains qualitative toxicity measurements for
+    8k compounds on 12 different targets, including nuclear receptors and stress response pathways.
+
+    Random splitting is recommended for this dataset.
+
+    The raw data csv file contains columns below:
+
+        - “smiles”: SMILES representation of the molecular structure
+        - “NR-XXX”: Nuclear receptor signaling bioassays results
+        - “SR-XXX”: Stress response bioassays results
+
+    please refer to https://tripod.nih.gov/tox21/challenge/data.jsp for details.
+
+    References:
+
+        (1) Tox21 Challenge. https://tripod.nih.gov/tox21/challenge/
+
+    """
 
     def __init__(self, reload=False, verbose=1, remove_nan: bool = False):
         """Initialize Tox21 dataset.
@@ -24,6 +46,3 @@ class Tox21MolNetDataset(MoleculeNetDataset2018):
         if self._remove_nan_label:
             graph_labels = [np.nan_to_num(x) for x in graph_labels]
         self.assign_property("graph_labels", graph_labels)
-
-
-# data = Tox21MolNetDataset(reload=False)

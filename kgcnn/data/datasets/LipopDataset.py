@@ -5,7 +5,7 @@ class LipopDataset(MoleculeNetDataset2018):
     r"""Store and process 'Lipop' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
     Class inherits from :obj:`MoleculeNetDataset2018` and downloads dataset on class initialization.
     Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#lipo-datasets>`_ .
+    moleculenet.html#lipo-datasets>`_ reading:
     Experimental results of octanol/water distribution coefficient(logD at pH 7.4).
     Description in DeepChem reads: 'Lipophilicity is an important feature of drug molecules that affects both
     membrane permeability and solubility. The lipophilicity dataset, curated from ChEMBL database, provides
