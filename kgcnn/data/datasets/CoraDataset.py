@@ -9,7 +9,20 @@ from kgcnn.graph.adj import convert_scaled_adjacency_to_list
 
 
 class CoraDataset(DownloadDataset, MemoryGraphDataset):
-    """Store and process full Cora dataset."""
+    r"""Store and process (full) Cora dataset.
+
+    Data loaded from `<https://github.com/abojchevski/graph2gauss/raw/master/data>`_ .
+
+    From Paper: `"Deep Gaussian Embedding of Graphs: Unsupervised Inductive Learning via
+    Ranking" <https://arxiv.org/abs/1707.03815>`_ paper.
+    Nodes represent documents and edges represent citation links.
+
+    References:
+
+        (1) Bojchevski, Aleksandar and Günnemann, Stephan, Deep Gaussian Embedding of Graphs: Unsupervised Inductive
+            Learning via Ranking, arXiv, doi:10.48550/ARXIV.1707.03815, 2017
+
+    """
 
     download_info = {
         "dataset_name": "Cora",
@@ -71,5 +84,3 @@ class CoraDataset(DownloadDataset, MemoryGraphDataset):
         self.data_keys = loader.get('idx_to_class')
 
         return self
-
-# ds = CoraDataset()
