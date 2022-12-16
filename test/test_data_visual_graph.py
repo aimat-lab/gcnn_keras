@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from visual_graph_datasets.testing import TestingConfig
+from visual_graph_datasets.testing import IsolatedConfig
 
 from kgcnn.data.visual_graph import VisualGraphDataset
 
@@ -12,7 +12,7 @@ class TestVisualGraphDataset(unittest.TestCase):
         """
         If the VisualGraphDataset class generally works. Attempts to load the "mock" dataset into memory.
         """
-        with TestingConfig() as config:
+        with IsolatedConfig() as config:
             # The dataset "mock" is a small dataset which should always be available for testing purposes.
             # the dataset contains exactly 100 randomly generated graphs, which is what we test for later
             # on as well to confirm that it works.
