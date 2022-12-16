@@ -276,15 +276,15 @@ Energies and forces for molecular dynamics trajectories of eight organic molecul
 
 Energies and forces for molecular dynamics trajectories. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. 
 
-| model                      | kgcnn   |   epochs | Aspirin                | Toluene                | Malonaldehyde          | Benzene            | Ethanol                |
-|:---------------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-------------------|:-----------------------|
-| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5605 &pm; 0.0201** | **0.2207 &pm; 0.0117** | **0.4053 &pm; 0.0107** | 0.0656 &pm; 0.0055 | **0.2447 &pm; 0.0135** |
-| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 2.2138 &pm; 0.2762     | 0.8316 &pm; 0.0609     | 0.9882 &pm; 0.0411     | 0.3181 &pm; 0.0244 | 0.5367 &pm; 0.0386     |
-| Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.3214 &pm; 0.2942     | 3.8695 &pm; 5.2614     | 1.6904 &pm; 0.1626     | 0.5341 &pm; 0.0907 | 1.2936 &pm; 0.0536     |
-| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.8941 &pm; 0.0502     | 1.0880 &pm; 0.0628     | 1.2041 &pm; 0.0399     | **nan &pm; nan**   | 0.6136 &pm; 0.0297     |
-| NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | 0.6971 &pm; 0.0772     | 0.6197 &pm; 0.0327     | 0.3596 &pm; 0.0401 | 0.3444 &pm; 0.0219     |
-| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.7802 &pm; 0.0124     | 0.2496 &pm; 0.0058     | 0.7427 &pm; 0.0116     | 0.0424 &pm; 0.0017 | 0.5627 &pm; 0.0236     |
-| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 0.9777 &pm; 0.0134     | 0.5378 &pm; 0.0100     | 0.6173 &pm; 0.0095     | 0.2537 &pm; 0.0034 | 0.4246 &pm; 0.0269     |
+| model                      | kgcnn   |   epochs | Aspirin                | Toluene                | Malonaldehyde          | Benzene                | Ethanol                |
+|:---------------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5605 &pm; 0.0201** | **0.2207 &pm; 0.0117** | **0.4053 &pm; 0.0107** | 0.0656 &pm; 0.0055     | **0.2447 &pm; 0.0135** |
+| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 2.2138 &pm; 0.2762     | 0.8316 &pm; 0.0609     | 0.9882 &pm; 0.0411     | 0.3181 &pm; 0.0244     | 0.5367 &pm; 0.0386     |
+| Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.3214 &pm; 0.2942     | 3.8695 &pm; 5.2614     | 1.6904 &pm; 0.1626     | 0.5341 &pm; 0.0907     | 1.2936 &pm; 0.0536     |
+| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.8941 &pm; 0.0502     | 1.0880 &pm; 0.0628     | 1.2041 &pm; 0.0399     | 0.3573 &pm; 0.0302     | 0.6136 &pm; 0.0297     |
+| NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | 0.6971 &pm; 0.0772     | 0.6197 &pm; 0.0327     | 0.3596 &pm; 0.0401     | 0.3444 &pm; 0.0219     |
+| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.7802 &pm; 0.0124     | 0.2496 &pm; 0.0058     | 0.7427 &pm; 0.0116     | **0.0424 &pm; 0.0017** | 0.5627 &pm; 0.0236     |
+| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 0.9777 &pm; 0.0134     | 0.5378 &pm; 0.0100     | 0.6173 &pm; 0.0095     | 0.2537 &pm; 0.0034     | 0.4246 &pm; 0.0269     |
 
 ## VgdMockDataset
 
