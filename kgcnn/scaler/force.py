@@ -62,7 +62,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         return super(EnergyForceExtensiveScaler, self).fit(
             X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, *, X=None, y=None, copy=None, force=None, atomic_number=None, **fit_params):
+    def fit_transform(self, *, X=None, y=None, copy=True, force=None, atomic_number=None, **fit_params):
         """Fit Scaler to data.
 
         Args:
@@ -80,7 +80,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         self.fit(X=X, y=y, atomic_number=atomic_number, force=force, **fit_params)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
-    def transform(self, *, X=None, y=None, copy=None, force=None, atomic_number=None):
+    def transform(self, *, X=None, y=None, copy=True, force=None, atomic_number=None):
         """Perform scaling of atomic energies and forces.
 
         Args:
@@ -94,14 +94,17 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             list: Scaled [X, y, force].
         """
         self._verify_input(y, force, atomic_number)
-        y_scaled = (y - self.predict(atomic_number))
-        force_scaled = force
+        if copy:
+            y = np.array(y)
+            force = [np.array(f) for f in force]
+        y -= self.predict(atomic_number)
         if self._standardize_scale:
-            y_scaled = y_scaled / np.expand_dims(self.scale_, axis=0)
-            force_scaled = [f / np.expand_dims(self.scale_, axis=0) for f in force_scaled]
-        return X, y_scaled, force_scaled
+            y /= np.expand_dims(self.scale_, axis=0)
+            for i in range(len(force)):
+                force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
+        return X, y, force
 
-    def inverse_transform(self, *, X=None, y=None, copy=None, force=None,
+    def inverse_transform(self, *, X=None, y=None, copy=True, force=None,
                           atomic_number=None):
         """Scale back data for atoms.
 
@@ -116,13 +119,15 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             list: Rescaled [X, y, force].
         """
         self._verify_input(y, force, atomic_number)
-        y_scaled = y
-        force_scaled = force
+        if copy:
+            y = np.array(y)
+            force = [np.array(f) for f in force]
         if self._standardize_scale:
-            y_scaled = y_scaled * np.expand_dims(self.scale_, axis=0)
-            force_scaled = [f * np.expand_dims(self.scale_, axis=0) for f in force_scaled]
-        y_scaled = y_scaled + self.predict(atomic_number)
-        return X, y_scaled, force_scaled
+            y *= np.expand_dims(self.scale_, axis=0)
+            for i in range(len(force)):
+                force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
+        y += self.predict(atomic_number)
+        return X, y, force
 
     @staticmethod
     def _verify_input(y, force, atomic_number):

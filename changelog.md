@@ -17,6 +17,7 @@ v2.2.0
 * Ran training for ``train_force.py``
 * Changed backend to RDkit for ``QMDatasets``.
 * Added ``kgcnn.md`` and ``kgcnn.xai`` .
+* Added further documentation.
 
 
 v2.1.1
