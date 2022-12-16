@@ -179,7 +179,7 @@ Moreover, some data handling classes are given in `kgcnn.data`.
 
 #### Graph dictionary
 
-Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which inherits from python `dict`.
+Graphs are represented by a dictionary `GraphDict` of (numpy) arrays which behaves like a python `dict`.
 There are graph pre- and postprocessors in ``kgcnn.graph`` which take specific properties by name and apply a
 processing function or transformation.
 
