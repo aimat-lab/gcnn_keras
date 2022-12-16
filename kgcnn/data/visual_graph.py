@@ -8,6 +8,7 @@ import numpy as np
 
 from visual_graph_datasets.config import Config
 from visual_graph_datasets.util import get_dataset_path, ensure_folder
+from visual_graph_datasets.web import get_file_share
 from visual_graph_datasets.web import PROVIDER_CLASS_MAP, AbstractFileShare
 from visual_graph_datasets.data import load_visual_graph_dataset
 from visual_graph_datasets.visualization.importances import create_importances_pdf
@@ -50,16 +51,15 @@ class VisualGraphDataset(MemoryGraphDataset):
             None
         """
         # First of all we try to load the dataset, as it might already exist on the system.
-        try:
+        if os.path.exists(os.path.join(self.vgd_config.get_datasets_path(), self.dataset_name)):
             # This function will try to locate a dataset with the given name inside the system's global
             # default folder where all the visual graph datasets are stored. If it does not find a
             # corresponding dataset folder there, an exception is raised.
-            self.data_directory = get_dataset_path(self.dataset_name)
+            self.data_directory = get_dataset_path(
+                dataset_name=self.dataset_name,
+                datasets_path=self.vgd_config.get_datasets_path()
+            )
             return
-        except (FileNotFoundError, IndexError) as e:
-            self.logger.info(f'the visual graph dataset "{self.dataset_name}" was not found on the disk. '
-                             f'The following exception was raised during lookup:')
-            self.logger.info(str(e))
 
         # At this point we know that the folder does not already exist which means we need to download the
         # dataset.
@@ -67,14 +67,15 @@ class VisualGraphDataset(MemoryGraphDataset):
         # For this we will first check if a dataset with the given name is even available at the remote
         # file share provider.
         ensure_folder(self.vgd_config.get_datasets_path())
-        file_share_provider: str = self.vgd_config.get_provider()
-        file_share_class: type = PROVIDER_CLASS_MAP[file_share_provider]
-        file_share: AbstractFileShare = file_share_class(config=self.vgd_config, logger=self.logger)
+        file_share: AbstractFileShare = get_file_share(self.vgd_config)
         file_share.check_dataset(self.dataset_name)
 
         # If the dataset is available, then we can download it and then finally load the path
         file_share.download_dataset(self.dataset_name, self.vgd_config.get_datasets_path())
-        self.data_directory = get_dataset_path(self.dataset_name)
+        self.data_directory = get_dataset_path(
+            dataset_name=self.dataset_name,
+            datasets_path=self.vgd_config.get_datasets_path(),
+        )
         self.logger.info(f'visual graph dataset found @ {self.data_directory}')
 
     def read_in_memory(self) -> None:
