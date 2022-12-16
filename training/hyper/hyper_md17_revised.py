@@ -445,7 +445,7 @@ hyper = {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 1, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearWarmupExponentialLRScheduler", "config": {
-                        "lr_start": 1e-03, "gamma": 0.995, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 32}}
+                        "lr_start": 1e-03, "gamma": 0.995, "epo_warmup": 1, "verbose": 1, "steps_per_epoch": 8}}
                 ]
             },
             "compile": {
@@ -461,7 +461,7 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MD17RevisedDataset",
                 "config": {
                     # toluene, aspirin, malonaldehyde, benzene, ethanol
-                    "trajectory_name": "benzene"
+                    "trajectory_name": "aspirin"
                 },
                 "methods": [
                     # we have to make edges via range cutoff.
@@ -486,7 +486,7 @@ hyper = {
         },
         "info": {
             "postfix": "",
-            "postfix_file": "_benzene",
+            "postfix_file": "_aspirin",
             "kgcnn_version": "2.2.0"
         }
     },
