@@ -8,6 +8,7 @@ import numpy as np
 
 from visual_graph_datasets.config import Config
 from visual_graph_datasets.util import get_dataset_path, ensure_folder
+from visual_graph_datasets.web import get_file_share
 from visual_graph_datasets.web import PROVIDER_CLASS_MAP, AbstractFileShare
 from visual_graph_datasets.data import load_visual_graph_dataset
 from visual_graph_datasets.visualization.importances import create_importances_pdf
@@ -67,9 +68,7 @@ class VisualGraphDataset(MemoryGraphDataset):
         # For this we will first check if a dataset with the given name is even available at the remote
         # file share provider.
         ensure_folder(self.vgd_config.get_datasets_path())
-        file_share_provider: str = self.vgd_config.get_provider()
-        file_share_class: type = PROVIDER_CLASS_MAP[file_share_provider]
-        file_share: AbstractFileShare = file_share_class(config=self.vgd_config, logger=self.logger)
+        file_share: AbstractFileShare = get_file_share(self.vgd_config)
         file_share.check_dataset(self.dataset_name)
 
         # If the dataset is available, then we can download it and then finally load the path
