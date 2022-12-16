@@ -57,10 +57,13 @@ class VisualGraphDataset(MemoryGraphDataset):
             # corresponding dataset folder there, an exception is raised.
             self.data_directory = get_dataset_path(self.dataset_name)
             return
-        except (FileNotFoundError, IndexError) as e:
+
+        except FileNotFoundError as e:
             self.logger.info(f'the visual graph dataset "{self.dataset_name}" was not found on the disk. '
                              f'The following exception was raised during lookup:')
             self.logger.info(str(e))
+        except IndexError:
+            pass
 
         # At this point we know that the folder does not already exist which means we need to download the
         # dataset.
