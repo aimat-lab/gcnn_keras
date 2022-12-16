@@ -24,3 +24,16 @@ class TestVisualGraphDataset(unittest.TestCase):
             vgd.read_in_memory()
             self.assertNotEqual(0, len(vgd))
             self.assertEqual(100, len(vgd))
+
+    def test_has_importances_works(self):
+        """
+        If the method "has_importances" works as expected
+        """
+        with IsolatedConfig() as config:
+            vgd = VisualGraphDataset('mock', config=config)
+            vgd.ensure()
+
+            vgd.read_in_memory()
+            # For this dataset we know that it does in fact contain ground truth explanation annotations
+            # for 2 channels - one for each of the two classes.
+            self.assertTrue(vgd.has_importances('2'))
