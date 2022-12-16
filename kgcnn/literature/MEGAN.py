@@ -309,6 +309,10 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
             if training:
                 self.lay_final_dropout(out, training=training)
 
+        if self.doing_regression:
+            reference = tf.ones_like(out) * self.regression_reference
+            out = out + reference
+
         # Usually, the node and edge importance tensors would be direct outputs of the model as well, but
         # we need the option to just return the output alone to be compatible with the standard model
         # evaluation pipeline already implemented in the library.
@@ -470,3 +474,4 @@ def make_model(inputs: t.Optional[list] = None,
     outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
 
+    return megan
