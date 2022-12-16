@@ -3,7 +3,6 @@ Module for handling Visual Graph Datasets (VGD).
 """
 import os
 import typing as t
-from functools import cache, lru_cache
 
 import numpy as np
 
@@ -36,6 +35,8 @@ class VisualGraphDataset(MemoryGraphDataset):
         )
         self.vgd_config = config
         self.index_data_map: t.Dict[int, dict] = {}
+
+        self._has_importances: t.Dict[str, bool] = {}
 
     def ensure(self) -> None:
         """
@@ -144,17 +145,36 @@ class VisualGraphDataset(MemoryGraphDataset):
     # This method loops through all the elements of the dataset which makes it quite computationally
     # expensive, which is why the value will be cached to be more efficient if it is called multiple
     # time redundantly
-    @cache
     def has_importances(self, suffix: t.Union[str, int]) -> bool:
+        """
+        Returns whether the dataset contains node and edge importances (explanation) annotations which fit
+        the given ``suffix``.
+
+        A visual graph dataset may have multiple different importance annotations. The main difference these
+        may have is the number of individual importance channels in which the explanations are represented.
+        The number of channels is added as a suffix. For example a regression dataset may have the suffix
+        "1" which are very simple one-dimensional explanations or the suffix "2" where explanations are
+        split into 2 channels where one channel explains the positively influencing input elements and the
+        other channel the negatively influencing elements.
+
+        Args:
+            suffix: The string suffix of importance annotations to check for.
+
+        Returns:
+            boolean
+        """
         suffix = str(suffix)
 
-        node_condition = all([f'node_importances_{suffix}' in data['metadata']['graph']
-                              for data in self.index_data_map.values()])
+        if suffix not in self._has_importances.keys():
+            node_condition = all([f'node_importances_{suffix}' in data['metadata']['graph']
+                                  for data in self.index_data_map.values()])
 
-        edge_condition = all([f'edge_importances_{suffix}' in data['metadata']['graph']
-                              for data in self.index_data_map.values()])
+            edge_condition = all([f'edge_importances_{suffix}' in data['metadata']['graph']
+                                  for data in self.index_data_map.values()])
 
-        return node_condition and edge_condition
+            self._has_importances[suffix] = (node_condition and edge_condition)
+
+        return self._has_importances[suffix]
 
     def get_importances(self,
                         suffix: str,
