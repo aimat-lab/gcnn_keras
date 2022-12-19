@@ -417,6 +417,6 @@ def shift_coordinates_to_unit_cell(coordinates: np.ndarray, lattice: np.ndarray)
     """
     lattice_inv = np.linalg.inv(lattice)
     frac_coordinates = np.dot(coordinates, lattice_inv)
-    shifted_frac_coordinates = frac_coordinates % 1.0 % 1.0
+    shifted_frac_coordinates = frac_coordinates % 1.0
     shifted_coordinates = np.dot(shifted_frac_coordinates, lattice)
     return shifted_coordinates

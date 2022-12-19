@@ -524,7 +524,7 @@ class ShiftToUnitCell(GraphPreProcessorBase):
         self._config_kwargs.update({"node_coordinates": node_coordinates, "graph_lattice": graph_lattice,
                                     **self._call_kwargs})
 
-    def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray, ):
+    def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray):
         if node_coordinates is None or graph_lattice is None:
             return None
         return shift_coordinates_to_unit_cell(coordinates=node_coordinates, lattice=graph_lattice)
