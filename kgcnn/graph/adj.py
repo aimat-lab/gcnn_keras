@@ -616,6 +616,6 @@ def compute_reverse_edges_index_map(edge_idx: np.ndarray):
     ege_pos_uni, uni_pos = np.unique(edge_pos, return_index=True)
     rev_pos_uni = rev_pos[uni_pos]
     edge_map = np.empty(len(edge_idx), dtype="int")
-    edge_map.fill(-2147483648)
+    edge_map.fill(np.iinfo(edge_map.dtype).min)
     edge_map[ege_pos_uni] = rev_pos_uni
     return edge_map
