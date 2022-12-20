@@ -596,7 +596,8 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
 def compute_reverse_edges_index_map(edge_idx: np.ndarray):
     r"""Computes the index map of the reverse edge for each of the edges if available. This can be used by a model
     to directly select the corresponding edge of :math:`(j, i)` which is :math:`(i, j)`.
-    Edges that do not have a reverse pair get a `nan` as map index.
+
+    Edges that do not have a reverse pair get a `-2147483648` as map index.
     If there are multiple edges, the first encounter is assigned.
 
     Args:
@@ -615,6 +616,6 @@ def compute_reverse_edges_index_map(edge_idx: np.ndarray):
     ege_pos_uni, uni_pos = np.unique(edge_pos, return_index=True)
     rev_pos_uni = rev_pos[uni_pos]
     edge_map = np.empty(len(edge_idx), dtype="int")
-    edge_map.fill(np.nan)
+    edge_map.fill(-2147483648)
     edge_map[ege_pos_uni] = rev_pos_uni
     return edge_map
