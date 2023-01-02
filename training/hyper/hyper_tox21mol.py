@@ -33,8 +33,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+               ],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
             "cross_validation": {"class_name": "KFold",
@@ -99,8 +102,11 @@ hyper = {
                               }
                               },
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -168,8 +174,11 @@ hyper = {
                                              "decay_rate": 0.5, "staircase": False}}
                               }},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -222,8 +231,11 @@ hyper = {
                                          }
                               },
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -277,8 +289,11 @@ hyper = {
                               }
                               },
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -339,8 +354,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -399,8 +417,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -459,8 +480,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             },
@@ -522,8 +546,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
                 # "metrics": ["kgcnn>BinaryAccuracyNoNaN", "kgcnn>AUCNoNaN"],
                 # "loss": "binary_crossentropy", "metrics": ["binary_accuracy", "AUC"]
             }
@@ -582,8 +609,11 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss": "kgcnn>BinaryCrossentropyNoNaN",
-                "metrics": ["kgcnn>BinaryAccuracyNoNaN",
-                            {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}}],
+                "metrics": [
+                    "kgcnn>BinaryAccuracyNoNaN",
+                    {"class_name": "kgcnn>AUCNoNaN", "config": {"multi_label": True, "num_labels": 12}},
+                    {"class_name": "kgcnn>BalancedBinaryAccuracyNoNaN", "config": {}}
+                ],
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},

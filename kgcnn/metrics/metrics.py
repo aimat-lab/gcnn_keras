@@ -170,3 +170,47 @@ class AUCNoNaN(ks.metrics.AUC):
         else:
             sample_weight = is_not_nan
         return super(AUCNoNaN, self).update_state(y_true, y_pred, sample_weight=sample_weight)
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='BalancedBinaryAccuracyNoNaN')
+class BalancedBinaryAccuracyNoNaN(ks.metrics.Metric):
+
+    def __init__(self, name="balanced_binary_accuracy_no_nan", thresholds=None, **kwargs):
+        super(BalancedBinaryAccuracyNoNaN, self).__init__(name=name, **kwargs)
+        self.thresholds = thresholds
+        self.confusion_metrics = [
+            tf.keras.metrics.TruePositives(thresholds=thresholds, **kwargs),
+            tf.keras.metrics.FalsePositives(thresholds=thresholds, **kwargs),
+            tf.keras.metrics.TrueNegatives(thresholds=thresholds, **kwargs),
+            tf.keras.metrics.FalseNegatives(thresholds=thresholds, **kwargs)
+        ]
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+
+        is_not_nan = tf.cast(tf.logical_not(tf.math.is_nan(y_true)), y_pred.dtype)
+        if sample_weight is not None:
+            sample_weight *= is_not_nan
+        else:
+            sample_weight = is_not_nan
+
+        update_ops = [m.update_state(y_true, y_pred, sample_weight=sample_weight) for m in self.confusion_metrics]
+        return tf.group(update_ops)
+
+    def result(self):
+        true_positives, false_positives, true_negatives, false_negatives = [
+            m.result() for m in self.confusion_metrics
+        ]
+        result = (tf.math.divide_no_nan(true_positives, true_positives + false_negatives) +
+                  tf.math.divide_no_nan(true_negatives, true_negatives + false_positives)) / 2
+        return result
+
+    def reset_state(self):
+        for m in self.confusion_metrics:
+            m.reset_state()
+
+    def get_config(self):
+        config = super(BalancedBinaryAccuracyNoNaN, self).get_config()
+        config.update({
+            "thresholds": self.thresholds,
+        })
+        return config
