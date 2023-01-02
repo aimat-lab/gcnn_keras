@@ -10,6 +10,11 @@ from kgcnn.model.utils import update_model_kwargs
 # from kgcnn.layers.casting import ChangeTensorType
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
+
 # Implementation of Megnet in `tf.keras` from paper:
 # Graph Networks as a Universal Machine Learning Framework for Molecules and Crystals
 # by Chi Chen, Weike Ye, Yunxing Zuo, Chen Zheng, and Shyue Ping Ong*
@@ -183,6 +188,8 @@ def make_model(inputs: list = None,
 
     main_output = MLP(**output_mlp)(final_vec)
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, env_input], outputs=main_output)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -362,4 +369,6 @@ def make_crystal_model(inputs: list = None,
     main_output = MLP(**output_mlp)(final_vec)
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, env_input, edge_image, lattice],
                             outputs=main_output)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

@@ -8,6 +8,10 @@ from kgcnn.model.utils import generate_embedding, update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of GCN in `tf.keras` from paper:
 # Semi-Supervised Classification with Graph Convolutional Networks
 # by Thomas N. Kipf, Max Welling
@@ -104,6 +108,7 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -200,4 +205,5 @@ def make_model_weighted(inputs: list = None,
         raise ValueError("Unsupported output embedding for `GCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, node_weights_input], outputs=out)
+    model.__kgcnn_model_version__ = __model_version__
     return model

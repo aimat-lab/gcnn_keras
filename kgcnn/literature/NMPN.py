@@ -11,6 +11,11 @@ from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLay
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
+
 # Implementation of NMPN in `tf.keras` from paper:
 # Neural Message Passing for Quantum Chemistry
 # by Justin Gilmer, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, George E. Dahl
@@ -323,4 +328,6 @@ def make_crystal_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `NMPN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, edge_image, lattice], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

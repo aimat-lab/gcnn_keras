@@ -1,6 +1,10 @@
 import tensorflow as tf
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.05.31"
+
 
 class GNNInterface:
     """An interface class which should be implemented by a Graph Neural Network (GNN) model to make it explainable.

@@ -10,6 +10,10 @@ from kgcnn.layers.mlp import MLP
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of DimeNet++ in `tf.keras` from paper:
 # Fast and Uncertainty-Aware Directional Message Passing for Non-Equilibrium Molecules
 # Johannes Klicpera, Shankari Giri, Johannes T. Margraf, Stephan Günnemann
@@ -175,6 +179,7 @@ def make_model(inputs: list = None,
     model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input],
                             outputs=out)
 
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -346,4 +351,5 @@ def make_crystal_model(inputs: list = None,
     model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, angle_index_input, edge_image, lattice],
                             outputs=out)
 
+    model.__kgcnn_model_version__ = __model_version__
     return model

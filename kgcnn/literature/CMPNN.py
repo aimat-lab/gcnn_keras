@@ -11,6 +11,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of CMPNN in `tf.keras` from paper:
 # Communicative Representation Learning on Attributed Molecular Graphs
 # Ying Song, Shuangjia Zheng, Zhangming Niu, Zhang-Hua Fu, Yutong Lu and Yuedong Yang
@@ -166,4 +170,5 @@ def make_model(name: str = None,
         outputs=out,
         name=name
     )
+    model.__kgcnn_model_version__ = __model_version__
     return model

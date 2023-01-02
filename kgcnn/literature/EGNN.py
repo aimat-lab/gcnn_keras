@@ -10,6 +10,10 @@ from kgcnn.layers.norm import GraphLayerNormalization
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of EGNN in `tf.keras` from paper:
 # E(n) Equivariant Graph Neural Networks
 # by Victor Garcia Satorras, Emiel Hoogeboom, Max Welling (2021)
@@ -200,4 +204,5 @@ def make_model(name: str = None,
 
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, edge_input], outputs=out, name=name)
 
+    model.__kgcnn_model_version__ = __model_version__
     return model

@@ -10,6 +10,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of DMPNN in `tf.keras` from paper:
 # Analyzing Learned Molecular Representations for Property Prediction
 # by Kevin Yang, Kyle Swanson, Wengong Jin, Connor Coley, Philipp Eiden, Hua Gao,
@@ -166,4 +170,5 @@ def make_model(name: str = None,
         model = ks.models.Model(
             inputs=[node_input, edge_input, edge_index_input, edge_pair_input],
             outputs=out, name=name)
+    model.__kgcnn_model_version__ = __model_version__
     return model

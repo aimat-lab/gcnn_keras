@@ -13,6 +13,10 @@ from kgcnn.layers.conv.hamnet_conv import HamNaiveDynMessage, HamNetFingerprintG
 # import tensorflow.python.keras as ks
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of HamNet in `tf.keras` from paper:
 # HamNet: Conformation-Guided Molecular Representation with Hamiltonian Neural Networks
 # by Ziyao Li, Shuwen Yang, Guojie Song, Lingsheng Cai
@@ -164,4 +168,6 @@ def make_model(name: str = None,
         model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, q_ftr], outputs=out)
     else:
         model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

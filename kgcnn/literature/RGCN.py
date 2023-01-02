@@ -10,6 +10,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of GCN in `tf.keras` from paper:
 # Modeling Relational Data with Graph Convolutional Networks
 # Michael Schlichtkrull, Thomas N. Kipf, Peter Bloem, Rianne van den Berg, Ivan Titov and Max Welling
@@ -110,4 +114,6 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `RGCN`")
 
     model = ks.models.Model(inputs=[node_input, edge_index_input, edge_weights, edge_relations], outputs=out, name=name)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

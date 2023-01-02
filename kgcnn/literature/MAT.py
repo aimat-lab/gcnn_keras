@@ -8,6 +8,10 @@ from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix, MATR
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of MAT in `tf.keras` from paper:
 # Molecule Attention Transformer
 # Łukasz Maziarka, Tomasz Danel, Sławomir Mucha, Krzysztof Rataj, Jacek Tabor, Stanisław Jastrzębski
@@ -197,4 +201,5 @@ def make_model(name: str = None,
         outputs=out,
         name=name
     )
+    model.__kgcnn_model_version__ = __model_version__
     return model

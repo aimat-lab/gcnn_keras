@@ -9,6 +9,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of INorp in `tf.keras` from paper:
 # 'Interaction Networks for Learning about Objects, Relations and Physics'
 # by Peter W. Battaglia, Razvan Pascanu, Matthew Lai, Danilo Rezende, Koray Kavukcuoglu
@@ -144,4 +148,6 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `INorp`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input, env_input], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

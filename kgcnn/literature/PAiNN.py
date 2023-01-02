@@ -12,6 +12,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of PAiNN in `tf.keras` from paper:
 # Equivariant message passing for the prediction of tensorial properties and molecular spectra
 # Kristof T. Schuett, Oliver T. Unke and Michael Gastegger
@@ -146,6 +150,8 @@ def make_model(inputs: list = None,
         model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, equiv_input], outputs=out)
     else:
         model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -287,4 +293,6 @@ def make_crystal_model(inputs: list = None,
                                 outputs=out)
     else:
         model = ks.models.Model(inputs=[node_input, xyz_input, bond_index_input, edge_image, lattice], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

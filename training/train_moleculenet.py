@@ -23,7 +23,7 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="HDNNP2nd")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="MEGAN")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
@@ -171,4 +171,5 @@ hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function,
+                   model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")

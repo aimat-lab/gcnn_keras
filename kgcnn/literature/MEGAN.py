@@ -15,6 +15,10 @@ from kgcnn.xai.base import ImportanceExplanationMixin
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.12.15"
+
 
 def shifted_sigmoid(x, shift=5, multiplier=1):
     return ks.backend.sigmoid((x - shift) / multiplier)
@@ -46,6 +50,7 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
     attributional explanations (assigning [0, 1] values to ever node / edge of the input graph) in K
     separate explanation channels, where K can be chosen as an independent model parameter.
     """
+    __kgcnn_model_version__ = __model_version__
 
     def __init__(self,
                  # convolutional network related arguments
@@ -474,4 +479,5 @@ def make_model(inputs: t.Optional[list] = None,
     outputs = megan(layer_inputs)
     model = ks.models.Model(inputs=layer_inputs, outputs=outputs)
 
-    return megan
+    model.__kgcnn_model_version__ = __model_version__
+    return model

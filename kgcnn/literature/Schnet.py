@@ -9,6 +9,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of Schnet in `tf.keras` from paper:
 # by Kristof T. Schütt, Pieter-Jan Kindermans, Huziel E. Sauceda, Stefan Chmiela,
 # Alexandre Tkatchenko, Klaus-Robert Müller (2018)
@@ -139,6 +143,8 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -271,4 +277,6 @@ def make_crystal_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `SchNet`")
 
     model = ks.models.Model(inputs=[node_input, xyz_input, edge_index_input, edge_image, lattice], outputs=out)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

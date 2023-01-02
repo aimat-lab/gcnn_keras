@@ -8,6 +8,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of GIN in `tf.keras` from paper:
 # How Powerful are Graph Neural Networks?
 # Keyulu Xu, Weihua Hu, Jure Leskovec, Stefanie Jegelka
@@ -112,6 +116,7 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `GIN`")
 
     model = ks.models.Model(inputs=[node_input, edge_index_input], outputs=out)
+    model.__kgcnn_model_version__ = __model_version__
     return model
 
 
@@ -222,4 +227,5 @@ def make_model_edge(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `GIN`")
 
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+    model.__kgcnn_model_version__ = __model_version__
     return model

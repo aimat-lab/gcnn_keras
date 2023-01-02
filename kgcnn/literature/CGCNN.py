@@ -9,6 +9,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of CGCNN in `tf.keras` from paper:
 # Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties
 # Tian Xie and Jeffrey C. Grossman
@@ -180,4 +184,6 @@ def make_crystal_model(inputs: list = None,
         model = ks.models.Model(
             inputs=[atom_attributes, edge_distances_input, edge_indices],
             outputs=out, name=name)
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

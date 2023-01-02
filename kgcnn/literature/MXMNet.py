@@ -10,6 +10,10 @@ from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of MXMNet in `tf.keras` from paper:
 # Molecular Mechanics-Driven Graph Neural Network with Multiplex Graph for Molecular Structures
 # by Shuo Zhang, Yang Liu, Lei Xie (2020)
@@ -186,4 +190,6 @@ def make_model(inputs: list = None,
         outputs=out,
         name=name
     )
+
+    model.__kgcnn_model_version__ = __model_version__
     return model

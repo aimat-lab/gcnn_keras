@@ -9,6 +9,10 @@ from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.11.25"
+
 # Implementation of GATv2 in `tf.keras` from paper:
 # Graph Attention Networks
 # by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
@@ -119,4 +123,5 @@ def make_model(inputs: list = None,
 
     # Define model output
     model = ks.models.Model(inputs=[node_input, edge_input, edge_index_input], outputs=out)
+    model.__kgcnn_model_version__ = __model_version__
     return model
