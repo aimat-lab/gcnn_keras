@@ -2,6 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
 from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
+from kgcnn.ops.scatter import tensor_scatter_nd_ops_by_name
 
 ks = tf.keras
 
@@ -596,3 +597,79 @@ class PoolingEmbeddingAttention(GraphBaseLayer):
 
 
 PoolingNodesAttention = PoolingEmbeddingAttention
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='RelationalPoolingLocalEdges')
+class RelationalPoolingLocalEdges(GraphBaseLayer):
+    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node, per relation,
+    corresponding to the receiving node, which is defined by edge indices.
+
+    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index tensor, that has a list of
+    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
+
+    """
+
+    def __init__(self, num_relations, pooling_method="sum", pooling_index=0, **kwargs):
+        """Initialize layer.
+
+        Args:
+            num_relations (int): Number of possible relations.
+            pooling_method (str): Pooling method to use i.e. segment_function. Default is 'mean'.
+            pooling_index (int): Index from edge_indices to pick ID's for pooling edge-like embeddings. Default is 0.
+        """
+        super(RelationalPoolingLocalEdges, self).__init__(**kwargs)
+        self.num_relations = num_relations
+        self.pooling_method = pooling_method
+        self.pooling_index = pooling_index
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(RelationalPoolingLocalEdges, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): of [node, edges, tensor_index]
+
+                - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
+                - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - edge_relation (tf.RaggedTensor): Edge relation for each edge of shape (batch, [M])
+
+        Returns:
+            tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
+        """
+        # Need ragged input but can be generalized in the future.
+        inputs = self.assert_ragged_input_rank(inputs)
+
+        nod, node_part = inputs[0].values, inputs[0].row_splits
+        edge, _ = inputs[1].values, inputs[1].row_lengths()
+        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
+        edge_rel, _ = inputs[3].values, inputs[3].row_lengths()
+
+        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
+                                          partition_type_target="row_splits",
+                                          partition_type_index="row_length",
+                                          to_indexing='batch',
+                                          from_indexing=self.node_indexing)
+
+        indices = shiftind[:, self.pooling_index]  # Pick index eg. ingoing
+        relations = tf.cast(edge_rel, indices.dtype)
+        scatter_indices = tf.concat([tf.expand_dims(indices, axis=-1), tf.expand_dims(relations, axis=-1)], axis=-1)
+        out_tensor = tf.zeros(tf.concat(
+            [tf.shape(nod)[:1], tf.constant([self.num_relations], dtype=tf.shape(nod).dtype),
+             tf.shape(edge)[1:]], axis=0))
+
+        # Pooling via scatter_nd
+        out = tensor_scatter_nd_ops_by_name(self.pooling_method, out_tensor, scatter_indices, edge)
+
+        return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(RelationalPoolingLocalEdges, self).get_config()
+        config.update({"pooling_method": self.pooling_method, "pooling_index": self.pooling_index,
+                       "num_relations": self.num_relations})
+        return config

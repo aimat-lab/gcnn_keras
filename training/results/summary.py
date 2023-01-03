@@ -154,6 +154,9 @@ benchmark_datasets = {
         "targets": [
             {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
             {"metric": "val_AUC_no_nan", "name": "AUC(ROC)", "find_best": "max"},
+            {"metric": "val_balanced_binary_accuracy_no_nan", "name": "BACC", "find_best": "max"},
+            {"metric": "max_val_balanced_binary_accuracy_no_nan", "name": "*Max. BACC*", "find_best": "max",
+             "is_min_max": True},
             {"metric": "max_val_binary_accuracy_no_nan", "name": "*Max. Accuracy*", "find_best": "max",
              "is_min_max": True},
             {"metric": "max_val_AUC_no_nan", "name": "*Max. AUC*", "find_best": "max", "is_min_max": True}

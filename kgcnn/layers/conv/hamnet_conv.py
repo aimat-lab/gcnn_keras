@@ -20,6 +20,7 @@ class HamNetNaiveUnion(GraphBaseLayer):
     :math:`\sigma`.
 
     .. math::
+
         \mathbf{x}^{\prime} = \sigma \left[ \left( \mathbf{x} \; || \; \mathbf{x}_u \right) \mathbf{W}^{\top} +
         \mathbf{b} \right]
 
