@@ -52,20 +52,22 @@ class ACSFRadial(GraphBaseLayer):
                  element_mapping: list = None,
                  add_eps: bool = False,
                  param_constraint=None, param_regularizer=None, param_initializer="zeros",
+                 param_trainable: bool = False,
                  **kwargs):
         r"""Initialize layer.
 
             Args:
                 eta_rs_rc (list, np.ndarray): List of shape `(N, N, m, 3)` or `(N, m, 3)` where `N` are the considered
-                    atom types and m the number of representations. Tensor output will be shape `(batch, None, m*N)` .
+                    atom types and m the number of representations. Tensor output will be shape `(batch, None, N*m)` .
                     In the last dimension are the values for :math:`eta`, :math:`R_s` and :math:`R_c` .
                     In case of shape `(N, m, 3)` the values are repeated for each `N` to fit `(N, N, m, 3)` .
                 element_mapping (list): Atomic numbers of elements in :obj:`eta_rs_rc` , must have shape `(N, )` .
                     Should not contain duplicate elements.
-                add_eps (bool): Whether to add epsilon.
+                add_eps (bool): Whether to add epsilon. Default is False.
                 param_constraint: Parameter constraint for weights. Default is None.
                 param_regularizer: Parameter regularizer for weights. Default is None.
                 param_initializer: Parameter initializer for weights. Default is "zeros".
+                param_trainable (bool): Parameter make trainable. Default is False.
         """
         super(ACSFRadial, self).__init__(**kwargs)
         # eta_rs_rc of shape (N, N, m, 3) with m combinations of eta, rs, rc
@@ -93,6 +95,7 @@ class ACSFRadial(GraphBaseLayer):
         self.param_initializer = param_initializer
         self.param_regularizer = param_regularizer
         self.param_constraint = param_constraint
+        self.param_trainable = param_trainable
 
         self.weight_eta_rs_rc = self.add_weight(
             "eta_rs_rc",
@@ -100,7 +103,7 @@ class ACSFRadial(GraphBaseLayer):
             initializer=self.param_initializer,
             regularizer=self.param_regularizer,
             constraint=self.param_constraint,
-            dtype=self.dtype, trainable=False
+            dtype=self.dtype, trainable=self.param_trainable
         )
         self.weight_reverse_mapping = self.add_weight(
             "reverse_mapping",
@@ -178,6 +181,7 @@ class ACSFRadial(GraphBaseLayer):
                        "add_eps": self.add_eps,
                        "param_constraint": self.param_constraint,
                        "param_regularizer": self.param_regularizer,
-                       "param_initializer": self.param_initializer
+                       "param_initializer": self.param_initializer,
+                       "param_trainable": self.param_trainable
                        })
         return config
