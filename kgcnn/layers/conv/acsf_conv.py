@@ -13,6 +13,23 @@ ks = tf.keras
 class ACSFRadial(GraphBaseLayer):
     r"""Atom-centered symmetry functions (ACSF) for high-dimensional neural network potentials (HDNNPs).
 
+    This layer implements the radial part :math:`W_{i}^{rad}` :
+
+    .. math::
+
+        W_{i}^{rad} = \sum_{j \neq i} \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
+
+    Here, for each atom type there is a set of parameters :math:`\eta` and :math:`\mu` and cutoff.
+    The cutoff function :math:`f_ij = f_c(r_{ij})` is given by:
+
+    .. math::
+
+        f_c(r_{ij}) = 0.5 [\cos{\frac{\pi r_{ij}}{R_c}} + 1]
+
+    In principle these parameters can be made trainable. The above sum is conducted for each atom type.
+
+    Example:
+
     .. code-block:: python
 
         import tensorflow as tf
@@ -36,7 +53,20 @@ class ACSFRadial(GraphBaseLayer):
                  add_eps: bool = False,
                  param_constraint=None, param_regularizer=None, param_initializer="zeros",
                  **kwargs):
+        r"""Initialize layer.
 
+            Args:
+                eta_rs_rc (list, np.ndarray): List of shape `(N, N, m, 3)` or `(N, m, 3)` where `N` are the considered
+                    atom types and m the number of representations. Tensor output will be shape `(batch, None, m*N)` .
+                    In the last dimension are the values for :math:`eta`, :math:`R_s` and :math:`R_c` .
+                    In case of shape `(N, m, 3)` the values are repeated for each `N` to fit `(N, N, m, 3)` .
+                element_mapping (list): Atomic numbers of elements in :obj:`eta_rs_rc` , must have shape `(N, )` .
+                    Should not contain duplicate elements.
+                add_eps (bool): Whether to add epsilon.
+                param_constraint: Parameter constraint for weights. Default is None.
+                param_regularizer: Parameter regularizer for weights. Default is None.
+                param_initializer: Parameter initializer for weights. Default is "zeros".
+        """
         super(ACSFRadial, self).__init__(**kwargs)
         # eta_rs_rc of shape (N, N, m, 3) with m combinations of eta, rs, rc
         # or simpler (N, m, 3) where we repeat an additional N dimension assuming same parameter of source.
@@ -50,6 +80,7 @@ class ACSFRadial(GraphBaseLayer):
         self.reverse_mapping.fill(np.iinfo(self.reverse_mapping.dtype).max)
         for i, pos in enumerate(self.element_mapping):
             self.reverse_mapping[pos] = i
+        self.add_eps = add_eps
 
         self.lazy_mult = LazyMultiply()
         self.layer_pos = NodePosition()
@@ -119,7 +150,7 @@ class ACSFRadial(GraphBaseLayer):
         r"""Forward pass.
 
         Args:
-            inputs: [z, xyz, ij] or [z, xyz, ij, w]  if `use_external_weights`
+            inputs: [z, xyz, ij]
 
                 - z (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
