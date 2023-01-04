@@ -74,6 +74,7 @@ class ACSFRadial(GraphBaseLayer):
         self.eta_rs_rc = np.array(eta_rs_rc)
         assert len(self.eta_rs_rc.shape) in [3, 4], "Require `eta_rs_rc` of shape `(N, N, m, 3)` or `(N, m, 3)`"
         self.use_pairing_representations = (len(self.eta_rs_rc.shape) == 4)
+        self.num_relations = self.eta_rs_rc.shape[1] if self.use_pairing_representations else self.eta_rs_rc.shape[0]
         self.element_mapping = np.array(element_mapping, dtype="int")  # of shape (N, ) with atomic number for eta_rs_rc
         self.reverse_mapping = np.empty(self._max_atomic_number, dtype="int")
         self.reverse_mapping.fill(np.iinfo(self.reverse_mapping.dtype).max)
@@ -86,7 +87,7 @@ class ACSFRadial(GraphBaseLayer):
         self.layer_gather = GatherNodesSelection([0, 1])
         self.layer_exp_dims = ExpandDims(axis=2)
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
-        self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.eta_rs_rc.shape[1], pooling_method="sum")
+        self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.num_relations, pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
         self.param_initializer = param_initializer
