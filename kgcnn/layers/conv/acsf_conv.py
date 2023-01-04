@@ -60,7 +60,6 @@ class ACSFRadial(GraphBaseLayer):
                 eta_rs_rc (list, np.ndarray): List of shape `(N, N, m, 3)` or `(N, m, 3)` where `N` are the considered
                     atom types and m the number of representations. Tensor output will be shape `(batch, None, N*m)` .
                     In the last dimension are the values for :math:`eta`, :math:`R_s` and :math:`R_c` .
-                    In case of shape `(N, m, 3)` the values are repeated for each `N` to fit `(N, N, m, 3)` .
                 element_mapping (list): Atomic numbers of elements in :obj:`eta_rs_rc` , must have shape `(N, )` .
                     Should not contain duplicate elements.
                 add_eps (bool): Whether to add epsilon. Default is False.
@@ -73,10 +72,8 @@ class ACSFRadial(GraphBaseLayer):
         # eta_rs_rc of shape (N, N, m, 3) with m combinations of eta, rs, rc
         # or simpler (N, m, 3) where we repeat an additional N dimension assuming same parameter of source.
         self.eta_rs_rc = np.array(eta_rs_rc)
-        if len(self.eta_rs_rc.shape) == 3:
-            self.eta_rs_rc = np.expand_dims(self.eta_rs_rc, axis=0)
-            self.eta_rs_rc = np.repeat(self.eta_rs_rc, self.eta_rs_rc.shape[1], axis=0)
-        assert len(self.eta_rs_rc.shape) == 4, "Require `eta_rs_rc` parameter matrix of shape (N, N, m, 3)"
+        assert len(self.eta_rs_rc.shape) in [3, 4], "Require `eta_rs_rc` of shape `(N, N, m, 3)` or `(N, m, 3)`"
+        self.use_pairing_representations = (len(self.eta_rs_rc.shape) == 4)
         self.element_mapping = np.array(element_mapping, dtype="int")  # of shape (N, ) with atomic number for eta_rs_rc
         self.reverse_mapping = np.empty(self._max_atomic_number, dtype="int")
         self.reverse_mapping.fill(np.iinfo(self.reverse_mapping.dtype).max)
@@ -116,11 +113,16 @@ class ACSFRadial(GraphBaseLayer):
 
         self.set_weights([self.eta_rs_rc, self.reverse_mapping])
 
+    def _find_atomic_number_maps(self, inputs):
+        return tf.gather(self.weight_reverse_mapping, inputs, axis=0)
+
     def _find_params_per_bond(self, inputs: list):
-        zi, zj = inputs
-        zi_map = tf.gather(self.weight_reverse_mapping, zi, axis=0)
-        zj_map = tf.gather(self.weight_reverse_mapping, zj, axis=0)
-        params = tf.gather(tf.gather(self.weight_eta_rs_rc, zi_map, axis=0), zj_map, axis=1, batch_dims=1)
+        zi_map, zj_map = inputs
+        if self.use_pairing_representations:
+            params = tf.gather(tf.gather(self.weight_eta_rs_rc, zi_map, axis=0), zj_map, axis=1, batch_dims=1)
+        else:
+            # Atomic specific for j but not i.
+            params = tf.gather(self.weight_eta_rs_rc, zj_map, axis=0)
         return params
 
     @staticmethod
@@ -167,11 +169,13 @@ class ACSFRadial(GraphBaseLayer):
         xi, xj = self.layer_pos([xyz, eij], **kwargs)
         rij = self.layer_dist([xi, xj], **kwargs)
         zi, zj = self.layer_gather([z, eij])
-        params_per_bond = self.map_values(self._find_params_per_bond, [zi, zj])
+        zi_map = self.map_values(self._find_atomic_number_maps, zi)
+        zj_map = self.map_values(self._find_atomic_number_maps, zj)
+        params_per_bond = self.map_values(self._find_params_per_bond, [zi_map, zj_map])
         fc = self.map_values(self._compute_fc, [rij, params_per_bond])
         gij = self.map_values(self._compute_gaussian_expansion, [rij, params_per_bond])
         rep = self.lazy_mult([gij, fc], **kwargs)
-        pooled = self.pool_sum([xyz, rep, eij, zj], **kwargs)
+        pooled = self.pool_sum([xyz, rep, eij, zj_map], **kwargs)
         return self.map_values(self._flatten_relations, pooled)
 
     def get_config(self):
