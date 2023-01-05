@@ -241,7 +241,7 @@ class ACSFAngular(GraphBaseLayer):
         r"""Initialize layer.
 
             Args:
-                eta_zeta_lambda_rc: A list of parameters of shape `(N, M, m,4)` or simpy `(M, m, 4)` where `m`
+                eta_zeta_lambda_rc: A list of parameters of shape `(N, M, m,4)` or simply `(M, m, 4)` where `m`
                     represents the number of parameter sets, `N` the number of different atom types (set with
                     :obj:`element_mapping` ) but which is optional, then all elements share parameters. And `M`
                     being the number of angle combinations that can occur. By default, if order is ignored, this
@@ -278,7 +278,9 @@ class ACSFAngular(GraphBaseLayer):
                 ], axis=-1
             ).reshape((-1, 2))
             if not self.keep_pair_order:
-                self.element_pair_mapping = np.unique(np.sort(self.element_pair_mapping, axis=-1), axis=0)
+                self.element_pair_mapping = np.sort(self.element_pair_mapping, axis=-1)
+                self.element_pair_mapping = self.element_pair_mapping[
+                    np.sort(np.unique(self.element_pair_mapping, axis=0, return_index=True)[1])]
         else:
             self.element_pair_mapping = np.array(element_pair_mapping, dtype="int")
         assert len(self.element_pair_mapping.shape) == 2 and self.element_pair_mapping.shape[1] == 2
