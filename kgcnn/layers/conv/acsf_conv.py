@@ -345,7 +345,6 @@ class ACSFAngular(GraphBaseLayer):
         scaled_cos_term = tf.pow(scale, 1.0 - zeta) * cos_term
         return scaled_cos_term
 
-
     @staticmethod
     def _flatten_relations(inputs):
         input_shape = tf.shape(inputs)
@@ -395,11 +394,14 @@ class ACSFAngular(GraphBaseLayer):
     def get_config(self):
         config = super(ACSFAngular, self).get_config()
         config.update({
-            "eta_mu_lambda_zeta": self.eta_mu_lambda_zeta, "cutoff": self.cutoff,
-            "use_external_weights": self.use_external_weights,
+            "eta_zeta_lambda_rc": self.eta_zeta_lambda_rc,
             "add_eps": self.add_eps,
+            "element_mapping": self.element_mapping,
+            "keep_pair_order": self.keep_pair_order,
+            "element_pair_mapping": self.element_pair_mapping,
+            "param_trainable": self.param_trainable,
             "param_constraint": self.param_constraint,
             "param_regularizer": self.param_regularizer,
-            "param_initializer": self.param_initializer
+            "param_initializer": self.param_initializer,
         })
         return config
