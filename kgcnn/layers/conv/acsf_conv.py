@@ -205,7 +205,8 @@ class ACSFAngular(GraphBaseLayer):
         from kgcnn.layers.conv.acsf_conv import ACSFAngular
         layer = ACSFAngular(
             eta_zeta_lambda_rc=[[[0.0, 1.0, -1.0, 8.0]],[[0.0, 1.0, -1.0, 8.0]], [[0.0, 1.0, -1.0, 8.0]]],
-            element_mapping=[1, 6]
+            element_mapping=[1, 6],
+            keep_pair_order=False
         )
         z = tf.ragged.constant([[1, 6, 6]], ragged_rank=1)
         xyz = tf.ragged.constant([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]], ragged_rank=1, inner_shape=(3,))
@@ -220,11 +221,13 @@ class ACSFAngular(GraphBaseLayer):
                  element_mapping: list,
                  element_pair_mapping: list = None,
                  add_eps: bool = False,
+                 keep_pair_order: bool = False,
                  param_initializer="zeros", param_regularizer=None, param_constraint=None,
                  param_trainable: bool = False,
                  **kwargs):
         super(ACSFAngular, self).__init__(**kwargs)
         self.add_eps = add_eps
+        self.keep_pair_order = keep_pair_order
         self.eta_zeta_lambda_rc = np.array(eta_zeta_lambda_rc, dtype="float")
         assert len(self.eta_zeta_lambda_rc.shape) in [3, 4], "Require `eta_zeta_lambda_rc` rank 3 or 4."
         self.use_target_set = (len(self.eta_zeta_lambda_rc.shape) == 4)
@@ -255,7 +258,8 @@ class ACSFAngular(GraphBaseLayer):
         self.reverse_pair_mapping.fill(np.iinfo(self.reverse_pair_mapping.dtype).max)
         for i, pos in enumerate(self.element_pair_mapping):
             self.reverse_pair_mapping[pos[0], pos[1]] = i
-            self.reverse_pair_mapping[pos[1], pos[0]] = i
+            if not self.keep_pair_order:
+                self.reverse_pair_mapping[pos[1], pos[0]] = i
 
         # Sub-layer.
         self.lazy_mult = LazyMultiply()
@@ -337,15 +341,10 @@ class ACSFAngular(GraphBaseLayer):
         cos_theta = tf.reduce_sum(vij * vik, axis=-1, keepdims=True) / rij / rik
         cos_term = cos_theta * lamda + 1.0
         cos_term = tf.pow(cos_term, zeta)
-        return cos_term
+        scale = tf.ones_like(cos_term) * 2.0
+        scaled_cos_term = tf.pow(scale, 1.0 - zeta) * cos_term
+        return scaled_cos_term
 
-    @staticmethod
-    def _compute_pow_scale(inputs: tf.Tensor):
-        to_scale, params = inputs
-        zeta = tf.gather(params, 1, axis=-1)
-        scale = tf.ones_like(to_scale) * 2.0
-        scaled = tf.pow(scale, 1.0 - zeta) * to_scale
-        return scaled
 
     @staticmethod
     def _flatten_relations(inputs):
@@ -391,8 +390,7 @@ class ACSFAngular(GraphBaseLayer):
         pow_cos_theta = self.map_values(self._compute_pow_cos_angle_, [vij, vik, rij, rik, params_per_bond])
         rep = self.lazy_mult([pow_cos_theta, gij, gik, gjk, fij, fik, fjk], **kwargs)
         pool_ang = self.pool_sum([xyz, rep, ijk, zjk_map], **kwargs)
-        scaled_ang = self.map_values(self._compute_pow_scale, [pool_ang, params_per_bond])
-        return self.map_values(self._flatten_relations, scaled_ang)
+        return self.map_values(self._flatten_relations, pool_ang)
 
     def get_config(self):
         config = super(ACSFAngular, self).get_config()
