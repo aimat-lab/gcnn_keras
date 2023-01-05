@@ -195,7 +195,20 @@ class ACSFRadial(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFAngular')
 class ACSFAngular(GraphBaseLayer):
-    r"""
+    r"""Atom-centered symmetry functions (ACSF) for high-dimensional neural network potentials (HDNNPs).
+
+    This layer implements the radial part :math:`W_{i}^{ang}` :
+
+    .. math::
+
+        W_{i}^{ang} =  \; \sum_{j\neq i} \sum_{k\neq j,i} \; 2^{1−\zeta}
+        (1 + \lambda\, \cos{\theta_{ijk}})^\zeta\;
+        \times \; e^{−\eta r_{ij}^{2}} \; e^{−\eta r_{ik}^{2}} \; e^{−\eta r_{jk}^{2}} \;
+        \times \; f_{ij} \; f_{ik} \; f_{jk}
+
+    Here, for each atom type there is a set of parameters :math:`\eta` , :math:`\mu` , :math:`\lambda`
+    and :math:`\zeta`.
+    The cutoff function :math:`f_ij = f_c(r_{ij})` is given by:
 
     Example:
 
@@ -204,7 +217,7 @@ class ACSFAngular(GraphBaseLayer):
         import tensorflow as tf
         from kgcnn.layers.conv.acsf_conv import ACSFAngular
         layer = ACSFAngular(
-            eta_zeta_lambda_rc=[[[0.0, 1.0, -1.0, 8.0]],[[0.0, 1.0, -1.0, 8.0]], [[0.0, 1.0, -1.0, 8.0]]],
+            eta_zeta_lambda_rc=[[[0.0, 1.0, -1.0, 8.0]],[[0.0, 1.0, -1.0, 8.0]]],
             element_mapping=[1, 6],
             keep_pair_order=False
         )
@@ -225,6 +238,27 @@ class ACSFAngular(GraphBaseLayer):
                  param_initializer="zeros", param_regularizer=None, param_constraint=None,
                  param_trainable: bool = False,
                  **kwargs):
+        r"""Initialize layer.
+
+            Args:
+                eta_zeta_lambda_rc: A list of parameters of shape `(N, M, m,4)` or simpy `(M, m, 4)` where `m`
+                    represents the number of parameter sets, `N` the number of different atom types (set with
+                    :obj:`element_mapping` ) but which is optional, then all elements share parameters. And `M`
+                    being the number of angle combinations that can occur. By default, if order is ignored, this
+                    will be :math:`M=N(N+1)/2` combinations.
+                element_mapping (list): Atomic numbers of elements in :obj:`eta_zeta_lambda_rc` ,
+                    must have shape `(N, )` . Should not contain duplicate elements.
+                element_pair_mapping: Atomic pairs for :obj:`eta_zeta_lambda_rc` , where each entry contains atomic
+                    numbers. Must have shape `(M, 2)` . Default this is generated from N*(N+1)/2 combinations or
+                    N*N combinations if :obj:`keep_pair_order` is `False`. Can be set manually but must match shape.
+                keep_pair_order (bool): Whether to have parameters for order atom pairs that make an angle.
+                    Default is False.
+                add_eps (bool): Whether to add epsilon. Default is False.
+                param_constraint: Parameter constraint for weights. Default is None.
+                param_regularizer: Parameter regularizer for weights. Default is None.
+                param_initializer: Parameter initializer for weights. Default is "zeros".
+                param_trainable (bool): Parameter make trainable. Default is False.
+        """
         super(ACSFAngular, self).__init__(**kwargs)
         self.add_eps = add_eps
         self.keep_pair_order = keep_pair_order
@@ -243,7 +277,8 @@ class ACSFAngular(GraphBaseLayer):
                     np.repeat(np.expand_dims(element_pair_index, axis=1), len(self.element_mapping), axis=1)
                 ], axis=-1
             ).reshape((-1, 2))
-            self.element_pair_mapping = np.unique(np.sort(self.element_pair_mapping, axis=-1), axis=0)
+            if not self.keep_pair_order:
+                self.element_pair_mapping = np.unique(np.sort(self.element_pair_mapping, axis=-1), axis=0)
         else:
             self.element_pair_mapping = np.array(element_pair_mapping, dtype="int")
         assert len(self.element_pair_mapping.shape) == 2 and self.element_pair_mapping.shape[1] == 2
