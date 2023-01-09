@@ -142,7 +142,7 @@ model_default_behler = {
 
 
 @update_model_kwargs(model_default_behler)
-def model_default_behler(inputs: list = None,
+def model_model_behler(inputs: list = None,
                          node_pooling_args: dict = None,
                          name: str = None,
                          verbose: int = None,
