@@ -128,7 +128,7 @@ model_default_behler = {
                {"shape": (None, 3), "name": "angle_indices_nodes", "dtype": "int64", "ragged": True}],
     "g2_kwargs": {"eta": [0.0, 0.3], "rs": [0.0, 3.0], "rc": 10.0, "elements": [1, 6, 16]},
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
-                  "zeta": [1.0, 8.0], "elements": [1, 6, 16]},
+                  "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
