@@ -122,11 +122,11 @@ class ACSFG2(GraphBaseLayer):
         self.set_weights([self.eta_rs_rc, self.reverse_mapping])
 
     @staticmethod
-    def make_param_table(eta: list, rs: list, rc: float, elements: list):
+    def make_param_table(eta: list, rs: list, rc: float, elements: list, **kwargs):
         eta_rs_rc = [(et, Rs, rc) for Rs in rs for et in eta]
         elements = np.sort(elements)
         params = np.broadcast_to(eta_rs_rc, (len(elements), len(eta_rs_rc), 3))
-        return {"eta_rs_rc": params, "element_mapping": elements}
+        return {"eta_rs_rc": params, "element_mapping": elements, **kwargs}
 
     def _find_atomic_number_maps(self, inputs):
         return tf.gather(self.weight_reverse_mapping, inputs, axis=0)
@@ -363,12 +363,12 @@ class ACSFG4(GraphBaseLayer):
         self.set_weights([self.eta_zeta_lambda_rc, self.reverse_mapping, self.reverse_pair_mapping])
 
     @staticmethod
-    def make_param_table(eta: list, zeta: list, lamda: list, rc: float, elements: list):
+    def make_param_table(eta: list, zeta: list, lamda: list, rc: float, elements: list, **kwargs):
         eta_zeta_lambda_rc = [[eta, z, la, rc] for eta in eta for z in zeta for la in lamda]
         elements = np.sort(elements)
         params = np.broadcast_to(
             eta_zeta_lambda_rc, (int(len(elements) * (len(elements) + 1) / 2), len(eta_zeta_lambda_rc), 4))
-        return {"eta_zeta_lambda_rc": params, "element_mapping": elements, "element_pair_mapping": None}
+        return {"eta_zeta_lambda_rc": params, "element_mapping": elements, "element_pair_mapping": None, **kwargs}
 
     def _find_atomic_number_maps(self, inputs):
         return tf.gather(self.weight_reverse_mapping, inputs, axis=0)
