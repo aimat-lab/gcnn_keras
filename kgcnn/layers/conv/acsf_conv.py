@@ -10,9 +10,12 @@ from kgcnn.layers.modules import LazyMultiply, LazySubtract, ExpandDims
 ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFRadial')
-class ACSFRadial(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFG2')
+class ACSFG2(GraphBaseLayer):
     r"""Atom-centered symmetry functions (ACSF) for high-dimensional neural network potentials (HDNNPs).
+
+    `Jörg Behler, The Journal of Chemical Physics 134, 074106 (2011)
+    <https://aip.scitation.org/doi/full/10.1063/1.3553717>`_
 
     This layer implements the radial part :math:`W_{i}^{rad}` :
 
@@ -34,8 +37,8 @@ class ACSFRadial(GraphBaseLayer):
     .. code-block:: python
 
         import tensorflow as tf
-        from kgcnn.layers.conv.acsf_conv import ACSFRadial
-        layer = ACSFRadial(
+        from kgcnn.layers.conv.acsf_conv import ACSFG2
+        layer = ACSFG2(
             eta_rs_rc=[[[0.0, 0.0, 8.0], [1.0, 0.0, 8.0]],[[0.0, 0.0, 8.0], [1.0, 0.0, 8.0]]],
             element_mapping=[1, 6]
         )
@@ -57,19 +60,23 @@ class ACSFRadial(GraphBaseLayer):
                  **kwargs):
         r"""Initialize layer.
 
-            Args:
-                eta_rs_rc (list, np.ndarray): List of shape `(N, N, m, 3)` or `(N, m, 3)` where `N` are the considered
-                    atom types and m the number of representations. Tensor output will be shape `(batch, None, N*m)` .
-                    In the last dimension are the values for :math:`eta`, :math:`R_s` and :math:`R_c` .
-                element_mapping (list): Atomic numbers of elements in :obj:`eta_rs_rc` , must have shape `(N, )` .
-                    Should not contain duplicate elements.
-                add_eps (bool): Whether to add epsilon. Default is False.
-                param_constraint: Parameter constraint for weights. Default is None.
-                param_regularizer: Parameter regularizer for weights. Default is None.
-                param_initializer: Parameter initializer for weights. Default is "zeros".
-                param_trainable (bool): Parameter make trainable. Default is False.
+        .. note::
+
+            You can use simpler :obj:`make_param_table` method to generate `eta_zeta_lambda_rc` argument.
+
+        Args:
+            eta_rs_rc (list, np.ndarray): List of shape `(N, N, m, 3)` or `(N, m, 3)` where `N` are the considered
+                atom types and m the number of representations. Tensor output will be shape `(batch, None, N*m)` .
+                In the last dimension are the values for :math:`eta`, :math:`R_s` and :math:`R_c` .
+            element_mapping (list): Atomic numbers of elements in :obj:`eta_rs_rc` , must have shape `(N, )` .
+                Should not contain duplicate elements.
+            add_eps (bool): Whether to add epsilon. Default is False.
+            param_constraint: Parameter constraint for weights. Default is None.
+            param_regularizer: Parameter regularizer for weights. Default is None.
+            param_initializer: Parameter initializer for weights. Default is "zeros".
+            param_trainable (bool): Parameter make trainable. Default is False.
         """
-        super(ACSFRadial, self).__init__(**kwargs)
+        super(ACSFG2, self).__init__(**kwargs)
         # eta_rs_rc of shape (N, N, m, 3) with m combinations of eta, rs, rc
         # or simpler (N, m, 3) where we repeat an additional N dimension assuming same parameter of source.
         self.eta_rs_rc = np.array(eta_rs_rc)
@@ -114,6 +121,13 @@ class ACSFRadial(GraphBaseLayer):
 
         self.set_weights([self.eta_rs_rc, self.reverse_mapping])
 
+    @staticmethod
+    def make_param_table(eta: list, rs: list, rc: float, elements: list):
+        eta_rs_rc = [(et, Rs, rc) for Rs in rs for et in eta]
+        elements = np.sort(elements)
+        params = np.broadcast_to(eta_rs_rc, (len(elements), len(eta_rs_rc), 3))
+        return {"eta_rs_rc": params, "element_mapping": elements}
+
     def _find_atomic_number_maps(self, inputs):
         return tf.gather(self.weight_reverse_mapping, inputs, axis=0)
 
@@ -150,7 +164,7 @@ class ACSFRadial(GraphBaseLayer):
         return tf.reshape(inputs, flatten_shape)
 
     def build(self, input_shape):
-        super(ACSFRadial, self).build(input_shape)
+        super(ACSFG2, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -180,7 +194,7 @@ class ACSFRadial(GraphBaseLayer):
         return self.map_values(self._flatten_relations, pooled)
 
     def get_config(self):
-        config = super(ACSFRadial, self).get_config()
+        config = super(ACSFG2, self).get_config()
         config.update({
             "eta_rs_rc": self.eta_rs_rc.tolist(),
             "element_mapping": self.element_mapping.tolist(),
@@ -193,9 +207,12 @@ class ACSFRadial(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFAngular')
-class ACSFAngular(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFG4')
+class ACSFG4(GraphBaseLayer):
     r"""Atom-centered symmetry functions (ACSF) for high-dimensional neural network potentials (HDNNPs).
+
+    `Jörg Behler, The Journal of Chemical Physics 134, 074106 (2011)
+    <https://aip.scitation.org/doi/full/10.1063/1.3553717>`_
 
     This layer implements the radial part :math:`W_{i}^{ang}` :
 
@@ -215,8 +232,8 @@ class ACSFAngular(GraphBaseLayer):
     .. code-block:: python
 
         import tensorflow as tf
-        from kgcnn.layers.conv.acsf_conv import ACSFAngular
-        layer = ACSFAngular(
+        from kgcnn.layers.conv.acsf_conv import ACSFG4
+        layer = ACSFG4(
             eta_zeta_lambda_rc=[[[0.0, 1.0, -1.0, 8.0]],[[0.0, 1.0, -1.0, 8.0]]],
             element_mapping=[1, 6],
             keep_pair_order=False
@@ -235,32 +252,39 @@ class ACSFAngular(GraphBaseLayer):
                  element_pair_mapping: list = None,
                  add_eps: bool = False,
                  keep_pair_order: bool = False,
+                 multiplicity: float = None,
                  param_initializer="zeros", param_regularizer=None, param_constraint=None,
                  param_trainable: bool = False,
                  **kwargs):
         r"""Initialize layer.
 
-            Args:
-                eta_zeta_lambda_rc: A list of parameters of shape `(N, M, m,4)` or simply `(M, m, 4)` where `m`
-                    represents the number of parameter sets, `N` the number of different atom types (set with
-                    :obj:`element_mapping` ) but which is optional, then all elements share parameters. And `M`
-                    being the number of angle combinations that can occur. By default, if order is ignored, this
-                    will be :math:`M=N(N+1)/2` combinations.
-                element_mapping (list): Atomic numbers of elements in :obj:`eta_zeta_lambda_rc` ,
-                    must have shape `(N, )` . Should not contain duplicate elements.
-                element_pair_mapping: Atomic pairs for :obj:`eta_zeta_lambda_rc` , where each entry contains atomic
-                    numbers. Must have shape `(M, 2)` . Default this is generated from N*(N+1)/2 combinations or
-                    N*N combinations if :obj:`keep_pair_order` is `False`. Can be set manually but must match shape.
-                keep_pair_order (bool): Whether to have parameters for order atom pairs that make an angle.
-                    Default is False.
-                add_eps (bool): Whether to add epsilon. Default is False.
-                param_constraint: Parameter constraint for weights. Default is None.
-                param_regularizer: Parameter regularizer for weights. Default is None.
-                param_initializer: Parameter initializer for weights. Default is "zeros".
-                param_trainable (bool): Parameter make trainable. Default is False.
+        .. note::
+
+            You can use simpler :obj:`make_param_table` method to generate `eta_zeta_lambda_rc` argument.
+
+        Args:
+            eta_zeta_lambda_rc: A list of parameters of shape `(N, M, m,4)` or simply `(M, m, 4)` where `m`
+                represents the number of parameter sets, `N` the number of different atom types (set with
+                :obj:`element_mapping` ) but which is optional, then all elements share parameters. And `M`
+                being the number of angle combinations that can occur. By default, if order is ignored, this
+                will be :math:`M=N(N+1)/2` combinations.
+            element_mapping (list): Atomic numbers of elements in :obj:`eta_zeta_lambda_rc` ,
+                must have shape `(N, )` . Should not contain duplicate elements.
+            element_pair_mapping: Atomic pairs for :obj:`eta_zeta_lambda_rc` , where each entry contains atomic
+                numbers. Must have shape `(M, 2)` . Default this is generated from N*(N+1)/2 combinations or
+                N*N combinations if :obj:`keep_pair_order` is `False`. Can be set manually but must match shape.
+            keep_pair_order (bool): Whether to have parameters for order atom pairs that make an angle.
+                Default is False.
+            multiplicity (float): Angle term is divided by multiplicity, if not None. Default is None.
+            add_eps (bool): Whether to add epsilon. Default is False.
+            param_constraint: Parameter constraint for weights. Default is None.
+            param_regularizer: Parameter regularizer for weights. Default is None.
+            param_initializer: Parameter initializer for weights. Default is "zeros".
+            param_trainable (bool): Parameter make trainable. Default is False.
         """
-        super(ACSFAngular, self).__init__(**kwargs)
+        super(ACSFG4, self).__init__(**kwargs)
         self.add_eps = add_eps
+        self.multiplicity = multiplicity
         self.keep_pair_order = keep_pair_order
         self.eta_zeta_lambda_rc = np.array(eta_zeta_lambda_rc, dtype="float")
         assert len(self.eta_zeta_lambda_rc.shape) in [3, 4], "Require `eta_zeta_lambda_rc` rank 3 or 4."
@@ -338,6 +362,14 @@ class ACSFAngular(GraphBaseLayer):
         )
         self.set_weights([self.eta_zeta_lambda_rc, self.reverse_mapping, self.reverse_pair_mapping])
 
+    @staticmethod
+    def make_param_table(eta: list, zeta: list, lamda: list, rc: float, elements: list):
+        eta_zeta_lambda_rc = [[eta, z, la, rc] for eta in eta for z in zeta for la in lamda]
+        elements = np.sort(elements)
+        params = np.broadcast_to(
+            eta_zeta_lambda_rc, (int(len(elements) * (len(elements) + 1) / 2), len(eta_zeta_lambda_rc), 4))
+        return {"eta_zeta_lambda_rc": params, "element_mapping": elements, "element_pair_mapping": None}
+
     def _find_atomic_number_maps(self, inputs):
         return tf.gather(self.weight_reverse_mapping, inputs, axis=0)
 
@@ -371,8 +403,7 @@ class ACSFAngular(GraphBaseLayer):
         arg = tf.square(rij) * eta
         return tf.exp(-arg)
 
-    @staticmethod
-    def _compute_pow_cos_angle_(inputs: list):
+    def _compute_pow_cos_angle_(self, inputs: list):
         vij, vik, rij, rik, params = inputs
         lamda, zeta = tf.gather(params, 2, axis=-1), tf.gather(params, 1, axis=-1)
         cos_theta = tf.reduce_sum(vij * vik, axis=-1, keepdims=True) / rij / rik
@@ -380,6 +411,8 @@ class ACSFAngular(GraphBaseLayer):
         cos_term = tf.pow(cos_term, zeta)
         scale = tf.ones_like(cos_term) * 2.0
         scaled_cos_term = tf.pow(scale, 1.0 - zeta) * cos_term
+        if self.multiplicity is not None:
+            scaled_cos_term = scaled_cos_term/self.multiplicity
         return scaled_cos_term
 
     @staticmethod
@@ -390,7 +423,7 @@ class ACSFAngular(GraphBaseLayer):
         return tf.reshape(inputs, flatten_shape)
 
     def build(self, input_shape):
-        super(ACSFAngular, self).build(input_shape)
+        super(ACSFG4, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -429,12 +462,13 @@ class ACSFAngular(GraphBaseLayer):
         return self.map_values(self._flatten_relations, pool_ang)
 
     def get_config(self):
-        config = super(ACSFAngular, self).get_config()
+        config = super(ACSFG4, self).get_config()
         config.update({
             "eta_zeta_lambda_rc": self.eta_zeta_lambda_rc,
             "add_eps": self.add_eps,
             "element_mapping": self.element_mapping,
             "keep_pair_order": self.keep_pair_order,
+            "multiplicity": self.multiplicity,
             "element_pair_mapping": self.element_pair_mapping,
             "param_trainable": self.param_trainable,
             "param_constraint": self.param_constraint,
