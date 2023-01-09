@@ -84,7 +84,7 @@ class MolGraphInterface:
     def clean(self, **kwargs):
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
-    def compute_charges(self, method="gasteiger", **kwargs):
+    def compute_partial_charges(self, method="gasteiger", **kwargs):
         raise NotImplementedError("Method for `MolGraphInterface` must be implemented in sub-class.")
 
     @property

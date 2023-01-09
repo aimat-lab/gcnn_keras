@@ -38,10 +38,10 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         build_okay = builder.Build(self.mol)
         return build_okay
 
-    def optimize_conformer(self):
+    def optimize_conformer(self, force_field="mmff94"):
         if self.mol is None:
             return False
-        ff = openbabel.OBForceField.FindType("mmff94")
+        ff = openbabel.OBForceField.FindType(force_field)
         ff_setup_okay = ff.Setup(self.mol)
         ff.SteepestDescent(100)  # defaults are 50-500 in pybel
         ff.GetCoordinates(self.mol)
@@ -53,7 +53,7 @@ class MolecularGraphOpenBabel(MolGraphInterface):
     def remove_hs(self, **kwargs):
         self.mol.DeleteHydrogens(**kwargs)
 
-    def compute_charges(self, method="gasteiger", **kwargs):
+    def compute_partial_charges(self, method="gasteiger", **kwargs):
         mol = self.mol
         ob_charge_model = openbabel.OBChargeModel.FindType(method)
         return ob_charge_model.ComputeCharges(mol)

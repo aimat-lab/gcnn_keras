@@ -24,6 +24,7 @@ def map_molecule_callbacks(mol_list: List[str],
                            add_hydrogen: bool = False,
                            make_directed: bool = False,
                            sanitize: bool = True,
+                           compute_partial_charges: str = None,
                            mol_interface_class=None,
                            logger=None,
                            loop_update_info: int = 5000
@@ -81,6 +82,7 @@ def map_molecule_callbacks(mol_list: List[str],
         custom_transform (Callable): Custom transformation function to modify the generated
             :obj:`MolecularGraphRDKit` before callbacks are carried out. The function must take a single
             :obj:`MolecularGraphRDKit` instance as argument and return a (new) :obj:`MolecularGraphRDKit` instance.
+        compute_partial_charges (str): Whether to compute partial charges, e.g. 'gasteiger'. Default is None.
         mol_interface_class: Interface for molecular graphs. Must be a :obj:`MolGraphInterface`.
         logger: Logger to report error and progress.
         loop_update_info (int): Updates for processed molecules.
@@ -104,6 +106,9 @@ def map_molecule_callbacks(mol_list: List[str],
 
         if custom_transform is not None:
             mg = custom_transform(mg)
+
+        if compute_partial_charges:
+            mg.compute_partial_charges(method=compute_partial_charges)
 
         for name, callback in callbacks.items():
             if mg.mol is None:
@@ -272,6 +277,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
                        make_directed: bool = False,
                        has_conformers: bool = True,
                        sanitize: bool = True,
+                       compute_partial_charges: str = None,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None):
         """Load list of molecules from cached SDF-file in into memory. File name must be given in :obj:`file_name` and
@@ -335,6 +341,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
             has_conformers (bool): Whether to add node coordinates from conformer. Default is True.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             sanitize (bool): Whether to sanitize molecule. Default is True.
+            compute_partial_charges (str): Whether to compute partial charges, e.g. 'gasteiger'. Default is None.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -393,7 +400,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
             sanitize=sanitize,
             mol_interface_class=self._mol_graph_interface,
             logger=self.logger,
-            loop_update_info=self._default_loop_update_info
+            loop_update_info=self._default_loop_update_info,
+            compute_partial_charges=compute_partial_charges
         )
 
         for name, values in value_lists.items():

@@ -11,6 +11,8 @@ import logging
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
 # or check https://pypi.org/project/rdkit-pypi/ via `pip install rdkit-pypi`
 # or try `conda install -c rdkit rdkit` or `conda install -c conda-forge rdkit`
+# Note: RDkit version >= 2022.9.2 can be installed with `pip install rdkit` only, successor of `rdkit-pypi`.
+# Has been added as requirements to kgcnn.
 from kgcnn.mol.base import MolGraphInterface
 
 # Module logger
@@ -30,6 +32,21 @@ class MolecularGraphRDKit(MolGraphInterface):
     Generate attributes for nodes, edges, and graph which are in a molecular graph atoms, bonds and the molecule itself.
     The class is used to get a graph from a :obj:`RDkit` molecule object but also offers some functionality defined
     in :obj:`MolGraphInterface` .
+
+    .. code-block:: python
+
+        import numpy as np
+        from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
+        mg = MolecularGraphRDKit()
+        mg.from_smiles("CC(C)C(C(=O)O)N")
+        mg.add_hs()
+        mg.make_conformer()
+        mg.optimize_conformer()
+        mg.compute_partial_charges()
+        print(MolecularGraphRDKit.atom_fun_dict.keys(), MolecularGraphRDKit.bond_fun_dict.keys())
+        print(mg.node_coordinates)
+        print(mg.edge_indices)
+        print(mg.node_attributes(properties=["NumBonds", "GasteigerCharge"], encoder={}))
 
     """
     # Dictionary of predefined atom or node properties
@@ -156,8 +173,12 @@ class MolecularGraphRDKit(MolGraphInterface):
             logging.warning("`RDkit` could not embed molecule '%s'." % m.GetProp("_Name"))
             return False
 
-    def optimize_conformer(self):
+    def optimize_conformer(self, force_field="mmff94", **kwargs):
         r"""Optimize conformer. Requires an initial conformer. See :obj:`make_conformer`.
+
+        Args:
+            force_field (str): Force field type.
+            kwargs: Kwargs for rdkit optimization function. Includes iterations and force field sub type.
 
         Returns:
             bool: Whether conformer optimization was successful.
@@ -165,12 +186,22 @@ class MolecularGraphRDKit(MolGraphInterface):
         if self.mol is None:
             return False
         m = self.mol
-        try:
-            rdkit.Chem.AllChem.MMFFOptimizeMolecule(m)
-            return True
-        except ValueError:
-            module_logger.error("`RDkit` could not optimize conformer '%s'." % m.GetProp("_Name"))
-            return False
+
+        if force_field[:4] == "mmff":
+            try:
+                rdkit.Chem.AllChem.MMFFOptimizeMolecule(m, **kwargs)
+            except Exception as e:
+                module_logger.error("`RDkit` could not optimize conformer '%s' with '%s'." % m.GetProp("_Name", e))
+                return False
+        elif force_field[:3] == "uff":
+            try:
+                rdkit.Chem.AllChem.UFFOptimizeMolecule(m, **kwargs)
+            except Exception as e:
+                module_logger.error("`RDkit` could not optimize conformer '%s' with '%s'." % m.GetProp("_Name", e))
+                return False
+        else:
+            raise ValueError("Unsupported force field '%s'." % force_field)
+        return True
 
     def add_hs(self, **kwargs):
         """Add hydrogen atoms.
@@ -206,7 +237,16 @@ class MolecularGraphRDKit(MolGraphInterface):
         """Clean or sanitize mol."""
         rdkit.Chem.SanitizeMol(self.mol, **kwargs)
 
-    def compute_charges(self, method="gasteiger", **kwargs):
+    def compute_partial_charges(self, method="gasteiger", **kwargs):
+        """Compute partial charges.
+
+        Args:
+            method (str): Method to compute partial charges. Defaults to 'gasteiger'.
+            **kwargs:
+
+        Returns:
+            self
+        """
         if self.mol is None:
             module_logger.error("Mol reference is `None`. Can not `compute_charges`.")
             return self

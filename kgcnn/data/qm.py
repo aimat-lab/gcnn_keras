@@ -181,6 +181,7 @@ class QMDataset(MemoryGraphDataset):
                        add_hydrogen: bool = True,
                        make_directed: bool = False,
                        sanitize: bool = False,
+                       compute_partial_charges: str = None,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None
                        ):
@@ -197,6 +198,7 @@ class QMDataset(MemoryGraphDataset):
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
             sanitize (bool): Whether to sanitize molecule. Default is False.
+            compute_partial_charges (str): Whether to compute partial charges, e.g. 'gasteiger'. Default is None.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those
                 attributes are derived from the :obj:`MolecularGraphRDKit` of the molecule in question or the
@@ -244,7 +246,8 @@ class QMDataset(MemoryGraphDataset):
             sanitize=sanitize,
             mol_interface_class=self._mol_graph_interface,
             logger=self.logger,
-            loop_update_info=self._default_loop_update_info
+            loop_update_info=self._default_loop_update_info,
+            compute_partial_charges=compute_partial_charges
         )
 
         for name, values in value_list.items():
