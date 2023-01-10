@@ -7,12 +7,13 @@ from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.mlp import RelationalMLP
+from kgcnn.layers.norm import GraphBatchNormalization
 
 ks = tf.keras
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023.01.09"
+__model_version__ = "2023.01.10"
 
 # Implementation of HDNNP in `tf.keras` from paper:
 # Atom-centered symmetry functions for constructing high-dimensional neural network potentials
@@ -28,6 +29,7 @@ model_default_weighted = {
                {"shape": (None, 3), "name": "angle_indices_nodes", "dtype": "int64", "ragged": True}],
     "w_acsf_ang_kwargs": {},
     "w_acsf_rad_kwargs": {},
+    "normalize_kwargs": None,
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
@@ -47,6 +49,7 @@ def make_model_weighted(inputs: list = None,
                         verbose: int = None,
                         w_acsf_ang_kwargs: dict = None,
                         w_acsf_rad_kwargs: dict = None,
+                        normalize_kwargs: dict = None,
                         mlp_kwargs: dict = None,
                         output_embedding: str = None,
                         use_output_mlp: bool = None,
@@ -77,6 +80,7 @@ def make_model_weighted(inputs: list = None,
         w_acsf_ang_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`wACSFAng` layer.
         w_acsf_rad_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`wACSFRad` layer.
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
+        normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
@@ -99,6 +103,10 @@ def make_model_weighted(inputs: list = None,
 
     # learnable NN.
     n = RelationalMLP(**mlp_kwargs)([rep, node_input])
+
+    # Normalization
+    if normalize_kwargs:
+        n = GraphBatchNormalization(**normalize_kwargs)(n)
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -129,6 +137,7 @@ model_default_behler = {
     "g2_kwargs": {"eta": [0.0, 0.3], "rs": [0.0, 3.0], "rc": 10.0, "elements": [1, 6, 16]},
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
                   "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
+    "normalize_kwargs": {},
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
@@ -143,17 +152,18 @@ model_default_behler = {
 
 @update_model_kwargs(model_default_behler)
 def model_model_behler(inputs: list = None,
-                         node_pooling_args: dict = None,
-                         name: str = None,
-                         verbose: int = None,
-                         g2_kwargs: dict = None,
-                         g4_kwargs: dict = None,
-                         mlp_kwargs: dict = None,
-                         output_embedding: str = None,
-                         use_output_mlp: bool = None,
-                         output_to_tensor: bool = None,
-                         output_mlp: dict = None
-                         ):
+                       node_pooling_args: dict = None,
+                       name: str = None,
+                       verbose: int = None,
+                       normalize_kwargs: dict = None,
+                       g2_kwargs: dict = None,
+                       g4_kwargs: dict = None,
+                       mlp_kwargs: dict = None,
+                       output_embedding: str = None,
+                       use_output_mlp: bool = None,
+                       output_to_tensor: bool = None,
+                       output_mlp: dict = None
+                       ):
     r"""Make 2nd generation `HDNNP <https://arxiv.org/abs/1706.08566>`_ graph network via functional API.
 
     Default parameters can be found in :obj:`kgcnn.literature.HDNNP2nd.model_default_behler`.
@@ -176,6 +186,7 @@ def model_model_behler(inputs: list = None,
         name (str): Name of the model.
         g2_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG2` layer.
         g4_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG4` layer.
+        normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
@@ -200,6 +211,10 @@ def model_model_behler(inputs: list = None,
     # learnable NN.
     n = RelationalMLP(**mlp_kwargs)([rep, node_input])
 
+    # Normalization
+    if normalize_kwargs:
+        n = GraphBatchNormalization(**normalize_kwargs)(n)
+
     # Output embedding choice
     if output_embedding == 'graph':
         out = PoolingNodes(**node_pooling_args)(n)
@@ -216,6 +231,7 @@ def model_model_behler(inputs: list = None,
 
     model = ks.models.Model(
         inputs=[node_input, xyz_input, edge_index_input, angle_index_input], outputs=out, name=name)
+
     model.__kgcnn_model_version__ = __model_version__
     return model
 
