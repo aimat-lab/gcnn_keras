@@ -337,25 +337,6 @@ class MolecularGraphRDKit(MolGraphInterface):
         """Return list of node number which is the atomic number of each atom in the molecule"""
         return np.array([x.GetAtomicNum() for x in self.mol.GetAtoms()])
 
-    @staticmethod
-    def _sort_bonds(bond_idx, bond_info=None):
-        # Sort directed bonds
-        bond_idx = np.array(bond_idx, dtype="int64")
-        bonds1, bonds2 = None, None
-        if len(bond_idx) > 0:
-            order1 = np.argsort(bond_idx[:, 1], axis=0, kind='mergesort')  # stable!
-            ind1 = bond_idx[order1]
-            if bond_info:
-                bonds1 = [bond_info[i] for i in order1]
-            order2 = np.argsort(ind1[:, 0], axis=0, kind='mergesort')  # stable!
-            ind2 = ind1[order2]
-            if bond_info:
-                bonds2 = [bonds1[i] for i in order2]
-            # Take the sorted bonds
-            bond_idx = ind2
-            bond_info = bonds2
-        return bond_idx, bond_info
-
     @property
     def edge_number(self):
         """Make list of the bond order or type of each bond in the molecule."""
