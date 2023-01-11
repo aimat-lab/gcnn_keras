@@ -312,5 +312,95 @@ def make_representation_behler(inputs: list = None,
     return model
 
 
+model_atom_wise_default = {
+    "name": "HDNNP2nd",
+    "inputs": [{"shape": (None,), "name": "node_number", "dtype": "int64", "ragged": True},
+               {"shape": (None, 3), "name": "node_representation", "dtype": "float32", "ragged": True}],
+    "normalize_kwargs": None,
+    "mlp_kwargs": {"units": [64, 64, 64],
+                   "num_relations": 96,
+                   "activation": ["swish", "swish", "linear"]},
+    "node_pooling_args": {"pooling_method": "sum"},
+    "verbose": 10,
+    "output_embedding": "graph", "output_to_tensor": True,
+    "use_output_mlp": False,
+    "output_mlp": {"use_bias": [True, True], "units": [64, 1],
+                   "activation": ["swish", "linear"]}
+}
+
+
+@update_model_kwargs(model_atom_wise_default)
+def make_model_atom_wise(inputs: list = None,
+                         node_pooling_args: dict = None,
+                         name: str = None,
+                         verbose: int = None,
+                         normalize_kwargs: dict = None,
+                         mlp_kwargs: dict = None,
+                         output_embedding: str = None,
+                         use_output_mlp: bool = None,
+                         output_to_tensor: bool = None,
+                         output_mlp: dict = None
+                         ):
+    r"""Make 2nd generation `HDNNP <https://arxiv.org/abs/1706.08566>`_ network via functional API.
+
+    Default parameters can be found in :obj:`kgcnn.literature.HDNNP2nd.model_atom_wise_default`.
+
+    Inputs:
+        list: `[node_number, node_representation]`
+
+            - node_number (tf.RaggedTensor): Atomic number of shape `(batch, None)` .
+            - node_representation (tf.RaggedTensor): Node (atomic) features of shape `(batch, None, F)`
+
+    Outputs:
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+
+    Args:
+        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
+        verbose (int): Level of verbosity.
+        name (str): Name of the model.
+        normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
+        mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
+        output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
+        use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
+            Defines number of model outputs and activation.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    # Make input
+    node_input = ks.layers.Input(**inputs[0])
+    rep_input = ks.layers.Input(**inputs[1])
+
+    # learnable NN.
+    n = RelationalMLP(**mlp_kwargs)([rep_input, node_input])
+
+    # Normalization
+    if normalize_kwargs:
+        n = GraphBatchNormalization(**normalize_kwargs)(n)
+
+    # Output embedding choice
+    if output_embedding == 'graph':
+        out = PoolingNodes(**node_pooling_args)(n)
+        if use_output_mlp:
+            out = MLP(**output_mlp)(out)
+    elif output_embedding == 'node':
+        out = n
+        if use_output_mlp:
+            out = GraphMLP(**output_mlp)(out)
+        if output_to_tensor:  # For tf version < 2.8 cast to tensor below.
+            out = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="tensor")(out)
+    else:
+        raise ValueError("Unsupported output embedding for mode `HDNNP2nd`")
+
+    model = ks.models.Model(
+        inputs=[node_input, rep_input], outputs=out, name=name)
+
+    model.__kgcnn_model_version__ = __model_version__
+    return model
+
+
 # For default, the weighted ACSF are used, since they do should in principle work for all elements.
 make_model = make_model_weighted

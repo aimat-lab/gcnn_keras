@@ -8,23 +8,71 @@ ks = tf.keras
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='EnergyForceModel')
 class EnergyForceModel(ks.models.Model):
-    def __init__(self, module_name, class_name, config, coordinate_input: Union[int, str] = 1,
+    r"""Force model that generates forces from any energy predicting model by taking the derivative with respect to
+    the input coordinates.
+
+    For now the model has to cast to dense tensor for using :obj:`batch_jacobian` , however, this will likely support
+    ragged tensors in the future.
+
+    """
+
+    def __init__(self, module_name: str, class_name: str, config: dict, coordinate_input: Union[int, str] = 1,
                  output_as_dict: bool = True, ragged_validate: bool = False, output_to_tensor: bool = True,
                  output_squeeze_states: bool = False, nested_model_config: bool = True, is_physical_force: bool = True,
                  **kwargs):
+        r"""Initialize :obj:`EnergyForceModel` with sub-model for energy prediction.
+
+        This wrapper model was designed for models in `kgcnn.literature` that predict energy from geometric
+        information.
+
+        .. note::
+
+            The energy model is inferred by `module_name` , `class_name` , `config` within :obj:`kgcnn` , but you can
+            also pass an external model directly to `class_name` and set `module_name` and `config` to `None` and
+            set `nested_model_config` to `False` or pass its config dictionary manually.
+
+        Args:
+            module_name:
+            class_name:
+            config:
+            coordinate_input:
+            output_as_dict:
+            ragged_validate:
+            output_to_tensor:
+            output_squeeze_states:
+            nested_model_config:
+            is_physical_force:
+        """
         super(EnergyForceModel, self).__init__(self, **kwargs)
         self.model_config = config
         self.ragged_validate = ragged_validate
-        self.energy_model_class = get_model_class(module_name, class_name)
-        self.energy_model = self.energy_model_class(**self.model_config)
+        self.module_name = module_name
+        self.class_name = class_name
+        if isinstance(class_name, ks.models.Model):
+            # Ignoring module_name and class_name.
+            self.energy_model = class_name
+        else:
+            self.energy_model_class = get_model_class(module_name, class_name)
+            self.energy_model = self.energy_model_class(**self.model_config)
         self.coordinate_input = coordinate_input
         self.cast_coordinates = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
         self.output_as_dict = output_as_dict
         self.output_to_tensor = output_to_tensor
         self.output_squeeze_states = output_squeeze_states
         self.is_physical_force = is_physical_force
+        self.nested_model_config = nested_model_config
 
     def call(self, inputs, training=False, **kwargs):
+        """Forward pass that wraps energy model in gradient tape.
+
+        Args:
+            inputs (list, dict): Must be list of (tensor) input for energy model.
+                Index or key to find coordinates must be provided.
+            training (bool): Whether model is in training, passed to energy model. Default is False.
+
+        Returns:
+            dict, list: Model output plus force or derivative.
+        """
         x = inputs[self.coordinate_input]
         inputs_energy = [i for i in inputs]
         # x is ragged tensor of shape (batch, [N], 3) with cartesian coordinates.
@@ -66,7 +114,18 @@ class EnergyForceModel(ks.models.Model):
         return tf.RaggedTensor.from_row_lengths(x_values, x_row_length, validate=validate)
 
     def get_config(self):
+        """Get config."""
         # conf = super(EnergyForceModel, self).get_config()
         conf = {}
-        conf.update({})
+        conf.update({
+            "module_name": self.module_name,
+            "class_name": self.class_name,
+            "config": self.model_config,
+            "coordinate_input": self.coordinate_input,
+            "output_as_dict": self.output_as_dict,
+            "ragged_validate": self.ragged_validate,
+            "output_to_tensor": self.output_to_tensor,
+            "output_squeeze_states": self.output_squeeze_states,
+            "nested_model_config": self.nested_model_config
+        })
         return conf
