@@ -117,11 +117,17 @@ class EnergyForceModel(ks.models.Model):
 
     def get_config(self):
         """Get config."""
+        # Keras model does not provide config from base class.
         # conf = super(EnergyForceModel, self).get_config()
         conf = {}
+        # Serialize class if class_name is not string.
+        if isinstance(self.class_name, str):
+            class_name = self.class_name
+        else:
+            class_name = ks.utils.serialize_keras_object(self.class_name)
         conf.update({
             "module_name": self.module_name,
-            "class_name": self.class_name,
+            "class_name": class_name,
             "config": self.model_config,
             "coordinate_input": self.coordinate_input,
             "output_as_dict": self.output_as_dict,
