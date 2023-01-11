@@ -32,16 +32,18 @@ class EnergyForceModel(ks.models.Model):
             set `nested_model_config` to `False` or pass its config dictionary manually.
 
         Args:
-            module_name:
-            class_name:
-            config:
-            coordinate_input:
-            output_as_dict:
-            ragged_validate:
-            output_to_tensor:
-            output_squeeze_states:
-            nested_model_config:
-            is_physical_force:
+            module_name (str): Module where to find energy model. Can be `None` for custom keras model.
+            class_name (str): Class name of energy model. Can also be full keras model instead of class name.
+                In this case module_name is ignored and should be set to `None` .
+            config (dict): Config of energy model.
+            coordinate_input (str, int): Index or key where to find coordinate tensor in model input.
+            output_as_dict (bool): Whether to return energy and force as list or as dict. Default is True.
+            ragged_validate (bool): Whether to validate ragged tensor creation. Default is False.
+            output_to_tensor (bool): Whether to cast the output to tensor or keep ragged output. Default is True
+            output_squeeze_states (bool): Whether to squeeze states, which can be done for one energy value to remove
+                an axis of one.
+            nested_model_config (bool): Whether `config` has model config of the energy model. Default is True.
+            is_physical_force (bool): Whether gradient of force, which is the negative gradient, is to be returned.
         """
         super(EnergyForceModel, self).__init__(self, **kwargs)
         self.model_config = config
