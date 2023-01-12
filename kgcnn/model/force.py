@@ -53,6 +53,8 @@ class EnergyForceModel(ks.models.Model):
         if isinstance(class_name, ks.models.Model):
             # Ignoring module_name and class_name.
             self.energy_model = class_name
+        elif isinstance(class_name, dict):
+            self.energy_model = ks.utils.deserialize_keras_object(class_name)
         else:
             self.energy_model_class = get_model_class(module_name, class_name)
             self.energy_model = self.energy_model_class(**self.model_config)
