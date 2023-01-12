@@ -14,6 +14,42 @@ class EnergyForceModel(ks.models.Model):
     For now the model has to cast to dense tensor for using :obj:`batch_jacobian` , however, this will likely support
     ragged tensors in the future.
 
+    .. code-block:: python
+
+        import tensorflow as tf
+        from kgcnn.model.force import EnergyForceModel
+        model = EnergyForceModel(
+            module_name="kgcnn.literature.Schnet",
+            class_name="make_model",
+            config={
+                "name": "SchnetEnergy",
+                "inputs": [
+                    {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
+                "input_embedding": {
+                    "node": {"input_dim": 95, "output_dim": 128}
+                },
+                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
+                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                "interaction_args": {
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                },
+                "node_pooling_args": {"pooling_method": "sum"},
+                "depth": 6,
+                "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                "output_embedding": "graph",
+                "use_output_mlp": False,
+                "output_mlp": None,
+            },
+            coordinate_input=1,
+            output_as_dict=True,
+            output_to_tensor=False,
+            output_squeeze_states=True,
+            is_physical_force=True
+        )
+
     """
 
     def __init__(self, module_name: str, class_name: str, config: dict, coordinate_input: Union[int, str] = 1,
