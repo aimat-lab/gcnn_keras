@@ -329,11 +329,3 @@ def make_model_atom_wise(inputs: list = None,
 # For default, the weighted ACSF are used, since they do should in principle work for all elements.
 make_model = make_model_weighted
 
-
-class ACSFRepresentationGrad(ks.models.Model):
-
-    def __init__(self, **kwargs):
-        super(ACSFRepresentationGrad, self).__init__(self, **kwargs)
-
-    def call(self, inputs, training=None, mask=None):
-        pass
