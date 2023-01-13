@@ -19,8 +19,8 @@ class ChangeTensorType(GraphBaseLayer):
     being the (maximum) number of nodes, or given shape otherwise.
 
     For disjoint representation (one big graph with disconnected sub-graphs) the :obj:`tf.RaggedTensor` can be
-    split into a flattened value :obj:`tf.Tensor` of shape `(batch*[None], F)` and a partition
-    :obj:`tf.Tensor` of either 'row_length', 'row_splits' or 'value_rowids'.
+    split into a flattened value :obj:`tf.Tensor` of shape `(batch*[None], F)` and a partition :obj:`tf.Tensor` of
+    either 'row_length', 'row_splits' or 'value_rowids'.
     This requires the :obj:`tf.RaggedTensor` to have a ragged rank of one.
 
     """
@@ -31,6 +31,7 @@ class ChangeTensorType(GraphBaseLayer):
                  partition_type: str = "row_length",
                  shape: Union[list, tuple, None] = None,
                  default_value: Union[float, None, list] = None,
+                 boolean_mask: bool = False,
                  **kwargs):
         r"""Initialize layer.
 
@@ -40,6 +41,8 @@ class ChangeTensorType(GraphBaseLayer):
             partition_type (str): Partition tensor type. Default is "row_length".
             shape (list, tuple): Defining shape for conversion to tensor. Default is None.
             default_value (float, list): Default value for padding. Must broadcast. Default is None.
+            boolean_mask (bool): Whether mask for padded tensor should be boolean or the same type as tensor.
+
         """
         super(ChangeTensorType, self).__init__(**kwargs)
         self.partition_type = partition_type
@@ -47,6 +50,7 @@ class ChangeTensorType(GraphBaseLayer):
         self.output_tensor_type = str(output_tensor_type)
         self.shape = shape
         self.default_value = default_value
+        self.boolean_mask = boolean_mask
 
         self._str_type_ragged = ["ragged", "RaggedTensor"]
         self._str_type_tensor = ["Tensor", "tensor"]
@@ -67,29 +71,34 @@ class ChangeTensorType(GraphBaseLayer):
             tensor: Changed tensor type.
         """
         if self.input_tensor_type in self._str_type_ragged:
+
             if self.output_tensor_type in self._str_type_ragged:
                 return inputs  # Nothing to do here.
             if self.output_tensor_type in self._str_type_tensor:
                 return inputs.to_tensor(shape=self.shape, default_value=self.default_value)
             elif self.output_tensor_type in self._str_type_mask:
-                return inputs.to_tensor(shape=self.shape, default_value=self.default_value), inputs.with_flat_values(
-                    tf.ones_like(inputs.flat_values)).to_tensor(shape=self.shape, default_value=0.0)
+                padded = inputs.to_tensor(shape=self.shape, default_value=self.default_value)
+                mask_values = tf.ones_like(inputs.flat_values) if not self.boolean_mask else tf.ones(
+                    inputs.flat_values.shape, dtype="bool")
+                mask = inputs.with_flat_values(mask_values).to_tensor(shape=self.shape)
+                return padded, mask
             elif self.output_tensor_type in self._str_type_partition:
-                self.assert_ragged_input_rank(inputs, ragged_rank=1)
+                inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
                 return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
 
         # Unsupported type conversion.
         raise NotImplementedError(
-            "Unsupported conversion from %s to %s" % (self.input_tensor_type, self.output_tensor_type))
+            "Unsupported conversion from '%s' to '%s'." % (self.input_tensor_type, self.output_tensor_type))
 
     def get_config(self):
         """Update layer config."""
         config = super(ChangeTensorType, self).get_config()
-        config.update({"partition_type": self.partition_type,
-                       "input_tensor_type": self.input_tensor_type,
-                       "output_tensor_type": self.output_tensor_type,
-                       "shape": self.shape, "default_value": self.default_value
-                       })
+        config.update({
+            "partition_type": self.partition_type,
+            "input_tensor_type": self.input_tensor_type,
+            "output_tensor_type": self.output_tensor_type,
+            "shape": self.shape, "default_value": self.default_value, "boolean_mask": self.mask_values
+        })
         return config
 
 
@@ -217,18 +226,20 @@ class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
         Returns:
             tf.SparseTensor: Sparse disjoint matrix of shape (batch*[N],batch*[N])
         """
-        self.assert_ragged_input_rank(inputs)
+        inputs = self.assert_ragged_input_rank(inputs)
         nod, node_len = inputs[0].values, inputs[0].row_lengths()
         edge, _ = inputs[1].values, inputs[1].row_lengths()
         edge_index, edge_len = inputs[2].values, inputs[2].row_lengths()
 
         # batch-wise indexing
-        edge_index = partition_row_indexing(edge_index,
-                                            node_len, edge_len,
-                                            partition_type_target="row_length",
-                                            partition_type_index="row_length",
-                                            from_indexing=self.node_indexing,
-                                            to_indexing="batch")
+        edge_index = partition_row_indexing(
+            edge_index,
+            node_len, edge_len,
+            partition_type_target="row_length",
+            partition_type_index="row_length",
+            from_indexing=self.node_indexing,
+            to_indexing="batch"
+        )
         indexlist = edge_index
         valuelist = edge
 

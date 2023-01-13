@@ -4,7 +4,7 @@ from typing import Union
 ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATGlobalPool')
+@ks.utils.register_keras_serializable(package='kgcnn', name='MATGlobalPool')
 class MATGlobalPool(ks.layers.Layer):
 
     def __init__(self, pooling_method: str = "sum", **kwargs):
@@ -28,7 +28,7 @@ class MATGlobalPool(ks.layers.Layer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='MATDistanceMatrix')
+@ks.utils.register_keras_serializable(package='kgcnn', name='MATDistanceMatrix')
 class MATDistanceMatrix(ks.layers.Layer):
 
     def __init__(self, trafo: Union[str, None] = "exp", **kwargs):
