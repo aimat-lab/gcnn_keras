@@ -9,8 +9,19 @@ ks = tf.keras
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='CENTCharge')
 class CENTCharge(GraphBaseLayer):
-    """Compute charge equilibration according to
+    r"""Compute charge equilibration according to
     `Ko et al. (2021) <https://www.nature.com/articles/s41467-020-20427-2>`_ .
+
+    .. math::
+
+        \frac{\partial {E}_{{\rm{Qeq}}}}{\partial {Q}_{i}}=0,\forall i=1,..,{N}_{{\rm{at}}}\ \Rightarrow \
+        \sum\limits_{j=1}^{{N}_{{\rm{at}}}}{A}_{ij}{Q}_{j}+{\chi }_{i}=0
+
+    .. math::
+
+        {[{\bf{A}}]}_{ij}=\left\{\begin{array}{ll}{J}_{i}+\frac{1}{{\sigma }_{i}\sqrt{\pi }},&\,\text{if}\,\,
+        i=j\\ \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}},&\,
+        \text{otherwise}\,\end{array}\right.
 
     Example:
 
@@ -21,8 +32,8 @@ class CENTCharge(GraphBaseLayer):
         layer = CENTCharge()
         z = tf.ragged.constant([[1, 6], [1, 1, 6]], ragged_rank=1)
         chi = tf.ragged.constant([[0.43, 0.37], [0.43, 0.43, 0.37]], ragged_rank=1)
-        xyz = tf.ragged.constant([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]], [[0.0, 0.0, 0.0], [1.0, 0.2, 0.2], [2.0, 0.0, 0.0]]],
-                                 ragged_rank=1, inner_shape=(3,))
+        xyz = tf.ragged.constant([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            [[0.0, 0.0, 0.0], [1.0, 0.2, 0.2], [2.0, 0.0, 0.0]]], ragged_rank=1, inner_shape=(3,))
         qtot = tf.constant([1.0, 1.0])
         q = layer([z, chi, xyz, qtot])
         print(q)
@@ -87,8 +98,8 @@ class CENTCharge(GraphBaseLayer):
 
     def call(self, inputs, mask=None, **kwargs):
         n, chi, x = self.assert_ragged_input_rank(inputs[:3], ragged_rank=1)
-
         qtot = inputs[3]
+
         num_atoms = n.row_lengths()
 
         # Cast to padded tensor for charge equilibrium.
@@ -159,13 +170,18 @@ class CENTCharge(GraphBaseLayer):
                       axis=0) > tf.expand_dims(num_atoms, axis=-1), dtype=a.dtype))
         a = a + a_empty
 
+        # Check system to solve
         # return a, chi_pad
+
+        # Compute charges with solve().
         charges = tf.linalg.solve(a, tf.expand_dims(chi_pad, axis=-1), adjoint=False, name=None)
 
-        if self.output_to_tensor:
-            return charges
-
         n_mask_pad = tf.pad(n_mask, [[0, 0], [0, 1]], mode='CONSTANT', constant_values=0)
+        if self.output_to_tensor:
+            # Padded tensor will have total charges in it.
+            return charges, n_mask_pad
+
+        # Make ragged tensor from padded charges.
         return tf.RaggedTensor.from_row_lengths(charges[n_mask_pad], num_atoms, validate=self.ragged_validate)
 
     def get_config(self):
