@@ -105,8 +105,23 @@ class CENTCharge(GraphBaseLayer):
         super(CENTCharge, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass. Casts to padded tensor for :obj:`tf.linalg.solve()` .
+
+        Args:
+            inputs: [n, chi, xyz, qtot]
+
+                - n (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
+                - chi (tf.RaggedTensor): Learned electronegativities. Shape (batch, [N], 1)
+                - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
+                - qtot (tf.Tensor): Total charge per molecule of shape (batch, 1)
+
+        Returns:
+            tf.RaggedTensor: Charges of shape (batch, None, 1)
+        """
         n, chi, x = self.assert_ragged_input_rank(inputs[:3], ragged_rank=1)
         qtot = inputs[3]
+        if qtot.rank > 1:
+            qtot = tf.squeeze(qtot, axis=-1)
 
         num_atoms = n.row_lengths()
 
@@ -115,6 +130,8 @@ class CENTCharge(GraphBaseLayer):
         n_pad, n_mask = self.layer_cast_n(n, **kwargs)
         chi_pad, _ = self.layer_cast_chi(chi, **kwargs)
         x_pad, _ = self.layer_cast_x(x, **kwargs)
+        if chi_pad.rank > 2:
+            chi_pad = tf.squeeze(chi_pad, axis=-1)
 
         # Compute mask values for diagonal and off-diagonal.
         a_mask = tf.logical_and(tf.expand_dims(n_mask, axis=1), tf.expand_dims(n_mask, axis=2))
