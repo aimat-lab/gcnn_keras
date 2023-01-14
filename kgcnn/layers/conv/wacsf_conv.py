@@ -135,9 +135,9 @@ class wACSFRad(GraphBaseLayer):
         self.pool_sum = PoolingLocalEdges(pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = param_initializer
-        self.param_regularizer = param_regularizer
-        self.param_constraint = param_constraint
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
         np_eta_mu = np.array(eta_mu)
         weight_shape = np_eta_mu.shape
         self._weight_eta_mu = self.add_weight(
@@ -204,9 +204,9 @@ class wACSFRad(GraphBaseLayer):
         config = super(wACSFRad, self).get_config()
         config.update({"eta_mu": self.eta_mu, "cutoff": self.cutoff, "use_external_weights": self.use_external_weights,
                        "add_eps": self.add_eps,
-                       "param_constraint": self.param_constraint,
-                       "param_regularizer": self.param_regularizer,
-                       "param_initializer": self.param_initializer
+                       "param_constraint": ks.constraints.serialize(self.param_constraint),
+                       "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+                       "param_initializer": ks.initializers.serialize(self.param_initializer)
                        })
         return config
 
@@ -257,9 +257,9 @@ class wACSFAng(GraphBaseLayer):
         self.layer_gather_2 = GatherNodesSelection(selection_index=2)
         self.layer_exp_dims = ExpandDims(axis=2)
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = param_initializer
-        self.param_regularizer = param_regularizer
-        self.param_constraint = param_constraint
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
         np_eta_mu_lambda_zeta = np.array(eta_mu_lambda_zeta)
         weight_shape = np_eta_mu_lambda_zeta.shape
         self._weight_eta_mu_lambda_zeta = self.add_weight(
@@ -356,8 +356,8 @@ class wACSFAng(GraphBaseLayer):
         config.update({"eta_mu_lambda_zeta": self.eta_mu_lambda_zeta, "cutoff": self.cutoff,
                        "use_external_weights": self.use_external_weights,
                        "add_eps": self.add_eps,
-                       "param_constraint": self.param_constraint,
-                       "param_regularizer": self.param_regularizer,
-                       "param_initializer": self.param_initializer
+                       "param_constraint": ks.constraints.serialize(self.param_constraint),
+                       "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+                       "param_initializer": ks.initializers.serialize(self.param_initializer)
                        })
         return config

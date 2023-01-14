@@ -97,9 +97,9 @@ class ACSFG2(GraphBaseLayer):
         self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.num_relations, pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = param_initializer
-        self.param_regularizer = param_regularizer
-        self.param_constraint = param_constraint
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
         self.param_trainable = param_trainable
 
         self.weight_eta_rs_rc = self.add_weight(
@@ -199,9 +199,9 @@ class ACSFG2(GraphBaseLayer):
             "eta_rs_rc": self.eta_rs_rc.tolist(),
             "element_mapping": self.element_mapping.tolist(),
             "add_eps": self.add_eps,
-            "param_constraint": self.param_constraint,
-            "param_regularizer": self.param_regularizer,
-            "param_initializer": self.param_initializer,
+            "param_constraint": ks.constraints.serialize(self.param_constraint),
+            "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+            "param_initializer": ks.initializers.serialize(self.param_initializer),
             "param_trainable": self.param_trainable
         })
         return config
@@ -331,9 +331,9 @@ class ACSFG4(GraphBaseLayer):
         self.layer_gather = GatherNodesSelection(selection_index=[0,1,2])
 
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = param_initializer
-        self.param_regularizer = param_regularizer
-        self.param_constraint = param_constraint
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
         self.param_trainable = param_trainable
 
         self.weight_eta_zeta_lambda_rc = self.add_weight(
@@ -471,8 +471,8 @@ class ACSFG4(GraphBaseLayer):
             "multiplicity": self.multiplicity,
             "element_pair_mapping": self.element_pair_mapping,
             "param_trainable": self.param_trainable,
-            "param_constraint": self.param_constraint,
-            "param_regularizer": self.param_regularizer,
-            "param_initializer": self.param_initializer,
+            "param_constraint": ks.constraints.serialize(self.param_constraint),
+            "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+            "param_initializer": ks.initializers.serialize(self.param_initializer)
         })
         return config

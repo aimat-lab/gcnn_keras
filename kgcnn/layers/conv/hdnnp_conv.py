@@ -77,9 +77,9 @@ class CENTCharge(GraphBaseLayer):
         self.layer_cast_x = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask", boolean_mask=True)
 
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = param_initializer
-        self.param_regularizer = param_regularizer
-        self.param_constraint = param_constraint
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
         self.param_trainable = param_trainable
 
         self.weight_j = self.add_weight(
@@ -219,6 +219,9 @@ class CENTCharge(GraphBaseLayer):
         config = super(CENTCharge, self).get_config()
         config.update({
             "output_to_tensor": self.output_to_tensor,
-            "use_physical_params": self.use_physical_params
+            "use_physical_params": self.use_physical_params,
+            "param_constraint": ks.constraints.serialize(self.param_constraint),
+            "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+            "param_initializer": ks.initializers.serialize(self.param_initializer)
         })
         return config
