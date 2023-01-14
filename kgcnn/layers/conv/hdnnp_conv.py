@@ -120,7 +120,7 @@ class CENTCharge(GraphBaseLayer):
         """
         n, chi, x = self.assert_ragged_input_rank(inputs[:3], ragged_rank=1)
         qtot = inputs[3]
-        if qtot.rank > 1:
+        if qtot.shape.rank > 1:
             qtot = tf.squeeze(qtot, axis=-1)
 
         num_atoms = n.row_lengths()
@@ -130,7 +130,7 @@ class CENTCharge(GraphBaseLayer):
         n_pad, n_mask = self.layer_cast_n(n, **kwargs)
         chi_pad, _ = self.layer_cast_chi(chi, **kwargs)
         x_pad, _ = self.layer_cast_x(x, **kwargs)
-        if chi_pad.rank > 2:
+        if chi_pad.shape.rank > 2:
             chi_pad = tf.squeeze(chi_pad, axis=-1)
 
         # Compute mask values for diagonal and off-diagonal.
