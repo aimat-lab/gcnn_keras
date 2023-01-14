@@ -133,10 +133,11 @@ class CENTCharge(GraphBaseLayer):
                 dist
             ),
             tf.zeros_like(dist)
-        ) + tf.where(
+        )
+        a = tf.where(
             a_diag_mask,
             diag_part,
-            tf.zeros_like(dist)
+            a
         )
 
         # Pad A and chi for Lagrange multipliers.
@@ -156,19 +157,24 @@ class CENTCharge(GraphBaseLayer):
         idx = [tf.cast(tf.expand_dims(iter_tensor, axis=-1), dtype="int32") for iter_tensor in [
             tf.repeat(tf.range(tf.shape(num_atoms)[0]), num_atoms), tf.ragged.range(num_atoms).flat_values,
             tf.repeat(num_atoms, num_atoms)]]
-        a_1 = tf.concat([tf.concat([idx[0], idx[1], idx[2]], axis=-1),
+        idx = tf.concat([tf.concat([idx[0], idx[1], idx[2]], axis=-1),
                          tf.concat([idx[0], idx[2], idx[1]], axis=-1)], axis=0)
         a = tf.tensor_scatter_nd_add(
             a,
-            a_1,
-            tf.ones(tf.shape(a_1)[0], dtype=a.dtype)
+            idx,
+            tf.ones(tf.shape(idx)[0], dtype=a.dtype)
         )
 
         # Set diagonal for empty matrix
-        a_empty = tf.linalg.diag(tf.cast(
-            tf.repeat(tf.expand_dims(tf.range(tf.shape(a)[1], dtype=num_atoms.dtype), axis=0), tf.shape(a)[0],
-                      axis=0) > tf.expand_dims(num_atoms, axis=-1), dtype=a.dtype))
-        a = a + a_empty
+        idx_0 = tf.ragged.range(num_atoms+1, np.repeat(tf.shape(a)[2], tf.shape(num_atoms)[0]))
+        idx_0 = tf.concat([tf.cast(tf.expand_dims(iter_tensor, axis=-1), dtype="int32") for iter_tensor in [
+            idx_0.value_rowids(), idx_0.flat_values, idx_0.flat_values
+        ]], axis=-1)
+        a = tf.tensor_scatter_nd_add(
+            a,
+            idx_0,
+            tf.ones(tf.shape(idx_0)[0], dtype=a.dtype)
+        )
 
         # Check system to solve
         # return a, chi_pad
