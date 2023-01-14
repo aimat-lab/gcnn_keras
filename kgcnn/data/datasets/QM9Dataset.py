@@ -37,7 +37,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
 
     .. code-block:: python
 
-        from kgcnn.data.qm import QMGraphLabelScaler
+        from kgcnn.data.qm import QM9Dataset
         dataset = QM9Dataset(reload=True)
         print(dataset[0])
 
