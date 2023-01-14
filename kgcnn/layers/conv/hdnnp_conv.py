@@ -46,7 +46,10 @@ class CENTCharge(GraphBaseLayer):
         128, 96, 84, 73, 71, 66, 57, 58,
         166, 141, 121, 111, 107, 105, 102, 106,
         203, 176, 170, 160, 153, 139, 139, 132, 126, 124, 132, 122, 122, 120, 119, 120, 120, 116,
-        220, 195, 190, 175, 164, 154, 147, 146, 142, 139, 145, 144, 142, 139, 139, 138, 139, 140
+        220, 195, 190, 175, 164, 154, 147, 146, 142, 139, 145, 144, 142, 139, 139, 138, 139, 140,
+        244, 215, 207, 204, 203, 201, 199, 198, 198, 196, 194, 192, 192, 189, 190, 187, 175, 187, 170, 162, 151, 144,
+        141, 136, 136, 132, 145, 146, 148, 140, 150, 150,
+        260, 221, 215, 206, 200, 196, 190, 187, 180, 169
     ])
     # Chemical hardness from https://www.pnas.org/doi/10.1073/pnas.2117416119 in eV
     _default_hardness = 0.037 / 0.529177 * np.array([
@@ -54,16 +57,20 @@ class CENTCharge(GraphBaseLayer):
         2.2, 4.6, 3.8, 4.7, 7.1, 5.6, 6.1, 9.1,
         2.1, 4.0, 2.6, 3.3, 4.7, 3.8, 4.5, 7.7,
         2.3, 3.2, 3.2, 2.9, 3.2, 3.4, 4.0, 3.6, 3.3, 3.3, 3.8, 5.8, 3.0, 3.3, 4.5, 3.9, 4.2, 7.7,
-        1.9, 3.1, 3.1, 2.9, 3.3, 3.5, 3.7, 3.7, 3.9, 4.1, 3.6, 5.4, 3.1, 3.1, 4.0, 3.6, 3.8, 6.8
+        1.9, 3.1, 3.1, 2.9, 3.3, 3.5, 3.7, 3.7, 3.9, 4.1, 3.6, 5.4, 3.1, 3.1, 4.0, 3.6, 3.8, 6.8,
+        1.8, 2.7, 2.4, 2.3, 2.5, 2.7, 2.5, 3.0, 3.0, 3.2, 3.2, 3.3, 3.3, 3.3, 3.1, 3.5, 3.2, 3.8, 3.1, 3.6, 3.7, 3.7,
+        3.8, 3.5, 3.6, 5.8, 3.1, 3.4, 3.3, 3.6, 3.6, 6.1,
+        1.8, 3.0, 2.8, 2.8, 3.1, 3.0, 3.1, 3.5, 3.3, 3.3
     ])
-    _max_atomic_number = 55
+    _max_atomic_number = 97
 
-    def __init__(self, output_to_tensor: bool = False,
+    def __init__(self, output_to_tensor: bool = False, use_physical_params: bool = True,
                  param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
                  param_trainable: bool = False,
                  **kwargs):
         super(CENTCharge, self).__init__(**kwargs)
         self.output_to_tensor = output_to_tensor
+        self.use_physical_params = use_physical_params
 
         self.layer_cast_n = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask", boolean_mask=True)
         self.layer_cast_chi = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
@@ -91,7 +98,8 @@ class CENTCharge(GraphBaseLayer):
             constraint=self.param_constraint,
             dtype=self.dtype, trainable=self.param_trainable
         )
-        self.set_weights([self._default_hardness, self._default_radii])
+        if self.use_physical_params:
+            self.set_weights([self._default_hardness, self._default_radii])
 
     def build(self, input_shape):
         super(CENTCharge, self).build(input_shape)
@@ -166,7 +174,7 @@ class CENTCharge(GraphBaseLayer):
         )
 
         # Set diagonal for empty matrix
-        idx_0 = tf.ragged.range(num_atoms+1, np.repeat(tf.shape(a)[2], tf.shape(num_atoms)[0]))
+        idx_0 = tf.ragged.range(num_atoms + 1, np.repeat(tf.shape(a)[2], tf.shape(num_atoms)[0]))
         idx_0 = tf.concat([tf.cast(tf.expand_dims(iter_tensor, axis=-1), dtype="int32") for iter_tensor in [
             idx_0.value_rowids(), idx_0.flat_values, idx_0.flat_values
         ]], axis=-1)
@@ -192,5 +200,8 @@ class CENTCharge(GraphBaseLayer):
 
     def get_config(self):
         config = super(CENTCharge, self).get_config()
-        config.update({})
+        config.update({
+            "output_to_tensor": self.output_to_tensor,
+            "use_physical_params": self.use_physical_params
+        })
         return config
