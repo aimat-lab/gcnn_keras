@@ -179,7 +179,7 @@ class ACSFG2(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
-        z, xyz, eij = inputs
+        z, xyz, eij = self.assert_ragged_input_rank(inputs, ragged_rank=1)
         z = self.map_values(tf.cast, z, dtype=eij.dtype)
         xi, xj = self.layer_pos([xyz, eij], **kwargs)
         rij = self.layer_dist([xi, xj], **kwargs)
@@ -438,7 +438,7 @@ class ACSFG4(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
-        z, xyz, ijk = inputs
+        z, xyz, ijk = self.assert_ragged_input_rank(inputs, ragged_rank=1)
         z = self.map_values(tf.cast, z, dtype=ijk.dtype)
         zi, zj, zk = self.layer_gather([z, ijk], **kwargs)
         xi, xj, xk = self.layer_pos([xyz, ijk], **kwargs)

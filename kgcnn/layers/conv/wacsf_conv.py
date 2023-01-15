@@ -184,10 +184,10 @@ class wACSFRad(GraphBaseLayer):
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
         if self.use_external_weights:
-            z, xyz, eij, w = inputs
+            z, xyz, eij, w = self.assert_ragged_input_rank(inputs, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=eij.dtype)
         else:
-            z, xyz, eij = inputs
+            z, xyz, eij = self.assert_ragged_input_rank(inputs, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=eij.dtype)
             zj = self.layer_gather_out([z, eij], **kwargs)
             w = self.layer_exp_dims(zj, **kwargs)
@@ -321,11 +321,11 @@ class wACSFAng(GraphBaseLayer):
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
         if self.use_external_weights:
-            z, xyz, ijk, w = inputs
+            z, xyz, ijk, w = self.assert_ragged_input_rank(inputs, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=ijk.dtype)
             w = self.map_values(tf.cast, w, dtype=self.dtype)
         else:
-            z, xyz, ijk = inputs
+            z, xyz, ijk = self.assert_ragged_input_rank(inputs, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=ijk.dtype)
             w1 = self.layer_gather_1([z, ijk], **kwargs)[0]
             w2 = self.layer_gather_2([z, ijk], **kwargs)[0]
