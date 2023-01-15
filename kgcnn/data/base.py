@@ -100,7 +100,7 @@ class MemoryGraphList(MutableSequence):
         # If all the items for our given property name are None then we know that this property is generally not
         # defined for any of the graphs in the list.
         if all([x is None for x in prop_list]):
-            self.logger.warning("Property %s is not set on any graph." % key)
+            self.logger.warning("Property '%s' is not set on any graph." % key)
             return None
 
         return prop_list

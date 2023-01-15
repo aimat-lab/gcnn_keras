@@ -2,61 +2,138 @@ import numpy as np
 import re
 import logging
 import networkx as nx
-from typing import Union
+from collections.abc import MutableMapping
 from kgcnn.graph.serial import get_preprocessor
-from copy import deepcopy
+from typing import Any, Union
+from copy import deepcopy, copy
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class GraphDict(dict):
+# Base classes are collections.UserDict or collections.abc.MutableMapping.
+class GraphDict(MutableMapping):
     r"""Dictionary container to store graph information in tensor-form.
 
-    At the moment only numpy-arrays are supported. The naming convention is not restricted.
+    The tensors must be stored as numpy arrays. The naming convention is not restricted.
     The class is supposed to be handled just as a python dictionary.
+
     In addition, :obj:`assign_property` and :obj:`obtain_property` handles `None` values and cast into tensor format,
     when assigning a named value.
 
     Graph operations that modify edges or sort indices can be applied via :obj:`apply_preprocessor` located in
     :obj:`kgcnn.graph.preprocessor`.
 
-
     .. code-block:: python
 
         import numpy as np
         from kgcnn.graph.base import GraphDict
-        g = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
-        graph.set("graph_labels", [0])  # use set(), get() to assign (tensor) properties
+        graph = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
+        graph.set("graph_labels", [0])  # opposite is get()
+        graph["graph_number"] = 1
         graph.set("edge_attributes", [[1.0], [2.0]])
-        g.apply_preprocessor("add_edge_self_loops")
-        g.apply_preprocessor("sort_edge_indices")
-        print(g)
+        graph.apply_preprocessor("add_edge_self_loops")
+        graph.apply_preprocessor("sort_edge_indices")
+        print(graph)
+
     """
 
-    # Implementation details: Inherits from python-dict at the moment but can be changed if this causes problems,
-    # alternatives would be: collections.UserDict or collections.abc.MutableMapping
-    # Also __setitem__ and update have not been altered in this version.
-    _tensor_conversion = np.array
+    _require_str_key = True
+    _cast_to_array = True
     _tensor_class = np.ndarray
+    _tensor_conversion = np.array
 
-    def __init__(self, sub_dict: dict = None):
-        r"""Initialize a new :obj:`GraphDict` instance.
+    def __init__(self, *args, **kwargs):
+        r"""Initialize a new :obj:`GraphDict` instance."""
+        # Simple python dictionary as storage.
+        self._dict = {}
+        for key, value in dict(*args, **kwargs).items():
+            self.assign_property(key, value)
+
+    def assign_property(self, key: str, value):
+        r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
+        Similar to assign-item default method :obj:`__setitem__`, but ignores `None` values and casts to tensor.
 
         Args:
-            sub_dict: Dictionary or key-value pair of numpy arrays.
+            key (str): Name of the graph tensor to add to self.
+            value: Array or tensor value to add. Can also be None.
+
+        Returns:
+            None.
         """
-        if sub_dict is None:
-            sub_dict = {}
-        elif isinstance(sub_dict, (dict, list)):
-            in_dict = dict(sub_dict)
-            sub_dict = {key: value if isinstance(value, self._tensor_class) else self._tensor_conversion(value) for
-                        key, value in in_dict.items()}
-        elif isinstance(sub_dict, GraphDict):
-            sub_dict = {key: value if isinstance(value, self._tensor_class) else self._tensor_conversion(value) for
-                        key, value in sub_dict.items()}
-        super(GraphDict, self).__init__(sub_dict)
+        if self._require_str_key:
+            if not isinstance(key, str):
+                raise ValueError("`GraphDict` requires string keys, but kot '%s'." % key)
+        if value is not None:
+            if self._cast_to_array:
+                if not isinstance(value, self._tensor_class):
+                    value = self._tensor_conversion(value)
+            self._dict[key] = value
+
+    def obtain_property(self, key: str):
+        """Get tensor item by name. If key is not found, `None` is returned.
+
+        Args:
+            key (str): Name of the key to get value for.
+
+        Returns:
+            self[key].
+        """
+        if key in self:
+            return self._dict[key]
+        return None
+
+    # Alias of internal assign_property and obtain property.
+    set = assign_property
+    get = obtain_property
+
+    # Set and get item via assign and obtain_property.
+    def __setitem__(self, key, value):
+        self.assign_property(key, value)
+
+    def __getitem__(self, item):
+        self.obtain_property(item)
+
+    # Most Mapping methods can be directly passed to _dict instance.
+    # We use a python dictionary as storage.
+
+    def __len__(self):
+        return len(self._dict)
+
+    def items(self):
+        return self._dict.items()
+
+    def keys(self):
+        return self._dict.keys()
+
+    def values(self):
+        return self._dict.values()
+
+    def __iter__(self):
+        return self._dict.__iter__()
+
+    def __delitem__(self, key):
+        return self._dict.__delitem__(key)
+
+    def __repr__(self):
+        return self._dict.__repr__()
+
+    def __str__(self):
+        return self._dict.__str__()
+
+    def __contains__(self, key):
+        return key in self._dict
+
+    def copy(self):
+        return GraphDict({key: copy(value) for key, value in self.items()})
+
+    def pop(self, key: str) -> Any:
+        return self._dict.pop(key)
+
+    def update(self, *args, **kwargs) -> None:
+        for key, value in dict(*args, **kwargs).items():
+            self.assign_property(key, value)
 
     def to_dict(self) -> dict:
         """Returns a python-dictionary of self. Does not copy values.
@@ -66,7 +143,64 @@ class GraphDict(dict):
         """
         return {key: value for key, value in self.items()}
 
-    def from_networkx(self, graph,
+    def search_properties(self, keys: Union[str, list]) -> list:
+        r"""Search for properties in self.
+
+        This includes a list of possible names or a pattern-matching of a single string.
+
+        Args:
+            keys (str, list): Pattern matching string or list of strings to search for.
+
+        Returns:
+            list: List of names in self that match :obj:`keys`.
+        """
+        if keys is None:
+            return []
+        elif isinstance(keys, str):
+            match_props = []
+            for x in self:
+                if re.match(keys, x):
+                    if re.match(keys, x).group() == x:
+                        match_props.append(x)
+            return sorted(match_props)
+        elif isinstance(keys, (list, tuple)):
+            # No pattern matching for list input.
+            return sorted([x for x in keys if x in self])
+        return []
+
+    # Old Alias
+    find_graph_properties = search_properties
+
+    def assert_has_valid_key(self, key: str, raise_error: bool = True) -> bool:
+        """Assert the property is found in self.
+
+        Args:
+            key (str): Name of property that must be defined.
+            raise_error (bool): Whether to raise error. Default is True.
+
+        Returns:
+            bool: Key is valid. Only if `raise_error` is False.
+        """
+        if key not in self or self.obtain_property(key) is None:
+            if raise_error:
+                raise AssertionError("`GraphDict` does not have '%s' key." % key)
+            return False
+        return True
+
+    def has_valid_key(self, key: str) -> bool:
+        """Check if the property is found in self and also is not Noe.
+
+        Args:
+            key (str): Name of property that must be defined.
+
+        Returns:
+            bool: Key is valid. Only if `raise_error` is False.
+        """
+        if key not in self or self.obtain_property(key) is None:
+            return False
+        return True
+
+    def from_networkx(self, graph: nx.Graph,
                       node_number: str = "node_number",
                       edge_indices: str = "edge_indices",
                       node_attributes: str = None,
@@ -126,12 +260,12 @@ class GraphDict(dict):
                 edges_attr_dict[d][i] = x[2][d]
 
         # Storing graph tensors in self.
-        self.assign_property(node_number, self._tensor_conversion(nodes_id))
-        self.assign_property(edge_indices, self._tensor_conversion(edge_id))
+        self.assign_property(node_number, nodes_id)
+        self.assign_property(edge_indices, edge_id)
         for key, value in node_attr_dict.items():
-            self.assign_property(key, self._tensor_conversion(value))
+            self.assign_property(key, value)
         for key, value in edges_attr_dict.items():
-            self.assign_property(key, self._tensor_conversion(value))
+            self.assign_property(key, value)
         return self
 
     def to_networkx(self, edge_indices: str = "edge_indices"):
@@ -146,95 +280,6 @@ class GraphDict(dict):
         graph = nx.DiGraph()
         graph.add_edges_from(self.obtain_property(edge_indices))
         return graph
-
-    def assign_property(self, key: str, value):
-        r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
-        Similar to assign-item default method :obj:`__setitem__`, but ignores `None` values and casts to tensor.
-
-        Args:
-            key (str): Name of the graph tensor to add to self.
-            value: Array or tensor value to add. Can also be None.
-
-        Returns:
-            None.
-        """
-        if value is not None:
-            self.update({key: self._tensor_conversion(value)})
-
-    def obtain_property(self, key: str):
-        """Get tensor item by name. If key is not found, `None` is returned.
-
-        Args:
-            key (str): Name of the key to get value for.
-
-        Returns:
-            self[key].
-        """
-        if key in self:
-            return self[key]
-        return None
-
-    def search_properties(self, keys: Union[str, list]) -> list:
-        r"""Search for properties in self.
-
-        This includes a list of possible names or a pattern-matching of a single string.
-
-        Args:
-            keys (str, list): Pattern matching string or list of strings to search for.
-
-        Returns:
-            list: List of names in self that match :obj:`keys`.
-        """
-        if keys is None:
-            return []
-        elif isinstance(keys, str):
-            match_props = []
-            for x in self:
-                if re.match(keys, x):
-                    if re.match(keys, x).group() == x:
-                        match_props.append(x)
-            return sorted(match_props)
-        elif isinstance(keys, (list, tuple)):
-            # No pattern matching for list input.
-            return sorted([x for x in keys if x in self])
-        return []
-
-    # Old Alias
-    find_graph_properties = search_properties
-
-    def assert_has_valid_key(self, key: str, raise_error: bool = True):
-        """Assert the property is found in self.
-
-        Args:
-            key (str): Name of property that must be defined.
-            raise_error (bool): Whether to raise error. Default is True.
-
-        Returns:
-            bool: Key is valid. Only if `raise_error` is False.
-        """
-        if key not in self or self.obtain_property(key) is None:
-            if raise_error:
-                raise AssertionError("`GraphDict` does not have %s." % key)
-            return False
-        return True
-
-    def has_valid_key(self, key: str):
-        """Check if the property is found in self and also is not Noe.
-
-        Args:
-            key (str): Name of property that must be defined.
-
-        Returns:
-            bool: Key is valid. Only if `raise_error` is False.
-        """
-        if key not in self or self.obtain_property(key) is None:
-            return False
-        return True
-
-    # Alias of internal assign and obtain property.
-    set = assign_property
-
-    # get = obtain_property  # Already has correct behaviour.
 
     def apply_preprocessor(self, name, **kwargs):
         r"""Apply a preprocessor on self.
@@ -336,7 +381,7 @@ class GraphProcessorBase:
 
     @staticmethod
     def _assign_properties(graph: GraphDict, graph_properties: Union[list, np.ndarray],
-                           to_assign, to_search, in_place=False) -> dict:
+                           to_assign, to_search, in_place=False) -> Union[dict, GraphDict]:
         r"""Assign a list of arrays to a :obj:`GraphDict` by name.
 
         Args:
