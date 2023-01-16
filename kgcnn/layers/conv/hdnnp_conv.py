@@ -50,13 +50,15 @@ class CENTCharge(GraphBaseLayer):
         i=j\\ \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}},&\,
         \text{otherwise}\,\end{array}\right.
 
-    Finally, the linear equation system to solve reads:
+    Finally, the linear equation system to solve with lagrange multiplier :math:`\lambda` reads:
 
     .. math::
 
         \begin{pmatrix} \begin{matrix}  \; & \; & \; \\ \; & {\bf{A}} & \; \\ \; & \; & \; \\ \end{matrix} &
-        & \vline & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
-        \begin{matrix} 1 & \dots & 1\end{matrix} & & \vline & 0 \end{pmatrix}
+        & \vert & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
+        \begin{matrix} 1 & \dots & 1\end{matrix} & & \vert & 0 \end{pmatrix} =
+        \begin{pmatrix} Q_1 \\ \vdots \\ Q_{{N}_{{\rm{at}}} \\ \hline \\ \lambda \end{pmatrix}
+        \begin{pmatrix} \chi_1 \\ \vdots \\ \chi_{{N}_{{\rm{at}}} \\ \hline \\ Q_{\text{tot}} \end{pmatrix}
 
     A code example of using the layer and possible input is shown below:
 
