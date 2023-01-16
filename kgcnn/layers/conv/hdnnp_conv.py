@@ -12,10 +12,37 @@ class CENTCharge(GraphBaseLayer):
     r"""Compute charge equilibration according to
     `Ko et al. (2021) <https://www.nature.com/articles/s41467-020-20427-2>`_ .
 
+    The charge equilibration scheme seeks to minimize the energy :math:`{E}_{{\rm{Qeq}}}` of the following expression:
+
+    .. math::
+
+        {E}_{{\rm{Qeq}}}={E}_{{\rm{elec}}}+\mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}({\chi }_{i}{Q}_{i}+
+        \frac{1}{2}{J}_{i}{Q}_{i}^{2})\quad ,
+
+    where :math:`{E}_{{\rm{elec}}}` is given as:
+
+    .. math::
+
+        {E}_{{\rm{elec}}}=\mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\mathop{\sum }\limits_{j<i}^{{N}_{{\rm{at}}}}
+        \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}}{Q}_{i}{Q}_{j}+
+        \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\frac{{Q}_{i}^{2}}{2{\sigma }_{i}\sqrt{\pi }}
+    
+    with
+    
+    .. math::
+    
+        {\gamma }_{ij}=\sqrt{{\sigma }_{i}^{2}+{\sigma }_{j}^{2}}\quad .
+
+    Where :math:`{J}_{i}` denotes the element-specific hardness and charge densities of width :math:`\sigma_i` taken
+    from the covalent radii of the respective elements.
+    To solve this minimization problem the derivatives with respect to the charges are set to zero:
+
     .. math::
 
         \frac{\partial {E}_{{\rm{Qeq}}}}{\partial {Q}_{i}}=0,\forall i=1,..,{N}_{{\rm{at}}}\ \Rightarrow \
         \sum\limits_{j=1}^{{N}_{{\rm{at}}}}{A}_{ij}{Q}_{j}+{\chi }_{i}=0
+
+    with elements of :math:`{[{\bf{A}}]}_{ij}` defined like:
 
     .. math::
 
@@ -23,7 +50,13 @@ class CENTCharge(GraphBaseLayer):
         i=j\\ \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}},&\,
         \text{otherwise}\,\end{array}\right.
 
-    Example:
+    Finally, the linear equation system to solve reads:
+
+    .. math::
+
+        A=
+
+    A code example of using the layer and possible input is shown below:
 
     .. code-block:: python
 
@@ -108,7 +141,7 @@ class CENTCharge(GraphBaseLayer):
         r"""Forward pass. Casts to padded tensor for :obj:`tf.linalg.solve()` .
 
         Args:
-            inputs: [n, chi, xyz, qtot]
+            inputs (list): [n, chi, xyz, qtot]
 
                 - n (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
                 - chi (tf.RaggedTensor): Learned electronegativities. Shape (batch, [N], 1)
@@ -228,3 +261,80 @@ class CENTCharge(GraphBaseLayer):
             "param_trainable": self.param_trainable
         })
         return config
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='ElectrostaticEnergyCharge')
+class ElectrostaticEnergyCharge(GraphBaseLayer):
+    r"""Compute electric energy according to
+    `Ko et al. (2021) <https://www.nature.com/articles/s41467-020-20427-2>`_ .
+
+    where :math:`{E}_{{\rm{elec}}}` is given as:
+
+    .. math::
+
+        {E}_{{\rm{elec}}}=\frac{1}{2}\,
+        \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\mathop{\sum }\limits_{j}^{{N}_{{\rm{at}}}}
+        \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}}{Q}_{i}{Q}_{j}+
+        \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\frac{{Q}_{i}^{2}}{2{\sigma }_{i}\sqrt{\pi }}
+    
+    with
+    
+    .. math::
+    
+        {\gamma }_{ij}=\sqrt{{\sigma }_{i}^{2}+{\sigma }_{j}^{2}}\quad .
+
+
+    Where :math:`{J}_{i}` denotes the element-specific hardness and charge densities of width :math:`\sigma_i` taken
+    from the covalent radii of the respective elements.
+
+    However, here the indices of atoms for the pair contribution in the energy, are expected as graph-like indices.
+    The factor :math:`\frac{1}{2}` can be controlled by multiplicity argument.
+
+    """
+
+    # From https://en.wikipedia.org/wiki/Covalent_radius with radii in pm.
+    _default_radii = 0.01 * np.array([
+        0.0, 31, 28,
+        128, 96, 84, 73, 71, 66, 57, 58,
+        166, 141, 121, 111, 107, 105, 102, 106,
+        203, 176, 170, 160, 153, 139, 139, 132, 126, 124, 132, 122, 122, 120, 119, 120, 120, 116,
+        220, 195, 190, 175, 164, 154, 147, 146, 142, 139, 145, 144, 142, 139, 139, 138, 139, 140,
+        244, 215, 207, 204, 203, 201, 199, 198, 198, 196, 194, 192, 192, 189, 190, 187, 175, 187, 170, 162, 151, 144,
+        141, 136, 136, 132, 145, 146, 148, 140, 150, 150,
+        260, 221, 215, 206, 200, 196, 190, 187, 180, 169
+    ])
+
+    _max_atomic_number = 97
+
+    def __init__(self, **kwargs):
+        super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        super(ElectrostaticEnergyCharge, self).build(input_shape)
+
+    def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): [n, q, xyz, ij]
+
+                - n (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
+                - q (tf.RaggedTensor): Learned atomic charges. Shape (batch, [N], 1)
+                - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
+                - ij (tf.RaggedTensor): Edge indices of shape (batch, [N], 2)
+
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
+        Returns:
+            tf.RaggedTensor: Charges of shape (batch, None, 1)
+        """
+        return inputs
+
+    def get_config(self):
+        config = super(ElectrostaticEnergyCharge, self).get_config()
+        config.update({
+        })
+        return config
+
+
+
