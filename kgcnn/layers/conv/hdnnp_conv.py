@@ -55,8 +55,8 @@ class CENTCharge(GraphBaseLayer):
     .. math::
 
         \begin{pmatrix} \begin{matrix}  \; & \; & \; \\ \; & {\bf{A}} & \; \\ \; & \; & \; \\ \end{matrix} &
-        & \rvline & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
-        \begin{matrix} 1 & \dots & 1\end{matrix} & & \rvline & 0 \end{pmatrix}
+        & \vline & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
+        \begin{matrix} 1 & \dots & 1\end{matrix} & & \vline & 0 \end{pmatrix}
 
     A code example of using the layer and possible input is shown below:
 
