@@ -166,7 +166,7 @@ class ACSFG2(GraphBaseLayer):
     def build(self, input_shape):
         super(ACSFG2, self).build(input_shape)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
 
         Args:
@@ -176,10 +176,12 @@ class ACSFG2(GraphBaseLayer):
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - ij (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
 
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
-        z, xyz, eij = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        z, xyz, eij = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
         z = self.map_values(tf.cast, z, dtype=eij.dtype)
         xi, xj = self.layer_pos([xyz, eij], **kwargs)
         rij = self.layer_dist([xi, xj], **kwargs)
@@ -425,7 +427,7 @@ class ACSFG4(GraphBaseLayer):
     def build(self, input_shape):
         super(ACSFG4, self).build(input_shape)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
 
         Args:
@@ -435,10 +437,12 @@ class ACSFG4(GraphBaseLayer):
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - ijk (tf.RaggedTensor): Angle indices referring to nodes of shape (batch, [M], 3)
 
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
-        z, xyz, ijk = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        z, xyz, ijk = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
         z = self.map_values(tf.cast, z, dtype=ijk.dtype)
         zi, zj, zk = self.layer_gather([z, ijk], **kwargs)
         xi, xj, xk = self.layer_pos([xyz, ijk], **kwargs)

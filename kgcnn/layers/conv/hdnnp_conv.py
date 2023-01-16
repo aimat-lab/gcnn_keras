@@ -115,10 +115,12 @@ class CENTCharge(GraphBaseLayer):
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - qtot (tf.Tensor): Total charge per molecule of shape (batch, 1)
 
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
         Returns:
             tf.RaggedTensor: Charges of shape (batch, None, 1)
         """
-        n, chi, x = self.assert_ragged_input_rank(inputs[:3], ragged_rank=1)
+        n, chi, x = self.assert_ragged_input_rank(inputs[:3], mask=mask, ragged_rank=1)
         qtot = inputs[3]
         if qtot.shape.rank > 1:
             qtot = tf.squeeze(qtot, axis=-1)
@@ -222,6 +224,7 @@ class CENTCharge(GraphBaseLayer):
             "use_physical_params": self.use_physical_params,
             "param_constraint": ks.constraints.serialize(self.param_constraint),
             "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
-            "param_initializer": ks.initializers.serialize(self.param_initializer)
+            "param_initializer": ks.initializers.serialize(self.param_initializer),
+            "param_trainable": self.param_trainable
         })
         return config

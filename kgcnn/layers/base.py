@@ -67,32 +67,47 @@ class GraphBaseLayer(ks.layers.Layer):
         """Build base layer."""
         super(GraphBaseLayer, self).build(input_shape)
 
-    def assert_ragged_input_rank(self, inputs, ragged_rank: int = 1):
-        r"""Assert input to be ragged with a given ragged_rank.
+    def assert_ragged_input_rank(self, inputs, mask=None, ragged_rank: int = 1):
+        r"""Assert input to be ragged with a given ragged_rank. This function can be used to assert that the input
+        is in ragged tensor form, if for example you want to access values and splits or ragged methods in a layer.
+        If inputs are not ragged, then they are cast into ragged tensors if possible. Inputs can be a single tensor
+        or a list of tensors.
 
         Args:
             inputs: Tensor or list of tensors to assert to be ragged and have given ragged rank.
+            mask: Boolean mask for inputs. Default is None.
             ragged_rank (int): Assert ragged tensor to have ragged_rank. Default is 1.
 
         Returns:
-            inputs: Tensor or list of tensors.
+            inputs: Tensor or list of tensors as ragged.
         """
-        if isinstance(inputs, (list, tuple)):
-            assert all(
-                [isinstance(x, tf.RaggedTensor) for x in inputs]), "%s requires `RaggedTensor` input." % self.name
-            if ragged_rank is not None:
-                assert all(
-                    [x.ragged_rank == ragged_rank for x in inputs]), "%s must have input with ragged_rank=%s." % (
-                    self.name, ragged_rank)
-        else:
-            assert isinstance(inputs, tf.RaggedTensor), "%s requires `RaggedTensor` input." % self.name
-            if ragged_rank is not None:
-                assert inputs.ragged_rank == ragged_rank, "%s must have input with ragged_rank=%s." % (
-                    self.name, ragged_rank)
+        if mask is not None:
+            raise ValueError("Using `mask` argument in `assert_ragged_input_rank` is not yet supported.")
 
-        # We could further cast to ragged if tensor input.
-        # ...
-        return inputs
+        def validate_or_cast(x):
+            if isinstance(x, tf.RaggedTensor):
+                if ragged_rank is not None:
+                    assert inputs.ragged_rank == ragged_rank, "'%s' must have input with ragged_rank=%s." % (
+                        self.name, ragged_rank)
+                return x
+            elif isinstance(x, tf.Tensor) and mask is None:
+                if ragged_rank is None:
+                    raise ValueError("Casting to ragged without `ragged_rank` information is not supported.")
+                if ragged_rank != 1:
+                    raise ValueError("Casting to ragged is only supported for ragged_rank=1 at the moment.")
+                if x.shape.rank <= ragged_rank:
+                    raise ValueError(
+                        "Rank of inputs must be > ragged_rank but found '%s <= %s' " % (x.shape.rank, ragged_rank))
+                return tf.RaggedTensor.from_row_lengths(
+                    tf.reshape(x, shape=tf.concat([tf.shape(x)[:1]*tf.shape(x)[1:2], tf.shape(x)[2:]], axis=0)),
+                    tf.repeat(tf.shape(x)[1], tf.shape(x)[0]))
+            else:
+                raise ValueError("Unsupported tensor type '%s' in '%s'." % (type(x), self.name))
+
+        if isinstance(inputs, (list, tuple)):
+            return [validate_or_cast(input_item) for input_item in inputs]
+        else:
+            return validate_or_cast(inputs)
 
     def map_values(self, fun, inputs, **kwargs):
         r"""This is a helper function that attempts to call :obj:`fun` on the value tensor(s) of :obj:`inputs`.

@@ -169,7 +169,7 @@ class wACSFRad(GraphBaseLayer):
     def build(self, input_shape):
         super(wACSFRad, self).build(input_shape)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
 
         Args:
@@ -180,14 +180,16 @@ class wACSFRad(GraphBaseLayer):
                 - ij (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
                 - w (tf.RaggedTensor): Edge weight tensor of shape (batch, [M], 1)
 
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
         if self.use_external_weights:
-            z, xyz, eij, w = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+            z, xyz, eij, w = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=eij.dtype)
         else:
-            z, xyz, eij = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+            z, xyz, eij = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=eij.dtype)
             zj = self.layer_gather_out([z, eij], **kwargs)
             w = self.layer_exp_dims(zj, **kwargs)
@@ -306,7 +308,7 @@ class wACSFAng(GraphBaseLayer):
     def build(self, input_shape):
         super(wACSFAng, self).build(input_shape)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
 
         Args:
@@ -317,15 +319,17 @@ class wACSFAng(GraphBaseLayer):
                 - ijk (tf.RaggedTensor): Angle indices referring to nodes of shape (batch, [M], 3)
                 - w (tf.RaggedTensor): Angle weight tensor of shape (batch, [M], 1)
 
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
         """
         if self.use_external_weights:
-            z, xyz, ijk, w = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+            z, xyz, ijk, w = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=ijk.dtype)
             w = self.map_values(tf.cast, w, dtype=self.dtype)
         else:
-            z, xyz, ijk = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+            z, xyz, ijk = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
             z = self.map_values(tf.cast, z, dtype=ijk.dtype)
             w1 = self.layer_gather_1([z, ijk], **kwargs)[0]
             w2 = self.layer_gather_2([z, ijk], **kwargs)[0]
