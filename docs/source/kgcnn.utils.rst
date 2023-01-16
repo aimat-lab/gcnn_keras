@@ -4,18 +4,10 @@ kgcnn.utils package
 Submodules
 ----------
 
-kgcnn.utils.adj module
+kgcnn.utils.cli module
 ----------------------
 
-.. automodule:: kgcnn.utils.adj
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.utils.data module
------------------------
-
-.. automodule:: kgcnn.utils.data
+.. automodule:: kgcnn.utils.cli
    :members:
    :undoc-members:
    :show-inheritance:
@@ -24,22 +16,6 @@ kgcnn.utils.devices module
 --------------------------
 
 .. automodule:: kgcnn.utils.devices
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.utils.learning module
----------------------------
-
-.. automodule:: kgcnn.utils.learning
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.utils.loss module
------------------------
-
-.. automodule:: kgcnn.utils.loss
    :members:
    :undoc-members:
    :show-inheritance:

@@ -53,7 +53,7 @@ kgcnn.data.datasets.GraphTUDataset2020 module
    :show-inheritance:
 
 kgcnn.data.datasets.ISO17Dataset module
----------------------------------------------
+---------------------------------------
 
 .. automodule:: kgcnn.data.datasets.ISO17Dataset
    :members:
@@ -200,6 +200,22 @@ kgcnn.data.datasets.Tox21MolNetDataset module
 ---------------------------------------------
 
 .. automodule:: kgcnn.data.datasets.Tox21MolNetDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.VgdMockDataset module
+-----------------------------------------
+
+.. automodule:: kgcnn.data.datasets.VgdMockDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.VgdRbMotifsDataset module
+---------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.VgdRbMotifsDataset
    :members:
    :undoc-members:
    :show-inheritance:

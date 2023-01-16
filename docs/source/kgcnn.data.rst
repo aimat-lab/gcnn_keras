@@ -76,6 +76,14 @@ kgcnn.data.utils module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.visual\_graph module
+-------------------------------
+
+.. automodule:: kgcnn.data.visual_graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

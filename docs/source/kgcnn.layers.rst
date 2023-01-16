@@ -85,6 +85,14 @@ kgcnn.layers.pooling module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.relational module
+------------------------------
+
+.. automodule:: kgcnn.layers.relational
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

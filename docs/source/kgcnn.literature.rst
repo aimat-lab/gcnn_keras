@@ -92,10 +92,34 @@ kgcnn.literature.GNNExplain module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.literature.GNNFilm module
+-------------------------------
+
+.. automodule:: kgcnn.literature.GNNFilm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.literature.GraphSAGE module
 ---------------------------------
 
 .. automodule:: kgcnn.literature.GraphSAGE
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.HDNNP2nd module
+--------------------------------
+
+.. automodule:: kgcnn.literature.HDNNP2nd
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.HDNNP4th module
+--------------------------------
+
+.. automodule:: kgcnn.literature.HDNNP4th
    :members:
    :undoc-members:
    :show-inheritance:
@@ -160,6 +184,14 @@ kgcnn.literature.PAiNN module
 -----------------------------
 
 .. automodule:: kgcnn.literature.PAiNN
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.literature.RGCN module
+----------------------------
+
+.. automodule:: kgcnn.literature.RGCN
    :members:
    :undoc-members:
    :show-inheritance:

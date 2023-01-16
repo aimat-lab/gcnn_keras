@@ -28,6 +28,14 @@ kgcnn.graph.geom module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.graph.postprocessor module
+--------------------------------
+
+.. automodule:: kgcnn.graph.postprocessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.graph.preprocessor module
 -------------------------------
 

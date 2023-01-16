@@ -14,6 +14,7 @@ Subpackages
    kgcnn.io
    kgcnn.layers
    kgcnn.literature
+   kgcnn.md
    kgcnn.metrics
    kgcnn.model
    kgcnn.mol
@@ -21,6 +22,7 @@ Subpackages
    kgcnn.scaler
    kgcnn.training
    kgcnn.utils
+   kgcnn.xai
 
 Module contents
 ---------------

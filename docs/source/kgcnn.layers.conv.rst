@@ -4,10 +4,10 @@ kgcnn.layers.conv package
 Submodules
 ----------
 
-kgcnn.layers.conv.attention module
-----------------------------------
+kgcnn.layers.conv.acsf\_conv module
+-----------------------------------
 
-.. automodule:: kgcnn.layers.conv.attention
+.. automodule:: kgcnn.layers.conv.acsf_conv
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,6 +76,14 @@ kgcnn.layers.conv.hamnet\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.hdnnp\_conv module
+------------------------------------
+
+.. automodule:: kgcnn.layers.conv.hdnnp_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.mat\_conv module
 ----------------------------------
 
@@ -88,14 +96,6 @@ kgcnn.layers.conv.megnet\_conv module
 -------------------------------------
 
 .. automodule:: kgcnn.layers.conv.megnet_conv
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.layers.conv.message module
---------------------------------
-
-.. automodule:: kgcnn.layers.conv.message
    :members:
    :undoc-members:
    :show-inheritance:
@@ -124,6 +124,14 @@ kgcnn.layers.conv.painn\_conv module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.layers.conv.rgcn\_conv module
+-----------------------------------
+
+.. automodule:: kgcnn.layers.conv.rgcn_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.layers.conv.sage\_conv module
 -----------------------------------
 
@@ -144,6 +152,14 @@ kgcnn.layers.conv.vgae\_conv module
 -----------------------------------
 
 .. automodule:: kgcnn.layers.conv.vgae_conv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv.wacsf\_conv module
+------------------------------------
+
+.. automodule:: kgcnn.layers.conv.wacsf_conv
    :members:
    :undoc-members:
    :show-inheritance:
