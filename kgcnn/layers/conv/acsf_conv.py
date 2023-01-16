@@ -17,11 +17,11 @@ class ACSFG2(GraphBaseLayer):
     `Jörg Behler, The Journal of Chemical Physics 134, 074106 (2011)
     <https://aip.scitation.org/doi/full/10.1063/1.3553717>`_
 
-    This layer implements the radial part :math:`W_{i}^{rad}` :
+    This layer implements the radial part :math:`G_{i}^{2}` :
 
     .. math::
 
-        W_{i}^{rad} = \sum_{j \neq i} \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
+        G_{i}^{2} = \sum_{j \neq i} \; e^{−\eta \, (r_{ij} − \mu)^{2} } \; f_{ij}
 
     Here, for each atom type there is a set of parameters :math:`\eta` and :math:`\mu` and cutoff.
     The cutoff function :math:`f_ij = f_c(r_{ij})` is given by:
@@ -216,11 +216,11 @@ class ACSFG4(GraphBaseLayer):
     `Jörg Behler, The Journal of Chemical Physics 134, 074106 (2011)
     <https://aip.scitation.org/doi/full/10.1063/1.3553717>`_
 
-    This layer implements the radial part :math:`W_{i}^{ang}` :
+    This layer implements the angular part :math:`G_{i}^{4}` :
 
     .. math::
 
-        W_{i}^{ang} =  \; \sum_{j\neq i} \sum_{k\neq j,i} \; 2^{1−\zeta}
+        :math:`G_{i}^{4}` =  \; \sum_{j\neq i} \sum_{k\neq j,i} \; 2^{1−\zeta}
         (1 + \lambda\, \cos{\theta_{ijk}})^\zeta\;
         \times \; e^{−\eta r_{ij}^{2}} \; e^{−\eta r_{ik}^{2}} \; e^{−\eta r_{jk}^{2}} \;
         \times \; f_{ij} \; f_{ik} \; f_{jk}

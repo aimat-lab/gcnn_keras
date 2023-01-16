@@ -218,7 +218,7 @@ class wACSFAng(GraphBaseLayer):
     r"""Weighted atom-centered symmetry functions (wACSF) for high-dimensional neural network potentials (HDNNPs).
     From `Gastegger et al. (2017) <https://arxiv.org/abs/1712.05861>`_ .
     Default values can be found in `<https://aip.scitation.org/doi/suppl/10.1063/1.5019667>`_ .
-    This layer implements the radial part :math:`W_{i}^{ang}` :
+    This layer implements the angular part :math:`W_{i}^{ang}` :
 
     .. math::
 
@@ -312,14 +312,14 @@ class wACSFAng(GraphBaseLayer):
         r"""Forward pass.
 
         Args:
-            inputs: [z, xyz, ijk] or [z, xyz, ijk, w]  if `use_external_weights`
+            inputs (list): [z, xyz, ijk] or [z, xyz, ijk, w]  if `use_external_weights`
 
                 - z (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - ijk (tf.RaggedTensor): Angle indices referring to nodes of shape (batch, [M], 3)
                 - w (tf.RaggedTensor): Angle weight tensor of shape (batch, [M], 1)
 
-            mask: Boolean mask for inputs. Not used. Defaults to None.
+            mask (list): Boolean mask for inputs. Not used. Defaults to None.
 
         Returns:
             tf.RaggedTensor: Atomic representation of shape `(batch, None, units)` .
