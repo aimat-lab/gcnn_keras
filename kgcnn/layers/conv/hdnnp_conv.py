@@ -1,8 +1,12 @@
 import tensorflow as tf
 import numpy as np
 import math
+from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.modules import ExpandDims
+from kgcnn.layers.gather import GatherNodesSelection
 from kgcnn.layers.casting import ChangeTensorType
+from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
 
 ks = tf.keras
 
@@ -152,7 +156,7 @@ class CENTCharge(GraphBaseLayer):
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - qtot (tf.Tensor): Total charge per molecule of shape (batch, 1)
 
-            mask: Boolean mask for inputs. Not used. Defaults to None.
+            mask (list): Boolean mask for inputs. Not used. Defaults to None.
 
         Returns:
             tf.RaggedTensor: Charges of shape (batch, None, 1)
@@ -277,7 +281,7 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
     .. math::
 
         {E}_{{\rm{elec}}}=\frac{1}{2}\,
-        \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\mathop{\sum }\limits_{j}^{{N}_{{\rm{at}}}}
+        \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\mathop{\sum }\limits_{j\neq i}^{{N}_{{\rm{at}}}}
         \frac{{\rm{erf}}\left(\frac{{r}_{ij}}{\sqrt{2}{\gamma }_{ij}}\right)}{{r}_{ij}}{Q}_{i}{Q}_{j}+
         \mathop{\sum }\limits_{i=1}^{{N}_{{\rm{at}}}}\frac{{Q}_{i}^{2}}{2{\sigma }_{i}\sqrt{\pi }}
     
@@ -310,11 +314,46 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
 
     _max_atomic_number = 97
 
-    def __init__(self, **kwargs):
+    def __init__(self, add_eps: bool = False, **kwargs):
         super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
+        self.layer_pos = NodePosition(selection_index=[0, 1])
+        self.layer_gather = GatherNodesSelection(selection_index=[0, 1])
+        self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
+        self.layer_exp_dims = ExpandDims(axis=2)
+        self.layer_pool_edges = PoolingLocalEdges(pooling_method="sum")
+        self.layer_pool_nodes = PoolingNodes(pooling_method="sum")
+
+        self.weight_sigma = self.add_weight(
+            "sigma",
+            shape=(self._max_atomic_number,),
+            initializer=self.param_initializer,
+            regularizer=self.param_regularizer,
+            constraint=self.param_constraint,
+            dtype=self.dtype, trainable=self.param_trainable
+        )
+        if self.use_physical_params:
+            self.set_weights([self._default_radii])
 
     def build(self, input_shape):
         super(ElectrostaticEnergyCharge, self).build(input_shape)
+
+    def _find_sigma_from_atom_number(self, inputs):
+        return tf.gather(self.weight_sigma, inputs, axis=0)
+
+    def _compute_gamma(self, inputs):
+        sigma_i, sigma_j = inputs
+        gamma_squared = tf.square(sigma_i) + tf.square(sigma_j)
+        if self.add_eps:
+            gamma_squared = gamma_squared + ks.backend.epsilon()
+        return tf.sqrt(gamma_squared)
+
+    @staticmethod
+    def _compute_pair_energy(inputs):
+        qi, qj, rij, gamma_ij = inputs
+
+    @staticmethod
+    def _compute_self_energy(inputs):
+        q, sigma = inputs
 
     def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
@@ -327,12 +366,33 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
                 - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
                 - ij (tf.RaggedTensor): Edge indices of shape (batch, [N], 2)
 
-            mask: Boolean mask for inputs. Not used. Defaults to None.
+            mask (list): Boolean mask for inputs. Not used. Defaults to None.
 
         Returns:
-            tf.RaggedTensor: Charges of shape (batch, None, 1)
+            tf.Tensor: Energy of shape (batch, 1)
+
         """
-        return inputs
+        n, q, xyz, ij = self.assert_ragged_input_rank(inputs, mask=mask, ragged_rank=1)
+        if n.shape.rank <= 2:
+            n = self.layer_exp_dims(n, **kwargs)
+        if q.shape.rank <= 2:
+            q = self.layer_exp_dims(q, **kwargs)
+        xi, xj = self.layer_pos([xyz, ij], **kwargs)
+        rij = self.layer_dist([xi, xj], **kwargs)
+        ni, nj = self.layer_gather([n, ij], **kwargs)
+        qi, qj = self.layer_gather([q, ij], **kwargs)
+        sigma_i = self.map_values(self._find_sigma_from_atom_number, ni)
+        sigma_j = self.map_values(self._find_sigma_from_atom_number, nj)
+        sigma = self.map_values(self._find_sigma_from_atom_number, n)
+        gamma_ij = self.map_values(self._compute_gamma, [sigma_i, sigma_j])
+        pair_energy = self.map_values(self._compute_pair_energy, [qi, qj, rij, gamma_ij])
+        self_energy = self.map_values(self._compute_self_energy, [q, sigma])
+        sum_pair = self.layer_pool_edges([n, pair_energy, ij])
+        sum_self = self.layer_pool_nodes(self_energy)
+        # Both are normal tensors now with shape (batch, 1).
+        if self.multiplicity:
+            sum_pair = sum_pair/2
+        return sum_pair + sum_self
 
     def get_config(self):
         config = super(ElectrostaticEnergyCharge, self).get_config()
