@@ -297,6 +297,21 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
 
     However, here the indices of atoms for the pair contribution in the energy, are expected as graph-like indices.
     The factor :math:`\frac{1}{2}` can be controlled by multiplicity argument.
+    Example of using this layer:
+
+    .. code-block:: python
+
+        import tensorflow as tf
+        from kgcnn.layers.conv.hdnnp_conv import ElectrostaticEnergyCharge
+        layer = ElectrostaticEnergyCharge()
+        z = tf.ragged.constant([[1, 6], [1, 1, 6]], ragged_rank=1)
+        q = tf.ragged.constant([[0.43, 0.37], [0.43, 0.43, 0.37]], ragged_rank=1)
+        xyz = tf.ragged.constant([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            [[0.0, 0.0, 0.0], [1.0, 0.2, 0.2], [2.0, 0.0, 0.0]]], ragged_rank=1, inner_shape=(3,))
+        ij = tf.ragged.constant([[[0, 1], [1, 0]],
+            [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]], ragged_rank=1, inner_shape=(2,))
+        eng = layer([z, q, xyz, ij])
+        print(eng)
 
     """
 
@@ -314,14 +329,24 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
 
     _max_atomic_number = 97
 
-    def __init__(self, add_eps: bool = False, **kwargs):
+    def __init__(self, add_eps: bool = False, use_physical_params: bool = True,
+                 param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
+                 param_trainable: bool = False, **kwargs):
         super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
+        self.add_eps = add_eps
+        self.use_physical_params = use_physical_params
         self.layer_pos = NodePosition(selection_index=[0, 1])
         self.layer_gather = GatherNodesSelection(selection_index=[0, 1])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
         self.layer_exp_dims = ExpandDims(axis=2)
         self.layer_pool_edges = PoolingLocalEdges(pooling_method="sum")
         self.layer_pool_nodes = PoolingNodes(pooling_method="sum")
+
+        # We can do this in init since weights do not depend on input shape.
+        self.param_initializer = ks.initializers.deserialize(param_initializer)
+        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+        self.param_constraint = ks.constraints.deserialize(param_constraint)
+        self.param_trainable = param_trainable
 
         self.weight_sigma = self.add_weight(
             "sigma",
@@ -350,10 +375,13 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
     @staticmethod
     def _compute_pair_energy(inputs):
         qi, qj, rij, gamma_ij = inputs
+        frac = tf.math.divide_no_nan(tf.math.erf(tf.math.divide_no_nan(rij, gamma_ij * tf.sqrt(2.0))), rij)
+        return qi*qj*frac
 
     @staticmethod
     def _compute_self_energy(inputs):
         q, sigma = inputs
+        return tf.math.divide_no_nan(tf.square(q), sigma)/2.0/tf.sqrt(math.pi)
 
     def call(self, inputs, mask=None, **kwargs):
         r"""Forward pass.
@@ -391,12 +419,18 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
         sum_self = self.layer_pool_nodes(self_energy)
         # Both are normal tensors now with shape (batch, 1).
         if self.multiplicity:
-            sum_pair = sum_pair/2
+            sum_pair = sum_pair/self.multiplicity
         return sum_pair + sum_self
 
     def get_config(self):
         config = super(ElectrostaticEnergyCharge, self).get_config()
         config.update({
+            "add_eps": self.add_eps,
+            "use_physical_params": self.use_physical_params,
+            "param_constraint": ks.constraints.serialize(self.param_constraint),
+            "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
+            "param_initializer": ks.initializers.serialize(self.param_initializer),
+            "param_trainable": self.param_trainable
         })
         return config
 

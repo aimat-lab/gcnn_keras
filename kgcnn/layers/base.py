@@ -87,7 +87,7 @@ class GraphBaseLayer(ks.layers.Layer):
         def validate_or_cast(x):
             if isinstance(x, tf.RaggedTensor):
                 if ragged_rank is not None:
-                    assert inputs.ragged_rank == ragged_rank, "'%s' must have input with ragged_rank=%s." % (
+                    assert x.ragged_rank == ragged_rank, "'%s' must have input with ragged_rank=%s." % (
                         self.name, ragged_rank)
                 return x
             elif isinstance(x, tf.Tensor) and mask is None:
