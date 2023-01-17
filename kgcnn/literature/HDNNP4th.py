@@ -38,6 +38,8 @@ model_default_behler = {
     "mlp_local_kwargs": {"units": [64, 64, 64],
                           "num_relations": 96,
                           "activation": ["swish", "swish", "linear"]},
+    "cent_kwargs": {},
+    "electrostatic_kwargs": {},
     "node_pooling_args": {"pooling_method": "sum"},
     "verbose": 10,
     "output_embedding": "graph", "output_to_tensor": True,
@@ -57,6 +59,8 @@ def make_model_behler(inputs: list = None,
                       g4_kwargs: dict = None,
                       mlp_charge_kwargs: dict = None,
                       mlp_local_kwargs: dict = None,
+                      cent_kwargs: dict = None,
+                      electrostatic_kwargs: dict = None,
                       output_embedding: str = None,
                       use_output_mlp: bool = None,
                       output_to_tensor: bool = None,
@@ -89,6 +93,8 @@ def make_model_behler(inputs: list = None,
         normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
         mlp_charge_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         mlp_local_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
+        electrostatic_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ElectrostaticEnergyCharge` layer.
+        cent_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`CENTCharge` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
@@ -116,8 +122,8 @@ def make_model_behler(inputs: list = None,
 
     # learnable NN.
     chi = RelationalMLP(**mlp_charge_kwargs)([rep, node_input])
-    q_local = CENTCharge()([node_input, chi, xyz_input, total_charge_input])
-    eng_elec = ElectrostaticEnergyCharge()([node_input, q_local, xyz_input, edge_index_input])
+    q_local = CENTCharge(**cent_kwargs)([node_input, chi, xyz_input, total_charge_input])
+    eng_elec = ElectrostaticEnergyCharge(**electrostatic_kwargs)([node_input, q_local, xyz_input, edge_index_input])
 
     rep_charge = LazyConcatenate()([rep, q_local])
     local_node_energy = RelationalMLP(**mlp_local_kwargs)([rep_charge, node_input])
