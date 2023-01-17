@@ -234,7 +234,7 @@ class CENTCharge(GraphBaseLayer):
         )
 
         # Set diagonal for empty matrix
-        idx_0 = tf.ragged.range(num_atoms + 1, np.repeat(tf.shape(a)[2], tf.shape(num_atoms)[0]))
+        idx_0 = tf.ragged.range(num_atoms + 1, tf.repeat(tf.shape(a)[2], tf.shape(num_atoms)[0]))
         idx_0 = tf.concat([tf.cast(tf.expand_dims(iter_tensor, axis=-1), dtype="int32") for iter_tensor in [
             idx_0.value_rowids(), idx_0.flat_values, idx_0.flat_values
         ]], axis=-1)
