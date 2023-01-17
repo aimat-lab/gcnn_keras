@@ -12,8 +12,9 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-# Base classes are collections.UserDict or collections.abc.MutableMapping.
-class GraphDict(MutableMapping):
+# Base classes are collections.UserDict or collections.abc.MutableMapping. However, this comes with more
+# code to replicate dict-behaviour.
+class GraphDict(dict):
     r"""Dictionary container to store graph information in tensor-form.
 
     The tensors must be stored as numpy arrays. The naming convention is not restricted.
@@ -31,7 +32,6 @@ class GraphDict(MutableMapping):
         from kgcnn.graph.base import GraphDict
         graph = GraphDict({"edge_indices": np.array([[1, 0], [0, 1]]), "edge_labels": np.array([[-1], [1]])})
         graph.set("graph_labels", [0])  # opposite is get()
-        graph["graph_number"] = 1
         graph.set("edge_attributes", [[1.0], [2.0]])
         graph.apply_preprocessor("add_edge_self_loops")
         graph.apply_preprocessor("sort_edge_indices")
@@ -43,12 +43,18 @@ class GraphDict(MutableMapping):
     _cast_to_array = True
     _tensor_class = np.ndarray
     _tensor_conversion = np.array
+    _require_validate = True
 
     def __init__(self, *args, **kwargs):
         r"""Initialize a new :obj:`GraphDict` instance."""
-        # Simple python dictionary as storage.
-        self._dict = {}
-        self.update(*args, **kwargs)
+        super(GraphDict, self).__init__(*args, **kwargs)
+        if self._require_validate:
+            self._validate()
+        
+    def update(self, *args, **kwargs):
+        super(GraphDict, self).update(*args, **kwargs)
+        if self._require_validate:
+            self._validate()
 
     def assign_property(self, key: str, value):
         r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
@@ -68,7 +74,7 @@ class GraphDict(MutableMapping):
             if self._cast_to_array:
                 if not isinstance(value, self._tensor_class):
                     value = self._tensor_conversion(value)
-            self._dict[key] = value
+            self[key] = value
 
     def obtain_property(self, key: str):
         """Get tensor item by name. If key is not found, `None` is returned.
@@ -80,69 +86,25 @@ class GraphDict(MutableMapping):
             self[key].
         """
         if key in self:
-            return self._dict[key]
+            return self[key]
         return None
+
+    def _validate(self):
+        """Routine to check if items are set correctly, i.e. string key and np.ndarray values."""
+        for key, value in self.items():
+            if self._require_str_key:
+                if not isinstance(key, str):
+                    raise ValueError("`GraphDict` requires string keys, but kot '%s'." % key)
+            if self._cast_to_array:
+                if not isinstance(value, self._tensor_class):
+                    self[key] = self._tensor_conversion(value)
 
     # Alias of internal assign_property and obtain property.
     set = assign_property
-    get = obtain_property
-
-    def update(self, *args, **kwargs) -> None:
-        if len(args) > 0:
-            if len(args) > 1:
-                TypeError("dict expected at most 1 argument, got '%s'." % len(args))
-            mapping = args[0]
-            if hasattr(mapping, "items"):
-                for key, value in mapping.items():
-                    self.assign_property(key, value)
-            else:
-                for key, value in mapping:
-                    self.assign_property(key, value)
-        for key, value in kwargs.items():
-            self.assign_property(key, value)
-
-    # Set and get item via assign and obtain_property.
-    def __setitem__(self, key, value):
-        self.assign_property(key, value)
-
-    def __getitem__(self, item):
-        self.obtain_property(item)
-
-    # Most Mapping methods can be directly passed to _dict instance.
-    # We use a python dictionary as storage.
-
-    def __len__(self):
-        return len(self._dict)
-
-    def items(self):
-        return self._dict.items()
-
-    def keys(self):
-        return self._dict.keys()
-
-    def values(self):
-        return self._dict.values()
-
-    def __iter__(self):
-        return self._dict.__iter__()
-
-    def __delitem__(self, key):
-        return self._dict.__delitem__(key)
-
-    def __repr__(self):
-        return self._dict.__repr__()
-
-    def __str__(self):
-        return self._dict.__str__()
-
-    def __contains__(self, key):
-        return key in self._dict
+    # get = obtain_property
 
     def copy(self):
         return GraphDict({key: copy(value) for key, value in self.items()})
-
-    def pop(self, key: str) -> Any:
-        return self._dict.pop(key)
 
     def to_dict(self) -> dict:
         """Returns a python-dictionary of self. Does not copy values.
