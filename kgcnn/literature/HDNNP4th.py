@@ -128,7 +128,7 @@ def make_model_behler(inputs: list = None,
 
     rep_charge = LazyConcatenate()([rep, q_local])
     local_node_energy = RelationalMLP(**mlp_local_kwargs)([rep_charge, node_input])
-    eng_short = PoolingNodes(local_node_energy)
+    eng_short = PoolingNodes(**node_pooling_args)(local_node_energy)
 
     out = ks.layers.Add()([eng_short, eng_elec])
 
@@ -140,7 +140,7 @@ def make_model_behler(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `HDNNP4th`")
 
     model = ks.models.Model(
-        inputs=[node_input, xyz_input, edge_index_input, angle_index_input], outputs=out, name=name)
+        inputs=[node_input, xyz_input, edge_index_input, angle_index_input, total_charge_input], outputs=out, name=name)
 
     model.__kgcnn_model_version__ = __model_version__
     return model
