@@ -27,17 +27,17 @@ model_default_behler = {
                {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32", "ragged": True},
                {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
                {"shape": (None, 3), "name": "angle_indices_nodes", "dtype": "int64", "ragged": True},
-               {"shape": (1, ), "name": "total_charge", "dtype": "float32", "ragged": False}],
+               {"shape": (1,), "name": "total_charge", "dtype": "float32", "ragged": False}],
     "g2_kwargs": {"eta": [0.0, 0.3], "rs": [0.0, 3.0], "rc": 10.0, "elements": [1, 6, 16]},
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
                   "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
     "normalize_kwargs": {},
     "mlp_charge_kwargs": {"units": [64, 64, 64],
-                           "num_relations": 96,
-                           "activation": ["swish", "swish", "linear"]},
-    "mlp_local_kwargs": {"units": [64, 64, 64],
                           "num_relations": 96,
                           "activation": ["swish", "swish", "linear"]},
+    "mlp_local_kwargs": {"units": [64, 64, 64],
+                         "num_relations": 96,
+                         "activation": ["swish", "swish", "linear"]},
     "cent_kwargs": {},
     "electrostatic_kwargs": {},
     "node_pooling_args": {"pooling_method": "sum"},
@@ -103,6 +103,7 @@ def make_model_behler(inputs: list = None,
 
     Returns:
         :obj:`tf.keras.models.Model`
+
     """
     # Make input
     node_input = ks.layers.Input(**inputs[0])
@@ -136,7 +137,7 @@ def make_model_behler(inputs: list = None,
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
     else:
-        raise ValueError("Unsupported output embedding for mode `HDNNP2nd`")
+        raise ValueError("Unsupported output embedding for mode `HDNNP4th`")
 
     model = ks.models.Model(
         inputs=[node_input, xyz_input, edge_index_input, angle_index_input], outputs=out, name=name)

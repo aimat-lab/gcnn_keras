@@ -48,8 +48,7 @@ class GraphDict(MutableMapping):
         r"""Initialize a new :obj:`GraphDict` instance."""
         # Simple python dictionary as storage.
         self._dict = {}
-        for key, value in dict(*args, **kwargs).items():
-            self.assign_property(key, value)
+        self.update(*args, **kwargs)
 
     def assign_property(self, key: str, value):
         r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
@@ -87,6 +86,20 @@ class GraphDict(MutableMapping):
     # Alias of internal assign_property and obtain property.
     set = assign_property
     get = obtain_property
+
+    def update(self, *args, **kwargs) -> None:
+        if len(args) > 0:
+            if len(args) > 1:
+                TypeError("dict expected at most 1 argument, got '%s'." % len(args))
+            mapping = args[0]
+            if hasattr(mapping, "items"):
+                for key, value in mapping.items():
+                    self.assign_property(key, value)
+            else:
+                for key, value in mapping:
+                    self.assign_property(key, value)
+        for key, value in kwargs.items():
+            self.assign_property(key, value)
 
     # Set and get item via assign and obtain_property.
     def __setitem__(self, key, value):
@@ -130,10 +143,6 @@ class GraphDict(MutableMapping):
 
     def pop(self, key: str) -> Any:
         return self._dict.pop(key)
-
-    def update(self, *args, **kwargs) -> None:
-        for key, value in dict(*args, **kwargs).items():
-            self.assign_property(key, value)
 
     def to_dict(self) -> dict:
         """Returns a python-dictionary of self. Does not copy values.
@@ -295,6 +304,7 @@ class GraphDict(MutableMapping):
         """
         if isinstance(name, str):
             proc_graph = get_preprocessor(name, **kwargs)(self)
+            # print(proc_graph)
             self.update(proc_graph)
             return self
         elif isinstance(name, GraphPreProcessorBase):
@@ -509,6 +519,7 @@ class GraphPreProcessorBase(GraphProcessorBase):
         # print(graph_properties)
         processed_properties = self.call(**graph_properties, **self._call_kwargs)
         out_graph = self._assign_properties(graph, processed_properties, self._to_assign, self._search)
+        # print(out_graph)
         if self._in_place:
             graph.update(out_graph)
             return graph
