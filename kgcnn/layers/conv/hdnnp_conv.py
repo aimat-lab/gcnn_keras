@@ -6,7 +6,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import ExpandDims
 from kgcnn.layers.gather import GatherNodesSelection
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
 
 ks = tf.keras
 
@@ -329,17 +329,18 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
 
     _max_atomic_number = 97
 
-    def __init__(self, add_eps: bool = False, use_physical_params: bool = True,
+    def __init__(self, add_eps: bool = False, use_physical_params: bool = True, multiplicity: float = 2.0,
                  param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
                  param_trainable: bool = False, **kwargs):
         super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
         self.add_eps = add_eps
+        self.multiplicity = multiplicity
         self.use_physical_params = use_physical_params
         self.layer_pos = NodePosition(selection_index=[0, 1])
         self.layer_gather = GatherNodesSelection(selection_index=[0, 1])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
         self.layer_exp_dims = ExpandDims(axis=2)
-        self.layer_pool_edges = PoolingLocalEdges(pooling_method="sum")
+        self.layer_pool_edges = PoolingGlobalEdges(pooling_method="sum")
         self.layer_pool_nodes = PoolingNodes(pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
@@ -415,7 +416,7 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
         gamma_ij = self.map_values(self._compute_gamma, [sigma_i, sigma_j])
         pair_energy = self.map_values(self._compute_pair_energy, [qi, qj, rij, gamma_ij])
         self_energy = self.map_values(self._compute_self_energy, [q, sigma])
-        sum_pair = self.layer_pool_edges([n, pair_energy, ij])
+        sum_pair = self.layer_pool_edges(pair_energy)
         sum_self = self.layer_pool_nodes(self_energy)
         # Both are normal tensors now with shape (batch, 1).
         if self.multiplicity:
@@ -426,6 +427,7 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
         config = super(ElectrostaticEnergyCharge, self).get_config()
         config.update({
             "add_eps": self.add_eps,
+            "multiplicity": self.multiplicity,
             "use_physical_params": self.use_physical_params,
             "param_constraint": ks.constraints.serialize(self.param_constraint),
             "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
