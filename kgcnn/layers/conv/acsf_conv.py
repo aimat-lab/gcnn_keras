@@ -123,6 +123,18 @@ class ACSFG2(GraphBaseLayer):
 
     @staticmethod
     def make_param_table(eta: list, rs: list, rc: float, elements: list, **kwargs):
+        r"""Simplified method to generate a parameter table and input for this layer based on a list of values for
+        :math:`R_c` and :math:`\eta` etc.
+
+        Args:
+            eta (list): List of etas.
+            rs (list): List of rs.
+            rc (float): Single Cutoff value.
+            elements (list): List of elements.
+
+        Returns:
+            dict: Kwargs input for this layer.
+        """
         eta_rs_rc = [(et, Rs, rc) for Rs in rs for et in eta]
         elements = np.sort(elements)
         params = np.broadcast_to(eta_rs_rc, (len(elements), len(eta_rs_rc), 3))
@@ -366,6 +378,19 @@ class ACSFG4(GraphBaseLayer):
 
     @staticmethod
     def make_param_table(eta: list, zeta: list, lamda: list, rc: float, elements: list, **kwargs):
+        r"""Simplified method to generate a parameter table and input for this layer based on a list of values for
+        :math:`R_c` and :math:`\eta` etc.
+
+        Args:
+            eta (list): List of etas.
+            zeta (list): List of zeta.
+            lamda (list): List of lamda.
+            rc (float): Single Cutoff value.
+            elements (list): List of elements.
+
+        Returns:
+            dict: Kwargs input for this layer.
+        """
         eta_zeta_lambda_rc = [[eta, z, la, rc] for eta in eta for z in zeta for la in lamda]
         elements = np.sort(elements)
         params = np.broadcast_to(
