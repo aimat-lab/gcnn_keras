@@ -13,7 +13,7 @@ ks = tf.keras
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023.01.11"
+__model_version__ = "2023.01.17"
 
 # Implementation of HDNNP in `tf.keras` from paper:
 # Atom-centered symmetry functions for constructing high-dimensional neural network potentials
@@ -101,12 +101,12 @@ def make_model_weighted(inputs: list = None,
     rep_ang = wACSFAng(**w_acsf_ang_kwargs)([node_input, xyz_input, angle_index_input])
     rep = LazyConcatenate()([rep_rad, rep_ang])
 
-    # learnable NN.
-    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
-
     # Normalization
     if normalize_kwargs:
-        n = GraphBatchNormalization(**normalize_kwargs)(n)
+        rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+
+    # learnable NN.
+    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -208,12 +208,12 @@ def make_model_behler(inputs: list = None,
     rep_g4 = ACSFG4(**ACSFG4.make_param_table(**g4_kwargs))([node_input, xyz_input, angle_index_input])
     rep = LazyConcatenate()([rep_g2, rep_g4])
 
-    # learnable NN.
-    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
-
     # Normalization
     if normalize_kwargs:
-        n = GraphBatchNormalization(**normalize_kwargs)(n)
+        rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+
+    # learnable NN.
+    n = RelationalMLP(**mlp_kwargs)([rep, node_input])
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -240,7 +240,6 @@ model_atom_wise_default = {
     "name": "HDNNP2nd",
     "inputs": [{"shape": (None,), "name": "node_number", "dtype": "int64", "ragged": True},
                {"shape": (None, 3), "name": "node_representation", "dtype": "float32", "ragged": True}],
-    "normalize_kwargs": None,
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
@@ -258,7 +257,6 @@ def make_model_atom_wise(inputs: list = None,
                          node_pooling_args: dict = None,
                          name: str = None,
                          verbose: int = None,
-                         normalize_kwargs: dict = None,
                          mlp_kwargs: dict = None,
                          output_embedding: str = None,
                          use_output_mlp: bool = None,
@@ -283,7 +281,6 @@ def make_model_atom_wise(inputs: list = None,
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         verbose (int): Level of verbosity.
         name (str): Name of the model.
-        normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
@@ -300,10 +297,6 @@ def make_model_atom_wise(inputs: list = None,
 
     # learnable NN.
     n = RelationalMLP(**mlp_kwargs)([rep_input, node_input])
-
-    # Normalization
-    if normalize_kwargs:
-        n = GraphBatchNormalization(**normalize_kwargs)(n)
 
     # Output embedding choice
     if output_embedding == 'graph':
