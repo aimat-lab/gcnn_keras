@@ -65,7 +65,7 @@ def make_model_behler(inputs: list = None,
     r"""Make 4th generation `HDNNP <https://www.nature.com/articles/s41467-020-20427-2>`_ graph network via
     functional API.
 
-    Default parameters can be found in :obj:`kgcnn.literature.HDNNP2nd.model_default_behler`.
+    Default parameters can be found in :obj:`kgcnn.literature.HDNNP4th.model_default_behler` .
 
     Inputs:
         list: `[node_number, node_coordinates, edge_indices, angle_indices_nodes, total_charge]`
