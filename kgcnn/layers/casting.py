@@ -79,7 +79,7 @@ class ChangeTensorType(GraphBaseLayer):
             elif self.output_tensor_type in self._str_type_mask:
                 padded = inputs.to_tensor(shape=self.shape, default_value=self.default_value)
                 mask_values = tf.ones_like(inputs.flat_values) if not self.boolean_mask else tf.ones(
-                    inputs.flat_values.shape, dtype="bool")
+                    tf.shape(inputs.flat_values), dtype="bool")
                 mask = inputs.with_flat_values(mask_values).to_tensor(shape=self.shape)
                 return padded, mask
             elif self.output_tensor_type in self._str_type_partition:
