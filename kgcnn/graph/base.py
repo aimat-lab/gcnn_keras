@@ -13,7 +13,8 @@ module_logger.setLevel(logging.INFO)
 
 
 # Base classes are collections.UserDict or collections.abc.MutableMapping. However, this comes with more
-# code to replicate dict-behaviour.
+# code to replicate dict-behaviour. Here GraphDict inherits from dict. Checking for numpy arrays can be disabled
+# in class variable. Set item is completely free.
 class GraphDict(dict):
     r"""Dictionary container to store graph information in tensor-form.
 
@@ -49,12 +50,12 @@ class GraphDict(dict):
         r"""Initialize a new :obj:`GraphDict` instance."""
         super(GraphDict, self).__init__(*args, **kwargs)
         if self._require_validate:
-            self._validate()
+            self.validate()
         
     def update(self, *args, **kwargs):
         super(GraphDict, self).update(*args, **kwargs)
         if self._require_validate:
-            self._validate()
+            self.validate()
 
     def assign_property(self, key: str, value):
         r"""Add a named property as key, value pair to self. If the value is `None`, nothing is done.
@@ -89,8 +90,9 @@ class GraphDict(dict):
             return self[key]
         return None
 
-    def _validate(self):
-        """Routine to check if items are set correctly, i.e. string key and np.ndarray values."""
+    def validate(self):
+        """Routine to check if items are set correctly, i.e. string key and np.ndarray values.
+        Could be done manually."""
         for key, value in self.items():
             if self._require_str_key:
                 if not isinstance(key, str):
