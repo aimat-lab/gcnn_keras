@@ -168,6 +168,7 @@ A version of the following models and variants thereof are implemented in [liter
 * **[RGCN](kgcnn/literature/RGCN.py)**: [Modeling Relational Data with Graph Convolutional Networks](https://arxiv.org/abs/1703.06103) by Schlichtkrull et al. (2017)
 * **[GNNFilm](kgcnn/literature/GNNFilm.py)**: [GNN-FiLM: Graph Neural Networks with Feature-wise Linear Modulation](https://arxiv.org/abs/1906.12192) by Marc Brockschmidt (2020)
 * **[HDNNP2nd](kgcnn/literature/HDNNP2nd.py)**: [Atom-centered symmetry functions for constructing high-dimensional neural network potentials](https://aip.scitation.org/doi/abs/10.1063/1.3553717) by Jörg Behler (2011)
+* **[HDNNP4th](kgcnn/literature/HDNNP4th.py)**: [A fourth-generation high-dimensional neural network potential with accurate electrostatics including non-local charge transfer](https://www.nature.com/articles/s41467-020-20427-2) by Ko et al. (2021)
 </details>
 
 
