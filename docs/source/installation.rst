@@ -18,6 +18,6 @@ For example to convert molecular file formats `openbabel <http://openbabel.org/w
 
 * `openbabel <http://openbabel.org/wiki/Main_Page>`_ >=3.0.1
 
-To have proper GPU support, make sure that the installed ``tensorflow`` version matches the installed ``tensorflow-gpu`` version.
+To have proper GPU support, make sure that the installed ``tensorflow`` version matches your system requirements.
 Moreover, installed `GPU drivers <https://www.nvidia.com/download/index.aspx?lang=en-us>`_ and `CUDA <https://developer.nvidia.com/cuda-toolkit-archive>`_  and `cuDNN <https://developer.nvidia.com/cudnn>`_ versions must match.
 A list of verified version combinations can be found here: https://www.tensorflow.org/install/source#gpu .
