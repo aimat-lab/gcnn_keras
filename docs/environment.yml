@@ -24,3 +24,4 @@ dependencies:
     - pymatgen
     - pyxtal
     - ase
+    - ipython
