@@ -29,7 +29,11 @@ Graph dictionary
 ----------------
 
 Graphs are represented by a dictionary ``GraphDict`` of (numpy) arrays
-which behaves like a python dict.
+which behaves like a python dict. In principle the ``GraphDict`` can
+take every key and value pair via item operator ``[]``. However, for
+consitency and class methods, keys must be names and values
+``np.ndarray`` . You can use ``set`` and ``get`` to out-cast to numpy
+arrays or run ``validate()``.
 
 .. code:: ipython3
 
@@ -40,14 +44,16 @@ which behaves like a python dict.
     graph.set("graph_labels",  np.array([0]))
     graph.set("edge_attributes", np.array([[1.0], [2.0]]));
     print({x: v.shape for x,v in graph.items()})
+    print("Is dict: %s" % isinstance(graph, dict))
 
 
 .. parsed-literal::
 
     {'edge_indices': (2, 2), 'node_label': (2, 1), 'graph_labels': (1,), 'edge_attributes': (2, 1)}
+    Is dict: True
     
 
-The class ``GraphDict`` can be converted to for example a strict Graph
+The class ``GraphDict`` can be converted to for example a strict graph
 representation of ``networkx`` which keeps track of node and edge
 changes.
 
@@ -65,26 +71,65 @@ changes.
 .. image:: _static/output_6_0.png
 
 
-Or compiling a dictionary of graph properties in tensorflow from a
+Or compiling a dictionary of (tensorial) graph properties from a
 ``networkx`` graph.
+
+.. code:: ipython3
+
+    graph = GraphDict().from_networkx(nx.cubical_graph())
+    print({x: v.shape for x,v in graph.items()})
+
+
+.. parsed-literal::
+
+    {'node_number': (8,), 'edge_indices': (12, 2)}
+    
 
 There are graph pre- and postprocessors in ``kgcnn.graph`` which take
 specific properties by name and apply a processing function or
 transformation. The processing function can for example compute angle
 indices based on edges or sort edge indices and sort dependent features
-accordingly. However, they should be used with caution since they only
-apply to tensor properties regardless of any underlying graph.
+accordingly.
+
+   **WARNING**: However, they should be used with caution since they
+   only apply to tensor properties regardless of any underlying graph.
+
+For example ``SortEdgeIndices`` can sort an ‘edge_indices’ tensor and
+sort attributed properties such as ‘edge_attributes’ or ‘edge_labels’ or
+a list of multiple (named) properties accordingly. In the example below
+a generic search string is also valid. To directly update a
+``GraphDict`` make a preprocessor with ``in_place=True`` .
 
 .. code:: ipython3
 
-    from kgcnn.graph.preprocessor import SortEdgeIndices
+    from kgcnn.graph.preprocessor import SortEdgeIndices, AddEdgeSelfLoops, SetEdgeWeightsUniform
     
-    SortEdgeIndices(edge_indices="edge_indices", edge_attributes="^edge_(?!indices$).*", in_place=True)(graph);
+    SortEdgeIndices(edge_indices="edge_indices", edge_attributes="^edge_(?!indices$).*", in_place=True)(graph)
+    SetEdgeWeightsUniform(edge_indices="edge_indices", value=1.0, in_place=True)(graph)
+    AddEdgeSelfLoops(
+        edge_indices="edge_indices", edge_attributes="^edge_(?!indices$).*", 
+        remove_duplicates=True, sort_indices=True, fill_value=0, in_place=True)(graph);
     
+    print({x: v.shape for x,v in graph.items()})
+
+
+.. parsed-literal::
+
+    {'node_number': (8,), 'edge_indices': (20, 2), 'edge_weights': (20, 1)}
+    
+
+Graph list
+----------
+
+A ``MemoryGraphList`` should behave identical to a python list but
+contain only ``GraphDict`` items.
 
 Datasets
 --------
 
-Loading Options
-===============
+Model input
+-----------
 
+
+   **note**: You can find this page as jupyter notebook in
+   https://github.com/aimat-lab/gcnn_keras/tree/master/notebooks/docs .
