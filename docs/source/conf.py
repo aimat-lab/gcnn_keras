@@ -41,7 +41,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'IPython.sphinxext.ipython_console_highlighting'
 ]
 
 napoleon_google_docstring = True
