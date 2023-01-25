@@ -62,7 +62,7 @@ changes.
 
 
 
-.. image:: output_6_0.png
+.. image:: _static/output_6_0.png
 
 
 Or compiling a dictionary of graph properties in tensorflow from a
