@@ -97,7 +97,7 @@ class ChangeTensorType(GraphBaseLayer):
             "partition_type": self.partition_type,
             "input_tensor_type": self.input_tensor_type,
             "output_tensor_type": self.output_tensor_type,
-            "shape": self.shape, "default_value": self.default_value, "boolean_mask": self.mask_values
+            "shape": self.shape, "default_value": self.default_value, "boolean_mask": self.boolean_mask
         })
         return config
 
