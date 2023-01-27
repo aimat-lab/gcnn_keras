@@ -130,13 +130,14 @@ def map_molecule_callbacks(mol_list: List[str],
 class MoleculeNetDataset(MemoryGraphDataset):
     r"""Class for using 'MoleculeNet' datasets.
 
-    The concept is to load a table of smiles and corresponding targets an convert them into a tensor representation
+    The concept is to load a table of smiles and corresponding targets and convert them into a tensor representation
     for graph networks.
 
     .. code-block:: type
 
         ├── data_directory
             ├── file_name.csv
+            ├── file_name.SMILES
             ├── file_name.sdf
             └── dataset_name.kgcnn.pickle
 
@@ -154,6 +155,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
     for further details.
 
     Attribute generation is carried out via the :obj:`MolecularGraphRDKit` class and requires RDKit as backend.
+    You can also use a pre-processed SDF or SMILES file in :obj:`data_directory` and add their name in the
+    class initialization.
     """
 
     _default_node_attributes = [
@@ -183,28 +186,45 @@ class MoleculeNetDataset(MemoryGraphDataset):
     _mol_graph_interface = MolecularGraphRDKit
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose: int = 10):
+                 file_name_mol: str = None, file_name_smiles: str = None, verbose: int = 10):
         r"""Initialize a :obj:`MoleculeNetDataset` with information of the dataset location on disk.
 
         Args:
             file_name (str): Filename for reading into memory. This must be the name of the '.csv' file.
                 Default is None.
+            file_name_mol (str): Filename of the SDF file that is generated from the SMILES file that is generated
+                from a list of smiles given in the table file specified by :obj:`file_name` . By default, the name
+                is chosen equal to :obj:`file_name` when passed None.
+            file_name_smiles (str): Filename of the SMILES file that is generated from a list of smiles given in the
+                table file specified by :obj:`file_name` . By default, the name is chosen equal to :obj:`file_name`
+                when passed None.
             data_directory (str): Full path to directory containing all dataset files. Default is None.
+                Not used by this subclass. Ignored.
             dataset_name (str): Name of the dataset. Important for naming. Default is None.
             verbose (int): Logging level. Default is 10.
         """
         MemoryGraphDataset.__init__(self, data_directory=data_directory, dataset_name=dataset_name,
                                     file_name=file_name, verbose=verbose)
+        self.file_name_mol = file_name_mol
+        self.file_name_smiles = file_name_smiles
 
     @property
     def file_path_mol(self):
         """Try to determine a file path for the mol information to store."""
-        return os.path.splitext(self.file_path)[0] + ".sdf"
+        self._verify_data_directory()
+        if self.file_name_mol is None:
+            return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".sdf")
+        else:
+            return os.path.join(self.data_directory, self.file_name_mol)
 
     @property
     def file_path_smiles(self):
-        """Try to determine a file path for the smiles information to store."""
-        return os.path.splitext(self.file_path)[0] + ".SMILES"
+        """Try to determine a file path for the SMILES information to store."""
+        self._verify_data_directory()
+        if self.file_name_smiles is None:
+            return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".SMILES")
+        else:
+            return os.path.join(self.data_directory, self.file_name_smiles)
 
     def prepare_data(self, overwrite: bool = False, smiles_column_name: str = "smiles",
                      add_hydrogen: bool = True, sanitize: bool = True,
@@ -313,10 +333,10 @@ class MoleculeNetDataset(MemoryGraphDataset):
             dataset.read_in_memory(label_column_name='label')
             dataset.set_attributes(
                 nodes=['Symbol'],
-                encoder_nodes={'Symbol': OneHotEncoder(['C', 'O'], dtype='str'),
+                encoder_nodes={'Symbol': OneHotEncoder(['C', 'O'], dtype='str')},
                 edges=['BondType'],
                 encoder_edges={'BondType': int},
-                additional_callbacks: {
+                additional_callbacks={
                     # It is important that the callbacks return a numpy array, even if it is just a single element.
                     'name': lambda mg, ds: np.array(ds['name'], dtype='str')
                 }

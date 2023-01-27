@@ -157,6 +157,10 @@ class MemoryGraphList(MutableSequence):
         self._list = value
         return self
 
+    def copy(self):
+        """Copy data in the list."""
+        return MemoryGraphList([x.copy() for x in self])
+
     def clear(self):
         """Clear internal list.
 
@@ -371,14 +375,19 @@ class MemoryGraphDataset(MemoryGraphList):
         self.data_keys = None
         self.data_unit = None
 
-    @property
-    def file_path(self):
-        r"""Construct filepath from 'file_name' given in `init`."""
+    def _verify_data_directory(self) -> Union[str, None]:
+        r"""Utility function that checks if `data_directory` is set correctly."""
         if self.data_directory is None:
             self.warning("Data directory is not set.")
             return None
         if not os.path.exists(os.path.realpath(self.data_directory)):
             self.error("Data directory does not exist.")
+        return self.data_directory
+
+    @property
+    def file_path(self):
+        r"""Construct filepath from 'file_name' given in `init`."""
+        self._verify_data_directory()
         if self.file_name is None:
             self.warning("Can not determine file path, missing `file_name`.")
             return None
@@ -387,11 +396,7 @@ class MemoryGraphDataset(MemoryGraphList):
     @property
     def file_directory_path(self):
         r"""Construct file-directory path from 'data_directory' and 'file_directory' given in `init`."""
-        if self.data_directory is None:
-            self.warning("Data directory is not set.")
-            return None
-        if not os.path.exists(self.data_directory):
-            self.error("Data directory does not exist.")
+        self._verify_data_directory()
         if self.file_directory is None:
             self.warning("Can not determine file directory, missing `file_directory`.")
             return None

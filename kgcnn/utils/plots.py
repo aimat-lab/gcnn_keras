@@ -5,7 +5,8 @@ import os
 
 def plot_train_test_loss(histories: list, loss_name: str = None,
                          val_loss_name: str = None, data_unit: str = "", model_name: str = "",
-                         filepath: str = None, file_name: str = "", dataset_name: str = ""
+                         filepath: str = None, file_name: str = "", dataset_name: str = "",
+                         figsize: list = None, dpi: float = None, show_fig: bool = True
                          ):
     r"""Plot training curves for a list of fit results in form of keras history objects. This means, training-
     and test-loss is plotted vs. epochs for all splits.
@@ -19,6 +20,9 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
         filepath (str): Full path where to save plot to, without the name of the file. Default is "".
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
+        figsize (list): Size of the figure. Default is None.
+        dpi (float): The resolution of the figure in dots-per-inch. Default is None.
+        show_fig (bool): Whether to show figure. Default is True.
 
     Returns:
         matplotlib.pyplot.figure: Figure of the training curves.
@@ -45,7 +49,11 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
         loss = np.array([hist.history[x] for hist in histories])
         val_loss.append(loss)
 
-    fig = plt.figure()
+    if figsize is None:
+        figsize = [6.4, 4.8]
+    if dpi is None:
+        dpi = 100.0
+    fig = plt.figure(figsize=figsize, dpi=dpi)
     for i, x in enumerate(train_loss):
         vp = plt.plot(np.arange(len(np.mean(x, axis=0))), np.mean(x, axis=0), alpha=0.85, label=loss_name[i])
         plt.fill_between(np.arange(len(np.mean(x, axis=0))),
@@ -62,7 +70,8 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
                          )
         plt.scatter([len(train_loss[i][0])], [np.mean(y, axis=0)[-1]],
                     label=r"{0}: {1:0.4f} $\pm$ {2:0.4f} ".format(
-                        val_loss_name[i], np.mean(y, axis=0)[-1], np.std(y, axis=0)[-1]) + data_unit, color=vp[0].get_color()
+                        val_loss_name[i], np.mean(y, axis=0)[-1],
+                        np.std(y, axis=0)[-1]) + data_unit, color=vp[0].get_color()
                     )
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -70,7 +79,8 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
     plt.legend(loc='upper right', fontsize='small')
     if filepath is not None:
         plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
-    plt.show()
+    if show_fig:
+        plt.show()
     return fig
 
 

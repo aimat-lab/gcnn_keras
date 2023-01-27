@@ -59,14 +59,21 @@ class QMDataset(MemoryGraphDataset):
     _mol_graph_interface = MolecularGraphRDKit  # other option is MolecularGraphOpenBabel
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
-                 verbose: int = 10, file_directory: str = None):
+                 verbose: int = 10, file_directory: str = None, file_name_xyz: str = None, file_name_mol: str = None):
         r"""Default initialization. File information on the location of the dataset on disk should be provided here.
 
         Args:
-            data_directory (str): Full path to directory of the dataset. Default is None.
-            file_name (str): Filename for reading into memory. This must be the base-name of a '.xyz' file.
-                Or additionally the name of a '.csv' formatted file that has a list of file names.
+            data_directory (str): Full path to directory of the dataset. Optional. Default is None.
+            file_name (str): Filename for reading table '.csv' file into memory. Must be given!
+                For example as '.csv' formatted file with QM labels such as energy, states, dipole etc.
+                Moreover, the table file can contain a list of file names of individual '.xyz' files to collect.
                 Files are expected to be in :obj:`file_directory`. Default is None.
+            file_name_xyz (str): Filename of a single '.xyz' file. This file is generated when collecting single
+                '.xyz' files in :obj:`file_directory` . If not specified, the name is generated based on
+                :obj:`file_name` .
+            file_name_mol (str): Filename of a single '.sdf' file. This file is generated from the single '.xyz'
+                file. SDF generation does require proper geometries. If not specified, the name is generated based on
+                :obj:`file_name` .
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 '.xyz' files. Only used if :obj:`file_name` is None. Default is None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
@@ -77,16 +84,26 @@ class QMDataset(MemoryGraphDataset):
                                     file_directory=file_directory)
         self.label_units = None
         self.label_names = None
+        self.file_name_xyz = file_name_xyz
+        self.file_name_mol = file_name_mol
 
     @property
     def file_path_mol(self):
         """Try to determine a file name for the mol information to store."""
-        return os.path.splitext(self.file_path)[0] + ".sdf"
+        self._verify_data_directory()
+        if self.file_name_mol is None:
+            return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".sdf")
+        else:
+            return os.path.join(self.data_directory, self.file_name_mol)
 
     @property
     def file_path_xyz(self):
         """Try to determine a file name for the mol information to store."""
-        return os.path.splitext(self.file_path)[0] + ".xyz"
+        self._verify_data_directory()
+        if self.file_name_xyz is None:
+            return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + ".xyz")
+        else:
+            return os.path.join(self.data_directory, self.file_name_xyz)
 
     def get_geom_from_xyz_file(self, file_path: str) -> list:
         """Get a list of xyz items from file.
@@ -128,7 +145,7 @@ class QMDataset(MemoryGraphDataset):
         Args:
             overwrite (bool): Overwrite existing database SDF file. Default is False.
             file_column_name (str): Name of the column in csv file with list of xyz-files located in file_directory
-            make_sdf (bool): Whether to try to make a sdf file from xyz information via OpenBabel.
+            make_sdf (bool): Whether to try to make a sdf file from xyz information via `RDKit` and `OpenBabel`.
 
         Returns:
             self

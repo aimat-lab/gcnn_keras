@@ -18,6 +18,7 @@ class GraphTUDataset(MemoryGraphDataset):
     The datasets are already in a graph-like format and do not need further processing via e.g. `prepare data`.
 
     .. note::
+
         Note that subclasses of `GraphTUDataset2020` in :obj:`kgcnn.data.datasets` downloads datasets,
         There are also further TU-datasets in :obj:`kgcnn.data.datasets`, if further processing is used in literature.
         Not all datasets can provide all types of graph properties like `edge_attributes` etc.
@@ -38,7 +39,7 @@ class GraphTUDataset(MemoryGraphDataset):
             ├──  ...
             └── dataset_name.kgcnn.pickle
 
-    Setting up a
+    Setting up a single file can be made additionally with base class :obj:`save` method.
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,

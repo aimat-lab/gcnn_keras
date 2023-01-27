@@ -58,16 +58,20 @@ class CrystalDataset(MemoryGraphDataset):
                  dataset_name: str = None,
                  file_name: str = None,
                  file_directory: str = None,
+                 file_name_pymatgen_json: str = None,
                  verbose: int = 10):
         r"""Initialize a base class of :obj:`CrystalDataset`.
 
         Args:
             data_directory (str): Full path to directory of the dataset. Default is None.
             file_name (str): Filename for dataset to read into memory. This is a table file.
-                Or a '.csv' of file names that are expected to be cif-files in :obj:`file_directory`.
+                The '.csv' should contain file names that are expected to be CIF-files in :obj:`file_directory`.
                 Default is None.
             file_directory (str): Name or relative path from :obj:`data_directory` to a directory containing sorted
                 'cif' files. Default is None.
+            file_name_pymatgen_json (str): This class will generate a 'json' file with pymatgen structures. You
+                can specify the file name of that file with this argument. By default, it will be named from
+                :obj:`file_name` when passed None.
             dataset_name (str): Name of the dataset. Important for naming and saving files. Default is None.
             verbose (int): Logging level. Default is 10.
         """
@@ -75,13 +79,18 @@ class CrystalDataset(MemoryGraphDataset):
             data_directory=data_directory, dataset_name=dataset_name, file_name=file_name, verbose=verbose,
             file_directory=file_directory)
         self._structs = None
+        self.file_name_pymatgen_json = file_name_pymatgen_json
         self.label_units = None
         self.label_names = None
 
     @property
     def pymatgen_json_file_path(self):
         """Internal file name for the pymatgen serialization information to store to disk."""
-        file_name = os.path.splitext(self.file_name)[0] + ".pymatgen.json"
+        self._verify_data_directory()
+        if self.file_name_pymatgen_json is None:
+            file_name = os.path.splitext(self.file_name)[0] + ".pymatgen.json"
+        else:
+            file_name = self.file_name_pymatgen_json
         return os.path.join(self.data_directory, file_name)
 
     @staticmethod
