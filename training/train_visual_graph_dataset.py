@@ -8,6 +8,7 @@ import random
 
 import click
 import numpy as np
+import matplotlib.colors as mcolors
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import minmax_scale
 from sklearn.metrics import roc_auc_score
@@ -64,7 +65,6 @@ def main(model: str,
     input graph (nodes & edges) which determine how important that respective element was for the outcome of
     the target value prediction.
     """
-    model_name = model
 
     # We are doing all the kgcnn imports only now because importing kgcnn will start the tensorflow runtime
     # which may take a few seconds and which may print a few error messages. In principle that is not a bad
@@ -78,13 +78,15 @@ def main(model: str,
     from kgcnn.utils.plots import plot_train_test_loss
     from kgcnn.training.history import save_history_score
     from kgcnn.xai.utils import flatten_importances_list
+    from kgcnn.xai.base import AbstractExplanationMethod
 
     # Tensorflow warnings are really annoying, so we only show them if the flag is explicitly set
     if not show_warnings:
         warnings.filterwarnings("ignore")
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-    echo_info(f'attempting training of model "{model}" and XAI method "{xai_method}" on dataset "{dataset}"')
+    echo_info(f'attempting training of model "{model}" and XAI method "{xai_method}" '
+              f'on dataset "{dataset}"')
 
     # == LOADING HYPER PARAMETERS ==
     # Technically the values provided through the command line options do not provide enough information to
@@ -102,6 +104,26 @@ def main(model: str,
         model_class=make,
         dataset_name=dataset
     )
+
+    # We already want to check if the xai method is even defined for the given model in the hyperparameters
+    # if that is not the case we can already terminate here.
+    if xai_method not in hyper_params['xai_methods']:
+        raise NotImplementedError(f'It seems you are attempting to use the xai_method "{xai_method}"'
+                                  f'with the model "{model_name}". However, there is no entry '
+                                  f'found for this combination in the given hyperparameter file! '
+                                  f'Please add an entry for that xai_method in the "xai_methods" '
+                                  f'section of the model "{model_name}" and try again.')
+
+    # We want to consider every combination of model & explanation method as unique contender in the
+    # benchmarking, which is why we set the postfix here as the name of the explanation method to make
+    # sure that each combination gets it's own results folder.
+    # We also need to modify the model name so that it is correctly displayed later on in the summary as
+    # an individual entry
+    if xai_method is not None:
+        hyper_params._hyper['info']['postfix'] = '_' + xai_method
+        model_name = model + '_' + xai_method
+    else:
+        model_name = model
 
     # == CREATING RESULTS FOLDER ==
     # Since we are about to generate a bunch of artifacts, we create a new directory here where we are going
@@ -197,8 +219,35 @@ def main(model: str,
         echo_info(f'done processing split {splits_done}')
 
         # == CREATING EXPLANATIONS ==
-        #
-        node_importances, edge_importances = model.explain_importances(x_test)
+        # Currently this module only supports "importance" explanations, where explanations basically
+        # consist of attributing each of the input nodes and edges of the original graph with a single
+        # (0, 1) importance value.
+
+        # Here we need to make a difference between self-explaining models and explaining other models
+        # using black-box explainability methods.
+
+        if xai_method is None:
+            node_importances, edge_importances = model.explain_importances(x_test)
+
+        else:
+            xai_config: dict = hyper_params['xai_methods'][xai_method]
+            xai_class: type = get_model_class(
+                class_name=xai_config['class_name'],
+                module_name=xai_config['module_name']
+            )
+            xai_instance: AbstractExplanationMethod = xai_class(
+                channels=num_importance_channels,
+                **xai_config['config']
+            )
+
+            # __call__ of that instance implements the actual explanation process.
+            # Beware that this could take some time!
+            node_importances, edge_importances = xai_instance(
+                model=model,
+                x=x_test,
+                y=y_test,
+            )
+
         node_importances = [minmax_scale(a) for a in node_importances.numpy()]
         edge_importances = [minmax_scale(a) for a in edge_importances.numpy()]
 
@@ -237,30 +286,25 @@ def main(model: str,
             hist.history['val_edge_auc'] = [edge_auc]
 
         # == CREATING VISUALIZATIONS ==
+        test_indices_list = test_indices.tolist()
         example_indices = random.sample(
-            test_indices.tolist(), 
+            test_indices_list,
             k=int(len(test_indices) * visualization_ratio)
         )
         example_indices = sorted(example_indices)
-        echo_info(f'creating explanation visualizations for {len(example_indices)} indices from test set')
+        node_importances_example = []
+        edge_importances_example = []
+        for index in example_indices:
+            c = test_indices_list.index(index)
+            node_importances_example.append(node_importances[c])
+            edge_importances_example.append(edge_importances[c])
 
-        # Now to create the visualizations for these chosen example elements, we first need to create the
-        # explanations for them.
-        x_example = visual_graph_dataset[example_indices].tensor([
-            {'name': 'node_attributes', 'ragged': True},
-            {'name': 'edge_attributes', 'ragged': True},
-            {'name': 'edge_indices', 'ragged': True}
-        ])
-        node_importances, edge_importances = model.explain_importances(x_example)
-        node_importances = node_importances.numpy()
-        edge_importances = edge_importances.numpy()
-
-        pdf_path = os.path.join(results_path, f'importances_split_{splits_done}.pdf')
+        pdf_path = os.path.join(results_path, f'examples__split_{splits_done}.pdf')
         visual_graph_dataset.visualize_importances(
             output_path=pdf_path,
             gt_importances_suffix=str(num_importance_channels),
-            node_importances_list=node_importances,
-            edge_importances_list=edge_importances,
+            node_importances_list=node_importances_example,
+            edge_importances_list=edge_importances_example,
             indices=example_indices,
         )
 
