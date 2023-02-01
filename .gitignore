@@ -26,3 +26,4 @@ kgcnn.egg-info
 /training/results/*/*/*.png
 /notebooks/docs/.ipynb_checkpoints/
 /notebooks/docs/Example.kgcnn.pickle
+/docs/source/.ipynb_checkpoints/

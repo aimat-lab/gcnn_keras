@@ -15,7 +15,7 @@ Graphs can be represented by an index list of connections plus feature informati
 * ``indices``: Connection-list of shape ``(batch, [M], 2)`` where ``M`` is the number of edges. The indices denote a connection of incoming or receiving node ``i`` and outgoing or sending node ``j`` as ``(i, j)``.
 * ``state``: Graph state information of shape ``(batch, F)`` where ``F`` denotes the feature dimension.
 
-A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using ``RaggedTensor``s.
+A major issue for graphs is their flexible size and shape, when using mini-batches. Here, for a graph implementation in the spirit of keras, the batch dimension should be kept also in between layers. This is realized by using ``RaggedTensor`` .
 
 Input
 -----

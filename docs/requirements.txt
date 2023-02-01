@@ -11,3 +11,4 @@ rdkit-pypi
 pyyaml
 pymatgen
 ase
+nbsphinx
