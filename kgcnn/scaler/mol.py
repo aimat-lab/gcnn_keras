@@ -334,18 +334,22 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
         super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
 
     def fit_transform(self, X, y=None, *, copy=True, sample_weight=None, atomic_number=None):
-        assert y is not None, "Labels must be given for '%s'." % type(self).__name__
+        assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
         return super(ExtensiveMolecularLabelScaler, self).fit_transform(
             X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number, copy=copy)
 
     def transform(self, X, y=None, *, copy=True, atomic_number=None):
-        assert y is not None, "Labels must be given for '%s'." % type(self).__name__
+        assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
+        return super(ExtensiveMolecularLabelScaler, self).fit_transform(
+            X=y, y=None, atomic_number=atomic_number, copy=copy)
 
     def inverse_transform(self, X, y=None, *, copy=True, atomic_number=None):
-        assert y is not None, "Labels must be given for '%s'." % type(self).__name__
+        assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
+        return super(ExtensiveMolecularLabelScaler, self).fit_transform(
+            X=y, y=None, atomic_number=atomic_number, copy=copy)
 
 
 class QMGraphLabelScaler:
