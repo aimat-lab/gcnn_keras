@@ -1,10 +1,6 @@
 Data
 ====
 
-.. code:: ipython3
-
-    import nbconvert
-
 There are some data classes in ``kgcnn`` that can help to store and load
 graph data. In principle a graph is a collection of the follwing objects
 in tensor-form:
