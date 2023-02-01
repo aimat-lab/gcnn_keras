@@ -5,7 +5,7 @@ v2.2.2
 
 v2.2.1
 
-* FIX: Removed ``tensorflow_gpu`` from setup.py
+* HOTFIX: Removed ``tensorflow_gpu`` from setup.py
 * Added ``HDNNP4th.py`` to literature.
 * Fixed error in ``ChangeTensorType`` config for model save.
 * Merged pull request for #103 for ``kgcnn.xai`` .

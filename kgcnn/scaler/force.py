@@ -52,7 +52,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
         super(EnergyForceExtensiveLabelScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
         if self._standardize_coordinates:
-            raise NotImplementedError("Scaling of coordinates is not supported.")
+            raise NotImplementedError("Scaling of coordinates is not supported. This class is pure label scaler.")
         # Backward compatibility.
         self._use_separate_input_arguments = False
 
