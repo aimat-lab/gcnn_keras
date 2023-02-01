@@ -184,6 +184,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
             if len(energy) != len(forces):
                 raise ValueError("Length of energy '%s' do not match force '%s'." % (len(energy), len(forces)))
         else:
+            self._use_separate_input_arguments = False
             energy, forces = y
         if atomic_number is not None:
             atoms = atomic_number
