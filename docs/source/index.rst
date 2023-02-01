@@ -14,7 +14,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 
    intro
    installation
-   data.ipynb
+   data
    implementation
 
 Package Content
