@@ -55,7 +55,7 @@ napoleon_include_init_with_doc = True
 # they should be run at build time.
 nbsphinx_execute = 'never'
 # nbsphinx_allow_errors = True
-# nbsphinx_output_prompt = 'Out[%s]:'
+nbsphinx_output_prompt = 'Out[%s]:'
 
 # Add type of source files
 source_suffix = ['.rst', '.ipynb']
