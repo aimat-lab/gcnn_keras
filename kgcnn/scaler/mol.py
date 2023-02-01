@@ -163,7 +163,7 @@ class ExtensiveMolecularScaler:
         plt.legend(loc='upper left', fontsize='x-small')
         plt.show()
 
-    def transform(self, X, *, y=None, copy=True, atomic_number):
+    def transform(self, X, *, y=None, copy=True, atomic_number=None):
         """Transform any atomic number list with matching properties based on previous fit. Also std-scaled.
 
         Args:
@@ -212,7 +212,7 @@ class ExtensiveMolecularScaler:
         self.fit(X=X, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
         return self.transform(X=X, y=y, copy=copy, atomic_number=atomic_number)
 
-    def inverse_transform(self, X, *, y=None, copy=True, atomic_number):
+    def inverse_transform(self, X, *, y=None, copy=True, atomic_number=None):
         """Reverse the transform method to original properties without offset removed and scaled to original units.
 
         Args:
@@ -333,11 +333,19 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
     def __init__(self, **kwargs):
         super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
 
-    def fit_transform(self, X=None, y=None, *, copy=True, sample_weight=None, atomic_number=None):
+    def fit_transform(self, X, y=None, *, copy=True, sample_weight=None, atomic_number=None):
         assert y is not None, "Labels must be given for '%s'." % type(self).__name__
-        assert atomic_number is None, "Atomic numbers must be passed to `X` for '%s'." % type(self).__name__
+        atomic_number = atomic_number if atomic_number else X
         return super(ExtensiveMolecularLabelScaler, self).fit_transform(
-            X=y, y=None, sample_weight=sample_weight, copy=copy)
+            X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number, copy=copy)
+
+    def transform(self, X, y=None, *, copy=True, atomic_number=None):
+        assert y is not None, "Labels must be given for '%s'." % type(self).__name__
+        atomic_number = atomic_number if atomic_number else X
+
+    def inverse_transform(self, X, y=None, *, copy=True, atomic_number=None):
+        assert y is not None, "Labels must be given for '%s'." % type(self).__name__
+        atomic_number = atomic_number if atomic_number else X
 
 
 class QMGraphLabelScaler:
