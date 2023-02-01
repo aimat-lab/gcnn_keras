@@ -220,9 +220,9 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
     # Similar functions that work on dataset plus property names.
 
     def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                       X: List[str] = None, y: List[str] = None,
+                       X: str = None, y: List[str] = None,
                        sample_weight: str = None, **fit_params):
-        coord, atoms = X
+        atoms = X
         energy, force = y
         return self.fit(
             X=[item[atoms] for item in dataset],
@@ -232,8 +232,8 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
         )
 
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: List[str] = None, y: List[str] = None, copy: bool = True):
-        coord, atoms = X
+                          X: str = None, y: List[str] = None, copy: bool = True):
+        atoms = X
         energy, force = y
         if copy:
             dataset.copy()
@@ -245,8 +245,8 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
         return dataset
 
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  X: List[str] = None, y: List[str] = None, copy: bool = True):
-        coord, atoms = X
+                                  X: str = None, y: List[str] = None, copy: bool = True):
+        atoms = X
         energy, force = y
         if copy:
             dataset.copy()
@@ -258,7 +258,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularLabelScaler):
         return dataset
 
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                       X: List[str] = None, y: List[str] = None,
+                       X: str = None, y: List[str] = None,
                        sample_weight: str = None, copy: bool = True):
         self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
         return self.transform_dataset(dataset=dataset, X=X, y=y, copy=copy)
