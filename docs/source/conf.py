@@ -57,9 +57,6 @@ nbsphinx_execute = 'never'
 # nbsphinx_allow_errors = True
 nbsphinx_output_prompt = 'Out[%s]:'
 
-# Add type of source files
-source_suffix = ['.rst', '.ipynb']
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 master_doc = 'index'
