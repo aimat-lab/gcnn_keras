@@ -10,6 +10,7 @@ dependencies:
   - sphinx==3.4.3
   - sphinx_rtd_theme
   - pip>=20.1  # pip is needed as dependency
+  - pandoc
   - pip:
     - jinja2==3.0.0
     - numpy
