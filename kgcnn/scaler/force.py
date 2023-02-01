@@ -80,7 +80,8 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
         return super(EnergyForceExtensiveScaler, self).fit(
             X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, *, X=None, y=None, copy=True, force=None, atomic_number=None, **fit_params):
+    def fit_transform(self, *, X=None, y=None, copy=True, force=None, atomic_number=None,
+                      sample_weight: Union[List, np.ndarray] = None):
         """Fit Scaler to data.
 
         Args:
@@ -94,6 +95,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
                 For one energy this must still be `(n_samples, 1)` . List of forces as numpy arrays.
                 Note that you can also pass the forces separately to function argument `force` , in
                 which case `y` should be only energies (not a tuple).
+            sample_weight (list, np.ndarray): Weights for each sample.
             copy (bool): Not yet implemented.
             force (list): List of forces as numpy arrays. Deprecated, since they can be contained in `y` .
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
@@ -104,7 +106,7 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             list: Scaled [X, y].
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
-        self.fit(X=X, y=y, atomic_number=atomic_number, force=force, **fit_params)
+        self.fit(X=X, y=y, atomic_number=atomic_number, force=force, sample_weight=sample_weight)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
     def transform(self, *, X=None, y=None, copy=True, force=None, atomic_number=None):
@@ -224,13 +226,14 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
 
     def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
                        X: List[str] = None, y: List[str] = None,
-                       sample_weight: str = None):
+                       sample_weight: str = None, **fit_params):
         coord, atoms = X
         energy, force = y
         return self.fit(
             X=([item[coord] for item in dataset] if coord is not None else None, [item[atoms] for item in dataset]),
             y=([item[energy] for item in dataset], [item[force] for item in dataset]),
-            sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None
+            sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None,
+            **fit_params
         )
 
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
@@ -244,3 +247,23 @@ class EnergyForceExtensiveScaler(ExtensiveMolecularScaler):
             y=([item[energy] for item in dataset], [item[force] for item in dataset]),
             copy=False,
         )
+        return dataset
+
+    def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
+                                  X: List[str] = None, y: List[str] = None, copy: bool = True):
+        coord, atoms = X
+        energy, force = y
+        if copy:
+            dataset.copy()
+        self.inverse_transform(
+            X=([item[coord] for item in dataset] if coord is not None else None, [item[atoms] for item in dataset]),
+            y=([item[energy] for item in dataset], [item[force] for item in dataset]),
+            copy=False,
+        )
+        return dataset
+
+    def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
+                       X: List[str] = None, y: List[str] = None,
+                       sample_weight: str = None, copy: bool = True):
+        self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
+        return self.transform_dataset(dataset=dataset, X=X, y=y, copy=copy)
