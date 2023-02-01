@@ -7,7 +7,7 @@ from kgcnn.data.utils import save_json_file, load_json_file
 class StandardScaler(StandardScalerSklearn):
     r"""Standard scaler that inherits from :obj:`sklearn.preprocessing.StandardScaler`.
     Added functionality to save and load weights of this scaler. Included dummy kwarg 'atomic_number' to be compatible
-    with material oriented scaler.
+    with old material oriented scaler.
 
     .. code-block:: python
 
@@ -60,6 +60,7 @@ class StandardScaler(StandardScalerSklearn):
                 The data used to compute the mean and standard deviation
                 used for later scaling along the feature's axis.
             y (np.ndarray, None): Ignored.
+            atomic_number (list): Not used.
             sample_weight (np.ndarray): Array-like of shape (n_samples,), default=None
                 Individual weights for each sample.
 
@@ -76,7 +77,7 @@ class StandardScaler(StandardScalerSklearn):
         Args:
             X (np.ndarray): Array of shape (n_samples, n_features).
                 The data used to scale along the feature's axis.
-            copy (bool): Copy the input X or not.
+            y (np.ndarray, None): Ignored.
             atomic_number (list): Not used.
             fit_params: Additional fit kwargs.
 
@@ -99,7 +100,7 @@ class StandardScaler(StandardScalerSklearn):
         """
         return super(StandardScaler, self).transform(X=X, copy=copy)
 
-    def inverse_transform(self, X, *, copy=None, atomic_number=None):
+    def inverse_transform(self, X, *, copy: bool = None, atomic_number=None):
         """Scale back the data to the original representation.
 
         Args:
@@ -121,12 +122,12 @@ class StandardScaler(StandardScalerSklearn):
         scale = np.expand_dims(scale, axis=0)
         return scale
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """Get configuration for scaler."""
         config = super(StandardScaler, self).get_params()
         return config
 
-    def set_config(self, config):
+    def set_config(self, config: dict):
         """Set configuration for scaler.
 
         Args:

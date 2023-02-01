@@ -1,3 +1,16 @@
+v2.2.2
+
+* Reworked scaler class. 
+
+
+v2.2.1
+
+* FIX: Removed ``tensorflow_gpu`` from setup.py
+* Added ``HDNNP4th.py`` to literature.
+* Fixed error in ``ChangeTensorType`` config for model save.
+* Merged pull request for #103 for ``kgcnn.xai`` .
+
+
 v2.2.0
 
 * Removed deprecated modules in ``kgcnn.utils``.
