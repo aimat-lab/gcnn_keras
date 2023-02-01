@@ -42,7 +42,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'nbsphinx',  # This lets us use notebooks
+    'IPython.sphinxext.ipython_console_highlighting'
+    # 'nbsphinx',  # This lets us use notebooks
 ]
 
 napoleon_google_docstring = True
@@ -51,12 +52,11 @@ napoleon_include_private_with_doc = True
 napoleon_include_init_with_doc = True
 # autoclass_content = 'both'
 
-# I execute the notebooks manually in advance. If notebooks test the code,
-# they should be run at build time.
-nbsphinx_execute = 'never'
+# Settings for nbsphinx
+# nbsphinx_execute = 'never'
 # nbsphinx_allow_errors = True
-nbsphinx_output_prompt = 'Out[%s]:'
-source_suffix = ['.rst', '.ipynb']
+# nbsphinx_output_prompt = 'Out[%s]:'
+# source_suffix = ['.rst', '.ipynb']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
