@@ -43,7 +43,6 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
     'nbsphinx',  # This lets us use notebooks
-    # 'IPython.sphinxext.ipython_console_highlighting'
 ]
 
 napoleon_google_docstring = True
@@ -57,6 +56,7 @@ napoleon_include_init_with_doc = True
 # they should be run at build time.
 nbsphinx_execute = 'never'
 nbsphinx_allow_errors = True
+nbsphinx_output_prompt = 'Out[%s]:'
 
 # Add type of source files
 source_suffix = ['.rst', '.md', '.ipynb']
