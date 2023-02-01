@@ -220,7 +220,7 @@ class ExtensiveMolecularScaler:
                 pass the atomic numbers to `atomic_number` kwarg.
                 Array of atomic properties of shape `(n_samples, n_properties)`.
                 List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
-            y (np.ndarray): Ignored.
+            y (np.ndarray, None): Ignored.
             copy (bool): Whether to copy or change in place.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Optional, since they can be contained in `X` . Note that if assigning `atomic_numbers` then `X` must
@@ -329,33 +329,38 @@ class ExtensiveMolecularScaler:
 
 
 class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
-    r"""Equivalent of :obj:`ExtensiveMolecularScaler` for labels.
+    r"""Equivalent of :obj:`ExtensiveMolecularScaler` for labels, e.g. the `y` argument.
 
+    .. code-block:: python
+
+        import numpy as np
+        from kgcnn.scaler.mol import ExtensiveMolecularLabelScaler
+        data = np.random.rand(5).reshape((5,1))
+        mol_num = [np.array([6, 1, 1, 1, 1]), np.array([7, 1, 1, 1]),
+            np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
+        ]
+        scaler = ExtensiveMolecularLabelScaler()
+        scaler.fit(X=mol_num, y=data)
+        print(scaler.get_weights())
+        print(scaler.get_config())
+        scaler._plot_predict(data, mol_num)  # For debugging.
+        print(scaler.inverse_transform(X=mol_num, y=scaler.transform(X=mol_num, y=data)))
+        print(data)
+        scaler.save("example.json")
+        new_scaler = ExtensiveMolecularLabelScaler()
+        new_scaler.load("example.json")
+        print(scaler.inverse_transform(X=mol_num, y=scaler.transform(X=mol_num, y=data)))
 
     """
 
     def __init__(self, **kwargs):
         super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
 
-    def fit_transform(self, X, y=None, *, copy=True, sample_weight=None, atomic_number=None):
-        """Combine fit and transform methods in one call.
-
-        Args:
-            X: List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
-            y: Array of atomic labels of shape `(n_samples, n_labels)`.
-            copy (bool): Whether to copy or change in place.
-            sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
-            atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
-                Optional, since they should be contained in `X` . Note that if assigning `atomic_numbers`
-                then `X` is ignored.
-
-        Returns:
-            np.ndarray: Transformed y.
-        """
+    def fit(self, X, y: Union[None, list, np.ndarray] = None, *, sample_weight=None, atomic_number=None):
         assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).fit_transform(
-            X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number, copy=copy)
+        return super(ExtensiveMolecularLabelScaler, self).fit(
+            X=y, y=None, sample_weight=sample_weight, atomic_number=atomic_number)
 
     def transform(self, X, y=None, *, copy=True, atomic_number=None):
         """Transform any atomic number list with matching properties based on previous fit with sequential std-scaling.
@@ -373,7 +378,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
         """
         assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).fit_transform(
+        return super(ExtensiveMolecularLabelScaler, self).transform(
             X=y, y=None, atomic_number=atomic_number, copy=copy)
 
     def inverse_transform(self, X, y=None, *, copy=True, atomic_number=None):
@@ -392,7 +397,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
         """
         assert y is not None, "Labels must be given to `y` for '%s'." % type(self).__name__
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).fit_transform(
+        return super(ExtensiveMolecularLabelScaler, self).inverse_transform(
             X=y, y=None, atomic_number=atomic_number, copy=copy)
 
 
