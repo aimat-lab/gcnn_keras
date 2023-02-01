@@ -25,3 +25,4 @@ dependencies:
     - pyxtal
     - ase
     - ipython
+    - nbsphinx
