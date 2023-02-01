@@ -22,7 +22,7 @@ class ExtensiveMolecularScaler:
             np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
         ]
         scaler = ExtensiveMolecularScaler()
-        scaler.fit(X=data, atomic_number=mol_num)
+        scaler.fit(X=[data, mol_num])
         print(scaler.get_weights())
         print(scaler.get_config())
         scaler._plot_predict(data, mol_num)  # For debugging.
@@ -31,7 +31,7 @@ class ExtensiveMolecularScaler:
         scaler.save("example.json")
         new_scaler = ExtensiveMolecularScaler()
         new_scaler.load("example.json")
-        print(new_scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
+        print(new_scaler.inverse_transform([scaler.transform(X=[data, mol_num], mol_num]))
 
     """
 
@@ -54,22 +54,28 @@ class ExtensiveMolecularScaler:
         self._fit_atom_selection_mask = None
         self._fit_atom_selection = None
         self.scale_ = None
+        self._use_atomic_number_argument = False
+
+    def _check_input(self, X, y, atomic_number):
+        return X, y, atomic_number
 
     def fit(self, X, *, y: Union[None, np.ndarray] = None, sample_weight=None, atomic_number=None):
         r"""Fit atomic number to the molecular properties.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
+            X (np.ndarray): Tuple of `(properties, atomic_number)` .
+                Array of atomic properties of shape `(n_samples, n_properties)`.
+                List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             y (np.ndarray): Ignored.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
+                Deprecated, since they can be contained in `X` .
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
             self
         """
+        X, y, atomic_number = self._check_input(X, y, atomic_number)
         molecular_property = X
-        if atomic_number is None or not isinstance(atomic_number, (list, tuple, np.ndarray)):
-            raise ValueError("Please specify kwarg 'atomic_number' for calling fit. Got '%s'." % atomic_number)
         if len(atomic_number) != len(molecular_property):
             raise ValueError(
                 "`ExtensiveMolecularScaler` different input shape '{0}' vs. '{1}'.".format(
@@ -145,14 +151,18 @@ class ExtensiveMolecularScaler:
         """Transform any atomic number list with matching properties based on previous fit. Also std-scaled.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
+            X (np.ndarray): Tuple of `(properties, atomic_number)` .
+                Array of atomic properties of shape `(n_samples, n_properties)`.
+                List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             y (np.ndarray): Ignored.
             copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
+                Deprecated, since they can be contained in `X` .
 
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
+        X, y, atomic_number = self._check_input(X, y, atomic_number)
         if copy:
             X = X - self.predict(atomic_number)
             if self._standardize_scale:
@@ -167,32 +177,37 @@ class ExtensiveMolecularScaler:
         """Combine fit and transform methods in one call.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`.
+            X (np.ndarray): Tuple of `(properties, atomic_number)` .
+                Array of atomic properties of shape `(n_samples, n_properties)`.
+                List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             y (np.ndarray): Ignored.
             copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
+                Deprecated, since they can be contained in `X` .
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        if atomic_number is None:
-            raise ValueError("`ExtensiveMolecularScaler` requires 'atomic_number' argument.")
         self.fit(X=X, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform(X=X, copy=copy, atomic_number=atomic_number)
+        return self.transform(X=X, y=y, copy=copy, atomic_number=atomic_number)
 
     def inverse_transform(self, X, *, y=None, copy=True, atomic_number):
-        """Reverse the transform method to original properties without offset and scaled to original units.
+        """Reverse the transform method to original properties without offset removed and scaled to original units.
 
         Args:
-            X (np.ndarray): Array of atomic properties of shape `(n_samples, n_properties)`
+            X (np.ndarray): Tuple of `(properties, atomic_number)` .
+                Array of atomic properties of shape `(n_samples, n_properties)`.
+                List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
             y (np.ndarray): Ignored.
             copy (bool): Whether to copy or change in place.
             atomic_number (list): List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
+                Deprecated, since they can be contained in `X` .
 
         Returns:
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
         """
+        X, y, atomic_number = self._check_input(X, y, atomic_number)
         if copy:
             if self._standardize_scale:
                 X = X * np.expand_dims(self.scale_, axis=0)
@@ -289,6 +304,14 @@ class ExtensiveMolecularScaler:
         self.set_config(full_info["config"])
         self.set_weights(full_info["weights"])
         return self
+
+
+class ExtensiveMolecularLabelScaler(ExtensiveMolecularScaler):
+
+    def __init__(self, **kwargs):
+        super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
+
+    def
 
 
 class QMGraphLabelScaler:

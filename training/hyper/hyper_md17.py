@@ -51,7 +51,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {
@@ -130,7 +130,7 @@ hyper = {
                 },
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {
@@ -214,7 +214,7 @@ hyper = {
                 },
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {
@@ -287,7 +287,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {
@@ -364,7 +364,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {
@@ -451,7 +451,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03, "global_clipnorm": 1000}},
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": False}},
         },
         "data": {
@@ -550,7 +550,7 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
                 "loss_weights": [1.0, 49.0]
             },
-            "scaler": {"class_name": "EnergyForceExtensiveScaler",
+            "scaler": {"class_name": "EnergyForceExtensiveLabelScaler",
                        "config": {"standardize_scale": True}},
         },
         "data": {

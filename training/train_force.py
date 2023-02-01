@@ -17,7 +17,7 @@ from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.hyper.hyper import HyperParameter
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, RaggedScaledMeanAbsoluteError
 from kgcnn.utils.devices import set_devices_gpu
-from kgcnn.scaler.force import EnergyForceExtensiveScaler
+from kgcnn.scaler.force import EnergyForceExtensiveLabelScaler
 from kgcnn.metrics.loss import RaggedMeanAbsoluteError
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
@@ -161,12 +161,12 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     force_test = [force[i] for i in test_index]
 
     # Normalize training and test targets. For Force datasets this training script uses the
-    # `EnergyForceExtensiveScaler` class.
+    # `EnergyForceExtensiveLabelScaler` class.
     if "scaler" in hyper["training"]:
-        print("Using `EnergyForceExtensiveScaler`.")
+        print("Using `EnergyForceExtensiveLabelScaler`.")
         # Atomic number force and energy argument here!
-        # Note that `EnergyForceExtensiveScaler` uses both energy and forces to scale.
-        scaler = EnergyForceExtensiveScaler(**hyper["training"]["scaler"]["config"]).fit(
+        # Note that `EnergyForceExtensiveLabelScaler` uses both energy and forces to scale.
+        scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"]).fit(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
         coord_train, energy_train, force_train = scaler.transform(
             X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
