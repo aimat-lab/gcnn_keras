@@ -382,7 +382,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
             sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
-
+            np.ndarray: Transformed properties.
         """
         self.fit(X=X, y=y, sample_weight=sample_weight, atomic_number=atomic_number)
         return self.transform(X=X, y=y, copy=copy, atomic_number=atomic_number)
