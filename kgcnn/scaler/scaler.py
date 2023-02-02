@@ -262,6 +262,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         Returns:
             self: Fitted scaler.
         """
+        # fit() of sklearn uses reset and partial fit.
         self._assert_has_y(y)
         self._reset()
         return self.partial_fit(y=y, X=X, sample_weight=sample_weight)

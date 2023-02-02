@@ -11,7 +11,7 @@ module_logger.setLevel(logging.INFO)
 class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
     r"""Extensive scaler for scaling jointly energy, forces and optionally coordinates.
 
-    Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularLabelScaler` but makes use of `X` , `y` , as
+    Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` but makes use of `X` , `y` , as
     `atomic_number` and (`energy` , `force` ).
     In contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularLabelScaler` which uses only
     `y` as for example `energy` .
