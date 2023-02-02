@@ -3,9 +3,8 @@ import numpy as np
 import os
 from typing import Union, List
 from sklearn.linear_model import Ridge
-from kgcnn.scaler.scaler import StandardScaler, StandardLabelScaler
 from kgcnn.data.utils import save_json_file, load_json_file
-from kgcnn.utils.serial import deserialize
+from kgcnn.scaler.serial import deserialize
 
 
 class ExtensiveMolecularScalerBase:
@@ -449,10 +448,10 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         Args:
             y: Array of atomic labels of shape `(n_samples, n_labels)`.
             X: List of array of atomic numbers. Example [np.array([7,1,1,1]), ...].
-            copy (bool): Whether to copy or change in place.
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Optional, since they should be contained in `X` . Note that if assigning `atomic_numbers`
                 then `X` is ignored.
+            sample_weight: Sample weights `(n_samples,)` directly passed to :obj:`Ridge()`. Default is None.
 
         Returns:
             np.ndarray: Transformed y.
