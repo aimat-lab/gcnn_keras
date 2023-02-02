@@ -5,6 +5,7 @@ from typing import Union, List
 from sklearn.linear_model import Ridge
 from kgcnn.scaler.scaler import StandardScaler, StandardLabelScaler
 from kgcnn.data.utils import save_json_file, load_json_file
+from kgcnn.utils.serial import deserialize
 
 
 class ExtensiveMolecularScalerBase:
@@ -564,25 +565,13 @@ class QMGraphLabelScaler:
 
         self.scaler_list = []
         for x in scaler:
-            # TODO: Make a general list and add deserialization.
-            if isinstance(x, (StandardScaler, StandardLabelScaler, ExtensiveMolecularScaler,
-                              ExtensiveMolecularLabelScaler)):
+            if hasattr(x, "transform") and hasattr(x, "fit"):
                 self.scaler_list.append(x)
-                continue
-
-            # Otherwise, must be serialized version of a scaler.
-            if not isinstance(x, dict):
-                raise TypeError("Single scaler for `QMGraphLabelScaler` deserialization must be dict, got '%s'." % x)
-            if "class_name" not in x:
-                raise ValueError("Scaler class for single target must be defined, got '%s'." % x)
-
-            # Pick allowed scaler.
-            if x["class_name"] == "StandardScaler":
-                self.scaler_list.append(StandardScaler(**x["config"]))
-            elif x["class_name"] == "ExtensiveMolecularScaler":
-                self.scaler_list.append(ExtensiveMolecularScaler(**x["config"]))
+            elif isinstance(x, dict):
+                # Otherwise, must be serialized version of a scaler.
+                self.scaler_list.append(deserialize(x))
             else:
-                raise ValueError("Unsupported scaler '%s'." % x["name"])
+                raise ValueError("Unsupported scaler type '%s'." % x)
 
     def fit_transform(self, y=None, *, X=None, copy=True, sample_weight=None, atomic_number=None):
         r"""Fit and transform all target labels for QM.
