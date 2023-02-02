@@ -601,7 +601,7 @@ class QMGraphLabelScaler:
         Returns:
             np.ndarray: Transformed labels of shape `(n_samples, n_labels)`.
         """
-        labels = self._check_input(atomic_number, X, y)
+        labels, atomic_number = self._check_input(atomic_number, X, y)
 
         if copy:
             out_labels = []
@@ -626,7 +626,7 @@ class QMGraphLabelScaler:
         Returns:
             self
         """
-        labels = self._check_input(atomic_number, X, y)
+        labels, atomic_number = self._check_input(atomic_number, X, y)
 
         for i, x in enumerate(self.scaler_list):
             x.fit(labels[:, i:i + 1], atomic_number=atomic_number, sample_weight=sample_weight)
@@ -645,7 +645,7 @@ class QMGraphLabelScaler:
         Returns:
             np.ndarray: Back-transformed labels of shape `(n_samples, n_labels)`.
         """
-        labels = self._check_input(atomic_number, X, y)
+        labels, atomic_number = self._check_input(atomic_number, X, y)
 
         if copy:
             out_labels = []
@@ -661,10 +661,11 @@ class QMGraphLabelScaler:
 
     def _check_input(self, node_number, X, y):
         assert X is not None or y is not None, "`QMGraphLabelScaler` did not get properties or labels."
-        graph_labels = X if (y is None and X is not None) else y
+        graph_labels = X if (y is None and node_number is not None) else y
+        node_number = node_number if node_number is not None else X
         assert len(node_number) == len(graph_labels), "`QMGraphLabelScaler` input length does not match."
         assert graph_labels.shape[-1] == len(self.scaler_list), "`QMGraphLabelScaler` got wrong number of labels."
-        return graph_labels
+        return graph_labels, node_number
 
     @property
     def scale_(self):
