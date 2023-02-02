@@ -139,9 +139,9 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     if "scaler" in hyper["training"]:
         print("Using QMGraphLabelScaler.")
         # Atomic number argument here!
-        scaler = QMGraphLabelScaler(**hyper["training"]["scaler"]["config"]).fit(X=y_train, atomic_number=atoms_train)
-        y_train = scaler.transform(X=y_train, atomic_number=atoms_train)
-        y_test = scaler.transform(X=y_test, atomic_number=atoms_test)
+        scaler = QMGraphLabelScaler(**hyper["training"]["scaler"]["config"]).fit(y=y_train, atomic_number=atoms_train)
+        y_train = scaler.transform(y=y_train, atomic_number=atoms_train)
+        y_test = scaler.transform(y=y_test, atomic_number=atoms_test)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
@@ -187,8 +187,8 @@ predicted_y = model.predict(x_test, verbose=0)
 true_y = y_test
 
 if scaler:
-    predicted_y = scaler.inverse_transform(X=predicted_y, atomic_number=atoms_test)
-    true_y = scaler.inverse_transform(X=true_y, atomic_number=atoms_test)
+    predicted_y = scaler.inverse_transform(y=predicted_y, atomic_number=atoms_test)
+    true_y = scaler.inverse_transform(y=true_y, atomic_number=atoms_test)
 
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=label_units,

@@ -9,7 +9,7 @@ import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
+# from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.hyper.hyper import HyperParameter
 from kgcnn.data.serial import deserialize as deserialize_dataset

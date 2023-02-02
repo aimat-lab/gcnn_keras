@@ -9,8 +9,8 @@ import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from tensorflow_addons import optimizers
+from kgcnn.scaler.scaler import StandardLabelScaler
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.utils import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
@@ -90,7 +90,7 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     if "scaler" in hyper["training"]:
         print("Using Standard scaler")
-        scaler = StandardScaler(**hyper["training"]["scaler"]["config"])
+        scaler = StandardLabelScaler(**hyper["training"]["scaler"]["config"])
         y_train = scaler.fit_transform(y_train)
         y_test = scaler.transform(y_test)
 
