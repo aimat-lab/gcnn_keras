@@ -94,12 +94,12 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
     def fit_transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
-            X: List[np.ndarray] = None,
-            sample_weight: Union[None, np.ndarray] = None,
-            force: Union[None, List[np.ndarray]] = None,
-            atomic_number: Union[None, List[np.ndarray]] = None,
-            copy: bool = True
-            ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                      X: List[np.ndarray] = None,
+                      sample_weight: Union[None, np.ndarray] = None,
+                      force: Union[None, List[np.ndarray]] = None,
+                      atomic_number: Union[None, List[np.ndarray]] = None,
+                      copy: bool = True
+                      ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data and subsequently transform data.
 
         Args:
@@ -287,7 +287,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return dataset
 
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                       X: str = None, y: List[str] = None,
-                       sample_weight: str = None, copy: bool = True):
+                              X: str = None, y: List[str] = None,
+                              sample_weight: str = None, copy: bool = True):
         self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
         return self.transform_dataset(dataset=dataset, X=X, y=y, copy=copy)
