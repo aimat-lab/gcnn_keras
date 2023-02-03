@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Tuple
 from kgcnn.scaler.mol import ExtensiveMolecularScalerBase
 
 logging.basicConfig()  # Module logger
@@ -9,14 +9,15 @@ module_logger.setLevel(logging.INFO)
 
 
 class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
-    r"""Extensive scaler for scaling jointly energy, forces and optionally coordinates.
+    r"""Extensive scaler for scaling jointly energy, forces.
 
     Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` but makes use of `X` , `y` , as
     `atomic_number` and (`energy` , `force` ).
     In contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularLabelScaler` which uses only
-    `y` as for example `energy` .
+    `y` as `energy` .
 
-    Interface is designed after scikit-learn scaler.
+    Interface is designed after scikit-learn scaler and has additional functions to apply on datasets with
+    :obj:`fit_dataset()` and :obj:`transform_dataset()`
 
     .. note::
 
@@ -49,83 +50,106 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
     """
 
     def __init__(self, standardize_coordinates: bool = False, **kwargs):
+        r"""Initialize layer with arguments for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` .
+
+        Args:
+            standardize_coordinates (bool): Whether to standardize coordinates. Must always be False.
+            kwargs: Kwargs for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` .
+        """
         super(EnergyForceExtensiveLabelScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
         if self._standardize_coordinates:
-            raise NotImplementedError("Scaling of coordinates is not supported. This class is pure label scaler.")
+            raise NotImplementedError("Scaling of coordinates is not supported. This class is a pure label scaler.")
         # Backward compatibility.
         self._use_separate_input_arguments = False
 
-    def fit(self, y: Union[tuple, List, np.ndarray] = None, *, X=None,  sample_weight: Union[List, np.ndarray] = None,
-            force=None, atomic_number=None):
+    def fit(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+            X: List[np.ndarray] = None,
+            sample_weight: Union[None, np.ndarray] = None,
+            force: Union[None, List[np.ndarray]] = None,
+            atomic_number: Union[None, List[np.ndarray]] = None
+            ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data.
 
         Args:
-            X (tuple, list, np.ndarray): Atomic number `atomic_number` are a list of
-                arrays of atomic numbers. Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
+            y (tuple): Tuple of `(energy, forces)` .
+                Energies must be a single array or list of energies of shape `(n_samples, n_states)` .
+                For one energy this must still be `(n_samples, 1)` . List of forces as with each force stored in a
+                numpy array. Note that you can also pass the forces separately to function argument `force` , in
+                which case `y` should be only energies (not a tuple).
+            X (list): Atomic number `atomic_number` are a list of arrays of atomic numbers.
+                Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
                 Note that you can also pass the atomic numbers separately to function argument `atomic_number` , in
                 which case `X` is ignored.
-            y (tuple, list, np.ndarray): Tuple of `(energy, forces)` .
-                Array or list of energy of shape `(n_samples, n_states)` .
-                For one energy this must still be `(n_samples, 1)` . List of forces as numpy arrays.
-                Note that you can also pass the forces separately to function argument `force` , in
-                which case `y` should be only energies (not a tuple).
             sample_weight (list, np.ndarray): Weights for each sample.
             force (list): List of forces as numpy arrays. Deprecated, since they can be contained in `y` .
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Deprecated, since they can be contained in `X` .
+
+        Returns:
+            self.
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         return super(EnergyForceExtensiveLabelScaler, self).fit(
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, y=None, *, X=None, copy=True, force=None, atomic_number=None,
-                      sample_weight: Union[List, np.ndarray] = None):
-        """Fit Scaler to data.
+    def fit_transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+            X: List[np.ndarray] = None,
+            sample_weight: Union[None, np.ndarray] = None,
+            force: Union[None, List[np.ndarray]] = None,
+            atomic_number: Union[None, List[np.ndarray]] = None,
+            copy: bool = True
+            ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+        """Fit Scaler to data and subsequently transform data.
 
         Args:
-            y (tuple, list, np.ndarray): Tuple of `(energy, forces)` .
-                Array or list of energy of shape `(n_samples, n_states)` .
-                For one energy this must still be `(n_samples, 1)` . List of forces as numpy arrays.
-                Note that you can also pass the forces separately to function argument `force` , in
+            y (tuple): Tuple of `(energy, forces)` .
+                Energies must be a single array or list of energies of shape `(n_samples, n_states)` .
+                For one energy this must still be `(n_samples, 1)` . List of forces as with each force stored in a
+                numpy array. Note that you can also pass the forces separately to function argument `force` , in
                 which case `y` should be only energies (not a tuple).
-            X (tuple, list, np.ndarray): Atomic number `atomic_number` are a list of
-                arrays of atomic numbers. Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
+            X (list): Atomic number `atomic_number` are a list of arrays of atomic numbers.
+                Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
                 Note that you can also pass the atomic numbers separately to function argument `atomic_number` , in
                 which case `X` is ignored.
             sample_weight (list, np.ndarray): Weights for each sample.
-            copy (bool): Not yet implemented.
             force (list): List of forces as numpy arrays. Deprecated, since they can be contained in `y` .
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Deprecated, since they can be contained in `X` .
+            copy (bool): Not yet implemented.
 
         Returns:
-            list: Scaled y.
+            tuple: Tuple of transformed `(energy, forces)` .
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         self.fit(X=X, y=y, atomic_number=atomic_number, force=force, sample_weight=sample_weight)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
-    def transform(self, y=None,  *, X=None, copy=True, force=None, atomic_number=None):
+    def transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+                  X: List[np.ndarray] = None,
+                  force: Union[None, List[np.ndarray]] = None,
+                  atomic_number: Union[None, List[np.ndarray]] = None,
+                  copy: bool = True
+                  ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Perform scaling of atomic energies and forces.
 
         Args:
-            y (tuple, list, np.ndarray): Tuple of `(energy, forces)` .
-                Array or list of energy of shape `(n_samples, n_states)` .
-                For one energy this must still be `(n_samples, 1)` . List of forces as numpy arrays.
-                Note that you can also pass the forces separately to function argument `force` , in
+            y (tuple): Tuple of `(energy, forces)` .
+                Energies must be a single array or list of energies of shape `(n_samples, n_states)` .
+                For one energy this must still be `(n_samples, 1)` . List of forces as with each force stored in a
+                numpy array. Note that you can also pass the forces separately to function argument `force` , in
                 which case `y` should be only energies (not a tuple).
-            X (tuple, list, np.ndarray): Atomic number `atomic_number` are a list of
-                arrays of atomic numbers. Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
+            X (list): Atomic number `atomic_number` are a list of arrays of atomic numbers.
+                Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
                 Note that you can also pass the atomic numbers separately to function argument `atomic_number` , in
                 which case `X` is ignored.
-            copy (bool): Whether to copy array or change inplace.
             force (list): List of forces as numpy arrays. Deprecated, since they can be contained in `y` .
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Deprecated, since they can be contained in `X` .
+            copy (bool): Not yet implemented.
 
         Returns:
-            tuple: Scaled y.
+            tuple: Tuple of transformed `(energy, forces)` .
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         if copy:
@@ -134,31 +158,35 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         for i in range(len(y)):
             y[i][:] = y[i] - self.predict(atomic_number)[i]
             if self._standardize_scale:
-                y[i][:] = y[i] / np.expand_dims(self.scale_, axis=0)
+                y[i][:] = y[i] / self.scale_
                 force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
         return y, force
 
-    def inverse_transform(self, y=None, *, X=None, copy=True, force=None,
-                          atomic_number=None):
+    def inverse_transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+                          X: List[np.ndarray] = None,
+                          force: Union[None, List[np.ndarray]] = None,
+                          atomic_number: Union[None, List[np.ndarray]] = None,
+                          copy: bool = True
+                          ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Scale back data for atoms.
 
         Args:
-            y (tuple, list, np.ndarray): Tuple of `(energy, forces)` .
-                Array or list of energy of shape `(n_samples, n_states)` .
-                For one energy this must still be `(n_samples, 1)` . List of forces as numpy arrays.
-                Note that you can also pass the forces separately to function argument `force` , in
+            y (tuple): Tuple of `(energy, forces)` .
+                Energies must be a single array or list of energies of shape `(n_samples, n_states)` .
+                For one energy this must still be `(n_samples, 1)` . List of forces as with each force stored in a
+                numpy array. Note that you can also pass the forces separately to function argument `force` , in
                 which case `y` should be only energies (not a tuple).
-            X (tuple, list, np.ndarray): Atomic number `atomic_number` are a list of
-                arrays of atomic numbers. Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
+            X (list): Atomic number `atomic_number` are a list of arrays of atomic numbers.
+                Example: `[np.array([7,1,1,1]), ...]` . They must match in length.
                 Note that you can also pass the atomic numbers separately to function argument `atomic_number` , in
                 which case `X` is ignored.
-            copy (bool): Whether to copy array or change inplace.
             force (list): List of forces as numpy arrays. Deprecated, since they can be contained in `y` .
             atomic_number (list): List of arrays of atomic numbers. Example [np.array([7,1,1,1]), ...].
                 Deprecated, since they can be contained in `X` .
+            copy (bool): Not yet implemented.
 
         Returns:
-            tuple: Rescaled y.
+            tuple: Tuple of reverse-transformed `(energy, forces)` .
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         if copy:
@@ -166,7 +194,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             force = [np.array(f) for f in force]
         for i in range(len(y)):
             if self._standardize_scale:
-                y[i][:] = y[i][:] * np.expand_dims(self.scale_, axis=0)
+                y[i][:] = y[i][:] * self.scale_
                 force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
             y[i][:] = y[i][:] + self.predict(atomic_number)
         return y, force
@@ -194,13 +222,13 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             x_input = None
         return x_input, energy, forces, atoms
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """Get configuration for scaler."""
         config = super(EnergyForceExtensiveLabelScaler, self).get_config()
         config.update({"standardize_coordinates": self._standardize_coordinates})
         return config
 
-    def set_config(self, config):
+    def set_config(self, config: dict):
         """Set configuration for scaler.
 
         Args:
@@ -211,10 +239,20 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return super(EnergyForceExtensiveLabelScaler, self).set_config(config_super)
 
     # Similar functions that work on dataset plus property names.
+    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], y: List[str] = None, X: str = None,
+                    sample_weight: str = None, **fit_params):
+        """
 
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                       X: str = None, y: List[str] = None,
-                       sample_weight: str = None, **fit_params):
+        Args:
+            dataset (list):
+            y (str):
+            X (str):
+            sample_weight (str):
+            **fit_params:
+
+        Returns:
+
+        """
         atoms = X
         energy, force = y
         return self.fit(

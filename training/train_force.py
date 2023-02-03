@@ -160,8 +160,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
         scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"])
         scaler.fit_dataset(dataset_train, **scaler_io)
-        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io)
-        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io)
+        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io, copy=True)
+        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io, copy=True)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
@@ -212,8 +212,9 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     if scaler:
         predicted_y = scaler.inverse_transform(
-            y=predicted_y["energy"], X=dataset_test.get(target_names["atomic_number"]))
-        true_y = scaler.inverse_transform(y=true_y, X=dataset_test.get(target_names["atomic_number"]))
+            y=(predicted_y["energy"], predicted_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
+        true_y = scaler.inverse_transform(
+            y=(true_y["energy"], true_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
 
     plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
                       filepath=filepath, data_unit=label_units,
