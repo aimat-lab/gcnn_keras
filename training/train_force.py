@@ -89,13 +89,13 @@ data_length = len(dataset)  # Length of the cleaned dataset.
 # to properly pre-scale extensive quantities like total energy.
 # The name of coordinates, atoms, force and energy graph property must be provided in hyperparameter.
 target_names = hyper["training"]["target_property_names"]
+
+# Check that energy has at least one feature dimensions for e.g. multiple states.
 energy = dataset.get(target_names["energy"])
-force = dataset.get(target_names["force"])
-atoms = dataset.get(target_names["atomic_number"])
-coord = dataset.get(target_names["coordinates"])
 energy = np.array(energy)  # can handle energy as numpy array.
 if len(energy.shape) <= 1:
     energy = np.expand_dims(energy, axis=-1)
+dataset.set(target_names["energy"], energy.tolist())
 
 # Training on multiple targets for regression. This can is often required to train on orbital energies of ground
 # or excited state or energies and enthalpies etc.
@@ -122,14 +122,17 @@ elif "train_test_indices" in hyper["training"]:
 else:
     raise ValueError("No information about model validation.")
 
+# Make output directory
+filepath = hyper.results_file_path()
+postfix_file = hyper["info"]["postfix_file"]
+
 # Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
 if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
-model, hist, x_test, scaler, atoms_test, coord_test = None, None, None, None, None, None
-energy_test, force_test = None, None
+model, hist, x_test, scaler = None, None, None, None
 for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.
@@ -144,39 +147,21 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # First select training and test graphs from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
-    # kwargs of the keras `Input` layers ('name' and 'ragged').
-    x_train = dataset[train_index].tensor(model_config["inputs"])
-    x_test = dataset[test_index].tensor(model_config["inputs"])
-    # Energies
-    energy_train = energy[train_index]
-    energy_test = energy[test_index]
-    # Coordinates as list.
-    coord_train = [coord[i] for i in train_index]
-    coord_test = [coord[i] for i in test_index]
-    # Also keep the same information for atomic numbers of the molecules.
-    atoms_train = [atoms[i] for i in train_index]
-    atoms_test = [atoms[i] for i in test_index]
-    # Force information. Forces will be a ragged tensor too.
-    force_train = [force[i] for i in train_index]
-    force_test = [force[i] for i in test_index]
+    dataset_train, dataset_test = dataset[train_index], dataset[test_index]
 
-    # Normalize training and test targets. For Force datasets this training script uses the
-    # `EnergyForceExtensiveLabelScaler` class.
+    # Normalize training and test targets.
+    # For Force datasets this training script uses the `EnergyForceExtensiveLabelScaler` class.
+    # Note that `EnergyForceExtensiveLabelScaler` uses both energy and forces for scaling.
     if "scaler" in hyper["training"]:
         print("Using `EnergyForceExtensiveLabelScaler`.")
-        # Atomic number force and energy argument here!
-        # Note that `EnergyForceExtensiveLabelScaler` uses both energy and forces to scale.
-        scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"]).fit(
-            X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        coord_train, energy_train, force_train = scaler.transform(
-            X=coord_train, y=energy_train, atomic_number=atoms_train, force=force_train)
-        coord_test, energy_test, force_test = scaler.transform(
-            X=coord_test, y=energy_test, atomic_number=atoms_test, force=force_test)
 
-        # Replace (potentially) scaled coordinates in input.
-        if scaler._standardize_coordinates:
-            x_train[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_train)
-            x_test[hyper["model"]["config"]["coordinate_input"]] = ragged_tensor_from_nested_numpy(coord_test)
+        # Atomic number force and energy argument here!
+        scaler_io = {"X": target_names["atomic_number"], "y": [target_names["energy"], target_names["force"]]}
+
+        scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"])
+        scaler.fit_dataset(dataset_train, **scaler_io)
+        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io)
+        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
@@ -190,6 +175,10 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         print("Not using QMGraphLabelScaler.")
         metrics = None
 
+    # Convert dataset to tensor information for model.
+    x_train = dataset_train.tensor(model_config["inputs"])
+    x_test = dataset_test.tensor(model_config["inputs"])
+
     # Compile model with optimizer and loss
     model.compile(
         **hyper.compile(loss={"energy": "mean_absolute_error", "force": RaggedMeanAbsoluteError()}, metrics=metrics))
@@ -197,13 +186,17 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     print(model.summary())
 
     # Convert targets into tensors.
-    force_train, force_test = [ragged_tensor_from_nested_numpy(x) for x in [force_train, force_test]]
-    energy_train, energy_test = [tf.constant(x) for x in [energy_train, energy_test]]
+    labels_in_dataset = {
+        "energy": {"name": target_names["energy"], "ragged": False},
+        "force": {"name": target_names["force"], "shape": (None, 3), "ragged": True}
+    }
+    y_train = dataset_train.tensor(labels_in_dataset)
+    y_test = dataset_test.tensor(labels_in_dataset)
 
     # Start and time training
     start = time.process_time()
-    hist = model.fit(x_train, {"energy": energy_train, "force": force_train},
-                     validation_data=(x_test, {"energy": energy_test, "force": force_test}),
+    hist = model.fit(x_train, y_train,
+                     validation_data=(x_test, y_test),
                      **hyper.fit())
     stop = time.process_time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
@@ -213,44 +206,38 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     test_indices_list.append([train_index, test_index])
     splits_done = splits_done + 1
 
-# Make output directory
-filepath = hyper.results_file_path()
-postfix_file = hyper["info"]["postfix_file"]
+    # Plot prediction
+    predicted_y = model.predict(x_test, verbose=0)
+    true_y = y_test
+
+    if scaler:
+        predicted_y = scaler.inverse_transform(
+            y=predicted_y["energy"], X=dataset_test.get(target_names["atomic_number"]))
+        true_y = scaler.inverse_transform(y=true_y, X=dataset_test.get(target_names["atomic_number"]))
+
+    plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
+                      filepath=filepath, data_unit=label_units,
+                      model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                      file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png")
+
+    plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
+                      np.concatenate([np.array(f) for f in true_y[1]], axis=0),
+                      filepath=filepath, data_unit=label_units,
+                      model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                      file_name=f"predict_force{postfix_file}_fold_{splits_done}.png")
+
+    # Save keras-model to output-folder.
+    model.save(os.path.join(filepath, f"model{postfix_file}_fold_{splits_done}"))
+
+
+# Save original data indices of the splits.
+np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
 
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
-
-# Plot prediction
-predicted_y = model.predict(x_test, verbose=0)
-true_y = [energy_test, force_test]
-
-if scaler:
-    _, rescaled_predicted_energy, rescaled_predicted_force = scaler.inverse_transform(
-        X=coord_test, y=predicted_y["energy"], force=predicted_y["force"], atomic_number=atoms_test)
-    predicted_y = [rescaled_predicted_energy, rescaled_predicted_force]
-    _, true_energy, true_force = scaler.inverse_transform(
-        X=coord_test, y=true_y[0], force=true_y[1], atomic_number=atoms_test)
-    true_y = [true_energy, true_force]
-
-plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
-                  filepath=filepath, data_unit=label_units,
-                  model_name=model_name, dataset_name=dataset_name, target_names=label_names,
-                  file_name=f"predict_energy{postfix_file}.png")
-
-plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
-                  np.concatenate([np.array(f) for f in true_y[1]], axis=0),
-                  filepath=filepath, data_unit=label_units,
-                  model_name=model_name, dataset_name=dataset_name, target_names=label_names,
-                  file_name=f"predict_force{postfix_file}.png")
-
-# Save keras-model to output-folder.
-model.save(os.path.join(filepath, f"model{postfix_file}"))
-
-# Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
 
 # Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))

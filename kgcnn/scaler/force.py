@@ -131,10 +131,10 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         if copy:
             y = np.array(y)
             force = [np.array(f) for f in force]
-        y -= self.predict(atomic_number)
-        if self._standardize_scale:
-            y /= np.expand_dims(self.scale_, axis=0)
-            for i in range(len(force)):
+        for i in range(len(y)):
+            y[i][:] = y[i] - self.predict(atomic_number)[i]
+            if self._standardize_scale:
+                y[i][:] = y[i] / np.expand_dims(self.scale_, axis=0)
                 force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
         return y, force
 
@@ -164,11 +164,11 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         if copy:
             y = np.array(y)
             force = [np.array(f) for f in force]
-        if self._standardize_scale:
-            y *= np.expand_dims(self.scale_, axis=0)
-            for i in range(len(force)):
+        for i in range(len(y)):
+            if self._standardize_scale:
+                y[i][:] = y[i][:] * np.expand_dims(self.scale_, axis=0)
                 force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
-        y += self.predict(atomic_number)
+            y[i][:] = y[i][:] + self.predict(atomic_number)
         return y, force
 
     # Needed for backward compatibility.
@@ -229,7 +229,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         atoms = X
         energy, force = y
         if copy:
-            dataset.copy()
+            dataset = dataset.copy()
         self.transform(
             X=[item[atoms] for item in dataset],
             y=([item[energy] for item in dataset], [item[force] for item in dataset]),
@@ -242,7 +242,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         atoms = X
         energy, force = y
         if copy:
-            dataset.copy()
+            dataset = dataset.copy()
         self.inverse_transform(
             X=[item[atoms] for item in dataset],
             y=([item[energy] for item in dataset], [item[force] for item in dataset]),

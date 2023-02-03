@@ -228,6 +228,8 @@ class MemoryGraphList(MutableSequence):
             list: List of Tensors.
         """
         if isinstance(items, dict):
+            if all([isinstance(value, dict) for value in items.values()]) and "name" not in items:
+                return {key: self._to_tensor(value, make_copy=make_copy) for key, value in items.items()}
             return self._to_tensor(items, make_copy=make_copy)
         elif isinstance(items, (tuple, list)):
             return [self._to_tensor(x, make_copy=make_copy) for x in items]
