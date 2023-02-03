@@ -63,12 +63,12 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         # Backward compatibility.
         self._use_separate_input_arguments = False
 
-    def fit(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    def fit(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
             X: List[np.ndarray] = None,
             sample_weight: Union[None, np.ndarray] = None,
             force: Union[None, List[np.ndarray]] = None,
             atomic_number: Union[None, List[np.ndarray]] = None
-            ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+            ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data.
 
         Args:
@@ -93,13 +93,13 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return super(EnergyForceExtensiveLabelScaler, self).fit(
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    def fit_transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
             X: List[np.ndarray] = None,
             sample_weight: Union[None, np.ndarray] = None,
             force: Union[None, List[np.ndarray]] = None,
             atomic_number: Union[None, List[np.ndarray]] = None,
             copy: bool = True
-            ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+            ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data and subsequently transform data.
 
         Args:
@@ -125,12 +125,12 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         self.fit(X=X, y=y, atomic_number=atomic_number, force=force, sample_weight=sample_weight)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
-    def transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    def transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
                   X: List[np.ndarray] = None,
                   force: Union[None, List[np.ndarray]] = None,
                   atomic_number: Union[None, List[np.ndarray]] = None,
                   copy: bool = True
-                  ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                  ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Perform scaling of atomic energies and forces.
 
         Args:
@@ -162,12 +162,12 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
                 force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
         return y, force
 
-    def inverse_transform(self, y: Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    def inverse_transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
                           X: List[np.ndarray] = None,
                           force: Union[None, List[np.ndarray]] = None,
                           atomic_number: Union[None, List[np.ndarray]] = None,
                           copy: bool = True
-                          ) -> Union[Tuple, List][Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                          ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
         """Scale back data for atoms.
 
         Args:
@@ -212,8 +212,6 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         else:
             self._use_separate_input_arguments = False
             energy, forces = y
-        if len(energy) != len(forces):
-            raise ValueError("Length of energy '%s' do not match force '%s'." % (len(energy), len(forces)))
         if atomic_number is not None:
             atoms = atomic_number
             x_input = X
