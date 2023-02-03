@@ -1,6 +1,10 @@
 v2.2.2
 
-* Reworked scaler class. 
+* Reworked all scaler class to have separate name for using either X or y. For example ``StandardScaler`` or ``StandardLabelScaler`` .
+* IMPORTANT: Renamed and changed behaviour for ``EnergyForceExtensiveScaler`` . New name is `EnergyForceExtensiveLabelScaler` . Return is just y now. Added experimental functionality for transforming dataset.
+* Reworked training scripts for new scalers.
+* Reduced requirements for tensorflow to 2.9.
+* 
 
 
 v2.2.1
