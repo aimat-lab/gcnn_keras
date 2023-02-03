@@ -136,7 +136,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             y /= np.expand_dims(self.scale_, axis=0)
             for i in range(len(force)):
                 force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
-        return self._verify_output(X, y, force, atomic_number)
+        return y, force
 
     def inverse_transform(self, y=None, *, X=None, copy=True, force=None,
                           atomic_number=None):
@@ -169,7 +169,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             for i in range(len(force)):
                 force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
         y += self.predict(atomic_number)
-        return self._verify_output(X, y, force, atomic_number)
+        return y, force
 
     # Needed for backward compatibility.
     def _verify_input(self, X, y, force, atomic_number):
@@ -193,13 +193,6 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             atoms = X
             x_input = None
         return x_input, energy, forces, atoms
-
-    # Needed for backward compatibility.
-    def _verify_output(self, X, y, force, atomic_number):
-        if self._use_separate_input_arguments:
-            return X, y, force
-        else:
-            return y, force
 
     def get_config(self):
         """Get configuration for scaler."""
