@@ -54,7 +54,8 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
         Args:
             standardize_coordinates (bool): Whether to standardize coordinates. Must always be False.
-            kwargs: Kwargs for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` .
+            kwargs: Kwargs for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` parent class.
+                See docs for this class.
         """
         super(EnergyForceExtensiveLabelScaler, self).__init__(**kwargs)
         self._standardize_coordinates = standardize_coordinates
@@ -63,12 +64,13 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         # Backward compatibility.
         self._use_separate_input_arguments = False
 
-    def fit(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    # noinspection PyPep8Naming
+    def fit(self, y: Tuple[List[np.ndarray], List[np.ndarray]] = None, *,
             X: List[np.ndarray] = None,
             sample_weight: Union[None, np.ndarray] = None,
             force: Union[None, List[np.ndarray]] = None,
             atomic_number: Union[None, List[np.ndarray]] = None
-            ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+            ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data.
 
         Args:
@@ -93,13 +95,14 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return super(EnergyForceExtensiveLabelScaler, self).fit(
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
-    def fit_transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    # noinspection PyPep8Naming
+    def fit_transform(self, y: Tuple[List[np.ndarray], List[np.ndarray]] = None, *,
                       X: List[np.ndarray] = None,
                       sample_weight: Union[None, np.ndarray] = None,
                       force: Union[None, List[np.ndarray]] = None,
                       atomic_number: Union[None, List[np.ndarray]] = None,
                       copy: bool = True
-                      ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                      ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """Fit Scaler to data and subsequently transform data.
 
         Args:
@@ -125,12 +128,13 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         self.fit(X=X, y=y, atomic_number=atomic_number, force=force, sample_weight=sample_weight)
         return self.transform(X=X, y=y, copy=copy, force=force, atomic_number=atomic_number)
 
-    def transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    # noinspection PyPep8Naming
+    def transform(self, y: Tuple[List[np.ndarray], List[np.ndarray]] = None, *,
                   X: List[np.ndarray] = None,
                   force: Union[None, List[np.ndarray]] = None,
                   atomic_number: Union[None, List[np.ndarray]] = None,
                   copy: bool = True
-                  ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                  ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """Perform scaling of atomic energies and forces.
 
         Args:
@@ -162,12 +166,13 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
                 force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
         return y, force
 
-    def inverse_transform(self, y: Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]] = None, *,
+    # noinspection PyPep8Naming
+    def inverse_transform(self, y: Tuple[List[np.ndarray], List[np.ndarray]] = None, *,
                           X: List[np.ndarray] = None,
                           force: Union[None, List[np.ndarray]] = None,
                           atomic_number: Union[None, List[np.ndarray]] = None,
                           copy: bool = True
-                          ) -> Tuple[Union[List[np.ndarray], np.ndarray], List[np.ndarray]]:
+                          ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         """Scale back data for atoms.
 
         Args:
@@ -200,6 +205,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return y, force
 
     # Needed for backward compatibility.
+    # noinspection PyPep8Naming
     def _verify_input(self, X, y, force, atomic_number):
         # Verify the input format.
         if y is None:
@@ -207,7 +213,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         if force is not None:
             self._use_separate_input_arguments = True
             module_logger.info(
-                "`%s` using `force` argument. `y` is expected to be energy.")
+                "`%s` using `force` argument (not the default), `y` is expected to be energy." % type(self).__name__)
             energy, forces = y, force
         else:
             self._use_separate_input_arguments = False
@@ -237,21 +243,24 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         return super(EnergyForceExtensiveLabelScaler, self).set_config(config_super)
 
     # Similar functions that work on dataset plus property names.
+    # noinspection PyPep8Naming
     def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], y: List[str] = None, X: str = None,
-                    sample_weight: str = None, **fit_params):
-        """
+                    atomic_number: str = None, sample_weight: str = None,  **fit_params):
+        r"""Fit to dataset with relevant `X` , `y` information.
 
         Args:
-            dataset (list):
-            y (str):
-            X (str):
-            sample_weight (str):
-            **fit_params:
+            dataset (list): Dataset of type `List[Dict]` containing energies and forces and atomic numbers.
+            y (list): List of names for energy and force in dataset. For example ("energy", "forces") .
+            X (str): Name of atomic number information in dataset. For example "atomic_number".
+            atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
+                Optional, if used, `X` will be ignored.
+            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
+            fit_params: Fit parameters handed to :obj:`fit()`
 
         Returns:
-
+            self.
         """
-        atoms = X
+        atoms = X if atomic_number is None else atomic_number
         energy, force = y
         return self.fit(
             X=[item[atoms] for item in dataset],
@@ -260,9 +269,24 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             **fit_params
         )
 
+    # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None, y: List[str] = None, copy: bool = True):
-        atoms = X
+                          X: str = None, y: List[str] = None, atomic_number: str = None, copy: bool = True
+                          ) -> List[Dict[str, np.ndarray]]:
+        r"""Transform dataset with relevant `X` , `y` information.
+
+        Args:
+            dataset (list): Dataset of type `List[Dict]` containing energies and forces and atomic numbers.
+            y (list): List of names for energy and force in dataset. For example ("energy", "forces") .
+            X (str): Name of atomic number information in dataset. For example "atomic_number".
+            atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
+                Optional, if used, `X` will be ignored.
+            copy (bool): Whether to copy dataset. Default is True.
+
+        Returns:
+            dataset: Transformed dataset.
+        """
+        atoms = X if atomic_number is not None else atomic_number
         energy, force = y
         if copy:
             dataset = dataset.copy()
@@ -273,9 +297,24 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         )
         return dataset
 
+    # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  X: str = None, y: List[str] = None, copy: bool = True):
-        atoms = X
+                                  y: List[str] = None, X: str = None, atomic_number: str = None, copy: bool = True
+                                  ) -> List[Dict[str, np.ndarray]]:
+        r"""Inverse transform dataset with relevant `X` , `y` information.
+
+        Args:
+            dataset (list): Dataset of type `List[Dict]` containing energies and forces and atomic numbers.
+            y (list): List of names for energy and force in dataset. For example ("energy", "forces") .
+            X (str): Name of atomic number information in dataset. For example "atomic_number".
+            atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
+                Optional, if used, `X` will be ignored.
+            copy (bool): Whether to copy dataset. Default is True.
+
+        Returns:
+            dataset: Inverse-transformed dataset.
+        """
+        atoms = X if atomic_number is not None else atomic_number
         energy, force = y
         if copy:
             dataset = dataset.copy()
@@ -286,8 +325,26 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         )
         return dataset
 
+    # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              X: str = None, y: List[str] = None,
-                              sample_weight: str = None, copy: bool = True):
-        self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
-        return self.transform_dataset(dataset=dataset, X=X, y=y, copy=copy)
+                              y: List[str] = None, X: str = None,
+                              atomic_number: str = None, sample_weight: str = None, copy: bool = True,
+                              **fit_params) -> List[Dict[str, np.ndarray]]:
+        r"""Fit and transform to dataset with relevant `X` , `y` information.
+
+        Args:
+            dataset (list): Dataset of type `List[Dict]` containing energies and forces and atomic numbers.
+            y (list): List of names for energy and force in dataset. For example ("energy", "forces") .
+            X (str): Name of atomic number information in dataset. For example "atomic_number".
+            atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
+                Optional, if used, `X` will be ignored.
+            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
+            copy (bool): Whether to copy dataset. Default is True.
+            fit_params: Fit parameters handed to :obj:`fit()`
+
+        Returns:
+            dataset: Transformed dataset.
+        """
+        self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight, atomic_number=atomic_number,
+                         **fit_params)
+        return self.transform_dataset(dataset=dataset, X=X, y=y,atomic_number=atomic_number, copy=copy)
