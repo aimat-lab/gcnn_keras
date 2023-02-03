@@ -196,7 +196,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             if self._standardize_scale:
                 y[i][:] = y[i][:] * self.scale_
                 force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
-            y[i][:] = y[i][:] + self.predict(atomic_number)
+            y[i][:] = y[i][:] + self.predict(atomic_number)[i]
         return y, force
 
     # Needed for backward compatibility.
@@ -206,8 +206,8 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             raise ValueError("`EnergyForceExtensiveLabelScaler` requires 'y' argument, but got 'None'.")
         if force is not None:
             self._use_separate_input_arguments = True
-            module_logger.warning(
-                "Preferred input is `(energy, force)` for 'y', since `force` argument is deprecated.")
+            module_logger.info(
+                "`%s` using `force` argument. `y` is expected to be energy.")
             energy, forces = y, force
         else:
             self._use_separate_input_arguments = False
