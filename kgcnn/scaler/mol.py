@@ -304,6 +304,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
 
     """
 
+    # noinspection PyPep8Naming
     def fit(self, X, *, y: Union[None, np.ndarray] = None, sample_weight=None, atomic_number=None):
         r"""Fit atomic number to the molecular properties.
 
@@ -319,6 +320,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularScaler, self).fit(
             molecular_property=X, atomic_number=atomic_number, sample_weight=sample_weight)
 
+    # noinspection PyPep8Naming
     def transform(self, X, *, y=None, copy=True, atomic_number=None):
         """Transform any atomic number list with matching properties based on previous fit with sequential std-scaling.
 
@@ -334,6 +336,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularScaler, self).transform(
                 molecular_property=X, atomic_number=atomic_number, copy=copy)
 
+    # noinspection PyPep8Naming
     def fit_transform(self, X, *, y=None, copy=True, atomic_number=None, sample_weight=None):
         r"""Fit and transform.
 
@@ -350,6 +353,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         self.fit(X=X, y=y, sample_weight=sample_weight, atomic_number=atomic_number)
         return self.transform(X=X, y=y, copy=copy, atomic_number=atomic_number)
 
+    # noinspection PyPep8Naming
     def inverse_transform(self, X, *, y=None, copy=True, atomic_number=None):
         """Reverse the transform method to original properties without offset removed and scaled to original units.
 
@@ -398,6 +402,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
             raise ValueError(
                 "Require labels in `y` for `%s`. Input must be e.g. 'fit(y=data)'." % type(self).__name__)
 
+    # noinspection PyPep8Naming
     def fit(self, y: Union[None, list, np.ndarray] = None, *, X=None, sample_weight=None, atomic_number=None):
         """Fit labels with atomic number information.
 
@@ -417,6 +422,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularLabelScaler, self).fit(
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
+    # noinspection PyPep8Naming
     def transform(self, y=None, *, X, copy=True, atomic_number=None):
         """Transform any atomic number list with matching labels based on previous fit with sequential std-scaling.
 
@@ -436,6 +442,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularLabelScaler, self).transform(
             molecular_property=y, atomic_number=atomic_number, copy=copy)
 
+    # noinspection PyPep8Naming
     def fit_transform(self, y=None, *, X=None, copy=True, atomic_number=None, sample_weight=None):
         """Fit and transform.
 
@@ -457,6 +464,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         self.fit(y=y, X=X, sample_weight=sample_weight, atomic_number=atomic_number)
         return self.transform(y=y, X=X, copy=copy, atomic_number=atomic_number)
 
+    # noinspection PyPep8Naming
     def inverse_transform(self, y=None, *, X=None, copy=True, atomic_number=None):
         """Reverse the transform method to original labels without offset removed and scaled to original units.
 
@@ -528,6 +536,7 @@ class QMGraphLabelScaler:
             else:
                 raise ValueError("Unsupported scaler type '%s'." % x)
 
+    # noinspection PyPep8Naming
     def fit_transform(self, y=None, *, X=None, copy=True, sample_weight=None, atomic_number=None):
         r"""Fit and transform all target labels for QM.
 
@@ -544,6 +553,7 @@ class QMGraphLabelScaler:
         self.fit(y=y, X=X, atomic_number=atomic_number, sample_weight=sample_weight)
         return self.transform(y=y, X=X, copy=copy, atomic_number=atomic_number)
 
+    # noinspection PyPep8Naming
     def transform(self, y=None, *, X=None, copy=True, atomic_number: list = None):
         r"""Transform all target labels for QM. Requires :obj:`fit()` called previously.
 
@@ -569,6 +579,7 @@ class QMGraphLabelScaler:
             out_labels = labels
         return out_labels
 
+    # noinspection PyPep8Naming
     def fit(self, y=None, *, X=None, sample_weight=None, atomic_number=None):
         r"""Fit scaling of QM graph labels or targets.
 
@@ -588,6 +599,7 @@ class QMGraphLabelScaler:
 
         return self
 
+    # noinspection PyPep8Naming
     def inverse_transform(self, y=None, *, X=None, copy: bool = True, atomic_number: list = None):
         r"""Back-transform all target labels for QM.
 
@@ -614,6 +626,7 @@ class QMGraphLabelScaler:
 
         return out_labels
 
+    # noinspection PyPep8Naming
     def _check_input(self, node_number, X, y):
         assert X is not None or y is not None, "`QMGraphLabelScaler` did not get properties or labels."
         graph_labels = X if (y is None and node_number is not None) else y

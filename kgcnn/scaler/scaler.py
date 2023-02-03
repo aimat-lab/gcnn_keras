@@ -135,6 +135,7 @@ class StandardScaler(StandardScalerSklearnBase):
 
     """
 
+    # noinspection PyPep8Naming
     def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
         """Compute the mean and std to be used for later scaling.
 
@@ -151,6 +152,7 @@ class StandardScaler(StandardScalerSklearnBase):
         """
         return super(StandardScaler, self).fit(X=X, y=y, sample_weight=sample_weight)
 
+    # noinspection PyPep8Naming
     def partial_fit(self, X, y=None, sample_weight=None, atomic_number=None):
         r"""Online computation of mean and std on X for later scaling.
         All of X is processed as a single batch. This is intended for cases
@@ -175,6 +177,7 @@ class StandardScaler(StandardScalerSklearnBase):
         # Can not request kwargs after argument X here.
         return super(StandardScaler, self).partial_fit(X=X, y=y, sample_weight=sample_weight)
 
+    # noinspection PyPep8Naming
     def fit_transform(self, X, *, y=None, atomic_number=None, **fit_params):
         r"""Perform fit and standardization by centering and scaling.
 
@@ -190,6 +193,7 @@ class StandardScaler(StandardScalerSklearnBase):
         """
         return super(StandardScaler, self).fit_transform(X=X, y=y, **fit_params)
 
+    # noinspection PyPep8Naming
     def transform(self, X, *, copy=None, atomic_number=None):
         """Perform standardization by centering and scaling.
 
@@ -204,6 +208,7 @@ class StandardScaler(StandardScalerSklearnBase):
         """
         return super(StandardScaler, self).transform(X=X, copy=copy)
 
+    # noinspection PyPep8Naming
     def inverse_transform(self, X, *, copy: bool = None, atomic_number=None):
         r"""Scale back the data to the original representation.
 
@@ -248,6 +253,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
             raise ValueError(
                 "Require labels in `y` for `%s`. Input must be e.g. 'fit(y=data)'." % type(self).__name__)
 
+    # noinspection PyPep8Naming
     def fit(self, y, *, X=None, sample_weight=None, atomic_number=None):
         r"""Compute the mean and std to be used for later scaling.
 
@@ -267,6 +273,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         self._reset()
         return self.partial_fit(y=y, X=X, sample_weight=sample_weight)
 
+    # noinspection PyPep8Naming
     def partial_fit(self, y, X=None, sample_weight=None, atomic_number=None):
         r"""Online computation of mean and std on y for later scaling.
         All of y is processed as a single batch. This is intended for cases
@@ -292,6 +299,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         # Just changing order of x,y here.
         return super(StandardLabelScaler, self).partial_fit(X=y, y=None, sample_weight=sample_weight)
 
+    # noinspection PyPep8Naming
     def fit_transform(self, y=None, *, X=None, atomic_number=None, **fit_params):
         r"""Perform fit and standardization by centering and scaling.
 
@@ -309,6 +317,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         # Just changing order of x,y here.
         return super(StandardLabelScaler, self).fit_transform(X=y, y=None, **fit_params)
 
+    # noinspection PyPep8Naming
     def transform(self, y=None, *, X=None, copy=None, atomic_number=None):
         r"""Perform standardization by centering and scaling.
 
@@ -325,6 +334,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         # Just changing order of x,y here.
         return super(StandardLabelScaler, self).transform(X=y, copy=copy)
 
+    # noinspection PyPep8Naming
     def inverse_transform(self, X=None, y=None, *, copy: bool = None, atomic_number=None):
         r"""Scale back the data to the original representation.
 

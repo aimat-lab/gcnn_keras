@@ -212,8 +212,6 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             raise ValueError("`EnergyForceExtensiveLabelScaler` requires 'y' argument, but got 'None'.")
         if force is not None:
             self._use_separate_input_arguments = True
-            module_logger.info(
-                "`%s` using `force` argument (not the default), `y` is expected to be energy." % type(self).__name__)
             energy, forces = y, force
         else:
             self._use_separate_input_arguments = False
