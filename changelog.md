@@ -4,7 +4,7 @@ v2.2.2
 * IMPORTANT: Renamed and changed behaviour for ``EnergyForceExtensiveScaler`` . New name is `EnergyForceExtensiveLabelScaler` . Return is just y now. Added experimental functionality for transforming dataset.
 * Reworked training scripts for new scalers.
 * Reduced requirements for tensorflow to 2.9.
-* 
+* Renamed ``kgcnn.md`` to `kgcnn.mdyn` for naming conflicts with markdown.
 
 
 v2.2.1

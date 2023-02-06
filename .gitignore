@@ -27,3 +27,9 @@ kgcnn.egg-info
 /notebooks/docs/.ipynb_checkpoints/
 /notebooks/docs/Example.kgcnn.pickle
 /docs/source/.ipynb_checkpoints/
+/docs/source/Dataset/
+/docs/source/Example.kgcnn.pickle
+/notebooks/graph_explainer/gcn_explain_loss_cora.png
+/notebooks/graph_explainer/gcn_explain_mutag.png
+/notebooks/graph_explainer/gcn_explain_mutag_2.png
+/notebooks/graph_explainer/gcn_explain_mutag_3.png
