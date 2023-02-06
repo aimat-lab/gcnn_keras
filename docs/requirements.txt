@@ -12,3 +12,5 @@ pyyaml
 pymatgen
 ase
 nbsphinx
+ipykernel
+ipython

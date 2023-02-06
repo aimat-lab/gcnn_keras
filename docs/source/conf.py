@@ -42,9 +42,13 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'IPython.sphinxext.ipython_console_highlighting'
-    # 'nbsphinx',  # This lets us use notebooks
+    # 'IPython.sphinxext.ipython_console_highlighting'
+    'nbsphinx',
+    'sphinx.ext.mathjax',
 ]
+
+# Source files
+source_suffix = ['.rst']
 
 napoleon_google_docstring = True
 napoleon_include_special_with_doc = True
@@ -52,11 +56,11 @@ napoleon_include_private_with_doc = True
 napoleon_include_init_with_doc = True
 # autoclass_content = 'both'
 
-# Settings for nbsphinx
-# nbsphinx_execute = 'never'
+# nbsphinx
+nbsphinx_execute = 'never'
 # nbsphinx_allow_errors = True
 # nbsphinx_output_prompt = 'Out[%s]:'
-# source_suffix = ['.rst', '.ipynb']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,7 +69,7 @@ master_doc = 'index'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        "numpy": ("https://docs.scipy.org/doc/numpy/", None)}
 
