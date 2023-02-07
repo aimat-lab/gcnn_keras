@@ -44,7 +44,7 @@ class QMDataset(MemoryGraphDataset):
             └── dataset_name.kgcnn.pickle
 
     It should be possible to generate approximate chemical bonding information via `openbabel`, if this
-    additional package is installed. The class inherits from :obj:`MemoryGraphDataset` and :obj:`MolGraphCallbacks`.
+    additional package is installed. The class inherits from :obj:`MemoryGraphDataset` .
     If `openbabel` is not installed minimal loading of labels and coordinates should be supported.
 
     For additional attributes, the :obj:`set_attributes` enables further features that require RDkit or Openbabel
@@ -283,6 +283,7 @@ class QMDataset(MemoryGraphDataset):
                        add_hydrogen: bool = True,
                        sanitize: bool = False,
                        make_directed: bool = False,
+                       compute_partial_charges: bool = False,
                        additional_callbacks: Dict[str, Callable[[MolGraphInterface, dict], None]] = None,
                        custom_transform: Callable[[MolGraphInterface], MolGraphInterface] = None):
         """Read geometric information into memory.
@@ -299,6 +300,7 @@ class QMDataset(MemoryGraphDataset):
             encoder_graph (dict): A dictionary of callable encoder where the key matches the attribute.
             add_hydrogen (bool): Whether to keep hydrogen after reading the mol-information. Default is False.
             make_directed (bool): Whether to have directed or undirected bonds. Default is False.
+            compute_partial_charges (str): Whether to compute partial charges, e.g. 'gasteiger'. Default is None.
             sanitize (bool): Whether to sanitize molecule. Default is False.
             additional_callbacks (dict): A dictionary whose keys are string attribute names which the elements of the
                 dataset are supposed to have and the elements are callback function objects which implement how those

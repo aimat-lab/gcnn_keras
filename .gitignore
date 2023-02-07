@@ -33,3 +33,7 @@ kgcnn.egg-info
 /notebooks/graph_explainer/gcn_explain_mutag.png
 /notebooks/graph_explainer/gcn_explain_mutag_2.png
 /notebooks/graph_explainer/gcn_explain_mutag_3.png
+/docs/source/DatasetQM/
+/docs/source/DatasetTUD/
+/docs/source/DatasetMol/
+/docs/source/DatasetCrystal/
