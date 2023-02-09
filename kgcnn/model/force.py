@@ -19,29 +19,31 @@ class EnergyForceModel(ks.models.Model):
         import tensorflow as tf
         from kgcnn.model.force import EnergyForceModel
         model = EnergyForceModel(
-            module_name="kgcnn.literature.Schnet",
-            class_name="make_model",
-            config={
-                "name": "SchnetEnergy",
-                "inputs": [
-                    {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
-                ],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 128}
-                },
-                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
-                "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
-                },
-                "node_pooling_args": {"pooling_method": "sum"},
-                "depth": 6,
-                "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
-                "output_embedding": "graph",
-                "use_output_mlp": False,
-                "output_mlp": None,
+            model_energy= {
+                "module_name": "kgcnn.literature.Schnet",
+                "class_name": "make_model",
+                "config": {
+                    "name": "SchnetEnergy",
+                    "inputs": [
+                        {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                        {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                    ],
+                    "input_embedding": {
+                        "node": {"input_dim": 95, "output_dim": 128}
+                    },
+                    "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
+                                 "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                    "interaction_args": {
+                        "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    },
+                    "node_pooling_args": {"pooling_method": "sum"},
+                    "depth": 6,
+                    "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                    "output_embedding": "graph",
+                    "use_output_mlp": False,
+                    "output_mlp": None
+                }
             },
             coordinate_input=1,
             output_as_dict=True,
@@ -52,9 +54,15 @@ class EnergyForceModel(ks.models.Model):
 
     """
 
-    def __init__(self, module_name: str, class_name: str, config: dict, coordinate_input: Union[int, str] = 1,
-                 output_as_dict: bool = True, ragged_validate: bool = False, output_to_tensor: bool = True,
-                 output_squeeze_states: bool = False, nested_model_config: bool = True, is_physical_force: bool = True,
+    def __init__(self,
+                 model_energy=None,
+                 coordinate_input: Union[int, str] = 1,
+                 output_as_dict: bool = True,
+                 ragged_validate: bool = False,
+                 output_to_tensor: bool = True,
+                 output_squeeze_states: bool = False,
+                 nested_model_config: bool = True,
+                 is_physical_force: bool = True,
                  **kwargs):
         r"""Initialize :obj:`EnergyForceModel` with sub-model for energy prediction.
 
@@ -63,15 +71,12 @@ class EnergyForceModel(ks.models.Model):
 
         .. note::
 
-            The energy model is inferred by `module_name` , `class_name` , `config` within :obj:`kgcnn` , but you can
-            also pass an external model directly to `class_name` and set `module_name` and `config` to `None` and
-            set `nested_model_config` to `False` or pass its config dictionary manually.
+            The (serialized) energy model is inferred by `module_name` , `class_name` , `config` within :obj:`kgcnn` ,
+            but you can also pass any model directly to `model_energy` and
+            set `nested_model_config` to `False` .
 
         Args:
-            module_name (str): Module where to find energy model. Can be `None` for custom keras model.
-            class_name (str): Class name of energy model. Can also be full keras model instead of class name.
-                In this case module_name is ignored and should be set to `None` .
-            config (dict): Config of energy model.
+            model_energy (dict): Keras model for energy prediction. Can also be a serialization dict.
             coordinate_input (str, int): Index or key where to find coordinate tensor in model input.
             output_as_dict (bool): Whether to return energy and force as list or as dict. Default is True.
             ragged_validate (bool): Whether to validate ragged tensor creation. Default is False.
@@ -82,25 +87,35 @@ class EnergyForceModel(ks.models.Model):
             is_physical_force (bool): Whether gradient of force, which is the negative gradient, is to be returned.
         """
         super(EnergyForceModel, self).__init__(self, **kwargs)
-        self.model_config = config
-        self.ragged_validate = ragged_validate
-        self.module_name = module_name
-        self.class_name = class_name
-        if isinstance(class_name, ks.models.Model):
+        if model_energy is None:
+            raise ValueError("Require valid model in `model_energy` for force prediction.")
+
+        # Input for model_energy.
+        self._model_energy = model_energy
+
+        if isinstance(model_energy, ks.models.Model):
             # Ignoring module_name and class_name.
-            self.energy_model = class_name
-        elif isinstance(class_name, dict):
-            self.energy_model = ks.utils.deserialize_keras_object(class_name)
+            self.energy_model = model_energy
+        elif isinstance(model_energy, dict):
+            if "module_name" not in model_energy:
+                self.energy_model = ks.utils.deserialize_keras_object(model_energy)
+            else:
+                self.energy_model_class = get_model_class(model_energy["module_name"], model_energy["class_name"])
+                self.energy_model = self.energy_model_class(**model_energy["config"])
         else:
-            self.energy_model_class = get_model_class(module_name, class_name)
-            self.energy_model = self.energy_model_class(**self.model_config)
+            raise TypeError("Input `model_energy` must be dict or `ks.models.Model` .")
+
+        # Additional parameters of io and behavior of this class.
+        self.ragged_validate = ragged_validate
         self.coordinate_input = coordinate_input
-        self.cast_coordinates = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
         self.output_as_dict = output_as_dict
         self.output_to_tensor = output_to_tensor
         self.output_squeeze_states = output_squeeze_states
         self.is_physical_force = is_physical_force
         self.nested_model_config = nested_model_config
+
+        # Layers.
+        self.cast_coordinates = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
 
     def call(self, inputs, training=False, **kwargs):
         """Forward pass that wraps energy model in gradient tape.
@@ -158,15 +173,13 @@ class EnergyForceModel(ks.models.Model):
         # Keras model does not provide config from base class.
         # conf = super(EnergyForceModel, self).get_config()
         conf = {}
-        # Serialize class if class_name is not string.
-        if isinstance(self.class_name, str):
-            class_name = self.class_name
+        # Serialize class if _model_energy is not dict.
+        if isinstance(self._model_energy, dict):
+            model_energy = self._model_energy
         else:
-            class_name = ks.utils.serialize_keras_object(self.class_name)
+            model_energy = ks.utils.serialize_keras_object(self._model_energy)
         conf.update({
-            "module_name": self.module_name,
-            "class_name": class_name,
-            "config": self.model_config,
+            "model_energy": model_energy,
             "coordinate_input": self.coordinate_input,
             "output_as_dict": self.output_as_dict,
             "ragged_validate": self.ragged_validate,

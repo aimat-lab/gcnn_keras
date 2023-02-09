@@ -31,6 +31,7 @@ class ExtensiveEnergyForceScalerPostprocessor(GraphPostProcessorBase):
 
     def call(self, y, force, atomic_number):
         # Need batch with one energy etc.
+        # Can copy data.
         energy, forces = self.scaler.inverse_transform(
             X=None, y=np.array([y]), force=[force], atomic_number=[atomic_number])
         return energy[0], forces[0]

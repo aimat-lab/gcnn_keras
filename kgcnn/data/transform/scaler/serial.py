@@ -3,12 +3,12 @@ from typing import Union
 from kgcnn.utils.serial import deserialize as deserialize_general
 
 module_list = {
-    "StandardScaler": "kgcnn.scaler.scaler",
-    "StandardLabelScaler": "kgcnn.scaler.scaler",
-    "ExtensiveMolecularScaler": "kgcnn.scaler.mol",
-    "ExtensiveMolecularLabelScaler": "kgcnn.scaler.mol",
-    "EnergyForceExtensiveLabelScaler": "kgcnn.scaler.force",
-    "QMGraphLabelScaler": "kgcnn.scaler.mol"
+    "StandardScaler": "kgcnn.data.transform.scaler",
+    "StandardLabelScaler": "kgcnn.data.transform.scaler",
+    "ExtensiveMolecularScaler": "kgcnn.data.transform.mol",
+    "ExtensiveMolecularLabelScaler": "kgcnn.data.transform.mol",
+    "EnergyForceExtensiveLabelScaler": "kgcnn.data.transform.force",
+    "QMGraphLabelScaler": "kgcnn.data.transform.mol"
 }
 
 

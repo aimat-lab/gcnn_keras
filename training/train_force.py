@@ -17,7 +17,7 @@ from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.hyper.hyper import HyperParameter
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, RaggedScaledMeanAbsoluteError
 from kgcnn.utils.devices import set_devices_gpu
-from kgcnn.scaler.force import EnergyForceExtensiveLabelScaler
+from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 from kgcnn.metrics.loss import RaggedMeanAbsoluteError
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 

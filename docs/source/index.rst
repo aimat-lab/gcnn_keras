@@ -19,6 +19,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
    models
    literature.ipynb
    molecules.ipynb
+   forces.ipynb
 
 
 Package Content

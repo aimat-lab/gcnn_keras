@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from typing import Union, List, Dict, Tuple
-from kgcnn.scaler.mol import ExtensiveMolecularScalerBase
+from kgcnn.data.transform.scaler.mol import ExtensiveMolecularScalerBase
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.scaler.force import EnergyForceExtensiveLabelScaler
+        from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
         energy = np.random.rand(5).reshape((5,1))
         mol_num = [np.array([6, 1, 1, 1, 1]), np.array([7, 1, 1, 1]),
             np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
@@ -157,13 +157,18 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         """
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         if copy:
-            y = np.array(y)
-            force = [np.array(f) for f in force]
-        for i in range(len(y)):
-            y[i][:] = y[i] - self.predict(atomic_number)[i]
+            y = np.array(y) - self.predict(atomic_number)
             if self._standardize_scale:
-                y[i][:] = y[i] / self.scale_
-                force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
+                y = y / np.expand_dims(self.scale_, axis=0)
+                force = [np.array(f) / np.expand_dims(self.scale_, axis=0) for f in force]
+            else:
+                force = [np.array(f) for f in force]
+        else:
+            for i in range(len(y)):
+                y[i][:] = y[i] - self.predict(atomic_number)[i]
+                if self._standardize_scale:
+                    y[i][:] = y[i] / self.scale_
+                    force[i][:] = force[i] / np.expand_dims(self.scale_, axis=0)
         return y, force
 
     # noinspection PyPep8Naming
@@ -196,12 +201,18 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         X, y, force, atomic_number = self._verify_input(X, y, force, atomic_number)
         if copy:
             y = np.array(y)
-            force = [np.array(f) for f in force]
-        for i in range(len(y)):
             if self._standardize_scale:
-                y[i][:] = y[i][:] * self.scale_
-                force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
-            y[i][:] = y[i][:] + self.predict(atomic_number)[i]
+                y = y * np.expand_dims(self.scale_, axis=0)
+                force = [np.array(f) * np.expand_dims(self.scale_, axis=0) for f in force]
+            else:
+                force = [np.array(f) for f in force]
+            y = y + self.predict(atomic_number)
+        else:
+            for i in range(len(y)):
+                if self._standardize_scale:
+                    y[i][:] = y[i][:] * self.scale_
+                    force[i][:] = force[i] * np.expand_dims(self.scale_, axis=0)
+                y[i][:] = y[i][:] + self.predict(atomic_number)[i]
         return y, force
 
     # Needed for backward compatibility.
@@ -258,7 +269,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         Returns:
             self.
         """
-        atoms = X if atomic_number is None else atomic_number
+        atoms = atomic_number if atomic_number is not None else X
         energy, force = y
         return self.fit(
             X=[item[atoms] for item in dataset],
@@ -269,7 +280,8 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
     # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None, y: List[str] = None, atomic_number: str = None, copy: bool = True
+                          X: str = None, y: List[str] = None, atomic_number: str = None, copy: bool = True,
+                          copy_dataset: bool = False,
                           ) -> List[Dict[str, np.ndarray]]:
         r"""Transform dataset with relevant `X` , `y` information.
 
@@ -279,25 +291,30 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             X (str): Name of atomic number information in dataset. For example "atomic_number".
             atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
                 Optional, if used, `X` will be ignored.
-            copy (bool): Whether to copy dataset. Default is True.
+            copy (bool): Whether to copy data for transformation. Default is True.
+            copy_dataset (bool): Whether to copy full dataset. Default is False.
 
         Returns:
             dataset: Transformed dataset.
         """
-        atoms = X if atomic_number is not None else atomic_number
+        atoms = atomic_number if atomic_number is not None else X
         energy, force = y
-        if copy:
+        if copy_dataset:
             dataset = dataset.copy()
-        self.transform(
-            X=[item[atoms] for item in dataset],
-            y=([item[energy] for item in dataset], [item[force] for item in dataset]),
-            copy=False,
+        out_energy, out_force = self.transform(
+            atomic_number=[graph[atoms] for graph in dataset],
+            y=([graph[energy] for graph in dataset], [graph[force] for graph in dataset]),
+            copy=copy,
         )
+        for graph, graph_energy, graph_force in zip(dataset, out_energy, out_force):
+            graph[energy] = graph_energy
+            graph[force] = graph_force
         return dataset
 
     # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  y: List[str] = None, X: str = None, atomic_number: str = None, copy: bool = True
+                                  y: List[str] = None, X: str = None, atomic_number: str = None, copy: bool = True,
+                                  copy_dataset: bool = False,
                                   ) -> List[Dict[str, np.ndarray]]:
         r"""Inverse transform dataset with relevant `X` , `y` information.
 
@@ -308,25 +325,30 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             atomic_number (str): Name of atomic number information in dataset. For example "atomic_number".
                 Optional, if used, `X` will be ignored.
             copy (bool): Whether to copy dataset. Default is True.
+            copy_dataset (bool): Whether to copy full dataset. Default is False.
 
         Returns:
             dataset: Inverse-transformed dataset.
         """
-        atoms = X if atomic_number is not None else atomic_number
+        atoms = atomic_number if atomic_number is not None else X
         energy, force = y
-        if copy:
+        if copy_dataset:
             dataset = dataset.copy()
-        self.inverse_transform(
-            X=[item[atoms] for item in dataset],
-            y=([item[energy] for item in dataset], [item[force] for item in dataset]),
-            copy=False,
+        out_energy, out_force = self.inverse_transform(
+            atomic_number=[graph[atoms] for graph in dataset],
+            y=([graph[energy] for graph in dataset], [graph[force] for graph in dataset]),
+            copy=copy,
         )
+        for graph, graph_energy, graph_force in zip(dataset, out_energy, out_force):
+            graph[energy] = graph_energy
+            graph[force] = graph_force
         return dataset
 
     # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
                               y: List[str] = None, X: str = None,
                               atomic_number: str = None, sample_weight: str = None, copy: bool = True,
+                              copy_dataset: bool = False,
                               **fit_params) -> List[Dict[str, np.ndarray]]:
         r"""Fit and transform to dataset with relevant `X` , `y` information.
 
@@ -338,6 +360,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
                 Optional, if used, `X` will be ignored.
             sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
             copy (bool): Whether to copy dataset. Default is True.
+            copy_dataset (bool): Whether to copy full dataset. Default is False.
             fit_params: Fit parameters handed to :obj:`fit()`
 
         Returns:
@@ -345,4 +368,5 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         """
         self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight, atomic_number=atomic_number,
                          **fit_params)
-        return self.transform_dataset(dataset=dataset, X=X, y=y,atomic_number=atomic_number, copy=copy)
+        return self.transform_dataset(dataset=dataset, X=X, y=y,atomic_number=atomic_number, copy=copy,
+                                      copy_dataset=copy_dataset)

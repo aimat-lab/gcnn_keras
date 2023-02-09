@@ -1,10 +1,13 @@
 v2.2.2
 
 * Reworked all scaler class to have separate name for using either X or y. For example ``StandardScaler`` or ``StandardLabelScaler`` .
+* Moved scalers to ``kgcnn.data.transform`` .
 * IMPORTANT: Renamed and changed behaviour for ``EnergyForceExtensiveScaler`` . New name is `EnergyForceExtensiveLabelScaler` . Return is just y now. Added experimental functionality for transforming dataset.
-* Reworked training scripts for new scalers.
+* Adjusted training scripts for new scalers.
 * Reduced requirements for tensorflow to 2.9.
-* Renamed ``kgcnn.md`` to `kgcnn.mdyn` for naming conflicts with markdown.
+* Renamed ``kgcnn.md`` to `kgcnn.moldyn` for naming conflicts with markdown.
+* In ``MolDynamicsModelPredictor`` renamed argument `model_postprocessor` to `graph_postprocessor` .
+* 
 
 
 v2.2.1

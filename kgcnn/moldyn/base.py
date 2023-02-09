@@ -23,7 +23,7 @@ class MolDynamicsModelPredictor:
                  model_inputs: Union[list, dict] = None,
                  model_outputs: Union[list, dict] = None,
                  graph_preprocessors: List[Callable] = None,
-                 model_postprocessors: List[Callable] = None,
+                 graph_postprocessors: List[Callable] = None,
                  use_predict: bool = False,
                  batch_size: int = 32):
         r"""Initialize :obj:`MolDynamicsModelPredictor` class.
@@ -34,19 +34,19 @@ class MolDynamicsModelPredictor:
             model_outputs (list, dict): List of model output names or dictionary of output mappings from keras model
                 output to the names in the return :obj:`GraphDict` .
             graph_preprocessors (list): List of graph preprocessors, see :obj:`kgcnn.graph.preprocessor` .
-            model_postprocessors (list): List of graph postprocessors, see :obj:`kgcnn.graph.postprocessor` .
+            graph_postprocessors (list): List of graph postprocessors, see :obj:`kgcnn.graph.postprocessor` .
             use_predict (bool): Whether to use :obj:`model.predict()` or call method :obj:`model()` .
             batch_size (int): Optional batch size for prediction.
         """
         if graph_preprocessors is None:
             graph_preprocessors = []
-        if model_postprocessors is None:
-            model_postprocessors = []
+        if graph_postprocessors is None:
+            graph_postprocessors = []
         self.model = model
         self.model_inputs = model_inputs
         self.model_outputs = model_outputs
         self.graph_preprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in graph_preprocessors]
-        self.model_postprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in model_postprocessors]
+        self.graph_postprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in graph_postprocessors]
         self.batch_size = batch_size
         self.use_predict = use_predict
 
@@ -112,7 +112,7 @@ class MolDynamicsModelPredictor:
                 key: np.array(value[i]) for key, value in tensor_dict.items()
             }
             temp_dict = GraphDict(temp_dict)
-            for mp in self.model_postprocessors:
+            for mp in self.graph_postprocessors:
                 post_temp = mp(graph=temp_dict, pre_graph=graph_list[i])
                 temp_dict.update(post_temp)
             output_list.append(temp_dict)

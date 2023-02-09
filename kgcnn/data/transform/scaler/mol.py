@@ -4,7 +4,7 @@ import os
 from typing import Union, List
 from sklearn.linear_model import Ridge
 from kgcnn.data.utils import save_json_file, load_json_file
-from kgcnn.scaler.serial import deserialize
+from kgcnn.data.transform.scaler.serial import deserialize
 
 
 class ExtensiveMolecularScalerBase:

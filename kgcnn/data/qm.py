@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from typing import Union, Callable, List, Dict
 from kgcnn.mol.base import MolGraphInterface
-from kgcnn.scaler.mol import QMGraphLabelScaler
+from kgcnn.data.transform.scaler.mol import QMGraphLabelScaler
 from sklearn.preprocessing import StandardScaler
 from kgcnn.mol.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset

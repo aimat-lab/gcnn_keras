@@ -12,7 +12,7 @@ import kgcnn.metrics.loss
 from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardLabelScaler
+from sklearn.preprocessing import StandardScaler as StandardLabelScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.utils import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
