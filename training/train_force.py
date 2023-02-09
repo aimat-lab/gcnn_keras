@@ -75,7 +75,7 @@ dataset = deserialize_dataset(hyper["data"]["dataset"])
 # Example 'edge_indices' or 'node_attributes'. This couples the keras model to the dataset.
 if "nested_model_config" in hyper["model"]["config"]:
     # This is for Model containing the config within config.
-    model_config = hyper["model"]["config"]["config"]
+    model_config = hyper["model"]["config"]["model_energy"]["config"]
 else:
     model_config = hyper["model"]["config"]
 dataset.assert_valid_model_input(model_config["inputs"])
