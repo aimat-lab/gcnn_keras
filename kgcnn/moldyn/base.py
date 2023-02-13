@@ -24,8 +24,14 @@ class MolDynamicsModelPredictor:
                  model_outputs: Union[list, dict] = None,
                  graph_preprocessors: List[Callable] = None,
                  graph_postprocessors: List[Callable] = None,
+                 store_last_input: bool = False,
+                 store_last_output: bool = False,
+                 copy_graphs_in_store: bool = False,
                  use_predict: bool = False,
-                 batch_size: int = 32):
+                 batch_size: int = 32,
+                 update_from_last_input: list = None,
+                 update_from_last_input_skip: int = None,
+                 ):
         r"""Initialize :obj:`MolDynamicsModelPredictor` class.
 
         Args:
@@ -37,6 +43,13 @@ class MolDynamicsModelPredictor:
             graph_postprocessors (list): List of graph postprocessors, see :obj:`kgcnn.graph.postprocessor` .
             use_predict (bool): Whether to use :obj:`model.predict()` or call method :obj:`model()` .
             batch_size (int): Optional batch size for prediction.
+            store_last_input (bool): Whether to store last input graph list for model input. Default is False.
+            store_last_output (bool): Whether to store last output graph list from model output. Default is False.
+            copy_graphs_in_store (bool): Whether to make a copy of the graph lists or keep reference. Default is False.
+            update_from_last_input (list): List of graph properties to copy from last input into current input.
+                This is placed before graph preprocessors. Default is None.
+            update_from_last_input_skip (int): If set to a value, this will skip the update from last input at
+                given number of calls. Uses counter. Default is None.
         """
         if graph_preprocessors is None:
             graph_preprocessors = []
@@ -49,6 +62,15 @@ class MolDynamicsModelPredictor:
         self.graph_postprocessors = [deserialize(gp) if isinstance(gp, dict) else gp for gp in graph_postprocessors]
         self.batch_size = batch_size
         self.use_predict = use_predict
+        self.store_last_input = store_last_input
+        self.store_last_output = store_last_output
+        self.copy_graphs_in_store = copy_graphs_in_store
+        self.update_from_last_input = update_from_last_input
+        self.update_from_last_input_skip = update_from_last_input_skip
+
+        self._last_input = None
+        self._last_output = None
+        self._counter = 0
 
     def load(self, file_path: str):
         raise NotImplementedError("Not yet supported.")
@@ -92,9 +114,23 @@ class MolDynamicsModelPredictor:
         """
 
         num_samples = len(graph_list)
+
+        skip = self._counter % self.update_from_last_input_skip == 0 if self.update_from_last_input_skip else False
+        if self.update_from_last_input is not None and self._last_input is not None and not skip:
+            for i in range(num_samples):
+                for prop in self.update_from_last_input:
+                    graph_list[i].set(prop, self._last_input[i].get(prop))
+
         for gp in self.graph_preprocessors:
             for i in range(num_samples):
                 graph_list[i].apply_preprocessor(gp)
+
+        if self.store_last_input:
+            if self.copy_graphs_in_store:
+                self._last_input = graph_list.copy()
+            else:
+                self._last_input = graph_list
+
         tensor_input = graph_list.tensor(self.model_inputs)
 
         if not self.use_predict:
@@ -117,6 +153,15 @@ class MolDynamicsModelPredictor:
                 temp_dict.update(post_temp)
             output_list.append(temp_dict)
 
+        if self.store_last_output:
+            if self.copy_graphs_in_store:
+                self._last_output = output_list.copy()
+            else:
+                self._last_output = output_list
+
+        # Increase counter.
+        self._counter += 1
+
         return MemoryGraphList(output_list)
 
     def _test_timing(self, graph_list: MemoryGraphList, repetitions: int = 100) -> float:
@@ -131,6 +176,6 @@ class MolDynamicsModelPredictor:
         assert repetitions >= 1, "Repetitions must be number of calls."
         start = time.process_time()
         for _ in range(repetitions):
-            output = self.__call__(graph_list)
+            self.__call__(graph_list)
         stop = time.process_time()
         return float(stop-start)/repetitions

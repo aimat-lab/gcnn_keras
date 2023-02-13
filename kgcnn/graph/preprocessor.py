@@ -265,24 +265,33 @@ class SetRange(GraphPreProcessorBase):
         do_invert_distance (bool): Whether to invert the distance. Default is False.
         self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
         exclusive (bool): Whether both max_neighbours and max_distance must be fulfilled. Default is True.
+        overwrite (bool): Whether to overwrite existing range indices. Default is True.
     """
 
     def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  range_attributes: str = "range_attributes", max_distance: float = 4.0, max_neighbours: int = 15,
                  do_invert_distance: bool = False, self_loops: bool = False, exclusive: bool = True, name="set_range",
+                 overwrite: bool = True,
                  **kwargs):
         super().__init__(name=name, **kwargs)
-        self._to_obtain.update({"node_coordinates": node_coordinates})
+        self._to_obtain.update({"node_coordinates": node_coordinates, "range_indices": range_indices,
+                                "range_attributes": range_attributes})
+        self._silent = ["range_indices", range_attributes]
         self._call_kwargs = {
             "max_distance": max_distance, "max_neighbours": max_neighbours, "do_invert_distance": do_invert_distance,
-            "self_loops": self_loops, "exclusive": exclusive}
+            "self_loops": self_loops, "exclusive": exclusive, "overwrite": overwrite}
         self._to_assign = [range_indices, range_attributes]
         self._config_kwargs.update({
             "node_coordinates": node_coordinates, "range_indices": range_indices, "range_attributes": range_attributes,
             **self._call_kwargs})
 
-    def call(self, *, node_coordinates: np.ndarray, max_distance: float, max_neighbours: int, do_invert_distance: bool,
-             self_loops: bool, exclusive: bool):
+    def call(self, *, node_coordinates: np.ndarray, range_indices: np.ndarray, range_attributes: np.ndarray,
+             max_distance: float, max_neighbours: int, do_invert_distance: bool,
+             self_loops: bool, exclusive: bool, overwrite: bool):
+
+        if range_indices is not None and not overwrite:
+            # need to recompute range_attributes.
+            return range_indices, range_attributes
         if node_coordinates is None:
             return None, None
         # Compute distance matrix here. May be problematic for too large graphs.
@@ -374,25 +383,38 @@ class SetRangePeriodic(GraphPreProcessorBase):
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
         do_invert_distance (bool): Whether to invert the distance. Default is False.
         self_loops (bool): If also self-interactions with distance 0 should be considered. Default is False.
+        overwrite (bool): Whether to overwrite existing range indices. Default is True.
     """
 
     def __init__(self, *, range_indices: str = "range_indices", node_coordinates: str = "node_coordinates",
                  graph_lattice: str = "graph_lattice", range_image: str = "range_image",
                  range_attributes: str = "range_attributes", max_distance: float = 4.0, max_neighbours: int = None,
                  exclusive: bool = True, do_invert_distance: bool = False, self_loops: bool = False,
+                 overwrite: bool = True,
                  name="set_range_periodic", **kwargs):
         super().__init__(name=name, **kwargs)
-        self._to_obtain.update({"node_coordinates": node_coordinates, "graph_lattice": graph_lattice})
+        self._to_obtain.update({
+            "node_coordinates": node_coordinates, "graph_lattice": graph_lattice, "range_indices": range_indices,
+            "range_image": range_image, "range_attributes": range_attributes})
+        self._silent = ["range_indices", "range_attributes", "range_image"]
         self._call_kwargs = {
             "max_distance": max_distance, "max_neighbours": max_neighbours, "exclusive": exclusive,
-            "do_invert_distance": do_invert_distance, "self_loops": self_loops}
+            "do_invert_distance": do_invert_distance, "self_loops": self_loops, "overwrite": overwrite}
         self._to_assign = [range_indices, range_image, range_attributes]
         self._config_kwargs.update({
             "node_coordinates": node_coordinates, "range_indices": range_indices, "graph_lattice": graph_lattice,
-            "range_image": range_image, "range_attributes": range_attributes, **self._call_kwargs})
+            "range_image": range_image, "range_attributes": range_attributes,
+            **self._call_kwargs})
 
-    def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray, max_distance: float, max_neighbours: int,
-             self_loops: bool, exclusive: bool, do_invert_distance: bool):
+    def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray,
+             range_indices: np.ndarray, range_image: np.ndarray, range_attributes: np.ndarray,
+             max_distance: float, max_neighbours: int,
+             self_loops: bool, exclusive: bool, do_invert_distance: bool,
+             overwrite: bool) -> tuple:
+        if all([range_item is not None for range_item in
+                [range_indices, range_image]]) and not overwrite:
+            # need to recompute range_attributes.
+            return range_indices, range_image, range_attributes
         if node_coordinates is None:
             return None, None, None
         if graph_lattice is None:
@@ -474,7 +496,7 @@ class AtomicChargesRepresentation(GraphPreProcessorBase):
         if len(node_number.shape) <= 1:
             node_number = np.expand_dims(node_number, axis=-1)
         oh = np.array(node_number == np.array([one_hot], dtype="int"), dtype="float")  # (N, ohe)
-        charge_tensor = np.power(node_number/charge_scale, np.arange(charge_power + 1))   # (N, power)
+        charge_tensor = np.power(node_number / charge_scale, np.arange(charge_power + 1))  # (N, power)
         atom_scalars = np.expand_dims(oh, axis=-1) * np.expand_dims(charge_tensor, axis=1)  # (N, ohe, power)
         return atom_scalars.reshape((len(node_number), -1))
 
