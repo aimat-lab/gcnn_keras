@@ -452,7 +452,7 @@ def distance_for_range_indices_periodic(coordinates: np.ndarray,
     Args:
         coordinates (np.ndarray): Positions of shape `(N, 3)` within the unit-cell.
         indices (np.ndarray): Pair-wise indices of shape `(M, 2)` .
-        images (np.ndarray): Image translation of the particle of shape `(M, 3)` .
+        images (np.ndarray): Image translation of the second index of shape `(M, 3)` .
         lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)` .
             The lattice vectors must be given in rows of the matrix!
         require_distance_dimension (bool): Whether to return distances of shape `(M, 1)` .
@@ -463,9 +463,11 @@ def distance_for_range_indices_periodic(coordinates: np.ndarray,
     pos12 = coordinates[indices]
     pos1, pos2 = pos12[:, 0], pos12[:, 1]
     if len(images.shape) > 2:
+        # If image information are for both indices of shape (M, 2, 3)
         pos1 = pos1 + np.dot(images[:, 0], lattice)
         pos2 = pos2 + np.dot(images[:, 1], lattice)
     else:
+        # Default is only for second index. Usually sending node.
         pos2 = pos2 + np.dot(images, lattice)
     dist = np.sqrt(np.sum(np.square(pos1 - pos2), axis=-1))
     if require_distance_dimension:
