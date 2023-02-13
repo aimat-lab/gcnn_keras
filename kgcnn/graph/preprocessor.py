@@ -6,7 +6,8 @@ from kgcnn.graph.adj import get_angle_indices, coordinates_to_distancematrix, in
     define_adjacency_from_distance, sort_edge_indices, get_angle, add_edges_reverse_indices, \
     rescale_edge_weights_degree_sym, add_self_loops_to_edge_indices, compute_reverse_edges_index_map, \
     distance_to_gauss_basis
-from kgcnn.graph.geom import range_neighbour_lattice, get_principal_moments_of_inertia, shift_coordinates_to_unit_cell
+from kgcnn.graph.geom import range_neighbour_lattice, get_principal_moments_of_inertia, \
+    shift_coordinates_to_unit_cell, distance_for_range_indices, distance_for_range_indices_periodic
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -274,9 +275,8 @@ class SetRange(GraphPreProcessorBase):
                  overwrite: bool = True,
                  **kwargs):
         super().__init__(name=name, **kwargs)
-        self._to_obtain.update({"node_coordinates": node_coordinates, "range_indices": range_indices,
-                                "range_attributes": range_attributes})
-        self._silent = ["range_indices", range_attributes]
+        self._to_obtain.update({"node_coordinates": node_coordinates, "range_indices": range_indices})
+        self._silent = ["range_indices"]
         self._call_kwargs = {
             "max_distance": max_distance, "max_neighbours": max_neighbours, "do_invert_distance": do_invert_distance,
             "self_loops": self_loops, "exclusive": exclusive, "overwrite": overwrite}
@@ -285,13 +285,17 @@ class SetRange(GraphPreProcessorBase):
             "node_coordinates": node_coordinates, "range_indices": range_indices, "range_attributes": range_attributes,
             **self._call_kwargs})
 
-    def call(self, *, node_coordinates: np.ndarray, range_indices: np.ndarray, range_attributes: np.ndarray,
+    def call(self, *, node_coordinates: np.ndarray, range_indices: np.ndarray,
              max_distance: float, max_neighbours: int, do_invert_distance: bool,
              self_loops: bool, exclusive: bool, overwrite: bool):
 
         if range_indices is not None and not overwrite:
-            # need to recompute range_attributes.
-            return range_indices, range_attributes
+            # only need to recompute range_attributes.
+            dist = distance_for_range_indices(coordinates=node_coordinates, indices=range_indices)
+            if do_invert_distance:
+                dist = invert_distance(dist)
+            return range_indices, dist
+
         if node_coordinates is None:
             return None, None
         # Compute distance matrix here. May be problematic for too large graphs.
@@ -395,8 +399,8 @@ class SetRangePeriodic(GraphPreProcessorBase):
         super().__init__(name=name, **kwargs)
         self._to_obtain.update({
             "node_coordinates": node_coordinates, "graph_lattice": graph_lattice, "range_indices": range_indices,
-            "range_image": range_image, "range_attributes": range_attributes})
-        self._silent = ["range_indices", "range_attributes", "range_image"]
+            "range_image": range_image})
+        self._silent = ["range_indices", "range_image"]
         self._call_kwargs = {
             "max_distance": max_distance, "max_neighbours": max_neighbours, "exclusive": exclusive,
             "do_invert_distance": do_invert_distance, "self_loops": self_loops, "overwrite": overwrite}
@@ -407,14 +411,18 @@ class SetRangePeriodic(GraphPreProcessorBase):
             **self._call_kwargs})
 
     def call(self, *, node_coordinates: np.ndarray, graph_lattice: np.ndarray,
-             range_indices: np.ndarray, range_image: np.ndarray, range_attributes: np.ndarray,
+             range_indices: np.ndarray, range_image: np.ndarray,
              max_distance: float, max_neighbours: int,
              self_loops: bool, exclusive: bool, do_invert_distance: bool,
              overwrite: bool) -> tuple:
         if all([range_item is not None for range_item in
                 [range_indices, range_image]]) and not overwrite:
             # need to recompute range_attributes.
-            return range_indices, range_image, range_attributes
+            dist = distance_for_range_indices_periodic(
+                coordinates=node_coordinates, indices=range_indices, lattice=graph_lattice, images=range_image)
+            if do_invert_distance:
+                dist = invert_distance(dist)
+            return range_indices, range_image, dist
         if node_coordinates is None:
             return None, None, None
         if graph_lattice is None:

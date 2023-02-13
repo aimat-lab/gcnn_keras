@@ -409,7 +409,7 @@ def shift_coordinates_to_unit_cell(coordinates: np.ndarray, lattice: np.ndarray)
 
     Args:
         coordinates (np.ndarray): Coordinate of nodes in the central primitive unit cell.
-        lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)`.
+        lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)` .
             The lattice vectors must be given in rows of the matrix!
 
     Returns:
@@ -420,3 +420,56 @@ def shift_coordinates_to_unit_cell(coordinates: np.ndarray, lattice: np.ndarray)
     shifted_frac_coordinates = frac_coordinates % 1.0
     shifted_coordinates = np.dot(shifted_frac_coordinates, lattice)
     return shifted_coordinates
+
+
+def distance_for_range_indices(coordinates: np.ndarray, indices: np.ndarray,
+                               require_distance_dimension: bool = True):
+    """Simple helper function to compute distances for indices.
+
+    Args:
+        coordinates (np.ndarray): Positions of shape `(N, 3)` .
+        indices (np.ndarray): Pair-wise indices of shape `(M, 2)` .
+        require_distance_dimension (bool): Whether to return distances of shape `(M, 1)` .
+
+    Returns:
+        np.ndarray: Distances of shape `(M, )` or `(M, 1)` if `require_distance_dimension` .
+    """
+    pos12 = coordinates[indices]
+    dist = np.sqrt(np.sum(np.square(pos12[:, 0] - pos12[:, 1]), axis=-1))
+    if require_distance_dimension:
+        if len(dist.shape) <= 1:
+            dist = np.expand_dims(dist, axis=-1)
+    return dist
+
+
+def distance_for_range_indices_periodic(coordinates: np.ndarray,
+                                        indices: np.ndarray,
+                                        images: np.ndarray,
+                                        lattice: np.ndarray,
+                                        require_distance_dimension: bool = True):
+    """Simple helper function to compute distances for indices for a periodic system.
+
+    Args:
+        coordinates (np.ndarray): Positions of shape `(N, 3)` within the unit-cell.
+        indices (np.ndarray): Pair-wise indices of shape `(M, 2)` .
+        images (np.ndarray): Image translation of the particle of shape `(M, 3)` .
+        lattice (np.ndarray): Lattice matrix of real space lattice vectors of shape `(3, 3)` .
+            The lattice vectors must be given in rows of the matrix!
+        require_distance_dimension (bool): Whether to return distances of shape `(M, 1)` .
+
+    Returns:
+        np.ndarray: Distances of shape `(M, )` or `(M, 1)` if `require_distance_dimension` .
+    """
+    pos12 = coordinates[indices]
+    pos1, pos2 = pos12[:, 0], pos12[:, 1]
+    if len(images.shape) > 2:
+        pos1 = pos1 + np.dot(images[:, 0], lattice)
+        pos2 = pos2 + np.dot(images[:, 1], lattice)
+    else:
+        pos2 = pos2 + np.dot(images, lattice)
+    dist = np.sqrt(np.sum(np.square(pos1 - pos2), axis=-1))
+    if require_distance_dimension:
+        if len(dist.shape) <= 1:
+            dist = np.expand_dims(dist, axis=-1)
+    return dist
+
