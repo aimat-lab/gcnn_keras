@@ -689,6 +689,7 @@ class MemoryGraphDataset(MemoryGraphList):
         The 'train' and 'test' properties must be set on the graph, and optionally an additional property
         for the validation split may be present. All of these properties may have either of the following
         values:
+
         - The property is a boolean integer value indicating whether the corresponding element of the
           dataset belongs to that part of the split (train / test)
         - The property is a list containing integer split indices, where each split index present within
