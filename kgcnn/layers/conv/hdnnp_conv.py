@@ -189,9 +189,9 @@ class CENTCharge(GraphBaseLayer):
             tf.square(tf.gather(self.weight_sigma, n_pad, axis=0)), axis=2))  # (batch, N, N)
 
         # Compute diagonal matrix elements.
-        J_i = tf.gather(self.weight_j, n_pad, axis=0)  # (batch, N)
+        hardness_i = tf.gather(self.weight_j, n_pad, axis=0)  # (batch, N)
         sigma_i = tf.gather(self.weight_sigma, n_pad, axis=0)  # (batch, N)
-        diag_part = tf.linalg.diag(J_i + 1.0 / sigma_i / tf.sqrt(math.pi))
+        diag_part = tf.linalg.diag(hardness_i + 1.0 / sigma_i / tf.sqrt(math.pi))
 
         # Setup Matrix A.
         a = tf.where(
@@ -329,13 +329,14 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
 
     _max_atomic_number = 97
 
-    def __init__(self, add_eps: bool = False, use_physical_params: bool = True, multiplicity: float = 2.0,
-                 param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
-                 param_trainable: bool = False, **kwargs):
+    def __init__(self, add_eps: bool = False, multiplicity: float = 2.0,
+                 use_physical_params: bool = True, param_constraint=None, param_regularizer=None,
+                 param_initializer="glorot_uniform", param_trainable: bool = False,
+                 _suppress_weight_initialization: bool = False, **kwargs):
         super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
         self.add_eps = add_eps
         self.multiplicity = multiplicity
-        self.use_physical_params = use_physical_params
+        self._suppress_weight_initialization = _suppress_weight_initialization
         self.layer_pos = NodePosition(selection_index=[0, 1])
         self.layer_gather = GatherNodesSelection(selection_index=[0, 1])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
@@ -344,21 +345,25 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
         self.layer_pool_nodes = PoolingNodes(pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
-        self.param_initializer = ks.initializers.deserialize(param_initializer)
-        self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
-        self.param_constraint = ks.constraints.deserialize(param_constraint)
-        self.param_trainable = param_trainable
+        self._suppress_weight_initialization = _suppress_weight_initialization
+        if not _suppress_weight_initialization:
 
-        self.weight_sigma = self.add_weight(
-            "sigma",
-            shape=(self._max_atomic_number,),
-            initializer=self.param_initializer,
-            regularizer=self.param_regularizer,
-            constraint=self.param_constraint,
-            dtype=self.dtype, trainable=self.param_trainable
-        )
-        if self.use_physical_params:
-            self.set_weights([self._default_radii])
+            self.use_physical_params = use_physical_params
+            self.param_initializer = ks.initializers.deserialize(param_initializer)
+            self.param_regularizer = ks.regularizers.deserialize(param_regularizer)
+            self.param_constraint = ks.constraints.deserialize(param_constraint)
+            self.param_trainable = param_trainable
+
+            self.weight_sigma = self.add_weight(
+                "sigma",
+                shape=(self._max_atomic_number,),
+                initializer=self.param_initializer,
+                regularizer=self.param_regularizer,
+                constraint=self.param_constraint,
+                dtype=self.dtype, trainable=self.param_trainable
+            )
+            if self.use_physical_params:
+                self.set_weights([self._default_radii])
 
     def build(self, input_shape):
         super(ElectrostaticEnergyCharge, self).build(input_shape)
@@ -432,9 +437,59 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
             "param_constraint": ks.constraints.serialize(self.param_constraint),
             "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
             "param_initializer": ks.initializers.serialize(self.param_initializer),
-            "param_trainable": self.param_trainable
+            "param_trainable": self.param_trainable,
+            "_suppress_weight_initialization": self._suppress_weight_initialization
         })
         return config
 
 
+@ks.utils.register_keras_serializable(package='kgcnn', name='CENTChargePlusElectrostaticEnergy')
+class CENTChargePlusElectrostaticEnergy(CENTCharge, ElectrostaticEnergyCharge):
+    r"""Combines :obj:`CENTCharge` and :obj:`ElectrostaticEnergyCharge` .
 
+    Please check documentation for :obj:`CENTCharge` and :obj:`ElectrostaticEnergyCharge` for information.
+
+    """
+
+    def __init__(self, output_to_tensor: bool = False, use_physical_params: bool = True,
+                 param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
+                 param_trainable: bool = False,
+                 # For ElectrostaticEnergyCharge.
+                 add_eps: bool = False, multiplicity: float = 2.0,
+                 **kwargs):
+        ElectrostaticEnergyCharge.__init__(
+            self, add_eps=add_eps, multiplicity=multiplicity, _suppress_weight_initialization=True)
+        CENTCharge.__init__(
+            self, output_to_tensor=output_to_tensor, use_physical_params=use_physical_params,
+            param_constraint=param_constraint, param_regularizer=param_regularizer,
+            param_initializer=param_initializer, param_trainable=param_trainable, **kwargs)
+
+    def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass. Casts to padded tensor for :obj:`tf.linalg.solve()` .
+
+        Args:
+            inputs (list): [n, chi, xyz, ij, qtot]
+
+                - n (tf.RaggedTensor): Atomic numbers of shape (batch, [N])
+                - chi (tf.RaggedTensor): Learned electronegativities. Shape (batch, [N], 1)
+                - xyz (tf.RaggedTensor): Node coordinates of shape (batch, [N], 3)
+                - ij (tf.RaggedTensor): Edge indices of shape (batch, [N], 2)
+                - qtot (tf.Tensor): Total charge per molecule of shape (batch, 1)
+
+            mask (list): Boolean mask for inputs. Not used. Defaults to None.
+
+        Returns:
+            tuple: Charges of shape (batch, [None], 1) plus energy of shape (batch, 1)
+        """
+        n, chi, xyz, ij, qtot = inputs
+        q = CENTCharge.call(self, [n, chi, xyz, qtot], **kwargs)
+        eng = ElectrostaticEnergyCharge.call(self, [n, q, xyz, ij], **kwargs)
+        return q, eng
+
+    def get_config(self):
+        config = super(CENTChargePlusElectrostaticEnergy, self).get_config()
+        config.update({
+            "add_eps": self.add_eps,
+            "multiplicity": self.multiplicity,
+        })
+        return config

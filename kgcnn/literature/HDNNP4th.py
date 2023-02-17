@@ -4,7 +4,8 @@ from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
-from kgcnn.layers.conv.hdnnp_conv import CENTCharge, ElectrostaticEnergyCharge
+# from kgcnn.layers.conv.hdnnp_conv import CENTCharge, ElectrostaticEnergyCharge
+from kgcnn.layers.conv.hdnnp_conv import CENTChargePlusElectrostaticEnergy
 from kgcnn.layers.mlp import RelationalMLP
 from kgcnn.layers.norm import GraphBatchNormalization
 
@@ -12,7 +13,7 @@ ks = tf.keras
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023.01.17"
+__model_version__ = "2023.02.17"
 
 # Implementation of HDNNP in `tf.keras` from paper:
 # A fourth-generation high-dimensional neural network potential with accurate electrostatics including
@@ -123,8 +124,13 @@ def make_model_behler(inputs: list = None,
 
     # learnable NN.
     chi = RelationalMLP(**mlp_charge_kwargs)([rep, node_input])
-    q_local = CENTCharge(**cent_kwargs)([node_input, chi, xyz_input, total_charge_input])
-    eng_elec = ElectrostaticEnergyCharge(**electrostatic_kwargs)([node_input, q_local, xyz_input, edge_index_input])
+
+    # Compute separately, meaning separate weights for sigma.
+    # q_local = CENTCharge(**cent_kwargs)([node_input, chi, xyz_input, total_charge_input])
+    # eng_elec = ElectrostaticEnergyCharge(**electrostatic_kwargs)([node_input, q_local, xyz_input, edge_index_input])
+    q_local, eng_elec = CENTChargePlusElectrostaticEnergy(**cent_kwargs, **electrostatic_kwargs)(
+        [node_input, chi, xyz_input, edge_index_input, total_charge_input]
+    )
 
     rep_charge = LazyConcatenate()([rep, q_local])
     local_node_energy = RelationalMLP(**mlp_local_kwargs)([rep_charge, node_input])
@@ -133,9 +139,13 @@ def make_model_behler(inputs: list = None,
     out = ks.layers.Add()([eng_short, eng_elec])
 
     # Output embedding choice
-    if output_embedding == 'graph':
+    if output_embedding == 'graph' or output_embedding == 'total_energy':
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
+    elif output_embedding == 'charge':
+        out = q_local
+    elif output_embedding == 'electrostatic_energy':
+        out = eng_elec
     else:
         raise ValueError("Unsupported output embedding for mode `HDNNP4th`")
 
