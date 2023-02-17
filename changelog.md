@@ -1,3 +1,8 @@
+v2.2.3
+
+*
+
+
 v2.2.2
 
 * Reworked all scaler class to have separate name for using either X or y. For example ``StandardScaler`` or ``StandardLabelScaler`` .
