@@ -807,7 +807,11 @@ class QMGraphLabelScaler:
                 raise ValueError("Unsupported scaler type '%s'." % x)
 
     # noinspection PyPep8Naming
-    def fit_transform(self, y=None, *, X=None, copy=True, sample_weight=None, atomic_number=None):
+    def fit_transform(self, y: Union[np.ndarray, List[np.ndarray]] = None,
+                      X: Union[np.ndarray, List[np.ndarray], None] = None,
+                      atomic_number: Union[np.ndarray, List[np.ndarray], None] = None,
+                      copy: bool = True,
+                      sample_weight=None):
         r"""Fit and transform all target labels for QM.
 
         Args:
@@ -826,7 +830,7 @@ class QMGraphLabelScaler:
     # noinspection PyPep8Naming
     def transform(self, y: Union[np.ndarray, List[np.ndarray]] = None,
                   X: Union[np.ndarray, List[np.ndarray], None] = None,
-                  atomic_number: List[np.ndarray, None] = None,
+                  atomic_number: Union[np.ndarray, List[np.ndarray], None] = None,
                   copy=True):
         r"""Transform all target labels for QM. Requires :obj:`fit()` called previously.
 
@@ -855,7 +859,7 @@ class QMGraphLabelScaler:
     # noinspection PyPep8Naming
     def fit(self, y: Union[np.ndarray, List[np.ndarray]] = None,
             X: Union[np.ndarray, List[np.ndarray], None] = None,
-            atomic_number: List[np.ndarray, None] = None,
+            atomic_number: Union[np.ndarray, List[np.ndarray], None] = None,
             sample_weight=None):
         r"""Fit scaling of QM graph labels or targets.
 
@@ -878,7 +882,7 @@ class QMGraphLabelScaler:
     # noinspection PyPep8Naming
     def inverse_transform(self, y: Union[np.ndarray, List[np.ndarray]] = None,
                           X: Union[np.ndarray, List[np.ndarray], None] = None,
-                          atomic_number: List[np.ndarray, None] = None,
+                          atomic_number: Union[np.ndarray, List[np.ndarray], None] = None,
                           copy: bool = True):
         r"""Back-transform all target labels for QM.
 
