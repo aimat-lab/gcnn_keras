@@ -1,6 +1,7 @@
 v2.2.3
 
-*
+* Added ``CENTChargePlusElectrostaticEnergy`` to `kgcnn.layers.conv.hdnnp_conv` and `kgcnn.literature.HDNNP4th` .
+* 
 
 
 v2.2.2

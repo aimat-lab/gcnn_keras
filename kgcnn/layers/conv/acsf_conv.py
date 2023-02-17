@@ -2,10 +2,13 @@ import tensorflow as tf
 import numpy as np
 import math
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesSelection, GatherNodesIngoing
+from kgcnn.layers.gather import GatherNodesSelection
+# from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
-from kgcnn.layers.pooling import PoolingLocalEdges, RelationalPoolingLocalEdges
-from kgcnn.layers.modules import LazyMultiply, LazySubtract, ExpandDims
+from kgcnn.layers.pooling import RelationalPoolingLocalEdges
+# from kgcnn.layers.pooling import PoolingLocalEdges
+from kgcnn.layers.modules import LazyMultiply, LazySubtract
+# from kgcnn.layers.modules import ExpandDims
 
 ks = tf.keras
 
@@ -342,7 +345,7 @@ class ACSFG4(GraphBaseLayer):
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
         self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.num_relations, pooling_method="sum")
         self.lazy_sub = LazySubtract()
-        self.layer_gather = GatherNodesSelection(selection_index=[0,1,2])
+        self.layer_gather = GatherNodesSelection(selection_index=[0, 1, 2])
 
         # We can do this in init since weights do not depend on input shape.
         self.param_initializer = ks.initializers.deserialize(param_initializer)
@@ -503,5 +506,41 @@ class ACSFG4(GraphBaseLayer):
             "param_constraint": ks.constraints.serialize(self.param_constraint),
             "param_regularizer": ks.regularizers.serialize(self.param_regularizer),
             "param_initializer": ks.initializers.serialize(self.param_initializer)
+        })
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ACSFConstNormalization')
+class ACSFConstNormalization(GraphBaseLayer):
+    """Simple layer to add a constant feature normalization to conform with reference code."""
+
+    def __init__(self, std=1.0, mean=0.0, **kwargs):
+        super(ACSFConstNormalization, self).__init__(**kwargs)
+        self._np_std = np.array(std)
+        self._np_mean = np.array(mean)
+        # Could do some shape checks of std and mean here.
+        self._tf_std = tf.constant(self._np_std.tolist())
+        self._tf_mean = tf.constant(self._np_mean.tolist())
+
+    def _scale_representation(self, inputs):
+        return (inputs-tf.cast(self._tf_mean, inputs.dtype))/tf.cast(self._tf_std, inputs.dtype)
+
+    def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: Tensor of ACSF representation of shape `(batch, [None], units)` .
+            mask: Boolean mask for inputs. Not used. Defaults to None.
+
+        Returns:
+            tf.RaggedTensor: Normalized atomic representation of shape `(batch, [None], units)` .
+        """
+        return self.map_values(self._scale_representation, inputs)
+
+    def get_config(self):
+        config = super(ACSFConstNormalization, self).get_config()
+        config.update({
+            "mean": self._np_mean.tolist(),
+            "std": self._np_std.tolist()
         })
         return config
