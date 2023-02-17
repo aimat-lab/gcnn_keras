@@ -549,16 +549,16 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
     Returns:
         tuple: graph_adjacency, graph_indices
 
-            - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type `np.bool`.
+            - graph_adjacency (np.array): Adjacency Matrix of shape `(..., N, N)` of type `bool`.
             - graph_indices (np.array): Flatten indices from former array that have `True` as entry in the
                 returned adjacency matrix.
     """
     distance_matrix = np.array(distance_matrix)
     num_atoms = distance_matrix.shape[-1]
     if exclusive:
-        graph_adjacency = np.ones_like(distance_matrix, dtype=np.bool)
+        graph_adjacency = np.ones_like(distance_matrix, dtype="bool")
     else:
-        graph_adjacency = np.zeros_like(distance_matrix, dtype=np.bool)
+        graph_adjacency = np.zeros_like(distance_matrix, dtype="bool")
     inddiag = np.arange(num_atoms)
     # Make Indix Matrix
     indarr = np.indices(distance_matrix.shape)
@@ -579,7 +579,7 @@ def define_adjacency_from_distance(distance_matrix, max_distance=np.inf, max_nei
         sorting_index = np.argsort(distance_matrix, axis=-1)
         # SortedDistance = np.take_along_axis(self.distance_matrix, sorting_index, axis=-1)
         ind_sorted_red = sorting_index[..., :max_neighbours + 1]
-        temp = np.zeros_like(distance_matrix, dtype=np.bool)
+        temp = np.zeros_like(distance_matrix, dtype="bool")
         np.put_along_axis(temp, ind_sorted_red, True, axis=-1)
         if exclusive:
             graph_adjacency = np.logical_and(graph_adjacency, temp)
