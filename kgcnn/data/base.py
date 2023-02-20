@@ -200,7 +200,7 @@ class MemoryGraphList(MutableSequence):
     def length(self, value: int):
         raise ValueError("Can not set length. Please use 'empty()' to initialize an empty list.")
 
-    def _to_tensor(self, item, make_copy=True):
+    def _to_tensor(self, item: dict, make_copy=True):
         # TODO: Document this
         if not make_copy:
             self.logger.warning("At the moment always a copy is made for tensor().")
