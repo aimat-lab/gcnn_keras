@@ -4,7 +4,7 @@ import tensorflow as tf
 import pandas as pd
 import os
 import typing as t
-from typing import Union, List, Callable
+from typing import Union, List, Callable, Dict
 from collections.abc import MutableSequence
 
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
@@ -204,14 +204,16 @@ class MemoryGraphList(MutableSequence):
         # TODO: Document this
         if not make_copy:
             self.logger.warning("At the moment always a copy is made for tensor().")
-        props = self.obtain_property(item["name"])  # Will be list.
+        props: list = self.obtain_property(item["name"])
         is_ragged = item["ragged"] if "ragged" in item else False
+        dtype = item["dtype"] if "dtype" in item else None
+        # Could add name and shape information if available.
         if is_ragged:
-            return ragged_tensor_from_nested_numpy(props)
+            return ragged_tensor_from_nested_numpy(props, dtype=dtype)
         else:
-            return tf.constant(np.array(props))
+            return tf.constant(np.array(props), dtype=dtype)
 
-    def tensor(self, items: Union[list, dict], make_copy=True):
+    def tensor(self, items: Union[list, Dict], make_copy=True):
         r"""Make tensor objects from multiple graph properties in list.
 
         It is recommended to run :obj:`clean` beforehand.
@@ -683,7 +685,7 @@ class MemoryGraphDataset(MemoryGraphList):
                                split_index: Union[int, list] = 1,
                                shuffle: bool = False,
                                seed: int = None
-                               ) -> t.List[t.Union[t.Tuple[int, int], t.Tuple[int, int, int]]]:
+                               ) -> List[List[np.ndarray]]:
         """
         Get train and test indices from graph list.
         The 'train' and 'test' properties must be set on the graph, and optionally an additional property

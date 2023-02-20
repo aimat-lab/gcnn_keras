@@ -126,7 +126,7 @@ def load_hyper_file(file_name: str, **kwargs) -> dict:
     return {}
 
 
-def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
+def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = None, row_splits_dtype = "int64"):
     r"""Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
     except the first dimension.
     This will result in a ragged tensor with ragged dimension only at first axis (ragged_rank=1), like
@@ -147,13 +147,14 @@ def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = "int64"):
 
     Args:
         numpy_list (list): List of numpy arrays of different length but else identical shape.
-        dtype (str): Data type of partition array. Defaults to 'int64'.
+        dtype (str): Data type of values tensor. Defaults to None.
+        row_splits_dtype (str): Data type of partition tensor. Default is "int64".
 
     Returns:
         tf.RaggedTensor: Ragged tensor of former nested list of numpy arrays.
     """
     return tf.RaggedTensor.from_row_lengths(
-        np.concatenate(numpy_list, axis=0), np.array([len(x) for x in numpy_list], dtype=dtype))
+        np.concatenate(numpy_list, axis=0, dtype=dtype), np.array([len(x) for x in numpy_list], dtype=row_splits_dtype))
 
 
 def pad_np_array_list_batch_dim(values: list):
