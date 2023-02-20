@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
-from kgcnn.ops.axis import get_positive_axis
+# from kgcnn.ops.axis import get_positive_axis
 ks = tf.keras
 
 
