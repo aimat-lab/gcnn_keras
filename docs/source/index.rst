@@ -15,8 +15,8 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
    intro
    installation
    data.ipynb
+   models.ipynb
    layers.ipynb
-   models
    literature.ipynb
    molecules.ipynb
    forces.ipynb

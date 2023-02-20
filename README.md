@@ -118,7 +118,7 @@ or via sub-classing of the message passing base layer. Where only `message_funct
 ```python
 
 from kgcnn.layers.message import MessagePassingBase
-from kgcnn.layers.modules import Dense, LazyAdd
+from kgcnn.layers.modules import Dense, LazyConcatenate
 
 
 class MyMessageNN(MessagePassingBase):
@@ -126,7 +126,7 @@ class MyMessageNN(MessagePassingBase):
     def __init__(self, units, **kwargs):
         super(MyMessageNN, self).__init__(**kwargs)
         self.dense = Dense(units)
-        self.add = LazyAdd(axis=-1)
+        self.add = LazyConcatenate(axis=-1)
 
     def message_function(self, inputs, **kwargs):
         n_in, n_out, edges = inputs
