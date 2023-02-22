@@ -219,13 +219,13 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         predicted_y = scaler.inverse_transform(
             y=(predicted_y["energy"], predicted_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
 
-    plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
+    plot_predict_true(np.array(predicted_y[0]), np.array(true_y["energy"]),
                       filepath=filepath, data_unit=label_units,
                       model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                       file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png")
 
     plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
-                      np.concatenate([np.array(f) for f in true_y[1]], axis=0),
+                      np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
                       filepath=filepath, data_unit=label_units,
                       model_name=model_name, dataset_name=dataset_name, target_names=label_names,
                       file_name=f"predict_force{postfix_file}_fold_{splits_done}.png")
