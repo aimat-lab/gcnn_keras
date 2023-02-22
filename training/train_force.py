@@ -212,8 +212,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     true_y = y_test
 
     if scaler:
-        scaler.inverse_transform(dataset_train, **scaler_io)
-        scaler.inverse_transform(dataset_test, **scaler_io)
+        scaler.inverse_transform_dataset(dataset_train, **scaler_io)
+        scaler.inverse_transform_dataset(dataset_test, **scaler_io)
         true_y = dataset_test.tensor(labels_in_dataset)
 
         predicted_y = scaler.inverse_transform(
