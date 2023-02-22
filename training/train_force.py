@@ -26,9 +26,9 @@ from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--model", required=False, help="Name of graph model to train.", default="Schnet")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MD17Dataset")
+                    default="MD17RevisedDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_md17.py")
+                    default="hyper/hyper_md17_revised.py")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="EnergyForceModel")
 parser.add_argument("--module", required=False, help="Name of the module for model.",
@@ -160,8 +160,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
         scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"])
         scaler.fit_dataset(dataset_train, **scaler_io)
-        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io, copy=True)
-        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io, copy=True)
+        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io)
+        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
@@ -173,6 +173,7 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         metrics = {"energy": [mae_metric_energy], "force": [mae_metric_force]}
     else:
         print("Not using QMGraphLabelScaler.")
+        scaler_io = None
         metrics = None
 
     # Convert dataset to tensor information for model.
@@ -211,10 +212,12 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     true_y = y_test
 
     if scaler:
+        scaler.inverse_transform(dataset_train, **scaler_io)
+        scaler.inverse_transform(dataset_test, **scaler_io)
+        true_y = dataset_test.tensor(labels_in_dataset)
+
         predicted_y = scaler.inverse_transform(
             y=(predicted_y["energy"], predicted_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
-        true_y = scaler.inverse_transform(
-            y=(true_y["energy"], true_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
 
     plot_predict_true(np.array(predicted_y[0]), np.array(true_y[0]),
                       filepath=filepath, data_unit=label_units,

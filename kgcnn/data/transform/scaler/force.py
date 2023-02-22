@@ -35,17 +35,17 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
         ]
         force = [np.random.rand(len(m)*3).reshape((len(m),3)) for m in mol_num]
         scaler = EnergyForceExtensiveLabelScaler()
-        scaler.fit(X=mol_num, y=[energy, force])
+        scaler.fit(y=[energy, force], X=mol_num)
         print(scaler.get_weights())
         print(scaler.get_config())
         scaler._plot_predict(energy, mol_num)  # For debugging.
-        y, f = scaler.transform(X=mol_num, y=[energy, force])
+        y, f = scaler.transform(y=[energy, force], X=mol_num)
         print(energy, y)
-        print(scaler.inverse_transform(X=mol_num, y=[y, f])[1][1][0], f[0])
+        print(scaler.inverse_transform(y=[y, f], X=mol_num)[1][1][0], f[0])
         scaler.save("example.json")
         new_scaler = EnergyForceExtensiveLabelScaler()
         new_scaler.load("example.json")
-        print(scaler.inverse_transform(X=mol_num, y=[y, f])[1][1][0], f[0])
+        print(scaler.inverse_transform(y=[y, f], X=mol_num)[1][1][0], f[0])
 
     """
 

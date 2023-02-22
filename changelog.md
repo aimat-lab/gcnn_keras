@@ -1,7 +1,8 @@
 v2.2.3
 
 * Added ``CENTChargePlusElectrostaticEnergy`` to `kgcnn.layers.conv.hdnnp_conv` and `kgcnn.literature.HDNNP4th` .
-* 
+* Fix bug in latest ``train_force.py`` of v2.2.2 that forgets to apply inverse scaling to dataset, causing subsequent folds to have wrong labels.
+
 
 
 v2.2.2
