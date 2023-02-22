@@ -160,8 +160,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
         scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"])
         scaler.fit_dataset(dataset_train, **scaler_io)
-        dataset_train = scaler.transform_dataset(dataset_train, **scaler_io)
-        dataset_test = scaler.transform_dataset(dataset_test, **scaler_io)
+        scaler.transform_dataset(dataset_train, **scaler_io)
+        scaler.transform_dataset(dataset_test, **scaler_io)
 
         # If scaler was used we add rescaled standard metrics to compile.
         scaler_scale = scaler.get_scaling()
