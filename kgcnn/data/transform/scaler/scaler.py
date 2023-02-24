@@ -488,10 +488,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         Returns:
             y_tr (np.ndarray): Transformed array of shape (n_samples, n_labels).
         """
-        # Unsafe to use super if sklearn scaler uses kwargs then this causes a problem by changing order of x, y here.
-        # return super(StandardLabelScaler, self).fit_transform(X=y, y=None, **fit_params)
-        self.fit(y=y, X=X, atomic_number=atomic_number, **fit_params)
-        return self.transform(y=y, X=X, atomic_number=atomic_number)
+        return super(StandardLabelScaler, self).fit_transform(y, **fit_params)
 
     # noinspection PyPep8Naming
     def transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):
