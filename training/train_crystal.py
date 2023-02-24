@@ -4,14 +4,14 @@ import numpy as np
 import time
 import os
 import argparse
-from kgcnn.data.utils import save_pickle_file
+from kgcnn.data.utils import save_pickle_file, load_pickle_file
 from datetime import timedelta
 from tensorflow_addons import optimizers
 from kgcnn.data.transform.scaler.scaler import StandardLabelScaler
 from kgcnn.data.transform.scaler.mol import QMGraphLabelScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
-from kgcnn.training.history import save_history_score
+from kgcnn.training.history import save_history_score, load_history_list
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.hyper.hyper import HyperParameter
@@ -22,11 +22,11 @@ from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
-parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MatProjectPhononsDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_mp_phonons.py")
+parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
+                    default="MatProjectPhononsDataset")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
                     default="make_crystal_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
@@ -73,7 +73,7 @@ dataset.assert_valid_model_input(hyper["model"]["config"]["inputs"])
 dataset.clean(hyper["model"]["config"]["inputs"])
 data_length = len(dataset)  # Length of the cleaned dataset.
 
-# Train on graph, labels. Must be defined by subclasses of the dataset.
+# Train on graph labels. Must be defined by the dataset.
 labels = np.array(dataset.obtain_property("graph_labels"))
 label_names = dataset.label_names
 label_units = dataset.label_units
@@ -89,7 +89,11 @@ if multi_target_indices is not None:
         label_names = [label_names[i] for i in multi_target_indices]
     if label_units is not None:
         label_units = [label_units[i] for i in multi_target_indices]
-print("Labels %s in %s have shape %s" % (label_names, label_units, labels.shape))
+print("Labels '%s' in '%s' have shape '%s'." % (label_names, label_units, labels.shape))
+
+# Make output directory
+filepath = hyper.results_file_path()
+postfix_file = hyper["info"]["postfix_file"]
 
 # For Crystals, also the atomic number is required to properly pre-scale extensive quantities like total energy.
 atoms = dataset.obtain_property("node_number")
@@ -101,17 +105,18 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 # train on all splits for testing.
 if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
-splits_done = 0
-history_list, test_indices_list = [], []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
-
-for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
+train_test_indices = [
+    (train_index, test_index) for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels)]
+num_folds = len(train_test_indices)
+splits_done = 0
+for current_fold, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.
     if execute_folds:
-        if i not in execute_folds:
+        if current_fold not in execute_folds:
             continue
-    print("Running training on fold: %s" % i)
+    print("Running training on fold: %s" % current_fold)
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.
@@ -147,9 +152,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 
             mae_metric.set_scale(scaler_scale)
             rms_metric.set_scale(scaler_scale)
         metrics = [mae_metric, rms_metric]
+
+        # Save scaler to file
+        scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_fold}"))
+
     else:
-        print("Not using StandardScaler.")
+        print("TRAINING: Not using StandardScaler for regression.")
         metrics = None
+
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(loss="mean_absolute_error", metrics=metrics))
     print(model.summary())
@@ -163,13 +173,27 @@ for i, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
 
     # Get loss from history
-    history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
+    save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_fold}.pickle"))
+
+    # Plot prediction
+    predicted_y = model.predict(x_test)
+    true_y = y_test
+
+    if scaler:
+        predicted_y = scaler.inverse_transform(y=predicted_y, atomic_number=atoms_test)
+        true_y = scaler.inverse_transform(y=true_y, atomic_number=atoms_test)
+
+    plot_predict_true(predicted_y, true_y,
+                      filepath=filepath, data_unit=label_units,
+                      model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                      file_name=f"predict{postfix_file}_fold_{current_fold}.png", show_fig=False)
+
+    # Save keras-model to output-folder.
+    model.save(os.path.join(filepath, f"model{postfix_file}_fold_{current_fold}"))
+
     splits_done = splits_done + 1
 
-# Make output directory
-filepath = hyper.results_file_path()
-postfix_file = hyper["info"]["postfix_file"]
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), num_folds)
 
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
@@ -177,24 +201,8 @@ plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
 
-# Plot prediction
-predicted_y = model.predict(x_test)
-true_y = y_test
-
-if scaler:
-    predicted_y = scaler.inverse_transform(y=predicted_y, atomic_number=atoms_test)
-    true_y = scaler.inverse_transform(y=true_y, atomic_number=atoms_test)
-
-plot_predict_true(predicted_y, true_y,
-                  filepath=filepath, data_unit=label_units,
-                  model_name=model_name, dataset_name=dataset_name, target_names=label_names,
-                  file_name=f"predict{postfix_file}.png")
-
-# Save keras-model to output-folder.
-model.save(os.path.join(filepath, f"model{postfix_file}"))
-
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{model_name}_splits{postfix_file}.npz"), train_test_indices)
 
 # Save hyperparameter again, which were used for this fit.
 hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
@@ -204,10 +212,3 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")
-
-# Save full history.
-save_pickle_file([x.history for x in history_list],
-                 os.path.join(filepath, f"histories_all{postfix_file}.pickle"))
-
-# Save scaler.
-scaler.save(os.path.join(filepath, f"scaler_{postfix_file}"))

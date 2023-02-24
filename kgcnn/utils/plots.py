@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
 import os
 
 
@@ -27,13 +28,14 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
     Returns:
         matplotlib.pyplot.figure: Figure of the training curves.
     """
+    histories = [hist.history if isinstance(hist, tf.keras.callbacks.History) else hist for hist in histories]
     # We assume multiple fits as in KFold.
     if data_unit is None:
         data_unit = ""
     if loss_name is None:
-        loss_name = [x for x in list(histories[0].history.keys()) if "val_" not in x]
+        loss_name = [x for x in list(histories[0].keys()) if "val_" not in x]
     if val_loss_name is None:
-        val_loss_name = [x for x in list(histories[0].history.keys()) if "val_" in x]
+        val_loss_name = [x for x in list(histories[0].keys()) if "val_" in x]
 
     if not isinstance(loss_name, list):
         loss_name = [loss_name]
@@ -42,11 +44,11 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
 
     train_loss = []
     for x in loss_name:
-        loss = np.array([np.array(hist.history[x]) for hist in histories])
+        loss = np.array([np.array(hist[x]) for hist in histories])
         train_loss.append(loss)
     val_loss = []
     for x in val_loss_name:
-        loss = np.array([hist.history[x] for hist in histories])
+        loss = np.array([hist[x] for hist in histories])
         val_loss.append(loss)
 
     if figsize is None:
@@ -85,8 +87,8 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
 
 
 def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str = "",
-                      filepath: str = None, file_name: str = "", dataset_name: str = "", target_names: list = None
-                      ):
+                      filepath: str = None, file_name: str = "", dataset_name: str = "", target_names: list = None,
+                      figsize: list = None, dpi: float = None, show_fig: bool = False):
     r"""Make a scatter plot of predicted versus actual targets. Not for k-splits.
 
     Args:
@@ -98,6 +100,9 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
         target_names (list): String or list of string that matches `n_targets`. Name of the targets.
+        figsize (list): Size of the figure. Default is None.
+        dpi (float): The resolution of the figure in dots-per-inch. Default is None.
+        show_fig (bool): Whether to show figure. Default is True.
 
     Returns:
         matplotlib.pyplot.figure: Figure of the scatter plot.
@@ -121,7 +126,11 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
     if len(target_names) != num_targets:
         print("WARNING:kgcnn: Targets do not match names for plot.")
 
-    fig = plt.figure()
+    if figsize is None:
+        figsize = [6.4, 4.8]
+    if dpi is None:
+        dpi = 100.0
+    fig = plt.figure(figsize=figsize, dpi=dpi)
     for i in range(num_targets):
         delta_valid = y_true[:, i] - y_predict[:, i]
         mae_valid = np.mean(np.abs(delta_valid[~np.isnan(delta_valid)]))
@@ -135,5 +144,6 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
     plt.legend(loc='upper left', fontsize='x-large')
     if filepath is not None:
         plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
-    plt.show()
+    if show_fig:
+        plt.show()
     return fig

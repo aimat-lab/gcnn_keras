@@ -53,19 +53,19 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "meV/atom"
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
+            "kgcnn_version": "2.2.3"
         }
     },
     "Schnet.make_crystal_model": {
@@ -122,14 +122,14 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "meV/atom"
         },
         "info": {
             "postfix": "",
@@ -186,19 +186,19 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "meV/atom"
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.1"
+            "kgcnn_version": "2.2.3"
         }
     },
     "DimeNetPP.make_crystal_model": {
@@ -263,8 +263,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 17}},
@@ -275,7 +275,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
+            "kgcnn_version": "2.2.3"
         }
     },
     "CGCNN.make_crystal_model": {
@@ -336,19 +336,19 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "meV/atom"
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
+            "kgcnn_version": "2.2.3"
         }
     },
     "NMPN.make_crystal_model": {
@@ -404,8 +404,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -415,7 +415,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.2.3"
         }
     },
     "MEGAN": {
@@ -468,8 +468,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 40}},
@@ -477,12 +477,12 @@ hyper = {
                                   "expand_dims": False}}
                 ]
             },
-            "data_unit": "kcal/mol"
+            "data_unit": "meV/atom"
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.1"
+            "kgcnn_version": "2.2.3"
         }
     },
 }

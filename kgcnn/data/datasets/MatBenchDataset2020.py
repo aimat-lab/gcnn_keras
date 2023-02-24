@@ -119,13 +119,13 @@ class MatBenchDataset2020(CrystalDataset, DownloadDataset):
         "matbench_mp_e_form": {"label_column_name": "e_form"},
     }
 
-    def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 1):
+    def __init__(self, dataset_name: str, reload: bool = False, verbose: int = 10):
         """Initialize a `GraphTUDataset` instance from string identifier.
 
         Args:
             dataset_name (str): Name of a dataset.
             reload (bool): Download the dataset again and prepare data on disk.
-            verbose (int): Print progress or info for processing, where 0 is silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
         if not isinstance(dataset_name, str):
             raise ValueError("Please provide string identifier for TUDataset.")

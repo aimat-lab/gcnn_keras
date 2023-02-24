@@ -39,12 +39,12 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
     # Make cora graph that was published by Qing Lu, and Lise Getoor. "Link-based classification." ICML, 2003.
     # https://www.aaai.org/Papers/ICML/2003/ICML03-066.pdf
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload=False, verbose: int = 10):
         """Initialize Cora dataset after Lu et al. 2003.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
         self.class_label_mapping = None
         # Use default base class init.

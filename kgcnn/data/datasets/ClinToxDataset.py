@@ -35,12 +35,12 @@ class ClinToxDataset(MoleculeNetDataset2018):
 
     """
 
-    def __init__(self, reload=False, verbose=1, label_index: int = 0):
+    def __init__(self, reload=False, verbose: int = 10, label_index: int = 0):
         """Initialize ClinTox dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
             label_index (int): Which information should be taken as binary label. Default is 0.
                 Determines the positive class label, which is 'approved' by default.
         """

@@ -22,11 +22,11 @@ class FreeSolvDataset(MoleculeNetDataset2018):
 
     """
 
-    def __init__(self, reload=False, verbose=1):
+    def __init__(self, reload=False, verbose: int = 10):
         r"""Initialize Lipop dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
         super(FreeSolvDataset, self).__init__("FreeSolv", reload=reload, verbose=verbose)

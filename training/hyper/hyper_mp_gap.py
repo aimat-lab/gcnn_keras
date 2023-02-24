@@ -42,19 +42,14 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
+                "loss": "acc"
             },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -65,7 +60,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
+            "kgcnn_version": "2.2.3"
         }
     },
     "Schnet.make_crystal_model": {
@@ -111,19 +106,14 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
+                "loss": "acc"
             },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
@@ -151,12 +141,12 @@ hyper = {
                     {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
                 ],
                 "input_embedding": {"node": {"input_dim": 95, "output_dim": 128}},
-                "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "bessel_basis": {"num_radial": 20, "cutoff": 5.0, "envelope_exponent": 5},
+                "equiv_initialize_kwargs": {"dim": 3, "method": "eye"},
                 "pooling_args": {"pooling_method": "mean"},
                 "conv_args": {"units": 128, "cutoff": None, "conv_pool": "sum"},
-                "update_args": {"units": 128}, "depth": 2, "verbose": 10,
-                "equiv_normalization": False, "node_normalization": False,
+                "update_args": {"units": 128}, "depth": 3, "verbose": 10,
+                "equiv_normalization": True, "node_normalization": False,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
             }
@@ -167,27 +157,22 @@ hyper = {
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>LinearWarmupLinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-04, "learning_rate_stop": 1e-06, "epo_warmup": 25, "epo": 1000,
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
                         "verbose": 0}
                      }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}},  # "clipnorm": 100.0, "clipvalue": 100.0}
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0001}},
+                "loss": "acc"
             },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -198,7 +183,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.1"
+            "kgcnn_version": "2.2.3"
         }
     },
     "DimeNetPP.make_crystal_model": {
@@ -252,19 +237,15 @@ hyper = {
                         "average_decay": 0.999
                     }
                 },
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
+                "loss": "acc",
+                "metrics": [""]
             },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 17}},
@@ -275,7 +256,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
+            "kgcnn_version": "2.2.3"
         }
     },
     "CGCNN.make_crystal_model": {
@@ -325,19 +306,14 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
+                "loss": "acc"
             },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
@@ -348,74 +324,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.0.4"
-        }
-    },
-    "NMPN.make_crystal_model": {
-        "model": {
-            "class_name": "make_crystal_model",
-            "module_name": "kgcnn.literature.NMPN",
-            "config": {
-                "name": "NMPN",
-                "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
-                    {'shape': (None, 3), 'name': "range_image", 'dtype': 'int64', 'ragged': True},
-                    {'shape': (3, 3), 'name': "graph_lattice", 'dtype': 'float32', 'ragged': False}
-                ],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                    "edge": {"input_dim": 5, "output_dim": 64}},
-                "set2set_args": {"channels": 32, "T": 3, "pooling_method": "sum", "init_qstar": "0"},
-                "pooling_args": {"pooling_method": "segment_mean"},
-                "use_set2set": True,
-                "depth": 3,
-                "node_dim": 128,
-                "verbose": 10,
-                "geometric_edge": True, "make_distance": True, "expand_distance": True,
-                "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True, False], "units": [25, 25, 1],
-                               "activation": ["selu", "selu", "linear"]},
-            }
-        },
-        "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "fit": {
-                "batch_size": 16, "epochs": 700, "validation_freq": 10, "verbose": 2,
-                "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-04, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 700,
-                        "verbose": 0
-                    }
-                     }
-                ]
-            },
-            "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-04}},
-                "loss": "mean_absolute_error"
-            },
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
-            },
-            "multi_target_indices": None
-        },
-        "data": {
-            "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
-                "config": {},
-                "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
-                ]
-            },
-        },
-        "info": {
-            "postfix": "",
-            "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "2.2.3"
         }
     },
     "MEGAN": {
@@ -423,56 +332,52 @@ hyper = {
             "class_name": "make_model",
             "module_name": "kgcnn.literature.MEGAN",
             "config": {
-                'name': "MEGAN",
+                "name": "MEGAN",
                 "input_embedding": {"node": {"input_dim": 96, "output_dim": 64, "use_embedding": True}},
-                'units': [60, 50, 40, 30],
-                'importance_units': [],
-                'final_units': [50, 30, 10, 1],
+                "units": [60, 50, 40, 30],
+                "importance_units": [],
+                "final_units": [50, 30, 10, 1],
                 "final_activation": "linear",
-                'dropout_rate': 0.3,
-                'final_dropout_rate': 0.00,
-                'importance_channels': 3,
-                'return_importances': False,
-                'use_edge_features': True,
-                'inputs': [{'shape': (None,), 'name': "node_number", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 25), 'name': "range_attributes", 'dtype': 'float32', 'ragged': True},
-                           {'shape': (None, 2), 'name': "range_indices", 'dtype': 'int64', 'ragged': True}],
+                "final_pooling": "mean",
+                "dropout_rate": 0.1,
+                "final_dropout_rate": 0.00,
+                "importance_channels": 3,
+                "return_importances": False,
+                "use_edge_features": True,
+                "inputs": [{"shape": (None,), "name": "node_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 25), "name": "range_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
             }
         },
         "training": {
             "fit": {
                 "batch_size": 64,
-                "epochs": 400,
+                "epochs": 800,
                 "validation_freq": 1,
                 "verbose": 2,
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 50, "epo": 400,
+                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 5, "epo": 800,
                         "verbose": 0}
                     }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "mean_absolute_error"
+                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
+                "loss": "acc"
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
-            "scaler": {
-                "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
-                "config": {"with_std": True, "with_mean": True, "copy": True}
-            },
             "multi_target_indices": None
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectPhononsDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectPhononsDataset",
+                "class_name": "MatProjectGapDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectGapDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 40}},
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 15}},
                     {"map_list": {"method": "expand_distance_gaussian_basis", "distance": 5.0, "bins": 25,
                                   "expand_dims": False}}
                 ]
@@ -482,7 +387,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.1"
+            "kgcnn_version": "2.2.3"
         }
     },
 }

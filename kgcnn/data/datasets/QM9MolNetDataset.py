@@ -34,12 +34,12 @@ class QM9MolNetDataset(QMDataset, DownloadDataset):
         "unpack_directory_name": "gdb9"
     }
 
-    def __init__(self, reload: bool = False, verbose: int = 1):
+    def __init__(self, reload: bool = False, verbose: int = 10):
         """Initialize QM8 dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            verbose (int): Print progress or info for processing where 0=silent. Default is 1.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
         QMDataset.__init__(self, verbose=verbose, dataset_name="QM9MolNet")
         DownloadDataset.__init__(self, **self.download_info, reload=reload, verbose=verbose)

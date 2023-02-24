@@ -1,9 +1,19 @@
 import numpy as np
 import os
 from typing import Union
-from kgcnn.data.utils import save_yaml_file
+from kgcnn.data.utils import save_yaml_file, load_pickle_file
 from datetime import datetime
+import tensorflow as tf
 from kgcnn import __kgcnn_version__
+
+
+def load_history_list(file_path, folds):
+    history_list = []
+    for i in range(folds):
+        file_path_i = str(file_path).replace("(i)", str(i))
+        if os.path.exists(file_path_i):
+            history_list.append(load_pickle_file(file_path_i))
+    return history_list
 
 
 def save_history_score(
@@ -42,13 +52,14 @@ def save_history_score(
     Returns:
         dict: Score which was saved to file.
     """
+    histories = [hist.history if isinstance(hist, tf.keras.callbacks.History) else hist for hist in histories]
     # We assume multiple fits as in KFold.
     if data_unit is None:
         data_unit = ""
     if loss_name is None:
-        loss_name = [x for x in list(histories[0].history.keys()) if "val_" not in x]
+        loss_name = [x for x in list(histories[0].keys()) if "val_" not in x]
     if val_loss_name is None:
-        val_loss_name = [x for x in list(histories[0].history.keys()) if "val_" in x]
+        val_loss_name = [x for x in list(histories[0].keys()) if "val_" in x]
 
     if not isinstance(loss_name, list):
         loss_name = [loss_name]
@@ -61,11 +72,11 @@ def save_history_score(
 
     train_loss = []
     for x in loss_name:
-        loss = np.array([np.array(hist.history[x]) for hist in histories])
+        loss = np.array([np.array(hist[x]) for hist in histories])
         train_loss.append(loss)
     val_loss = []
     for x in val_loss_name:
-        loss = np.array([hist.history[x] for hist in histories])
+        loss = np.array([hist[x] for hist in histories])
         val_loss.append(loss)
 
     result_dict = {}
