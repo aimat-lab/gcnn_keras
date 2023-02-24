@@ -1,77 +1,78 @@
 data_unit: kcal/mol
-date_time: '2022-12-13 12:29:13'
+date_time: '2023-02-24 11:17:15'
 energy_loss:
-- 0.1950259506702423
+- 0.12757441401481628
 energy_scaled_mean_absolute_error:
-- 1.27252197265625
+- 0.8324084877967834
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.322682648897171
+- 0.21275514364242554
 force_scaled_mean_absolute_error:
-- 2.1054670810699463
-kgcnn_version: 2.2.0
+- 1.3882027864456177
+kgcnn_version: 2.2.2
 loss:
-- 16.0064754486084
+- 10.552576065063477
 lr:
 - 1.2336995869333123e-09
 max_energy_loss:
-- 718.5320434570312
+- 28.598079681396484
 max_energy_scaled_mean_absolute_error:
-- 4688.3388671875
+- 186.59918212890625
 max_force_loss:
-- 101.20046997070312
+- 24.962106704711914
 max_force_scaled_mean_absolute_error:
-- 660.3213500976562
+- 162.87486267089844
 max_loss:
-- 5677.35400390625
+- 1251.7413330078125
 max_lr:
 - 0.0005000000237487257
 max_val_energy_loss:
-- 78.39623260498047
+- 11.57187557220459
 max_val_energy_scaled_mean_absolute_error:
-- 511.52642822265625
+- 75.50516510009766
 max_val_force_loss:
-- 16.054506301879883
+- 4.624428749084473
 max_val_force_scaled_mean_absolute_error:
-- 104.75379943847656
+- 30.17386817932129
 max_val_loss:
-- 865.0671997070312
+- 238.16891479492188
 min_energy_loss:
-- 0.1937781721353531
+- 0.12719200551509857
 min_energy_scaled_mean_absolute_error:
-- 1.2643802165985107
+- 0.8299131989479065
 min_force_loss:
-- 0.32267847657203674
+- 0.2127198576927185
 min_force_scaled_mean_absolute_error:
-- 2.1054399013519287
+- 1.3879725933074951
 min_loss:
-- 16.00556182861328
+- 10.55083179473877
 min_lr:
 - 1.2336995869333123e-09
 min_val_energy_loss:
-- 0.19507434964179993
+- 0.13022971153259277
 min_val_energy_scaled_mean_absolute_error:
-- 1.2728376388549805
+- 0.849733829498291
 min_val_force_loss:
-- 0.3799578845500946
+- 0.29081806540489197
 min_val_force_scaled_mean_absolute_error:
-- 2.4791812896728516
+- 1.8975542783737183
 min_val_loss:
-- 18.813459396362305
+- 14.380973815917969
 model_class: EnergyForceModel
 model_name: EGNN
+model_version: ''
 multi_target_indices: null
 number_histories: 1
 trajectory_name: aspirin_ccsd
 val_energy_loss:
-- 0.19548535346984863
+- 0.13030774891376495
 val_energy_scaled_mean_absolute_error:
-- 1.2755193710327148
+- 0.850243091583252
 val_force_loss:
-- 0.3800544738769531
+- 0.29085806012153625
 val_force_scaled_mean_absolute_error:
-- 2.479811429977417
+- 1.8978151082992554
 val_loss:
-- 18.818153381347656
+- 14.382353782653809

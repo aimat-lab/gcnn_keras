@@ -1,77 +1,78 @@
 data_unit: ''
-date_time: '2022-11-18 10:45:26'
+date_time: '2023-02-24 14:59:46'
 energy_loss:
-- 0.03464774042367935
+- 0.03381980210542679
 energy_scaled_mean_absolute_error:
-- 0.19391432404518127
+- 0.18928056955337524
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.08865112066268921
+- 0.09429711103439331
 force_scaled_mean_absolute_error:
-- 0.4961569905281067
-kgcnn_version: 2.2.0
+- 0.5277560949325562
+kgcnn_version: 2.2.2
 loss:
-- 4.378551959991455
+- 4.654377460479736
 lr:
 - 6.721010777255287e-06
 max_energy_loss:
-- 11.69202709197998
+- 13.746732711791992
 max_energy_scaled_mean_absolute_error:
-- 65.43722534179688
+- 76.93682098388672
 max_force_loss:
-- 3.8321259021759033
+- 3.7802927494049072
 max_force_scaled_mean_absolute_error:
-- 21.447402954101562
+- 21.157304763793945
 max_loss:
-- 190.26663208007812
+- 187.79380798339844
 max_lr:
 - 0.0010000000474974513
 max_val_energy_loss:
-- 11.862424850463867
+- 23.763376235961914
 max_val_energy_scaled_mean_absolute_error:
-- 66.39087677001953
+- 132.99732971191406
 max_val_force_loss:
-- 3.7535464763641357
+- 3.345299005508423
 max_val_force_scaled_mean_absolute_error:
-- 21.007612228393555
+- 18.722759246826172
 max_val_loss:
-- 186.97256469726562
+- 167.9164581298828
 min_energy_loss:
-- 0.026804357767105103
+- 0.02793390490114689
 min_energy_scaled_mean_absolute_error:
-- 0.1500169336795807
+- 0.15633875131607056
 min_force_loss:
-- 0.0881134644150734
+- 0.09390494227409363
 min_force_scaled_mean_absolute_error:
-- 0.4931478202342987
+- 0.5255613327026367
 min_loss:
-- 4.345335483551025
+- 4.640500545501709
 min_lr:
 - 6.721010777255287e-06
 min_val_energy_loss:
-- 0.02781538851559162
+- 0.027347609400749207
 min_val_energy_scaled_mean_absolute_error:
-- 0.15567539632320404
+- 0.15305738151073456
 min_val_force_loss:
-- 0.1022457480430603
+- 0.10740835219621658
 min_val_force_scaled_mean_absolute_error:
-- 0.5722425580024719
+- 0.601136326789856
 min_val_loss:
-- 5.04058313369751
+- 5.297543048858643
 model_class: EnergyForceModel
 model_name: Schnet
+model_version: ''
 multi_target_indices: null
 number_histories: 1
 trajectory_name: toluene_ccsd_t
 val_energy_loss:
-- 0.028954418376088142
+- 0.03453393653035164
 val_energy_scaled_mean_absolute_error:
-- 0.162050262093544
+- 0.19327732920646667
 val_force_loss:
-- 0.10238024592399597
+- 0.10740835219621658
 val_force_scaled_mean_absolute_error:
-- 0.5729953646659851
+- 0.601136326789856
 val_loss:
-- 5.045587062835693
+- 5.297543048858643

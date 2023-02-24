@@ -2,13 +2,15 @@
 
 Note that these are the results for models within `kgcnn` implementation, and that training is not always done with optimal hyperparameter or splits, when comparing with literature.
 This table is generated automatically from keras history logs.
-Model weights and training statistics plots are not uploaded on github due to their file size.
+Model weights and training statistics plots are not uploaded on 
+[github](https://github.com/aimat-lab/gcnn_keras/tree/master/training/results) 
+due to their file size.
 
 *Max.* or *Min.* denotes the best test error observed for any epoch during training.
 To show overall best test error run ``python3 summary.py --min_max True``.
 If not noted otherwise, we use a (fixed) random k-fold split for validation errors.
 
-## CoraLuDataset
+#### CoraLuDataset
 
 Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
 
@@ -20,7 +22,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 | GIN       | 2.1.0   |      500 | 0.8058 &pm; 0.0449     |
 | GraphSAGE | 2.1.0   |      500 | **0.8512 &pm; 0.0100** |
 
-## CoraDataset
+#### CoraDataset
 
 Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. Here we use random 5-fold cross-validation on nodes. 
 
@@ -32,7 +34,7 @@ Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node c
 | GIN       | 2.1.0   |      800 | **0.6347 &pm; 0.0117** |
 | GraphSAGE | 2.1.0   |      600 | 0.6133 &pm; 0.0045     |
 
-## ESOLDataset
+#### ESOLDataset
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
@@ -58,9 +60,9 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 | NMPN                | 2.1.0   |      800 | 0.5045 &pm; 0.0217     | 0.7092 &pm; 0.0482     |
 | PAiNN               | 2.1.0   |      250 | **0.4291 &pm; 0.0164** | **0.6014 &pm; 0.0238** |
 | RGCN                | 2.2.0   |      800 | 0.5014 &pm; 0.0274     | 0.7028 &pm; 0.0332     |
-| Schnet              | 2.2.0   |      800 | 0.4664 &pm; 0.0188     | 0.6511 &pm; 0.0373     |
+| Schnet              | 2.2.2   |      800 | 0.4555 &pm; 0.0215     | 0.6473 &pm; 0.0541     |
 
-## LipopDataset
+#### LipopDataset
 
 Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels for regression are octanol/water distribution coefficient (logD at pH 7.4). We use random 5-fold cross-validation. 
 
@@ -78,7 +80,7 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 | PAiNN       | 2.1.0   |      250 | 0.4033 &pm; 0.0123     | 0.5798 &pm; 0.0281     |
 | Schnet      | 2.1.0   |      800 | 0.4788 &pm; 0.0046     | 0.6450 &pm; 0.0036     |
 
-## MatProjectEFormDataset
+#### MatProjectEFormDataset
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
 
@@ -91,7 +93,7 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0244 &pm; 0.0002     | 0.0568 &pm; 0.0032     |
 | Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
 
-## MatProjectPhononsDataset
+#### MatProjectPhononsDataset
 
 Materials Project dataset from Matbench with 1,265 crystal structures and their corresponding vibration properties in [1/cm]. We use a random 5-fold cross-validation. 
 
@@ -103,9 +105,9 @@ Materials Project dataset from Matbench with 1,265 crystal structures and their 
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | **29.2085 &pm; 2.8130** | **53.9366 &pm; 7.0800** |
 | NMPN.make_crystal_model      | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
 | PAiNN.make_crystal_model     | 2.1.1   |      800 | 47.2212 &pm; 3.8855     | 82.7834 &pm; 6.0730     |
-| Schnet.make_crystal_model    | 2.1.1   |      800 | 40.7416 &pm; 1.9105     | 80.2000 &pm; 10.1010    |
+| Schnet.make_crystal_model    | 2.2.3   |      800 | 40.2982 &pm; 1.6997     | 81.8959 &pm; 12.1697    |
 
-## MutagenicityDataset
+#### MutagenicityDataset
 
 Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dataset was cleaned for unconnected atoms. We use random 5-fold cross-validation. 
 
@@ -121,7 +123,7 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 | INorp       | 2.1.0   |      500 | 0.7955 &pm; 0.0037     | 0.8255 &pm; 0.0047     |
 | MEGAN       | 2.1.1   |      500 | 0.8137 &pm; 0.0117     | 0.8591 &pm; 0.0077     |
 
-## MUTAGDataset
+#### MUTAGDataset
 
 MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation. 
 
@@ -137,7 +139,7 @@ MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5
 | INorp       | 2.1.0   |      500 | 0.8407 &pm; 0.0829     | 0.8549 &pm; 0.0705     |
 | MEGAN       | 2.1.1   |      500 | 0.7977 &pm; 0.0663     | 0.8810 &pm; 0.0568     |
 
-## FreeSolvDataset
+#### FreeSolvDataset
 
 FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. 
 
@@ -162,7 +164,7 @@ FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their correspondi
 | PAiNN               | 2.1.0   |      250 | **0.5128 &pm; 0.0565** | 0.9403 &pm; 0.1387     |
 | Schnet              | 2.1.0   |      800 | 0.5980 &pm; 0.0556     | 1.0614 &pm; 0.1531     |
 
-## PROTEINSDataset
+#### PROTEINSDataset
 
 TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. 
 
@@ -178,7 +180,7 @@ TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes repre
 | INorp       | 2.1.0   |      500 | 0.7242 &pm; 0.0359     | 0.7333 &pm; 0.0228     |
 | MEGAN       | 2.1.1   |      200 | **0.7449 &pm; 0.0222** | 0.8015 &pm; 0.0195     |
 
-## Tox21MolNetDataset
+#### Tox21MolNetDataset
 
 Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
 
@@ -195,7 +197,7 @@ Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different target
 | MEGAN       | 2.2.1   |       50 | 0.9374 &pm; 0.0033     | **0.8389 &pm; 0.0094** | 0.6627 &pm; 0.0133     |
 | Schnet      | 2.2.1   |       50 | 0.9336 &pm; 0.0026     | 0.7856 &pm; 0.0054     | 0.6591 &pm; 0.0144     |
 
-## ClinToxDataset
+#### ClinToxDataset
 
 ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
 
@@ -212,7 +214,7 @@ ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs app
 | MEGAN       | 2.1.1   |       50 | **0.9493 &pm; 0.0130** | 0.8394 &pm; 0.0608     |
 | Schnet      | 2.1.1   |       50 | 0.9318 &pm; 0.0078     | 0.6807 &pm; 0.0745     |
 
-## QM7Dataset
+#### QM7Dataset
 
 QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
 
@@ -228,7 +230,7 @@ QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heav
 | PAiNN     | 2.1.1   |      872 | 1.2715 &pm; 0.0235     | 4.4958 &pm; 1.8048     |
 | Schnet    | 2.1.1   |      800 | 2.5840 &pm; 0.3479     | 10.3788 &pm; 9.1047    |
 
-## QM9Dataset
+#### QM9Dataset
 
 QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 10-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
 
@@ -242,7 +244,7 @@ QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels 
 | PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | 0.0230 &pm; 0.0005     | 0.0075 &pm; 0.0002     | 0.0075 &pm; 0.0003     | 0.0087 &pm; 0.0002     |
 | Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006     | 0.0116 &pm; 0.0004     | 0.0117 &pm; 0.0004     | 0.0120 &pm; 0.0002     |
 
-## SIDERDataset
+#### SIDERDataset
 
 SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse drug reactions (ADR), grouped into 27 system organ classes. We use random 5-fold cross-validation.
 
@@ -258,35 +260,43 @@ SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse dr
 | MEGAN     | 2.1.1   |      150 | 0.7440 &pm; 0.0077     | **0.6186 &pm; 0.0160** |
 | Schnet    | 2.1.0   |       50 | **0.7581 &pm; 0.0037** | 0.6075 &pm; 0.0143     |
 
-## MD17Dataset
+#### MD17Dataset
 
 Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
 
 | model                      | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
 |:---------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
 | DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5366 &pm; nan** | **0.2380 &pm; nan** | **0.3653 &pm; nan** | 0.0861 &pm; nan     | **0.2221 &pm; nan** |
-| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 2.4798 &pm; nan     | 0.8976 &pm; nan     | 0.9607 &pm; nan     | 0.3397 &pm; nan     | 0.5382 &pm; nan     |
+| EGNN.EnergyForceModel      | 2.2.2   |     1000 | 1.8978 &pm; nan     | 0.9314 &pm; nan     | 0.9255 &pm; nan     | 0.3273 &pm; nan     | 0.5286 &pm; nan     |
 | Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.2431 &pm; nan     | 1.0476 &pm; nan     | 1.7242 &pm; nan     | 0.5225 &pm; nan     | 1.4967 &pm; nan     |
 | MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.3700 &pm; nan     | 0.5998 &pm; nan     | 0.7752 &pm; nan     | 0.3669 &pm; nan     | 0.4451 &pm; nan     |
 | NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.1429 &pm; nan     | 0.6937 &pm; nan     | 0.6134 &pm; nan     | 0.4112 &pm; nan     | 0.3220 &pm; nan     |
-| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.8348 &pm; nan     | 0.2679 &pm; nan     | 0.7042 &pm; nan     | **0.0463 &pm; nan** | 0.5494 &pm; nan     |
-| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 1.0623 &pm; nan     | 0.5730 &pm; nan     | 0.6557 &pm; nan     | 0.2999 &pm; nan     | 0.4200 &pm; nan     |
+| PAiNN.EnergyForceModel     | 2.2.2   |     1000 | 0.8388 &pm; nan     | 0.2704 &pm; nan     | 0.7121 &pm; nan     | **0.0448 &pm; nan** | 0.5373 &pm; nan     |
+| Schnet.EnergyForceModel    | 2.2.2   |     1000 | 1.0816 &pm; nan     | 0.6011 &pm; nan     | 0.5777 &pm; nan     | 0.2924 &pm; nan     | 0.4020 &pm; nan     |
 
-## MD17RevisedDataset
+#### MD17RevisedDataset
 
 Energies and forces for molecular dynamics trajectories. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. 
 
 | model                      | kgcnn   |   epochs | Aspirin                | Toluene                | Malonaldehyde          | Benzene                | Ethanol                |
 |:---------------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
 | DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5605 &pm; 0.0201** | **0.2207 &pm; 0.0117** | **0.4053 &pm; 0.0107** | 0.0656 &pm; 0.0055     | **0.2447 &pm; 0.0135** |
-| EGNN.EnergyForceModel      | 2.2.0   |     1000 | 2.2138 &pm; 0.2762     | 0.8316 &pm; 0.0609     | 0.9882 &pm; 0.0411     | 0.3181 &pm; 0.0244     | 0.5367 &pm; 0.0386     |
+| EGNN.EnergyForceModel      | 2.2.2   |     1000 | 2.0576 &pm; 0.1748     | 0.8262 &pm; 0.0383     | 1.0048 &pm; 0.0401     | 0.3059 &pm; 0.0141     | 0.5360 &pm; 0.0365     |
 | Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.3214 &pm; 0.2942     | 3.8695 &pm; 5.2614     | 1.6904 &pm; 0.1626     | 0.5341 &pm; 0.0907     | 1.2936 &pm; 0.0536     |
 | MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.8941 &pm; 0.0502     | 1.0880 &pm; 0.0628     | 1.2041 &pm; 0.0399     | 0.3573 &pm; 0.0302     | 0.6136 &pm; 0.0297     |
 | NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | 0.6971 &pm; 0.0772     | 0.6197 &pm; 0.0327     | 0.3596 &pm; 0.0401     | 0.3444 &pm; 0.0219     |
-| PAiNN.EnergyForceModel     | 2.2.0   |     1000 | 0.7802 &pm; 0.0124     | 0.2496 &pm; 0.0058     | 0.7427 &pm; 0.0116     | **0.0424 &pm; 0.0017** | 0.5627 &pm; 0.0236     |
-| Schnet.EnergyForceModel    | 2.2.0   |     1000 | 0.9777 &pm; 0.0134     | 0.5378 &pm; 0.0100     | 0.6173 &pm; 0.0095     | 0.2537 &pm; 0.0034     | 0.4246 &pm; 0.0269     |
+| PAiNN.EnergyForceModel     | 2.2.2   |     1000 | 0.7901 &pm; 0.0062     | 0.2497 &pm; 0.0049     | 0.7496 &pm; 0.0109     | **0.0414 &pm; 0.0014** | 0.5676 &pm; 0.0215     |
+| Schnet.EnergyForceModel    | 2.2.2   |     1000 | 0.9862 &pm; 0.0095     | 0.5378 &pm; 0.0036     | 0.6461 &pm; 0.0093     | 0.2521 &pm; 0.0074     | 0.4270 &pm; 0.0115     |
 
-## VgdMockDataset
+#### ISO17Dataset
+
+The database consist of 129 molecules each containing 5,000 conformational geometries, energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. 
+
+| model                   | kgcnn   |   epochs | Energy (test_within)   | Force (test_within)   |
+|:------------------------|:--------|---------:|:-----------------------|:----------------------|
+| Schnet.EnergyForceModel | 2.2.2   |     1000 | **0.0059 &pm; nan**    | **0.0132 &pm; nan**   |
+
+#### VgdMockDataset
 
 Synthetic classification dataset containing 100 small, randomly generated graphs, where half of them were seeded with a triangular subgraph motif, which is the explanation ground truth for the target class distinction.
 
@@ -295,7 +305,7 @@ Synthetic classification dataset containing 100 small, randomly generated graphs
 | GCN_GnnExplainer | 2.2.1   |      100 | 0.8700 &pm; 0.1122     | 0.7621 &pm; 0.0357     | 0.6051 &pm; 0.0416     |
 | MEGAN            | 2.2.0   |      100 | **0.9400 &pm; 0.0490** | **0.8873 &pm; 0.0250** | **0.9518 &pm; 0.0241** |
 
-## VgdRbMotifsDataset
+#### VgdRbMotifsDataset
 
 Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, where some of them are seeded with special red- or blue-dominated subgraph motifs, where blue motifs contribute negatively to a graph's overall target value and red motifs contribute positively. The explanation ground truth for this datasets consists of these motifs.
 

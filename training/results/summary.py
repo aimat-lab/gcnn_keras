@@ -266,6 +266,17 @@ benchmark_datasets = {
              "trajectory_name": "ethanol"}
         ]
     },
+    "ISO17Dataset": {
+        "general_info": [
+            "The database consist of 129 molecules each containing 5,000 conformational geometries, ",
+            "energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. ",
+            "The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. "
+        ],
+        "targets": [
+            {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
+            {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
+        ]
+    },
     "VgdMockDataset": {
         "general_info": [
             "Synthetic classification dataset containing 100 small, randomly generated graphs, ",

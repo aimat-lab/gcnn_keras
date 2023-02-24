@@ -1,77 +1,78 @@
 data_unit: ''
-date_time: '2022-11-19 10:28:40'
+date_time: '2023-02-22 14:58:42'
 energy_loss:
-- 0.03796487674117088
+- 0.046954140067100525
 energy_scaled_mean_absolute_error:
-- 0.09249183535575867
+- 0.11439187824726105
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.11910560727119446
+- 0.11607784032821655
 force_scaled_mean_absolute_error:
-- 0.29017066955566406
-kgcnn_version: 2.2.0
+- 0.28279435634613037
+kgcnn_version: 2.2.2
 loss:
-- 5.874138832092285
+- 5.734768867492676
 lr:
 - 6.721010777255287e-06
 max_energy_loss:
-- 23.240053176879883
+- 24.04233741760254
 max_energy_scaled_mean_absolute_error:
-- 56.61852264404297
+- 58.57307434082031
 max_force_loss:
-- 6.22731876373291
+- 6.279038906097412
 max_force_scaled_mean_absolute_error:
-- 15.171284675598145
+- 15.297289848327637
 max_loss:
-- 311.1962890625
+- 314.50946044921875
 max_lr:
 - 0.0010000000474974513
 max_val_energy_loss:
-- 28.289148330688477
+- 47.65464782714844
 max_val_energy_scaled_mean_absolute_error:
-- 68.91934967041016
+- 116.09849548339844
 max_val_force_loss:
-- 5.938149452209473
+- 5.754441738128662
 max_val_force_scaled_mean_absolute_error:
-- 14.466798782348633
+- 14.019241333007812
 max_val_loss:
-- 299.6026611328125
+- 300.6083984375
 min_energy_loss:
-- 0.02794162556529045
+- 0.026456370949745178
 min_energy_scaled_mean_absolute_error:
-- 0.06807270646095276
+- 0.06445425003767014
 min_force_loss:
-- 0.1178412139415741
+- 0.11605770885944366
 min_force_scaled_mean_absolute_error:
-- 0.28709036111831665
+- 0.28274527192115784
 min_loss:
-- 5.803187847137451
+- 5.721182346343994
 min_lr:
 - 6.721010777255287e-06
 min_val_energy_loss:
-- 0.017193162813782692
+- 0.017240500077605247
 min_val_energy_scaled_mean_absolute_error:
-- 0.041886795312166214
+- 0.042002126574516296
 min_val_force_loss:
-- 0.121116504073143
+- 0.11941467225551605
 min_val_force_scaled_mean_absolute_error:
-- 0.29506975412368774
+- 0.2909236550331116
 min_val_loss:
-- 5.961143493652344
+- 5.869128227233887
 model_class: EnergyForceModel
 model_name: Schnet
+model_version: ''
 multi_target_indices: null
 number_histories: 1
 trajectory_name: benzene_ccsd_t
 val_energy_loss:
-- 0.01865430921316147
+- 0.09756108373403549
 val_energy_scaled_mean_absolute_error:
-- 0.045446500182151794
+- 0.23768292367458344
 val_force_loss:
-- 0.12309771031141281
+- 0.12003332376480103
 val_force_scaled_mean_absolute_error:
-- 0.2998964488506317
+- 0.2924308180809021
 val_loss:
-- 6.050441265106201
+- 5.979193210601807

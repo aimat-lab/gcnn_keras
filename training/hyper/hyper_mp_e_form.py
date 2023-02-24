@@ -411,7 +411,7 @@ hyper = {
                                   "expand_dims": False}}
                 ]
             },
-            "data_unit": "kcal/mol"
+            "data_unit": "eV/atom"
         },
         "info": {
             "postfix": "",

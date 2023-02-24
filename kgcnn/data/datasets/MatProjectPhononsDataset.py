@@ -25,7 +25,7 @@ class MatProjectPhononsDataset(MatBenchDataset2020):
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.
-            vverbose (int): Print progress or info for processing where 60=silent. Default is 10.
+            verbose (int): Print progress or info for processing where 60=silent. Default is 10.
         """
         # Use default base class init()
         super(MatProjectPhononsDataset, self).__init__("matbench_phonons", reload=reload, verbose=verbose)

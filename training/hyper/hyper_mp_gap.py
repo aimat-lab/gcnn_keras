@@ -42,7 +42,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "acc"
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
         },
@@ -55,7 +60,7 @@ hyper = {
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "eV"
         },
         "info": {
             "postfix": "",
@@ -106,7 +111,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "acc"
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
         },
@@ -119,7 +129,7 @@ hyper = {
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "eV"
         },
         "info": {
             "postfix": "",
@@ -165,7 +175,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0001}},
-                "loss": "acc"
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
         },
@@ -178,7 +193,7 @@ hyper = {
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "eV"
         },
         "info": {
             "postfix": "",
@@ -237,8 +252,12 @@ hyper = {
                         "average_decay": 0.999
                     }
                 },
-                "loss": "acc",
-                "metrics": [""]
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
         },
@@ -306,7 +325,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "acc"
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
         },
@@ -319,7 +343,7 @@ hyper = {
                     {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
                 ]
             },
-            "data_unit": "eV/atom"
+            "data_unit": "eV"
         },
         "info": {
             "postfix": "",
@@ -365,10 +389,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
-                "loss": "acc"
+                "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
             "multi_target_indices": None
         },
         "data": {
@@ -382,7 +411,7 @@ hyper = {
                                   "expand_dims": False}}
                 ]
             },
-            "data_unit": "kcal/mol"
+            "data_unit": "eV"
         },
         "info": {
             "postfix": "",

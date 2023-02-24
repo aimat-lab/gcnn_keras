@@ -1,71 +1,72 @@
 data_unit: ''
-date_time: '2022-11-18 10:52:09'
+date_time: '2023-02-24 15:07:03'
 energy_loss:
-- 0.0060297842137515545
+- 0.005916726775467396
 energy_scaled_mean_absolute_error:
-- 0.0337471067905426
+- 0.03311436250805855
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.019077464938163757
+- 0.018020663410425186
 force_scaled_mean_absolute_error:
-- 0.1067715734243393
-kgcnn_version: 2.2.0
+- 0.10085694491863251
+kgcnn_version: 2.2.2
 loss:
-- 0.9408257007598877
+- 0.8889293074607849
 max_energy_loss:
-- 3.5608086585998535
+- 1.7458863258361816
 max_energy_scaled_mean_absolute_error:
-- 19.928909301757812
+- 9.77126693725586
 max_force_loss:
-- 3.1283457279205322
+- 3.031863212585449
 max_force_scaled_mean_absolute_error:
-- 17.508525848388672
+- 16.968542098999023
 max_loss:
-- 156.84970092773438
+- 150.30718994140625
 max_val_energy_loss:
-- 5.848249912261963
+- 1.6479501724243164
 max_val_energy_scaled_mean_absolute_error:
-- 32.731117248535156
+- 9.22314453125
 max_val_force_loss:
-- 1.8548558950424194
+- 1.7867285013198853
 max_val_force_scaled_mean_absolute_error:
-- 10.38114070892334
+- 9.999850273132324
 max_val_loss:
-- 96.73619079589844
+- 89.19766235351562
 min_energy_loss:
-- 0.006006598472595215
+- 0.005861487705260515
 min_energy_scaled_mean_absolute_error:
-- 0.033617351204156876
+- 0.03280521184206009
 min_force_loss:
-- 0.01907169260084629
+- 0.018020663410425186
 min_force_scaled_mean_absolute_error:
-- 0.10673926770687103
+- 0.10085694491863251
 min_loss:
-- 0.9405732154846191
+- 0.8889293074607849
 min_val_energy_loss:
-- 0.008333658799529076
+- 0.008241728879511356
 min_val_energy_scaled_mean_absolute_error:
-- 0.046641331166028976
+- 0.04612679034471512
 min_val_force_loss:
-- 0.047857865691185
+- 0.04832145944237709
 min_val_force_scaled_mean_absolute_error:
-- 0.26784786581993103
+- 0.2704424560070038
 min_val_loss:
-- 2.353381633758545
+- 2.376084327697754
 model_class: EnergyForceModel
 model_name: PAiNN
+model_version: ''
 multi_target_indices: null
 number_histories: 1
 trajectory_name: toluene_ccsd_t
 val_energy_loss:
-- 0.008359810337424278
+- 0.008333071134984493
 val_energy_scaled_mean_absolute_error:
-- 0.046787671744823456
+- 0.04663801193237305
 val_force_loss:
-- 0.047860171645879745
+- 0.04832145944237709
 val_force_scaled_mean_absolute_error:
-- 0.2678607404232025
+- 0.2704424560070038
 val_loss:
-- 2.3535079956054688
+- 2.376084327697754

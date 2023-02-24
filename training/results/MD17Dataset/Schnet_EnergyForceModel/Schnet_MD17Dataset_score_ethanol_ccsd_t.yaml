@@ -1,77 +1,78 @@
 data_unit: ''
-date_time: '2022-11-19 10:38:35'
+date_time: '2023-02-22 15:23:05'
 energy_loss:
-- 0.01633376069366932
+- 0.013440792448818684
 energy_scaled_mean_absolute_error:
-- 0.07497986406087875
+- 0.061699725687503815
 epochs:
 - 1000
 execute_folds: null
 force_loss:
-- 0.06309700757265091
+- 0.058230411261320114
 force_scaled_mean_absolute_error:
-- 0.2896457314491272
-kgcnn_version: 2.2.0
+- 0.2673056721687317
+kgcnn_version: 2.2.2
 loss:
-- 3.1080873012542725
+- 2.8667304515838623
 lr:
 - 6.721010777255287e-06
 max_energy_loss:
-- 6.179425239562988
+- 5.9228034019470215
 max_energy_scaled_mean_absolute_error:
-- 28.366546630859375
+- 27.188533782958984
 max_force_loss:
-- 4.3865742683410645
+- 4.3889689445495605
 max_force_scaled_mean_absolute_error:
-- 20.136493682861328
+- 20.14748764038086
 max_loss:
-- 215.89993286132812
+- 216.06553649902344
 max_lr:
 - 0.0010000000474974513
 max_val_energy_loss:
-- 4.570565700531006
+- 6.296719074249268
 max_val_energy_scaled_mean_absolute_error:
-- 20.981107711791992
+- 28.904977798461914
 max_val_force_loss:
-- 4.058513164520264
+- 4.101105213165283
 max_val_force_scaled_mean_absolute_error:
-- 18.630535125732422
+- 18.826053619384766
 max_val_loss:
-- 202.182861328125
+- 204.16519165039062
 min_energy_loss:
-- 0.01275648083537817
+- 0.011916697956621647
 min_energy_scaled_mean_absolute_error:
-- 0.05855840444564819
+- 0.05470338463783264
 min_force_loss:
-- 0.06302828341722488
+- 0.058230411261320114
 min_force_scaled_mean_absolute_error:
-- 0.28933027386665344
+- 0.2673056721687317
 min_loss:
-- 3.105090379714966
+- 2.8667304515838623
 min_lr:
 - 6.721010777255287e-06
 min_val_energy_loss:
-- 0.01749984733760357
+- 0.015687908977270126
 min_val_energy_scaled_mean_absolute_error:
-- 0.08033275604248047
+- 0.07201508432626724
 min_val_force_loss:
-- 0.09104733169078827
+- 0.08742078393697739
 min_val_force_scaled_mean_absolute_error:
-- 0.41795113682746887
+- 0.40130364894866943
 min_val_loss:
-- 4.4832329750061035
+- 4.303065299987793
 model_class: EnergyForceModel
 model_name: Schnet
+model_version: ''
 multi_target_indices: null
 number_histories: 1
 trajectory_name: ethanol_ccsd_t
 val_energy_loss:
-- 0.020460616797208786
+- 0.030843617394566536
 val_energy_scaled_mean_absolute_error:
-- 0.0939241424202919
+- 0.14158710837364197
 val_force_loss:
-- 0.09150432795286179
+- 0.08756964653730392
 val_force_scaled_mean_absolute_error:
-- 0.42004916071891785
+- 0.4019870460033417
 val_loss:
-- 4.504173278808594
+- 4.321756839752197
