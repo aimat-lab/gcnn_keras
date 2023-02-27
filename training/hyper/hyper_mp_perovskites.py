@@ -53,8 +53,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -122,8 +122,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5}}
@@ -186,8 +186,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -263,8 +263,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 17}},
@@ -336,8 +336,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 6.0}}
@@ -404,8 +404,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
@@ -468,8 +468,8 @@ hyper = {
         },
         "data": {
             "dataset": {
-                "class_name": "MatProjectJdft2dDataset",
-                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "class_name": "MatProjectPerovskitesDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectPerovskitesDataset",
                 "config": {},
                 "methods": [
                     {"map_list": {"method": "set_range_periodic", "max_distance": 5.0, "max_neighbours": 40}},

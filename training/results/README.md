@@ -80,18 +80,17 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 | PAiNN       | 2.1.0   |      250 | 0.4033 &pm; 0.0123     | 0.5798 &pm; 0.0281     |
 | Schnet      | 2.1.0   |      800 | 0.4788 &pm; 0.0046     | 0.6450 &pm; 0.0036     |
 
-#### MatProjectEFormDataset
+#### MatProjectJdft2dDataset
 
-Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
+Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
 
-| model                        | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
-|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| CGCNN.make_crystal_model     | 2.1.1   |     1000 | 0.0369 &pm; 0.0003     | 0.0873 &pm; 0.0026     |
-| DimeNetPP.make_crystal_model | 2.1.1   |      780 | 0.0233 &pm; 0.0005     | 0.0644 &pm; 0.0020     |
-| MEGAN                        | 2.1.1   |      800 | 0.0397 &pm; 0.0009     | 0.0902 &pm; 0.0041     |
-| Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0247 &pm; 0.0006     | 0.0639 &pm; 0.0028     |
-| PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0244 &pm; 0.0002     | 0.0568 &pm; 0.0032     |
-| Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
+| model                        | kgcnn   |   epochs | MAE [meV/atom]          | RMSE [meV/atom]           |
+|:-----------------------------|:--------|---------:|:------------------------|:--------------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | **42.6352 &pm; 9.6715** | **112.4714 &pm; 37.9213** |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 49.2113 &pm; 12.7431    | 124.7198 &pm; 38.4492     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 56.5205 &pm; 10.8723    | 136.3116 &pm; 31.2617     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 50.5886 &pm; 9.9009     | 117.7118 &pm; 33.4786     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 48.0629 &pm; 10.6137    | 121.6861 &pm; 36.7492     |
 
 #### MatProjectPhononsDataset
 
@@ -106,6 +105,31 @@ Materials Project dataset from Matbench with 1,265 crystal structures and their 
 | NMPN.make_crystal_model      | 2.1.0   |      700 | 44.4253 &pm; 3.7905     | 91.1708 &pm; 23.8014    |
 | PAiNN.make_crystal_model     | 2.1.1   |      800 | 47.2212 &pm; 3.8855     | 82.7834 &pm; 6.0730     |
 | Schnet.make_crystal_model    | 2.2.3   |      800 | 40.2982 &pm; 1.6997     | 81.8959 &pm; 12.1697    |
+
+#### MatProjectDielectricDataset
+
+Materials Project dataset from Matbench with 4764 crystal structures and their corresponding Refractive index (unitless). We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [no unit]          | RMSE [no unit]         |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 0.3479 &pm; 0.0461     | 2.1384 &pm; 0.5135     |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 0.3337 &pm; 0.0608     | 1.8686 &pm; 0.6216     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 0.3485 &pm; 0.0443     | 2.0672 &pm; 0.5674     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.3587 &pm; 0.0518     | **1.8403 &pm; 0.6255** |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | **0.3241 &pm; 0.0375** | 2.0324 &pm; 0.5585     |
+
+#### MatProjectEFormDataset
+
+Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.1.1   |     1000 | 0.0369 &pm; 0.0003     | 0.0873 &pm; 0.0026     |
+| DimeNetPP.make_crystal_model | 2.1.1   |      780 | 0.0233 &pm; 0.0005     | 0.0644 &pm; 0.0020     |
+| MEGAN                        | 2.1.1   |      800 | 0.0397 &pm; 0.0009     | 0.0902 &pm; 0.0041     |
+| Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0247 &pm; 0.0006     | 0.0639 &pm; 0.0028     |
+| PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0244 &pm; 0.0002     | 0.0568 &pm; 0.0032     |
+| Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
 
 #### MutagenicityDataset
 

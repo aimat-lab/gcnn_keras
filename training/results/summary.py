@@ -63,10 +63,25 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    "MatProjectEFormDataset": {
+    "MatProjectJdft2dDataset": {
         "general_info": [
-            "Materials Project dataset from Matbench with 132752 crystal structures ",
-            "and their corresponding formation energy in [eV/atom]. ",
+            "Materials Project dataset from Matbench with 636 crystal structures ",
+            "and their corresponding Exfoliation energy (meV/atom). ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [meV/atom]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [meV/atom]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectPhononsDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 1,265 crystal structures ",
+            "and their corresponding vibration properties in [1/cm]. ",
             "We use a random 5-fold cross-validation. "
         ],
         "targets": [
@@ -78,10 +93,25 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
-    "MatProjectPhononsDataset": {
+    "MatProjectDielectricDataset": {
         "general_info": [
-            "Materials Project dataset from Matbench with 1,265 crystal structures ",
-            "and their corresponding vibration properties in [1/cm]. ",
+            "Materials Project dataset from Matbench with 4764 crystal structures ",
+            "and their corresponding Refractive index (unitless). ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [no unit]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [no unit]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectEFormDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 132752 crystal structures ",
+            "and their corresponding formation energy in [eV/atom]. ",
             "We use a random 5-fold cross-validation. "
         ],
         "targets": [
@@ -275,6 +305,10 @@ benchmark_datasets = {
         "targets": [
             {"metric": "val_energy_scaled_mean_absolute_error", "name": "Energy (test_within)", "find_best": "min"},
             {"metric": "val_force_scaled_mean_absolute_error", "name": "Force (test_within)", "find_best": "min"},
+            {"metric": "min_val_energy_scaled_mean_absolute_error", "name": "*Min. Energy* (test_within)",
+             "find_best": "min", "is_min_max": True},
+            {"metric": "min_val_force_scaled_mean_absolute_error", "name": "*Min. Force* (test_within)",
+             "find_best": "min", "is_min_max": True},
         ]
     },
     "VgdMockDataset": {
