@@ -118,6 +118,30 @@ Materials Project dataset from Matbench with 4764 crystal structures and their c
 | PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.3587 &pm; 0.0518     | **1.8403 &pm; 0.6255** |
 | Schnet.make_crystal_model    | 2.2.2   |      800 | **0.3241 &pm; 0.0375** | 2.0324 &pm; 0.5585     |
 
+#### MatProjectLogGVRHDataset
+
+Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average shear moduli in GPa. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 0.0847 &pm; 0.0020     | 0.1286 &pm; 0.0044     |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 0.0805 &pm; 0.0027     | 0.1259 &pm; 0.0056     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 0.0858 &pm; 0.0010     | 0.1337 &pm; 0.0035     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.0851 &pm; 0.0023     | 0.1284 &pm; 0.0057     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | **0.0798 &pm; 0.0011** | **0.1253 &pm; 0.0038** |
+
+#### MatProjectLogKVRHDataset
+
+Materials Project dataset from Matbench with 10987 crystal structures and their corresponding Base 10 logarithm of the DFT Voigt-Reuss-Hill average bulk moduli in GPa. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [log(GPa)]         | RMSE [log(GPa)]        |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 0.0629 &pm; 0.0008     | 0.1198 &pm; 0.0037     |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | **0.0579 &pm; 0.0014** | **0.1120 &pm; 0.0045** |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 0.0660 &pm; 0.0020     | 0.1251 &pm; 0.0058     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.0646 &pm; 0.0015     | 0.1177 &pm; 0.0052     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 0.0584 &pm; 0.0016     | 0.1143 &pm; 0.0062     |
+
 #### MatProjectEFormDataset
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 

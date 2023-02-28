@@ -28,6 +28,7 @@ class MolDynamicsModelPredictor:
                  store_last_output: bool = False,
                  copy_graphs_in_store: bool = False,
                  use_predict: bool = False,
+                 predict_verbose: Union[str, int] = 0,
                  batch_size: int = 32,
                  update_from_last_input: list = None,
                  update_from_last_input_skip: int = None,
@@ -67,6 +68,7 @@ class MolDynamicsModelPredictor:
         self.copy_graphs_in_store = copy_graphs_in_store
         self.update_from_last_input = update_from_last_input
         self.update_from_last_input_skip = update_from_last_input_skip
+        self.predict_verbose = predict_verbose
 
         self._last_input = None
         self._last_output = None
@@ -77,6 +79,10 @@ class MolDynamicsModelPredictor:
 
     def save(self, file_path: str):
         raise NotImplementedError("Not yet supported.")
+
+    @tf.function
+    def _call_model_(self, tensor_input):
+        return self.model(tensor_input, training=False)
 
     @staticmethod
     def _translate_properties(properties, translation) -> dict:
@@ -134,9 +140,9 @@ class MolDynamicsModelPredictor:
         tensor_input = graph_list.tensor(self.model_inputs)
 
         if not self.use_predict:
-            tensor_output = self.model(tensor_input, training=False)
+            tensor_output = self._call_model_(tensor_input)
         else:
-            tensor_output = self.model.predict(tensor_input, batch_size=self.batch_size)
+            tensor_output = self.model.predict(tensor_input, batch_size=self.batch_size, verbose=self.predict_verbose)
 
         # Translate output. Mapping of model dict or list to dict for required calculator.
         tensor_dict = self._translate_properties(tensor_output, self.model_outputs)
