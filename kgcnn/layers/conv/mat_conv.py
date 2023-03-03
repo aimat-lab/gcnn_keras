@@ -40,7 +40,7 @@ class MATDistanceMatrix(ks.layers.Layer):
     def build(self, input_shape):
         super(MATDistanceMatrix, self).build(input_shape)
 
-    def call(self, inputs, mask, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         # Shape of inputs (batch, N, 3)
         # Shape of mask (batch, N, 3)
         diff = tf.expand_dims(inputs, axis=1) - tf.expand_dims(inputs, axis=2)
@@ -134,7 +134,7 @@ class MATAttentionHead(ks.layers.Layer):
     def build(self, input_shape):
         super(MATAttentionHead, self).build(input_shape)
 
-    def call(self, inputs, mask, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         h, a_d, a_g = inputs
         h_mask, a_d_mask, a_g_mask = mask
         q = tf.expand_dims(self.dense_q(h), axis=2)

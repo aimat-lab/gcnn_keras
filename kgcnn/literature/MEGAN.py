@@ -32,7 +32,15 @@ class ExplanationSparsityRegularization(GraphBaseLayer):
         super(ExplanationSparsityRegularization, self).__init__(**kwargs)
         self.factor = factor
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
+        r"""Computes a loss from importance scores.
+
+        Args:
+            inputs: Importance tensor of shape ([batch], [N], K) .
+
+        Returns:
+            None.
+        """
         # importances: ([batch], [N], K)
         importances = inputs
 
@@ -357,20 +365,23 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
         return samples, mask
 
     def train_step(self, data):
-        """
-        The method which is called for each individual batch of the training step. In this method a forward
+        """The method which is called for each individual batch of the training step. In this method a forward
         pass of the input data of the batch is performed, the loss is calculated, the gradients of this loss
         w.r.t to the model parameters are calculated and these gradients are used to update the weights of
         the model.
+
         This custom train step implements the "explanation co-training": Additionally to the main prediction
         loss there is also a loss term which uses only the node importance values to approximate a
         normalized versions of the target values.
+
         Args:
             data: Tuple of two tensors (X, Y) where X is the batch tensor of all the inputs and Y is the
                 batch tensor of the target output values.
+
         Returns:
             A dictionary whose keys are the names of metrics and the values are the corresponding values
             of these metrics for this iteration of the training.
+
         """
         if len(data) == 3:
             x, y, sample_weight = data

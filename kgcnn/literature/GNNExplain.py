@@ -57,34 +57,38 @@ class GnnExplainer(ImportanceExplanationMethod):
                  model: ks.models.Model,
                  x: t.Tuple[tf.RaggedTensor, tf.RaggedTensor, tf.RaggedTensor],
                  y: np.ndarray):
-        """
-        Given a model, the input tensor and the output array, this method will return a tuple of two
+        """Given a model, the input tensor and the output array, this method will return a tuple of two
         ragged tensors, which represent the node importances and the edge importances.
 
         Beware, that this method executes an entire training process and may take some time.
 
         Reference of tensor shapes. [Brackets] indicate ragged dimension
-        - V: Number of nodes in graph
-        - E: Number of edges in graph
-        - K: Number of explanation channels given in constructor. This has to be equal to the number of
-            prediction targets specified in the constructor.
-        - N: Number of node attributes
-        - M: Number of edge attributes
-        - B: batch size
+
+            - V: Number of nodes in graph
+            - E: Number of edges in graph
+            - K: Number of explanation channels given in constructor. This has to be equal to the number of
+                prediction targets specified in the constructor.
+            - N: Number of node attributes
+            - M: Number of edge attributes
+            - B: batch size
 
         Args:
             x: A tuple (node_input, edge_input, edge_indices) of 3 RaggedTensors
+
                 - node_input: Shape ([B], [V], N)
                 - edge_input: Shape ([B], [E], M)
                 - edge_indices: Shape ([B], [E], 2)
+
             y: A numpy array of shape (B, K)
             model: Any compatible keras model, which means any model which accepts the previously described
                 input tensors and returns output similar to the previously described output tensor.
 
         Returns:
             A tuple (node_importances, edge_importances) of RaggedTensors.
-            - node_importances: Shape ([B], [V], K)
-            - edge_importances: Shape ([B], [E], K)
+
+                - node_importances: Shape ([B], [V], K)
+                - edge_importances: Shape ([B], [E], K)
+
         """
         # Generally the idea of the implementation is that we use the node_input and edge_input tensors as
         # templates to generate the mask variable tensors, which match the graph dimensions but differ in

@@ -67,7 +67,7 @@ def make_model_behler(inputs: list = None,
                       output_to_tensor: bool = None,
                       output_mlp: dict = None
                       ):
-    r"""Make 4th generation `HDNNP <https://www.nature.com/articles/s41467-020-20427-2>`_ graph network via
+    r"""Make 4th generation `HDNNP <https://www.nature.com/articles/s41467-020-20427-2>`__ graph network via
     functional API.
 
     Default parameters can be found in :obj:`kgcnn.literature.HDNNP4th.model_default_behler` .
@@ -82,7 +82,7 @@ def make_model_behler(inputs: list = None,
             - total_charge (tf.Tensor): Total charge of each molecule of shape `(batch, 1)` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"` .
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.

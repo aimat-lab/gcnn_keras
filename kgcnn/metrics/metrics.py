@@ -186,6 +186,17 @@ class BalancedBinaryAccuracyNoNaN(ks.metrics.Metric):
         ]
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        """Update the state of the metric.
+
+        Args:
+            y_true: Ground truth label values. shape = `[batch_size, d0, .. dN-1]`
+                or shape = `[batch_size, d0, .. dN-1, 1]` .
+            y_pred: The predicted probability values. shape = `[batch_size, d0, .. dN]` .
+            sample_weight: Optional sample_weight acts as a coefficient for the metric.
+
+        Returns:
+            update ops.
+        """
 
         is_not_nan = tf.cast(tf.logical_not(tf.math.is_nan(y_true)), y_pred.dtype)
         if sample_weight is not None:

@@ -73,12 +73,12 @@ def make_model(inputs: list = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
-    r"""Make `MXMNet <https://arxiv.org/abs/2011.07457>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.MXMNet.model_default`.
+    r"""Make `MXMNet <https://arxiv.org/abs/2011.07457>`__ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.MXMNet.model_default` .
 
     Inputs:
         list: `[node_attributes, node_coordinates, edge_attributes, edge_indices, angle_indices_1, angle_indices_2,
-         range_indices]`
+        range_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
@@ -112,7 +112,7 @@ def make_model(inputs: list = None,
         node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layers.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor` .
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
