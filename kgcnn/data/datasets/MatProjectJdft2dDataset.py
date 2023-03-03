@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectJdft2dDataset(MatBenchDataset2020):
-    """Store and process :obj:`MatProjectJdft2dDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    """Store and process :obj:`MatProjectJdft2dDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_jdft2d'.
 
     Matbench test dataset for predicting exfoliation energies from crystal structure

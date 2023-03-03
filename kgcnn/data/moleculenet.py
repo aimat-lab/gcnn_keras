@@ -133,7 +133,7 @@ class MoleculeNetDataset(MemoryGraphDataset):
     The concept is to load a table of smiles and corresponding targets and convert them into a tensor representation
     for graph networks.
 
-    .. code-block:: type
+    .. code-block:: console
 
         ├── data_directory
             ├── file_name.csv

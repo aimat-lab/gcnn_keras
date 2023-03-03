@@ -3,10 +3,10 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 
 
 class SIDERDataset(MoleculeNetDataset2018):
-    r"""Store and process 'SIDER' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
+    r"""Store and process 'SIDER' dataset from `MoleculeNet <https://moleculenet.org/>`__ database.
 
-    Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#freesolv-dataset>`_ reading:
+    Compare reference:
+    `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/moleculenet.html#freesolv-dataset>`__ reading:
     The Side Effect Resource (SIDER) is a database of marketed drugs and adverse drug reactions (ADR).
     The version of the SIDER dataset in DeepChem has grouped drug side effects into 27 system organ classes following
     MedDRA classifications measured for 1427 approved drugs.

@@ -31,7 +31,7 @@ class QMDataset(MemoryGraphDataset):
     Additionally, loading multiple single xyz-files into one file is supported. The file names and labels are given
     by a CSV or table file. The table file must have one line of header with column names!
 
-    .. code-block:: type
+    .. code-block:: console
 
         ├── data_directory
             ├── file_directory

@@ -10,9 +10,9 @@ from kgcnn.data.download import DownloadDataset
 
 
 class QM9MolNetDataset(QMDataset, DownloadDataset):
-    r"""Store and process QM9 dataset from `MoleculeNet <https://moleculenet.org/>`_ dataset.
+    r"""Store and process QM9 dataset from `MoleculeNet <https://moleculenet.org/>`__ dataset.
 
-    This is the QM9 dataset as preprocessed from `MoleculeNet <https://moleculenet.org/>`_ with structure and labels.
+    This is the QM9 dataset as preprocessed from `MoleculeNet <https://moleculenet.org/>`__ with structure and labels.
     See :obj:`kgcnn.data.datasets.QM9Dataset` for documentation and comparison.
 
     References:

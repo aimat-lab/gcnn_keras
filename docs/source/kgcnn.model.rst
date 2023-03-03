@@ -12,6 +12,14 @@ kgcnn.model.force module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.model.serial module
+-------------------------
+
+.. automodule:: kgcnn.model.serial
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.model.utils module
 ------------------------
 

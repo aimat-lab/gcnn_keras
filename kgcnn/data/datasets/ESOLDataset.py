@@ -5,8 +5,9 @@ class ESOLDataset(MoleculeNetDataset2018):
     r"""Store and process 'ESOL' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
     Class inherits from :obj:`MoleculeNetDataset2018` and downloads dataset on class initialization.
 
-    Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#delaney-datasets>`_  reading:
+    Compare reference:
+    `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/moleculenet.html#delaney-datasets>`__
+    reading:
 
     Water solubility data(log solubility in mols per litre) for common organic small molecules.
     Random or Scaffold splitting is recommended for this dataset.
@@ -22,7 +23,7 @@ class ESOLDataset(MoleculeNetDataset2018):
     """
 
     def __init__(self, reload=False, verbose: int = 10):
-        """Initialize ESOL dataset.
+        r"""Initialize ESOL dataset.
 
         Args:
             reload (bool): Whether to reload the data and make new dataset. Default is False.

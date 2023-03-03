@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectIsMetalDataset(MatBenchDataset2020):
-    r"""Store and process :obj:`MatProjectIsMetalDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    r"""Store and process :obj:`MatProjectIsMetalDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_mp_is_metal'.
 
     Matbench test dataset for predicting DFT metallicity from structure. Adapted from Materials Project database.

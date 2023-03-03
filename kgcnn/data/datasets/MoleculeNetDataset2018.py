@@ -5,14 +5,14 @@ from kgcnn.data.download import DownloadDataset
 
 
 class MoleculeNetDataset2018(MoleculeNetDataset, DownloadDataset):
-    r"""Downloader for `MoleculeNet <https://moleculenet.org/>`_ datasets.
+    r"""Downloader for `MoleculeNet <https://moleculenet.org/>`__ datasets.
     This class inherits from :obj:`MoleculeNetDataset` .
     QM datasets are however excluded from this class as they have specific `kgcnn.data.datasets` which inherits from
     :obj:`QMDatasets` .
 
     MoleculeNet is a benchmark specially designed for testing machine learning methods of molecular properties.
     Their work curates a number of dataset collections. All methods and datasets are integrated as parts
-    of the open source `DeepChem <https://deepchem.io/>`_ package (MIT license).
+    of the open source `DeepChem <https://deepchem.io/>`__ package (MIT license).
 
     Stats:
         .. list-table::

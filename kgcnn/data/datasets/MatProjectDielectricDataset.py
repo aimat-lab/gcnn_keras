@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectDielectricDataset(MatBenchDataset2020):
-    """Store and process :obj:`MatProjectDielectricDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    """Store and process :obj:`MatProjectDielectricDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_dielectric'.
 
     Matbench test dataset for predicting refractive index from structure. Adapted from Materials Project database.

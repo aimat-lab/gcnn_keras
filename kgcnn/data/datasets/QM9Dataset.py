@@ -10,11 +10,11 @@ from kgcnn.mol.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):
-    r"""Store and process QM9 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ . dataset.
+    r"""Store and process QM9 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`__ . dataset.
 
     Dataset of 134k stable small organic molecules made up of C,H,O,N,F.
 
-    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`__ :
     Computational de novo design of new drugs and materials requires rigorous and unbiased exploration of chemical
     compound space. However, large uncharted territories persist due to its size scaling combinatorially with
     molecular size. We report computed geometric, energetic, electronic, and thermodynamic properties for 134k stable

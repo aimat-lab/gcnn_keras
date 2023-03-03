@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectEFormDataset(MatBenchDataset2020):
-    r"""Store and process :obj:`MatProjectEFormDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    r"""Store and process :obj:`MatProjectEFormDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database.  Name within Matbench: 'matbench_mp_e_form'.
 
     Matbench test dataset for predicting DFT formation energy from structure.

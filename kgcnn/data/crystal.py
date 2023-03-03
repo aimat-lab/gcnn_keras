@@ -21,7 +21,7 @@ class CrystalDataset(MemoryGraphDataset):
     of the structures stored in multiple (CIF, POSCAR, ...) files in :obj:`file_directory`.
     The file names must be included in the '.csv' table. The table file must have one line of header with column names!
 
-    .. code-block:: type
+    .. code-block:: console
 
         ├── data_directory
             ├── file_directory

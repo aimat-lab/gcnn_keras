@@ -4,9 +4,9 @@ from kgcnn.data.datasets.GraphTUDataset2020 import GraphTUDataset2020
 
 
 class MUTAGDataset(GraphTUDataset2020):
-    r"""Store and process MUTAG dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`_ .
+    r"""Store and process MUTAG dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`__ .
 
-    In `Papers with Code <https://paperswithcode.com/dataset/mutag>`_ :
+    In `Papers with Code <https://paperswithcode.com/dataset/mutag>`__ :
     In particular, MUTAG is a collection of nitroaromatic compounds and the goal is to predict their mutagenicity
     on Salmonella typhimurium. Input graphs are used to represent chemical compounds, where vertices stand for atoms
     and are labeled by the atom type (represented by one-hot encoding), while edges between vertices represent

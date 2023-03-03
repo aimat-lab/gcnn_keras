@@ -14,9 +14,9 @@ from kgcnn.mol.methods import inverse_global_proton_dict
 
 
 class QM7Dataset(QMDataset, DownloadDataset):
-    r"""Store and process QM7 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ . dataset.
+    r"""Store and process QM7 dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`__ . dataset.
 
-    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`__ :
     This dataset is a subset of GDB-13 (a database of nearly 1 billion stable and synthetically accessible
     organic molecules) composed of all molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S),
     totalling 7165 molecules. We provide the Coulomb matrix representation of these molecules and their atomization

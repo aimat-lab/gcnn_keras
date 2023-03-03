@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectLogKVRHDataset(MatBenchDataset2020):
-    """Store and process :obj:`MatProjectLogKVRHDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    """Store and process :obj:`MatProjectLogKVRHDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_log_kvrh'.
 
     Matbench v0.1 test dataset for predicting DFT log10 VRH-average bulk modulus from structure.

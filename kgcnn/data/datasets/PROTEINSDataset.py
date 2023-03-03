@@ -6,9 +6,9 @@ from kgcnn.mol.encoder import OneHotEncoder
 
 
 class PROTEINSDataset(GraphTUDataset2020):
-    r"""Store and process PROTEINS dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`_ .
+    r"""Store and process PROTEINS dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`__ .
 
-    In `Papers with Code <https://paperswithcode.com/dataset/proteins>`_ :
+    In `Papers with Code <https://paperswithcode.com/dataset/proteins>`__ :
     PROTEINS is a dataset of proteins that are classified as enzymes or non-enzymes.
     Nodes represent the amino acids and two nodes are connected by an edge if they are less than 6 Angstroms apart.
 

@@ -2,7 +2,8 @@ v2.2.3
 
 * Added ``CENTChargePlusElectrostaticEnergy`` to `kgcnn.layers.conv.hdnnp_conv` and `kgcnn.literature.HDNNP4th` .
 * Fix bug in latest ``train_force.py`` of v2.2.2 that forgets to apply inverse scaling to dataset, causing subsequent folds to have wrong labels.
-
+* HOTFIX: Updated ``MolDynamicsModelPredictor`` to call keras model without very expensive retracing. Alternative mode use `use_predict=True` .
+* Update training results and subclasses for matbench datasets.
 
 
 v2.2.2

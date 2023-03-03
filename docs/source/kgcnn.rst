@@ -14,10 +14,10 @@ Subpackages
    kgcnn.io
    kgcnn.layers
    kgcnn.literature
-   kgcnn.mdyn
    kgcnn.metrics
    kgcnn.model
    kgcnn.mol
+   kgcnn.moldyn
    kgcnn.ops
    kgcnn.scaler
    kgcnn.training

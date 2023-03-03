@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectGapDataset(MatBenchDataset2020):
-    r"""Store and process :obj:`MatProjectGapDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    r"""Store and process :obj:`MatProjectGapDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database.  Name within Matbench: 'matbench_mp_gap'.
 
     Matbench test dataset for predicting DFT PBE band gap from structure.

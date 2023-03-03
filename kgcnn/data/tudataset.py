@@ -25,7 +25,7 @@ class GraphTUDataset(MemoryGraphDataset):
 
     The file structure of :obj:`GraphTUDataset` for a given dataset 'DS' (replace DS with dataset name).
 
-    .. code-block:: type
+    .. code-block:: console
 
         ├── data_directory
             ├── DS_graph_indicator.txt

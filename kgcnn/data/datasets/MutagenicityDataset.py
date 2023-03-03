@@ -5,7 +5,7 @@ from kgcnn.data.datasets.GraphTUDataset2020 import GraphTUDataset2020
 
 
 class MutagenicityDataset(GraphTUDataset2020):
-    r"""Store and process Mutagenicity dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`_ .
+    r"""Store and process Mutagenicity dataset from `TUDatasets <https://chrsmrrs.github.io/datasets/>`__ .
 
     Mutagenicity is a chemical compound dataset of drugs, which can be categorized into two classes:
     mutagen and non-mutagen.

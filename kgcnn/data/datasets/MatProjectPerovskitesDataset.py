@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectPerovskitesDataset(MatBenchDataset2020):
-    """Store and process :obj:`MatProjectPerovskitesDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    """Store and process :obj:`MatProjectPerovskitesDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_perovskites'.
 
     Matbench test dataset for predicting formation energy from crystal structure.

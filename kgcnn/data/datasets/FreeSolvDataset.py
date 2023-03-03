@@ -4,8 +4,8 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 class FreeSolvDataset(MoleculeNetDataset2018):
     r"""Store and process 'FreeSolv' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
     Class inherits from :obj:`MoleculeNetDataset2018` and downloads dataset on class initialization.
-    Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#freesolv-dataset>`_  reading:
+    Compare reference:
+    `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/moleculenet.html#freesolv-dataset>`__ reading:
     Experimental and calculated hydration free energy of small molecules in water.
     Description in DeepChem reads: 'The FreeSolv dataset is a collection of experimental and calculated hydration
     free energies for small molecules in water, along with their experiemental values. Here, we are using a modified

@@ -12,9 +12,9 @@ from kgcnn.mol.methods import inverse_global_proton_dict
 
 
 class QM7bDataset(QMDataset, DownloadDataset):
-    r"""Store and process QM7b dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`_ .
+    r"""Store and process QM7b dataset from `Quantum Machine <http://quantum-machine.org/datasets/>`__ .
 
-    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`__ :
     This dataset is an extension of the QM7 dataset for multitask learning where 13 additional properties
     (e.g. polarizability, HOMO and LUMO eigenvalues, excitation energies) have to be predicted at different
     levels of theory (ZINDO, SCS, PBE0, GW). Additional molecules comprising chlorine atoms are also included,

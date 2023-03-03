@@ -63,11 +63,11 @@ class MemoryGraphList(MutableSequence):
             self._list = [GraphDict(x) for x in input_list._list]
 
     def assign_property(self, key: str, value: list):
-        """Assign a list of numpy arrays of a property to :obj:`GraphDict`s in this list.
+        """Assign a list of numpy arrays of a property to :obj:`GraphDict` s in this list.
 
         Args:
             key (str): Name of the property.
-            value (list): List of numpy arrays for property `key`.
+            value (list): List of numpy arrays for property `key` .
 
         Returns:
             self

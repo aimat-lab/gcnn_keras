@@ -2,7 +2,7 @@ from kgcnn.data.datasets.MatBenchDataset2020 import MatBenchDataset2020
 
 
 class MatProjectPhononsDataset(MatBenchDataset2020):
-    """Store and process :obj:`MatProjectPhononsDataset` from `MatBench <https://matbench.materialsproject.org/>`_
+    """Store and process :obj:`MatProjectPhononsDataset` from `MatBench <https://matbench.materialsproject.org/>`__
     database. Name within Matbench: 'matbench_phonons'.
 
     Matbench test dataset for predicting vibration properties from crystal structure. Original data retrieved

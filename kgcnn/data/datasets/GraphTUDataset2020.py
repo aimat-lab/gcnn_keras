@@ -6,7 +6,7 @@ from kgcnn.data.download import DownloadDataset
 
 class GraphTUDataset2020(GraphTUDataset, DownloadDataset):
     r"""Base class for loading graph datasets published by `TU Dortmund University
-    <https://chrsmrrs.github.io/datasets>`_.
+    <https://chrsmrrs.github.io/datasets>`_ .
 
     This general base class has functionality to load TUDatasets in a generic way.
 

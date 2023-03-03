@@ -3,10 +3,10 @@ from kgcnn.data.datasets.MoleculeNetDataset2018 import MoleculeNetDataset2018
 
 
 class Tox21MolNetDataset(MoleculeNetDataset2018):
-    r"""Store and process 'TOX21' dataset from `MoleculeNet <https://moleculenet.org/>`_ database.
+    r"""Store and process 'TOX21' dataset from `MoleculeNet <https://moleculenet.org/>`__ database.
 
-    Compare reference: `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/
-    moleculenet.html#freesolv-dataset>`_ reading:
+    Compare reference:
+    `DeepChem <https://deepchem.readthedocs.io/en/latest/api_reference/moleculenet.html#freesolv-dataset>`__ reading:
     The “Toxicology in the 21st Century” (Tox21) initiative created a public database measuring toxicity of compounds,
     which has been used in the 2014 Tox21 Data Challenge. This dataset contains qualitative toxicity measurements for
     8k compounds on 12 different targets, including nuclear receptors and stress response pathways.

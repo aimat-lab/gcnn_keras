@@ -11,7 +11,7 @@ class MD17RevisedDataset(DownloadDataset, MemoryGraphDataset):
     The information of the readme file is given below:
 
     The molecules are taken from the original MD17 dataset by
-    `Chmiela et al. <https://www.science.org/doi/10.1126/sciadv.1603015>`_ , and 100,000 structures are taken,
+    `Chmiela et al. <https://www.science.org/doi/10.1126/sciadv.1603015>`__ , and 100,000 structures are taken,
     and the energies and forces are recalculated at the PBE/def2-SVP level of theory using very tight SCF convergence
     and very dense DFT integration grid. As such, the dataset is practically free from nummerical noise.
 

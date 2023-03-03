@@ -5,9 +5,9 @@ from kgcnn.data.download import DownloadDataset
 
 
 class QM8Dataset(QMDataset, DownloadDataset):
-    r"""Store and process QM8 dataset from `MoleculeNet <https://moleculenet.org/>`_ datasets.
+    r"""Store and process QM8 dataset from `MoleculeNet <https://moleculenet.org/>`__ datasets.
 
-    From `Quantum Machine <http://quantum-machine.org/datasets/>`_ :
+    From `Quantum Machine <http://quantum-machine.org/datasets/>`__ :
     Due to its favorable computational efficiency, time-dependent (TD) density functional theory(DFT) enables
     the prediction of electronic spectra in a high-throughput manner across chemical space. Its predictions,
     however, can be quite inaccurate. We resolve this issue with machine learning models trained on deviations of

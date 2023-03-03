@@ -100,6 +100,14 @@ kgcnn.data.datasets.MatBenchDataset2020 module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.MatProjectDielectricDataset module
+------------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectDielectricDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.MatProjectEFormDataset module
 -------------------------------------------------
 
@@ -108,10 +116,50 @@ kgcnn.data.datasets.MatProjectEFormDataset module
    :undoc-members:
    :show-inheritance:
 
+kgcnn.data.datasets.MatProjectGapDataset module
+-----------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectGapDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kgcnn.data.datasets.MatProjectIsMetalDataset module
 ---------------------------------------------------
 
 .. automodule:: kgcnn.data.datasets.MatProjectIsMetalDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectJdft2dDataset module
+--------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectJdft2dDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectLogGVRHDataset module
+---------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectLogGVRHDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectLogKVRHDataset module
+---------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectLogKVRHDataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.data.datasets.MatProjectPerovskitesDataset module
+-------------------------------------------------------
+
+.. automodule:: kgcnn.data.datasets.MatProjectPerovskitesDataset
    :members:
    :undoc-members:
    :show-inheritance:

@@ -10,7 +10,7 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
     r"""Dataset 'ISO17' with molecules randomly taken from QM9 dataset [1] with a fixed composition of atoms (C7O2H10).
     They were arranged in different chemically valid structures and is an extension of the isomer MD data used in [2].
 
-    Information below and the dataset itself is copied and downloaded from `<http://quantum-machine.org/datasets/>`_.
+    Information below and the dataset itself is copied and downloaded from `<http://quantum-machine.org/datasets/>`_ .
     The database consist of 129 molecules each containing 5000 conformational geometries,
     energies and forces with a resolution of 1 femto-second in the molecular dynamics trajectories.
     The database was generated from molecular dynamics simulations using the Fritz-Haber Institute ab initio simulation
@@ -18,7 +18,7 @@ class ISO17Dataset(DownloadDataset, MemoryGraphDataset):
     method  density functional theory (DFT) in the generalized gradient approximation (GGA) with the
     Perdew-Burke-Ernzerhof (PBE) functional[4] and the Tkatchenko-Scheffler (TS) van der Waals correction method [5].
     The dataset is stored in ASE sqlite format with the total energy in eV and forces in eV/Ang.
-    Download-url: `<http://quantum-machine.org/datasets/iso17.tar.gz>`_.
+    Download-url: `<http://quantum-machine.org/datasets/iso17.tar.gz>`_ .
 
     .. code-block:: python
 

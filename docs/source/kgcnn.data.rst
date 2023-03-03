@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    kgcnn.data.datasets
+   kgcnn.data.transform
 
 Submodules
 ----------
