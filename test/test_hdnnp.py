@@ -6,7 +6,7 @@ import numpy as np
 
 
 class ACSFTest(unittest.TestCase):
-    positions = tf.ragged.constant([
+    positions = [
         [
             [- 2.51593, 1.12614, 0.00000],
             [- 1.80565, 0.90562, 0.59108],
@@ -46,15 +46,15 @@ class ACSFTest(unittest.TestCase):
             [2.0753200, - 0.0677200, 2.5815300],
             [3.0240100, - 0.0818562, 1.0861300]
         ]
-    ], ragged_rank=1, inner_shape=(3,))
+    ]
 
-    atomic_number = tf.ragged.constant([
+    atomic_number = [
         [8, 1, 16],
         [6, 6, 1, 8, 6, 1, 1, 7, 6, 1, 1, 1, 1, 1, 1],
         [6, 16, 1, 1, 1, 6, 16, 1, 1, 1, 6, 16, 1, 1, 1]
-    ], ragged_rank=1)
+    ]
 
-    edge_index = tf.ragged.constant([
+    edge_index = [
         [
             [0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]
         ],
@@ -98,25 +98,33 @@ class ACSFTest(unittest.TestCase):
             [13, 12], [13, 14], [14, 0], [14, 1], [14, 2], [14, 3], [14, 4], [14, 5], [14, 6], [14, 7], [14, 8],
             [14, 9], [14, 10], [14, 11], [14, 12], [14, 13]],
 
-    ], ragged_rank=1, inner_shape=(2,))
+    ]
 
     def test_acsf_g2(self):
         g2_kwargs = {"eta": [0.0, 0.3], "rs": [0.0, 3.0], "rc": 10.0, "elements": [1, 6, 16]}
         layer = ACSFG2(**ACSFG2.make_param_table(**g2_kwargs))
-        out = layer([self.atomic_number, self.positions, self.edge_index])
+        positions = tf.ragged.constant(self.positions, ragged_rank=1, inner_shape=(3,))
+        atomic_number = tf.ragged.constant(self.atomic_number, ragged_rank=1, dtype="int64")
+        edge_index = tf.ragged.constant(self.edge_index, ragged_rank=1, inner_shape=(2,))
+        out = layer([atomic_number, positions, edge_index])
         # Expected result for last molecule, first atom.
         expected_result = np.array([7.011673, 2.1447349, 7.011673, 4.2706203, 1.4739769, 0.04355875,
                                     1.4739769, 1.3946176, 2.579667, 0.5183595, 2.579667, 2.230977])
         is_as_expected = np.all(np.abs(out[2][0] - expected_result) < 1e-04)
+        # print(is_as_expected)
         self.assertTrue(is_as_expected)
 
     def test_acsf_g4(self):
+        positions = tf.ragged.constant(self.positions, ragged_rank=1, inner_shape=(3,))
+        atomic_number = tf.ragged.constant(self.atomic_number, ragged_rank=1, dtype="int64")
+        # edge_index = tf.ragged.constant(self.edge_index, ragged_rank=1, inner_shape=(2,))
         angle_index = [get_angle_indices(np.array(x), edge_pairing="ik")[1].tolist() for x in self.edge_index]
         angle_index = tf.ragged.constant(angle_index, ragged_rank=1, inner_shape=(3,))
         g4_kwargs = {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0, "zeta": [1.0, 8.0], "elements": [1, 6, 16],
                      "multiplicity": 2.0}
         layer = ACSFG4(**ACSFG4.make_param_table(**g4_kwargs))
-        out = layer([self.atomic_number, self.positions, angle_index])
+
+        out = layer([atomic_number, positions, angle_index])
         # Expected result for last molecule, first atom.
         expected_result = np.array(
             [4.093878746032715, 3.8475711345672607, 0.45441314578056335, 0.9100052118301392, 0.51732337474823,
