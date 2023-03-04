@@ -142,6 +142,30 @@ Materials Project dataset from Matbench with 10987 crystal structures and their 
 | PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.0646 &pm; 0.0015     | 0.1177 &pm; 0.0052     |
 | Schnet.make_crystal_model    | 2.2.2   |      800 | 0.0584 &pm; 0.0016     | 0.1143 &pm; 0.0062     |
 
+#### MatProjectPerovskitesDataset
+
+Materials Project dataset from Matbench with 18928 crystal structures and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | **0.0316 &pm; 0.0012** | **0.0597 &pm; 0.0044** |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 0.0373 &pm; 0.0008     | 0.0660 &pm; 0.0038     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 0.0351 &pm; 0.0013     | 0.0636 &pm; 0.0025     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.0456 &pm; 0.0009     | 0.0742 &pm; 0.0024     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 0.0347 &pm; 0.0007     | 0.0615 &pm; 0.0030     |
+
+#### MatProjectGapDataset
+
+Materials Project dataset from Matbench with 106113 crystal structures and their band gap as calculated by PBE DFT from the Materials Project, in eV. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | MAE [eV]               | RMSE [eV]              |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 0.2298 &pm; 0.0054     | 0.5394 &pm; 0.0102     |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 0.2089 &pm; 0.0022     | 0.4912 &pm; 0.0104     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | **0.2003 &pm; 0.0132** | **0.4839 &pm; 0.0303** |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.2220 &pm; 0.0037     | 0.5315 &pm; 0.0260     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 0.9351 &pm; 0.3720     | 1.5027 &pm; 0.4929     |
+
 #### MatProjectEFormDataset
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 

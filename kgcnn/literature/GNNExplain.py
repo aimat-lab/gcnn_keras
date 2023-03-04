@@ -21,7 +21,7 @@ from kgcnn.xai.base import ImportanceExplanationMethod
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2022.05.31"
+__model_version__ = "2023.01.30"
 
 
 # == REDUCED, RAGGED TENSOR IMPLEMENTATION ==

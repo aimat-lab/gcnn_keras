@@ -138,6 +138,52 @@ benchmark_datasets = {
              "is_min_max": True}
         ]
     },
+    "MatProjectPerovskitesDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 18928 crystal structures ",
+            "and their corresponding Heat of formation of the entire 5-atom perovskite cell in eV. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectGapDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 106113 crystal structures ",
+            "and their band gap as calculated by PBE DFT from the Materials Project, in eV. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [eV]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [eV]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+             "is_min_max": True},
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+             "is_min_max": True}
+        ]
+    },
+    "MatProjectIsMetalDataset": {
+        "general_info": [
+            "Materials Project dataset from Matbench with 106113 crystal structures ",
+            "and their corresponding Metallicity determined with pymatgen. ",
+            "1 if the compound is a metal, 0 if the compound is not a metal. ",
+            "We use a random 5-fold cross-validation. "
+        ],
+        "targets": [
+            {"metric": "val_acc", "name": "Accuracy", "find_best": "max"},
+            {"metric": "val_AUC", "name": "AUC", "find_best": "max"},
+            {"metric": "max_val_acc", "name": "*Max. Accuracy*", "find_best": "max",
+             "is_min_max": True},
+            {"metric": "max_val_AUC", "name": "*Max. AUC*", "find_best": "max",
+             "is_min_max": True}
+        ]
+    },
     "MatProjectEFormDataset": {
         "general_info": [
             "Materials Project dataset from Matbench with 132752 crystal structures ",

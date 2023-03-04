@@ -42,8 +42,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "multi_target_indices": None
         },
@@ -107,8 +107,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "multi_target_indices": None
         },
@@ -167,8 +167,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 0.0001}},
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "multi_target_indices": None
         },
@@ -240,8 +240,8 @@ hyper = {
                         "average_decay": 0.999
                     }
                 },
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "multi_target_indices": None
         },
@@ -309,8 +309,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "multi_target_indices": None
         },
@@ -369,8 +369,8 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"lr": 5e-04}},
-                "loss": "acc",
-                "metrics": ["AUC"]
+                "loss": "binary_crossentropy",
+                "metrics": ["AUC", "acc"]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
