@@ -106,11 +106,11 @@ class ACSFTest(unittest.TestCase):
         positions = tf.ragged.constant(self.positions, ragged_rank=1, inner_shape=(3,))
         atomic_number = tf.ragged.constant(self.atomic_number, ragged_rank=1, dtype="int64")
         edge_index = tf.ragged.constant(self.edge_index, ragged_rank=1, inner_shape=(2,))
-        out = layer([atomic_number, positions, edge_index])
+        out = layer([atomic_number[2:], positions[2:], edge_index[2:]])
         # Expected result for last molecule, first atom.
         expected_result = np.array([7.011673, 2.1447349, 7.011673, 4.2706203, 1.4739769, 0.04355875,
                                     1.4739769, 1.3946176, 2.579667, 0.5183595, 2.579667, 2.230977])
-        is_as_expected = np.all(np.abs(out[2][0] - expected_result) < 1e-04)
+        is_as_expected = np.all(np.abs(out[0][0] - expected_result) < 1e-04)
         # print(is_as_expected)
         self.assertTrue(is_as_expected)
 
@@ -120,11 +120,12 @@ class ACSFTest(unittest.TestCase):
         # edge_index = tf.ragged.constant(self.edge_index, ragged_rank=1, inner_shape=(2,))
         angle_index = [get_angle_indices(np.array(x), edge_pairing="ik")[1].tolist() for x in self.edge_index]
         angle_index = tf.ragged.constant(angle_index, ragged_rank=1, inner_shape=(3,))
-        g4_kwargs = {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0, "zeta": [1.0, 8.0], "elements": [1, 6, 16],
+        g4_kwargs = {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0, "zeta": [1.0, 8.0],
+                     "elements": [1, 6, 16],
                      "multiplicity": 2.0}
         layer = ACSFG4(**ACSFG4.make_param_table(**g4_kwargs))
 
-        out = layer([atomic_number, positions, angle_index])
+        out = layer([atomic_number[2:], positions[2:], angle_index[2:]])
         # Expected result for last molecule, first atom.
         expected_result = np.array(
             [4.093878746032715, 3.8475711345672607, 0.45441314578056335, 0.9100052118301392, 0.51732337474823,
@@ -138,7 +139,7 @@ class ACSFTest(unittest.TestCase):
              0.0013072892324998975, 9.969490122330171e-09, 0.000549450283870101, 0.30053770542144775,
              1.2993861436843872, 0.0007059765048325062, 0.4033553898334503, 0.0027985533233731985, 0.016471944749355316,
              1.2086698575330956e-07, 0.005516418721526861])
-        is_as_expected = np.all(np.abs(out[2][0] - expected_result) < 1e-04)
+        is_as_expected = np.all(np.abs(out[0][0] - expected_result) < 1e-04)
         self.assertTrue(is_as_expected)
 
 
