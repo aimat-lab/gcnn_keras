@@ -25,7 +25,7 @@ hyper = {
                 'verbose': 10,
                 'output_embedding': 'graph',
                 'output_mlp': {"use_bias": [True, True, True], "units": [32, 16, 1],
-                               "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'linear']}
+                               "activation": ['kgcnn>softplus2', 'kgcnn>softplus2', 'sigmoid']}
             }
         },
         "training": {
@@ -89,8 +89,8 @@ hyper = {
                 "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
                              "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
                 "output_embedding": "graph",
-                "use_output_mlp": False,
-                "output_mlp": None,  # Last MLP sets output dimension if None.
+                "use_output_mlp": True,
+                "output_mlp": {"units": 1, "activation": "sigmoid", "use_bias": False}
             }
         },
         "training": {
@@ -150,7 +150,7 @@ hyper = {
                 "update_args": {"units": 128}, "depth": 3, "verbose": 10,
                 "equiv_normalization": True, "node_normalization": False,
                 "output_embedding": "graph",
-                "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "linear"]}
+                "output_mlp": {"use_bias": [True, True], "units": [128, 1], "activation": ["swish", "sigmoid"]}
             }
         },
         "training": {
@@ -213,8 +213,8 @@ hyper = {
                 "num_targets": 1, "extensive": False, "output_init": "zeros",
                 "activation": "swish", "verbose": 10,
                 "output_embedding": "graph",
-                "use_output_mlp": False,
-                "output_mlp": {},
+                "use_output_mlp": True,
+                "output_mlp": {"units": 1, "activation": "sigmoid", "use_bias": False},
             }
         },
         "training": {
@@ -292,7 +292,7 @@ hyper = {
                 'node_pooling_args': {'pooling_method': 'mean'},
                 'depth': 4,
                 'output_mlp': {'use_bias': [True, True, False], 'units': [128, 64, 1],
-                               'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                               'activation': ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'sigmoid']},
             }
         },
         "training": {
@@ -341,7 +341,7 @@ hyper = {
                 "units": [60, 50, 40, 30],
                 "importance_units": [],
                 "final_units": [50, 30, 10, 1],
-                "final_activation": "linear",
+                "final_activation": "sigmoid",
                 "final_pooling": "mean",
                 "dropout_rate": 0.1,
                 "final_dropout_rate": 0.00,
