@@ -286,7 +286,7 @@ class GraphProcessorBase:
     r"""General base class for graph processors.
 
     A graph processor should be a subclass that implements a call methods and store all relevant information on how
-    to change the graph properties and how they are supposed to be named in the :obj:`GraphDict`.
+    to change the graph properties and how they are supposed to be named in the :obj:`GraphDict` .
 
     .. code-block:: python
 
@@ -313,8 +313,8 @@ class GraphProcessorBase:
     Additionally, :obj:`_obtain_properties` and :obj:`_assign_properties` can contain a flexible list of properties
     or a search string that will return multiple properties. This is mainly required to extract a flexible list of
     properties, for example all edge-related properties via the search string '^edge_(?!indices$).*' that starts with
-    'edge_' but not 'edge_indices'. Note that you can always cast to a networkx graph, operate your own functions,
-    then transform back into tensor form and wrap it as a :obj:`GraphProcessorBase`.
+    'edge_*' but not 'edge_indices'. Note that you can always cast to a networkx graph, operate your own functions,
+    then transform back into tensor form and wrap it as a :obj:`GraphProcessorBase` .
     """
 
     @staticmethod

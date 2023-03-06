@@ -53,6 +53,18 @@ class MXMGlobalMP(GraphBaseLayer):
         return x_i_p
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [nodes, edges, tensor_index]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - edges (tf.RaggedTensor): Edge or message embeddings of shape `(batch, [M], F)`
+                - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`
+
+        Returns:
+            tf.RaggedTensor: Node embeddings.
+        """
         h, edge_attr, edge_index = inputs
 
         # Keep for residual skip connections.
@@ -129,6 +141,22 @@ class MXMLocalMP(GraphBaseLayer):
         self.add_mji_2 = LazyAdd()
 
     def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [h, rbf, sbf1, sbf2, edge_index, angle_idx_1, angle_idx_2]
+
+                - h (tf.RaggedTensor): Node embeddings of shape `(batch, [N], F)`
+                - rbf (tf.RaggedTensor): Radial basis functions of shape `(batch, [M], F)`
+                - sbf1 (tf.RaggedTensor): Spherical basis functions of shape `(batch, [K], F)`
+                - sbf2 (tf.RaggedTensor): Spherical basis functions of shape `(batch, [K], F)`
+                - edge_index (tf.RaggedTensor): Edge indices of shape `(batch, [M], 2)`
+                - angle_idx_1 (tf.RaggedTensor): Angle 1 indices of shape `(batch, [K], 2)`
+                - angle_idx_2 (tf.RaggedTensor): Angle 2 indices of shape `(batch, [K], 2)`
+
+        Returns:
+            tf.RaggedTensor: Node embeddings.
+        """
         h, rbf, sbf1, sbf2, edge_index, angle_idx_1, angle_idx_2 = inputs
         res_h = h
 
