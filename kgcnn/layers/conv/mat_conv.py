@@ -19,6 +19,15 @@ class MATGlobalPool(ks.layers.Layer):
         super(MATGlobalPool, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (tf.Tensor): Node or edge features of shape `(batch, N, ...)` .
+            mask (tf.Tensor): Not used.
+
+        Returns:
+            tf.Tensor: Pooled features, e.g. summed over first axis.
+        """
         if self.pooling_method == "sum":
             return tf.reduce_sum(inputs, axis=1)
 
@@ -41,6 +50,15 @@ class MATDistanceMatrix(ks.layers.Layer):
         super(MATDistanceMatrix, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass
+
+        Args:
+            inputs (tf.Tensor): Padded Coordinates of shape `(batch, N, 3)` .
+            mask (tf.Tensor): Mask of coordinates of similar shape.
+
+        Returns:
+            tuple: Distance matrix of shape `(batch, N, N, 1)` plus mask.
+        """
         # Shape of inputs (batch, N, 3)
         # Shape of mask (batch, N, 3)
         diff = tf.expand_dims(inputs, axis=1) - tf.expand_dims(inputs, axis=2)
@@ -79,6 +97,14 @@ class MATReduceMask(ks.layers.Layer):
         super(MATReduceMask, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        r"""Forward Pass.
+
+        Args:
+            inputs (tf.Tensor): Any (mask) Tensor of sufficient rank to reduce for given axis.
+
+        Returns:
+            tf.Tensor: Product of inputs along axis.
+        """
         return tf.reduce_prod(inputs, keepdims=self.keepdims, axis=self.axis)
 
     def get_config(self):
@@ -98,6 +124,14 @@ class MATExpandMask(ks.layers.Layer):
         super(MATExpandMask, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
+        r"""Forward Pass.
+
+        Args:
+            inputs (tf.Tensor): Any (mask) Tensor to expand given axis.
+
+        Returns:
+            tf.Tensor: Input tensor with expanded axis.
+        """
         return tf.expand_dims(inputs, axis=self.axis)
 
     def get_config(self):
@@ -135,6 +169,16 @@ class MATAttentionHead(ks.layers.Layer):
         super(MATAttentionHead, self).build(input_shape)
 
     def call(self, inputs, mask=None, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs (list): List of [h_n, A_d, A_g] represented by padded :obj:`tf.Tensor` .
+                These are node features and adjacency matrix from distances and bonds or bond order.
+            mask (list): Mask tensors matching inputs, i.e. a mask tensor for each padded input.
+
+        Returns:
+            tf.Tensor: Padded node features of :math:`h_n` .
+        """
         h, a_d, a_g = inputs
         h_mask, a_d_mask, a_g_mask = mask
         q = tf.expand_dims(self.dense_q(h), axis=2)

@@ -136,7 +136,7 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
         mae_valid = np.mean(np.abs(delta_valid[~np.isnan(delta_valid)]))
         plt.scatter(y_predict[:, i], y_true[:, i], alpha=0.3,
                     label=target_names[i] + " MAE: {0:0.4f} ".format(mae_valid) + "[" + data_unit[i] + "]")
-    min_max = np.amin(y_true[~np.isnan(y_true)]), np.amax(y_true[~np.isnan(y_true)])
+    min_max = np.amin(y_true[~np.isnan(y_true)]).astype("float"), np.amax(y_true[~np.isnan(y_true)]).astype("float")
     plt.plot(np.arange(*min_max, 0.05), np.arange(*min_max, 0.05), color='red')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')

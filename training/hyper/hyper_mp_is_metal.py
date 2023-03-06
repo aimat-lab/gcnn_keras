@@ -86,11 +86,11 @@ hyper = {
                 "node_pooling_args": {"pooling_method": "mean"},
                 "depth": 4,
                 "gauss_args": {"bins": 25, "distance": 5, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
-                "last_mlp": {"use_bias": [True, True, True], "units": [128, 64, 1],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus', 'linear']},
+                "last_mlp": {"use_bias": [True, True], "units": [128, 64],
+                             "activation": ['kgcnn>shifted_softplus',  'linear']},
                 "output_embedding": "graph",
                 "use_output_mlp": True,
-                "output_mlp": {"units": 1, "activation": "sigmoid", "use_bias": False}
+                "output_mlp": {"units": [64, 1], "activation": ["linear", "sigmoid"], "use_bias": True}
             }
         },
         "training": {
