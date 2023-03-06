@@ -27,3 +27,4 @@ dependencies:
     - ase
     - ipython
     - nbsphinx
+    - visual_graph_datasets
