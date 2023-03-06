@@ -14,3 +14,4 @@ ase
 nbsphinx
 ipykernel
 ipython
+visual_graph_datasets
