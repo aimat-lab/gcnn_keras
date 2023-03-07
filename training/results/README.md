@@ -172,11 +172,11 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 
 | model                        | kgcnn   |   epochs | Accuracy               | AUC                    |
 |:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
-| CGCNN.make_crystal_model     | 2.2.3   |     1000 | 0.8967 &pm; 0.0027     | 0.9101 &pm; 0.0030     |
-| DimeNetPP.make_crystal_model | 2.2.3   |      780 | 0.9049 &pm; 0.0029     | 0.9135 &pm; 0.0041     |
-| Megnet.make_crystal_model    | 2.2.3   |     1000 | **0.9062 &pm; 0.0025** | **0.9202 &pm; 0.0029** |
-| PAiNN.make_crystal_model     | 2.2.3   |      800 | 0.9032 &pm; 0.0014     | 0.9123 &pm; 0.0016     |
-| Schnet.make_crystal_model    | 2.2.2   |      800 | 0.6972 &pm; 0.1619     | 0.6630 &pm; 0.1996     |
+| CGCNN.make_crystal_model     | 2.2.2   |      100 | 0.8902 &pm; 0.0021     | 0.9380 &pm; 0.0013     |
+| DimeNetPP.make_crystal_model | 2.2.2   |       78 | **0.9067 &pm; 0.0021** | 0.9463 &pm; 0.0013     |
+| Megnet.make_crystal_model    | 2.2.2   |      100 | 0.9025 &pm; 0.0042     | **0.9559 &pm; 0.0027** |
+| PAiNN.make_crystal_model     | 2.2.2   |       80 | 0.8941 &pm; 0.0029     | 0.9331 &pm; 0.0024     |
+| Schnet.make_crystal_model    | 2.2.2   |       80 | 0.8937 &pm; 0.0045     | 0.9498 &pm; 0.0023     |
 
 #### MatProjectEFormDataset
 
