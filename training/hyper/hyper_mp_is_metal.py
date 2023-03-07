@@ -32,10 +32,10 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 32, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 100, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 0.5e-05, "epo_min": 100, "epo": 1000,
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 0.5e-05, "epo_min": 100, "epo": 100,
                         "verbose": 0}
                      }
                 ]
@@ -97,10 +97,10 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 80, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 80,
                         "verbose": 0}
                      }
                 ]
@@ -157,10 +157,10 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
+                "batch_size": 32, "epochs": 80, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 800,
+                        "learning_rate_start": 0.0001, "learning_rate_stop": 1e-05, "epo_min": 100, "epo": 80,
                         "verbose": 0}
                      }
                 ]
@@ -221,7 +221,7 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 16, "epochs": 780, "validation_freq": 10, "verbose": 2, "callbacks": [],
+                "batch_size": 16, "epochs": 78, "validation_freq": 10, "verbose": 2, "callbacks": [],
                 "validation_batch_size": 8
             },
             "compile": {
@@ -299,10 +299,10 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 128, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 128, "epochs": 100, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
                     {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 1000,
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 1e-05, "epo_min": 500, "epo": 100,
                         "verbose": 0}
                      }
                 ]
@@ -356,13 +356,13 @@ hyper = {
         "training": {
             "fit": {
                 "batch_size": 64,
-                "epochs": 800,
+                "epochs": 80,
                 "validation_freq": 1,
                 "verbose": 2,
                 "callbacks": [
                     {
                         "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 5, "epo": 800,
+                        "learning_rate_start": 5e-04, "learning_rate_stop": 1e-05, "epo_min": 5, "epo": 80,
                         "verbose": 0}
                     }
                 ]

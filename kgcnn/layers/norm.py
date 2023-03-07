@@ -9,9 +9,28 @@ class GraphLayerNormalization(GraphBaseLayer):
     r"""Graph Layer normalization for (ragged) graph tensor objects.
 
     Uses `ks.layers.LayerNormalization` on all node or edge features in a batch.
-    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`_.
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
     To this end, the (positive) :obj:`axis` parameter must be strictly > 0 and ideally > 1,
     since first two dimensions are flattened for normalization.
+
+    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
+    definition and description of <https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
+    the first dimension.
+
+    .. math::
+
+        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
+
+
+    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
+    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
+    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
+    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
+    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
+
+    To adapt Layer-Norm to GNNs, we view each node as a basic component, resembling words in a sentence, and apply
+    normalization to all feature values across different dimensions of each node,
+    i.e. , over dimension :math:`j` of :math:`\hat{h}_{i,j,g}` .
 
     """
 
@@ -115,9 +134,30 @@ class GraphBatchNormalization(GraphBaseLayer):
     r"""Graph batch normalization for (ragged) graph tensor objects.
 
     Uses `ks.layers.BatchNormalization` on all node or edge features in a batch.
-    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`_.
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
     To this end, the (positive) :obj:`axis` parameter must be strictly > 0 and ideally > 1,
     since first two dimensions are flattened for normalization.
+
+    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
+    definition and description of `<https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
+    the first dimension.
+
+    .. math::
+
+        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
+
+
+    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
+    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
+    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
+    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
+    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
+
+    For BatchNorm, normalization and the computation of :math:`mu`
+    and :math:`\sigma` are applied to all values in the same feature dimension
+    across the nodes of all graphs in the batch as in
+    `Xu et al. (2019) <https://openreview.net/forum?id=ryGs6iA5Km>`__ , i.e., over dimensions :math:`g`, :math:`i`
+    of :math:`\hat{h}_{i,j,g}` .
 
     """
     def __init__(self,
@@ -149,6 +189,7 @@ class GraphBatchNormalization(GraphBaseLayer):
             gamma_regularizer: Optional regularizer for the gamma weight.
             beta_constraint: Optional constraint for the beta weight.
             gamma_constraint: Optional constraint for the gamma weight.
+
         """
         super(GraphBatchNormalization, self).__init__(**kwargs)
         # The axis 0,1 are merged for ragged embedding input.
@@ -220,3 +261,167 @@ class GraphBatchNormalization(GraphBaseLayer):
         config = super(GraphBatchNormalization, self).get_config()
         config.update({"axis": self.axis})
         return config
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphInstanceNormalization')
+class GraphInstanceNormalization(GraphBaseLayer):
+    r"""Graph instance normalization for (ragged) graph tensor objects.
+
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
+
+    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
+    definition and description of `<https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
+    the first dimension.
+
+    .. math::
+
+        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
+
+    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
+    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
+    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
+    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
+    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
+
+    For InstanceNorm, we regard each graph as an instance. The normalization is
+    then applied to the feature values across all nodes for each
+    individual graph, i.e., over dimension :math:`i` of :math:`\hat{h}_{i,j,g}` .
+
+    """
+
+    def __init__(self,
+                 axis=None,
+                 epsilon=1e-3, center=True, scale=True,
+                 beta_initializer='zeros', gamma_initializer='ones',
+                 beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
+                 gamma_constraint=None,
+                 **kwargs):
+        r"""Initialize layer :obj:`GraphBatchNormalization`.
+
+        Args:
+            axis: Integer or List/Tuple. The axis or axes to normalize across in addition to graph instances.
+                This should be always > 1 or None. Default is None.
+            epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
+            center: If True, add offset of `beta` to normalized tensor. If False,
+                `beta` is ignored. Defaults to True.
+            scale: If True, multiply by `gamma`. If False, `gamma` is not used.
+                Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
+                this can be disabled since the scaling will be done by the next layer.
+            beta_initializer: Initializer for the beta weight. Defaults to zeros.
+            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_regularizer: Optional regularizer for the beta weight. None by default.
+            gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            beta_constraint: Optional constraint for the beta weight. None by default.
+            gamma_constraint: Optional constraint for the gamma weight. None by default.
+
+        """
+        super(GraphInstanceNormalization, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(GraphInstanceNormalization, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
+
+        Returns:
+            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
+        """
+        raise NotImplementedError("Not yet implemented")
+
+    def get_config(self):
+        """Get layer configuration."""
+        config = super(GraphInstanceNormalization, self).get_config()
+        config.update({})
+        return config
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphNormalization')
+class GraphNormalization(GraphBaseLayer):
+    r"""Graph normalization for (ragged) graph tensor objects.
+
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
+
+    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
+    definition and description of `<https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
+    the first dimension.
+
+    .. math::
+
+        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
+
+
+    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
+    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
+    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
+    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
+    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
+
+    For InstanceNorm, we regard each graph as an instance. The normalization is
+    then applied to the feature values across all nodes for each
+    individual graph, i.e., over dimension :math:`i` of :math:`\hat{h}_{i,j,g}` .
+
+    Additionally, the following proposed additions for GraphNorm are added when compared to InstanceNorm.
+
+    .. math::
+
+        \text{GraphNorm}(\hat{h}_{i,j}) = \gamma_j \cdot \frac{\hat{h}_{i,j} - \alpha_j \mu_j }{\hat{\sigma}_j}+\beta_j
+
+    where :math:`\mu_j = \frac{\sum^n_{i=1} hat{h}_{i,j}}{n}` ,
+    :math:`\hat{\sigma}^2_j = \frac{\sum^n_{i=1} (hat{h}_{i,j} - \alpha_j \mu_j)^2}{n}`  ,
+    and :math:`\gamma_j` , :math:`beta_j` are the affine parameters as in other normalization methods.
+
+    """
+    def __init__(self,
+                 axis=None,
+                 epsilon=1e-3, center=True, scale=True,
+                 beta_initializer='zeros', gamma_initializer='ones',
+                 beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
+                 gamma_constraint=None,
+                 **kwargs):
+        r"""Initialize layer :obj:`GraphBatchNormalization`.
+
+        Args:
+            axis: Integer or List/Tuple. The axis or axes to normalize across in addition to graph instances.
+                This should be always > 1 or None. Default is None.
+            epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
+            center: If True, add offset of `beta` to normalized tensor. If False,
+                `beta` is ignored. Defaults to True.
+            scale: If True, multiply by `gamma`. If False, `gamma` is not used.
+                Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
+                this can be disabled since the scaling will be done by the next layer.
+            beta_initializer: Initializer for the beta weight. Defaults to zeros.
+            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_regularizer: Optional regularizer for the beta weight. None by default.
+            gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            beta_constraint: Optional constraint for the beta weight. None by default.
+            gamma_constraint: Optional constraint for the gamma weight. None by default.
+
+        """
+        super(GraphNormalization, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(GraphNormalization, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
+
+        Returns:
+            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
+        """
+        raise NotImplementedError("Not yet implemented")
+
+    def get_config(self):
+        """Get layer configuration."""
+        config = super(GraphNormalization, self).get_config()
+        config.update({})
+        return config
+
+
