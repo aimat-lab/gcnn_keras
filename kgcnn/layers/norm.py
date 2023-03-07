@@ -1,6 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
+from kgcnn.ops.segment import segment_ops_by_name
 ks = tf.keras
 
 
@@ -263,82 +264,6 @@ class GraphBatchNormalization(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='GraphInstanceNormalization')
-class GraphInstanceNormalization(GraphBaseLayer):
-    r"""Graph instance normalization for (ragged) graph tensor objects.
-
-    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
-
-    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
-    definition and description of `<https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
-    the first dimension.
-
-    .. math::
-
-        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
-
-    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
-    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
-    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
-    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
-    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
-
-    For InstanceNorm, we regard each graph as an instance. The normalization is
-    then applied to the feature values across all nodes for each
-    individual graph, i.e., over dimension :math:`i` of :math:`\hat{h}_{i,j,g}` .
-
-    """
-
-    def __init__(self,
-                 axis=None,
-                 epsilon=1e-3, center=True, scale=True,
-                 beta_initializer='zeros', gamma_initializer='ones',
-                 beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
-                 gamma_constraint=None,
-                 **kwargs):
-        r"""Initialize layer :obj:`GraphBatchNormalization`.
-
-        Args:
-            axis: Integer or List/Tuple. The axis or axes to normalize across in addition to graph instances.
-                This should be always > 1 or None. Default is None.
-            epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
-            center: If True, add offset of `beta` to normalized tensor. If False,
-                `beta` is ignored. Defaults to True.
-            scale: If True, multiply by `gamma`. If False, `gamma` is not used.
-                Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
-                this can be disabled since the scaling will be done by the next layer.
-            beta_initializer: Initializer for the beta weight. Defaults to zeros.
-            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
-            beta_regularizer: Optional regularizer for the beta weight. None by default.
-            gamma_regularizer: Optional regularizer for the gamma weight. None by default.
-            beta_constraint: Optional constraint for the beta weight. None by default.
-            gamma_constraint: Optional constraint for the gamma weight. None by default.
-
-        """
-        super(GraphInstanceNormalization, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(GraphInstanceNormalization, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
-
-        Returns:
-            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
-        """
-        raise NotImplementedError("Not yet implemented")
-
-    def get_config(self):
-        """Get layer configuration."""
-        config = super(GraphInstanceNormalization, self).get_config()
-        config.update({})
-        return config
-
-
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphNormalization')
 class GraphNormalization(GraphBaseLayer):
     r"""Graph normalization for (ragged) graph tensor objects.
@@ -374,19 +299,197 @@ class GraphNormalization(GraphBaseLayer):
     :math:`\hat{\sigma}^2_j = \frac{\sum^n_{i=1} (hat{h}_{i,j} - \alpha_j \mu_j)^2}{n}`  ,
     and :math:`\gamma_j` , :math:`beta_j` are the affine parameters as in other normalization methods.
 
+    .. code-block:: python
+
+        import tensorflow as tf
+        from kgcnn.layers.norm import GraphNormalization
+        layer = GraphNormalization()
+        test = tf.ragged.constant([[[0.0, 0.0],[1.0, -1.0]],[[1.0, 1.0],[0.0, 0.0],[-2.0, -2.0]]], ragged_rank=1)
+        print(layer(test))
+
     """
     def __init__(self,
-                 axis=None,
-                 epsilon=1e-3, center=True, scale=True,
-                 beta_initializer='zeros', gamma_initializer='ones',
-                 beta_regularizer=None, gamma_regularizer=None, beta_constraint=None,
-                 gamma_constraint=None,
+                 mean_shift=True, epsilon=1e-3, center=True, scale=True,
+                 beta_initializer='zeros', gamma_initializer='ones', alpha_initializer='ones',
+                 beta_regularizer=None, gamma_regularizer=None, alpha_regularizer=None,
+                 beta_constraint=None, gamma_constraint=None, alpha_constraint=None,
                  **kwargs):
         r"""Initialize layer :obj:`GraphBatchNormalization`.
 
         Args:
             axis: Integer or List/Tuple. The axis or axes to normalize across in addition to graph instances.
                 This should be always > 1 or None. Default is None.
+            epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
+            center: If True, add offset of `beta` to normalized tensor. If False,
+                `beta` is ignored. Defaults to True.
+            scale: If True, multiply by `gamma`. If False, `gamma` is not used.
+                Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
+                this can be disabled since the scaling will be done by the next layer.
+            mean_shift (bool): Whether to apply alpha. Default is True.
+            beta_initializer: Initializer for the beta weight. Defaults to zeros.
+            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_regularizer: Optional regularizer for the beta weight. None by default.
+            gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            beta_constraint: Optional constraint for the beta weight. None by default.
+            gamma_constraint: Optional constraint for the gamma weight. None by default.
+
+        """
+        super(GraphNormalization, self).__init__(**kwargs)
+        self.epsilon = epsilon
+        self._eps = tf.constant(epsilon, dtype=self.dtype)
+        self.center = center
+        self.mean_shift = mean_shift
+        self.scale = scale
+        self.beta_initializer = ks.initializers.get(beta_initializer)
+        self.gamma_initializer = ks.initializers.get(gamma_initializer)
+        self.alpha_initializer = ks.initializers.get(alpha_initializer)
+        self.beta_regularizer = ks.regularizers.get(beta_regularizer)
+        self.gamma_regularizer = ks.regularizers.get(gamma_regularizer)
+        self.alpha_regularizer = ks.regularizers.get(alpha_regularizer)
+        self.beta_constraint = ks.constraints.get(beta_constraint)
+        self.gamma_constraint = ks.constraints.get(gamma_constraint)
+        self.alpha_constraint = ks.constraints.get(alpha_constraint)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(GraphNormalization, self).build(input_shape)
+        param_shape = [x if x is not None else 1 for x in input_shape[2:]]
+        if self.scale:
+            self.gamma = self.add_weight(
+                name="gamma",
+                shape=param_shape,
+                initializer=self.gamma_initializer,
+                regularizer=self.gamma_regularizer,
+                constraint=self.gamma_constraint,
+                trainable=True,
+                experimental_autocast=False,
+            )
+        else:
+            self.gamma = None
+
+        if self.center:
+            self.beta = self.add_weight(
+                name="beta",
+                shape=param_shape,
+                initializer=self.beta_initializer,
+                regularizer=self.beta_regularizer,
+                constraint=self.beta_constraint,
+                trainable=True,
+                experimental_autocast=False,
+            )
+        else:
+            self.beta = None
+
+        if self.mean_shift:
+            self.alpha = self.add_weight(
+                name="alpha",
+                shape=param_shape,
+                initializer=self.alpha_initializer,
+                regularizer=self.alpha_regularizer,
+                constraint=self.alpha_constraint,
+                trainable=True,
+                experimental_autocast=False,
+            )
+        else:
+            self.alpha = None
+
+        self.built = True
+
+    def _ragged_mean_std(self, inputs):
+        # Here a segment operation for ragged_rank=1 tensors is used.
+        # Alternative is to simply use tf.reduce_mean which should also work for latest tf-version.
+        # Then tf.nn.moments could be used or similar tf implementation for variance and mean.
+        values = inputs.values
+        if values.dtype in ("float16", "bfloat16") and self.dtype == "float32":
+            values = tf.cast(values, "float32")
+        mean = segment_ops_by_name("mean", values, inputs.value_rowids())
+        if self.mean_shift:
+            mean = mean * tf.expand_dims(self.alpha, axis=0)
+        mean = tf.repeat(mean, inputs.row_lengths(), axis=0)
+        diff = values - tf.stop_gradient(mean)
+        square_diff = tf.square(diff)
+        variance = segment_ops_by_name("mean", square_diff, inputs.value_rowids())
+        std = tf.sqrt(variance + self._eps)
+        std = tf.repeat(std, inputs.row_lengths(), axis=0)
+        return mean, std, diff/std
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
+
+        Returns:
+            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
+        """
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)  # Must have ragged_rank = 1.
+        mean, std, new_values = self._ragged_mean_std(inputs)
+        # Recomputing diff.
+        if self.scale:
+            new_values = new_values * tf.expand_dims(self.gamma, axis=0)
+        if self.center:
+            new_values = new_values + self.beta
+        return inputs.with_values(new_values)
+
+    def get_config(self):
+        """Get layer configuration."""
+        config = super(GraphNormalization, self).get_config()
+        config.update({
+            "mean_shift": self.mean_shift,
+            "epsilon": self.epsilon,
+            "center": self.center,
+            "scale": self.scale,
+            "beta_initializer": ks.initializers.serialize(self.beta_initializer),
+            "gamma_initializer": ks.initializers.serialize(self.gamma_initializer),
+            "alpha_initializer": ks.initializers.serialize(self.alpha_initializer),
+            "beta_regularizer": ks.regularizers.serialize(self.beta_regularizer),
+            "gamma_regularizer": ks.regularizers.serialize(self.gamma_regularizer),
+            "alpha_regularizer": ks.regularizers.serialize(self.alpha_regularizer),
+            "beta_constraint": ks.constraints.serialize(self.beta_constraint),
+            "gamma_constraint": ks.constraints.serialize(self.gamma_constraint),
+            "alpha_constraint": ks.constraints.serialize(self.alpha_constraint),
+        })
+        return config
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='GraphInstanceNormalization')
+class GraphInstanceNormalization(GraphNormalization):
+    r"""Graph instance normalization for (ragged) graph tensor objects.
+
+    Following convention suggested by `GraphNorm: A Principled Approach (...) <https://arxiv.org/abs/2009.03294>`__ .
+
+    The definition of normalization terms for graph neural networks can be categorized as follows. Here we copy the
+    definition and description of `<https://arxiv.org/abs/2009.03294>`_ . Note that for keras the batch dimension is
+    the first dimension.
+
+    .. math::
+
+        \text{Norm}(\hat{h}_{i,j,g}) = \gamma \cdot \frac{\hat{h}_{i,j,g} - \mu}{\sigma} + \beta,
+
+    Consider a batch of graphs :math:`{G_{1}, \dots , G_{b}}` where :math:`b` is the batch size.
+    Let :math:`n_{g}` be the number of nodes in graph :math:`G_{g}` .
+    We generally denote :math:`\hat{h}_{i,j,g}` as the inputs to the normalization module, e.g.,
+    the :math:`j` -th feature value of node :math:`v_i` of graph :math:`G_{g}` ,
+    :math:`i = 1, \dots , n_{g}` , :math:`j = 1, \dots , d` , :math:`g = 1, \dots , b` .
+
+    For InstanceNorm, we regard each graph as an instance. The normalization is
+    then applied to the feature values across all nodes for each
+    individual graph, i.e., over dimension :math:`i` of :math:`\hat{h}_{i,j,g}` .
+
+    .. code-block:: python
+
+        import tensorflow as tf
+        from kgcnn.layers.norm import GraphInstanceNormalization
+        layer = GraphInstanceNormalization()
+        test = tf.ragged.constant([[[0.0, 0.0],[1.0, -1.0]],[[1.0, 1.0],[0.0, 0.0],[-2.0, -2.0]]], ragged_rank=1)
+        print(layer(test))
+
+    """
+
+    def __init__(self, **kwargs):
+        r"""Initialize layer :obj:`GraphBatchNormalization`.
+
+        Args:
             epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
             center: If True, add offset of `beta` to normalized tensor. If False,
                 `beta` is ignored. Defaults to True.
@@ -401,27 +504,4 @@ class GraphNormalization(GraphBaseLayer):
             gamma_constraint: Optional constraint for the gamma weight. None by default.
 
         """
-        super(GraphNormalization, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(GraphNormalization, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
-
-        Returns:
-            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
-        """
-        raise NotImplementedError("Not yet implemented")
-
-    def get_config(self):
-        """Get layer configuration."""
-        config = super(GraphNormalization, self).get_config()
-        config.update({})
-        return config
-
-
+        super(GraphInstanceNormalization, self).__init__(mean_shift=False, **kwargs)
