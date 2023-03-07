@@ -177,10 +177,10 @@ benchmark_datasets = {
         ],
         "targets": [
             {"metric": "val_acc", "name": "Accuracy", "find_best": "max"},
-            {"metric": "val_AUC", "name": "AUC", "find_best": "max"},
+            {"metric": "val_auc", "name": "AUC", "find_best": "max"},
             {"metric": "max_val_acc", "name": "*Max. Accuracy*", "find_best": "max",
              "is_min_max": True},
-            {"metric": "max_val_AUC", "name": "*Max. AUC*", "find_best": "max",
+            {"metric": "max_val_uac", "name": "*Max. AUC*", "find_best": "max",
              "is_min_max": True}
         ]
     },
@@ -227,7 +227,7 @@ benchmark_datasets = {
         "general_info": [
             "FreeSolv (MoleculeNet) consists of 642 compounds as smiles and ",
             "their corresponding hydration free energy for small neutral molecules in water. ",
-            "We use a random 5-fold cross-validation. ",
+            "We use a random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
@@ -242,7 +242,7 @@ benchmark_datasets = {
         "general_info": [
             "TUDataset of proteins that are classified as enzymes or non-enzymes. ",
             "Nodes represent the amino acids of the protein. ",
-            "We use random 5-fold cross-validation. ",
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -255,7 +255,7 @@ benchmark_datasets = {
         "general_info": [
             "Tox21 (MoleculeNet) consists of 7831 compounds as smiles and ",
             "12 different targets relevant to drug toxicity. ",
-            "We use random 5-fold cross-validation. ",
+            "We use random 5-fold cross-validation. "
         ],
         "targets": [
             {"metric": "val_binary_accuracy_no_nan", "name": "Accuracy", "find_best": "max"},
@@ -272,7 +272,7 @@ benchmark_datasets = {
         "general_info": [
             "ClinTox (MoleculeNet) consists of 1478 compounds as smiles and ",
             "data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. ",
-            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target.",
+            "We use random 5-fold cross-validation. The first label 'approved' is chosen as target."
         ],
         "targets": [
             {"metric": "val_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -285,7 +285,7 @@ benchmark_datasets = {
         "general_info": [
             "QM7 dataset is a subset of GDB-13. ",
             "Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. ",
-            "We use dataset-specific 5-fold cross-validation. "
+            "We use dataset-specific 5-fold cross-validation. ",
             "The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). "
         ],
         "targets": [
@@ -303,7 +303,7 @@ benchmark_datasets = {
             "Labels include geometric, energetic, electronic, and thermodynamic properties. ",
             "We use a random 10-fold cross-validation, ",
             "but not all splits are evaluated for cheaper evaluation. ",
-            "Test errors are MAE and for energies are given in [eV]. ",
+            "Test errors are MAE and for energies are given in [eV]. "
         ],
         "targets": [
             {"metric": "val_scaled_mean_absolute_error", "name": "HOMO [eV]", "find_best": "min",
@@ -322,7 +322,7 @@ benchmark_datasets = {
         "general_info": [
             "SIDER (MoleculeNet) consists of 1427 compounds as smiles and ",
             "data for adverse drug reactions (ADR), grouped into 27 system organ classes. ",
-            "We use random 5-fold cross-validation.",
+            "We use random 5-fold cross-validation."
         ],
         "targets": [
             {"metric": "val_binary_accuracy", "name": "Accuracy", "find_best": "max"},
@@ -357,7 +357,7 @@ benchmark_datasets = {
             "Energies and forces for molecular dynamics trajectories. ",
             "All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. ",
             "We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. ",
-            "Errors are MAE for forces. ",
+            "Errors are MAE for forces. "
         ],
         "targets": [
             {"metric": "val_force_scaled_mean_absolute_error", "name": "Aspirin", "find_best": "min",
@@ -402,10 +402,10 @@ benchmark_datasets = {
     "VgdRbMotifsDataset": {
         "general_info": [
             "Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, ",
-            "where some of them are seeded with special red- or blue-dominated subgraph motifs, where "
-            "blue motifs contribute negatively to a graph's overall target value and red motifs "
-            "contribute positively. The explanation ground truth for this datasets consists of these "
-            "motifs.",
+            "where some of them are seeded with special red- or blue-dominated subgraph motifs, where ",
+            "blue motifs contribute negatively to a graph's overall target value and red motifs ",
+            "contribute positively. The explanation ground truth for this datasets consists of these ",
+            "motifs."
         ],
         "targets": [
             {"metric": "val_mean_squared_error", "name": "MSE", "find_best": "min"},
@@ -414,6 +414,7 @@ benchmark_datasets = {
         ]
     }
 }
+
 
 def load_yaml_file(file_path: str):
     with open(file_path, 'r') as stream:

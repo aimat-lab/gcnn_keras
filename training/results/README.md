@@ -166,6 +166,18 @@ Materials Project dataset from Matbench with 106113 crystal structures and their
 | PAiNN.make_crystal_model     | 2.2.2   |      800 | 0.2220 &pm; 0.0037     | 0.5315 &pm; 0.0260     |
 | Schnet.make_crystal_model    | 2.2.2   |      800 | 0.9351 &pm; 0.3720     | 1.5027 &pm; 0.4929     |
 
+#### MatProjectIsMetalDataset
+
+Materials Project dataset from Matbench with 106113 crystal structures and their corresponding Metallicity determined with pymatgen. 1 if the compound is a metal, 0 if the compound is not a metal. We use a random 5-fold cross-validation. 
+
+| model                        | kgcnn   |   epochs | Accuracy               | AUC                    |
+|:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
+| CGCNN.make_crystal_model     | 2.2.3   |     1000 | 0.8967 &pm; 0.0027     | 0.9101 &pm; 0.0030     |
+| DimeNetPP.make_crystal_model | 2.2.3   |      780 | 0.9049 &pm; 0.0029     | 0.9135 &pm; 0.0041     |
+| Megnet.make_crystal_model    | 2.2.3   |     1000 | **0.9062 &pm; 0.0025** | **0.9202 &pm; 0.0029** |
+| PAiNN.make_crystal_model     | 2.2.3   |      800 | 0.9032 &pm; 0.0014     | 0.9123 &pm; 0.0016     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 0.6972 &pm; 0.1619     | 0.6630 &pm; 0.1996     |
+
 #### MatProjectEFormDataset
 
 Materials Project dataset from Matbench with 132752 crystal structures and their corresponding formation energy in [eV/atom]. We use a random 5-fold cross-validation. 
