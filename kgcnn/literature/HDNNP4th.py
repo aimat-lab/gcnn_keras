@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.modules import LazyConcatenate
-from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4
+from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -13,7 +13,7 @@ ks = tf.keras
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023.02.17"
+__model_version__ = "2023.03.08"
 
 # Implementation of HDNNP in `tf.keras` from paper:
 # A fourth-generation high-dimensional neural network potential with accurate electrostatics including
@@ -33,6 +33,7 @@ model_default_behler = {
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
                   "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
     "normalize_kwargs": {},
+    "const_normalize_kwargs": None,
     "mlp_charge_kwargs": {"units": [64, 64, 1],
                           "num_relations": 96,
                           "activation": ["swish", "swish", "linear"]},
@@ -56,6 +57,7 @@ def make_model_behler(inputs: list = None,
                       name: str = None,
                       verbose: int = None,
                       normalize_kwargs: dict = None,
+                      const_normalize_kwargs: dict = None,
                       g2_kwargs: dict = None,
                       g4_kwargs: dict = None,
                       mlp_charge_kwargs: dict = None,
@@ -92,6 +94,7 @@ def make_model_behler(inputs: list = None,
         g2_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG2` layer.
         g4_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG4` layer.
         normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
+        const_normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFConstNormalization` layer.
         mlp_charge_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         mlp_local_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         electrostatic_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ElectrostaticEnergyCharge` layer.
@@ -121,6 +124,8 @@ def make_model_behler(inputs: list = None,
     # Normalization
     if normalize_kwargs:
         rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+    if const_normalize_kwargs:
+        rep = ACSFConstNormalization(**const_normalize_kwargs)(rep)
 
     # learnable NN.
     chi = RelationalMLP(**mlp_charge_kwargs)([rep, node_input])

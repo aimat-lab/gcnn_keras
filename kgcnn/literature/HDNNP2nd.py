@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.modules import LazyConcatenate
 from kgcnn.layers.conv.wacsf_conv import wACSFAng, wACSFRad
-from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4
+from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -30,6 +30,7 @@ model_default_weighted = {
     "w_acsf_ang_kwargs": {},
     "w_acsf_rad_kwargs": {},
     "normalize_kwargs": None,
+    "const_normalize_kwargs": None,
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
@@ -50,6 +51,7 @@ def make_model_weighted(inputs: list = None,
                         w_acsf_ang_kwargs: dict = None,
                         w_acsf_rad_kwargs: dict = None,
                         normalize_kwargs: dict = None,
+                        const_normalize_kwargs: dict = None,
                         mlp_kwargs: dict = None,
                         output_embedding: str = None,
                         use_output_mlp: bool = None,
@@ -81,6 +83,7 @@ def make_model_weighted(inputs: list = None,
         w_acsf_rad_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`wACSFRad` layer.
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
+        const_normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFConstNormalization` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
@@ -104,6 +107,8 @@ def make_model_weighted(inputs: list = None,
     # Normalization
     if normalize_kwargs:
         rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+    if const_normalize_kwargs:
+        rep = ACSFConstNormalization(**const_normalize_kwargs)(rep)
 
     # learnable NN.
     n = RelationalMLP(**mlp_kwargs)([rep, node_input])
@@ -138,6 +143,7 @@ model_default_behler = {
     "g4_kwargs": {"eta": [0.0, 0.3], "lamda": [-1.0, 1.0], "rc": 6.0,
                   "zeta": [1.0, 8.0], "elements": [1, 6, 16], "multiplicity": 2.0},
     "normalize_kwargs": {},
+    "const_normalize_kwargs": None,
     "mlp_kwargs": {"units": [64, 64, 64],
                    "num_relations": 96,
                    "activation": ["swish", "swish", "linear"]},
@@ -156,6 +162,7 @@ def make_model_behler(inputs: list = None,
                       name: str = None,
                       verbose: int = None,
                       normalize_kwargs: dict = None,
+                      const_normalize_kwargs: dict = None,
                       g2_kwargs: dict = None,
                       g4_kwargs: dict = None,
                       mlp_kwargs: dict = None,
@@ -187,6 +194,7 @@ def make_model_behler(inputs: list = None,
         g2_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG2` layer.
         g4_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFG4` layer.
         normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`GraphBatchNormalization` layer.
+        const_normalize_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`ACSFConstNormalization` layer.
         mlp_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`RelationalMLP` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         use_output_mlp (bool): Whether to use the final output MLP. Possibility to skip final MLP.
@@ -211,6 +219,8 @@ def make_model_behler(inputs: list = None,
     # Normalization
     if normalize_kwargs:
         rep = GraphBatchNormalization(**normalize_kwargs)(rep)
+    if const_normalize_kwargs:
+        rep = ACSFConstNormalization(**const_normalize_kwargs)(rep)
 
     # learnable NN.
     n = RelationalMLP(**mlp_kwargs)([rep, node_input])
@@ -321,4 +331,3 @@ def make_model_atom_wise(inputs: list = None,
 
 # For default, the weighted ACSF are used, since they do should in principle work for all elements.
 make_model = make_model_weighted
-
