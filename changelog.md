@@ -5,6 +5,7 @@ v2.2.3
 * Fix bug in latest ``train_force.py`` of v2.2.2 that forgets to apply inverse scaling to dataset, causing subsequent folds to have wrong labels.
 * HOTFIX: Updated ``MolDynamicsModelPredictor`` to call keras model without very expensive retracing. Alternative mode use `use_predict=True` .
 * Update training results and data subclasses for matbench datasets.
+* Added ``GraphInstanceNormalization`` and `GraphNormalization` to `kgcnn.layers.norm` .
 
 
 v2.2.2

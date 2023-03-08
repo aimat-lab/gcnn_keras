@@ -406,8 +406,9 @@ class GraphNormalization(GraphBaseLayer):
         if self.mean_shift:
             mean = mean * tf.expand_dims(self.alpha, axis=0)
         mean = tf.repeat(mean, inputs.row_lengths(), axis=0)
-        diff = values - tf.stop_gradient(mean)
-        square_diff = tf.square(diff)
+        diff = values - mean
+        # Not sure whether to stop gradients for variance if alpha ist used.
+        square_diff = tf.square(diff)  # values - tf.stop_gradient(mean)
         variance = segment_ops_by_name("mean", square_diff, inputs.value_rowids())
         std = tf.sqrt(variance + self._eps)
         std = tf.repeat(std, inputs.row_lengths(), axis=0)

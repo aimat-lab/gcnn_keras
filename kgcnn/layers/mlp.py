@@ -380,7 +380,7 @@ class RelationalMLP(MLPBase):
                         **self._conf_mlp_norm_layer_kwargs[i])
                 else:
                     raise NotImplementedError(
-                        "Normalization via %s not supported." % self._conf_normalization_technique[i])
+                        "Normalization via '%s' not supported." % self._conf_normalization_technique[i])
 
     def build(self, input_shape):
         """Build layer."""
