@@ -1,3 +1,9 @@
+v2.2.4
+
+* Added ``ACSFConstNormalization`` to literature models as option.
+* 
+
+
 v2.2.3
 
 * HOTFIX: Changed ``MemoryGraphList.tensor()`` so that the correct dtype is given to the tensor output. This is important for model loading etc.

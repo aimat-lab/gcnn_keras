@@ -1,5 +1,5 @@
 import tensorflow as tf
-import kgcnn.ops.activ
+# import kgcnn.ops.activ
 from kgcnn.layers.modules import Dense, Activation, Dropout
 from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
 from kgcnn.layers.base import GraphBaseLayer
@@ -112,37 +112,62 @@ class MLPBase(GraphBaseLayer):
         local_kw = locals()
 
         # List for groups of arguments.
-        key_list_act = ["activation", "activity_regularizer"]
-        key_list_dense = ["units", "use_bias", "kernel_regularizer", "bias_regularizer",
-                          "kernel_initializer", "bias_initializer", "kernel_constraint", "bias_constraint"]
-        key_list_norm = ["axis", "momentum", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-                         "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer",
-                         "gamma_regularizer",
-                         "beta_constraint", "gamma_constraint"]
-        key_list_dropout = ["rate", "noise_shape", "seed"]
-        key_list_use = ["use_dropout", "use_normalization", "normalization_technique"]
-        self._key_list_init = ["kernel_initializer", "bias_initializer", "beta_initializer", "gamma_initializer",
-                               "moving_mean_initializer", "moving_variance_initializer"]
-        self._key_list_reg = ["activity_regularizer", "kernel_regularizer", "bias_regularizer",
-                              "beta_regularizer", "gamma_regularizer"]
+        self._key_list_act = [
+            "activation", "activity_regularizer"
+        ]
+        self._key_list_dense = [
+            "units", "use_bias", "kernel_regularizer", "bias_regularizer", "kernel_initializer", "bias_initializer",
+            "kernel_constraint", "bias_constraint"
+        ]
+        self._key_list_norm_all = [
+            "axis", "momentum", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+            "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer",
+            "gamma_regularizer", "beta_constraint", "gamma_constraint"
+        ]
+        self._key_list_dropout = ["rate", "noise_shape", "seed"]
+        self._key_list_use = ["use_dropout", "use_normalization", "normalization_technique"]
+        self._key_list_init = [
+            "kernel_initializer", "bias_initializer", "beta_initializer", "gamma_initializer",
+            "moving_mean_initializer", "moving_variance_initializer"
+        ]
+        self._key_list_reg = [
+            "activity_regularizer", "kernel_regularizer", "bias_regularizer", "beta_regularizer", "gamma_regularizer"
+        ]
         self._key_list_const = ["kernel_constraint", "bias_constraint", "beta_constraint", "gamma_constraint"]
+        # Subgroups of normalization
+        self._key_lists_norm = {
+            "BatchNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+                                   "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint",
+                                   "momentum", "moving_mean_initializer", "moving_variance_initializer"],
+            "GraphBatchNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+                                        "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint",
+                                        "momentum", "moving_mean_initializer", "moving_variance_initializer"],
+            "LayerNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+                                   "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"],
+            "GraphLayerNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
+                                        "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]
+        }
 
+        # Summarize all arguments.
+        self._key_list = []
+        self._key_list += self._key_list_act + self._key_list_dense + self._key_list_norm_all + self._key_list_dropout
+        self._key_list += self._key_list_use
+        self._key_list = list(set(self._key_list))
         # Dictionary of kwargs for MLP.
-        self._key_list = key_list_act + key_list_dense + key_list_norm + key_list_dropout + key_list_use
         mlp_kwargs = {key: local_kw[key] for key in self._key_list}
 
         # Everything should be defined by units.
         if isinstance(units, int):
-            units = [units]
-        if not isinstance(units, list):
+            mlp_kwargs["units"] = [units]
+        if not isinstance(mlp_kwargs["units"], list):
             raise ValueError("Units must be a list or a single int for `MLP`.")
-        self._depth = len(units)
+        self._depth = len(mlp_kwargs["units"])
         # Special case, if axis is supposed to be multiple axis, use tuple here.
         if not isinstance(axis, list):
-            axis = [axis for _ in units]
+            mlp_kwargs["axis"] = [axis for _ in range(self._depth)]
         # Special case, for shape, use tuple here.
         if not isinstance(noise_shape, list):
-            noise_shape = [noise_shape for _ in units]
+            mlp_kwargs["noise_shape"] = [noise_shape for _ in range(self._depth)]
 
         # Assert matching number of args
         def assert_args_is_list(args):
@@ -156,8 +181,10 @@ class MLPBase(GraphBaseLayer):
 
         # Check correct length for all arguments.
         for key, value in mlp_kwargs.items():
-            if len(units) != len(value):
-                raise ValueError("Provide matching list of units %s and %s or simply a single value." % (units, key))
+            if self._depth != len(value):
+                raise ValueError(
+                    "Provide matching list of units '%s' and '%s' or simply a single value." % (
+                        mlp_kwargs["units"], key))
 
         # Deserialize initializer, regularizes, constraints and activation.
         for sl, sm in [
@@ -167,60 +194,26 @@ class MLPBase(GraphBaseLayer):
             for key in sl:
                 mlp_kwargs[key] = [sm(x) for x in mlp_kwargs[key]]
 
-        # Assign to self as '_conf_'.
-        for key, value in mlp_kwargs.items():
-            setattr(self, "_conf_" + key, list(value))
+        # Fix synonyms for normalization layer.
+        replace_norm_identifier = [
+            ("batch", "BatchNormalization"), ("graph_batch", "GraphBatchNormalization"),
+            ("layer", "LayerNormalization"), ("graph_layer", "GraphLayerNormalization")
+        ]
+        for i, x in enumerate(mlp_kwargs["normalization_technique"]):
+            for key_rep, key in replace_norm_identifier:
+                if x == key_rep:
+                    mlp_kwargs["normalization_technique"][i] = key
 
-        # Processed arguments for each layer.
-        self._conf_mlp_dense_layer_kwargs = [{"units": self._conf_units[i],
-                                              "use_bias": self._conf_use_bias[i],
-                                              "name": self.name + "_dense_" + str(i),
-                                              "activation": "linear",
-                                              "activity_regularizer": None,
-                                              "kernel_regularizer": self._conf_kernel_regularizer[i],
-                                              "bias_regularizer": self._conf_bias_regularizer[i],
-                                              "kernel_initializer": self._conf_kernel_initializer[i],
-                                              "bias_initializer": self._conf_bias_initializer[i],
-                                              "kernel_constraint": self._conf_kernel_constraint[i],
-                                              "bias_constraint": self._conf_bias_constraint[i]}
-                                             for i in range(self._depth)]
-        self._conf_mlp_activ_layer_kwargs = [{"activation": self._conf_activation[i],
-                                              "name": self.name + "_act_" + str(i),
-                                              "activity_regularizer": self._conf_activity_regularizer[i]}
-                                             for i in range(self._depth)]
-        self._conf_mlp_norm_layer_kwargs = [{"name": self.name + '_norm_' + str(i),
-                                             "axis": self._conf_axis[i],
-                                             "epsilon": self._conf_epsilon[i],
-                                             "center": self._conf_center[i],
-                                             "scale": self._conf_scale[i],
-                                             "beta_initializer": self._conf_beta_initializer[i],
-                                             "gamma_initializer": self._conf_gamma_initializer[i],
-                                             "beta_regularizer": self._conf_beta_regularizer[i],
-                                             "gamma_regularizer": self._conf_gamma_regularizer[i],
-                                             "beta_constraint": self._conf_beta_constraint[i],
-                                             "gamma_constraint": self._conf_gamma_constraint[i]}
-                                            for i in range(self._depth)]
-        self._conf_mlp_batch_layer_kwargs = [{"name": self.name + '_norm_' + str(i),
-                                             "axis": self._conf_axis[i],
-                                             "epsilon": self._conf_epsilon[i],
-                                             "center": self._conf_center[i],
-                                             "scale": self._conf_scale[i],
-                                             "beta_initializer": self._conf_beta_initializer[i],
-                                             "gamma_initializer": self._conf_gamma_initializer[i],
-                                             "beta_regularizer": self._conf_beta_regularizer[i],
-                                             "gamma_regularizer": self._conf_gamma_regularizer[i],
-                                             "beta_constraint": self._conf_beta_constraint[i],
-                                             "gamma_constraint": self._conf_gamma_constraint[i],
-                                             "momentum": self._conf_momentum[i],
-                                             "moving_mean_initializer": self._conf_moving_mean_initializer[i],
-                                             "moving_variance_initializer": self._conf_moving_variance_initializer[i]
-                                              }
-                                            for i in range(self._depth)]
-        self._conf_mlp_drop_layer_kwargs = [{"name": self.name + '_drop_' + str(i),
-                                             "rate": self._conf_rate[i],
-                                             "noise_shape": self._conf_noise_shape[i],
-                                             "seed": self._conf_seed[i]}
-                                            for i in range(self._depth)]
+        # Assign separate '_conf_' for use keys.
+        # All '_conf_' kwargs.
+        for key in self._key_list_use:
+            setattr(self, "_conf_" + key, mlp_kwargs[key])
+        self._conf_mlp_kwargs = mlp_kwargs
+
+    def _get_conf_for_keys(self, key_list_to_fetch: list, name_postfix: str, i_layer: int):
+        out_kwargs = {key: self._conf_mlp_kwargs[key][i_layer] for key in key_list_to_fetch}
+        out_kwargs.update({"name": self.name + "_" + name_postfix + "_" + str(i_layer)})
+        return out_kwargs
 
     def build(self, input_shape):
         """Build layer."""
@@ -230,7 +223,7 @@ class MLPBase(GraphBaseLayer):
         """Update config."""
         config = super(MLPBase, self).get_config()
         for key in self._key_list:
-            config.update({key: getattr(self, "_conf_" + key)})
+            config.update({key: self._conf_mlp_kwargs[key]})
 
         # Serialize initializer, regularizes, constraints and activation.
         for sl, sm in [
@@ -238,7 +231,7 @@ class MLPBase(GraphBaseLayer):
             (self._key_list_const, ks.constraints.serialize), (["activation"], ks.activations.serialize)
         ]:
             for key in sl:
-                config.update({key: [sm(x) for x in getattr(self, "_conf_" + key)]})
+                config.update({key: [sm(x) for x in self._conf_mlp_kwargs[key]]})
         return config
 
 
@@ -259,38 +252,39 @@ class MLP(MLPBase):
 
     """
 
+    # If child classes want to replace layers.
+    _supress_dense = False
+
     def __init__(self, units, **kwargs):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
+        norm_classes = {
+            "BatchNormalization": ks.layers.BatchNormalization,
+            "GraphBatchNormalization": GraphBatchNormalization,
+            "LayerNormalization": ks.layers.LayerNormalization,
+            "GraphLayerNormalization": GraphLayerNormalization
+        }
+        # raise NotImplementedError("Normalization via %s not supported." % self._conf_normalization_technique[i])
 
-        self.mlp_dense_layer_list = [Dense(
-            **self._conf_mlp_dense_layer_kwargs[i]) for i in range(self._depth)]
-
-        self.mlp_activation_layer_list = [Activation(
-            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
-
+        if not self._supress_dense:
+            self.mlp_dense_layer_list = [
+                Dense(**self._get_conf_for_keys(
+                    self._key_list_dense, "dense", i)) for i in range(self._depth)
+            ]
+        self.mlp_activation_layer_list = [
+            Activation(**self._get_conf_for_keys(
+                self._key_list_act, "act", i)) for i in range(self._depth)
+        ]
         self.mlp_dropout_layer_list = [
-            Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
-            in range(self._depth)]
-
-        self.mlp_norm_layer_list = [None] * self._depth
-        for i in range(self._depth):
-            if self._conf_use_normalization[i]:
-                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = ks.layers.BatchNormalization(
-                        **self._conf_mlp_batch_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["graph_batch", "GraphBatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphBatchNormalization(
-                        **self._conf_mlp_batch_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = ks.layers.LayerNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["graph_layer", "GraphLayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphLayerNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i])
-                else:
-                    raise NotImplementedError(
-                        "Normalization via %s not supported." % self._conf_normalization_technique[i])
+            Dropout(**self._get_conf_for_keys(
+                self._key_list_dropout, "drop", i)) if self._conf_use_dropout[i] else None for i
+            in range(self._depth)
+        ]
+        self.mlp_norm_layer_list = [
+            norm_classes[self._conf_normalization_technique[i]](
+                **self._get_conf_for_keys(self._key_lists_norm[self._conf_normalization_technique[i]], "norm", i)
+            ) if self._conf_use_normalization[i] else None for i in range(self._depth)
+        ]
 
     def build(self, input_shape):
         """Build layer."""
@@ -326,7 +320,7 @@ GraphMLP = MLP
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='RelationalMLP')
-class RelationalMLP(MLPBase):
+class RelationalMLP(MLP):
     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
 
     .. note::
@@ -342,6 +336,8 @@ class RelationalMLP(MLPBase):
 
     """
 
+    _supress_dense = True
+
     def __init__(self, units, num_relations: int, num_bases: int = None, num_blocks: int = None, **kwargs):
         """Initialize MLP. See MLPBase."""
         super(RelationalMLP, self).__init__(units=units, **kwargs)
@@ -353,34 +349,9 @@ class RelationalMLP(MLPBase):
             "num_blocks": self._conf_num_blocks
         }
 
+        # Override dense list with RelationalDense layer.
         self.mlp_dense_layer_list = [RelationalDense(
             **self._conf_mlp_dense_layer_kwargs[i], **self._conf_relational_kwargs) for i in range(self._depth)]
-
-        self.mlp_activation_layer_list = [Activation(
-            **self._conf_mlp_activ_layer_kwargs[i]) for i in range(self._depth)]
-
-        self.mlp_dropout_layer_list = [
-            Dropout(**self._conf_mlp_drop_layer_kwargs[i]) if self._conf_use_dropout[i] else None for i
-            in range(self._depth)]
-
-        self.mlp_norm_layer_list = [None] * self._depth
-        for i in range(self._depth):
-            if self._conf_use_normalization[i]:
-                if self._conf_normalization_technique[i] in ["batch", "BatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = ks.layers.BatchNormalization(
-                        **self._conf_mlp_batch_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["graph_batch", "GraphBatchNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphBatchNormalization(
-                        **self._conf_mlp_batch_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["layer", "LayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = ks.layers.LayerNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i])
-                elif self._conf_normalization_technique[i] in ["graph_layer", "GraphLayerNormalization"]:
-                    self.mlp_norm_layer_list[i] = GraphLayerNormalization(
-                        **self._conf_mlp_norm_layer_kwargs[i])
-                else:
-                    raise NotImplementedError(
-                        "Normalization via '%s' not supported." % self._conf_normalization_technique[i])
 
     def build(self, input_shape):
         """Build layer."""
