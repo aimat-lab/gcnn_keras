@@ -93,19 +93,23 @@ class MLPBase(GraphBaseLayer):
                 `data_format="channels_first"`, set `axis=1` in `GraphBatchNormalization`.
             momentum: Momentum for the moving average.
             epsilon: Small float added to variance to avoid dividing by zero.
+            mean_shift: Whether to apply alpha.
             center: If True, add offset of `beta` to normalized tensor. If False, `beta`
                 is ignored.
             scale: If True, multiply by `gamma`. If False, `gamma` is not used. When the
                 next layer is linear (also e.g. `nn.relu`), this can be disabled since the
                 scaling will be done by the next layer.
+            alpha_initializer: Initializer for the alpha weight. Defaults to 'ones'.
             beta_initializer: Initializer for the beta weight.
             gamma_initializer: Initializer for the gamma weight.
             moving_mean_initializer: Initializer for the moving mean.
             moving_variance_initializer: Initializer for the moving variance.
+            alpha_regularizer: Optional regularizer for the alpha weight.
             beta_regularizer: Optional regularizer for the beta weight.
             gamma_regularizer: Optional regularizer for the gamma weight.
             beta_constraint: Optional constraint for the beta weight.
             gamma_constraint: Optional constraint for the gamma weight.
+            alpha_constraint: Optional constraint for the alpha weight.
             use_dropout: Whether to use dropout layers in between.
             rate: Float between 0 and 1. Fraction of the input units to drop.
             noise_shape: 1D integer tensor representing the shape of the

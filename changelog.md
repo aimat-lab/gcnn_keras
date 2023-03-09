@@ -1,7 +1,7 @@
 v2.2.4
 
 * Added ``ACSFConstNormalization`` to literature models as option.
-* 
+* Adjusted and reworked ``MLP`` . Now includes more normalization options. 
 
 
 v2.2.3
