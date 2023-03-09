@@ -2,7 +2,38 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
 from kgcnn.ops.segment import segment_ops_by_name
+
 ks = tf.keras
+
+global_normalization_args = {
+    "BatchNormalization": [
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
+        "moving_variance_initializer"
+    ],
+    "GraphBatchNormalization": [
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
+        "moving_variance_initializer"
+    ],
+    "LayerNormalization": [
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint"
+    ],
+    "GraphLayerNormalization": [
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint"
+    ],
+    "GraphNormalization": [
+        "mean_shift", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer",
+        "beta_regularizer", "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint",
+        "alpha_regularizer"
+    ],
+    "GraphInstanceNormalization": [
+        "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint", "alpha_regularizer"
+    ]
+}
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='GraphLayerNormalization')
@@ -161,6 +192,7 @@ class GraphBatchNormalization(GraphBaseLayer):
     of :math:`\hat{h}_{i,j,g}` .
 
     """
+
     def __init__(self,
                  axis=-1,
                  momentum=0.99, epsilon=0.001, center=True, scale=True,
@@ -222,7 +254,8 @@ class GraphBatchNormalization(GraphBaseLayer):
         self._add_layer_config_to_self = {
             "_layer_norm": ["momentum", "epsilon", "scale", "center", "beta_initializer", "gamma_initializer",
                             "moving_mean_initializer", "moving_variance_initializer"
-                            "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]}
+                                                       "beta_regularizer", "gamma_regularizer", "beta_constraint",
+                            "gamma_constraint"]}
 
     def build(self, input_shape):
         """Build layer."""
@@ -308,6 +341,7 @@ class GraphNormalization(GraphBaseLayer):
         print(layer(test))
 
     """
+
     def __init__(self,
                  mean_shift=True, epsilon=1e-3, center=True, scale=True,
                  beta_initializer='zeros', gamma_initializer='ones', alpha_initializer='ones',
@@ -317,8 +351,6 @@ class GraphNormalization(GraphBaseLayer):
         r"""Initialize layer :obj:`GraphBatchNormalization`.
 
         Args:
-            axis: Integer or List/Tuple. The axis or axes to normalize across in addition to graph instances.
-                This should be always > 1 or None. Default is None.
             epsilon: Small float added to variance to avoid dividing by zero. Defaults to 1e-3.
             center: If True, add offset of `beta` to normalized tensor. If False,
                 `beta` is ignored. Defaults to True.
@@ -326,13 +358,15 @@ class GraphNormalization(GraphBaseLayer):
                 Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
                 this can be disabled since the scaling will be done by the next layer.
             mean_shift (bool): Whether to apply alpha. Default is True.
-            beta_initializer: Initializer for the beta weight. Defaults to zeros.
-            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_initializer: Initializer for the beta weight. Defaults to 'zeros'.
+            gamma_initializer: Initializer for the gamma weight. Defaults to 'ones'.
+            alpha_initializer: Initializer for the alpha weight. Defaults to 'ones'.
             beta_regularizer: Optional regularizer for the beta weight. None by default.
             gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            alpha_regularizer: Optional regularizer for the alpha weight. None by default.
             beta_constraint: Optional constraint for the beta weight. None by default.
             gamma_constraint: Optional constraint for the gamma weight. None by default.
-
+            alpha_constraint: Optional constraint for the alpha weight. None by default.
         """
         super(GraphNormalization, self).__init__(**kwargs)
         self.epsilon = epsilon
@@ -349,6 +383,10 @@ class GraphNormalization(GraphBaseLayer):
         self.beta_constraint = ks.constraints.get(beta_constraint)
         self.gamma_constraint = ks.constraints.get(gamma_constraint)
         self.alpha_constraint = ks.constraints.get(alpha_constraint)
+        # Weights
+        self.alpha = None
+        self.gamma = None
+        self.beta = None
 
     def build(self, input_shape):
         """Build layer."""
@@ -364,8 +402,6 @@ class GraphNormalization(GraphBaseLayer):
                 trainable=True,
                 experimental_autocast=False,
             )
-        else:
-            self.gamma = None
 
         if self.center:
             self.beta = self.add_weight(
@@ -377,8 +413,6 @@ class GraphNormalization(GraphBaseLayer):
                 trainable=True,
                 experimental_autocast=False,
             )
-        else:
-            self.beta = None
 
         if self.mean_shift:
             self.alpha = self.add_weight(
@@ -390,8 +424,6 @@ class GraphNormalization(GraphBaseLayer):
                 trainable=True,
                 experimental_autocast=False,
             )
-        else:
-            self.alpha = None
 
         self.built = True
 
@@ -412,7 +444,7 @@ class GraphNormalization(GraphBaseLayer):
         variance = segment_ops_by_name("mean", square_diff, inputs.value_rowids())
         std = tf.sqrt(variance + self._eps)
         std = tf.repeat(std, inputs.row_lengths(), axis=0)
-        return mean, std, diff/std
+        return mean, std, diff / std
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -497,12 +529,15 @@ class GraphInstanceNormalization(GraphNormalization):
             scale: If True, multiply by `gamma`. If False, `gamma` is not used.
                 Defaults to True. When the next layer is linear (also e.g. `nn.relu`),
                 this can be disabled since the scaling will be done by the next layer.
-            beta_initializer: Initializer for the beta weight. Defaults to zeros.
-            gamma_initializer: Initializer for the gamma weight. Defaults to ones.
+            beta_initializer: Initializer for the beta weight. Defaults to 'zeros'.
+            gamma_initializer: Initializer for the gamma weight. Defaults to 'ones'.
+            alpha_initializer: Initializer for the alpha weight. Defaults to 'ones'.
             beta_regularizer: Optional regularizer for the beta weight. None by default.
             gamma_regularizer: Optional regularizer for the gamma weight. None by default.
+            alpha_regularizer: Optional regularizer for the alpha weight. None by default.
             beta_constraint: Optional constraint for the beta weight. None by default.
             gamma_constraint: Optional constraint for the gamma weight. None by default.
+            alpha_constraint: Optional constraint for the alpha weight. None by default.
 
         """
         super(GraphInstanceNormalization, self).__init__(mean_shift=False, **kwargs)

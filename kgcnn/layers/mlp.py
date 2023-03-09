@@ -1,7 +1,9 @@
 import tensorflow as tf
 # import kgcnn.ops.activ
 from kgcnn.layers.modules import Dense, Activation, Dropout
-from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization
+from kgcnn.layers.norm import GraphBatchNormalization, GraphLayerNormalization, GraphNormalization, \
+    GraphInstanceNormalization
+from kgcnn.layers.norm import global_normalization_args
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.relational import RelationalDense
 
@@ -13,7 +15,7 @@ class MLPBase(GraphBaseLayer):
     r"""Base class for multilayer perceptron that consist of multiple feed-forward networks.
 
     This base class simply manages layer arguments for :obj:`MLP`. They contain arguments for :obj:`Dense`,
-    :obj:`Dropout` and :obj:`BatchNormalization` or :obj:`LayerNormalization`,
+    :obj:`Dropout` and :obj:`BatchNormalization` or :obj:`LayerNormalization` or :obj:`GraphNormalization`
     since MLP is made up of stacked :obj:`Dense` layers with optional normalization and
     dropout to improve stability or regularization. Here, a list in place of arguments must be provided that applies
     to each layer. If not a list is given, then the single argument is used for each layer.
@@ -23,6 +25,7 @@ class MLPBase(GraphBaseLayer):
     and activation. And dropout after the kernel output and before normalization.
 
     This base class does not initialize any sub-layers or implements :obj:`call`, only for managing arguments.
+    The actual :obj:`MLP` layer inherits from this class.
 
     """
 
@@ -33,24 +36,28 @@ class MLPBase(GraphBaseLayer):
                  activity_regularizer=None,
                  kernel_regularizer=None,
                  bias_regularizer=None,
-                 kernel_initializer='glorot_uniform',
-                 bias_initializer='zeros',
+                 kernel_initializer="glorot_uniform",
+                 bias_initializer="zeros",
                  kernel_constraint=None,
                  bias_constraint=None,
                  # Normalization
                  use_normalization=False,
-                 normalization_technique="batch",
+                 normalization_technique="BatchNormalization",
                  axis=-1,
                  momentum=0.99,
                  epsilon=0.001,
+                 mean_shift=True,
                  center=True,
                  scale=True,
-                 beta_initializer='zeros',
-                 gamma_initializer='ones',
-                 moving_mean_initializer='zeros',
-                 moving_variance_initializer='ones',
+                 alpha_initializer="ones",
+                 beta_initializer="zeros",
+                 gamma_initializer="ones",
+                 moving_mean_initializer="zeros",
+                 moving_variance_initializer="ones",
+                 alpha_regularizer=None,
                  beta_regularizer=None,
                  gamma_regularizer=None,
+                 alpha_constraint=None,
                  beta_constraint=None,
                  gamma_constraint=None,
                  # Dropout
@@ -60,7 +67,7 @@ class MLPBase(GraphBaseLayer):
                  seed=None,
                  **kwargs):
         r"""Initialize with parameter for MLP layer that match :obj:`Dense` layer, including :obj:`Dropout` and
-        :obj:`BatchNormalization` or :obj:`LayerNormalization`.
+        :obj:`BatchNormalization` or :obj:`LayerNormalization` or :obj:`GraphNormalization` .
 
         Args:
             units: Positive integer, dimensionality of the output space.
@@ -110,7 +117,6 @@ class MLPBase(GraphBaseLayer):
         """
         super(MLPBase, self).__init__(**kwargs)
         local_kw = locals()
-
         # List for groups of arguments.
         self._key_list_act = [
             "activation", "activity_regularizer"
@@ -122,31 +128,23 @@ class MLPBase(GraphBaseLayer):
         self._key_list_norm_all = [
             "axis", "momentum", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
             "moving_mean_initializer", "moving_variance_initializer", "beta_regularizer",
-            "gamma_regularizer", "beta_constraint", "gamma_constraint"
+            "gamma_regularizer", "beta_constraint", "gamma_constraint", "alpha_initializer", "alpha_regularizer",
+            "alpha_constraint", "mean_shift"
         ]
         self._key_list_dropout = ["rate", "noise_shape", "seed"]
         self._key_list_use = ["use_dropout", "use_normalization", "normalization_technique"]
         self._key_list_init = [
             "kernel_initializer", "bias_initializer", "beta_initializer", "gamma_initializer",
-            "moving_mean_initializer", "moving_variance_initializer"
+            "moving_mean_initializer", "moving_variance_initializer", "alpha_initializer"
         ]
         self._key_list_reg = [
-            "activity_regularizer", "kernel_regularizer", "bias_regularizer", "beta_regularizer", "gamma_regularizer"
+            "activity_regularizer", "kernel_regularizer", "bias_regularizer", "beta_regularizer", "gamma_regularizer",
+            "alpha_regularizer"
         ]
-        self._key_list_const = ["kernel_constraint", "bias_constraint", "beta_constraint", "gamma_constraint"]
-        # Subgroups of normalization
-        self._key_lists_norm = {
-            "BatchNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-                                   "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint",
-                                   "momentum", "moving_mean_initializer", "moving_variance_initializer"],
-            "GraphBatchNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-                                        "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint",
-                                        "momentum", "moving_mean_initializer", "moving_variance_initializer"],
-            "LayerNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-                                   "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"],
-            "GraphLayerNormalization": ["axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer",
-                                        "beta_regularizer", "gamma_regularizer", "beta_constraint", "gamma_constraint"]
-        }
+        self._key_list_const = [
+            "kernel_constraint", "bias_constraint", "beta_constraint", "gamma_constraint", "alpha_constraint"
+        ]
+        self._key_dict_norm = global_normalization_args
 
         # Summarize all arguments.
         self._key_list = []
@@ -197,7 +195,8 @@ class MLPBase(GraphBaseLayer):
         # Fix synonyms for normalization layer.
         replace_norm_identifier = [
             ("batch", "BatchNormalization"), ("graph_batch", "GraphBatchNormalization"),
-            ("layer", "LayerNormalization"), ("graph_layer", "GraphLayerNormalization")
+            ("layer", "LayerNormalization"), ("graph_layer", "GraphLayerNormalization"),
+            ("graph", "GraphNormalization"), ("graph_instance", "GraphInstanceNormalization")
         ]
         for i, x in enumerate(mlp_kwargs["normalization_technique"]):
             for key_rep, key in replace_norm_identifier:
@@ -205,7 +204,7 @@ class MLPBase(GraphBaseLayer):
                     mlp_kwargs["normalization_technique"][i] = key
 
         # Assign separate '_conf_' for use keys.
-        # All '_conf_' kwargs.
+        # All '_conf_' kwargs in '_conf_mlp_kwargs'.
         for key in self._key_list_use:
             setattr(self, "_conf_" + key, mlp_kwargs[key])
         self._conf_mlp_kwargs = mlp_kwargs
@@ -248,7 +247,8 @@ class MLP(MLPBase):
     :obj:`Dense`, :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
 
     Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
-    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'.
+    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
+    or 'GraphNormalization' .
 
     """
 
@@ -262,10 +262,10 @@ class MLP(MLPBase):
             "BatchNormalization": ks.layers.BatchNormalization,
             "GraphBatchNormalization": GraphBatchNormalization,
             "LayerNormalization": ks.layers.LayerNormalization,
-            "GraphLayerNormalization": GraphLayerNormalization
+            "GraphLayerNormalization": GraphLayerNormalization,
+            "GraphNormalization": GraphNormalization,
+            "GraphInstanceNormalization": GraphInstanceNormalization
         }
-        # raise NotImplementedError("Normalization via %s not supported." % self._conf_normalization_technique[i])
-
         if not self._supress_dense:
             self.mlp_dense_layer_list = [
                 Dense(**self._get_conf_for_keys(
@@ -282,7 +282,7 @@ class MLP(MLPBase):
         ]
         self.mlp_norm_layer_list = [
             norm_classes[self._conf_normalization_technique[i]](
-                **self._get_conf_for_keys(self._key_lists_norm[self._conf_normalization_technique[i]], "norm", i)
+                **self._get_conf_for_keys(self._key_dict_norm[self._conf_normalization_technique[i]], "norm", i)
             ) if self._conf_use_normalization[i] else None for i in range(self._depth)
         ]
 
@@ -332,7 +332,8 @@ class RelationalMLP(MLP):
     :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
 
     Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
-    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'.
+    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
+    or 'GraphNormalization' .
 
     """
 
