@@ -32,7 +32,10 @@ global_normalization_args = {
     "GraphInstanceNormalization": [
         "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint", "alpha_regularizer"
-    ]
+    ],
+    "GroupNormalization": [
+        "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint"]
 }
 
 
