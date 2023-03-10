@@ -24,10 +24,9 @@ class TestMockContext(unittest.TestCase):
                 print(element.shape)
                 assert isinstance(element, tf.RaggedTensor)
 
-            assert isinstance(mock.y, tuple)
-            assert len(mock.y) == 1
+            assert isinstance(mock.y, np.ndarray)
 
-            targets = mock.y[0]
+            targets = mock.y
             assert isinstance(targets, np.ndarray)
             assert len(targets.shape) == 2
             assert targets.shape[-1] == num_targets
