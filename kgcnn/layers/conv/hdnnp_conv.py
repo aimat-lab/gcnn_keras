@@ -61,8 +61,8 @@ class CENTCharge(GraphBaseLayer):
         \begin{pmatrix} \begin{matrix}  \; & \; & \; \\ \; & {\bf{A}} & \; \\ \; & \; & \; \\ \end{matrix} &
         & \vert & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
         \begin{matrix} 1 & \dots & 1\end{matrix} & & \vert & 0 \end{pmatrix} =
-        \begin{pmatrix} Q_1 \\ \vdots \\ Q_{{N}_{{\rm{at}}} \\ \hline \\ \lambda \end{pmatrix}
-        \begin{pmatrix} \chi_1 \\ \vdots \\ \chi_{{N}_{{\rm{at}}} \\ \hline \\ Q_{\text{tot}} \end{pmatrix}
+        \begin{pmatrix} Q_{1} \\ \vdots \\ Q_{N_{\rm{at}}} \\ \hline  \\ \lambda \end{pmatrix} \cdot
+        \begin{pmatrix} -\chi_1 \\ \vdots \\ \ -\chi_{N_{\rm{at}}} \\ \hline  \\ Q_{\text{tot}} \end{pmatrix}
 
     A code example of using the layer and possible input is shown below:
 
@@ -107,7 +107,7 @@ class CENTCharge(GraphBaseLayer):
 
     def __init__(self, output_to_tensor: bool = False, use_physical_params: bool = True,
                  param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
-                 param_trainable: bool = False,
+                 param_trainable: bool = False, chi_negative: bool = False,
                  **kwargs):
         super(CENTCharge, self).__init__(**kwargs)
         self.output_to_tensor = output_to_tensor
@@ -142,6 +142,8 @@ class CENTCharge(GraphBaseLayer):
         if self.use_physical_params:
             self.set_weights([self._default_hardness, self._default_radii])
 
+        self.chi_negative = chi_negative
+
     def build(self, input_shape):
         super(CENTCharge, self).build(input_shape)
 
@@ -172,6 +174,8 @@ class CENTCharge(GraphBaseLayer):
         # Only keep mask for atomic number.
         n_pad, n_mask = self.layer_cast_n(n, **kwargs)
         chi_pad, _ = self.layer_cast_chi(chi, **kwargs)
+        if not self.chi_negative:
+            chi_pad = chi_pad * -1.0
         x_pad, _ = self.layer_cast_x(x, **kwargs)
         if chi_pad.shape.rank > 2:
             chi_pad = tf.squeeze(chi_pad, axis=-1)
@@ -261,6 +265,7 @@ class CENTCharge(GraphBaseLayer):
     def get_config(self):
         config = super(CENTCharge, self).get_config()
         config.update({
+            "chi_negative": self.chi_negative,
             "output_to_tensor": self.output_to_tensor,
             "use_physical_params": self.use_physical_params,
             "param_constraint": ks.constraints.serialize(self.param_constraint),
@@ -453,14 +458,14 @@ class CENTChargePlusElectrostaticEnergy(CENTCharge, ElectrostaticEnergyCharge):
 
     def __init__(self, output_to_tensor: bool = False, use_physical_params: bool = True,
                  param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
-                 param_trainable: bool = False,
+                 param_trainable: bool = False, chi_negative: bool = False,
                  # For ElectrostaticEnergyCharge.
                  add_eps: bool = False, multiplicity: float = 2.0,
                  **kwargs):
         ElectrostaticEnergyCharge.__init__(
             self, add_eps=add_eps, multiplicity=multiplicity, _suppress_weight_initialization=True)
         CENTCharge.__init__(
-            self, output_to_tensor=output_to_tensor, use_physical_params=use_physical_params,
+            self, output_to_tensor=output_to_tensor, chi_negative=chi_negative, use_physical_params=use_physical_params,
             param_constraint=param_constraint, param_regularizer=param_regularizer,
             param_initializer=param_initializer, param_trainable=param_trainable, **kwargs)
 
