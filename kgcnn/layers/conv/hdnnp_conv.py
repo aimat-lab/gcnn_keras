@@ -61,8 +61,8 @@ class CENTCharge(GraphBaseLayer):
         \begin{pmatrix} \begin{matrix}  \; & \; & \; \\ \; & {\bf{A}} & \; \\ \; & \; & \; \\ \end{matrix} &
         & \vert & \begin{matrix} 1 \\ \vdots \\ 1\end{matrix} \\ \hline
         \begin{matrix} 1 & \dots & 1\end{matrix} & & \vert & 0 \end{pmatrix} =
-        \begin{pmatrix} Q_{1} \\ \vdots \\ Q_{N_{\rm{at}}} \\ \hline  \\ \lambda \end{pmatrix} \cdot
-        \begin{pmatrix} -\chi_1 \\ \vdots \\ \ -\chi_{N_{\rm{at}}} \\ \hline  \\ Q_{\text{tot}} \end{pmatrix}
+        \begin{pmatrix} Q_{1} \\ \vdots \\ Q_{N_{\rm{at}}} \\ \hline  \lambda \end{pmatrix} \cdot
+        \begin{pmatrix} -\chi_1 \\ \vdots \\ \ -\chi_{N_{\rm{at}}} \\ \hline   Q_{\text{tot}} \end{pmatrix}
 
     A code example of using the layer and possible input is shown below:
 
