@@ -109,6 +109,18 @@ class CENTCharge(GraphBaseLayer):
                  param_constraint=None, param_regularizer=None, param_initializer="glorot_uniform",
                  param_trainable: bool = False, chi_negative: bool = False,
                  **kwargs):
+        r"""Initialize :obj:`CENTCharge` layer.
+
+        Args:
+            output_to_tensor (bool): Whether to return padded tensor plus mask. Default is False.
+            use_physical_params (bool): Whether to initialize weights with physical motivated parameters.
+                Default is True.
+            param_constraint: Constraints for parameters of this layer. Default is None.
+            param_regularizer: Regularize for parameters of this layer. Default is None.
+            param_initializer: Initializer for parameters of this layer. Default is None.
+            param_trainable (bool): Whether to make layer parameters trainable. Default is False.
+            chi_negative (bool): Whether chi input is negative or positive electro-negativities. Default is False.
+        """
         super(CENTCharge, self).__init__(**kwargs)
         self.output_to_tensor = output_to_tensor
         self.use_physical_params = use_physical_params
@@ -263,6 +275,7 @@ class CENTCharge(GraphBaseLayer):
         return tf.RaggedTensor.from_row_lengths(charges[n_mask_pad], num_atoms, validate=self.ragged_validate)
 
     def get_config(self):
+        """Update layer config."""
         config = super(CENTCharge, self).get_config()
         config.update({
             "chi_negative": self.chi_negative,
@@ -338,6 +351,21 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
                  use_physical_params: bool = True, param_constraint=None, param_regularizer=None,
                  param_initializer="glorot_uniform", param_trainable: bool = False,
                  _suppress_weight_initialization: bool = False, **kwargs):
+        r"""Initialize :obj:`ElectrostaticEnergyCharge` layer.
+
+        Args:
+            add_eps (bool): Whether to add epsilon. Default is False.
+            multiplicity (float): Multiplicity in counting pair-energy terms. For undirected edges this will be 2,
+                since for each edge is present two times. Default is 2.0 .
+            use_physical_params (bool): Whether to initialize weights with physical motivated parameters.
+                Default is True.
+            param_constraint: Constraints for parameters of this layer. Default is None.
+            param_regularizer: Regularize for parameters of this layer. Default is None.
+            param_initializer: Initializer for parameters of this layer. Default is None.
+            param_trainable (bool): Whether to make layer parameters trainable. Default is False.
+            _suppress_weight_initialization (bool): Internal parameter to suppress weight initialization.
+                Only used for child classes. Default is False.
+        """
         super(ElectrostaticEnergyCharge, self).__init__(**kwargs)
         self.add_eps = add_eps
         self.multiplicity = multiplicity
@@ -434,6 +462,7 @@ class ElectrostaticEnergyCharge(GraphBaseLayer):
         return sum_pair + sum_self
 
     def get_config(self):
+        """Update layer config."""
         config = super(ElectrostaticEnergyCharge, self).get_config()
         config.update({
             "add_eps": self.add_eps,
@@ -462,6 +491,21 @@ class CENTChargePlusElectrostaticEnergy(CENTCharge, ElectrostaticEnergyCharge):
                  # For ElectrostaticEnergyCharge.
                  add_eps: bool = False, multiplicity: float = 2.0,
                  **kwargs):
+        r"""Initialize :obj:`CENTChargePlusElectrostaticEnergy` layer.
+
+        Args:
+            output_to_tensor (bool): Whether to return padded tensor plus mask. Default is False.
+            use_physical_params (bool): Whether to initialize weights with physical motivated parameters.
+                Default is True.
+            param_constraint: Constraints for parameters of this layer. Default is None.
+            param_regularizer: Regularize for parameters of this layer. Default is None.
+            param_initializer: Initializer for parameters of this layer. Default is None.
+            param_trainable (bool): Whether to make layer parameters trainable. Default is False.
+            chi_negative (bool): Whether chi input is negative or positive electro-negativities. Default is False.
+            add_eps (bool): Whether to add epsilon. Default is False.
+            multiplicity (float): Multiplicity in counting pair-energy terms. For undirected edges this will be 2,
+                since for each edge is present two times. Default is 2.0 .
+        """
         ElectrostaticEnergyCharge.__init__(
             self, add_eps=add_eps, multiplicity=multiplicity, _suppress_weight_initialization=True)
         CENTCharge.__init__(
@@ -492,6 +536,7 @@ class CENTChargePlusElectrostaticEnergy(CENTCharge, ElectrostaticEnergyCharge):
         return q, eng
 
     def get_config(self):
+        """Update layer config."""
         config = super(CENTChargePlusElectrostaticEnergy, self).get_config()
         config.update({
             "add_eps": self.add_eps,
