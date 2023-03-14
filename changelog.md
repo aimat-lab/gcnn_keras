@@ -2,6 +2,7 @@ v2.2.4
 
 * Added ``ACSFConstNormalization`` to literature models as option.
 * Adjusted and reworked ``MLP`` . Now includes more normalization options. 
+* Removed 'is_sorted', 'node_indexing' and 'has_unconnected' from ``GraphBaseLayer`` and added it to the pooling layers directly.
 
 
 v2.2.3
