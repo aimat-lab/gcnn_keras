@@ -31,7 +31,7 @@ model_default = {'name': "Unet",
                  'use_reconnect': True,
                  'depth': 4,
                  'pooling_args': {"pooling_method": 'segment_mean'},
-                 'gather_args': {"node_indexing": 'sample'},
+                 'gather_args': {},
                  'verbose': 10,
                  'output_embedding': 'graph', "output_to_tensor": True,
                  'output_mlp': {"use_bias": [True, False], "units": [25, 1], "activation": ['relu', 'sigmoid']}

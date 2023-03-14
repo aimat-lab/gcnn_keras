@@ -205,9 +205,15 @@ class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
     This includes edge indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
     """
 
-    def __init__(self, **kwargs):
-        """Initialize layer."""
+    def __init__(self, is_sorted: bool = False, **kwargs):
+        """Initialize layer.
+
+        Args:
+            is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
+        """
         super(CastEdgeIndicesToDisjointSparseAdjacency, self).__init__(**kwargs)
+        self.node_indexing = "sample"
+        self.is_sorted = is_sorted
 
     def build(self, input_shape):
         """Build layer."""
@@ -263,4 +269,5 @@ class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(CastEdgeIndicesToDisjointSparseAdjacency, self).get_config()
+        config.update({"is_sorted": self.is_sorted})
         return config

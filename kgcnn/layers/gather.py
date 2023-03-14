@@ -40,7 +40,6 @@ class GatherEmbedding(GraphBaseLayer):
                  split_axis: int = None,
                  split_indices: list = None,
                  concat_indices: list = None,
-                 node_indexing: str = "sample",
                  **kwargs):
         r"""Initialize layer.
 
@@ -48,6 +47,8 @@ class GatherEmbedding(GraphBaseLayer):
             axis (int): The axis to gather embeddings from. Default is 1.
             concat_axis (int): The axis which concatenates embeddings. Default is 2.
             split_axis (int): The axis to split the gathered embeddings. Default is None.
+            split_indices (list): List of indices to split from gathered tensor. Default is None.
+            concat_indices (list): List of indices to concatenate from gathered tensor. Default is None.
         """
         super(GatherEmbedding, self).__init__(**kwargs)
         self.concat_axis = concat_axis
@@ -55,7 +56,7 @@ class GatherEmbedding(GraphBaseLayer):
         self.split_axis = split_axis
         self.split_indices = split_indices
         self.concat_indices = concat_indices
-        self.node_indexing = node_indexing
+        self.node_indexing = "sample"
 
         if split_axis is not None and concat_axis is not None:
             raise ValueError("Can not both split and concatenate new index axis. At least one must be `None`.")
@@ -141,8 +142,7 @@ class GatherEmbedding(GraphBaseLayer):
         """Update layer config."""
         config = super(GatherEmbedding, self).get_config()
         config.update({"concat_axis": self.concat_axis, "axis": self.axis, "split_axis": self.split_axis,
-                       "concat_indices": self.concat_indices, "split_indices": self.split_indices,
-                       "node_indexing": self.node_indexing})
+                       "concat_indices": self.concat_indices, "split_indices": self.split_indices})
         return config
 
 
@@ -188,6 +188,7 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         super(GatherEmbeddingSelection, self).__init__(**kwargs)
         self.axis = axis
         self.axis_indices = axis_indices
+        self.node_indexing = "sample"
 
         if not isinstance(selection_index, (list, tuple, int)):
             raise ValueError("Indices for selection must be list or tuple for layer `GatherEmbeddingSelection`.")
@@ -201,6 +202,23 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         """Build layer."""
         super(GatherEmbeddingSelection, self).build(input_shape)
 
+    def _disjoint_implementation(self, inputs, **kwargs):
+        # The primary case for aggregation of nodes from node feature list. Case from doc-string.
+        # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
+        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
+            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.axis_indices == 2:
+                # We cast to value here
+                node, node_part = inputs[0].values, inputs[0].row_splits
+                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
+                indexlist = partition_row_indexing(edge_index, node_part, edge_part,
+                                                   partition_type_target="row_splits",
+                                                   partition_type_index="row_length",
+                                                   to_indexing='batch',
+                                                   from_indexing=self.node_indexing)
+                out = [tf.gather(node, tf.gather(indexlist, i, axis=1), axis=0) for i in self.selection_index]
+                out = [tf.RaggedTensor.from_row_lengths(x, edge_part, validate=self.ragged_validate) for x in out]
+                return out
+
     def call(self, inputs, **kwargs):
         r"""Forward pass.
 
@@ -213,21 +231,10 @@ class GatherEmbeddingSelection(GraphBaseLayer):
         Returns:
             list: Gathered node embeddings matching the number of edges of shape `(batch, [M], F)` for selection_index.
         """
-        # The primary case for aggregation of nodes from node feature list. Case from doc-string.
-        # Faster implementation via values and indices shifted by row-partition. Equal to disjoint implementation.
-        if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
-            if all([x.ragged_rank == 1 for x in inputs]) and self.axis == 1 and self.axis_indices == 2:
-                # We cast to values here
-                node, node_part = inputs[0].values, inputs[0].row_splits
-                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
-                indexlist = partition_row_indexing(edge_index, node_part, edge_part,
-                                                   partition_type_target="row_splits",
-                                                   partition_type_index="row_length",
-                                                   to_indexing='batch',
-                                                   from_indexing=self.node_indexing)
-                out = [tf.gather(node, tf.gather(indexlist, i, axis=1), axis=0) for i in self.selection_index]
-                out = [tf.RaggedTensor.from_row_lengths(x, edge_part, validate=self.ragged_validate) for x in out]
-                return out
+        # Old disjoint implementation that could be faster.
+        out = self._disjoint_implementation(inputs, **kwargs)
+        if out is not None:
+            return out
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
         # Works in tf.__version__>=2.4

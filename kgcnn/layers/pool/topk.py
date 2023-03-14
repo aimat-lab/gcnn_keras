@@ -30,7 +30,7 @@ class PoolingTopK(GraphBaseLayer):
         self.kernel_initializer = ks.initializers.get(kernel_initializer)
         self.kernel_regularizer = ks.regularizers.get(kernel_regularizer)
         self.kernel_constraint = ks.constraints.get(kernel_constraint)
-
+        self.node_indexing = "sample"
         self.units_p = None
         self.kernel_p = None
 
@@ -222,6 +222,7 @@ class UnPoolingTopK(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize Layer."""
         super(UnPoolingTopK, self).__init__(**kwargs)
+        self.node_indexing = "sample"
 
     def build(self, input_shape):
         """Build Layer."""
@@ -306,6 +307,7 @@ class AdjacencyPower(GraphBaseLayer):
         """Initialize layer."""
         super(AdjacencyPower, self).__init__(**kwargs)
         self.n = n
+        self.node_indexing = "sample"
 
     def build(self, input_shape):
         """Build layer."""
