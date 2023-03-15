@@ -304,7 +304,7 @@ class MLP(MLPBase):
             tf.Tensor: MLP forward pass.
         """
         x = inputs
-        for i in range(len(self._conf_units)):
+        for i in range(self._depth):
             x = self.mlp_dense_layer_list[i](x, **kwargs)
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
@@ -375,7 +375,7 @@ class RelationalMLP(MLP):
             tf.Tensor: MLP forward pass.
         """
         x, relations = inputs
-        for i in range(len(self._conf_units)):
+        for i in range(self._depth):
             x = self.mlp_dense_layer_list[i]([x, relations], **kwargs)
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
