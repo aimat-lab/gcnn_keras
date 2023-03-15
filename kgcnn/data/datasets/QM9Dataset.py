@@ -224,7 +224,7 @@ class QM9Dataset(QMDataset, DownloadDataset):
         indices = np.array([x[0] for x in data], dtype="int") - 1
         indices_backward = np.flip(np.sort(indices))
         for i in indices_backward:
-            self._list.pop(int(i))  # Ideally use public pop() here.
+            self.pop(int(i))
         self.info("Removed %s uncharacterized molecules." % len(indices_backward))
         self.__removed_uncharacterized = True
         return indices_backward

@@ -3,22 +3,23 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 import os
-import typing as t
-from typing import Union, List, Callable, Dict
-from collections.abc import MutableSequence
+# import typing as t
+from typing import Union, List, Callable, Dict, Optional
+# from collections.abc import MutableSequence
 
 from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
 from kgcnn.graph.base import GraphDict
 
-logging.basicConfig()  # Module logger
+# Module logger
+logging.basicConfig()
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class MemoryGraphList(MutableSequence):
+class MemoryGraphList(list):
     r"""Class to store a list of graph dictionaries in memory.
 
-    Contains a python list as property :obj:`_list`. The graph properties are defined by tensor-like (numpy) arrays
+    Inherits from a python list. The graph properties are defined by tensor-like (numpy) arrays
     for indices, attributes, labels, symbol etc. in :obj:`GraphDict`, which are the items of the list.
     Access to items via `[]` indexing operator.
 
@@ -45,22 +46,26 @@ class MemoryGraphList(MutableSequence):
         data.clean("range_indices")  # Returns cleaned graph indices
         print(len(data))
         print(data[0])
+
     """
 
-    def __init__(self, input_list: list = None):
+    _require_validate = True
+
+    def __init__(self, iterable: list = None):
         r"""Initialize an empty :obj:`MemoryGraphList` instance.
 
         Args:
-            input_list (list, MemoryGraphList): A list or :obj:`MemoryGraphList` of :obj:`GraphDict` items.
+            iterable (list, MemoryGraphList): A list or :obj:`MemoryGraphList` of :obj:`GraphDict` items.
         """
-        self._list = []
+        iterable = iterable if iterable is not None else []
+        super(MemoryGraphList, self).__init__(iterable)
         self.logger = module_logger
-        if input_list is None:
-            input_list = []
-        if isinstance(input_list, list):
-            self._list = [GraphDict(x) for x in input_list]
-        if isinstance(input_list, MemoryGraphList):
-            self._list = [GraphDict(x) for x in input_list._list]
+        self.validate()
+
+    def validate(self):
+        for i, x in enumerate(self):
+            if not isinstance(x, GraphDict):
+                self[i] = GraphDict(x)
 
     def assign_property(self, key: str, value: list):
         """Assign a list of numpy arrays of a property to :obj:`GraphDict` s in this list.
@@ -77,24 +82,23 @@ class MemoryGraphList(MutableSequence):
             return self
         if not isinstance(value, list):
             raise TypeError("Expected type 'list' to assign graph properties.")
-        if len(self._list) == 0:
+        if len(self) == 0:
             self.empty(len(value))
-        if len(self._list) != len(value):
+        if len(self) != len(value):
             raise ValueError("Can only store graph attributes from list with same length.")
         for i, x in enumerate(value):
-            self._list[i].assign_property(key, x)
+            self[i].assign_property(key, x)
         return self
 
-    def obtain_property(self, key: str) -> Union[list, None]:
+    def obtain_property(self, key: str) -> Union[List, None]:
         r"""Returns a list with the values of all the graphs defined for the string property name `key`. If none of
         the graphs in the list have this property, returns None.
 
         Args:
             key (str): The string name of the property to be retrieved for all the graphs contained in this list
         """
-        # "_list" is a list of GraphDicts, which means "prop_list" here will be a list of all the property
         # values for teach of the graphs which make up this list.
-        prop_list = [x.obtain_property(key) for x in self._list]
+        prop_list = [x.obtain_property(key) for x in self]
 
         # If a certain string property is not set for a GraphDict, it will still return None. Here we check:
         # If all the items for our given property name are None then we know that this property is generally not
@@ -105,69 +109,41 @@ class MemoryGraphList(MutableSequence):
 
         return prop_list
 
-    def __len__(self):
-        """Return the current length of this instance."""
-        return len(self._list)
-
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Union[GraphDict, List]:
         # Does not make a copy of the data, as a python list does.
         if isinstance(item, int):
-            return self._list[item]
-        new_list = MemoryGraphList()
+            return super(MemoryGraphList, self).__getitem__(item)
         if isinstance(item, slice):
-            return new_list._set_internal_list(self._list[item])
-        if isinstance(item, list):
-            return new_list._set_internal_list([self._list[int(i)] for i in item])
+            return MemoryGraphList(super(MemoryGraphList, self).__getitem__(item))
+        if isinstance(item, (list, tuple)):
+            return MemoryGraphList([super(MemoryGraphList, self).__getitem__(int(i)) for i in item])
         if isinstance(item, np.ndarray):
-            return new_list._set_internal_list([self._list[int(i)] for i in item])
+            return MemoryGraphList([super(MemoryGraphList, self).__getitem__(int(i)) for i in item])
         raise TypeError("Unsupported type for `MemoryGraphList` items.")
 
     def __setitem__(self, key, value):
         if not isinstance(value, GraphDict):
             raise TypeError("Require a GraphDict as list item.")
-        self._list[key] = value
-
-    def __delitem__(self, key):
-        value = self._list.__delitem__(key)
-        return value
-
-    def __iter__(self):
-        return iter(self._list)
+        super(MemoryGraphList, self).__setitem__(key, value)
 
     def __repr__(self):
         return "<{} [{}]>".format(type(self).__name__, "" if len(self) == 0 else self[0].__repr__() + " ...")
 
     def append(self, graph):
         assert isinstance(graph, GraphDict), "Must append `GraphDict` to self."
-        self._list.append(graph)
+        super(MemoryGraphList, self).append(graph)
 
     def insert(self, index: int, value) -> None:
         assert isinstance(value, GraphDict), "Must insert `GraphDict` to self."
-        self._list.insert(index, value)
+        super(MemoryGraphList, self).insert(index, value)
 
     def __add__(self, other):
         assert isinstance(other, MemoryGraphList), "Must add `MemoryGraphList` to self."
-        new_list = MemoryGraphList()
-        new_list._set_internal_list(self._list + other._list)
-        return new_list
-
-    def _set_internal_list(self, value: list):
-        if not isinstance(value, list):
-            raise TypeError("Must set list for `MemoryGraphList` internal assignment.")
-        self._list = value
-        return self
+        return MemoryGraphList(super(MemoryGraphList, self).__add__(other))
 
     def copy(self):
         """Copy data in the list."""
         return MemoryGraphList([x.copy() for x in self])
-
-    def clear(self):
-        """Clear internal list.
-
-        Returns:
-            None
-        """
-        self._list.clear()
 
     def empty(self, length: int):
         """Create an empty list in place. Overwrites existing list.
@@ -182,7 +158,9 @@ class MemoryGraphList(MutableSequence):
             return self
         if length < 0:
             raise ValueError("Length of empty list must be >=0.")
-        self._list = [GraphDict() for _ in range(length)]
+        self.clear()
+        for _ in range(length):
+            self.append(GraphDict())
         return self
 
     def update(self, other) -> None:
@@ -194,7 +172,7 @@ class MemoryGraphList(MutableSequence):
     @property
     def length(self):
         """Length of list."""
-        return len(self._list)
+        return len(self)
 
     @length.setter
     def length(self, value: int):
@@ -257,7 +235,7 @@ class MemoryGraphList(MutableSequence):
         # Can add progress info here.
         # Method by name.
         if isinstance(method, str):
-            for i, x in enumerate(self._list):
+            for i, x in enumerate(self):
                 # If this is a class method.
                 if hasattr(x, method):
                     getattr(x, method)(**kwargs)
@@ -268,7 +246,7 @@ class MemoryGraphList(MutableSequence):
             raise NotImplementedError("Serialization for method in `map_list` is not yet supported")
         else:
             # For any callable method to map.
-            for i, x in enumerate(self._list):
+            for i, x in enumerate(self):
                 method(x, **kwargs)
         return self
 
@@ -319,7 +297,7 @@ class MemoryGraphList(MutableSequence):
             self.logger.info("No invalid graphs for assigned properties found.")
         # Remove from the end via pop().
         for i in invalid_graphs:
-            self._list.pop(int(i))
+            self.pop(int(i))
         return invalid_graphs
 
     # Alias of internal assign and obtain property.
@@ -336,14 +314,17 @@ class MemoryGraphDataset(MemoryGraphList):
 
     .. code-block:: python
 
+        import numpy as np
         from kgcnn.data.base import MemoryGraphDataset
         dataset = MemoryGraphDataset(data_directory="", dataset_name="Example")
         # Methods of MemoryGraphList
         dataset.set("edge_indices", [np.array([[1, 0], [0, 1]])])
         dataset.set("edge_labels", [np.array([[0], [1]])])
         dataset.save()
+        dataset.load()
 
-    The file directory and file name are used in child classes and in :obj:`save` and :obj:`load`.
+    The file directory and file name are used in child classes and in :obj:`save` and :obj:`load` .
+
     """
 
     fits_in_memory = True
@@ -420,7 +401,7 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def save(self, filepath: str = None):
         r"""Save all graph properties to python dictionary as pickled file. By default, saves a file named
-        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
+        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory` .
 
         Args:
             filepath (str): Full path of output file. Default is None.
@@ -428,12 +409,12 @@ class MemoryGraphDataset(MemoryGraphList):
         if filepath is None:
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Pickle dataset...")
-        save_pickle_file([x.to_dict() for x in self._list], filepath)
+        save_pickle_file([x.to_dict() for x in self], filepath)
         return self
 
     def load(self, filepath: str = None):
         r"""Load graph properties from a pickled file. By default, loads a file named
-        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory`.
+        :obj:`dataset_name.kgcnn.pickle` in :obj:`data_directory` .
 
         Args:
             filepath (str): Full path of input file.
@@ -442,7 +423,9 @@ class MemoryGraphDataset(MemoryGraphList):
             filepath = os.path.join(self.data_directory, self.dataset_name + ".kgcnn.pickle")
         self.info("Load pickled dataset...")
         in_list = load_pickle_file(filepath)
-        self._list = [GraphDict(x) for x in in_list]
+        self.clear()
+        for x in in_list:
+            self.append(GraphDict(x))
         return self
 
     def read_in_table_file(self, file_path: str = None, **kwargs):
@@ -519,7 +502,7 @@ class MemoryGraphDataset(MemoryGraphList):
         for x in hyper_input:
             if not isinstance(x, dict):
                 message_error(
-                    "Wrong type of list item in `assert_valid_model_input`. Found %s but must be `dict`" % type(x))
+                    "Wrong type of list item in `assert_valid_model_input`. Found '%s' but must be `dict` ." % type(x))
 
         for x in hyper_input:
             if "name" not in x:
@@ -681,7 +664,7 @@ class MemoryGraphDataset(MemoryGraphList):
     def get_train_test_indices(self,
                                train: str = "train",
                                test: str = "test",
-                               valid: t.Optional[str] = None,
+                               valid: Optional[str] = None,
                                split_index: Union[int, list] = 1,
                                shuffle: bool = False,
                                seed: int = None
@@ -715,15 +698,15 @@ class MemoryGraphDataset(MemoryGraphList):
         """
         out_indices = []
         if not isinstance(split_index, (list, tuple)):
-            split_index_list: t.List[int] = [split_index]
+            split_index_list: List[int] = [split_index]
         else:
-            split_index_list: t.List[int] = split_index
+            split_index_list: List[int] = split_index
 
         for split_index in split_index_list:
 
             # This list will itself contain numpy arrays which are filled with graph indices of the dataset
             # each element of this list will correspond to one property name (train, test...)
-            graph_index_split_list: t.List[np.ndarray] = []
+            graph_index_split_list: List[np.ndarray] = []
 
             for property_name in [train, test, valid]:
 
@@ -735,14 +718,14 @@ class MemoryGraphDataset(MemoryGraphList):
                 # This list will contain all the indices of the dataset elements (graphs) which are
                 # associated with the current iteration's split index for the current iteration's
                 # property name (train, test...)
-                graph_index_list: t.List[int] = []
+                graph_index_list: List[int] = []
 
                 # "obtain_property" returns a list which contains only the property values corresponding to
                 # the given property name for each graph inside the dataset in the same order.
                 # In this case, this is supposed to be a split list, which is a list that contains integer
                 # indices, each representing one particular dataset split. The split list of each graph
                 # only contains those split indices to which that graph is associated.
-                split_prop: t.List[t.List[int]] = self.obtain_property(property_name)
+                split_prop: List[List[int]] = self.obtain_property(property_name)
                 for index, split_list in enumerate(split_prop):
                     if split_list is not None:
                         if split_index in split_list:

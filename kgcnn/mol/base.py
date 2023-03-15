@@ -11,7 +11,7 @@ class MolGraphInterface:
     r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph.
 
     The method implementation to generate a molecule-instance from smiles etc. can be obtained from different backends
-    like `RDkit`. The mol-instance of a chemical informatics package like `RDkit` is treated via composition.
+    like `RDkit` . The mol-instance of a chemical informatics package like `RDkit` is treated via composition.
     The interface is designed to extract a graph from a mol instance, not to make a mol object from a graph.
 
     """
