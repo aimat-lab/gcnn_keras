@@ -246,7 +246,7 @@ def make_model_behler(inputs: list = None,
     return model
 
 
-model_atom_wise_default = {
+model_default_atom_wise = {
     "name": "HDNNP2nd",
     "inputs": [{"shape": (None,), "name": "node_number", "dtype": "int64", "ragged": True},
                {"shape": (None, 3), "name": "node_representation", "dtype": "float32", "ragged": True}],
@@ -262,7 +262,7 @@ model_atom_wise_default = {
 }
 
 
-@update_model_kwargs(model_atom_wise_default)
+@update_model_kwargs(model_default_atom_wise)
 def make_model_atom_wise(inputs: list = None,
                          node_pooling_args: dict = None,
                          name: str = None,
@@ -275,7 +275,7 @@ def make_model_atom_wise(inputs: list = None,
                          ):
     r"""Make 2nd generation `HDNNP <https://arxiv.org/abs/1706.08566>`_ network via functional API.
 
-    Default parameters can be found in :obj:`kgcnn.literature.HDNNP2nd.model_atom_wise_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.HDNNP2nd.model_default_atom_wise`.
 
     Inputs:
         list: `[node_number, node_representation]`
@@ -331,3 +331,4 @@ def make_model_atom_wise(inputs: list = None,
 
 # For default, the weighted ACSF are used, since they do should in principle work for all elements.
 make_model = make_model_weighted
+model_default = model_default_weighted

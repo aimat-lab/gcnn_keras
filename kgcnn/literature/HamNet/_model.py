@@ -26,7 +26,7 @@ __model_version__ = "2022.11.25"
 # Note: the 2. implementation is cleaner than the original code and has been used as template.
 
 
-hyper_model_default = {
+model_default = {
     "name": "HamNet",
     "inputs": [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
@@ -47,7 +47,7 @@ hyper_model_default = {
 }
 
 
-@update_model_kwargs(hyper_model_default, update_recursive=inf)
+@update_model_kwargs(model_default, update_recursive=inf)
 def make_model(name: str = None,
                inputs: list = None,
                input_embedding: dict = None,
@@ -64,7 +64,7 @@ def make_model(name: str = None,
                output_mlp: dict = None
                ):
     r"""Make `HamNet <https://arxiv.org/abs/2105.03688>`_ graph model via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.HamNet.hyper_model_default`.
+    Default parameters can be found in :obj:`kgcnn.literature.HamNet.model_default` .
 
     .. note::
         At the moment only the Fingerprint Generator for graph embeddings is implemented and coordinates must

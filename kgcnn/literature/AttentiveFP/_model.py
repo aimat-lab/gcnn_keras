@@ -6,12 +6,12 @@ from kgcnn.layers.modules import Dense, Dropout, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.model.utils import update_model_kwargs
 
-# import tensorflow.keras as ks
-ks = tf.keras
-
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
 __model_version__ = "2022.11.25"
+
+# import tensorflow.keras as ks
+ks = tf.keras
 
 # Implementation of AttentiveFP in `tf.keras` from paper:
 # Pushing the Boundaries of Molecular Representation for Drug Discovery with the Graph Attention Mechanism

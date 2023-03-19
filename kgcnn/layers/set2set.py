@@ -1,25 +1,26 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-import tensorflow.keras.backend as ksb
-
 from kgcnn.layers.base import GraphBaseLayer
+
+ks = tf.keras
+ksb = tf.keras.backend
 
 # Order Matters: Sequence to sequence for sets
 # by Vinyals et al. 2016
 # https://arxiv.org/abs/1511.06391
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingSet2Set')
-class PoolingSet2Set(GraphBaseLayer):
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='PoolingSet2SetEncoder')
+class PoolingSet2SetEncoder(GraphBaseLayer):
     """Pooling Node or edge embeddings by the Set2Set encoder part from layer.
-    This was first proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
+
+    This was first proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
     The Reading to Memory has to be handled separately.
     Uses a keras LSTM layer for the updates.
     
     Args:
         channels (int): Number of channels for the LSTM update.
         T (int): Numer of iterations. Default is T=3.
-        pooling_method : Pooling method for PoolingSet2Set. Default is 'mean'.
+        pooling_method : Pooling method for PoolingSet2SetEncoder. Default is 'mean'.
         init_qstar: How to generate the first q_star vector. Default is 'mean'.
         activation: Activation function to use.
             Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
@@ -111,7 +112,7 @@ class PoolingSet2Set(GraphBaseLayer):
                  unroll=False,
                  **kwargs):
         """Init layer."""
-        super(PoolingSet2Set, self).__init__(**kwargs)
+        super(PoolingSet2SetEncoder, self).__init__(**kwargs)
         # Number of Channels to use in LSTM
         self.channels = channels
         self.T = T  # Number of Iterations to work on memory
@@ -160,7 +161,7 @@ class PoolingSet2Set(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingSet2Set, self).build(input_shape)
+        super(PoolingSet2SetEncoder, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -262,7 +263,7 @@ class PoolingSet2Set(GraphBaseLayer):
 
     def get_config(self):
         """Make config for layer."""
-        config = super(PoolingSet2Set, self).get_config()
+        config = super(PoolingSet2SetEncoder, self).get_config()
         config.update({"channels": self.channels, "T": self.T, "pooling_method": self.pooling_method,
                        "init_qstar": self.init_qstar})
         lstm_conf = self.lay_lstm.get_config()

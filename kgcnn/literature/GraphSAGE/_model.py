@@ -19,7 +19,7 @@ __model_version__ = "2022.11.25"
 # http://arxiv.org/abs/1706.02216
 
 
-hyper_model_default = {
+model_default = {
     'name': "GraphSAGE",
     'inputs': [{'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
                {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
@@ -38,7 +38,7 @@ hyper_model_default = {
 }
 
 
-@update_model_kwargs(hyper_model_default)
+@update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                input_embedding: dict = None,
                node_mlp_args: dict = None,
@@ -56,7 +56,8 @@ def make_model(inputs: list = None,
                output_mlp: dict = None
                ):
     r"""Make `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.GraphSAGE.hyper_model_default`.
+
+    Default parameters can be found in :obj:`kgcnn.literature.GraphSAGE.model_default` .
 
     Inputs:
         list: `[node_attributes, edge_attributes, edge_indices]`
