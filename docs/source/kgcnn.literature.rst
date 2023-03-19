@@ -1,216 +1,39 @@
 kgcnn.literature package
 ========================
 
-Submodules
-----------
+Subpackages
+-----------
 
-kgcnn.literature.AttentiveFP module
------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: kgcnn.literature.AttentiveFP
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.CGCNN module
------------------------------
-
-.. automodule:: kgcnn.literature.CGCNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.CMPNN module
------------------------------
-
-.. automodule:: kgcnn.literature.CMPNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.DMPNN module
------------------------------
-
-.. automodule:: kgcnn.literature.DMPNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.DimeNetPP module
----------------------------------
-
-.. automodule:: kgcnn.literature.DimeNetPP
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.EGNN module
-----------------------------
-
-.. automodule:: kgcnn.literature.EGNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GAT module
----------------------------
-
-.. automodule:: kgcnn.literature.GAT
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GATv2 module
------------------------------
-
-.. automodule:: kgcnn.literature.GATv2
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GCN module
----------------------------
-
-.. automodule:: kgcnn.literature.GCN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GIN module
----------------------------
-
-.. automodule:: kgcnn.literature.GIN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GNNExplain module
-----------------------------------
-
-.. automodule:: kgcnn.literature.GNNExplain
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GNNFilm module
--------------------------------
-
-.. automodule:: kgcnn.literature.GNNFilm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.GraphSAGE module
----------------------------------
-
-.. automodule:: kgcnn.literature.GraphSAGE
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.HDNNP2nd module
---------------------------------
-
-.. automodule:: kgcnn.literature.HDNNP2nd
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.HDNNP4th module
---------------------------------
-
-.. automodule:: kgcnn.literature.HDNNP4th
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.HamNet module
-------------------------------
-
-.. automodule:: kgcnn.literature.HamNet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.INorp module
------------------------------
-
-.. automodule:: kgcnn.literature.INorp
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.MAT module
----------------------------
-
-.. automodule:: kgcnn.literature.MAT
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.MEGAN module
------------------------------
-
-.. automodule:: kgcnn.literature.MEGAN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.MXMNet module
-------------------------------
-
-.. automodule:: kgcnn.literature.MXMNet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.Megnet module
-------------------------------
-
-.. automodule:: kgcnn.literature.Megnet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.NMPN module
-----------------------------
-
-.. automodule:: kgcnn.literature.NMPN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.PAiNN module
------------------------------
-
-.. automodule:: kgcnn.literature.PAiNN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.RGCN module
-----------------------------
-
-.. automodule:: kgcnn.literature.RGCN
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.Schnet module
-------------------------------
-
-.. automodule:: kgcnn.literature.Schnet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-kgcnn.literature.Unet module
-----------------------------
-
-.. automodule:: kgcnn.literature.Unet
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   kgcnn.literature.AttentiveFP
+   kgcnn.literature.CGCNN
+   kgcnn.literature.CMPNN
+   kgcnn.literature.DMPNN
+   kgcnn.literature.DimeNetPP
+   kgcnn.literature.EGNN
+   kgcnn.literature.GAT
+   kgcnn.literature.GATv2
+   kgcnn.literature.GCN
+   kgcnn.literature.GIN
+   kgcnn.literature.GNNExplain
+   kgcnn.literature.GNNFilm
+   kgcnn.literature.GraphSAGE
+   kgcnn.literature.HDNNP2nd
+   kgcnn.literature.HDNNP4th
+   kgcnn.literature.HamNet
+   kgcnn.literature.INorp
+   kgcnn.literature.MAT
+   kgcnn.literature.MEGAN
+   kgcnn.literature.MXMNet
+   kgcnn.literature.Megnet
+   kgcnn.literature.NMPN
+   kgcnn.literature.PAiNN
+   kgcnn.literature.RGCN
+   kgcnn.literature.Schnet
+   kgcnn.literature.Unet
+   kgcnn.literature.coGN
 
 Module contents
 ---------------

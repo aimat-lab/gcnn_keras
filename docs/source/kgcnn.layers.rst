@@ -1,17 +1,16 @@
 kgcnn.layers package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   kgcnn.layers.conv
-   kgcnn.layers.pool
-
 Submodules
 ----------
+
+kgcnn.layers.attention module
+-----------------------------
+
+.. automodule:: kgcnn.layers.attention
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 kgcnn.layers.base module
 ------------------------
@@ -25,6 +24,14 @@ kgcnn.layers.casting module
 ---------------------------
 
 .. automodule:: kgcnn.layers.casting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.conv module
+------------------------
+
+.. automodule:: kgcnn.layers.conv
    :members:
    :undoc-members:
    :show-inheritance:
@@ -89,6 +96,22 @@ kgcnn.layers.relational module
 ------------------------------
 
 .. automodule:: kgcnn.layers.relational
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.set2set module
+---------------------------
+
+.. automodule:: kgcnn.layers.set2set
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kgcnn.layers.update module
+--------------------------
+
+.. automodule:: kgcnn.layers.update
    :members:
    :undoc-members:
    :show-inheritance:
