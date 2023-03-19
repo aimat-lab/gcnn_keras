@@ -380,3 +380,45 @@ class GatherState(GraphBaseLayer):
         """Update layer config."""
         config = super(GatherState, self).get_config()
         return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='GatherEdgesPairs')
+class GatherEdgesPairs(GraphBaseLayer):
+    """Gather edge pairs that also works for invalid indices given a certain pair, i.e. if an edge does not have its
+    reverse counterpart in the edge indices list.
+
+    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ .
+
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(GatherEdgesPairs, self).__init__(**kwargs)
+        self.gather_layer = GatherNodesIngoing()
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(GatherEdgesPairs, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (list): [edges, pair_index]
+
+                - edges (tf.RaggedTensor): Node embeddings of shape (batch, [M], F)
+                - pair_index (tf.RaggedTensor): Edge indices referring to edges of shape (batch, [M], 1)
+
+        Returns:
+            list: Gathered edge embeddings that match the reverse edges of shape (batch, [M], F) for selection_index.
+        """
+        self.assert_ragged_input_rank(inputs)
+        edges, pair_index = inputs
+        index_corrected = tf.RaggedTensor.from_row_splits(
+            tf.where(pair_index.values >= 0, pair_index.values, tf.zeros_like(pair_index.values)),
+            pair_index.row_splits, validate=self.ragged_validate)
+        edges_paired = self.gather_layer([edges, index_corrected], **kwargs)
+        edges_corrected = tf.RaggedTensor.from_row_splits(
+            tf.where(pair_index.values >= 0, edges_paired.values, tf.zeros_like(edges_paired.values)),
+            edges_paired.row_splits, validate=self.ragged_validate)
+        return edges_corrected

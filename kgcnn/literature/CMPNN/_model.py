@@ -1,12 +1,11 @@
 import tensorflow as tf
 from typing import Union
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding, LazySubtract, LazyMultiply
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
-from kgcnn.literature.DMPNN._dmpnn_conv import DMPNNGatherEdgesPairs
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
@@ -136,7 +135,7 @@ def make_model(name: str = None,
 
         # Edge message/update
         h_out = GatherNodesOutgoing()([h, edi])
-        e_rev = DMPNNGatherEdgesPairs()([he, ed_pairs])
+        e_rev = GatherEdgesPairs()([he, ed_pairs])
         he = LazySubtract()([h_out, e_rev])
         he = Dense(**edge_dense)(he)
         he = LazyAdd()([he, he0])

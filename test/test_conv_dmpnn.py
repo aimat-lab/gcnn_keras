@@ -5,6 +5,7 @@ import tensorflow as tf
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.layers.conv.dmpnn_conv import DMPNNGatherEdgesPairs
 
+
 class TestReverseEdges(unittest.TestCase):
 
     n1 = [[[2.0],[3.0],[4.0]], [[1.0],[10.0],[100.0]]]

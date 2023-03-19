@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.conv.gat_conv import PoolingLocalEdgesAttention
+from kgcnn.layers.attention import PoolingLocalEdgesAttention
 from kgcnn.layers.attention import AttentionHeadGAT, MultiHeadGATV2Layer
 
 

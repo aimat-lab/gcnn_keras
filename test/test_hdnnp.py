@@ -1,6 +1,6 @@
 import unittest
 import tensorflow as tf
-from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4
+from kgcnn.literature.HDNNP2nd._acsf_conv import ACSFG2, ACSFG4
 from kgcnn.graph.adj import get_angle_indices
 import numpy as np
 

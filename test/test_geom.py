@@ -5,7 +5,7 @@ from .utils import ASSETS_PATH
 import tensorflow as tf
 from kgcnn.graph.adj import get_angle_indices
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition
-from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer
+from kgcnn.literature.DimeNetPP._dimenet_conv import SphericalBasisLayer
 from kgcnn.layers.geom import BesselBasisLayer
 from kgcnn.layers.modules import LazySubtract
 

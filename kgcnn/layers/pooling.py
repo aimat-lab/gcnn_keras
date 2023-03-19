@@ -498,7 +498,7 @@ class PoolingLocalEdgesLSTM(GraphBaseLayer):
         return config
 
 
-PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now they are synonyms
+PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now, they are synonyms
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
