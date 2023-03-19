@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesSelection
-from kgcnn.layers.modules import Dense, OptionalInputEmbedding, LazyMultiply, LazyAdd, Activation
+from kgcnn.layers.modules import OptionalInputEmbedding, LazyMultiply, LazyAdd, Activation
 from kgcnn.layers.pooling import PoolingLocalMessages
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes

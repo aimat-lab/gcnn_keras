@@ -6,7 +6,7 @@ from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dr
     OptionalInputEmbedding, LazySubtract, LazyMultiply
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
-from kgcnn.layers.conv.dmpnn_conv import DMPNNGatherEdgesPairs
+from kgcnn.literature.DMPNN._dmpnn_conv import DMPNNGatherEdgesPairs
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras

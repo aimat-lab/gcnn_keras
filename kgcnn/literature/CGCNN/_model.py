@@ -1,5 +1,5 @@
 import tensorflow as tf
-from kgcnn.layers.conv.cgcnn_conv import CGCNNLayer
+from ._cgcnn_conv import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoordinates, \
     EuclideanNorm, GaussBasisLayer, NodePosition
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes

@@ -3,7 +3,9 @@
 The most general layers for `kgcnn` should accept (ragged) tensor input and are sorted as following: 
 
 * The most general layers that kept maintained beyond different models with proper documentation are located in `kgcnn.layers`. These are:
+    * `kgcnn.layers.attention` Layers for graph attention.
     * `kgcnn.layers.casting` Layers for casting tensor formats.
+    * `kgcnn.layers.conv` Basic convolution layers.
     * `kgcnn.layers.gather` Layers around tf.gather.
     * `kgcnn.layers.geom` Geometry operations.
     * `kgcnn.layers.mlp` Multi-layer perceptron for graphs.
