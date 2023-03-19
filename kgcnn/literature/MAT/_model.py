@@ -4,7 +4,7 @@ from kgcnn.layers.modules import OptionalInputEmbedding
 from kgcnn.layers.casting import ChangeTensorType, CastEdgeIndicesToDenseAdjacency
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.model.utils import update_model_kwargs
-from kgcnn.layers.conv.mat_conv import MATAttentionHead, MATDistanceMatrix, MATReduceMask, MATGlobalPool, MATExpandMask
+from ._mat_conv import MATAttentionHead, MATDistanceMatrix, MATReduceMask, MATGlobalPool, MATExpandMask
 
 ks = tf.keras
 

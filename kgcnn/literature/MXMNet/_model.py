@@ -1,12 +1,12 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
-from kgcnn.layers.modules import Dense, OptionalInputEmbedding, LazyConcatenate, LazySubtract, LazyAdd
+from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition
+from kgcnn.layers.modules import OptionalInputEmbedding, LazyConcatenate, LazySubtract, LazyAdd
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.literature.DimeNetPP._dimenet_conv import SphericalBasisLayer, EmbeddingDimeBlock
-from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
+from ._mxmnet_conv import MXMGlobalMP, MXMLocalMP
 
 ks = tf.keras
 

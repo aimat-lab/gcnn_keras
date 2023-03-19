@@ -9,6 +9,7 @@ from kgcnn.layers.pooling import PoolingLocalEdgesAttention
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
 class AttentionHeadGAT(GraphBaseLayer):
     r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`__ .
+
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
     optionally by :math:`a_{ij} = \sigma( W n_i || W n_j || e_{ij})` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.
@@ -118,7 +119,8 @@ class AttentionHeadGAT(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGATV2')
 class AttentionHeadGATV2(GraphBaseLayer):
-    r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`_ .
+    r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`__ .
+
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
     optionally by :math:`a_{ij} = a^T \sigma( W [n_i || n_j || e_{ij}] )` with edges :math:`e_{ij}`.
     The attention is obtained by :math:`\alpha_{ij} = \text{softmax}_j (a_{ij})`.

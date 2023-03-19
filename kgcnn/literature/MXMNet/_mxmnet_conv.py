@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.modules import LazyAdd, Dense, LazyConcatenate, LazyMultiply
-from kgcnn.layers.conv.dimenet_conv import ResidualLayer
+from kgcnn.layers.update import ResidualLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection, GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalMessages
 ks = tf.keras

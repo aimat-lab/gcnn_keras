@@ -1,5 +1,5 @@
 import tensorflow as tf
-from kgcnn.layers.conv.megnet_conv import MEGnetBlock
+from ._megnet_conv import MEGnetBlock
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import Dense, LazyAdd, Dropout, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP

@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.gin_conv import GIN, GINE
+from ._gin_conv import GIN, GINE
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes

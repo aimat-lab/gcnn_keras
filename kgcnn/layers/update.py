@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
+from kgcnn.layers.modules import Dense, LazyAdd
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
@@ -108,4 +109,71 @@ class GRUUpdate(GraphBaseLayer):
                       "recurrent_dropout", "reset_after"]
         for x in param_list:
             config.update({x: conf_cell[x]})
+        return config
+
+
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='ResidualLayer')
+class ResidualLayer(GraphBaseLayer):
+    """Residual Layer as defined by `DimNetPP <https://arxiv.org/abs/2011.14115>`_ .
+
+    Args:
+        units: Dimension of the kernel.
+        use_bias (bool, optional): Use bias. Defaults to True.
+        activation (str): Activation function. Default is "kgcnn>swish".
+        kernel_regularizer: Kernel regularization. Default is None.
+        bias_regularizer: Bias regularization. Default is None.
+        activity_regularizer: Activity regularization. Default is None.
+        kernel_constraint: Kernel constrains. Default is None.
+        bias_constraint: Bias constrains. Default is None.
+        kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
+        bias_initializer: Initializer for bias. Default is 'zeros'.
+    """
+
+    def __init__(self, units,
+                 use_bias=True,
+                 activation='kgcnn>swish',
+                 kernel_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 **kwargs):
+        """Initialize layer."""
+        super(ResidualLayer, self).__init__(**kwargs)
+        dense_args = {"units": units, "activation": activation, "use_bias": use_bias,
+                      "kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
+                      "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
+                      "bias_constraint": bias_constraint, "kernel_initializer": kernel_initializer,
+                      "bias_initializer": bias_initializer}
+
+        self.dense_1 = Dense(**dense_args)
+        self.dense_2 = Dense(**dense_args)
+        self.add_end = LazyAdd()
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(ResidualLayer, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs (tf.RaggedTensor): Node or edge embedding of shape (batch, [N], F)
+
+        Returns:
+            tf.RaggedTensor: Node or edge embedding of shape (batch, [N], F)
+        """
+        x = self.dense_1(inputs, **kwargs)
+        x = self.dense_2(x, **kwargs)
+        x = self.add_end([inputs, x], **kwargs)
+        return x
+
+    def get_config(self):
+        config = super(ResidualLayer, self).get_config()
+        conf_dense = self.dense_1.get_config()
+        for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
+                  "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias", "units"]:
+            config.update({x: conf_dense[x]})
         return config

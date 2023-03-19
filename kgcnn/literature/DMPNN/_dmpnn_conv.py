@@ -10,7 +10,8 @@ from kgcnn.layers.modules import LazySubtract
 class DMPNNGatherEdgesPairs(GraphBaseLayer):
     """Gather edge pairs that also works for invalid indices given a certain pair, i.e. if a edge does not have its
     reverse counterpart in the edge indices list.
-    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ .
+
+    This class is used in `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ .
 
     """
 
@@ -50,7 +51,7 @@ class DMPNNGatherEdgesPairs(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='DMPNNPPoolingEdgesDirected')
 class DMPNNPPoolingEdgesDirected(GraphBaseLayer):
     """Pooling of edges for around a target node as defined by
-    `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`_ . This slightly different than the normal node
+    `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ . This slightly different than the normal node
     aggregation from message passing like networks. Requires edge pairs for this implementation.
 
     """
