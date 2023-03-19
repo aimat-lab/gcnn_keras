@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherEmbeddingSelection
+from kgcnn.layers.gather import GatherState, GatherEmbeddingSelection
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, Dense, Dropout, LazyConcatenate, Activation
 from kgcnn.layers.update import GRUUpdate
@@ -543,55 +543,3 @@ class HamNaiveDynMessage(GraphBaseLayer):
         conf_last = self.final_activ.get_config()
         config.update({"activation_last": conf_last["activation"]})
         return config
-
-
-# @ks.utils.register_keras_serializable(package='kgcnn', name='HamiltonEngine')
-# class HamiltonEngine(GraphBaseLayer):
-#     def __init__(self,
-#                  units,
-#                  activation="kgcnn>leaky_relu",
-#                  use_bias=True,
-#                  kernel_regularizer=None,
-#                  bias_regularizer=None,
-#                  activity_regularizer=None,
-#                  kernel_constraint=None,
-#                  bias_constraint=None,
-#                  kernel_initializer='glorot_uniform',
-#                  bias_initializer='zeros',
-#                  **kwargs):
-#         """Initialize layer."""
-#         super(HamiltonEngine, self).__init__(**kwargs)
-#         self.units = int(units)
-#         self.use_bias = bool(use_bias)
-#         kernel_args = {"kernel_regularizer": kernel_regularizer,
-#                        "activity_regularizer": activity_regularizer, "bias_regularizer": bias_regularizer,
-#                        "kernel_constraint": kernel_constraint, "bias_constraint": bias_constraint,
-#                        "kernel_initializer": kernel_initializer, "bias_initializer": bias_initializer}
-#         self.dense_atom = Dense(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
-#         self.dense_edge = Dense(units=units, activation="tanh", use_bias=use_bias, **kernel_args)
-#
-#     def build(self, input_shape):
-#         """Build layer."""
-#         super(HamiltonEngine, self).build(input_shape)
-#
-#     def call(self, inputs, **kwargs):
-#         """Forward pass.
-#
-#         Args:
-#             inputs: [nodes, edge, edge_indices]
-#
-#                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
-#
-#         Returns:
-#             tf.RaggedTensor: Embedding tensor of pooled node attentions of shape (batch, F)
-#         """
-#         atom_ftr, bond_ftr, edge_idx = inputs
-#         hv_ftr = self.dense_atom(atom_ftr, **kwargs)
-#         he_ftr = self.dense_edge(bond_ftr, **kwargs)
-#         return
-#
-#     def get_config(self):
-#         """Update layer config."""
-#         config = super(HamiltonEngine, self).get_config()
-#         config.update({"use_bias": self.use_bias, "units": self.units,})
-#         return config
