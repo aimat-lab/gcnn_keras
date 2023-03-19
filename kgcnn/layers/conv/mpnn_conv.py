@@ -68,6 +68,7 @@ class TrafoEdgeNetMessages(GraphBaseLayer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MatMulMessages')
 class MatMulMessages(GraphBaseLayer):
     """Linear transformation of edges or messages, i.e. matrix multiplication.
+
     The message dimension must be suitable for matrix multiplication. The actual matrix is not a trainable weight of
     this layer but passed as input.
     This was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
@@ -109,7 +110,7 @@ class MatMulMessages(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
 class GRUUpdate(GraphBaseLayer):
-    """Gated recurrent unit for updating embeddings. First proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
+    """Gated recurrent unit for updating embeddings. First proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
 
     Args:
         units (int): Units for GRU.
@@ -179,7 +180,7 @@ class GRUUpdate(GraphBaseLayer):
         """Build layer."""
         super(GRUUpdate, self).build(input_shape)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, mask=None, **kwargs):
         """Forward pass.
 
         Args:
@@ -187,11 +188,12 @@ class GRUUpdate(GraphBaseLayer):
 
                 - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
                 - updates (tf.RaggedTensor): Matching node updates of shape (batch, [N], F)
+            mask: Mask for inputs. Default is None.
 
         Returns:
            tf.RaggedTensor: Updated nodes of shape (batch, [N], F)
         """
-        self.assert_ragged_input_rank(inputs)
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1, mask=mask)
         n, npart = inputs[0].values, inputs[0].row_splits
         eu, _ = inputs[1].values, inputs[1].row_splits
         out, _ = self.gru_cell(eu, n, **kwargs)

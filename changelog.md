@@ -1,3 +1,13 @@
+v3.0.0
+
+Major refactoring of kgcnn layers and models. 
+We try to provide the most important layers for graph convolution as ``kgcnn.layers`` with ragged tensor representation.
+As for literature models only input and output is matched with ``kgcnn`` .
+
+* Move ``kgcnn.layers.conv`` to `kgcnn.literature` .
+* 
+
+
 v2.2.4
 
 * Added ``ACSFConstNormalization`` to literature models as option.

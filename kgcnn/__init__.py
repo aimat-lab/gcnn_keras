@@ -1,2 +1,2 @@
 # main package
-__kgcnn_version__ = "2.2.4"
+__kgcnn_version__ = "3.0.0"
