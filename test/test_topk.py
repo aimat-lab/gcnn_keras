@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.pool.topk import PoolingTopK, UnPoolingTopK
+from kgcnn.literature.Unet._topk import PoolingTopK, UnPoolingTopK
 
 
 class TestTopKLayerRagged(unittest.TestCase):
@@ -25,12 +25,11 @@ class TestTopKLayerRagged(unittest.TestCase):
            [0.35355339059327373]]]
 
     def test_pool_multiple_times(self):
-
         node = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
-        edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,),dtype=tf.int64)
+        edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,), dtype=tf.int64)
         edgefeat = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
 
-        out1, map1 = PoolingTopK(k=0.3, kernel_initializer="ones", ragged_validate=True)([node, edgefeat,edgeind])
+        out1, map1 = PoolingTopK(k=0.3, kernel_initializer="ones", ragged_validate=True)([node, edgefeat, edgeind])
         out2, map2 = PoolingTopK(k=0.3, kernel_initializer="ones", ragged_validate=True)(out1)
         out3, map3 = PoolingTopK(k=0.3, kernel_initializer="ones", ragged_validate=True)(out2)
         out4, map4 = PoolingTopK(k=0.3, kernel_initializer="ones", ragged_validate=True)(out3)
@@ -54,11 +53,13 @@ class TestTopKLayerRagged(unittest.TestCase):
 
         # Expected output
         unpool_nodes = [[[0.], [0.], [0.], [0.], [0.], [0.], [0.], [5.8759007]],
-                        [[0.], [0.], [0.], [0.], [0.], [0.], [0.], [7.9783587], [0.], [0.], [0.], [0.], [0.], [0.], [0.]]]
+                        [[0.], [0.], [0.], [0.], [0.], [0.], [0.], [7.9783587], [0.], [0.], [0.], [0.], [0.], [0.],
+                         [0.]]]
 
         print(uout)
         # Check unpooled
-        self.assertTrue(np.sum(np.abs(uout[0][0].numpy()-np.array(unpool_nodes[0]))) < 1e-5 and np.sum(np.abs(uout[0][1].numpy()-np.array(unpool_nodes[1]))) < 1e-5)
+        self.assertTrue(np.sum(np.abs(uout[0][0].numpy() - np.array(unpool_nodes[0]))) < 1e-5 and np.sum(
+            np.abs(uout[0][1].numpy() - np.array(unpool_nodes[1]))) < 1e-5)
         self.assertTrue(np.all(uout[2][1].numpy() == np.array(self.ei1[1])))
         # print(out1[0])
 

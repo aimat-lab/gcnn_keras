@@ -1,6 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.mpnn_conv import GRUUpdate, TrafoEdgeNetMessages, MatMulMessages
+from kgcnn.layers.conv.mpnn_conv import TrafoEdgeNetMessages, MatMulMessages
+from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.modules import Dense, LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP

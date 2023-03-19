@@ -3,7 +3,8 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherState, GatherEmbeddingSelection
 from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, Dense, Dropout, LazyConcatenate, Activation
-from kgcnn.layers.conv.mpnn_conv import GRUUpdate
+from kgcnn.layers.update import GRUUpdate
+
 # import tensorflow.keras as ks
 # import tensorflow.python.keras as ks
 ks = tf.keras

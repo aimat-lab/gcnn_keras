@@ -1,8 +1,8 @@
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.ops.partition import change_partition_by_name, partition_row_indexing
 from kgcnn.layers.base import GraphBaseLayer
+
+ks = tf.keras
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn',name='PoolingTopK')
