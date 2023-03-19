@@ -326,8 +326,9 @@ class DimNetOutputBlock(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='EmbeddingDimeBlock')
 class EmbeddingDimeBlock(tf.keras.layers.Layer):
-    """Custom Embedding Block of `DimNetPP <https://arxiv.org/abs/2011.14115>`_ . Naming of inputs here should match
-    keras Embedding layer.
+    """Custom Embedding Block of `DimNetPP <https://arxiv.org/abs/2011.14115>`__ .
+
+    Naming of inputs here should match keras Embedding layer.
 
     Args:
         input_dim (int): Integer. Size of the vocabulary, i.e. maximum integer index + 1.
@@ -379,13 +380,14 @@ class EmbeddingDimeBlock(tf.keras.layers.Layer):
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SphericalBasisLayer')
 class SphericalBasisLayer(GraphBaseLayer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
-    `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`_ .
+    `Klicpera et al. 2020 <https://arxiv.org/abs/2011.14115>`__ .
 
     Args:
         num_spherical (int): Number of spherical basis functions
         num_radial (int): Number of radial basis functions
         cutoff (float): Cutoff distance c
         envelope_exponent (int): Degree of the envelope to smoothen at cutoff. Default is 5.
+
     """
 
     def __init__(self, num_spherical,

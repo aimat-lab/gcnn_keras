@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.schnet_conv import SchNetInteraction
+from ._schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP

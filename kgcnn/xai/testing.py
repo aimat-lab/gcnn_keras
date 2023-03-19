@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as ks
 
-from kgcnn.layers.conv.gat_conv import AttentionHeadGATV2
+from kgcnn.layers.attention import AttentionHeadGATV2
 from kgcnn.layers.modules import DenseEmbedding
 from kgcnn.layers.pooling import PoolingGlobalEdges
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy

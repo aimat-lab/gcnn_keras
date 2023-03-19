@@ -5,7 +5,7 @@ from kgcnn.layers.modules import Dense, OptionalInputEmbedding, LazyConcatenate,
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
-from kgcnn.layers.conv.dimenet_conv import SphericalBasisLayer, EmbeddingDimeBlock
+from kgcnn.literature.DimeNetPP._dimenet_conv import SphericalBasisLayer, EmbeddingDimeBlock
 from kgcnn.layers.conv.mxmnet_conv import MXMGlobalMP, MXMLocalMP
 
 ks = tf.keras

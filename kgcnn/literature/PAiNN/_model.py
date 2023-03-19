@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.painn_conv import PAiNNUpdate, EquivariantInitialize
-from kgcnn.layers.conv.painn_conv import PAiNNconv
+from ._painn_conv import PAiNNUpdate, EquivariantInitialize
+from ._painn_conv import PAiNNconv
 from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirectionNormalized, CosCutOffEnvelope, \
     NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding

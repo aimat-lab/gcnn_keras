@@ -1,8 +1,8 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.modules import LazyConcatenate
-from kgcnn.layers.conv.wacsf_conv import wACSFAng, wACSFRad
-from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
+from ._wacsf_conv import wACSFAng, wACSFRad
+from ._acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs

@@ -8,7 +8,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.modules import Activation, Dropout
 from kgcnn.layers.modules import LazyConcatenate, LazyAverage
-from kgcnn.layers.conv.gat_conv import MultiHeadGATV2Layer
+from kgcnn.layers.attention import MultiHeadGATV2Layer
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
 from kgcnn.xai.base import ImportanceExplanationMixin

@@ -1,6 +1,5 @@
 import tensorflow as tf
-from kgcnn.layers.conv.dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, EmbeddingDimeBlock, \
-    SphericalBasisLayer
+from ._dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, EmbeddingDimeBlock, SphericalBasisLayer
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import Dense, LazyConcatenate, LazyAdd, LazySubtract

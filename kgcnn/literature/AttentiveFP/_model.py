@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.conv.attentivefp_conv import AttentiveHeadFP, PoolingNodesAttentive
+from ._attentivefp_conv import AttentiveHeadFP, PoolingNodesAttentive
 from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.modules import Dense, Dropout, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP

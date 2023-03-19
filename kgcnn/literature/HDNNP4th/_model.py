@@ -1,11 +1,11 @@
 import tensorflow as tf
 from kgcnn.layers.modules import LazyConcatenate
-from kgcnn.layers.conv.acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
-from kgcnn.layers.mlp import GraphMLP, MLP
+from kgcnn.literature.HDNNP2nd._acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
+from kgcnn.layers.mlp import MLP
 from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 # from kgcnn.layers.conv.hdnnp_conv import CENTCharge, ElectrostaticEnergyCharge
-from kgcnn.layers.conv.hdnnp_conv import CENTChargePlusElectrostaticEnergy
+from ._hdnnp_conv import CENTChargePlusElectrostaticEnergy
 from kgcnn.layers.mlp import RelationalMLP
 from kgcnn.layers.norm import GraphBatchNormalization
 

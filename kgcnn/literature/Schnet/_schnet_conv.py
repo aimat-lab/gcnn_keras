@@ -7,7 +7,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='SchNetCFconv')
 class SchNetCFconv(GraphBaseLayer):
-    r"""Continuous filter convolution of `SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`_ .
+    r"""Continuous filter convolution of `SchNet <https://aip.scitation.org/doi/pdf/10.1063/1.5019779>`__ .
 
     Edges are processed by 2 :obj:`Dense` layers, multiplied on outgoing node features and pooled for receiving node.
 

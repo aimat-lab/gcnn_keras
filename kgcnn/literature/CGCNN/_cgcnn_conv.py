@@ -8,7 +8,8 @@ ks = tf.keras
 @ks.utils.register_keras_serializable(package='kgcnn', name='CGCNNLayer')
 class CGCNNLayer(MessagePassingBase):
     r"""Message Passing Layer used in the Crystal Graph Convolutional Neural Network:
-    `CGCNN <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`_.
+
+    `CGCNN <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301>`__ .
 
     Based on the original code in pytorch (<https://github.com/txie-93/cgcnn>).
 

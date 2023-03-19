@@ -10,7 +10,7 @@ from kgcnn.layers.pooling import PoolingLocalMessages, PoolingLocalEdgesLSTM
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageNodeLayer')
 class GraphSageNodeLayer(GraphBaseLayer):
-    r"""This is a convolutional layer for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_  model as proposed
+    r"""This is a convolutional layer for `GraphSAGE <http://arxiv.org/abs/1706.02216>`__  model as proposed
     by Hamilton et al. (2018). It is not used in the :obj:``kgcnn.literature.GraphSAGE`` model implementation
     but meant as a simplified module for other networks.
 
@@ -115,7 +115,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageEdgeUpdateLayer')
 class GraphSageEdgeUpdateLayer(GraphBaseLayer):
-    r"""An extension for `GraphSAGE <http://arxiv.org/abs/1706.02216>`_ model to have edge updates.
+    r"""An extension for `GraphSAGE <http://arxiv.org/abs/1706.02216>`__ model to have edge updates.
 
     It is a direct extension and should fit the GraphSAGE idea of message passing.
 
