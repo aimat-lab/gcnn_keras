@@ -16,7 +16,7 @@ Standard python package requirements are placed in the ``setup.py`` and are inst
 Packages which must be installed manually for full functionality are listed below.
 For example to convert molecular file formats `OpenBabel <http://openbabel.org/wiki/Main_Page>`_ can complement `RDkit <https://www.rdkit.org/docs/api-docs.html>`_ which is installed via ``pip``.
 
-* `PpenBabel <http://openbabel.org/wiki/Main_Page>`_ >=3.0.1
+* `OpenBabel <http://openbabel.org/wiki/Main_Page>`_ >=3.0.1
 
 To have proper GPU support, make sure that the installed ``tensorflow`` version matches your system requirements.
 Moreover, installed `GPU drivers <https://www.nvidia.com/download/index.aspx?lang=en-us>`_ and `CUDA <https://developer.nvidia.com/cuda-toolkit-archive>`_  and `cuDNN <https://developer.nvidia.com/cudnn>`_ versions must match.
