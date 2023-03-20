@@ -7,7 +7,7 @@ ks = tf.keras
 
 
 class GraphBatchLoader(ks.utils.Sequence):
-    r"""Example (minimal) implementation of a graph batch loader based on :obj:`ks.utils.Sequence`."""
+    r"""Example (minimal) implementation of a graph batch loader based on :obj:`ks.utils.Sequence` ."""
 
     def __init__(self,
                  data: Union[List[dict], MemoryGraphDataset],

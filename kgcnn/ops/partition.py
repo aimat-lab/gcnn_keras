@@ -148,7 +148,7 @@ def partition_row_indexing(tensor_index, part_target, part_index,
     # Expand dimension to broadcast to indices for suitable axis
     # The shift_index is always 1D tensor. Add further (N, 1, 1, ...)
     for i in range(1, tensor_index.shape.rank):
-        shift_index = tf.expand_dims(shift_index,axis=-1)
+        shift_index = tf.expand_dims(shift_index, axis=-1)
 
     # Add or remove batch offset from index tensor
     if to_indexing == 'batch' and from_indexing == 'sample':
