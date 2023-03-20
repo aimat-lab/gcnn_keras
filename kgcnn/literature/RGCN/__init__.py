@@ -1,4 +1,4 @@
-from ._model import make_model, model_default
+from ._make import make_model, model_default
 
 
 __all__ = [
