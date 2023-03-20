@@ -45,7 +45,7 @@ class GlorotOrthogonal(ks.initializers.Orthogonal):
         * "Reducing over-fitting in deep networks by de-correlating representations" by M. Cogswell et al. (2016)
           `<https://arxiv.org/abs/1511.06068>`_ .
         * "Dropout: a simple way to prevent neural networks from over-fitting" by N. Srivastava et al. (2014)
-           `<https://dl.acm.org/doi/10.5555/2627435.2670313>`_ .
+          `<https://dl.acm.org/doi/10.5555/2627435.2670313>`_ .
         * "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks"
           by A. M. Saxe et al. (2013) `<https://arxiv.org/abs/1312.6120>`_ .
 
@@ -60,6 +60,12 @@ class GlorotOrthogonal(ks.initializers.Orthogonal):
 
     def __call__(self, shape, dtype=tf.float32, **kwargs):
         weight_kernel = super(GlorotOrthogonal, self).__call__(shape, dtype=dtype, **kwargs)
+        # Original implementation from DimeNet.
+        # assert len(shape) == 2
+        # W = self.orth_init(shape, dtype)
+        # W *= tf.sqrt(self.scale / ((shape[0] + shape[1]) * tf.math.reduce_variance(W)))  # scale = 2.0
+        # Adapted with mode and scale chosen by class. Default values should match original version, to be used
+        # for DimeNet model implementation.
         scale = self.scale
         fan_in, fan_out = _compute_fans(shape)
         if self.mode == "fan_in":
