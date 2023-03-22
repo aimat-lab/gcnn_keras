@@ -13,10 +13,13 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Should be implemented in a subclass.
+
         Args:
             structure (Structure): Crystal for which the graph representation should be calculated.
+
         Raises:
             NotImplementedError:Should be implemented in a subclass.
+
         Returns:
             MultiDiGraph: Graph representation of the crystal.
         """
@@ -24,6 +27,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
 
     def get_config(self) -> dict:
         """Returns a dictionary uniquely identifying the CrystalPreprocessor and its configuration.
+
         Returns:
             dict: A dictionary uniquely identifying the CrystalPreprocessor and its configuration.
         """
@@ -34,6 +38,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
 
     def hash(self) -> str:
         """Generates a unique hash for the CrystalPreprocessor and its configuration.
+
         Returns:
             str: A unique hash for the CrystalPreprocessor and its configuration.
         """
@@ -55,6 +60,7 @@ class RadiusAsymmetricUnitCell(CrystalPreprocessor):
 
     def __init__(self, radius: float = 3.0):
         """Initializes the crystal preprocessor.
+
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
@@ -62,8 +68,10 @@ class RadiusAsymmetricUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -86,6 +94,7 @@ class KNNAsymmetricUnitCell(CrystalPreprocessor):
 
     def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9):
         """Initializes the crystal preprocessor.
+
         Args:
             k (int, optional): How many nearest neighbours to consider for edge selection. Defaults to 12.
             tolerance (Optional[float], optional): If tolerance is not None,
@@ -97,8 +106,10 @@ class KNNAsymmetricUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -121,6 +132,7 @@ class VoronoiAsymmetricUnitCell(CrystalPreprocessor):
 
     def __init__(self, min_ridge_area: Optional[float] = 0.0):
         """Initializes the crystal preprocessor.
+
         Args:
             min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
@@ -130,8 +142,10 @@ class VoronoiAsymmetricUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -154,6 +168,7 @@ class RadiusUnitCell(CrystalPreprocessor):
 
     def __init__(self, radius: float = 3.0):
         """Initializes the crystal preprocessor.
+
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
@@ -161,8 +176,10 @@ class RadiusUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -184,6 +201,7 @@ class KNNUnitCell(CrystalPreprocessor):
 
     def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9):
         """Initializes the crystal preprocessor.
+
         Args:
             k (int, optional): How many nearest neighbours to consider for edge selection. Defaults to 12.
             tolerance (Optional[float], optional): If tolerance is not None,
@@ -195,8 +213,10 @@ class KNNUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -218,6 +238,7 @@ class VoronoiUnitCell(CrystalPreprocessor):
 
     def __init__(self, min_ridge_area: Optional[float] = 0.0):
         """Initializes the crystal preprocessor.
+
         Args:
             min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
@@ -227,8 +248,10 @@ class VoronoiUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -242,26 +265,31 @@ class VoronoiUnitCell(CrystalPreprocessor):
 
 
 class RadiusSuperCell(CrystalPreprocessor):
-    """Preprocessor that builds super cell graphs with radius-based edges for crystals."""
+    """Preprocessor that builds super-cell graphs with radius-based edges for crystals."""
 
     node_attributes = ['atomic_number', 'frac_coords', 'coords']
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, radius: float = 3.0, size=[3, 3, 3]):
+    def __init__(self, radius: float = 3.0, size: list = None):
         """Initializes the crystal preprocessor.
+
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        if size is None:
+            size = [3, 3, 3]
         self.radius = radius
         self.size = size
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -276,14 +304,15 @@ class RadiusSuperCell(CrystalPreprocessor):
 
 
 class KNNSuperCell(CrystalPreprocessor):
-    """Preprocessor that builds super cell graphs with kNN-based edges for crystals."""
+    """Preprocessor that builds super-cell graphs with kNN-based edges for crystals."""
 
     node_attributes = ['atomic_number', 'frac_coords', 'coords']
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, size=[3, 3, 3]):
+    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, size: list = None):
         """Initializes the crystal preprocessor.
+
         Args:
             k (int, optional): How many nearest neighbours to consider for edge selection. Defaults to 12.
             tolerance (Optional[float], optional): If tolerance is not None,
@@ -292,14 +321,18 @@ class KNNSuperCell(CrystalPreprocessor):
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        if size is None:
+            size = [3, 3, 3]
         self.k = k
         self.tolerance = tolerance
         self.size = size
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -314,14 +347,15 @@ class KNNSuperCell(CrystalPreprocessor):
 
 
 class VoronoiSuperCell(CrystalPreprocessor):
-    """Preprocessor that builds super cell graphs with Voronoi-based edges for crystals."""
+    """Preprocessor that builds super-cell graphs with Voronoi-based edges for crystals."""
 
     node_attributes = ['atomic_number', 'frac_coords', 'coords']
     edge_attributes = ['cell_translation', 'distance', 'offset', 'voronoi_ridge_area']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, min_ridge_area: Optional[float] = 0.0, size=[3, 3, 3]):
+    def __init__(self, min_ridge_area: Optional[float] = 0.0, size: list = None):
         """Initializes the crystal preprocessor.
+
         Args:
             min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
@@ -329,13 +363,17 @@ class VoronoiSuperCell(CrystalPreprocessor):
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        if size is None:
+            size = [3, 3, 3]
         self.size = size
         self.min_ridge_area = min_ridge_area
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -358,6 +396,7 @@ class RadiusNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __init__(self, radius: float = 3.0):
         """Initializes the crystal preprocessor.
+
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
@@ -365,8 +404,10 @@ class RadiusNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -389,6 +430,7 @@ class KNNNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __init__(self, k=12, tolerance=1e-9):
         """Initializes the crystal preprocessor.
+
         Args:
             k (int, optional): How many nearest neighbours to consider for edge selection. Defaults to 12.
             tolerance (float, optional): If tolerance is not None,
@@ -400,8 +442,10 @@ class KNNNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -424,6 +468,7 @@ class VoronoiNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __init__(self, min_ridge_area: Optional[float] = 0.0):
         """Initializes the crystal preprocessor.
+
         Args:
             min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
@@ -433,8 +478,10 @@ class VoronoiNonPeriodicUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -457,8 +504,10 @@ class UnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """
@@ -478,8 +527,10 @@ class AsymmetricUnitCell(CrystalPreprocessor):
 
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
+
         Args:
             structure (Structure): Structure to convert to a crystal graph.
+
         Returns:
             MultiDiGraph: Crystal graph for the provided crystal.
         """

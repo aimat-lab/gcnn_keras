@@ -130,6 +130,7 @@ def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
             Defaults to None.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: Graph with added edges.
     """
@@ -175,11 +176,13 @@ def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
 
 def add_radius_bonds(graph: MultiDiGraph, radius: float = 5., inplace: bool = False) -> MultiDiGraph:
     """Adds radius-based edges to a unit cell graph.
+
     Args:
         graph (MultiDiGraph): The unit cell graph to add radius-based edges to.
         radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 5.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: Graph with added edges.
     """
@@ -211,6 +214,7 @@ def add_radius_bonds(graph: MultiDiGraph, radius: float = 5., inplace: bool = Fa
 def add_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = None,
                       inplace: bool = False) -> MultiDiGraph:
     """Adds Voronoi-based edges to a unit cell graph.
+
     Args:
         graph (MultiDiGraph): The unit cell graph to add radius-based edges to.
         min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
@@ -218,6 +222,7 @@ def add_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = Non
             the atoms of the cells is excluded from the graph. Defaults to None.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: Graph with added edges.
     """
@@ -272,10 +277,12 @@ def add_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = Non
 
 def remove_duplicate_edges(graph: MultiDiGraph, inplace=False) -> MultiDiGraph:
     """Removes duplicate edges with same offset.
+
     Args:
         graph (MultiDiGraph): The unit cell graph with edges to remove.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: The graph without duplicate edges.
     """
@@ -296,6 +303,7 @@ def remove_duplicate_edges(graph: MultiDiGraph, inplace=False) -> MultiDiGraph:
 def prune_knn_bonds(graph: MultiDiGraph, k: int = 12, tolerance: Optional[float] = None,
                     inplace: bool = False) -> MultiDiGraph:
     """Prunes edges of a graph to only the k with the smallest distance value.
+
     Args:
         graph (MultiDiGraph): The unit cell graph with edges to prune.
         k (int, optional): How many neighbors each node should maximally have. Defaults to 12.
@@ -304,6 +312,7 @@ def prune_knn_bonds(graph: MultiDiGraph, k: int = 12, tolerance: Optional[float]
             Defaults to None.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: The graph with pruned edges.
     """
@@ -357,6 +366,7 @@ def prune_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = N
                 the atoms of the cells is excluded from the graph. Defaults to None.
         inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: The graph with pruned edges.
     """
@@ -375,7 +385,8 @@ def prune_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = N
 
 def add_edge_information(graph: MultiDiGraph, inplace=False,
                          frac_offset=False, offset=True, distance=True) -> MultiDiGraph:
-    """Adds edge information, such as offset (`frac_offset`, `offset`) and distances (`distance`) to edges.
+    """Adds edge information, such as offset ( `frac_offset`, `offset` ) and distances ( `distance` ) to edges.
+
     Args:
         graph (MultiDiGraph): Graph for which to add edge information.
         inplace (bool, optional): Whether to add the edge information to the given graph
@@ -387,6 +398,7 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
             Defaults to True.
         distance (bool, optional): Whether to add distances (`distance` attribute) to edges.
             Defaults to True.
+
     Returns:
         MultiDiGraph: The graph with added edge information.
     """
@@ -434,6 +446,7 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
 def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = True,
                               inplace: bool = False) -> MultiDiGraph:
     """Generates non-periodic graph representation from unit cell graph representation.
+
     Args:
         graph (MultiDiGraph): Unit cell graph to generate non-periodic graph for.
         add_reverse_edges (bool, optional): Whether to add incoming edges to atoms
@@ -441,6 +454,7 @@ def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = Tru
             Defaults to True.
         inplace (bool, optional): Whether to add distances (`distance` attribute) to edges.
             Defaults to False.
+
     Returns:
         MultiDiGraph: Corresponding non-periodic graph for the given unit cell graph.
     """
@@ -480,9 +494,11 @@ def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = Tru
 
 def to_supercell_graph(graph: MultiDiGraph, size) -> MultiDiGraph:
     """Generates super cell graph representation from unit cell graph representation.
+
     Args:
         graph (MultiDiGraph): Unit cell graph to generate super cell graph for.
         size (list): How many cells the crystal will get expanded into each dimension.
+
     Returns:
         MultiDiGraph: Corresponding super cell graph for the given unit cell graph.
     """
@@ -518,8 +534,10 @@ def to_supercell_graph(graph: MultiDiGraph, size) -> MultiDiGraph:
 
 def to_asymmetric_unit_graph(graph: MultiDiGraph) -> MultiDiGraph:
     """Generates super cell graph representation from unit cell graph representation.
+
     Args:
         graph (MultiDiGraph): Unit cell graph to generate asymmetric unit graph for.
+
     Returns:
         MultiDiGraph: Corresponding asymmetric unit graph for the given unit cell graph.
     """
@@ -593,7 +611,7 @@ def get_ridge_area(ridge_points):
     return area
 
 
-def pairwise_diff(coords1, coords2):
+def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     """Get the pairwise offset difference between two vector sets.
 
     Args:
