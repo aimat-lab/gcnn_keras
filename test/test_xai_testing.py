@@ -5,6 +5,7 @@ import tensorflow as tf
 from kgcnn.literature.MEGAN._xai._testing import MockContext
 ks = tf.keras
 
+
 class TestMockContext(unittest.TestCase):
 
     def test_basically_works(self):

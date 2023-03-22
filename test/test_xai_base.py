@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 from kgcnn.literature.MEGAN._xai._testing import MockContext
 from kgcnn.literature.MEGAN._xai._base import MockImportanceExplanationMethod
-
 ks = tf.keras
 
 # == UNIT TESTS ==
