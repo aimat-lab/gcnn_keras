@@ -3,13 +3,12 @@ import typing as t
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from kgcnn.layers.attention import AttentionHeadGATV2
 from kgcnn.layers.modules import DenseEmbedding
 from kgcnn.layers.pooling import PoolingGlobalEdges
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
+ks = tf.keras
 
 # This is a very simple mock implementation, because to test the explanation methods we need some sort
 # of a model as basis and this model will act as such.

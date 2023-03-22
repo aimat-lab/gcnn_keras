@@ -11,18 +11,16 @@ from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.attention import MultiHeadGATV2Layer
 from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
-from kgcnn.xai.base import ImportanceExplanationMixin
+from ._base import ImportanceExplanationMixin
 
 ks = tf.keras
-
-# Keep track of model version from commit date in literature.
-# To be updated if model is changed in a significant way.
-__model_version__ = "2022.12.15"
-
 
 def shifted_sigmoid(x, shift=5, multiplier=1):
     return ks.backend.sigmoid((x - shift) / multiplier)
 
+# Keep track of model version from commit date in literature.
+# To be updated if model is changed in a significant way.
+__model_version__ = "2022.12.15"
 
 class ExplanationSparsityRegularization(GraphBaseLayer):
 
