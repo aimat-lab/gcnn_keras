@@ -22,7 +22,6 @@ setup(
         "rdkit>=2022.9.2",
         "pymatgen>=2022.11.7",
         "tensorflow>=2.9.0",
-        # "tensorflow-gpu>=2.10.0",  # No longer used in tensorflow.
         "tensorflow-addons>=0.18.0",
         "keras-tuner>=1.1.3",
         "requests>=2.28.1",

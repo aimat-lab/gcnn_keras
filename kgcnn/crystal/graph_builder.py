@@ -1,16 +1,36 @@
 import warnings
-from copy import deepcopy
+from copy import deepcopy, copy
 import numpy as np
-from scipy.spatial import Voronoi
+from scipy.spatial import Voronoi, ConvexHull
 from networkx import MultiDiGraph
 from pyxtal import pyxtal
 from pymatgen.core.structure import Structure
 from pymatgen.core.periodic_table import Element
 from pymatgen.optimization.neighbors import find_points_in_spheres
-from typing import Union
+from typing import Union, Optional, Any
 
 
 def get_symmetrized_graph(structure: Union[Structure, pyxtal]) -> MultiDiGraph:
+    """Builds a unit graph without any edges, but with symmetry information as node attributes.
+
+    Each node has a `asymmetric_mapping` attribute,
+    which contains the id of the symmetry-equivalent atom in the asymmetric unit.
+    Each node has a `symmop` attribute,
+    which contains the affine matrix to generate the position (in fractional coordinates) of the atom,
+    from its symmetry-equivalent atom position in the asymmetric unit.
+    Each node has a `multiplicity` attribute,
+    which contains the multiplicity of the atom (how many symmetry-equivalent atoms there are for this node).
+    The resulting graph will have a `spacegroup` attribute, that specifies the spacegroup of the crystal.
+
+    Args:
+        structure (Union[Structure, pyxtal]): Crystal structure to convert to a graph.
+
+    Raises:
+        ValueError: If the argument is not a pymatgen Structure or pyxtal object.
+
+    Returns:
+        MultiDiGraph: Unit graph with symmetry information, but without any edges for the crystal.
+    """
     graph = MultiDiGraph()
     if isinstance(structure, pyxtal):
         pyxtal_cell = structure
@@ -34,7 +54,7 @@ def get_symmetrized_graph(structure: Union[Structure, pyxtal]) -> MultiDiGraph:
             setattr(graph, 'spacegroup', 1)
             return graph
     else:
-        ValueError("This method takes either a pymatgen.core.structure.Structure or a pyxtal object.")
+        raise ValueError("This method takes either a pymatgen.core.structure.Structure or a pyxtal object.")
 
     atomic_numbers, frac_coords, asymmetric_mapping, symmops, multiplicities = [], [], [], [], []
     for site in pyxtal_cell.atom_sites:
@@ -59,7 +79,23 @@ def get_symmetrized_graph(structure: Union[Structure, pyxtal]) -> MultiDiGraph:
     return graph
 
 
-def structure_to_empty_graph(structure: Union[Structure, pyxtal], symmetrize=False) -> MultiDiGraph:
+def structure_to_empty_graph(structure: Union[Structure, pyxtal], symmetrize: bool = False) -> MultiDiGraph:
+    """Builds an unit graph without any edges.
+
+    Args:
+        structure (Union[Structure, pyxtal]): Crystal structure to convert to a graph.
+            symmetrize (bool, optional): Whether to include symmetry information attributes
+            (`asymmetric_mapping`, `symmop`, `multiplicity` attributes) in nodes and graph
+            (`spacegroup` atribute).
+            Defaults to False.
+        symmetrize (bool): Whether to get symmetrized graph.
+
+    Raises:
+        ValueError: If the argument is not a pymatgen Structure or pyxtal object.
+
+    Returns:
+        MultiDiGraph: Unit graph without any edges for the crystal.
+    """
     if symmetrize:
         return get_symmetrized_graph(structure)
     else:
@@ -71,21 +107,43 @@ def structure_to_empty_graph(structure: Union[Structure, pyxtal], symmetrize=Fal
         for node_idx, site in enumerate(structure.sites):
             graph.add_node(node_idx, atomic_number=site.specie.number,
                            frac_coords=frac_coords[node_idx],
-                           coords=site.coords)
+                           coords=site.coords,
+                           **site.properties)
         setattr(graph, 'lattice_matrix', structure.lattice.matrix)
         return graph
 
 
-def add_knn_bonds(graph: MultiDiGraph, k=12, max_radius=10., inplace=False):
-    lattice = deepcopy(graph.lattice_matrix)
+def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
+                  tolerance: Optional[float] = None, inplace: bool = False) -> MultiDiGraph:
+    """Adds kNN-based edges to a unit cell graph.
+
+    Args:
+        graph (MultiDiGraph): The unit cell graph to add kNN-based edges to.
+        k (int, optional): How many neighbors to add for each node. Defaults to 12.
+        max_radius (float, optional): This parameter has no effect on the outcome of the graph.
+            It may only on the runtime.
+            The algorithm starts the kNN search in the environment the radius of max_radius.
+            If the kth neighbor is not within this radius the algorithm is called again with twice the initial radius.
+            Defaults to 10.
+        tolerance (Optional[float], optional): If tolerance is not None,
+            edges with distances of the k-th nearest neighbor plus the tolerance value are included in the graph.
+            Defaults to None.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: Graph with added edges.
+    """
+    lattice = _get_attr_from_graph(graph, "lattice_matrix", make_copy=True)
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     coords = frac_coords @ lattice
+    # return coords, lattice
     index1, index2, offset_vectors, distances = find_points_in_spheres(coords,
                                                                        coords,
                                                                        r=max_radius,
                                                                        pbc=np.array([True] * 3, dtype=int),
                                                                        lattice=lattice,
                                                                        tol=1e-8)
+    offset_vectors = offset_vectors.astype('i2')
     # Remove self_loops:
     no_self_loops = np.argwhere(~np.isclose(distances, 0)).reshape(-1)
     index1 = index1[no_self_loops]
@@ -98,29 +156,41 @@ def add_knn_bonds(graph: MultiDiGraph, k=12, max_radius=10., inplace=False):
     for node_idx in range(new_graph.number_of_nodes()):
         idxs = np.argwhere(index1 == node_idx)[:, 0]
         sorted_idxs = idxs[np.argsort(distances[idxs])]
-        sorted_idxs = sorted_idxs[:k]
-        # If the max_radius doesn't capture 12 neighbors, try again with double the max_radius
         if len(sorted_idxs) < k:
             return add_knn_bonds(new_graph, k=k, max_radius=max_radius * 2, inplace=True)
-        for edge_idx in sorted_idxs:
-            new_graph.add_edge(index2[edge_idx], index1[edge_idx], cell_translation=offset_vectors[edge_idx], \
-                               distance=distances[edge_idx])
+
+        if tolerance is not None:
+            cutoff = distances[sorted_idxs[k - 1]] + tolerance
+            edge_idxs = idxs[np.argwhere(distances[idxs] <= cutoff)][:, 0]
+        else:
+            edge_idxs = sorted_idxs[:k]
+        # If the max_radius doesn't capture k neighbors, try again with double the max_radius
+        for edge_idx in edge_idxs:
+            new_graph.add_edge(
+                index2[edge_idx], index1[edge_idx],
+                cell_translation=offset_vectors[edge_idx], distance=distances[edge_idx])
 
     return new_graph
 
 
-def add_radius_bonds(graph: MultiDiGraph, radius=5., inplace=False):
+def add_radius_bonds(graph: MultiDiGraph, radius: float = 5., inplace: bool = False) -> MultiDiGraph:
+    """Adds radius-based edges to a unit cell graph.
+    Args:
+        graph (MultiDiGraph): The unit cell graph to add radius-based edges to.
+        radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 5.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: Graph with added edges.
+    """
     new_graph = graph if inplace else deepcopy(graph)
 
-    lattice = deepcopy(graph.lattice_matrix)
+    lattice = _get_attr_from_graph(graph, "lattice_matrix", make_copy=True)
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     coords = frac_coords @ lattice
-    index1, index2, offset_vectors, distances = find_points_in_spheres(coords,
-                                                                       coords,
-                                                                       r=radius,
-                                                                       pbc=np.array([True] * 3, dtype=int),
-                                                                       lattice=lattice,
-                                                                       tol=1e-8)
+    index1, index2, offset_vectors, distances = find_points_in_spheres(
+        coords, coords, r=radius, pbc=np.array([True] * 3, dtype=int), lattice=lattice, tol=1e-8)
+    offset_vectors = offset_vectors.astype('i2')
     # Remove self_loops:
     no_self_loops = np.argwhere(~np.isclose(distances, 0)).reshape(-1)
     index1 = index1[no_self_loops]
@@ -129,20 +199,31 @@ def add_radius_bonds(graph: MultiDiGraph, radius=5., inplace=False):
     distances = distances[no_self_loops]
 
     if len(index1) == 0:
-        warnings.warn('No edges added to the graph, \
-consider increasing the radius and check your graph input instance.')
+        warnings.warn(
+            'No edges added to the graph, consider increasing the radius and check your graph input instance.')
 
-    new_graph = deepcopy(graph)
     for source, target, cell_translation, dist in zip(index2, index1, offset_vectors, distances):
         new_graph.add_edge(source, target, cell_translation=cell_translation, distance=dist)
 
     return new_graph
 
 
-def add_voronoi_bonds(graph: MultiDiGraph, inplace=False):
+def add_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = None,
+                      inplace: bool = False) -> MultiDiGraph:
+    """Adds Voronoi-based edges to a unit cell graph.
+    Args:
+        graph (MultiDiGraph): The unit cell graph to add radius-based edges to.
+        min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
+            If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
+            the atoms of the cells is excluded from the graph. Defaults to None.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: Graph with added edges.
+    """
     new_graph = graph if inplace else deepcopy(graph)
 
-    lattice = graph.lattice_matrix
+    lattice = _get_attr_from_graph(graph, "lattice_matrix")
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     dim = lattice.shape[0]
     assert dim == 3
@@ -153,8 +234,8 @@ def add_voronoi_bonds(graph: MultiDiGraph, inplace=False):
 
     voronoi = Voronoi(flattened_expanded_coords)
     ridge_points_unraveled = np.array(np.unravel_index(voronoi.ridge_points, expanded_coords.shape[:-1]))
-    # shape: (num_ridges, 2 (source, target), 4 (3 cell_index + 1 atom_index)) 
-    ridge_points_unraveled = np.moveaxis(ridge_points_unraveled, [0, 1, 2], [2, 0, 1])
+    # shape: (num_ridges, 2 (source, target), 4 (3 cell_index + 1 atom_index))
+    ridge_points_unraveled = np.moveaxis(ridge_points_unraveled, np.arange(dim), np.roll(np.arange(dim), 1))
 
     # Filter ridges that have source in the centered unit cell
     source_in_center_cell = np.argwhere(np.all(ridge_points_unraveled[:, 0, :dim] == 1, axis=-1))[:, 0]
@@ -172,14 +253,32 @@ def add_voronoi_bonds(graph: MultiDiGraph, inplace=False):
         d = np.linalg.norm(expanded_coords[tuple(edge_info[i][0])] - expanded_coords[tuple(edge_info[i][1])])
         distances.append(d)
 
-    for nodes, cell_translation, dist in zip(edge_indices, cell_translations, distances):
-        source, target = nodes[0], nodes[1]
-        new_graph.add_edge(source, target, cell_translation=cell_translation, distance=dist)
+    if min_ridge_area is not None:
+        ridge_vertices = [voronoi.ridge_vertices[i] for i in
+                          np.concatenate([source_in_center_cell, target_in_center_cell])]
+        ridge_areas = [get_ridge_area(voronoi.vertices[idxs]) for idxs in ridge_vertices]
+        for nodes, cell_translation, dist, ridge_area in zip(edge_indices, cell_translations, distances, ridge_areas):
+            source, target = nodes[0], nodes[1]
+            if ridge_area > min_ridge_area:
+                new_graph.add_edge(source, target, cell_translation=cell_translation, distance=dist,
+                                   voronoi_ridge_area=ridge_area)
+    else:
+        for nodes, cell_translation, dist in zip(edge_indices, cell_translations, distances):
+            source, target = nodes[0], nodes[1]
+            new_graph.add_edge(source, target, cell_translation=cell_translation, distance=dist)
 
     return new_graph
 
 
 def remove_duplicate_edges(graph: MultiDiGraph, inplace=False) -> MultiDiGraph:
+    """Removes duplicate edges with same offset.
+    Args:
+        graph (MultiDiGraph): The unit cell graph with edges to remove.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: The graph without duplicate edges.
+    """
     new_graph = graph if inplace else deepcopy(graph)
     edge_counter = set()
     remove_edges = set()
@@ -194,82 +293,103 @@ def remove_duplicate_edges(graph: MultiDiGraph, inplace=False) -> MultiDiGraph:
     return new_graph
 
 
-def get_mesh(size, dim):
-    if isinstance(size, int):
-        size = [size] * dim
-    else:
-        size = list(size)
-    assert len(size) == dim
+def prune_knn_bonds(graph: MultiDiGraph, k: int = 12, tolerance: Optional[float] = None,
+                    inplace: bool = False) -> MultiDiGraph:
+    """Prunes edges of a graph to only the k with the smallest distance value.
+    Args:
+        graph (MultiDiGraph): The unit cell graph with edges to prune.
+        k (int, optional): How many neighbors each node should maximally have. Defaults to 12.
+        tolerance (Optional[float], optional): If tolerance is not None,
+            edges with distances of the k-th nearest neighbor plus the tolerance value are included in the graph.
+            Defaults to None.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: The graph with pruned edges.
+    """
+    new_graph = graph if inplace else deepcopy(graph)
 
-    mesh = np.array(np.meshgrid(*tuple([np.arange(i) for i in size])))
-    mesh = np.moveaxis(mesh, [0, 1], [-1, 1])
-    return mesh
-
-
-def get_cube(dim: int):
-    return get_mesh(2, dim)
-
-
-def _get_max_diameter(lattice):
-    dim = lattice.shape[0]
-    cube = get_cube(dim)
-    max_radius = np.max(np.linalg.norm((cube - 1 / 2) @ lattice, axis=1))
-    return max_radius * 2
-
-
-def _get_super_cell_size_from_radius(lattice: np.ndarray, radius: float):
-    dim = lattice.shape[0]
-    max_diameter = _get_max_diameter(lattice)
-    radius_ = radius + max_diameter
-    cell_indices = np.ceil(np.sum(np.abs(np.linalg.inv(lattice)), axis=0) * radius_).astype(int)
-    cells = get_mesh(cell_indices + 1, dim)
-    lattice_point_coords = cells @ lattice
-    images = np.argwhere(np.linalg.norm(lattice_point_coords, axis=-1) <= radius_)
-    super_cell_size = images.max(axis=0)
-    return super_cell_size
+    delete_edges = []
+    for n in new_graph:
+        edges = list(new_graph.in_edges(n, data='distance', keys=True))
+        edges.sort(key=lambda x: x[3])
+        if tolerance is not None:
+            radius = edges[k][3] + tolerance
+            delete_edges += [e[:3] for e in edges if e[3] > radius]
+        else:
+            delete_edges += [e[:3] for e in edges[k:]]
+    new_graph.remove_edges_from(delete_edges)
+    return new_graph
 
 
-def _get_super_cell_frac_coords(lattice, frac_coords, size):
-    dim = lattice.shape[0]
+def prune_radius_bonds(graph: MultiDiGraph, radius: float = 4., inplace: bool = False) -> MultiDiGraph:
+    """Prunes edges of a graph with larger distance than the specified radius.
 
-    if isinstance(size, int):
-        size = [size] * dim
-    else:
-        size = list(size)
-    assert len(size) == dim
+    Args:
+        graph (MultiDiGraph): The unit cell graph with edges to prune.
+        radius (float, optional): Distance threshold. Edges with larger distance than this value are
+            removed from the graph. Defaults to 4.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
 
-    doubled_size = np.array(size) * 2 + 1
-    mesh = get_mesh(doubled_size, dim)
-    # frac_coords_expanded.shape == (1,1,1,num_atoms,3) (for dim == 3)
-    frac_coords_expanded = np.expand_dims(frac_coords, np.arange(dim).tolist())
-    # mesh_expanded.shape == (double_size[0], double_size[1], double_size[2], 1, 3) (for dim == 3)
-    mesh_expanded = np.expand_dims(mesh - size, -2)
-    expanded_frac_coords = mesh_expanded + frac_coords_expanded
+    Returns:
+        MultiDiGraph: The graph with pruned edges.
+    """
+    new_graph = graph if inplace else deepcopy(graph)
 
-    return expanded_frac_coords
-
-
-def reshape_at_axis(arr, axis, new_shape):
-    # move reshape axis to last axis position, because np.reshape reshapes this first
-    arr_tmp = np.moveaxis(arr, axis, -1)
-    shape = arr_tmp.shape[:-1] + new_shape
-    new_positions = np.arange(len(new_shape)) + axis
-    old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
-    # now call np.reshape and move axis to right position
-    return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
+    delete_edges = []
+    for e in new_graph.edges(data='distance', keys=True):
+        if e[3] > radius:
+            delete_edges.append(e[:3])
+    new_graph.remove_edges_from(delete_edges)
+    return new_graph
 
 
-def pairwise_diff(coords1, coords2):
-    # Difference calculated at last axis of both inputs
-    assert coords1.shape[-1] == coords2.shape[-1]
-    coords1_reshaped = coords1.reshape(-1, coords1.shape[-1])
-    coords2_reshaped = coords2.reshape(-1, coords2.shape[-1])
-    diffs = np.expand_dims(coords2_reshaped, 0) - np.expand_dims(coords1_reshaped, 1)
-    return reshape_at_axis(reshape_at_axis(diffs, 1, coords2.shape[:-1]), 0, coords1.shape[:-1])
+def prune_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = None,
+                        inplace: bool = False) -> MultiDiGraph:
+    """Prunes edges of a graph with a voronoi ridge are smaller then the specified min_ridge_area.
+
+    Only works for graphs with edges that contain `voronoi_ridge_area` as edge attributes.
+    Args:
+        graph (MultiDiGraph): The unit cell graph with edges to prune.
+        min_ridge_area (Optional[float], optional): Threshold value for ridge area between two Voronoi cells.
+                If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
+                the atoms of the cells is excluded from the graph. Defaults to None.
+        inplace (bool, optional): Whether to add the edges to the given graph or create a copy with added edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: The graph with pruned edges.
+    """
+    new_graph = graph if inplace else deepcopy(graph)
+
+    if min_ridge_area is None:
+        return new_graph
+
+    delete_edges = []
+    for e in new_graph.edges(data='voronoi_ridge_area', keys=True):
+        if e[3] < min_ridge_area:
+            delete_edges.append(e[:3])
+    new_graph.remove_edges_from(delete_edges)
+    return new_graph
 
 
 def add_edge_information(graph: MultiDiGraph, inplace=False,
                          frac_offset=False, offset=True, distance=True) -> MultiDiGraph:
+    """Adds edge information, such as offset (`frac_offset`, `offset`) and distances (`distance`) to edges.
+    Args:
+        graph (MultiDiGraph): Graph for which to add edge information.
+        inplace (bool, optional): Whether to add the edge information to the given graph
+            or create a copy with added edges.
+            Defaults to False.
+        frac_offset (bool, optional): Whether to add fractional offsets (`frac_offset` attribute) to edges.
+            Defaults to False.
+        offset (bool, optional): Whether to add offsets (`offset` attribute) to edges.
+            Defaults to True.
+        distance (bool, optional): Whether to add distances (`distance` attribute) to edges.
+            Defaults to True.
+    Returns:
+        MultiDiGraph: The graph with added edge information.
+    """
     new_graph = graph if inplace else deepcopy(graph)
     if graph.number_of_edges() == 0:
         return new_graph
@@ -283,22 +403,24 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
     cell_translations = []
 
     # Collect necessary coordinate informations for calculations
-    for e in graph.edges(data='cell_translation'):
-        frac_coords1.append(graph.nodes[e[0]]['frac_coords'])
+    for e in new_graph.edges(data='cell_translation'):
+        frac_coords1.append(new_graph.nodes[e[0]]['frac_coords'])
         cell_translations.append(e[2])
-        frac_coords2.append(graph.nodes[e[1]]['frac_coords'])
+        frac_coords2.append(new_graph.nodes[e[1]]['frac_coords'])
 
     # Do calculations in vectorized form (instead of doing it inside the edge loop)
     frac_coords1 = np.array(frac_coords1)
     frac_coords2 = np.array(frac_coords2)
     cell_translations = np.array(cell_translations)
     frac_offset = frac_coords2 - (frac_coords1 + cell_translations)
-    offset = frac_offset @ graph.lattice_matrix
+    offset = frac_offset @ _get_attr_from_graph(new_graph, "lattice_matrix")
     if add_distance:
         distances = np.linalg.norm(offset, axis=-1)
+    else:
+        distances = None
 
     # Add calculated informations to edge attributes
-    for i, e in enumerate(graph.edges(data=True)):
+    for i, e in enumerate(new_graph.edges(data=True)):
         if add_frac_offset:
             e[2]['frac_offset'] = frac_offset[i]
         if add_offset:
@@ -309,7 +431,62 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
     return new_graph
 
 
-def to_supercell_graph(graph: MultiDiGraph, size):
+def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = True,
+                              inplace: bool = False) -> MultiDiGraph:
+    """Generates non-periodic graph representation from unit cell graph representation.
+    Args:
+        graph (MultiDiGraph): Unit cell graph to generate non-periodic graph for.
+        add_reverse_edges (bool, optional): Whether to add incoming edges to atoms
+            that lie outside of the center unit cell.
+            Defaults to True.
+        inplace (bool, optional): Whether to add distances (`distance` attribute) to edges.
+            Defaults to False.
+    Returns:
+        MultiDiGraph: Corresponding non-periodic graph for the given unit cell graph.
+    """
+    new_graph = graph if inplace else deepcopy(graph)
+    new_nodes = dict()
+    new_edges = []
+    delete_edges = []
+    node_counter = new_graph.number_of_nodes()
+    for e in new_graph.edges(data=True, keys=True):
+        cell_translation = e[3]['cell_translation']
+        if np.any(cell_translation != 0):
+            node_key = (e[0],) + tuple(cell_translation)
+            if node_key not in new_nodes.keys():
+                node_attrs = copy(new_graph.nodes[e[0]])
+                node_attrs['frac_coords'] = new_graph.nodes[e[0]]['frac_coords'] + cell_translation
+                node_attrs['coords'] = node_attrs['frac_coords'] @ _get_attr_from_graph(new_graph, "lattice_matrix")
+                new_nodes[node_key] = (node_counter, node_attrs)
+                node_counter += 1
+            node_number, _ = new_nodes[node_key]
+            edge_attrs1 = deepcopy(e[3])
+            new_edges.append((node_number, e[1], edge_attrs1))
+            if add_reverse_edges:
+                edge_attrs2 = deepcopy(e[3])
+                if 'frac_offset' in e[3].keys():
+                    edge_attrs2['frac_offset'] = -e[3]['frac_offset']
+                if 'offset' in e[3].keys():
+                    edge_attrs2['offset'] = -e[3]['offset']
+                new_edges.append((e[1], node_number, edge_attrs2))
+            delete_edges.append((e[0], e[1], e[2]))
+    new_graph.remove_edges_from(delete_edges)
+    for node_number, node_attrs in new_nodes.values():
+        new_graph.add_node(node_number, **node_attrs)
+    for e in new_edges:
+        new_graph.add_edge(e[0], e[1], **e[2])
+    return new_graph
+
+
+def to_supercell_graph(graph: MultiDiGraph, size) -> MultiDiGraph:
+    """Generates super cell graph representation from unit cell graph representation.
+    Args:
+        graph (MultiDiGraph): Unit cell graph to generate super cell graph for.
+        size (list): How many cells the crystal will get expanded into each dimension.
+    Returns:
+        MultiDiGraph: Corresponding super cell graph for the given unit cell graph.
+    """
+
     supercell_graph = MultiDiGraph()
     size_ = list(size) + [graph.number_of_nodes()]
     new_num_nodes = np.prod(size_)
@@ -319,7 +496,7 @@ def to_supercell_graph(graph: MultiDiGraph, size):
         node_num = idx[3]
         data = deepcopy(graph.nodes[node_num])
         data['frac_coords'] = data['frac_coords'] + np.array(cell_translation)
-        data['coords'] = data['frac_coords'] @ graph.lattice_matrix
+        data['coords'] = data['frac_coords'] @ _get_attr_from_graph(graph, "lattice_matrix")
         supercell_graph.add_node(node, **data)
 
     for edge in graph.edges(data=True):
@@ -330,15 +507,23 @@ def to_supercell_graph(graph: MultiDiGraph, size):
                 new_source = np.ravel_multi_index(list(cell_translation2) + [edge[0]], size_)
                 new_target = np.ravel_multi_index(list(cell_translation1) + [edge[1]], size_)
                 data = deepcopy(edge[2])
+                # del data['cell_translation']
                 supercell_graph.add_edge(new_source, new_target, **data)
 
-    setattr(supercell_graph, 'lattice_matrix', graph.lattice_matrix)
+    setattr(supercell_graph, 'lattice_matrix', _get_attr_from_graph(graph, "lattice_matrix"))
     if hasattr(graph, 'spacegroup'):
         setattr(supercell_graph, 'spacegroup', graph.spacegroup)
     return supercell_graph
 
 
 def to_asymmetric_unit_graph(graph: MultiDiGraph) -> MultiDiGraph:
+    """Generates super cell graph representation from unit cell graph representation.
+    Args:
+        graph (MultiDiGraph): Unit cell graph to generate asymmetric unit graph for.
+    Returns:
+        MultiDiGraph: Corresponding asymmetric unit graph for the given unit cell graph.
+    """
+
     asymmetric_mapping = np.array([node[1] for node in graph.nodes(data='asymmetric_mapping')])
     if None in asymmetric_mapping:
         raise ValueError("Graph does not contain symmetry informations. \
@@ -347,8 +532,8 @@ argument set to `True`.")
     asu_node_indice, inv_asymmetric_mapping = np.unique(asymmetric_mapping, return_inverse=True)
 
     asu_graph = MultiDiGraph()
-    setattr(asu_graph, 'lattice_matrix', graph.lattice_matrix)
-    setattr(asu_graph, 'spacegroup', graph.spacegroup)
+    setattr(asu_graph, 'lattice_matrix', _get_attr_from_graph(graph, "lattice_matrix"))
+    setattr(asu_graph, 'spacegroup', _get_attr_from_graph(graph, "spacegroup"))
     new_nodes_idx = {}
 
     # Add nodes of asymmetric unit to asu_graph
@@ -376,4 +561,127 @@ argument set to `True`.")
 
 
 def _to_unit_cell(frac_coords):
+    """Converts fractional coords to be within the [0,1) interval.
+
+    Args:
+        frac_coords: Fractional coordinates to map into [0,1) interval.
+
+    Returns:
+        Fractional coordinates within the [0,1) interval.
+    """
     return frac_coords % 1. % 1.
+
+
+def get_ridge_area(ridge_points):
+    """Computes the ridge area given ridge points.
+
+    Beware that this function, assumes that the ridge points are (roughly) within a flat subspace plane
+    in the 3 dimensional space.
+    It computes the area of the convex hull of the points in three dimensions and then divides it by two,
+    since both sides of the flat convex hull are included.
+
+    Args:
+        ridge_points (np.ndarray): Ridge points to calculate area for.
+
+    Returns:
+        float: Ridge area for the given points.
+    """
+    while ridge_points.shape[0] <= 3:
+        # Append copy of points to avoid QHull Error
+        ridge_points = np.append(ridge_points, np.expand_dims(ridge_points[0], 0), 0)
+    area = ConvexHull(ridge_points, qhull_options='QJ').area / 2
+    return area
+
+
+def pairwise_diff(coords1, coords2):
+    """Get the pairwise offset difference between two vector sets.
+
+    Args:
+        coords1 (np.ndarray): Coordinates of shape (n, 3)
+        coords2 (np.ndarray): Coordinates of shape (m, 3)
+
+    Returns:
+        np.ndarray: Difference values of shape (n,m,3)
+    """
+    # Difference calculated at last axis of both inputs
+    assert coords1.shape[-1] == coords2.shape[-1]
+    coords1_reshaped = coords1.reshape(-1, coords1.shape[-1])
+    coords2_reshaped = coords2.reshape(-1, coords2.shape[-1])
+    diffs = np.expand_dims(coords2_reshaped, 0) - np.expand_dims(coords1_reshaped, 1)
+    return _reshape_at_axis(_reshape_at_axis(diffs, 1, coords2.shape[:-1]), 0, coords1.shape[:-1])
+
+
+def _get_mesh(size: Union[int, list, tuple], dim: int):
+    if isinstance(size, int):
+        size = [size] * dim
+    else:
+        size = list(size)
+    assert len(size) == dim
+
+    mesh = np.array(np.meshgrid(*tuple([np.arange(i) for i in size])))
+    mesh = np.moveaxis(mesh, [0, 1], [-1, 1])
+    return mesh
+
+
+def _get_cube(dim: int):
+    return _get_mesh(2, dim)
+
+
+def _get_max_diameter(lattice):
+    dim = lattice.shape[0]
+    cube = _get_cube(dim)
+    max_radius = np.max(np.linalg.norm((cube - 1 / 2) @ lattice, axis=1))
+    return max_radius * 2
+
+
+def _get_super_cell_size_from_radius(lattice: np.ndarray, radius: float):
+    dim = lattice.shape[0]
+    max_diameter = _get_max_diameter(lattice)
+    radius_ = radius + max_diameter
+    cell_indices = np.ceil(np.sum(np.abs(np.linalg.inv(lattice)), axis=0) * radius_).astype(int)
+    cells = _get_mesh(cell_indices + 1, dim)
+    lattice_point_coords = cells @ lattice
+    images = np.argwhere(np.linalg.norm(lattice_point_coords, axis=-1) <= radius_)
+    super_cell_size = images.max(axis=0)
+    return super_cell_size
+
+
+def _get_super_cell_frac_coords(lattice, frac_coords, size):
+    dim = lattice.shape[0]
+
+    if isinstance(size, int):
+        size = [size] * dim
+    else:
+        size = list(size)
+    assert len(size) == dim
+
+    doubled_size = np.array(size) * 2 + 1
+    mesh = _get_mesh(doubled_size, dim)
+    # frac_coords_expanded.shape == (1,1,1,num_atoms,3) (for dim == 3)
+    frac_coords_expanded = np.expand_dims(frac_coords, np.arange(dim).tolist())
+    # mesh_expanded.shape == (double_size[0], double_size[1], double_size[2], 1, 3) (for dim == 3)
+    mesh_expanded = np.expand_dims(mesh - size, -2)
+    expanded_frac_coords = mesh_expanded + frac_coords_expanded
+
+    return expanded_frac_coords
+
+
+def _reshape_at_axis(arr, axis, new_shape):
+    # move reshape axis to last axis position, because np.reshape reshapes this first
+    arr_tmp = np.moveaxis(arr, axis, -1)
+    shape = arr_tmp.shape[:-1] + new_shape
+    new_positions = np.arange(len(new_shape)) + axis
+    old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
+    # now call np.reshape and move axis to right position
+    return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
+
+
+def _get_attr_from_graph(graph: MultiDiGraph, attr_name: str, make_copy: bool = False) -> Union[Any, np.ndarray]:
+    if hasattr(graph, attr_name):
+        if make_copy:
+            out = deepcopy(getattr(graph, attr_name))
+        else:
+            out = getattr(graph, attr_name)
+    else:
+        raise AttributeError("Must attach attribute '%s' to network graph for crystal information." % attr_name)
+    return out
