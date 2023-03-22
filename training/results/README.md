@@ -384,3 +384,16 @@ The database consist of 129 molecules each containing 5,000 conformational geome
 
 Synthetic classification dataset containing 100 small, randomly generated graphs, where half of them were seeded with a triangular subgraph motif, which is the explanation ground truth for the target class distinction.
 
+| model            | kgcnn   |   epochs | Categorical Accuracy   | Node AUC               | Edge AUC               |
+|:-----------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| GCN_GnnExplainer | 2.2.1   |      100 | 0.8700 &pm; 0.1122     | 0.7621 &pm; 0.0357     | 0.6051 &pm; 0.0416     |
+| MEGAN            | 2.2.0   |      100 | **0.9400 &pm; 0.0490** | **0.8873 &pm; 0.0250** | **0.9518 &pm; 0.0241** |
+
+#### VgdRbMotifsDataset
+
+Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, where some of them are seeded with special red- or blue-dominated subgraph motifs, where blue motifs contribute negatively to a graph's overall target value and red motifs contribute positively. The explanation ground truth for this datasets consists of these motifs.
+
+| model   | kgcnn   |   epochs | MSE                    | Node AUC               | Edge AUC               |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| MEGAN   | 2.2.0   |      100 | **0.2075 &pm; 0.0421** | **0.9051 &pm; 0.0130** | **0.8096 &pm; 0.0414** |
+

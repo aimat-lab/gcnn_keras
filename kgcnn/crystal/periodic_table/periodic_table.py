@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Optional
 import importlib.resources
-import kgcnn.literature.coGN.periodic_table as periodic_table_module
+import kgcnn.crystal.periodic_table as periodic_table_module
 
 # CSV file is downloaded from:
 # https://pubchem.ncbi.nlm.nih.gov/rest/pug/periodictable/CSV/?response_type=save&response_basename=PubChemElements_all
