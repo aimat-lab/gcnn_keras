@@ -8,7 +8,7 @@ module_logger.setLevel(logging.INFO)
 
 
 class MolGraphInterface:
-    r"""The `MolGraphInterface` defines the base class interface to handle a molecular graph.
+    r"""The `MolGraphInterface` defines the base class interface to extract a molecular graph.
 
     The method implementation to generate a molecule-instance from smiles etc. can be obtained from different backends
     like `RDkit` . The mol-instance of a chemical informatics package like `RDkit` is treated via composition.
