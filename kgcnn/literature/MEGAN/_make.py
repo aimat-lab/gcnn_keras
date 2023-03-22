@@ -1,11 +1,12 @@
 import tensorflow as tf
+from typing import Optional
 from ._model import MEGAN
 from ._model import __model_version__
 
 ks = tf.keras
 
 
-def make_model(inputs: t.Optional[list] = None,
+def make_model(inputs: Optional[list] = None,
                **kwargs
                ):
     r"""Functional model definition of MEGAN. Please check documentation of :obj:`kgcnn.literature.MEGAN` .
