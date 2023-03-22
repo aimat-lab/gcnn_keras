@@ -30,7 +30,6 @@ setup(
         "pyyaml>=6.0",
         "ase>=3.22.1",
         "click>=7.1.2",
-        "visual_graph_datasets>=0.7.1",
         "brotli>=1.0.9",
         "pyxtal>=0.5.5"
     ],
