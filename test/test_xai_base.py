@@ -2,11 +2,10 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
+from kgcnn.literature.MEGAN._xai._testing import MockContext
+from kgcnn.literature.MEGAN._xai._base import MockImportanceExplanationMethod
 
-from kgcnn.xai.testing import MockContext
-from kgcnn.xai.base import MockImportanceExplanationMethod
-
+ks = tf.keras
 
 # == UNIT TESTS ==
 
