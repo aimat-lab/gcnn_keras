@@ -629,7 +629,16 @@ def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     return _reshape_at_axis(_reshape_at_axis(diffs, 1, coords2.shape[:-1]), 0, coords1.shape[:-1])
 
 
-def _get_mesh(size: Union[int, list, tuple], dim: int):
+def _get_mesh(size: Union[int, list, tuple], dim: int) -> np.ndarray:
+    """Utility function to create a numpy mesh grid.
+
+    Args:
+        size (int, list): Size of each dimension.
+        dim (int): Dimension of the grid.
+
+    Returns:
+        np.ndarray: Mesh grid of form:
+    """
     if isinstance(size, int):
         size = [size] * dim
     else:
@@ -676,6 +685,7 @@ def _get_super_cell_frac_coords(lattice, frac_coords, size):
     doubled_size = np.array(size) * 2 + 1
     mesh = _get_mesh(doubled_size, dim)
     # frac_coords_expanded.shape == (1,1,1,num_atoms,3) (for dim == 3)
+    # noinspection PyTypeChecker
     frac_coords_expanded = np.expand_dims(frac_coords, np.arange(dim).tolist())
     # mesh_expanded.shape == (double_size[0], double_size[1], double_size[2], 1, 3) (for dim == 3)
     mesh_expanded = np.expand_dims(mesh - size, -2)
@@ -695,11 +705,21 @@ def _reshape_at_axis(arr, axis, new_shape):
 
 
 def _get_attr_from_graph(graph: MultiDiGraph, attr_name: str, make_copy: bool = False) -> Union[Any, np.ndarray]:
+    """Utility function to obtain graph-level information of the underlying crystal.
+
+    Args:
+        graph (MultiDiGraph): Networkx graph object.
+        attr_name (str): Name of the attribute.
+        make_copy (bool): Copy crystal-graph attribute.
+
+    Returns:
+        np.ndarray: Crystal information.
+    """
     if hasattr(graph, attr_name):
         if make_copy:
             out = deepcopy(getattr(graph, attr_name))
         else:
             out = getattr(graph, attr_name)
     else:
-        raise AttributeError("Must attach attribute '%s' to network graph for crystal information." % attr_name)
+        raise AttributeError("Must attach attribute '%s' of crystal information to networkx graph." % attr_name)
     return out
