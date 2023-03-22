@@ -12,15 +12,16 @@ class RadiusAsymmetricUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'symmop', 'offset']
     graph_attributes = ['lattice_matrix', 'spacegroup']
 
-    def __init__(self, radius: float = 3.0):
+    def __init__(self, radius: float = 3.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
+        super(RadiusAsymmetricUnitCell, self).__init__(**kwargs)
         self.radius = radius
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -46,7 +47,7 @@ class KNNAsymmetricUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'symmop', 'offset']
     graph_attributes = ['lattice_matrix', 'spacegroup']
 
-    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9):
+    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -55,10 +56,11 @@ class KNNAsymmetricUnitCell(CrystalPreprocessor):
                 edges with distances of the k-th nearest neighbor plus the tolerance value are included in the graph.
                 Defaults to 1e-9.
         """
+        super(KNNAsymmetricUnitCell, self).__init__(**kwargs)
         self.k = k
         self.tolerance = tolerance
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -84,7 +86,7 @@ class VoronoiAsymmetricUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'symmop', 'offset', 'voronoi_ridge_area']
     graph_attributes = ['lattice_matrix', 'spacegroup']
 
-    def __init__(self, min_ridge_area: Optional[float] = 0.0):
+    def __init__(self, min_ridge_area: Optional[float] = 0.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -92,9 +94,10 @@ class VoronoiAsymmetricUnitCell(CrystalPreprocessor):
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
                 the atoms of the cells is excluded from the graph. Defaults to 0.0.
         """
+        super(VoronoiAsymmetricUnitCell, self).__init__(**kwargs)
         self.min_ridge_area = min_ridge_area
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -120,15 +123,16 @@ class RadiusUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, radius: float = 3.0):
+    def __init__(self, radius: float = 3.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
+        super(RadiusUnitCell, self).__init__(**kwargs)
         self.radius = radius
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -153,7 +157,7 @@ class KNNUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9):
+    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -162,10 +166,11 @@ class KNNUnitCell(CrystalPreprocessor):
                 edges with distances of the k-th nearest neighbor plus the tolerance value are included in the graph.
                 Defaults to 1e-9.
         """
+        super(KNNUnitCell, self).__init__(**kwargs)
         self.k = k
         self.tolerance = tolerance
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -190,7 +195,7 @@ class VoronoiUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset', 'voronoi_ridge_area']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, min_ridge_area: Optional[float] = 0.0):
+    def __init__(self, min_ridge_area: Optional[float] = 0.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -198,9 +203,10 @@ class VoronoiUnitCell(CrystalPreprocessor):
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
                 the atoms of the cells is excluded from the graph. Defaults to 0.0.
         """
+        super(VoronoiUnitCell, self).__init__(**kwargs)
         self.min_ridge_area = min_ridge_area
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -225,7 +231,7 @@ class RadiusSuperCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, radius: float = 3.0, size: list = None):
+    def __init__(self, radius: float = 3.0, size: list = None, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -233,12 +239,13 @@ class RadiusSuperCell(CrystalPreprocessor):
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        super(RadiusSuperCell, self).__init__(**kwargs)
         if size is None:
             size = [3, 3, 3]
         self.radius = radius
         self.size = size
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -264,7 +271,7 @@ class KNNSuperCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, size: list = None):
+    def __init__(self, k: int = 12, tolerance: Optional[float] = 1e-9, size: list = None, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -275,13 +282,14 @@ class KNNSuperCell(CrystalPreprocessor):
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        super(KNNSuperCell, self).__init__(**kwargs)
         if size is None:
             size = [3, 3, 3]
         self.k = k
         self.tolerance = tolerance
         self.size = size
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -307,7 +315,7 @@ class VoronoiSuperCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset', 'voronoi_ridge_area']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, min_ridge_area: Optional[float] = 0.0, size: list = None):
+    def __init__(self, min_ridge_area: Optional[float] = 0.0, size: list = None, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -317,12 +325,13 @@ class VoronoiSuperCell(CrystalPreprocessor):
             size (list, optional): How many cells the crystal will get expanded into each dimension.
                 Defaults to [3,3,3].
         """
+        super(VoronoiSuperCell, self).__init__(**kwargs)
         if size is None:
             size = [3, 3, 3]
         self.size = size
         self.min_ridge_area = min_ridge_area
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -348,15 +357,16 @@ class RadiusNonPeriodicUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, radius: float = 3.0):
+    def __init__(self, radius: float = 3.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
             radius (float, optional): Cutoff radius for each atom in Angstrom units. Defaults to 3.0.
         """
+        super(RadiusNonPeriodicUnitCell, self).__init__(**kwargs)
         self.radius = radius
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -382,7 +392,7 @@ class KNNNonPeriodicUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, k=12, tolerance=1e-9):
+    def __init__(self, k=12, tolerance=1e-9, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -391,10 +401,11 @@ class KNNNonPeriodicUnitCell(CrystalPreprocessor):
                 edges with distances of the k-th nearest neighbor plus the tolerance value are included in the graph.
                 Defaults to 1e-9.
         """
+        super(KNNNonPeriodicUnitCell, self).__init__(**kwargs)
         self.k = k
         self.tolerance = tolerance
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -420,7 +431,7 @@ class VoronoiNonPeriodicUnitCell(CrystalPreprocessor):
     edge_attributes = ['cell_translation', 'distance', 'offset', 'voronoi_ridge_area']
     graph_attributes = ['lattice_matrix']
 
-    def __init__(self, min_ridge_area: Optional[float] = 0.0):
+    def __init__(self, min_ridge_area: Optional[float] = 0.0, **kwargs):
         """Initializes the crystal preprocessor.
 
         Args:
@@ -428,9 +439,10 @@ class VoronoiNonPeriodicUnitCell(CrystalPreprocessor):
                 If a ridge area between two voronoi cells is smaller than this value the corresponding edge between
                 the atoms of the cells is excluded from the graph. Defaults to 0.0.
         """
+        super(VoronoiNonPeriodicUnitCell, self).__init__(**kwargs)
         self.min_ridge_area = min_ridge_area
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -456,7 +468,7 @@ class UnitCell(CrystalPreprocessor):
     edge_attributes = []
     graph_attributes = ['lattice_matrix']
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:
@@ -479,7 +491,7 @@ class AsymmetricUnitCell(CrystalPreprocessor):
     edge_attributes = []
     graph_attributes = ['lattice_matrix', 'spacegroup']
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def call(self, structure: Structure) -> MultiDiGraph:
         """Builds the crystal graph (networkx.MultiDiGraph) for the pymatgen structure.
 
         Args:

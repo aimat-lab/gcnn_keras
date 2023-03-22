@@ -15,6 +15,23 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
     Concrete CrystalPreprocessors must be implemented as subclasses.
     """
 
+    def __init__(self, output_graph_as_dict: bool = False):
+        self.output_graph_as_dict = output_graph_as_dict
+
+    def call(self, structure: Structure) -> MultiDiGraph:
+        """Should be implemented in a subclass.
+
+        Args:
+            structure (Structure): Crystal for which the graph representation should be calculated.
+
+        Raises:
+            NotImplementedError:Should be implemented in a subclass.
+
+        Returns:
+            MultiDiGraph: Graph representation of the crystal.
+        """
+        raise NotImplementedError("Must be implemented in sub-class.")
+
     def __call__(self, structure: Structure) -> MultiDiGraph:
         """Should be implemented in a subclass.
 
@@ -27,7 +44,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         Returns:
             MultiDiGraph: Graph representation of the crystal.
         """
-        raise NotImplementedError()
+        return self.call(structure)
 
     def get_config(self) -> dict:
         """Returns a dictionary uniquely identifying the CrystalPreprocessor and its configuration.
