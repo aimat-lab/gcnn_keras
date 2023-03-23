@@ -22,7 +22,6 @@ setup(
         "rdkit>=2022.9.2",
         "pymatgen>=2022.11.7",
         "tensorflow>=2.9.0",
-        # "tensorflow-gpu>=2.10.0",  # No longer used in tensorflow.
         "tensorflow-addons>=0.18.0",
         "keras-tuner>=1.1.3",
         "requests>=2.28.1",
@@ -31,15 +30,15 @@ setup(
         "pyyaml>=6.0",
         "ase>=3.22.1",
         "click>=7.1.2",
-        "visual_graph_datasets>=0.7.1",
-        "brotli>=1.0.9"
+        "brotli>=1.0.9",
+        "pyxtal>=0.5.5"
     ],
     extras_require={
         "openbabel": ["openbabel"],
     },
     packages=find_packages(),
     include_package_data=True,
-    package_data={"kgcnn": ["*.json", "*.yaml"]},
+    package_data={"kgcnn": ["*.json", "*.yaml", "*.csv"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

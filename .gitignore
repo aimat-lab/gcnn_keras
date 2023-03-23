@@ -22,7 +22,7 @@ kgcnn.egg-info
 /notebooks/kt_dmpnn/*
 /notebooks/gcn_explain_*.png
 /notebooks/.ipynb_checkpoints
-/notebooks/graph_explainer/.ipynb_checkpoints
+/notebooks/graph_explanation/.ipynb_checkpoints
 /training/results/*/*/*.png
 /training/results/*/*/scaler_*
 /notebooks/docs/.ipynb_checkpoints/
@@ -30,10 +30,10 @@ kgcnn.egg-info
 /docs/source/.ipynb_checkpoints/
 /docs/source/Dataset/
 /docs/source/Example.kgcnn.pickle
-/notebooks/graph_explainer/gcn_explain_loss_cora.png
-/notebooks/graph_explainer/gcn_explain_mutag.png
-/notebooks/graph_explainer/gcn_explain_mutag_2.png
-/notebooks/graph_explainer/gcn_explain_mutag_3.png
+/notebooks/graph_explanation/gcn_explain_loss_cora.png
+/notebooks/graph_explanation/gcn_explain_mutag.png
+/notebooks/graph_explanation/gcn_explain_mutag_2.png
+/notebooks/graph_explanation/gcn_explain_mutag_3.png
 /docs/source/DatasetQM/
 /docs/source/DatasetTUD/
 /docs/source/DatasetMol/

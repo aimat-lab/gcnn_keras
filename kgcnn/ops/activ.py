@@ -4,7 +4,7 @@ ks = tf.keras
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='shifted_softplus')
 def shifted_softplus(x):
-    r"""Shifted softplus activation function.
+    r"""Shifted soft-plus activation function.
     
     Args:
         x (tf.Tensor): Single values to apply activation with tf.keras functions.
@@ -17,7 +17,7 @@ def shifted_softplus(x):
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='softplus2')
 def softplus2(x):
-    r"""Softplus function that is :math:`0` at :math:`x=0`, the implementation aims at avoiding overflow
+    r"""Soft-plus function that is :math:`0` at :math:`x=0`, the implementation aims at avoiding overflow
     :math:`\log(e^{x}+1) - \log(2)`.
     
     Args:

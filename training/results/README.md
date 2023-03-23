@@ -40,7 +40,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 
 | model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------------------|:--------|---------:|:-----------------------|:-----------------------|
-| AttentiveFP         | 2.1.0   |      200 | 0.4562 &pm; 0.0084     | 0.6322 &pm; 0.0257     |
+| AttentiveFP         | 3.0.0   |      200 | 0.4389 &pm; 0.0185     | 0.6103 &pm; 0.0256     |
 | CMPNN               | 2.1.0   |      600 | 0.4814 &pm; 0.0265     | 0.6821 &pm; 0.0193     |
 | DimeNetPP           | 2.1.0   |      872 | 0.4576 &pm; 0.0422     | 0.6505 &pm; 0.0708     |
 | DMPNN               | 2.1.0   |      300 | 0.4476 &pm; 0.0165     | 0.6349 &pm; 0.0152     |
