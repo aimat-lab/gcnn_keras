@@ -129,6 +129,72 @@ hyper = {
             "kgcnn_version": "2.0.4"
         }
     },
+    "DGIN": {
+        "model": {
+            "class_name": "make_model",
+            "module_name": "kgcnn.literature.DGIN",
+            "config": {
+                "name": "DGIN",
+                "inputs": [
+                    {"shape": (None, 41), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 11), "name": "edge_attributes", "dtype": "float32", "ragged": True},
+                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+                    {"shape": (None, 1), "name": "edge_indices_reverse", "dtype": "int64", "ragged": True}],
+                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
+                                    "edge": {"input_dim": 5, "output_dim": 64}},
+                "gin_mlp": {"units": [64,64], "use_bias": True, "activation": ["relu","linear"],
+                            "use_normalization": True, "normalization_technique": "graph_layer"},
+                "gin_args": {},
+                "pooling_args": {"pooling_method": "sum"},
+                "use_graph_state": False,
+                "edge_initialize": {"units": 100, "use_bias": True, "activation": "relu"},
+                "edge_dense": {"units": 100, "use_bias": True, "activation": "linear"},
+                "edge_activation": {"activation": "relu"},
+                "node_dense": {"units": 100, "use_bias": True, "activation": "relu"},
+                "verbose": 10, "depthDMPNN": 5,"depthGIN": 5, 
+                "dropoutDMPNN": {"rate": 0.05},
+                "dropoutGIN": {"rate": 0.05},
+                "output_embedding": "graph", "output_to_tensor": True,
+                "last_mlp": {"use_bias": [True, True], "units": [64, 32],
+                             "activation": ["relu", "relu"]},
+                "output_mlp": {"use_bias": True, "units": 1,
+                               "activation": "linear"}
+            }
+        },
+        "training": {
+            "fit": {"batch_size": 32, "epochs": 300, "validation_freq": 1, "verbose": 2, "callbacks": []},
+            "compile": {
+                "optimizer": {"class_name": "Adam",
+                              "config": {"learning_rate": {
+                                  "class_name": "ExponentialDecay",
+                                  "config": {"initial_learning_rate": 0.001,
+                                             "decay_steps": 1600,
+                                             "decay_rate": 0.5, "staircase": False}}
+                              }},
+                "loss": "mean_absolute_error",
+            },
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+        },
+        "data": {
+            "dataset": {
+                "class_name": "ESOLDataset",
+                "module_name": "kgcnn.data.datasets.ESOLDataset",
+                "config": {},
+                "methods": [
+                    {"set_attributes": {}},
+                    {"map_list": {"method": "set_edge_indices_reverse"}}
+                ]
+            },
+            "data_unit": "mol/L"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.0.3"
+        }
+    },
     "DMPNN": {
         "model": {
             "class_name": "make_model",
