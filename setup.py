@@ -21,7 +21,7 @@ setup(
         "matplotlib>=3.6.0",
         "rdkit>=2022.9.2",
         "pymatgen>=2022.11.7",
-        "tensorflow>=2.9.0",
+        "tensorflow-macos>=2.9.0",
         "tensorflow-addons>=0.18.0",
         "keras-tuner>=1.1.3",
         "requests>=2.28.1",
