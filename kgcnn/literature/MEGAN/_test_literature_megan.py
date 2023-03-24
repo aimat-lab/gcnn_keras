@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 from kgcnn.literature.MEGAN import MEGAN
 from kgcnn.literature.MEGAN import shifted_sigmoid
 
-# from .utils import ASSETS_PATH
-ASSETS_PATH = ""
+try:
+    from .utils import ASSETS_PATH
+except:
+    ASSETS_PATH = ""
 
 ks = tf.keras
 # mpl.use('TkAgg')
