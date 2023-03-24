@@ -8,8 +8,8 @@ from kgcnn.layers.modules import LazyAdd, Activation, LazyConcatenate
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='rGIN')
 class rGIN(GraphBaseLayer):
-    r"""Convolutional unit of `Graph Isomorphism Network from: How Powerful are Graph Neural Networks?
-    <https://arxiv.org/abs/1810.00826>`_.
+    r"""Random Features Strengthen Graph Neural Networks
+    <https://arxiv.org/abs/2002.03155>`_.
 
     Computes graph convolution at step :math:`k` for node embeddings :math:`h_\nu` as:
 
