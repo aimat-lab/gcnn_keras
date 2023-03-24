@@ -183,7 +183,7 @@ def write_mol_block_list_to_sdf(mol_block_list, filepath):
 
 
 def read_mol_list_from_sdf_file(filepath, line_by_line=False):
-    """Simple loader to load a SDF file by only splitting.
+    """Simple loader to load an SDF file by only splitting.
 
     Args:
         filepath (str): File path for SDF file.
