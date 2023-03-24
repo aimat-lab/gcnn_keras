@@ -5,7 +5,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
 from kgcnn.layers.pooling import PoolingLocalEdges 
 from kgcnn.layers.modules import LazySubtract,LazyAdd
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DMPNNPPoolingEdgesDirected')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='DGINPoolingEdgesDirected')
 class DMPNNPPoolingEdgesDirected(GraphBaseLayer):
     """Pooling of edges for around a target node as defined by
     `DMPNN <https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237>`__ . This slightly different than the normal node

@@ -2,7 +2,7 @@ import unittest
 
 import tensorflow as tf
 
-from kgcnn.xai.testing import MockContext
+from ._xai._testing import MockContext
 from kgcnn.literature.GNNExplain import GnnExplainer
 
 

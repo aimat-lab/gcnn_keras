@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 ks = tf.keras
 
-from kgcnn.xai.base import ImportanceExplanationMethod
+from ._xai._base import ImportanceExplanationMethod
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.

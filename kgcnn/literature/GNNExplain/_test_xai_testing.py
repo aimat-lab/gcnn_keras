@@ -2,8 +2,9 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
-from kgcnn.literature.MEGAN._xai._testing import MockContext
-ks = tf.keras
+import tensorflow.keras as ks
+
+from ._xai._testing import MockContext
 
 
 class TestMockContext(unittest.TestCase):

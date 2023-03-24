@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from kgcnn.literature.MEGAN._xai._utils import flatten_importances_list
+from ._xai._utils import flatten_importances_list
 
 
 class TestFunctions(unittest.TestCase):
