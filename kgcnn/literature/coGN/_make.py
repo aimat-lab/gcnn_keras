@@ -9,17 +9,32 @@ from kgcnn.literature.coGN._embedding_layers._edge_embedding import EdgeEmbeddin
 from kgcnn.crystal.periodic_table.periodic_table import PeriodicTable
 from kgcnn.layers.mlp import MLP
 from tensorflow.keras.layers import GRUCell, LSTMCell
-from copy import deepcopy
-import kgcnn.literature.coGN._coGN_config as coGN_config
-import kgcnn.literature.coGN._coNGN_config as coNGN_config
+from kgcnn.model.utils import update_model_kwargs
+from ._coGN_config import model_default
 
 ks = tf.keras
 
 
-def make_model(input_block_cfg=coGN_config.input_block_cfg,
-               processing_blocks_cfgs=coGN_config.depth * [coGN_config.processing_block_cfg],
-               output_block_cfg=coGN_config.output_block_cfg,
-               multiplicity=True, line_graph=False, voronoi_ridge_area=False):
+@update_model_kwargs(model_default)
+def make_model(input_block_cfg=None,
+               processing_blocks_cfgs=None,
+               output_block_cfg=None,
+               multiplicity=None,
+               line_graph=None,
+               voronoi_ridge_area=None):
+    r"""Make connectivity optimized graph networks for crystals.
+
+    Args:
+        input_block_cfg (dict): Input block config.
+        processing_blocks_cfgs (list): List of processing block configs.
+        output_block_cfg: Output block config.
+        multiplicity: Use multiplicity.
+        line_graph: Use line graph.
+        voronoi_ridge_area: Use Voronoi ridge area information.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
     offset = ks.Input(shape=(None, 3), dtype=tf.float32, name='offset', ragged=True)
     atomic_number = ks.Input(shape=(None,), dtype=tf.int32, name='atomic_number', ragged=True)
     edge_indices = ks.Input(shape=(None, 2), dtype=tf.int32, name='edge_indices', ragged=True)

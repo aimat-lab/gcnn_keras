@@ -1,10 +1,10 @@
-from crystalgnns.kgcnn_layers.gates import HadamardProductGate
-from crystalgnns.kgcnn_layers.graph_network.graph_networks import NestedGraphNetwork, SequentialGraphNetwork, \
+from ._gates import HadamardProductGate
+from ._graph_network.graph_networks import NestedGraphNetwork, SequentialGraphNetwork, \
     GraphNetwork, \
     GraphNetworkMultiplicityReadout, CrystalInputBlock
-from crystalgnns.kgcnn_layers.embedding_layers.atom_embedding import AtomEmbedding
-from crystalgnns.kgcnn_layers.embedding_layers.edge_embedding import EdgeEmbedding
-from crystalgnns.periodic_table.periodic_table import PeriodicTable
+from ._embedding_layers._atom_embedding import AtomEmbedding
+from ._embedding_layers._edge_embedding import EdgeEmbedding
+from kgcnn.crystal.periodic_table.periodic_table import PeriodicTable
 from kgcnn.layers.mlp import MLP
 from tensorflow.keras.layers import GRUCell, LSTMCell
 from copy import deepcopy

@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 units = 160
 depth = 5
 nested_depth = 1
@@ -97,3 +99,13 @@ output_block_cfg = {'edge_mlp': None,
                     'update_nodes_input': [True, False, False],
                     'update_global_input': [False, True, False],
                     'multiplicity_readout': True}
+
+
+model_default_nested = {
+    "input_block_cfg": input_block_cfg,
+    "processing_block_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
+    "output_block_cfg": output_block_cfg,
+    "multiplicity": True,
+    "line_graph": False,
+    "voronoi_ridge_area": False
+}
