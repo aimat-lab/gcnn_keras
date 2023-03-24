@@ -47,8 +47,8 @@ def make_model(inputs: list = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
-    r"""Make `GIN <https://arxiv.org/abs/1810.00826>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.GIN.model_default`.
+    r"""Make `rGIN https://arxiv.org/abs/2002.03155`_ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.rGIN.model_default`.
 
     Inputs:
         list: `[node_attributes, edge_indices]`
