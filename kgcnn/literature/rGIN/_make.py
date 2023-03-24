@@ -24,7 +24,7 @@ model_default = {
     "input_embedding": {"node": {"input_dim": 95, "output_dim": 64}},
     "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                 "use_normalization": True, "normalization_technique": "graph_batch"},
-    "rgin_args": {"random_features_dim": 32},
+    "rgin_args": {"random_range": 100},
     "depth": 3, "dropout": 0.0, "verbose": 10,
     "last_mlp": {"use_bias": [True, True, True], "units": [64, 64, 64],
                  "activation": ["relu", "relu", "linear"]},

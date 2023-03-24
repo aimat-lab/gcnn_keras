@@ -26,7 +26,7 @@ class rGIN(GraphBaseLayer):
     def __init__(self,
                  pooling_method='sum',
                  epsilon_learnable=False,
-                 random_features_dim=64,
+                 random_range=100,
                  **kwargs):
         """Initialize layer.
 
@@ -35,10 +35,9 @@ class rGIN(GraphBaseLayer):
             pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         """
         super(rGIN, self).__init__(**kwargs)
-        print(random_features_dim)
         self.pooling_method = pooling_method
         self.epsilon_learnable = epsilon_learnable
-        self.random_features_dim = random_features_dim
+        self.random_range = random_range
 
 
         # Layers
@@ -91,6 +90,6 @@ class rGIN(GraphBaseLayer):
         config = super(rGIN, self).get_config()
         config.update({"pooling_method": self.pooling_method,
                        "epsilon_learnable": self.epsilon_learnable,
-                       "random_features_dim": self.random_features_dim})
+                       "random_range": self.random_range})
         return config
 
