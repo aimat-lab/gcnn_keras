@@ -414,7 +414,7 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
     frac_coords2 = []
     cell_translations = []
 
-    # Collect necessary coordinate informations for calculations
+    # Collect necessary coordinate information for calculations
     for e in new_graph.edges(data='cell_translation'):
         frac_coords1.append(new_graph.nodes[e[0]]['frac_coords'])
         cell_translations.append(e[2])
@@ -431,7 +431,7 @@ def add_edge_information(graph: MultiDiGraph, inplace=False,
     else:
         distances = None
 
-    # Add calculated informations to edge attributes
+    # Add calculated information to edge attributes
     for i, e in enumerate(new_graph.edges(data=True)):
         if add_frac_offset:
             e[2]['frac_offset'] = frac_offset[i]
@@ -450,7 +450,7 @@ def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = Tru
     Args:
         graph (MultiDiGraph): Unit cell graph to generate non-periodic graph for.
         add_reverse_edges (bool, optional): Whether to add incoming edges to atoms
-            that lie outside of the center unit cell.
+            that lie outside the central unit cell.
             Defaults to True.
         inplace (bool, optional): Whether to add distances (`distance` attribute) to edges.
             Defaults to False.
@@ -611,6 +611,16 @@ def get_ridge_area(ridge_points):
     return area
 
 
+def _reshape_at_axis(arr, axis, new_shape):
+    # move reshape axis to last axis position, because np.reshape reshapes this first
+    arr_tmp = np.moveaxis(arr, axis, -1)
+    shape = arr_tmp.shape[:-1] + new_shape
+    new_positions = np.arange(len(new_shape)) + axis
+    old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
+    # now call np.reshape and move axis to right position
+    return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
+
+
 def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     """Get the pairwise offset difference between two vector sets.
 
@@ -630,7 +640,7 @@ def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
 
 
 def _get_mesh(size: Union[int, list, tuple], dim: int) -> np.ndarray:
-    """Utility function to create a numpy mesh grid.
+    """Utility function to create a numpy mesh grid with indices at last dimension.
 
     Args:
         size (int, list): Size of each dimension.
@@ -650,30 +660,56 @@ def _get_mesh(size: Union[int, list, tuple], dim: int) -> np.ndarray:
     return mesh
 
 
-def _get_cube(dim: int):
+def _get_cube(dim: int) -> np.ndarray:
+    """Generate a cubic mesh.
+
+    Args:
+        dim (int): Dimension for cubic mesh.
+
+    Returns:
+        np.ndarray: Cubic mesh.
+    """
     return _get_mesh(2, dim)
 
 
-def _get_max_diameter(lattice):
+def _get_max_diameter(lattice: np.ndarray) -> Union[float, np.ndarray]:
+    """Determine the max diameter of a lattice.
+
+    Args:
+        lattice (np.ndarray): Lattice matrix.
+
+    Returns:
+        np.ndarray: Max diameter of the lattice.
+    """
     dim = lattice.shape[0]
     cube = _get_cube(dim)
     max_radius = np.max(np.linalg.norm((cube - 1 / 2) @ lattice, axis=1))
     return max_radius * 2
 
 
-def _get_super_cell_size_from_radius(lattice: np.ndarray, radius: float):
-    dim = lattice.shape[0]
-    max_diameter = _get_max_diameter(lattice)
-    radius_ = radius + max_diameter
-    cell_indices = np.ceil(np.sum(np.abs(np.linalg.inv(lattice)), axis=0) * radius_).astype(int)
-    cells = _get_mesh(cell_indices + 1, dim)
-    lattice_point_coords = cells @ lattice
-    images = np.argwhere(np.linalg.norm(lattice_point_coords, axis=-1) <= radius_)
-    super_cell_size = images.max(axis=0)
-    return super_cell_size
+# def _get_super_cell_size_from_radius(lattice: np.ndarray, radius: float):
+#     dim = lattice.shape[0]
+#     max_diameter = _get_max_diameter(lattice)
+#     radius_ = radius + max_diameter
+#     cell_indices = np.ceil(np.sum(np.abs(np.linalg.inv(lattice)), axis=0) * radius_).astype(int)
+#     cells = _get_mesh(cell_indices + 1, dim)
+#     lattice_point_coords = cells @ lattice
+#     images = np.argwhere(np.linalg.norm(lattice_point_coords, axis=-1) <= radius_)
+#     super_cell_size = images.max(axis=0)
+#     return super_cell_size
 
 
-def _get_super_cell_frac_coords(lattice, frac_coords, size):
+def _get_super_cell_frac_coords(lattice: np.ndarray, frac_coords: np.ndarray, size: Union[int, list]):
+    """Get a list of frac coordinates for all super-cell positions.
+
+    Args:
+        lattice (np.ndarray): Lattice matrix.
+        frac_coords (np.ndarray): Fractional coordinates of atoms in unit cell.
+        size (list): Size of the super-cell.
+
+    Returns:
+        np.ndarray: List of fractional coordinates of atoms in the super-cell.
+    """
     dim = lattice.shape[0]
 
     if isinstance(size, int):
@@ -692,16 +728,6 @@ def _get_super_cell_frac_coords(lattice, frac_coords, size):
     expanded_frac_coords = mesh_expanded + frac_coords_expanded
 
     return expanded_frac_coords
-
-
-def _reshape_at_axis(arr, axis, new_shape):
-    # move reshape axis to last axis position, because np.reshape reshapes this first
-    arr_tmp = np.moveaxis(arr, axis, -1)
-    shape = arr_tmp.shape[:-1] + new_shape
-    new_positions = np.arange(len(new_shape)) + axis
-    old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
-    # now call np.reshape and move axis to right position
-    return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
 
 
 def _get_attr_from_graph(graph: MultiDiGraph, attr_name: str, make_copy: bool = False) -> Union[Any, np.ndarray]:
