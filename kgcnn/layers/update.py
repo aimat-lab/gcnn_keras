@@ -6,7 +6,7 @@ from kgcnn.layers.modules import Dense, LazyAdd
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GRUUpdate')
 class GRUUpdate(GraphBaseLayer):
-    """Gated recurrent unit for updating embeddings. First proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
+    """Gated recurrent unit for updating embeddings. As proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`__ .
 
     Args:
         units (int): Units for GRU.
