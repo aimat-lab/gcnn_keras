@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.modules import LazyAdd, Activation
+from kgcnn.layers.modules import LazyAdd, Activation, LazyConcatenate
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='rGIN')
@@ -35,6 +35,7 @@ class rGIN(GraphBaseLayer):
             pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         """
         super(rGIN, self).__init__(**kwargs)
+        print(random_features_dim)
         self.pooling_method = pooling_method
         self.epsilon_learnable = epsilon_learnable
         self.random_features_dim = random_features_dim
@@ -44,21 +45,13 @@ class rGIN(GraphBaseLayer):
         self.lay_gather = GatherNodesOutgoing()
         self.lay_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
         self.lay_add = LazyAdd()
+        self.lay_concat = LazyConcatenate()
 
         # Epsilon with trainable as optional and default zeros initialized.
         self.eps_k = self.add_weight(name="epsilon_k", trainable=self.epsilon_learnable,
                                      initializer="zeros", dtype=self.dtype)
 
     def build(self, input_shape):
-        # Initialize the random feature matrix
-        self.random_features_matrix = self.add_weight(
-            name="random_features_matrix",
-            shape=[input_shape[0][-1], self.random_features_dim],
-            initializer="random_normal",
-            trainable=False,
-            dtype=self.dtype
-        )
-
         """Build layer."""
         super(rGIN, self).build(input_shape)
 
@@ -75,18 +68,21 @@ class rGIN(GraphBaseLayer):
             tf.RaggedTensor: Node embeddings of shape `(batch, [N], F)`
         """
         node, edge_index = inputs
+       
+        # Add a random feature to the node
+        node_shape = tf.shape(node.flat_values)
+        random_values = tf.RaggedTensor.from_row_lengths(
+            tf.cast(tf.random.uniform([node_shape[0], 1], maxval=self.random_range, dtype=tf.int32), self.dtype) / self.random_range,
+            row_lengths=node.row_lengths()
+        )
+        node = self.lay_concat([node, random_values])
+
         ed = self.lay_gather([node, edge_index], **kwargs)
         nu = self.lay_pool([node, ed, edge_index], **kwargs)  # Summing for each node connection
         no = (1+self.eps_k)*node
-        
-
-        # Apply random feature matrix to the node embeddings
-        random_node_features = tf.matmul(no, self.random_features_matrix)
-        random_nu_features = tf.matmul(nu, self.random_features_matrix)
-
-        out = self.lay_add([random_node_features, random_nu_features], **kwargs)
-
-
+               
+        # Add the random features to the original features
+        out = self.lay_add([node, nu], **kwargs)
 
         return out
 

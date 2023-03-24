@@ -323,7 +323,7 @@ hyper = {
                 "dropout": 0.05,
                 "gin_mlp": {"units": [64, 64], "use_bias": True, "activation": ["relu", "linear"],
                             "use_normalization": True, "normalization_technique": "graph"},
-                "rgin_args": {"random_features_dim": 32},
+                "rgin_args": {"random_range": 100},
                 "last_mlp": {"use_bias": True, "units": [64, 32, 1], "activation": ["relu", "relu", "linear"]},
                 "output_embedding": "graph",
                 "output_mlp": {"activation": "linear", "units": 1}
