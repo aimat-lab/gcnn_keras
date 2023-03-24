@@ -1,8 +1,9 @@
 from hashlib import md5
 import logging
 from pymatgen.core.structure import Structure
-from typing import Callable, Optional
+from typing import Callable, Union
 from networkx import MultiDiGraph
+from kgcnn.graph.base import GraphDict
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -14,6 +15,10 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
 
     Concrete CrystalPreprocessors must be implemented as subclasses.
     """
+
+    node_attributes = []
+    edge_attributes = []
+    graph_attributes = []
 
     def __init__(self, output_graph_as_dict: bool = False):
         self.output_graph_as_dict = output_graph_as_dict
@@ -32,7 +37,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         """
         raise NotImplementedError("Must be implemented in sub-class.")
 
-    def __call__(self, structure: Structure) -> MultiDiGraph:
+    def __call__(self, structure: Structure) -> Union[MultiDiGraph, GraphDict]:
         """Should be implemented in a subclass.
 
         Args:
@@ -44,6 +49,13 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         Returns:
             MultiDiGraph: Graph representation of the crystal.
         """
+        if self.output_graph_as_dict:
+            nxg = self.call(structure)
+            g = GraphDict()
+            g.from_networkx(
+                nxg, node_attributes=self.node_attributes, edge_attributes=self.edge_attributes,
+                graph_attributes=self.graph_attributes)
+            return g
         return self.call(structure)
 
     def get_config(self) -> dict:

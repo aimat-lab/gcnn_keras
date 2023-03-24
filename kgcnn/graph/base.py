@@ -4,7 +4,7 @@ import logging
 import networkx as nx
 from collections.abc import MutableMapping
 from kgcnn.graph.serial import get_preprocessor
-from typing import Any, Union
+from typing import Any, Union, List
 from copy import deepcopy, copy
 
 logging.basicConfig()  # Module logger
@@ -176,8 +176,9 @@ class GraphDict(dict):
     def from_networkx(self, graph: nx.Graph,
                       node_number: str = "node_number",
                       edge_indices: str = "edge_indices",
-                      node_attributes: str = None,
-                      edge_attributes: str = None,
+                      node_attributes: Union[str, List[str]] = None,
+                      edge_attributes: Union[str, List[str]] = None,
+                      graph_attributes: Union[str, List[str]] = None,
                       node_labels: str = None):
         r"""Convert a networkx graph instance into a dictionary of graph-tensors. The networkx graph is always converted
         into integer node labels. The former node IDs can be hold in :obj:`node_labels`. Furthermore, node or edge
@@ -190,6 +191,8 @@ class GraphDict(dict):
             node_attributes (str, list): Name of node attributes to add from node data. Can also be a list of names.
                 Default is None.
             edge_attributes (str, list): Name of edge attributes to add from edge data. Can also be a list of names.
+                Default is None.
+            graph_attributes (str, list): Name of graph attributes to add from graph data. Can also be a list of names.
                 Default is None.
             node_labels (str): Name of the labels of nodes to store former node IDs into. Default is None.
 
@@ -219,18 +222,27 @@ class GraphDict(dict):
             nodes_id.append(x[0])
             for d in node_attr:
                 if d not in x[1]:
-                    raise KeyError("Node does not have property %s" % d)
+                    raise KeyError("Node does not have property '%s'." % d)
                 node_attr_dict[d][i] = x[1][d]
 
+        # Loop over edges in graph.
         edge_id = []
         edges_attr = _attr_to_list(edge_attributes)
-        edges_attr_dict = {x: [None] * graph.number_of_edges() for x in edges_attr}
+        edges_attr_dict = {x: [None] * graph_int.number_of_edges() for x in edges_attr}
         for i, x in enumerate(graph_int.edges.data()):
             edge_id.append(x[:2])
             for d in edges_attr:
                 if d not in x[2]:
-                    raise KeyError("Edge does not have property %s" % d)
+                    raise KeyError("Edge does not have property '%s'." % d)
                 edges_attr_dict[d][i] = x[2][d]
+
+        graph_attr = _attr_to_list(graph_attributes)
+        graph_attr_dict = {x: None for x in graph_attr}
+        # We use original graph input for this. Does not need node relabeling.
+        for _, x in enumerate(graph_attr):
+            # This is a temporary solution until we find a better way to store graph-level information.
+            if hasattr(graph, x):
+                graph_attr_dict[x] = getattr(graph, x)
 
         # Storing graph tensors in self.
         self.assign_property(node_number, nodes_id)
@@ -238,6 +250,8 @@ class GraphDict(dict):
         for key, value in node_attr_dict.items():
             self.assign_property(key, value)
         for key, value in edges_attr_dict.items():
+            self.assign_property(key, value)
+        for key, value in graph_attr_dict.items():
             self.assign_property(key, value)
         return self
 
