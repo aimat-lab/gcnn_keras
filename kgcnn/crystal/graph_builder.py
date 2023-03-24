@@ -611,16 +611,6 @@ def get_ridge_area(ridge_points):
     return area
 
 
-def _reshape_at_axis(arr, axis, new_shape):
-    # move reshape axis to last axis position, because np.reshape reshapes this first
-    arr_tmp = np.moveaxis(arr, axis, -1)
-    shape = arr_tmp.shape[:-1] + new_shape
-    new_positions = np.arange(len(new_shape)) + axis
-    old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
-    # now call np.reshape and move axis to right position
-    return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
-
-
 def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     """Get the pairwise offset difference between two vector sets.
 
@@ -631,6 +621,16 @@ def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Difference values of shape (n,m,3)
     """
+
+    def _reshape_at_axis(arr, axis, new_shape):
+        # move reshape axis to last axis position, because np.reshape reshapes this first
+        arr_tmp = np.moveaxis(arr, axis, -1)
+        shape = arr_tmp.shape[:-1] + new_shape
+        new_positions = np.arange(len(new_shape)) + axis
+        old_positions = np.arange(len(new_shape)) + (len(arr.shape) - 1)
+        # now call np.reshape and move axis to right position
+        return np.moveaxis(arr_tmp.reshape(shape), old_positions, new_positions)
+
     # Difference calculated at last axis of both inputs
     assert coords1.shape[-1] == coords2.shape[-1]
     coords1_reshaped = coords1.reshape(-1, coords1.shape[-1])
