@@ -18,7 +18,7 @@ class CrystalDataset(MemoryGraphDataset):
     r"""Class for making graph dataset from periodic structures such as crystals.
 
     The dataset class requires a :obj:`data_directory` to store a table '.csv' file containing labels and information
-    of the structures stored in multiple (CIF, POSCAR, ...) files in :obj:`file_directory`.
+    of the structures stored in multiple (CIF, POSCAR, ...) files in :obj:`file_directory` .
     The file names must be included in the '.csv' table. The table file must have one line of header with column names!
 
     .. code-block:: console
@@ -34,7 +34,7 @@ class CrystalDataset(MemoryGraphDataset):
 
     This class uses :obj:`pymatgen.core.structure.Structure` and therefore requires :obj:`pymatgen` to be installed.
     A '.pymatgen.json' serialized file is generated to store a list of structures from single '.cif' files via
-    :obj:`prepare_data()`.
+    :obj:`prepare_data()` .
     Consequently, a 'file_name.pymatgen.json' can be directly stored in :obj:`data_directory`.
     In this, case :obj:`prepare_data()` does not have to be used. Additionally, a table file 'file_name.csv'
     that lists the single file names and possible labels or classification targets is required.

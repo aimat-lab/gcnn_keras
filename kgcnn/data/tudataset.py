@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from typing import Callable
 # import logging
 
 from kgcnn.data.base import MemoryGraphDataset
@@ -123,7 +124,7 @@ class GraphTUDataset(MemoryGraphDataset):
         if g_labels is not None:
             if len(g_labels) != num_graphs:
                 self.error(
-                    "Wrong number of graphs, not matching graph labels, {0}, {1}".format(len(g_labels), num_graphs))
+                    "Wrong number of graphs, not matching graph labels, {0}, {1}.".format(len(g_labels), num_graphs))
 
         # shift index, should start at 0 for python indexing
         if int(np.amin(g_n_id)) == 1 and int(np.amin(g_a)) == 1:
@@ -189,7 +190,7 @@ class GraphTUDataset(MemoryGraphDataset):
         return self
 
     @staticmethod
-    def read_csv_simple(filepath: str, delimiter: str = ",", dtype=float):
+    def read_csv_simple(filepath: str, delimiter: str = ",", dtype: Callable = float):
         """Very simple python-only function to read in a csv-file from file.
 
         Args:

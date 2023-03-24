@@ -15,7 +15,7 @@ except:
         periodic_table_csv = file_name
 
 
-class PeriodicTable():
+class PeriodicTable:
     """Utility class to provide further element type information for crystal graph node embeddings."""
     
     def __init__(self, csv_path=periodic_table_csv,
@@ -23,9 +23,9 @@ class PeriodicTable():
                  normalize_atomic_radius=True,
                  normalize_electronegativity=True,
                  normalize_ionization_energy=True,
-                 imputation_atomic_radius=209.46, # mean value
-                 imputation_electronegativity=1.18, # educated guess (based on neighbour elements)
-                 imputation_ionization_energy=8.): # mean value
+                 imputation_atomic_radius=209.46,  # mean value
+                 imputation_electronegativity=1.18,  # educated guess (based on neighbour elements)
+                 imputation_ionization_energy=8.):  # mean value
         self.data = pd.read_csv(csv_path)
         self.data['AtomicRadius'].fillna(imputation_atomic_radius, inplace=True)
         # Pm, Eu, Tb, Yb are inside the mp_e_form dataset, but have no electronegativity value
@@ -81,7 +81,7 @@ class PeriodicTable():
             return self.parse_oxidation_state_string(oxidation_states, encode=True)
     
     @staticmethod
-    def parse_oxidation_state_string(s: str, encode: bool=True):
+    def parse_oxidation_state_string(s: str, encode: bool = True):
         if encode:
             oxidation_states = [0] * 14
             if isinstance(s, float):
@@ -95,4 +95,3 @@ class PeriodicTable():
             for i in s.split(','):
                 oxidation_states.append(int(i))
         return oxidation_states
-

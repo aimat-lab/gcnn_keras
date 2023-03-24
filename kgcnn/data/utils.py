@@ -122,15 +122,15 @@ def load_hyper_file(file_name: str, **kwargs) -> dict:
         hyper = getattr(SourceFileLoader(os.path.basename(path).replace(".py", ""), path).load_module(), "hyper")
         return hyper
     else:
-        module_logger.error("Unsupported file type %s" % type_ending)
+        module_logger.error("Unsupported file type '%s'." % type_ending)
     return {}
 
 
-def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = None, row_splits_dtype = "int64"):
+def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = None, row_splits_dtype: str = "int64"):
     r"""Make ragged tensor from a list of numpy arrays. Each array can have different length but must match in shape
     except the first dimension.
     This will result in a ragged tensor with ragged dimension only at first axis (ragged_rank=1), like
-    shape `(batch, None, ...)`. This way a tensor can be generated faster than tf.ragged.constant().
+    shape `(batch, None, ...)` . This way a tensor can be generated faster than `tf.ragged.constant()` .
 
     .. warning::
         The data will be copied for this operation.
@@ -161,7 +161,7 @@ def pad_np_array_list_batch_dim(values: list):
     r"""Pad a list of numpy arrays along first dimension.
 
     Args:
-        values (list): List of :obj:`np.ndarray`.
+        values (list): List of :obj:`np.ndarray` .
 
     Returns:
         tuple: Padded and mask :obj:`np.ndarray` of values.
