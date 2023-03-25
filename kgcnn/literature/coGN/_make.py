@@ -16,7 +16,8 @@ ks = tf.keras
 
 
 @update_model_kwargs(model_default)
-def make_model(input_block_cfg=None,
+def make_model(inputs=None,
+               input_block_cfg=None,
                processing_blocks_cfgs=None,
                output_block_cfg=None,
                multiplicity=None,
@@ -25,6 +26,7 @@ def make_model(input_block_cfg=None,
     r"""Make connectivity optimized graph networks for crystals.
 
     Args:
+        inputs (list): List of inputs kwargs.
         input_block_cfg (dict): Input block config.
         processing_blocks_cfgs (list): List of processing block configs.
         output_block_cfg: Output block config.
@@ -35,21 +37,25 @@ def make_model(input_block_cfg=None,
     Returns:
         :obj:`tf.keras.models.Model`
     """
-    offset = ks.Input(shape=(None, 3), dtype=tf.float32, name='offset', ragged=True)
-    atomic_number = ks.Input(shape=(None,), dtype=tf.int32, name='atomic_number', ragged=True)
-    edge_indices = ks.Input(shape=(None, 2), dtype=tf.int32, name='edge_indices', ragged=True)
+    _inputs = [x for x in inputs]  # Temp list to be changed.
+    offset = ks.Input(**_inputs.pop(0))
+    atomic_number = ks.Input(**_inputs.pop(0))
+    edge_indices = ks.Input(**_inputs.pop(0))
 
     if voronoi_ridge_area:
-        inp_voronoi_ridge_area = ks.Input(shape=(None,), dtype=tf.float32, name='voronoi_ridge_area', ragged=True)
+        inp_voronoi_ridge_area = ks.Input(**_inputs.pop(0))
     if multiplicity:
-        inp_multiplicity = ks.Input(shape=(None,), dtype=tf.int32, name='multiplicity', ragged=True)
+        inp_multiplicity = ks.Input(**_inputs.pop(0))
         inp_multiplicity_ = tf.cast(inp_multiplicity, tf.float32)
     if line_graph:
-        line_graph_edge_indices = ks.Input(shape=(None, 2), dtype=tf.int32, name='line_graph_edge_indices', ragged=True)
+        line_graph_edge_indices = ks.Input(**_inputs.pop(0))
         line_graph_angle_decoder = LineGraphAngleDecoder()
         angle_embedding_layer = GaussBasisExpansion.from_bounds(16, 0, 3.2)
         angles, _, _, _ = line_graph_angle_decoder([None, offset, None, line_graph_edge_indices])
         angle_embeddings = angle_embedding_layer(tf.expand_dims(angles, -1))
+
+    if len(_inputs) != 0:
+        raise ValueError("Wrong number of inputs specified in config.")
 
     euclidean_norm = EuclideanNorm()
     distance = euclidean_norm(offset)

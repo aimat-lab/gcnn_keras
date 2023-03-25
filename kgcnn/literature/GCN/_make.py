@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.casting import ChangeTensorType
-from ._gcn_conv import GCN
+from kgcnn.layers.conv import GCN
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes

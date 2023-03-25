@@ -485,4 +485,52 @@ hyper = {
             "kgcnn_version": "2.2.3"
         }
     },
+    "coGN": {
+        "model": {
+            "module_name": "kgcnn.literature.coGN",
+            "class_name": "make_crystal_model",
+            "config": {
+                # All default.
+            }
+        },
+        "training": {
+            "cross_validation": {"class_name": "KFold",
+                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
+            "fit": {
+                "batch_size": 32, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "callbacks": [
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 0.0005, "learning_rate_stop": 0.5e-05, "epo_min": 100, "epo": 1000,
+                        "verbose": 0}
+                     }
+                ]
+            },
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "loss": "mean_absolute_error"
+            },
+            "scaler": {
+                "class_name": "StandardScaler",
+                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "config": {"with_std": True, "with_mean": True, "copy": True}
+            },
+            "multi_target_indices": None
+        },
+        "data": {
+            "dataset": {
+                "class_name": "MatProjectJdft2dDataset",
+                "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
+                "config": {},
+                "methods": [
+                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
+                ]
+            },
+            "data_unit": "meV/atom"
+        },
+        "info": {
+            "postfix": "",
+            "postfix_file": "",
+            "kgcnn_version": "2.2.3"
+        }
+    },
 }
