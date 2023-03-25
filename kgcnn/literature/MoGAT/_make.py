@@ -121,7 +121,7 @@ def make_model(inputs: list = None,
         # we apply a super node to each atomic node representation and concate them 
         out = LazyConcatenate()([PoolingNodesAttentive_(units=attention_args['units'], depth=depthmol)(ni) for ni in list_emb]) # Tensor output.        
         # we compute the weigthed scaled self-attention of the super nodes
-        at = ks.layers.Attention(use_scale=True, score_mode="dot")([out, out])
+        at = ks.layers.Attention(dropout=dropout,use_scale=True, score_mode="dot")([out, out])
         # we apply the dot product
         out = at*out
         # in the paper this is only one dense layer to the target ... very simple
