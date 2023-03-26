@@ -18,7 +18,7 @@ ks = tf.keras
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_block_cfg=None,
-               processing_blocks_cfgs=None,
+               processing_blocks_cfg=None,
                output_block_cfg=None,
                multiplicity=None,
                line_graph=None,
@@ -28,7 +28,7 @@ def make_model(inputs=None,
     Args:
         inputs (list): List of inputs kwargs.
         input_block_cfg (dict): Input block config.
-        processing_blocks_cfgs (list): List of processing block configs.
+        processing_blocks_cfg (list): List of processing block configs.
         output_block_cfg: Output block config.
         multiplicity: Use multiplicity.
         line_graph: Use line graph.
@@ -61,7 +61,7 @@ def make_model(inputs=None,
     distance = euclidean_norm(offset)
     crystal_input_block = GraphNetworkConfigurator.get_input_block(**input_block_cfg)
     sequential_gn = SequentialGraphNetwork(
-        [GraphNetworkConfigurator.get_gn_block(**cfg) for cfg in processing_blocks_cfgs]
+        [GraphNetworkConfigurator.get_gn_block(**cfg) for cfg in processing_blocks_cfg]
     )
     output_block = GraphNetworkConfigurator.get_gn_block(**output_block_cfg)
 

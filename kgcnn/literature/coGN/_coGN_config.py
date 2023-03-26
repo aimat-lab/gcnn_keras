@@ -81,7 +81,7 @@ model_default = {
         # {"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True}
     ],
     "input_block_cfg": input_block_cfg,
-    "processing_block_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
+    "processing_blocks_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
     "output_block_cfg": output_block_cfg,
     "multiplicity": True,
     "line_graph": False,
