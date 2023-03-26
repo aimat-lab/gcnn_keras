@@ -1,4 +1,6 @@
 import tensorflow as tf
+from tensorflow.core.protobuf.control_flow_pb2 import ValuesDef
+from tensorflow.python.lib.io.file_io import atomic_write_string_to_file
 from kgcnn.layers.geom import EuclideanNorm
 from kgcnn.literature.coGN._preprocessing_layers import LineGraphAngleDecoder
 from kgcnn.literature.coGN._gates import HadamardProductGate
@@ -11,6 +13,7 @@ from kgcnn.layers.mlp import MLP
 from tensorflow.keras.layers import GRUCell, LSTMCell
 from kgcnn.model.utils import update_model_kwargs
 from ._coGN_config import model_default
+from ._preprocessing_layers import EdgeDisplacementVectorDecoder
 
 ks = tf.keras
 
@@ -19,10 +22,7 @@ ks = tf.keras
 def make_model(inputs=None,
                input_block_cfg=None,
                processing_blocks_cfg=None,
-               output_block_cfg=None,
-               multiplicity=None,
-               line_graph=None,
-               voronoi_ridge_area=None):
+               output_block_cfg=None,):
     r"""Make connectivity optimized graph networks for crystals.
 
     Args:
@@ -30,32 +30,49 @@ def make_model(inputs=None,
         input_block_cfg (dict): Input block config.
         processing_blocks_cfg (list): List of processing block configs.
         output_block_cfg: Output block config.
-        multiplicity: Use multiplicity.
-        line_graph: Use line graph.
-        voronoi_ridge_area: Use Voronoi ridge area information.
 
     Returns:
         :obj:`tf.keras.models.Model`
     """
-    _inputs = [x for x in inputs]  # Temp list to be changed.
-    offset = ks.Input(**_inputs.pop(0))
-    atomic_number = ks.Input(**_inputs.pop(0))
-    edge_indices = ks.Input(**_inputs.pop(0))
+    edge_indices = ks.Input(**inputs['edge_indices'])
+    atomic_number = ks.Input(**inputs['atomic_number'])
+    if 'cell_translation' in inputs and 'frac_coords' in inputs and 'lattice_matrix' in inputs:
+        calculate_edge_offset = True
+        preprocessing_layer = EdgeDisplacementVectorDecoder()
+        cell_translation = ks.Input(**inputs['cell_translation'])
+        frac_coords = ks.Input(**inputs['frac_coords'])
+        lattice_matrix = ks.Input(**inputs['lattice_matrix'])
+        offset, _, _, _ = preprocessing_layer([cell_translation, frac_coords, lattice_matrix, edge_indices])
+    elif 'offset' in inputs:
+        calculate_edge_offset = False
+        offset = ks.Input(**inputs['offset'])
+    else:
+        raise ValueError('The model needs either the "offset"\
+                         or "cell_translation", "frac_coords" and "lattice_matrix" as input.')
 
-    if voronoi_ridge_area:
-        inp_voronoi_ridge_area = ks.Input(**_inputs.pop(0))
-    if multiplicity:
-        inp_multiplicity = ks.Input(**_inputs.pop(0))
+    if 'voronoi_ridge_area' in inputs:
+        voronoi_ridge_area = True
+        inp_voronoi_ridge_area = ks.Input(**inputs['voronoi_ridge_area'])
+    else:
+        voronoi_ridge_area = False
+
+    if 'multiplicity' in inputs:
+        multiplicity = True
+        inp_multiplicity = ks.Input(**inputs['multiplicity'])
         inp_multiplicity_ = tf.cast(inp_multiplicity, tf.float32)
-    if line_graph:
-        line_graph_edge_indices = ks.Input(**_inputs.pop(0))
+    else:
+        multiplicity = False
+
+    if 'line_graph_edge_indices' in inputs:
+        line_graph = True
+        line_graph_edge_indices = ks.Input(**inputs['line_graph_edge_indices'])
         line_graph_angle_decoder = LineGraphAngleDecoder()
         angle_embedding_layer = GaussBasisExpansion.from_bounds(16, 0, 3.2)
         angles, _, _, _ = line_graph_angle_decoder([None, offset, None, line_graph_edge_indices])
         angle_embeddings = angle_embedding_layer(tf.expand_dims(angles, -1))
+    else:
+        line_graph = False
 
-    if len(_inputs) != 0:
-        raise ValueError("Wrong number of inputs specified in config.")
 
     euclidean_norm = EuclideanNorm()
     distance = euclidean_norm(offset)
@@ -88,13 +105,21 @@ def make_model(inputs=None,
     _, _, out, _ = output_block(x)
     out = output_block.get_features(out)
 
-    input_list = [offset, atomic_number, edge_indices]
+    edge_inputs, node_inputs, global_inputs = [], [atomic_number], []
+    if calculate_edge_offset:
+        edge_inputs.append(cell_translation)
+        node_inputs.append(frac_coords)
+        global_inputs.append(lattice_matrix)
+    else:
+        edge_inputs.append(offset)
     if multiplicity:
-        input_list = input_list + [inp_multiplicity]
+        node_inputs.append(inp_multiplicity)
     if voronoi_ridge_area:
-        input_list = input_list + [inp_voronoi_ridge_area]
+        edge_inputs.append(inp_voronoi_ridge_area)
     if line_graph:
-        input_list = input_list + [line_graph_edge_indices]
+        global_inputs.append(line_graph_edge_indices)
+
+    input_list = edge_inputs + node_inputs, global_inputs + [edge_indices]
 
     return ks.Model(inputs=input_list, outputs=out)
 
