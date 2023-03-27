@@ -5,54 +5,61 @@ from kgcnn.literature.coGN._graph_network.graph_network_base import GraphNetwork
 
 
 class EdgeDisplacementVectorDecoder(GraphNetworkBase):
-    """Layer to make GNNs differentiable with respect to atom (fractional) coordinates for crystal graphs."""
+    """Layer to make GNNs differentiable with respect to atom (fractional) coordinates."""
 
-    def __init__(self, symmetrized=False, **kwargs):
+    def __init__(self, periodic_boundary_condition=False, symmetrized=False, **kwargs):
         super().__init__(
             aggregate_edges_local=None,
             aggregate_edges_global=None,
             aggregate_nodes=None,
             **kwargs
         )
+        # symmetrized -> periodic_boundary_condition
+        if symmetrized:
+            periodic_boundary_condition = True
+
         self.symmetrized = symmetrized
+        self.periodic_boundary_condition = periodic_boundary_condition
         self.frac_to_real_layer = FracToRealCoordinates()
 
     def update_edges(
         self, edge_features, nodes_in, nodes_out, global_features, **kwargs
     ):
-        in_frac_coords = nodes_in.values
-        out_frac_coords = nodes_out.values
+        in_coords = nodes_in.values
+        out_coords = nodes_out.values
         lattice_matrices = global_features
 
-        if self.symmetrized:
-            cell_translations, affine_matrices = edge_features
+        if self.periodic_boundary_condition:
+            if self.symmetrized:
+                cell_translations, affine_matrices = edge_features
 
-            # Affine Transformation
-            out_frac_coords_ = tf.concat(
-                [
-                    out_frac_coords,
-                    tf.expand_dims(tf.ones_like(out_frac_coords[:, 0]), axis=1),
-                ],
-                axis=1,
-            )
-            out_frac_coords = tf.einsum(
-                "ij,ikj->ik", out_frac_coords_, affine_matrices.values
-            )[:, :-1]
-            out_frac_coords = out_frac_coords - tf.floor(
-                out_frac_coords
-            )  # All values should be in [0,1) interval
-        else:
-            cell_translations = edge_features
+                # Affine Transformation
+                out_coords_ = tf.concat(
+                    [
+                        out_coords,
+                        tf.expand_dims(tf.ones_like(out_coords[:, 0]), axis=1),
+                    ],
+                    axis=1,
+                )
+                out_coords = tf.einsum(
+                    "ij,ikj->ik", out_coords_, affine_matrices.values
+                )[:, :-1]
+                out_coords = out_coords - tf.floor(
+                    out_coords
+                )  # All values should be in [0,1) interval
+            else:
+                cell_translations = edge_features
 
-        # Cell translation
-        out_frac_coords = out_frac_coords + cell_translations.values
+            # Cell translation
+            out_coords = out_coords + cell_translations.values
 
-        offset = in_frac_coords - out_frac_coords
+        offset = in_coords - out_coords
         offset = tf.RaggedTensor.from_row_splits(
-            offset, cell_translations.row_splits, validate=self.ragged_validate
+            offset, nodes_in.row_splits, validate=self.ragged_validate
         )
 
-        offset = self.frac_to_real_layer([offset, lattice_matrices])
+        if self.periodic_boundary_condition:
+            offset = self.frac_to_real_layer([offset, lattice_matrices])
 
         return offset
 
