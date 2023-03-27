@@ -74,16 +74,36 @@ output_block_cfg = {'edge_mlp': None,
 model_default = {
     "inputs": {
         "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
-        # "cell_translation": {"shape": (None,3), "dtype": "float32", "name": "cell_translation", "ragged": True},
-        # "frac_coords": {"shape": (None,3), "dtype": "float32", "name": "frac_coords", "ragged": True},
-        # "lattice_matrix": {"shape": (3,3), "dtype": "float32", "name": "lattice_matrix"},
+        "cell_translation": None, # {"shape": (None,3), "dtype": "float32", "name": "cell_translation", "ragged": True},
+        "frac_coords": None, # {"shape": (None,3), "dtype": "float32", "name": "frac_coords", "ragged": True},
+        "lattice_matrix": None, # {"shape": (3,3), "dtype": "float32", "name": "lattice_matrix"},
         "atomic_number": {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
         "edge_indices": {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
-        # "voronoi_ridge_area": {"shape": (None, ), "name": "voronoi_ridge_area", "dtype": "float32", "ragged": True},
+        "voronoi_ridge_area": None, # {"shape": (None, ), "name": "voronoi_ridge_area", "dtype": "float32", "ragged": True},
         "multiplicity": {"shape": (None, ), "name": "multiplicity", "dtype": "int32", "ragged": True},
-        # "line_graph_edge_indices": {"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True}
+        "line_graph_edge_indices": None, #{"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True}
     },
     "input_block_cfg": input_block_cfg,
     "processing_blocks_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
     "output_block_cfg": output_block_cfg,
+}
+
+output_block_cfg_no_multiplicity = deepcopy(output_block_cfg)
+output_block_cfg_no_multiplicity['multiplicity_readout'] = False
+
+model_default_ = {
+    "inputs": {
+        "offset": None, #{"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
+        "cell_translation": {"shape": (None,3), "dtype": "float32", "name": "cell_translation", "ragged": True},
+        "atomic_number": {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
+        "frac_coords": {"shape": (None,3), "dtype": "float32", "name": "frac_coords", "ragged": True},
+        "lattice_matrix": {"shape": (3,3), "dtype": "float32", "name": "lattice_matrix"},
+        "edge_indices": {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
+        "voronoi_ridge_area": None, #{"shape": (None, ), "name": "voronoi_ridge_area", "dtype": "float32", "ragged": True},
+        "multiplicity": None, # {"shape": (None, ), "name": "multiplicity", "dtype": "int32", "ragged": True},
+        "line_graph_edge_indices": None, #{"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True}
+    },
+    "input_block_cfg": input_block_cfg,
+    "processing_blocks_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
+    "output_block_cfg": output_block_cfg_no_multiplicity,
 }
