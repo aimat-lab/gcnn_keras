@@ -36,34 +36,39 @@ def make_model(inputs=None,
     """
     edge_indices = ks.Input(**inputs['edge_indices'])
     atomic_number = ks.Input(**inputs['atomic_number'])
-    if 'cell_translation' in inputs and 'frac_coords' in inputs and 'lattice_matrix' in inputs:
+
+    # Helper function which is a workaround for not being able to delete entries from `model_default` dict.
+    def in_inputs(key):
+        return key in inputs and inputs[key] is not None
+
+    if in_inputs('cell_translation') and in_inputs('frac_coords') and in_inputs('lattice_matrix'):
         calculate_edge_offset = True
         preprocessing_layer = EdgeDisplacementVectorDecoder()
         cell_translation = ks.Input(**inputs['cell_translation'])
         frac_coords = ks.Input(**inputs['frac_coords'])
         lattice_matrix = ks.Input(**inputs['lattice_matrix'])
         offset, _, _, _ = preprocessing_layer([cell_translation, frac_coords, lattice_matrix, edge_indices])
-    elif 'offset' in inputs:
+    elif in_inputs('offset'):
         calculate_edge_offset = False
         offset = ks.Input(**inputs['offset'])
     else:
         raise ValueError('The model needs either the "offset"\
                          or "cell_translation", "frac_coords" and "lattice_matrix" as input.')
 
-    if 'voronoi_ridge_area' in inputs:
+    if in_inputs('voronoi_ridge_area'):
         voronoi_ridge_area = True
         inp_voronoi_ridge_area = ks.Input(**inputs['voronoi_ridge_area'])
     else:
         voronoi_ridge_area = False
 
-    if 'multiplicity' in inputs:
+    if in_inputs('multiplicity'):
         multiplicity = True
         inp_multiplicity = ks.Input(**inputs['multiplicity'])
         inp_multiplicity_ = tf.cast(inp_multiplicity, tf.float32)
     else:
         multiplicity = False
 
-    if 'line_graph_edge_indices' in inputs:
+    if in_inputs('line_graph_edge_indices'):
         line_graph = True
         line_graph_edge_indices = ks.Input(**inputs['line_graph_edge_indices'])
         line_graph_angle_decoder = LineGraphAngleDecoder()
