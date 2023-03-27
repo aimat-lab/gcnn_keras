@@ -139,7 +139,10 @@ class MyMessageNN(MessagePassingBase):
 
 <a name="literature"></a>
 # Literature
-A version of the following models and variants thereof are implemented in [literature](kgcnn/literature):
+The following models, proposed in literature, have a module in [literature](kgcnn/literature). The module usually exposes a `make_model` function
+to create a ``tf.keras.models.Model``, which features ragged tensor in- or output. The models can but must not be build completely from `kgcnn.layers` and can for example include
+original implementations (with proper licencing).
+
 * **[GCN](kgcnn/literature/GCN)**: [Semi-Supervised Classification with Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al. (2016)
 * **[Schnet](kgcnn/literature/Schnet)**: [SchNet – A deep learning architecture for molecules and materials ](https://aip.scitation.org/doi/10.1063/1.5019779) by Schütt et al. (2017)
 * **[GAT](kgcnn/literature/GAT)**: [Graph Attention Networks](https://arxiv.org/abs/1710.10903) by Veličković et al. (2018)
@@ -169,6 +172,9 @@ A version of the following models and variants thereof are implemented in [liter
 * **[GNNFilm](kgcnn/literature/GNNFilm)**: [GNN-FiLM: Graph Neural Networks with Feature-wise Linear Modulation](https://arxiv.org/abs/1906.12192) by Marc Brockschmidt (2020)
 * **[HDNNP2nd](kgcnn/literature/HDNNP2nd)**: [Atom-centered symmetry functions for constructing high-dimensional neural network potentials](https://aip.scitation.org/doi/abs/10.1063/1.3553717) by Jörg Behler (2011)
 * **[HDNNP4th](kgcnn/literature/HDNNP4th)**: [A fourth-generation high-dimensional neural network potential with accurate electrostatics including non-local charge transfer](https://www.nature.com/articles/s41467-020-20427-2) by Ko et al. (2021)
+* **[DGIN](kgcnn/literature/DGIN)**: [Improved Lipophilicity and Aqueous Solubility Prediction with Composite Graph Neural Networks ](https://pubmed.ncbi.nlm.nih.gov/34684766/) by Wieder et al. (2021)
+* **[MoGAT](kgcnn/literature/MoGAT)**: [Multi-order graph attention network for water solubility prediction and interpretation](https://www.nature.com/articles/s41598-022-25701-5) by Lee et al. (2023)
+* **[rGIN](kgcnn/literature/rGIN)** [Random Features Strengthen Graph Neural Networks](https://arxiv.org/abs/2002.03155) by Sato et al. (2020)
 </details>
 
 
