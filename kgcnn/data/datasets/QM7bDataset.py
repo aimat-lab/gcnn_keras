@@ -6,8 +6,8 @@ import pandas as pd
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
 from kgcnn.molecule.io import write_list_to_xyz_file
-from kgcnn.graph.geom import coulomb_matrix_to_inverse_distance_proton, coordinates_from_distance_matrix
-from kgcnn.graph.adj import invert_distance
+from kgcnn.graph.methods import coulomb_matrix_to_inverse_distance_proton, coordinates_from_distance_matrix
+from kgcnn.graph.methods import invert_distance
 from kgcnn.molecule.methods import inverse_global_proton_dict
 
 
