@@ -39,3 +39,4 @@ kgcnn.egg-info
 /docs/source/DatasetMol/
 /docs/source/DatasetCrystal/
 /docs/source/model_energy_force/
+__pycache__

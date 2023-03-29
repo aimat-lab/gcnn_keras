@@ -102,18 +102,20 @@ output_block_cfg = {'edge_mlp': None,
 
 
 model_default_nested = {
-    "inputs": [
-        {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
-        {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
-        {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
-        # {"shape": (None,), "name": "voronoi_ridge_area", "dtype": "float32", "ragged": True},
-        {"shape": (None,), "name": "multiplicity", "dtype": "int32", "ragged": True},
-        {"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True}
-    ],
+    "inputs": {
+        "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
+        "cell_translation": None,
+        "affine_matrix": None,
+        "voronoi_ridge_area": {"shape": (None,), "name": "offset", "dtype": "float32", "ragged": True},
+        "atomic_number": {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
+        "frac_coords": None,
+        "coords": None,
+        "multiplicity": {"shape": (None, ), "name": "multiplicity", "dtype": "int32", "ragged": True},
+        "lattice_matrix": None,
+        "line_graph_edge_indices": {"shape": (None, 2), "name": "line_graph_edge_indices", "dtype": "int32", "ragged": True},
+        "edge_indices": {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
+    },
     "input_block_cfg": input_block_cfg,
     "processing_blocks_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
     "output_block_cfg": output_block_cfg,
-    "multiplicity": True,
-    "line_graph": True,
-    "voronoi_ridge_area": False
 }

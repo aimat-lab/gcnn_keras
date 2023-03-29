@@ -1,4 +1,6 @@
 import tensorflow as tf
+from tensorflow.core.protobuf.control_flow_pb2 import ValuesDef
+from tensorflow.python.lib.io.file_io import atomic_write_string_to_file
 from kgcnn.layers.geom import EuclideanNorm
 from kgcnn.literature.coGN._preprocessing_layers import LineGraphAngleDecoder
 from kgcnn.literature.coGN._gates import HadamardProductGate
@@ -8,21 +10,20 @@ from kgcnn.literature.coGN._embedding_layers._atom_embedding import AtomEmbeddin
 from kgcnn.literature.coGN._embedding_layers._edge_embedding import EdgeEmbedding, SinCosExpansion, GaussBasisExpansion
 from kgcnn.crystal.periodic_table.periodic_table import PeriodicTable
 from kgcnn.layers.mlp import MLP
-from tensorflow.keras.layers import GRUCell, LSTMCell
+from kgcnn.layers.geom import FracToRealCoordinates
+from kgcnn.model.force import EnergyForceModel
 from kgcnn.model.utils import update_model_kwargs
+from tensorflow.keras.layers import GRUCell, LSTMCell
 from ._coGN_config import model_default
+from ._preprocessing_layers import EdgeDisplacementVectorDecoder
 
 ks = tf.keras
-
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                input_block_cfg=None,
                processing_blocks_cfg=None,
-               output_block_cfg=None,
-               multiplicity=None,
-               line_graph=None,
-               voronoi_ridge_area=None):
+               output_block_cfg=None,):
     r"""Make connectivity optimized graph networks for crystals.
 
     Args:
@@ -30,32 +31,64 @@ def make_model(inputs=None,
         input_block_cfg (dict): Input block config.
         processing_blocks_cfg (list): List of processing block configs.
         output_block_cfg: Output block config.
-        multiplicity: Use multiplicity.
-        line_graph: Use line graph.
-        voronoi_ridge_area: Use Voronoi ridge area information.
 
     Returns:
         :obj:`tf.keras.models.Model`
     """
-    _inputs = [x for x in inputs]  # Temp list to be changed.
-    offset = ks.Input(**_inputs.pop(0))
-    atomic_number = ks.Input(**_inputs.pop(0))
-    edge_indices = ks.Input(**_inputs.pop(0))
+    edge_indices = ks.Input(**inputs['edge_indices'])
+    atomic_number = ks.Input(**inputs['atomic_number'])
 
-    if voronoi_ridge_area:
-        inp_voronoi_ridge_area = ks.Input(**_inputs.pop(0))
-    if multiplicity:
-        inp_multiplicity = ks.Input(**_inputs.pop(0))
+    edge_inputs, node_inputs, global_inputs = [], [atomic_number], []
+
+    # Helper function which is a workaround for not being able to delete entries from `model_default` dict.
+    def in_inputs(key):
+        return key in inputs and inputs[key] is not None
+
+    if in_inputs('cell_translation') and in_inputs('frac_coords') and in_inputs('lattice_matrix'):
+        cell_translation = ks.Input(**inputs['cell_translation'])
+        edge_inputs.append(cell_translation)
+        frac_coords = ks.Input(**inputs['frac_coords'])
+        node_inputs.append(frac_coords)
+        lattice_matrix = ks.Input(**inputs['lattice_matrix'])
+        global_inputs.append(lattice_matrix)
+        if in_inputs('affine_matrix'):
+            affine_matrix = ks.Input(**inputs['affine_matrix'])
+            edge_inputs.append(affine_matrix)
+            preprocessing_layer = EdgeDisplacementVectorDecoder(periodic_boundary_condition=True, symmetrized=True)
+            offset, _, _, _ = preprocessing_layer([[cell_translation, affine_matrix],
+                                                   frac_coords, lattice_matrix, edge_indices])
+        else:
+            preprocessing_layer = EdgeDisplacementVectorDecoder(periodic_boundary_condition=True)
+            offset, _, _, _ = preprocessing_layer([cell_translation, frac_coords, lattice_matrix, edge_indices])
+    elif in_inputs('coords'):
+        coords = ks.Input(**inputs['coords'])
+        node_inputs.append(coords)
+        preprocessing_layer = EdgeDisplacementVectorDecoder(periodic_boundary_condition=False)
+        offset, _, _, _ = preprocessing_layer([None, coords, None, edge_indices])
+    elif in_inputs('offset'):
+        offset = ks.Input(**inputs['offset'])
+        edge_inputs.append(offset)
+    else:
+        raise ValueError('The model needs either the "offset"\
+                         or "coords" or "cell_translation", "frac_coords" and "lattice_matrix" as input.')
+
+    if in_inputs('voronoi_ridge_area'):
+        inp_voronoi_ridge_area = ks.Input(**inputs['voronoi_ridge_area'])
+        edge_inputs.append(inp_voronoi_ridge_area)
+
+    if in_inputs('multiplicity'):
+        inp_multiplicity = ks.Input(**inputs['multiplicity'])
         inp_multiplicity_ = tf.cast(inp_multiplicity, tf.float32)
-    if line_graph:
-        line_graph_edge_indices = ks.Input(**_inputs.pop(0))
+        node_inputs.append(inp_multiplicity)
+
+    if in_inputs('line_graph_edge_indices'):
+        line_graph_edge_indices = ks.Input(**inputs['line_graph_edge_indices'])
+        global_inputs.append(line_graph_edge_indices)
         line_graph_angle_decoder = LineGraphAngleDecoder()
         angle_embedding_layer = GaussBasisExpansion.from_bounds(16, 0, 3.2)
         angles, _, _, _ = line_graph_angle_decoder([None, offset, None, line_graph_edge_indices])
         angle_embeddings = angle_embedding_layer(tf.expand_dims(angles, -1))
 
-    if len(_inputs) != 0:
-        raise ValueError("Wrong number of inputs specified in config.")
 
     euclidean_norm = EuclideanNorm()
     distance = euclidean_norm(offset)
@@ -65,17 +98,17 @@ def make_model(inputs=None,
     )
     output_block = GraphNetworkConfigurator.get_gn_block(**output_block_cfg)
 
-    if multiplicity:
-        node_input = {'features': atomic_number, 'multiplicity': inp_multiplicity_}
-    else:
-        node_input = atomic_number
-
-    if voronoi_ridge_area:
+    if in_inputs('voronoi_ridge_area'):
         edge_input = (distance, inp_voronoi_ridge_area)
     else:
         edge_input = distance
 
-    if line_graph:
+    if in_inputs('multiplicity'):
+        node_input = {'features': atomic_number, 'multiplicity': inp_multiplicity_}
+    else:
+        node_input = atomic_number
+
+    if in_inputs('line_graph_edge_indices'):
         global_input = {'line_graph_edge_indices': line_graph_edge_indices, 'line_graph_edges': angle_embeddings}
     else:
         global_input = None
@@ -88,15 +121,134 @@ def make_model(inputs=None,
     _, _, out, _ = output_block(x)
     out = output_block.get_features(out)
 
-    input_list = [offset, atomic_number, edge_indices]
-    if multiplicity:
-        input_list = input_list + [inp_multiplicity]
-    if voronoi_ridge_area:
-        input_list = input_list + [inp_voronoi_ridge_area]
-    if line_graph:
-        input_list = input_list + [line_graph_edge_indices]
+
+    input_list = edge_inputs + node_inputs + global_inputs + [edge_indices]
+    print(input_list)
 
     return ks.Model(inputs=input_list, outputs=out)
+
+def make_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric crystal/molecular graphs,
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    Depending on the detected input names either :python:`make_molecule_force_model`
+    or :python:`make_crystal_force_model` gets called.
+
+    Example code:
+
+    ..  code-block:: python
+        model_config = kgcnn.literature.coGN._coGN_config.crystal_unit_graphs_energy
+        model_config = kgcnn.literature.coGN._coGN_config.crystal_unit_graphs_energy
+
+        # model predicts energies for crystals
+        model = kgcnn.literature.coGN.make_model(**model_config)
+
+        model.inputs
+
+        # [<KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 3]), tf.float32, 1, tf.int64 (created by layer 'cell_translation')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None]), tf.int32, 1, tf.int64) (created by layer 'atomic_number')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 3]), tf.float32, 1, tf.int64) (created by layer 'frac_coords')>,
+        # <KerasTensor: shape=(None, 3, 3) dtype=float32 (created by layer 'lattice_matrix')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 2]), tf.int32, 1, tf.int64) (created by layer 'edge_indices')>]
+
+        force_model = kgcnn.literature.coGN.make_force_model(model)
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric molecular graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    input_names = [layer.name for layer in inner_model.inputs]
+    if 'coords' in input_names:
+        return make_molecule_force_model(inner_model)
+    elif 'frac_coords' in input_names and 'lattice_matrix' in input_names:
+        return make_crystal_force_model(inner_model)
+    else:
+        raise ValueError("""Can not create force model from given energy model.
+                The given energy model needs either a layer called 'coords'
+                or two layers called 'frac_coords' and 'lattice_matrix'.""")
+
+def make_molecule_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric molecular graphs,
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    The given model must have an input layer for the coordinates of the atoms, which is named "coords".
+    The forces for each atoms are calculated by differentiating the predicted energy
+    with respect to the input coordinates ("coords") layer.
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric molecular graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    force_model_inputs = []
+
+    for i, input_layer in enumerate(inner_model.inputs):
+        if input_layer.name == 'coords':
+            coordinate_input = i
+            coords_input_layer_exists = True
+        new_input_layer = ks.Input(type_spec=input_layer.type_spec, name=input_layer.name)
+        force_model_inputs.append(new_input_layer)
+
+    assert coords_input_layer_exists
+
+    # Create force model
+    force_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
+                                    output_to_tensor=False, output_squeeze_states=True)
+    outputs = force_model(force_model_inputs)
+
+    return ks.models.Model(inputs=force_model_inputs, outputs=outputs)
+
+
+def make_crystal_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric crystal graphs (unit graph representation),
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    The given model must have two input layers with specific names:
+        - A "frac_coords" input layer, which takes the fractional coordinates for each node in the graph.
+        - A "lattic_matrix" input layer, which takes the lattice matrix (unit cell dimensions) for each crystal graph.
+
+    The forces for each atoms are calculated in two steps:
+        1. Differentiating the predicted energy with respect to the fractional coordinates ("frac_coords") layer.
+        2. Transforming fractional forces in the fractional basis with the lattic matrices into real forces.
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric crystal graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    force_model_inputs = []
+    frac_coords_input_layer_exists = False
+    lattice_matrix_input_layer_exists = False
+    for i, input_layer in enumerate(inner_model.inputs):
+        if input_layer.name == 'affine_matrix':
+            raise NotImplementedError("Energy models do not work with asymmetric unit graph representations.\
+                    Please use model which works on unit cell graph representations.")
+        if input_layer.name == 'frac_coords':
+            coordinate_input = i
+            frac_coords_input_layer_exists = True
+        new_input_layer = ks.Input(type_spec=input_layer.type_spec, name=input_layer.name)
+        if input_layer.name == 'lattice_matrix':
+            lattice_matrix = new_input_layer
+            lattice_matrix_input_layer_exists = True
+        force_model_inputs.append(new_input_layer)
+
+    assert frac_coords_input_layer_exists
+    assert lattice_matrix_input_layer_exists
+
+    # Create force model
+    force_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
+                                    output_to_tensor=False, output_squeeze_states=True)
+    outputs = force_model(force_model_inputs)
+    # Since coordinates are fractional, force predictions are also fractional.
+    # Convert fractional to real forces:
+    frac_to_real = FracToRealCoordinates()
+    outputs['force'] = frac_to_real([outputs['force'], lattice_matrix])
+
+    return ks.models.Model(inputs=force_model_inputs, outputs=outputs)
 
 
 class GraphNetworkConfigurator():
