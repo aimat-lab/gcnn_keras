@@ -1,0 +1,1 @@
+from kgcnn.molecule.serial import *
