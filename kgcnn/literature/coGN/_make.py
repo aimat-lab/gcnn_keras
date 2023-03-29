@@ -127,30 +127,100 @@ def make_model(inputs=None,
 
     return ks.Model(inputs=input_list, outputs=out)
 
-def make_energy_model(inner_model):
-    # TODO: docstring
-    energy_model_inputs = []
+def make_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric crystal/molecular graphs,
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    Depending on the detected input names either :python:`make_molecule_force_model`
+    or :python:`make_crystal_force_model` gets called.
+
+    Example code:
+
+    ..  code-block:: python
+        model_config = kgcnn.literature.coGN._coGN_config.crystal_unit_graphs_energy
+        model_config = kgcnn.literature.coGN._coGN_config.crystal_unit_graphs_energy
+
+        # model predicts energies for crystals
+        model = kgcnn.literature.coGN.make_model(**model_config)
+
+        model.inputs
+
+        # [<KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 3]), tf.float32, 1, tf.int64 (created by layer 'cell_translation')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None]), tf.int32, 1, tf.int64) (created by layer 'atomic_number')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 3]), tf.float32, 1, tf.int64) (created by layer 'frac_coords')>,
+        # <KerasTensor: shape=(None, 3, 3) dtype=float32 (created by layer 'lattice_matrix')>,
+        # <KerasTensor: type_spec=RaggedTensorSpec(TensorShape([None, None, 2]), tf.int32, 1, tf.int64) (created by layer 'edge_indices')>]
+
+        force_model = kgcnn.literature.coGN.make_force_model(model)
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric molecular graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    input_names = [layer.name for layer in inner_model.inputs]
+    if 'coords' in input_names:
+        return make_molecule_force_model(inner_model)
+    elif 'frac_coords' in input_names and 'lattice_matrix' in input_names:
+        return make_crystal_force_model(inner_model)
+    else:
+        raise ValueError("""Can not create force model from given energy model.
+                The given energy model needs either a layer called 'coords'
+                or two layers called 'frac_coords' and 'lattice_matrix'.""")
+
+def make_molecule_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric molecular graphs,
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    The given model must have an input layer for the coordinates of the atoms, which is named "coords".
+    The forces for each atoms are calculated by differentiating the predicted energy
+    with respect to the input coordinates ("coords") layer.
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric molecular graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    force_model_inputs = []
 
     for i, input_layer in enumerate(inner_model.inputs):
         if input_layer.name == 'coords':
             coordinate_input = i
             coords_input_layer_exists = True
         new_input_layer = ks.Input(type_spec=input_layer.type_spec, name=input_layer.name)
-        energy_model_inputs.append(new_input_layer)
+        force_model_inputs.append(new_input_layer)
 
     assert coords_input_layer_exists
 
-    # Create energy model
-    energy_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
+    # Create force model
+    force_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
                                     output_to_tensor=False, output_squeeze_states=True)
-    outputs = energy_model(energy_model_inputs)
+    outputs = force_model(force_model_inputs)
 
-    return ks.models.Model(inputs=energy_model_inputs, outputs=outputs)
+    return ks.models.Model(inputs=force_model_inputs, outputs=outputs)
 
 
-def make_crystal_energy_model(inner_model):
-    # TODO: docstring
-    energy_model_inputs = []
+def make_crystal_force_model(inner_model):
+    r"""Transforms a model that predicts energies for geometric crystal graphs (unit graph representation),
+    into a model that predicts energies as well as forces on each node in the graph.
+
+    The given model must have two input layers with specific names:
+        - A "frac_coords" input layer, which takes the fractional coordinates for each node in the graph.
+        - A "lattic_matrix" input layer, which takes the lattice matrix (unit cell dimensions) for each crystal graph.
+
+    The forces for each atoms are calculated in two steps:
+        1. Differentiating the predicted energy with respect to the fractional coordinates ("frac_coords") layer.
+        2. Transforming fractional forces in the fractional basis with the lattic matrices into real forces.
+
+    Args:
+        inner_model (tf.keras.models.Model): A model that predicts energies for geometric crystal graphs.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
+    force_model_inputs = []
     frac_coords_input_layer_exists = False
     lattice_matrix_input_layer_exists = False
     for i, input_layer in enumerate(inner_model.inputs):
@@ -164,21 +234,21 @@ def make_crystal_energy_model(inner_model):
         if input_layer.name == 'lattice_matrix':
             lattice_matrix = new_input_layer
             lattice_matrix_input_layer_exists = True
-        energy_model_inputs.append(new_input_layer)
+        force_model_inputs.append(new_input_layer)
 
     assert frac_coords_input_layer_exists
     assert lattice_matrix_input_layer_exists
 
-    # Create energy model
-    energy_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
+    # Create force model
+    force_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
                                     output_to_tensor=False, output_squeeze_states=True)
-    outputs = energy_model(energy_model_inputs)
+    outputs = force_model(force_model_inputs)
     # Since coordinates are fractional, force predictions are also fractional.
     # Convert fractional to real forces:
     frac_to_real = FracToRealCoordinates()
     outputs['force'] = frac_to_real([outputs['force'], lattice_matrix])
 
-    return ks.models.Model(inputs=energy_model_inputs, outputs=outputs)
+    return ks.models.Model(inputs=force_model_inputs, outputs=outputs)
 
 
 class GraphNetworkConfigurator():

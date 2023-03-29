@@ -114,7 +114,7 @@ crystal_unit_graphs = {
 }
 molecular_graphs = crystal_unit_graphs
 
-crystal_unit_graphs_energy = {
+crystal_unit_graphs_coord_input = {
     "inputs": {
         "offset": None,
         "cell_translation": {"shape": (None,3), "dtype": "float32", "name": "cell_translation", "ragged": True},
@@ -133,7 +133,7 @@ crystal_unit_graphs_energy = {
     "output_block_cfg": output_block_cfg_no_multiplicity,
 }
 
-molecular_graphs_energy = {
+molecular_graphs_coord_input = {
     "inputs": {
         "offset": None,
         "cell_translation": None,

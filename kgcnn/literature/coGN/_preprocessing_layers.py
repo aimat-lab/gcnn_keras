@@ -5,7 +5,26 @@ from kgcnn.literature.coGN._graph_network.graph_network_base import GraphNetwork
 
 
 class EdgeDisplacementVectorDecoder(GraphNetworkBase):
-    """Layer to make GNNs differentiable with respect to atom (fractional) coordinates."""
+    r"""This layer calculates edge offsets (displacement vectors between two nodes) based on node coordinates features.
+
+    The layer has different modes to work on molecular graphs
+    as well as crystal unit cell graphs and crystal asymmetric unit graphs. 
+
+    For molecular graphs set :python:`periodic_boundary_condition` to :python:`False`.
+    Node features must be the coordinates of each node.
+
+    For crystal unit cell graphs set :python:`periodic_boundary_condition` to :python:`True`.
+    Node features must be the fractional coordinates of each node.
+    Edge features must be the cell translation for each edge in the unit cell graph.
+    Global features must be the lattice matrices for each crystal graph.
+
+    For crystal asymmetric unit graphs set :python:`symmetrized` to :python:`True`.
+    Node features must be the fractional coordinates of each node.
+    Edge features must be a tuple/list of the cell translation and affine matrix for each edge.
+    Global features must be the lattice matrices for each crystal graph.
+
+    The purpose of this layer is to make GNNs differentiable with respect to atom (fractional) coordinates.
+    """
 
     def __init__(self, periodic_boundary_condition=False, symmetrized=False, **kwargs):
         super().__init__(
