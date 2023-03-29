@@ -2,24 +2,24 @@ import os
 import numpy as np
 import pandas as pd
 from typing import Union, Callable, List, Dict
-from kgcnn.mol.base import MolGraphInterface
+from kgcnn.molecule.base import MolGraphInterface
 from kgcnn.data.transform.scaler.mol import QMGraphLabelScaler
 from sklearn.preprocessing import StandardScaler
-from kgcnn.mol.serial import deserialize_encoder
+from kgcnn.molecule.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
-from kgcnn.mol.io import parse_list_to_xyz_str, read_xyz_file, \
+from kgcnn.molecule.io import parse_list_to_xyz_str, read_xyz_file, \
     write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_list_to_xyz_file
-from kgcnn.mol.methods import global_proton_dict, inverse_global_proton_dict
-from kgcnn.mol.convert import MolConverter
+from kgcnn.molecule.methods import global_proton_dict, inverse_global_proton_dict
+from kgcnn.molecule.convert import MolConverter
 from kgcnn.data.moleculenet import map_molecule_callbacks
 
 try:
-    from kgcnn.mol.graph_babel import MolecularGraphOpenBabel
+    from kgcnn.molecule.graph_babel import MolecularGraphOpenBabel
 except ModuleNotFoundError:
     MolecularGraphOpenBabel = None
 
 try:
-    from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
+    from kgcnn.molecule.graph_rdkit import MolecularGraphRDKit
 except ModuleNotFoundError:
     MolecularGraphRDKit = None
 

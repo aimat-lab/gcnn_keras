@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import logging
-from kgcnn.mol.base import MolGraphInterface
+from kgcnn.molecule.base import MolGraphInterface
 from openbabel import openbabel
 
 # Module logger.

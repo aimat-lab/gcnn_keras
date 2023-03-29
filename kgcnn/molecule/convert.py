@@ -1,10 +1,10 @@
 import os
 import logging
 from typing import Callable
-from kgcnn.mol.io import read_mol_list_from_sdf_file, read_xyz_file, read_smiles_file, write_mol_block_list_to_sdf, \
+from kgcnn.molecule.io import read_mol_list_from_sdf_file, read_xyz_file, read_smiles_file, write_mol_block_list_to_sdf, \
     parse_list_to_xyz_str
 from concurrent.futures import ThreadPoolExecutor  # , ProcessPoolExecutor
-from kgcnn.mol.external.ballloon import BalloonInterface
+from kgcnn.molecule.external.ballloon import BalloonInterface
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

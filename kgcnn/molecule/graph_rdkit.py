@@ -13,7 +13,7 @@ import logging
 # or try `conda install -c rdkit rdkit` or `conda install -c conda-forge rdkit`
 # Note: RDkit version >= 2022.9.2 can be installed with `pip install rdkit` only, successor of `rdkit-pypi`.
 # Has been added as requirements to kgcnn.
-from kgcnn.mol.base import MolGraphInterface
+from kgcnn.molecule.base import MolGraphInterface
 
 # Module logger
 logging.basicConfig()

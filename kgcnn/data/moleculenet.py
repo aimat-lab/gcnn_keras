@@ -4,15 +4,15 @@ import pandas as pd
 
 from typing import Dict, Callable, Union, List
 from collections import defaultdict
-from kgcnn.mol.serial import deserialize_encoder
+from kgcnn.molecule.serial import deserialize_encoder
 from kgcnn.data.base import MemoryGraphDataset
-from kgcnn.mol.base import MolGraphInterface
-from kgcnn.mol.encoder import OneHotEncoder
-from kgcnn.mol.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_smiles_file
-from kgcnn.mol.convert import MolConverter
+from kgcnn.molecule.base import MolGraphInterface
+from kgcnn.molecule.encoder import OneHotEncoder
+from kgcnn.molecule.io import write_mol_block_list_to_sdf, read_mol_list_from_sdf_file, write_smiles_file
+from kgcnn.molecule.convert import MolConverter
 
 try:
-    from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
+    from kgcnn.molecule.graph_rdkit import MolecularGraphRDKit
 except ModuleNotFoundError:
     MolecularGraphRDKit = None
 

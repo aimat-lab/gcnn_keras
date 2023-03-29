@@ -1,4 +1,4 @@
-from kgcnn.mol.encoder import OneHotEncoder
+from kgcnn.molecule.encoder import OneHotEncoder
 
 
 def deserialize_encoder(encoder_identifier):
