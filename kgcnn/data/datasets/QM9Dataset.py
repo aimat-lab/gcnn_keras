@@ -6,7 +6,7 @@ import pandas as pd
 # from typing import Union
 from kgcnn.data.qm import QMDataset
 from kgcnn.data.download import DownloadDataset
-from kgcnn.mol.io import write_list_to_xyz_file
+from kgcnn.molecule.io import write_list_to_xyz_file
 
 
 class QM9Dataset(QMDataset, DownloadDataset):

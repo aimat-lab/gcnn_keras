@@ -9,9 +9,9 @@ import pandas as pd
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
-from kgcnn.mol.graph_rdkit import MolecularGraphRDKit
+from kgcnn.molecule.graph_rdkit import MolecularGraphRDKit
 from kgcnn.data.moleculenet import MoleculeNetDataset, map_molecule_callbacks
-from kgcnn.mol.encoder import OneHotEncoder
+from kgcnn.molecule.encoder import OneHotEncoder
 
 from .utils import ASSETS_PATH
 
