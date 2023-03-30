@@ -11,7 +11,7 @@ from kgcnn.layers.attention import PoolingLocalEdgesAttention
 from kgcnn.layers.attention import AttentionHeadGAT, MultiHeadGATV2Layer
 
 
-class TestAttentionDisjoint(unittest.TestCase):
+class TestPoolingLocalEdgesAttention(unittest.TestCase):
 
     n1 = [[[1.0], [6.0], [1.0], [6.0], [1.0], [1.0], [6.0], [6.0]],
           [[6.0], [1.0], [1.0], [1.0], [7.0], [1.0], [6.0], [8.0], [6.0], [1.0], [6.0], [7.0], [1.0], [1.0], [1.0]]]

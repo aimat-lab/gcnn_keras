@@ -5,6 +5,8 @@ We try to provide the most important layers for graph convolution as ``kgcnn.lay
 As for literature models only input and output is matched with ``kgcnn`` .
 
 * Move ``kgcnn.layers.conv`` to `kgcnn.literature` .
+* Refactored all graph methods in ``graph.methods`` .
+* Moved ``kgcnn.mol.*`` and `kgcnn.moldyn.*` into `kgcnn.molecule`
 * 
 
 

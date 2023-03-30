@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from kgcnn.graph.geom import range_neighbour_lattice
+from kgcnn.graph.methods import range_neighbour_lattice
 # from kgcnn.data.datasets.MatProjectEFormDataset import MatProjectEFormDataset
 
 
