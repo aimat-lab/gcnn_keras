@@ -3,10 +3,10 @@ from typing import Union
 from kgcnn.utils.serial import deserialize as deserialize_general
 
 module_list = {
-    "StandardScaler": "kgcnn.data.transform.scaler",
-    "StandardLabelScaler": "kgcnn.data.transform.scaler",
-    "ExtensiveMolecularScaler": "kgcnn.data.transform.mol",
-    "ExtensiveMolecularLabelScaler": "kgcnn.data.transform.mol",
+    "StandardScaler": "kgcnn.data.transform.standard",
+    "StandardLabelScaler": "kgcnn.data.transform.standard",
+    "ExtensiveMolecularScaler": "kgcnn.data.transform.molecule",
+    "ExtensiveMolecularLabelScaler": "kgcnn.data.transform.molecule",
     "EnergyForceExtensiveLabelScaler": "kgcnn.data.transform.force",
     "QMGraphLabelScaler": "kgcnn.data.transform.mol"
 }
@@ -16,8 +16,7 @@ def deserialize(name: Union[str, dict], **kwargs):
     """Deserialize a scaler class.
 
     Args:
-        name (str, dict): Serialization dictionary of class. This can also be a name of former graph functions for
-            backward compatibility that now coincides with the processor's default name.
+        name (str, dict): Serialization dictionary of class. This can also be a name of a scaler.
         kwargs: Kwargs for processor initialization, if :obj:`name` is string.
 
     Returns:
