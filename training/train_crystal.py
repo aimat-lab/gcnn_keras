@@ -7,8 +7,8 @@ import argparse
 from kgcnn.data.utils import save_pickle_file, load_pickle_file
 from datetime import timedelta
 from tensorflow_addons import optimizers
-from kgcnn.data.transform.scaler.scaler import StandardLabelScaler
-from kgcnn.data.transform.scaler.mol import QMGraphLabelScaler
+from kgcnn.data.transform.scaler.standard import StandardLabelScaler
+from kgcnn.data.transform.scaler.molecule import QMGraphLabelScaler
 import kgcnn.training.schedule
 import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score, load_history_list

@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from typing import Union, List, Dict, Tuple
-from kgcnn.data.transform.scaler.mol import ExtensiveMolecularScalerBase
+from kgcnn.data.transform.scaler.molecule import ExtensiveMolecularScalerBase
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

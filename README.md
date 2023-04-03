@@ -25,7 +25,7 @@ A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensor
 The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
 Some models are given as an example.
 A [documentation](https://kgcnn.readthedocs.io/en/latest/index.html) is generated in [docs](docs).
-Focus of [kgcnn](kgcnn) is (batched) graph learning for molecules [kgcnn.mol](kgcnn/molecule) and materials [kgcnn.crystal](kgcnn/crystal).
+Focus of [kgcnn](kgcnn) is (batched) graph learning for molecules [kgcnn.molecule](kgcnn/molecule) and materials [kgcnn.crystal](kgcnn/crystal).
 If you want to get in contact, feel free to [discuss](https://github.com/aimat-lab/gcnn_keras/discussions). 
 
 <a name="requirements"></a>

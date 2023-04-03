@@ -9,7 +9,7 @@ import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from tensorflow_addons import optimizers
-from kgcnn.data.transform.scaler.scaler import StandardLabelScaler
+from kgcnn.data.transform.scaler.standard import StandardLabelScaler
 from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.utils import get_model_class
