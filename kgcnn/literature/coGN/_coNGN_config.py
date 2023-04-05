@@ -106,7 +106,7 @@ model_default_nested = {
         "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
         "cell_translation": None,
         "affine_matrix": None,
-        "voronoi_ridge_area": {"shape": (None,), "name": "offset", "dtype": "float32", "ragged": True},
+        "voronoi_ridge_area": {"shape": (None,), "name": "voronoi_ridge_area", "dtype": "float32", "ragged": True},
         "atomic_number": {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
         "frac_coords": None,
         "coords": None,
