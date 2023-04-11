@@ -7,7 +7,8 @@ As for literature models only input and output is matched with ``kgcnn`` .
 * Move ``kgcnn.layers.conv`` to `kgcnn.literature` .
 * Refactored all graph methods in ``graph.methods`` .
 * Moved ``kgcnn.mol.*`` and `kgcnn.moldyn.*` into `kgcnn.molecule`
-* 
+* Moved ``hyper`` into `trainig`
+* Updated ``crystal`` .
 
 
 v2.2.4
