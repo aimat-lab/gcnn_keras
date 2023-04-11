@@ -1,3 +1,8 @@
+v3.0.1
+
+* Removed deprecated molecules.
+
+
 v3.0.0
 
 Major refactoring of kgcnn layers and models. 
