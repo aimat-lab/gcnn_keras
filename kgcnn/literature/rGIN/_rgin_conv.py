@@ -9,7 +9,7 @@ from kgcnn.layers.modules import LazyAdd, Activation, LazyConcatenate
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='rGIN')
 class rGIN(GraphBaseLayer):
     r"""Random Features Strengthen Graph Neural Networks
-    <https://arxiv.org/abs/2002.03155>`_.
+    <https://arxiv.org/abs/2002.03155>`__ .
 
     Computes graph convolution at step :math:`k` for node embeddings :math:`h_\nu` as:
 

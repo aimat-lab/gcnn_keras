@@ -47,18 +47,18 @@ def make_model(inputs: list = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None
                ):
-    r"""Make `rGIN https://arxiv.org/abs/2002.03155`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.rGIN.model_default`.
+    r"""Make `rGIN <https://arxiv.org/abs/2002.03155>`__ graph network via functional API.
+    Default parameters can be found in :obj:`kgcnn.literature.rGIN.model_default` .
 
     Inputs:
         list: `[node_attributes, edge_indices]`
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
               using an embedding layer.
-            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"` .
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
