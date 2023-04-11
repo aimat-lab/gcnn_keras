@@ -65,6 +65,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         "Isotope": lambda atom: atom.GetIsotope(),
         "TotalValence": lambda atom: atom.GetTotalValence(),
         "Mass": lambda atom: atom.GetMass(),
+        "MassScaled": lambda atom: float((atom.GetMass() - 10.812)/116.092),
         "IsInRing": lambda atom: atom.IsInRing(),
         "Hybridization": lambda atom: atom.GetHybridization(),
         "NoImplicit": lambda atom: atom.GetNoImplicit(),
@@ -88,6 +89,11 @@ class MolecularGraphRDKit(MolGraphInterface):
             '_GasteigerHCharge') else None,
         "AtomFeatures": lambda atom: rdkit.Chem.rdMolDescriptors.GetAtomFeatures(atom.GetOwningMol(), atom.GetIdx()),
         "DescribeQuery": lambda atom: atom.DescribeQuery(),
+        "Rvdw": lambda atom: float(rdkit.Chem.GetPeriodicTable().GetRvdw(atom.GetAtomicNum())),
+        "RvdwScaled": lambda atom: float((rdkit.Chem.GetPeriodicTable().GetRvdw(atom.GetAtomicNum()) - 1.5) / 0.6),
+        "Rcovalent": lambda atom: float(rdkit.Chem.GetPeriodicTable().GetRcovalent(atom.GetAtomicNum())),
+        "RcovalentScaled": lambda atom: float(
+            (rdkit.Chem.GetPeriodicTable().GetRcovalent(atom.GetAtomicNum()) - 0.64) / 0.76),
     }
 
     # Dictionary of predefined bond or edge properties

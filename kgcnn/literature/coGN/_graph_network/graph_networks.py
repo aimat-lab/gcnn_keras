@@ -10,11 +10,14 @@ class GraphNetwork(GraphNetworkBase):
     """A basic concrete implementation of the GraphNetworkBase class.
 
     Update functions `ɸ_E`,`ɸ_V`,`ɸ_G` can be provided as parameters to the constructor.
-    Aggregation functions `ρ_{E -> V}`,`ρ_{E -> G}`,`ρ_{V -> G}` can be selected via string identifiers (`'sum'`,`'mean'`,`'max'`,`'min'`,`'attention'`).
-    It furthermore supports en/disabling gated updates, residual updates and which features are used for the update functions.
+    Aggregation functions `ρ_{E -> V}`,`ρ_{E -> G}`,`ρ_{V -> G}` can be selected via string identifiers
+    (`'sum'`,`'mean'`,`'max'`,`'min'`,`'attention'`).
+    It furthermore supports en/disabling gated updates, residual updates and which features are used for
+    the update functions.
     
     Graph Network according to "Relational inductive biases, deep learning, and graph networks" by Battaglia et al.
     (<https://arxiv.org/abs/1806.01261>).
+
     """
 
     def __init__(self, edge_mlp, node_mlp, global_mlp,

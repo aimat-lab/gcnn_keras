@@ -89,7 +89,6 @@ def make_model(inputs=None,
         angles, _, _, _ = line_graph_angle_decoder([None, offset, None, line_graph_edge_indices])
         angle_embeddings = angle_embedding_layer(tf.expand_dims(angles, -1))
 
-
     euclidean_norm = EuclideanNorm()
     distance = euclidean_norm(offset)
     crystal_input_block = GraphNetworkConfigurator.get_input_block(**input_block_cfg)
@@ -121,11 +120,11 @@ def make_model(inputs=None,
     _, _, out, _ = output_block(x)
     out = output_block.get_features(out)
 
-
     input_list = edge_inputs + node_inputs + global_inputs + [edge_indices]
     print(input_list)
 
     return ks.Model(inputs=input_list, outputs=out)
+
 
 def make_force_model(inner_model):
     r"""Transforms a model that predicts energies for geometric crystal/molecular graphs,
@@ -168,6 +167,7 @@ def make_force_model(inner_model):
         raise ValueError("""Can not create force model from given energy model.
                 The given energy model needs either a layer called 'coords'
                 or two layers called 'frac_coords' and 'lattice_matrix'.""")
+
 
 def make_molecule_force_model(inner_model):
     r"""Transforms a model that predicts energies for geometric molecular graphs,

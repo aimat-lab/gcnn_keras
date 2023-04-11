@@ -1,13 +1,13 @@
 from hashlib import md5
-import logging
+# import logging
 from pymatgen.core.structure import Structure
 from typing import Callable, Union
 from networkx import MultiDiGraph
 from kgcnn.graph.base import GraphDict
 
-logging.basicConfig()  # Module logger
-module_logger = logging.getLogger(__name__)
-module_logger.setLevel(logging.INFO)
+# logging.basicConfig()  # Module logger
+# module_logger = logging.getLogger(__name__)
+# module_logger.setLevel(logging.INFO)
 
 
 class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):

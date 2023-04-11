@@ -493,7 +493,7 @@ def to_non_periodic_unit_cell(graph: MultiDiGraph, add_reverse_edges: bool = Tru
 
 
 def to_supercell_graph(graph: MultiDiGraph, size) -> MultiDiGraph:
-    """Generates super cell graph representation from unit cell graph representation.
+    """Generates super-cell graph representation from unit cell graph representation.
 
     Args:
         graph (MultiDiGraph): Unit cell graph to generate super cell graph for.
@@ -579,10 +579,10 @@ argument set to `True`.")
 
 
 def _to_unit_cell(frac_coords):
-    """Converts fractional coords to be within the [0,1) interval.
+    r"""Converts fractional coords to be within the :math:`[0,1)` interval.
 
     Args:
-        frac_coords: Fractional coordinates to map into [0,1) interval.
+        frac_coords: Fractional coordinates to map into :math:`[0,1)` interval.
 
     Returns:
         Fractional coordinates within the [0,1) interval.
@@ -615,11 +615,11 @@ def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     """Get the pairwise offset difference between two vector sets.
 
     Args:
-        coords1 (np.ndarray): Coordinates of shape (n, 3)
-        coords2 (np.ndarray): Coordinates of shape (m, 3)
+        coords1 (np.ndarray): Coordinates of shape (..., n, 3)
+        coords2 (np.ndarray): Coordinates of shape (..., m, 3)
 
     Returns:
-        np.ndarray: Difference values of shape (n,m,3)
+        np.ndarray: Difference values of shape (..., n, m, 3)
     """
 
     def _reshape_at_axis(arr, axis, new_shape):
@@ -699,7 +699,7 @@ def _get_max_diameter(lattice: np.ndarray) -> Union[float, np.ndarray]:
 #     return super_cell_size
 
 
-def _get_super_cell_frac_coords(lattice: np.ndarray, frac_coords: np.ndarray, size: Union[int, list]):
+def _get_super_cell_frac_coords(lattice: np.ndarray, frac_coords: np.ndarray, size: Union[int, list, np.ndarray]):
     """Get a list of frac coordinates for all super-cell positions.
 
     Args:

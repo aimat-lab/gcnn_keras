@@ -166,6 +166,7 @@ class RelationalDense(GraphBaseLayer):
             )
         else:
             self.lin_bases = None
+
         if self.use_bias:
             self.bias = self.add_weight(
                 "bias",

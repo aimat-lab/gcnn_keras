@@ -258,7 +258,15 @@ class CrystalDataset(MemoryGraphDataset):
         return self
 
     def set_representation(self, pre_processor: CrystalPreprocessor, reset_graphs: bool = False):
-        # TODO: Add documentation
+        r"""Build a graph representation for this dataset using :obj:`kgcnn.crystal` .
+
+        Args:
+            pre_processor (CrystalPreprocessor): Crystal preprocessor to use.
+            reset_graphs (bool): Whether to reset the graph information. Default is False.
+
+        Returns:
+
+        """
         if reset_graphs:
             self.clear()
         # Read pymatgen JSON file from file.
@@ -266,14 +274,11 @@ class CrystalDataset(MemoryGraphDataset):
         if reset_graphs:
             self.empty(len(structs))
 
+        pre_processor.output_graph_as_dict = True
+
         for index, s in enumerate(structs):
             g = pre_processor(s)
-            graph_dict = GraphDict()
-            graph_dict.from_networkx(g, node_attributes=pre_processor.node_attributes,
-                                     edge_attributes=pre_processor.edge_attributes)
-            # TODO: Add graph attributes (label, lattice_matrix, etc.)
-            # TODO: Rename node and edge properties to match kgcnn conventions
-            # TODO: Add GraphDict to dataset
+            self[index].update(g)
 
             if index % self._default_loop_update_info == 0:
                 self.info(" ... preprocess structures {0} from {1}".format(index, len(structs)))
