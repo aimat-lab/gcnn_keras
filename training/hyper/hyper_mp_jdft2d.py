@@ -488,8 +488,22 @@ hyper = {
     "coGN": {
         "model": {
             "module_name": "kgcnn.literature.coGN",
-            "class_name": "make_crystal_model",
+            "class_name": "make_model",
             "config": {
+                "name": "coGN",
+                "inputs": {
+                    "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
+                    "cell_translation": None,
+                    "affine_matrix": None,
+                    "voronoi_ridge_area": None,
+                    "atomic_number": {"shape": (None,), "name": "atomic_number", "dtype": "int32", "ragged": True},
+                    "frac_coords": None,
+                    "coords": None,
+                    "multiplicity": {"shape": (None,), "name": "multiplicity", "dtype": "int32", "ragged": True},
+                    "lattice_matrix": None,
+                    "edge_indices": {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
+                    "line_graph_edge_indices": None,
+                },
                 # All default.
             }
         },
@@ -511,7 +525,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -522,7 +536,12 @@ hyper = {
                 "module_name": "kgcnn.data.datasets.MatProjectJdft2dDataset",
                 "config": {},
                 "methods": [
-                    {"map_list": {"method": "set_range_periodic", "max_distance": 5.0}}
+                    {"set_representation": {
+                        "pre_processor": {"class_name": "RadiusAsymmetricUnitCell",
+                                          "module_name": "kgcnn.crystal.preprocessor",
+                                          "config": {"radius": 6.0}
+                                          },
+                        "reset_graphs": False}}
                 ]
             },
             "data_unit": "meV/atom"

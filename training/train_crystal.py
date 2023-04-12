@@ -14,7 +14,7 @@ import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score, load_history_list
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
-from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.training.hyper import HyperParameter
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.model.utils import get_model_class
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
@@ -26,9 +26,9 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
                     default="hyper/hyper_mp_jdft2d.py")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="MatProjectJdft2dDataset")
-parser.add_argument("--model", required=False, help="Graph model to train.", default="PAiNN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="coGN")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_crystal_model")
+                    default="make_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
                     default=None, nargs="+", type=int)
 parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
@@ -110,6 +110,7 @@ train_test_indices = [
     (train_index, test_index) for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels)]
 num_folds = len(train_test_indices)
 splits_done = 0
+
 for current_fold, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.

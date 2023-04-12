@@ -194,13 +194,14 @@ class GatherEmbeddingSelection(GatherEmbedding):
             raise ValueError("Indices for selection must be list or tuple for layer `GatherEmbeddingSelection`.")
 
         if isinstance(selection_index, int):
-            self.selection_index = [selection_index]
+            selection_index = [selection_index]
         else:
-            self.selection_index = list(selection_index)
+            selection_index = list(selection_index)
+        self.selection_index = selection_index
         self.axis_indices = axis_indices
         # Different names as in parent class.
         super(GatherEmbeddingSelection, self).__init__(
-            axis=axis, concat_axis=None, split_axis=axis_indices, split_indices=selection_index, **kwargs)
+            axis=axis, concat_axis=None, split_axis=axis_indices, split_indices=self.selection_index, **kwargs)
 
     def get_config(self):
         config = super(GatherEmbeddingSelection, self).get_config()

@@ -208,8 +208,9 @@ class MemoryGraphList(list):
             list: List of Tensors.
         """
         if isinstance(items, dict):
-            if all([isinstance(value, dict) for value in items.values()]) and "name" not in items:
-                return {key: self._to_tensor(value, make_copy=make_copy) for key, value in items.items()}
+            if all([isinstance(value, dict) for value in items.values() if value is not None]) and "name" not in items:
+                return {key: self._to_tensor(value, make_copy=make_copy) for key, value in items.items() if
+                        value is not None}
             return self._to_tensor(items, make_copy=make_copy)
         elif isinstance(items, (tuple, list)):
             return [self._to_tensor(x, make_copy=make_copy) for x in items]
@@ -299,6 +300,24 @@ class MemoryGraphList(list):
         for i in invalid_graphs:
             self.pop(int(i))
         return invalid_graphs
+
+    def rename_property_on_graphs(self, old_property_name: str, new_property_name: str) -> list:
+        """Change the name of a graph property on all graphs in the list.
+
+        Args:
+            old_property_name (str): Old property name.
+            new_property_name (str): New property name.
+
+        Returns:
+            list: List indices of replaced property names.
+        """
+        replaced_list = []
+        for i, x in enumerate(self):
+            if old_property_name in x:
+                self[i][new_property_name] = x[old_property_name]
+                self[i].pop(old_property_name)
+                replaced_list.append(i)
+        return replaced_list
 
     # Alias of internal assign and obtain property.
     set = assign_property
@@ -500,11 +519,16 @@ class MemoryGraphDataset(MemoryGraphList):
 
         # Check if we have List[dict].
         for x in hyper_input:
+            if x is None:
+                message_warning("Found 'None' in place of model input. Skipping this input.")
+                continue
             if not isinstance(x, dict):
                 message_error(
                     "Wrong type of list item in `assert_valid_model_input`. Found '%s' but must be `dict` ." % type(x))
 
         for x in hyper_input:
+            if x is None:
+                continue
             if "name" not in x:
                 message_error("Can not infer name from '%s' for model input." % x)
             data = [dataset[i].obtain_property(x["name"]) for i in range(len(dataset))]
@@ -633,6 +657,7 @@ class MemoryGraphDataset(MemoryGraphList):
             if to_split - len(split_indices) + 1 > 0:
                 for _ in range(to_split - len(split_indices) + 1):
                     split_indices.append([])
+
         graphs = self.obtain_property(name)
         for i, s in enumerate(graphs):
             if s is None:

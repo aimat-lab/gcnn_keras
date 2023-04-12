@@ -7,7 +7,7 @@ import pymatgen
 import pymatgen.io.cif
 import pymatgen.core.structure
 import pymatgen.symmetry.structure
-
+from kgcnn.utils.serial import deserialize
 from kgcnn.data.base import MemoryGraphDataset
 from kgcnn.data.utils import save_json_file, load_json_file
 from kgcnn.crystal.base import CrystalPreprocessor
@@ -269,6 +269,8 @@ class CrystalDataset(MemoryGraphDataset):
         """
         if reset_graphs:
             self.clear()
+        if isinstance(pre_processor, dict):
+            pre_processor = deserialize(pre_processor)
         # Read pymatgen JSON file from file.
         structs = self.get_structures_from_json_file()
         if reset_graphs:

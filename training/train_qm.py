@@ -15,7 +15,7 @@ from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.utils import get_model_class
 from kgcnn.data.serial import deserialize as deserialize_dataset
-from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.training.hyper import HyperParameter
 from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.

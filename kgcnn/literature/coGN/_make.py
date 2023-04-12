@@ -21,6 +21,7 @@ ks = tf.keras
 
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
+               name=None,
                input_block_cfg=None,
                processing_blocks_cfg=None,
                output_block_cfg=None,):

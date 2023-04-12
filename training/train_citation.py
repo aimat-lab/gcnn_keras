@@ -11,7 +11,7 @@ from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquared
 from sklearn.model_selection import KFold
 # from sklearn.preprocessing import StandardScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
-from kgcnn.hyper.hyper import HyperParameter
+from kgcnn.training.hyper import HyperParameter
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.model.utils import get_model_class
 from kgcnn.utils.devices import set_devices_gpu

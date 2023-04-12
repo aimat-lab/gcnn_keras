@@ -76,6 +76,7 @@ output_block_cfg_no_multiplicity['multiplicity_readout'] = False
 
 
 crystal_asymmetric_unit_graphs = {
+    "name": "coGN",
     "inputs": {
         "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
         "cell_translation": None,
@@ -95,6 +96,7 @@ crystal_asymmetric_unit_graphs = {
 }
 
 crystal_unit_graphs = {
+    "name": "coGN",
     "inputs": {
         "offset": {"shape": (None, 3), "name": "offset", "dtype": "float32", "ragged": True},
         "cell_translation": None,
@@ -115,6 +117,7 @@ crystal_unit_graphs = {
 molecular_graphs = crystal_unit_graphs
 
 crystal_unit_graphs_coord_input = {
+    "name": "coGN",
     "inputs": {
         "offset": None,
         "cell_translation": {"shape": (None,3), "dtype": "float32", "name": "cell_translation", "ragged": True},
@@ -147,6 +150,7 @@ molecular_graphs_coord_input = {
         "edge_indices": {"shape": (None, 2), "name": "edge_indices", "dtype": "int32", "ragged": True},
         "line_graph_edge_indices": None,
     },
+    "name": "coGN",
     "input_block_cfg": input_block_cfg,
     "processing_blocks_cfg": [deepcopy(processing_block_cfg) for _ in range(depth)],
     "output_block_cfg": output_block_cfg_no_multiplicity,
