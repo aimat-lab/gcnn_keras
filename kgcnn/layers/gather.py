@@ -28,6 +28,8 @@ class GatherEmbedding(GraphBaseLayer):
 
     .. code-block:: python
 
+        import tensorflow as tf
+        from kgcnn.layers.gather import GatherEmbedding
         nodes = tf.ragged.constant([[[0.0],[1.0]],[[2.0],[3.0],[4.0]]], ragged_rank=1)
         edge_idx = tf.ragged.constant([[[0,1],[1,0]],[[0,2],[1,2]]], ragged_rank=1)
         print(GatherEmbedding()([nodes, edge_idx]))

@@ -5,6 +5,7 @@ from typing import Callable, Union
 from networkx import MultiDiGraph
 from kgcnn.graph.base import GraphDict
 
+# A separate module logger is not need for the base class.
 # logging.basicConfig()  # Module logger
 # module_logger = logging.getLogger(__name__)
 # module_logger.setLevel(logging.INFO)
@@ -35,7 +36,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         Returns:
             MultiDiGraph: Graph representation of the crystal.
         """
-        raise NotImplementedError("Must be implemented in sub-class.")
+        raise NotImplementedError("Must be implemented in sub-classes.")
 
     def __call__(self, structure: Structure) -> Union[MultiDiGraph, GraphDict]:
         """Should be implemented in a subclass.

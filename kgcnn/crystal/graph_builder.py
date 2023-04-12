@@ -138,12 +138,14 @@ def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     coords = frac_coords @ lattice
     # return coords, lattice
-    index1, index2, offset_vectors, distances = find_points_in_spheres(coords,
-                                                                       coords,
-                                                                       r=max_radius,
-                                                                       pbc=np.array([True] * 3, dtype=int),
-                                                                       lattice=lattice,
-                                                                       tol=1e-8)
+    index1, index2, offset_vectors, distances = find_points_in_spheres(
+        coords,
+        coords,
+        r=max_radius,
+        pbc=np.array([True] * 3, dtype=int),
+        lattice=lattice,
+        tol=1e-8
+    )
     offset_vectors = offset_vectors.astype('i2')
     # Remove self_loops:
     no_self_loops = np.argwhere(~np.isclose(distances, 0)).reshape(-1)
@@ -233,7 +235,7 @@ def add_voronoi_bonds(graph: MultiDiGraph, min_ridge_area: Optional[float] = Non
     dim = lattice.shape[0]
     assert dim == 3
     size = np.array([1, 1, 1])
-    expanded_frac_coords = _get_super_cell_frac_coords(lattice, frac_coords, size)
+    expanded_frac_coords = _get_super_cell_grid_frac_coords(lattice, frac_coords, size)
     expanded_coords = expanded_frac_coords @ lattice
     flattened_expanded_coords = expanded_coords.reshape(-1, dim)
 
@@ -687,25 +689,24 @@ def _get_max_diameter(lattice: np.ndarray) -> Union[float, np.ndarray]:
     return max_radius * 2
 
 
-# def _get_super_cell_size_from_radius(lattice: np.ndarray, radius: float):
-#     dim = lattice.shape[0]
-#     max_diameter = _get_max_diameter(lattice)
-#     radius_ = radius + max_diameter
-#     cell_indices = np.ceil(np.sum(np.abs(np.linalg.inv(lattice)), axis=0) * radius_).astype(int)
-#     cells = _get_mesh(cell_indices + 1, dim)
-#     lattice_point_coords = cells @ lattice
-#     images = np.argwhere(np.linalg.norm(lattice_point_coords, axis=-1) <= radius_)
-#     super_cell_size = images.max(axis=0)
-#     return super_cell_size
+def _get_super_cell_grid_frac_coords(lattice: np.ndarray, frac_coords: np.ndarray, size: Union[int, list, np.ndarray]):
+    """Get frac coordinates for positions in a grid of unit cells that is a cubic super-cell.
 
+    ..code - block:: python
 
-def _get_super_cell_frac_coords(lattice: np.ndarray, frac_coords: np.ndarray, size: Union[int, list, np.ndarray]):
-    """Get a list of frac coordinates for all super-cell positions.
+        import numpy as np
+        from kgcnn.crystal.graph_builder import _get_super_cell_grid_frac_coords
+        coordinates = _get_super_cell_grid_frac_coords(
+            np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.5], [0.0, 0.5, 1.5]]),
+            np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]]),
+            [3, 3, 3]
+        )
+        print(coordinates.shape)  # (7, 7, 7, 2, 3)
 
     Args:
         lattice (np.ndarray): Lattice matrix.
         frac_coords (np.ndarray): Fractional coordinates of atoms in unit cell.
-        size (list): Size of the super-cell.
+        size (list): Size of the super-cell in each dimension.
 
     Returns:
         np.ndarray: List of fractional coordinates of atoms in the super-cell.
