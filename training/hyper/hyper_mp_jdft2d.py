@@ -537,9 +537,9 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_representation": {
-                        "pre_processor": {"class_name": "RadiusAsymmetricUnitCell",
+                        "pre_processor": {"class_name": "KNNAsymmetricUnitCell",
                                           "module_name": "kgcnn.crystal.preprocessor",
-                                          "config": {"radius": 6.0}
+                                          "config": {"k": 24}
                                           },
                         "reset_graphs": False}}
                 ]
@@ -549,7 +549,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.2.3"
+            "kgcnn_version": "3.0.1"
         }
     },
 }

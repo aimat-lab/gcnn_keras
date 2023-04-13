@@ -135,6 +135,8 @@ def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
         MultiDiGraph: Graph with added edges.
     """
     lattice = _get_attr_from_graph(graph, "lattice_matrix", make_copy=True)
+    # if max_radius is None:
+    #     max_radius = _estimate_radius_from_density(lattice)
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     coords = frac_coords @ lattice
     # return coords, lattice

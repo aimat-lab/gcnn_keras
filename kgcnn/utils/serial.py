@@ -63,5 +63,5 @@ def deserialize(obj_dict: dict) -> Any:
                     if hasattr(obj, method):
                         getattr(obj, method)(**kwargs)
                     else:
-                        logging.error("Class for deserialization does not have method %s" % method)
+                        logging.error("Class for deserialization does not have method '%s'." % method)
     return obj

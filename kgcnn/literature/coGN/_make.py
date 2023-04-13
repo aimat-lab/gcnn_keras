@@ -19,6 +19,7 @@ from ._preprocessing_layers import EdgeDisplacementVectorDecoder
 
 ks = tf.keras
 
+
 @update_model_kwargs(model_default)
 def make_model(inputs=None,
                name=None,
@@ -124,7 +125,7 @@ def make_model(inputs=None,
     input_list = edge_inputs + node_inputs + global_inputs + [edge_indices]
     print(input_list)
 
-    return ks.Model(inputs=input_list, outputs=out)
+    return ks.Model(inputs=input_list, outputs=out, name=name)
 
 
 def make_force_model(inner_model):
@@ -159,6 +160,8 @@ def make_force_model(inner_model):
     Returns:
         :obj:`tf.keras.models.Model`
     """
+    # if isinstance(inner_model, dict):
+    #      inner_model = make_model(inner_model)
     input_names = [layer.name for layer in inner_model.inputs]
     if 'coords' in input_names:
         return make_molecule_force_model(inner_model)
@@ -184,6 +187,8 @@ def make_molecule_force_model(inner_model):
     Returns:
         :obj:`tf.keras.models.Model`
     """
+    # if isinstance(inner_model, dict):
+    #      inner_model = make_model(inner_model)
     force_model_inputs = []
 
     for i, input_layer in enumerate(inner_model.inputs):
@@ -242,7 +247,7 @@ def make_crystal_force_model(inner_model):
 
     # Create force model
     force_model = EnergyForceModel(inner_model, coordinate_input=coordinate_input,
-                                    output_to_tensor=False, output_squeeze_states=True)
+                                   output_to_tensor=False, output_squeeze_states=True)
     outputs = force_model(force_model_inputs)
     # Since coordinates are fractional, force predictions are also fractional.
     # Convert fractional to real forces:
