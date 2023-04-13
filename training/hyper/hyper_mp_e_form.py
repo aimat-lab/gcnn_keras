@@ -46,7 +46,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -115,7 +115,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -179,7 +179,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -256,7 +256,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -329,7 +329,7 @@ hyper = {
             },
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
@@ -395,7 +395,7 @@ hyper = {
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {
                 "class_name": "StandardScaler",
-                "module_name": "kgcnn.data.transform.scaler.scaler",
+                "module_name": "kgcnn.data.transform.scaler.standard",
                 "config": {"with_std": True, "with_mean": True, "copy": True}
             },
             "multi_target_indices": None
