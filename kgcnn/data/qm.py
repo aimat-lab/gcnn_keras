@@ -246,12 +246,20 @@ class QMDataset(MemoryGraphDataset):
         # Label callback.
         if label_column_name:
             callbacks.update({'graph_labels': lambda mg, ds: ds[label_column_name]})
-        # Attributes callback.
-        for attrib, name, encoder in zip([nodes, edges, graph],
-                                         ["node_attributes", "edge_attributes", "graph_attributes"],
-                                         [encoder_nodes, encoder_edges, encoder_graph]):
-            if attrib:
-                callbacks.update({name: lambda mg, ds: np.array(getattr(mg, name)(attrib, encoder), dtype='float32')})
+
+        # Attributes callbacks.
+        if nodes:
+            callbacks.update({
+                'node_attributes': lambda mg, ds: np.array(mg.node_attributes(nodes, encoder_nodes), dtype='float32')
+            })
+        if edges:
+            callbacks.update({
+                'edge_attributes': lambda mg, ds: np.array(mg.edge_attributes(edges, encoder_edges)[1], dtype='float32')
+            })
+        if graph:
+            callbacks.update({
+                'graph_attributes': lambda mg, ds: np.array(mg.graph_attributes(graph, encoder_graph), dtype='float32')
+            })
 
         value_list = map_molecule_callbacks(
             self.get_mol_blocks_from_sdf_file(),
