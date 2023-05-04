@@ -16,10 +16,14 @@ try:
     import rdkit.Chem
     import rdkit.Chem.AllChem
     import rdkit.Chem.rdDetermineBonds
+    from rdkit import RDLogger
 
     def rdkit_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True, make_conformers: bool = True,
-                           optimize_conformer: bool = True):
+                           optimize_conformer: bool = True, random_seed: int = 42, stop_logging: bool = False):
         # Order of parameters is important here.
+        if stop_logging:
+            RDLogger.DisableLog('rdApp.*')
+
         try:
             m = rdkit.Chem.MolFromSmiles(smile)
             if sanitize:
@@ -31,6 +35,7 @@ try:
             if make_conformers:
                 params = rdkit.Chem.AllChem.ETKDGv3()
                 params.useSmallRingTorsions = True
+                params.randomSeed = random_seed
                 # params.useRandomCoords = True
                 success = rdkit.Chem.AllChem.EmbedMolecule(m, params=params)
                 if optimize_conformer:
@@ -44,6 +49,9 @@ try:
 
         except:
             m = None
+
+        if stop_logging:
+            RDLogger.EnableLog('rdApp.*')
 
         if m is not None:
             return rdkit.Chem.MolToMolBlock(m)
@@ -89,6 +97,7 @@ try:
 
     def openbabel_smile_to_mol(smile: str, sanitize: bool = True, add_hydrogen: bool = True,
                                make_conformers: bool = True, optimize_conformer: bool = True,
+                               random_seed: int = 42,
                                stop_logging: bool = False):
         if stop_logging:
             openbabel.obErrorLog.StopLogging()
@@ -181,7 +190,7 @@ class MolConverter:
     @staticmethod
     def _check_is_same_length(a, b):
         if len(a) != len(b):
-            module_logger.error("Mismatch in number of converted. Found '%s' vs. '%s'" % (len(a), len(b)))
+            module_logger.error("Mismatch in number of converted. Found '%s' vs. '%s'." % (len(a), len(b)))
             raise ValueError("Conversion was not successful")
 
     @staticmethod

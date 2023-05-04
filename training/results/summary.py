@@ -426,7 +426,10 @@ def make_table_line(tab_list: list):
     return "| " + "".join([str(tab) + " | " for tab in tab_list]) + "\n"
 
 
-with open("README.md", "w") as f:
+output_file_name = "README%s.md" % ("_min_max" if show_min_max else "")
+
+
+with open(output_file_name, "w") as f:
     f.write("# Summary of Benchmark Training\n\n")
 
     f.write("Note that these are the results for models within `kgcnn` implementation, ")

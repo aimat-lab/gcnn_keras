@@ -1,6 +1,6 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.modules import LazyMultiply, LazyAdd
+from kgcnn.layers.modules import LazyMultiply, LazyAdd, LazyConcatenate
 from kgcnn.layers.gather import GatherState
 from kgcnn.ops.segment import segment_ops_by_name
 
@@ -105,6 +105,7 @@ class GraphNetwork(GraphNetworkBase):
         self.node_mlp = node_mlp
         self.global_mlp = global_mlp
         self.lazy_add = LazyAdd()
+        self.lazy_concat = LazyConcatenate(axis=-1)
         self.lazy_multiply = LazyMultiply()
         self.gather_state = GatherState()
             
@@ -127,7 +128,7 @@ class GraphNetwork(GraphNetworkBase):
             global_features = self.get_features(globals_)
             features_to_concat.append(self.gather_state([global_features, edge_features]))
         
-        concat_features = tf.concat(features_to_concat, axis=-1)
+        concat_features = self.lazy_concat(features_to_concat)
         messages = self.edge_mlp(concat_features)
 
         if self.edge_gate is not None:
@@ -166,13 +167,13 @@ class GraphNetwork(GraphNetworkBase):
             global_features = self.get_features(globals_)
             features_to_concat.append(self.gather_state([global_features, node_features]))
         
-        concat_features = tf.concat(features_to_concat, axis=-1)
+        concat_features = self.lazy_concat(features_to_concat)
         node_features_new = self.node_mlp(concat_features)
 
         if self.node_gate is not None:
             node_features_new = tf.RaggedTensor.from_row_splits(
                     self.node_gate(node_features_new.values, node_features.values)[1],
-                    node_features_new.row_splits)
+                    node_features_new.row_splits, validate=self.ragged_validate)
 
         if self.residual_node_update:
             node_features_new = self.lazy_add([node_features, node_features_new])
@@ -200,13 +201,13 @@ class GraphNetwork(GraphNetworkBase):
             global_features = self.get_features(globals_)
             features_to_concat.append(global_features)
 
-        concat_features = tf.concat(features_to_concat, axis=-1)
+        concat_features = self.lazy_concat(features_to_concat)
         global_features_new = self.global_mlp(concat_features)
 
         if self.global_gate is not None:
             global_features_new = tf.RaggedTensor.from_row_splits(
                     self.global_gate(global_features_new.values, global_features.values)[1],
-                    global_features_new.row_splits)
+                    global_features_new.row_splits, validate=self.ragged_validate)
 
         if self.residual_global_update:
             global_features = self.get_features(globals_)
@@ -313,6 +314,7 @@ class GraphNetworkMultiplicityReadout(GraphNetwork):
             return aggregated_node_features
         else:
             return super().aggregate_nodes(nodes, **kwargs)
+
 
 class CrystalInputBlock(GraphNetworkBase):
     """Graph Network layer that embeds node and edges features of crystal graphs on the basis of atomic numbers (for nodes) and distances (for edges)."""
@@ -438,7 +440,7 @@ class NestedGraphNetwork(GraphNetwork):
             global_features = self.get_features(globals_)
             features_to_concat.append(self.gather_state([global_features, edge_features]))
         
-        concat_features = tf.concat(features_to_concat, axis=-1)
+        concat_features = self.lazy_concat(features_to_concat)
         messages = self.edge_mlp(concat_features)
 
         assert isinstance(globals_, dict)
