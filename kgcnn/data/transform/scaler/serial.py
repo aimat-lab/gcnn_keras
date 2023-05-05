@@ -2,6 +2,7 @@ import importlib
 from typing import Union
 from kgcnn.utils.serial import deserialize as deserialize_general
 
+
 module_list = {
     "StandardScaler": "kgcnn.data.transform.scaler.standard",
     "StandardLabelScaler": "kgcnn.data.transform.scaler.standard",
