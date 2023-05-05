@@ -314,7 +314,7 @@ class MolConverter:
 
         xyz_list = read_xyz_file(xyz_path)
         mol_list = []
-        for x in xyz_list:
+        for _, x in enumerate(xyz_list):
             xyz_str = parse_list_to_xyz_str(x, number_coordinates=3)
             # No parallel conversion here, not necessary.
             mol_str = self._single_xyz_to_mol(xyz_str, charge=0)
