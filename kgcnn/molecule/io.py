@@ -1,12 +1,13 @@
 import logging
 
 
-def parse_list_to_xyz_str(mol: list, comment: str = ""):
+def parse_list_to_xyz_str(mol: list, comment: str = "", number_coordinates: int = None):
     """Convert list of atom and coordinates list into xyz-string.
 
     Args:
         mol (list): Tuple or list of `[['C', 'H', ...], [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], ... ]]`.
         comment (str): Comment for comment line in xyz string. Default is "".
+        number_coordinates (int): Number of allowed coordinates.
 
     Returns:
         str: Information in xyz-string format.
@@ -21,6 +22,8 @@ def parse_list_to_xyz_str(mol: list, comment: str = ""):
     xyz_str = xyz_str + comment + "\n"
     for a_iter, c_iter in zip(atoms, coordinates):
         _at_str = str(a_iter)
+        if number_coordinates is not None:
+            c_iter = c_iter[:number_coordinates]
         _c_format_str = " {:.10f}" * len(c_iter) + "\n"
         xyz_str = xyz_str + _at_str + _c_format_str.format(*c_iter)
     return xyz_str
