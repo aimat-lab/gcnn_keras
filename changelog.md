@@ -1,6 +1,9 @@
 v3.0.1
 
 * Removed deprecated molecules.
+* Fix error in ``kgcnn.data.transform.scaler.serial``
+* Fix error in ``QMDataset`` for molecular features.
+* 
 
 
 v3.0.0

@@ -41,3 +41,4 @@ kgcnn.egg-info
 /docs/source/model_energy_force/
 __pycache__
 /notebooks/qm7/
+/notebooks/Schnet_qm7_loss.png
