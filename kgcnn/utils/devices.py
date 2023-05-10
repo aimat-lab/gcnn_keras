@@ -41,7 +41,7 @@ def set_devices_gpu(gpu_ids_list: Union[list, int], restrict_memory: bool = True
     try:
         gpus = tf.config.list_physical_devices('GPU')
     except:
-        module_logger.error("Can not get device list, do nothing")
+        module_logger.error("Can not get device list, do nothing.")
         return
 
     if isinstance(gpus, list):

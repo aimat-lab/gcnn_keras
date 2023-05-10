@@ -89,7 +89,7 @@ from ._coNGN_config import model_default_nested
 
 __all__ = [
     "make_model",
-    "make_force_model"
+    "make_force_model",
     "model_default",
     "crystal_asymmetric_unit_graphs",
     "crystal_unit_graphs",
