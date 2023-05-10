@@ -14,7 +14,8 @@ class GraphBatchLoader(ks.utils.Sequence):
                  inputs: Union[dict, List[dict]],
                  outputs: Union[dict, List[dict]],
                  batch_size: int = 32,
-                 shuffle: bool = False):
+                 shuffle: bool = False,
+                 device: str = None):
         """Initialization with data and input information.
 
         Args:
@@ -31,6 +32,8 @@ class GraphBatchLoader(ks.utils.Sequence):
                 E.g.: `[{'name': 'graph_labels', 'ragged': False}, {...}, ...]`.
             batch_size (int): Batch size. Default is 32.
             shuffle (bool): Whether to shuffle data. Default is False.
+            device (str): Device to make tensor on. For multiprocessing this can cause deadlocks if e.g. set on GPU.
+                Example for CPU would be '/cpu:0' .
         """
         self.data = data
         self.inputs = inputs
@@ -38,7 +41,7 @@ class GraphBatchLoader(ks.utils.Sequence):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.indices = np.arange(len(data))
-
+        self.device = device
         self._shuffle_indices()
 
     def __len__(self):
@@ -51,9 +54,12 @@ class GraphBatchLoader(ks.utils.Sequence):
         batch_indices = self.indices[index * self.batch_size:(index + 1) * self.batch_size]
 
         # Generate data
-        x_model, y_model = self._data_generation(batch_indices)
+        if self.device is not None:
+            with tf.device(self.device):
+                x_model, y_model = self._data_generation(batch_indices)
+        else:
+            x_model, y_model = self._data_generation(batch_indices)
 
-        # return batch_indexes
         return x_model, y_model
 
     def _shuffle_indices(self):
@@ -71,9 +77,13 @@ class GraphBatchLoader(ks.utils.Sequence):
         else:
             return tf.constant(np.array(item))
 
+    def _get_data(self, index):
+        # Accessing data method. E.g. loading from file etc.
+        return self.data[int(index)]
+
     def _data_generation(self, batch_indices: Union[np.ndarray, list]):
         """Generates data containing batch_size samples"""
-        graphs = [self.data[int(i)] for i in batch_indices]
+        graphs = [self._get_data(i) for i in batch_indices]
         # Inputs
         inputs = self.inputs if not isinstance(self.inputs, dict) else [self.inputs]
         x_inputs = []

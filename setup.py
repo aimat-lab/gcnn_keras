@@ -31,7 +31,8 @@ setup(
         "ase>=3.22.1",
         "click>=7.1.2",
         "brotli>=1.0.9",
-        "pyxtal>=0.5.5"
+        "pyxtal>=0.5.5",
+        "h5py"
     ],
     extras_require={
         "openbabel": ["openbabel"],
