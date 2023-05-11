@@ -57,6 +57,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
         self.concatenate = LazyConcatenate()
         self.update_node_from_neighbors_mlp = GraphMLP(units=units, activation=activation, **kernel_args)
         self.update_node_from_self_mlp = GraphMLP(units=units, activation=activation, **kernel_args)
+        self.pooling_args = {"pooling_method": pooling_method}
         if self.pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             # We do not allow full access to all parameters for the LSTM here for simplification.
             self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units)

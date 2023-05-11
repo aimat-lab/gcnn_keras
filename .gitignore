@@ -43,3 +43,5 @@ __pycache__
 /notebooks/qm7/
 /notebooks/Schnet_qm7_loss.png
 /notebooks/esol/
+/notebooks/DMPNN_ESOL_predict.png
+/notebooks/DMPNN_esol_loss.png
