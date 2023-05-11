@@ -34,12 +34,40 @@ class RaggedArrayHDFile:
         self.compressed = compressed
 
     def write(self, ragged_array: list):
+        """Write ragged array to file.
+
+        .. code-block:: python
+
+            from kgcnn.io.file import RaggedArrayHDFile
+            import numpy as np
+            data = [np.array([[0, 1],[0, 2]]), np.array([[1, 1]]), np.array([[0, 1],[2, 2], [0, 3]])]
+            f = RaggedArrayHDFile("test.hdf5")
+            f.write(data)
+            print(f.read())
+            print(f[1])
+
+        Args:
+            ragged_array (list): List of numpy arrays.
+
+        Returns:
+            None.
+        """
         values = np.concatenate([x for x in ragged_array], axis=0)
         row_splits = np.cumsum(np.array([len(x) for x in ragged_array], dtype="int64"), dtype="int64")
-        with h5py.File("mytestfile.hdf5", "w") as f:
+        with h5py.File(self.file_path, "w") as f:
             f.create_dataset("values", data=values)
             f.create_dataset("row_splits", data=row_splits)
 
     def read(self):
-        h5py.File(self.file_path)
-        return None
+        file = h5py.File(self.file_path)
+        data = np.split(file["values"][()], file["row_splits"][:1])
+        file.close()
+        return data
+
+    def __getitem__(self, item):
+        file = h5py.File(self.file_path)
+        row_splits = file["row_splits"]
+        row_splits = np.pad(row_splits, [1, 0])
+        out_data = file["values"][row_splits[item]:row_splits[item+1]]
+        file.close()
+        return out_data
