@@ -55,7 +55,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
             g = GraphDict()
             g.from_networkx(
                 nxg, node_attributes=self.node_attributes, edge_attributes=self.edge_attributes,
-                graph_attributes=self.graph_attributes)
+                graph_attributes=self.graph_attributes, reverse_edge_indices=True)
             return g
         return self.call(structure)
 

@@ -179,7 +179,8 @@ class GraphDict(dict):
                       node_attributes: Union[str, List[str]] = None,
                       edge_attributes: Union[str, List[str]] = None,
                       graph_attributes: Union[str, List[str]] = None,
-                      node_labels: str = None):
+                      node_labels: str = None,
+                      reverse_edge_indices: bool = False):
         r"""Convert a networkx graph instance into a dictionary of graph-tensors. The networkx graph is always converted
         into integer node labels. The former node IDs can be hold in :obj:`node_labels`. Furthermore, node or edge
         data can be cast into attributes via :obj:`node_attributes` and :obj:`edge_attributes`.
@@ -195,6 +196,7 @@ class GraphDict(dict):
             graph_attributes (str, list): Name of graph attributes to add from graph data. Can also be a list of names.
                 Default is None.
             node_labels (str): Name of the labels of nodes to store former node IDs into. Default is None.
+            reverse_edge_indices (bool): Whether to reverse edge indices for notation '(ij, i<-j)'. Default is False.
 
         Returns:
             self.
@@ -230,7 +232,10 @@ class GraphDict(dict):
         edges_attr = _attr_to_list(edge_attributes)
         edges_attr_dict = {x: [None] * graph_int.number_of_edges() for x in edges_attr}
         for i, x in enumerate(graph_int.edges.data()):
-            edge_id.append(x[:2])
+            if reverse_edge_indices:
+                edge_id.append([x[1], x[0]])
+            else:
+                edge_id.append([x[0], x[1]])
             for d in edges_attr:
                 if d not in x[2]:
                     raise KeyError("Edge does not have property '%s'." % d)
