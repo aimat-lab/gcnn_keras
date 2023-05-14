@@ -18,7 +18,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.scaler.scaler import StandardScalerSklearnBase
+        from kgcnn.data.transform.scaler.standard import StandardScalerSklearnBase
         data = np.random.rand(5).reshape((5,1))
         scaler = StandardScalerSklearnBase()
         scaler.fit(X=data)
@@ -130,9 +130,10 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         Returns:
             self.
         """
-        return self.fit(
-            X=[item[X] for item in dataset],
-            y=None,
+        return super(StandardScalerSklearnBase, self).fit(
+            [item[X] for item in dataset],
+            # We can ignore y here. None is default for sklearn StandardScaler.
+            # y=None
             sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None
         )
 
@@ -155,8 +156,8 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = self.transform(
-            X=[graph[X] for graph in dataset],
+        out = super(StandardScalerSklearnBase, self).transform(
+            [graph[X] for graph in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
@@ -182,8 +183,8 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = self.inverse_transform(
-            X=[graph[X] for graph in dataset],
+        out = super(StandardScalerSklearnBase, self).inverse_transform(
+            [graph[X] for graph in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
@@ -222,7 +223,7 @@ class StandardScaler(StandardScalerSklearnBase):
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.scaler.scaler import StandardScaler
+        from kgcnn.data.transform.scaler.standard import StandardScaler
         data = np.random.rand(5).reshape((5,1))
         scaler = StandardScaler()
         scaler.fit(X=data)
@@ -261,7 +262,7 @@ class StandardScaler(StandardScalerSklearnBase):
         when :meth:`fit` is not feasible due to very large number of
         `n_samples` or because X is read from a continuous stream.
         The algorithm for incremental mean and std is given in Equation 1.5a,b
-        in `Chan, et al. (1982) <https://www.tandfonline.com/doi/abs/10.1080/00031305.1983.10483115>`_ .
+        in `Chan, et al. (1982) <https://www.tandfonline.com/doi/abs/10.1080/00031305.1983.10483115>`__ .
 
         Args:
             X (np.ndarray): Array of shape (n_samples, n_features)
@@ -423,7 +424,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
     .. code-block:: python
 
         import numpy as np
-        from kgcnn.data.transform.scaler.scaler import StandardLabelScaler
+        from kgcnn.data.transform.scaler.standard import StandardLabelScaler
         data = np.random.rand(5).reshape((5,1))
         scaler = StandardLabelScaler()
         scaler.fit(y=data)
@@ -464,7 +465,8 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         """
         # fit() of sklearn uses reset and partial fit. Just adding y in place of X.
         self._validate_input(y, X)
-        return super(StandardLabelScaler, self).fit(y, sample_weight=sample_weight)
+        self._reset()
+        return super(StandardLabelScaler, self).partial_fit(X=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
     def partial_fit(self, y: np.ndarray, X=None, sample_weight=None, atomic_number=None):
@@ -473,7 +475,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         when :meth:`fit` is not feasible due to very large number of
         `n_samples` or because y is read from a continuous stream.
         The algorithm for incremental mean and std is given in Equation 1.5a,b
-        in `Chan, et al. (1982) <https://www.tandfonline.com/doi/abs/10.1080/00031305.1983.10483115>`_ .
+        in `Chan, et al. (1982) <https://www.tandfonline.com/doi/abs/10.1080/00031305.1983.10483115>`__ .
 
         Args:
             y (np.ndarray): Array of shape (n_samples, n_labels)
@@ -488,11 +490,12 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         """
         # For partial fit internally uses args and not kwargs.
         # Can not request kwargs after argument X, y here.
+        # Just changing order of x,y here.
         self._validate_input(y, X)
-        return super(StandardLabelScaler, self).partial_fit(y, sample_weight=sample_weight)
+        return super(StandardLabelScaler, self).partial_fit(X=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
-    def fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, **fit_params):
+    def fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, copy=None, **fit_params):
         r"""Perform fit and standardization by centering and scaling.
 
         Args:
@@ -501,12 +504,14 @@ class StandardLabelScaler(StandardScalerSklearnBase):
                 used for later scaling along the feature's axis.
             X (None): Ignored.
             atomic_number (list): Ignored.
+            copy (bool): Copy the input `y` or not.
             fit_params (Any): Kwargs for fit.
 
         Returns:
             y_tr (np.ndarray): Transformed array of shape (n_samples, n_labels).
         """
-        return super(StandardLabelScaler, self).fit_transform(y, **fit_params)
+        self.fit(y=y, X=X, atomic_number=atomic_number, **fit_params)
+        return self.transform(y=y, X=X, copy=copy, atomic_number=atomic_number)
 
     # noinspection PyPep8Naming
     def transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):

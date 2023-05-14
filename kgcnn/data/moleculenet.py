@@ -96,7 +96,7 @@ def map_molecule_callbacks(mol_list: List[str],
         if logger is not None:
             logger.error("Received no pandas data.")
     if mol_list is None:
-        raise ValueError("Expected list of mol-string. But got '%s'" % mol_list)
+        raise ValueError("Expected list of mol-string. But got '%s'." % mol_list)
 
     value_lists = defaultdict(list)
     for index, sm in enumerate(mol_list):

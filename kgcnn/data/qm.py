@@ -332,9 +332,9 @@ class QMDataset(MemoryGraphDataset):
         else:
             # Try to read labels and xyz-file without mol-interface.
             self.warning("Failed to load structures SDF file. Reading geometries from XYZ file instead. Please check.")
-            self.read_in_table_file()
-            if self.data_frame is not None and label_column_name is not None:
-                labels = self.data_frame[label_column_name]
-                self.assign_property("graph_labels", [np.array(x) for _, x in labels.iterrows()])
+            data_frame = self.read_in_table_file().data_frame
+            if data_frame is not None and label_column_name is not None:
+                self.assign_property("graph_labels", [
+                    np.array(data_frame.loc[index][label_column_name]) for index in range(data_frame.shape[0])])
             self.read_in_memory_xyz()
         return self
