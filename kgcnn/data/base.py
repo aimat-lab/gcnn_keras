@@ -20,7 +20,7 @@ class MemoryGraphList(list):
     r"""Class to store a list of graph dictionaries in memory.
 
     Inherits from a python list. The graph properties are defined by tensor-like (numpy) arrays
-    for indices, attributes, labels, symbol etc. in :obj:`GraphDict`, which are the items of the list.
+    for indices, attributes, labels, symbol etc. in :obj:`GraphDict` , which are the items of the list.
     Access to items via `[]` indexing operator.
 
     A python list of a single named property can be obtained from each :obj:`GraphDict` in :obj:`MemoryGraphList` via
@@ -68,7 +68,7 @@ class MemoryGraphList(list):
                 self[i] = GraphDict(x)
 
     def assign_property(self, key: str, value: list):
-        """Assign a list of numpy arrays of a property to :obj:`GraphDict` s in this list.
+        """Assign a list of numpy arrays of a property to the respective :obj:`GraphDict` s in this list.
 
         Args:
             key (str): Name of the property.
@@ -81,7 +81,7 @@ class MemoryGraphList(list):
             # We could also here remove the key from all graphs.
             return self
         if not isinstance(value, list):
-            raise TypeError("Expected type 'list' to assign graph properties.")
+            raise TypeError("Expected type `list` to assign graph properties.")
         if len(self) == 0:
             self.empty(len(value))
         if len(self) != len(value):
@@ -123,7 +123,7 @@ class MemoryGraphList(list):
 
     def __setitem__(self, key, value):
         if not isinstance(value, GraphDict):
-            raise TypeError("Require a GraphDict as list item.")
+            raise TypeError("Require a `GraphDict` as list item.")
         super(MemoryGraphList, self).__setitem__(key, value)
 
     def __repr__(self):

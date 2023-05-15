@@ -1,9 +1,11 @@
+import os.path
+
 import numpy as np
 import h5py
 from typing import List, Union
 
 
-class RaggedArrayNumpyFile:
+class RaggedTensorNumpyFile:
 
     def __init__(self, file_path: str, compressed: bool = False):
         self.file_path = file_path
@@ -30,7 +32,7 @@ class RaggedArrayNumpyFile:
         raise NotImplementedError("Not implemented for file reference load.")
 
 
-class RaggedArrayHDFile:
+class RaggedTensorHDFile:
 
     def __init__(self, file_path: str, compressed: bool = None):
         self.file_path = file_path
@@ -101,3 +103,12 @@ class RaggedArrayHDFile:
             )
             file["row_splits"][-new_len:] = split_last + new_splits
             file["values"][split_last:+split_last+new_splits[-1]] = new_values
+
+    def __len__(self):
+        with h5py.File(self.file_path, "r") as file:
+            num_row_splits = file["row_splits"].shape[0]
+        # length is num_row_splits - 1
+        return num_row_splits-1
+
+    def exists(self):
+        return os.path.exists(self.file_path)
