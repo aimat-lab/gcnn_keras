@@ -1,52 +1,56 @@
 import os.path
-
 import numpy as np
+import tensorflow as tf
 import h5py
 from typing import List, Union
 
 
+def _check_for_inner_shape(array_list: List[np.ndarray]) -> Union[None, tuple, list]:
+    """Simple function to verify inner shape for list of numpy arrays."""
+    # Cannot find inner shape for empty list.
+    if len(array_list) == 0:
+        return None
+    # For fast check all items must be numpy arrays to get the inner shape easily.
+    if not all(isinstance(x, np.ndarray) for x in array_list):
+        return None
+    shapes = [x.shape for x in array_list]
+    # Must have all same rank.
+    if not all(len(x) == len(shapes[0]) for x in shapes):
+        return None
+    # All Empty. No inner shape.
+    if len(shapes[0]) == 0:
+        return None
+    # Empty inner shape.
+    if len(shapes[0]) <= 1:
+        return tuple([])
+    # If all same inner shape.
+    if all(x[1:] == shapes[0][1:] for x in shapes):
+        return shapes[0][1:]
+
+
 class RaggedTensorNumpyFile:
 
+    _device = '/cpu:0'
+
     def __init__(self, file_path: str, compressed: bool = False):
+        """Make class for a NPZ file.
+
+        Args:
+            file_path (str): Path to file on disk.
+            compressed (bool): Whether to use compression.
+        """
         self.file_path = file_path
         self.compressed = compressed
 
-    def write(self, ragged_array: List[np.ndarray]):
-        inner_shape = ragged_array[0].shape
-        values = np.concatenate([x for x in ragged_array], axis=0)
-        row_splits = np.cumsum(np.array([len(x) for x in ragged_array], dtype="int64"), dtype="int64")
-        row_splits = np.pad(row_splits, [1, 0])
-        out = {"values": values, "row_splits": row_splits, "shape": np.array([])}
-        if self.compressed:
-            np.savez_compressed(self.file_path, **out)
-        else:
-            np.savez(self.file_path, **out)
-
-    def read(self):
-        data = np.load(self.file_path)
-        values = data.get("values")
-        row_splits = data.get("row_splits")
-        return np.split(values, row_splits[1:-1])
-
-    def __getitem__(self, item):
-        raise NotImplementedError("Not implemented for file reference load.")
-
-
-class RaggedTensorHDFile:
-
-    def __init__(self, file_path: str, compressed: bool = None):
-        self.file_path = file_path
-        self.compressed = compressed
-
-    def write(self, ragged_array: List[np.ndarray]):
+    def write(self, ragged_array: Union[tf.RaggedTensor, List[np.ndarray], list]):
         """Write ragged array to file.
 
         .. code-block:: python
 
-            from kgcnn.io.file import RaggedArrayHDFile
+            from kgcnn.io.file import RaggedTensorNumpyFile
             import numpy as np
             data = [np.array([[0, 1],[0, 2]]), np.array([[1, 1]]), np.array([[0, 1],[2, 2], [0, 3]])]
-            f = RaggedArrayHDFile("test.hdf5")
+            f = RaggedTensorNumpyFile("test.npz")
             f.write(data)
             print(f.read())
 
@@ -56,24 +60,122 @@ class RaggedTensorHDFile:
         Returns:
             None.
         """
-        inner_shape = ragged_array[0].shape
-        values = np.concatenate([x for x in ragged_array], axis=0)
-        row_splits = np.cumsum(np.array([len(x) for x in ragged_array], dtype="int64"), dtype="int64")
-        row_splits = np.pad(row_splits, [1, 0])
-        with h5py.File(self.file_path, "w") as file:
-            file.create_dataset("values", data=values, maxshape=[None] + list(inner_shape)[1:])
-            file.create_dataset("row_splits", data=row_splits, maxshape=(None, ))
-            file.create_dataset("shape", data=np.array([]))
+        if not isinstance(ragged_array, tf.RaggedTensor):
+            with tf.device(self._device):
+                ragged_array = tf.ragged.constant(ragged_array, inner_shape=_check_for_inner_shape(ragged_array))
+        assert ragged_array.ragged_rank == 1, "Only support for ragged_rank=1 at the moment."
+        values = np.array(ragged_array.values)
+        row_splits = np.array(ragged_array.row_splits)
+        shape = np.array([x if x is not None else 0 for x in ragged_array.shape], dtype="uint64")
+        ragged_rank = np.array(ragged_array.ragged_rank)
+        rank = np.array(len(shape))
+        out = {"values": values,
+               "row_splits": row_splits,
+               "shape": shape,
+               "ragged_rank": ragged_rank,
+               "rank": rank}
+        if self.compressed:
+            np.savez_compressed(self.file_path, **out)
+        else:
+            np.savez(self.file_path, **out)
 
-    def read(self):
+    def read(self, return_as_tensor: bool = False):
+        """Read the file into memory.
+
+        Args:
+            return_as_tensor: Whether to return tf.RaggedTensor.
+
+        Returns:
+            tf.RaggedTensor: Ragged tensor form file.
+        """
+        data = np.load(self.file_path)
+        values = data.get("values")
+        row_splits = data.get("row_splits")
+        if return_as_tensor:
+            with tf.device(self._device):
+                out = tf.RaggedTensor.from_row_splits(values, row_splits)
+            return out
+        return np.split(values, row_splits[1:-1])
+
+    def __getitem__(self, item):
+        raise NotImplementedError("Not implemented for file reference item load.")
+
+    def exists(self):
+        return os.path.exists(self.file_path)
+
+
+class RaggedTensorHDFile:
+
+    _device = '/cpu:0'
+
+    def __init__(self, file_path: str, compressed: bool = None):
+        """Make class for a HDF5 file.
+
+        Args:
+            file_path (str): Path to file on disk.
+            compressed: Compression to use. Not used at the moment.
+        """
+        self.file_path = file_path
+        self.compressed = compressed
+
+    def write(self, ragged_array: List[np.ndarray]):
+        """Write ragged array to file.
+
+        .. code-block:: python
+
+            from kgcnn.io.file import RaggedTensorHDFile
+            import numpy as np
+            data = [np.array([[0, 1],[0, 2]]), np.array([[1, 1]]), np.array([[0, 1],[2, 2], [0, 3]])]
+            f = RaggedTensorHDFile("test.hdf5")
+            f.write(data)
+            print(f.read())
+
+        Args:
+            ragged_array (list, tf.RaggedTensor): List or list of numpy arrays.
+
+        Returns:
+            None.
+        """
+        if not isinstance(ragged_array, tf.RaggedTensor):
+            with tf.device(self._device):
+                ragged_array = tf.ragged.constant(ragged_array, inner_shape=_check_for_inner_shape(ragged_array))
+        assert ragged_array.ragged_rank == 1, "Only support for ragged_rank=1 at the moment."
+        values = np.array(ragged_array.values)
+        row_splits = np.array(ragged_array.row_splits)
+        shape = np.array([x if x is not None else 0 for x in ragged_array.shape], dtype="uint64")
+        ragged_rank = np.array(ragged_array.ragged_rank)
+        rank = np.array(len(shape))
+        with h5py.File(self.file_path, "w") as file:
+            file.create_dataset("values", data=values,
+                                maxshape=[x if i > 0 else None for i, x in enumerate(values.shape)])
+            file.create_dataset("row_splits", data=row_splits, maxshape=(None, ))
+            file.create_dataset("shape", data=shape)
+            file.create_dataset("rank", data=rank)
+            file.create_dataset("ragged_rank", data=ragged_rank)
+
+    def read(self, return_as_tensor: bool = False):
+        """Read the file into memory.
+
+        Args:
+            return_as_tensor: Whether to return tf.RaggedTensor.
+
+        Returns:
+            tf.RaggedTensor: Ragged tensor form file.
+        """
         with h5py.File(self.file_path, "r") as file:
-            data = np.split(file["values"][()], file["row_splits"][1:-1])
-        return data
+            values = file["values"]
+            row_splits = file["row_splits"]
+            if return_as_tensor:
+                with tf.device(self._device):
+                    out = tf.RaggedTensor.from_row_splits(np.array(values), np.array(row_splits))
+            else:
+                out = np.split(values, row_splits[1:-1])
+        return out
 
     def __getitem__(self, item: int):
         with h5py.File(self.file_path, "r") as file:
             row_splits = file["row_splits"]
-            out_data = file["values"][row_splits[item]:row_splits[item+1]]
+            out_data = np.array(file["values"][row_splits[item]:row_splits[item+1]])
         return out_data
 
     def append(self, item):
@@ -106,7 +208,7 @@ class RaggedTensorHDFile:
 
     def __len__(self):
         with h5py.File(self.file_path, "r") as file:
-            num_row_splits = file["row_splits"].shape[0]
+            num_row_splits = int(file["row_splits"].shape[0])
         # length is num_row_splits - 1
         return num_row_splits-1
 
