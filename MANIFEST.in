@@ -1,1 +1,1 @@
-recursive-include kgcnn *.py *.json *.yaml *.md
+recursive-include kgcnn *.py *.json *.yaml *.md *.csv

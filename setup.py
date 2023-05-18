@@ -39,7 +39,7 @@ setup(
     },
     packages=find_packages(),
     include_package_data=True,
-    package_data={"kgcnn": ["*.json", "*.yaml", "*.csv"]},
+    package_data={"kgcnn": ["*.json", "*.yaml", "*.csv", "*.md"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
