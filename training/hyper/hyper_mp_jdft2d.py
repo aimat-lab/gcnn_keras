@@ -511,16 +511,27 @@ hyper = {
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "fit": {
-                "batch_size": 32, "epochs": 1000, "validation_freq": 10, "verbose": 2,
+                "batch_size": 64, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
-                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 0.0005, "learning_rate_stop": 0.5e-05, "epo_min": 100, "epo": 1000,
-                        "verbose": 0}
-                     }
+                    # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                    #     "learning_rate_start": 0.0005, "learning_rate_stop": 0.5e-05, "epo_min": 0, "epo": 800,
+                    #     "verbose": 0}
+                    #  }
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {
+                    "class_name": "Adam",
+                    "config": {
+                        "learning_rate": {
+                            "class_name": "kgcnn>KerasPolynomialDecaySchedule",
+                            "config": {
+                                "dataset_size": 106.201, "batch_size": 64, "epochs": 800,
+                                "lr_start": 0.0005, "lr_stop": 1.0e-05
+                            }
+                        }
+                    }
+                },
                 "loss": "mean_absolute_error"
             },
             "scaler": {

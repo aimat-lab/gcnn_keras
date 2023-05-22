@@ -29,6 +29,7 @@ def _check_for_inner_shape(array_list: List[np.ndarray]) -> Union[None, tuple, l
 
 
 class RaggedTensorNumpyFile:
+    """Class representing a NumPy '.npz' file to store a ragged tensor on disk."""
 
     _device = '/cpu:0'
 
@@ -105,6 +106,7 @@ class RaggedTensorNumpyFile:
 
 
 class RaggedTensorHDFile:
+    """Class representing a HDF '.hdf5' file to store a ragged tensor on disk."""
 
     _device = '/cpu:0'
 

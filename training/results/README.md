@@ -89,7 +89,7 @@ Materials Project dataset from Matbench with 636 crystal structures and their co
 | model                        | kgcnn   |   epochs | MAE [meV/atom]          | RMSE [meV/atom]           |
 |:-----------------------------|:--------|---------:|:------------------------|:--------------------------|
 | CGCNN.make_crystal_model     | 2.2.2   |     1000 | 42.6352 &pm; 9.6715     | **112.4714 &pm; 37.9213** |
-| coGN                         | 3.0.1   |     1000 | **40.6968 &pm; 8.1630** | 114.9913 &pm; 34.0681     |
+| coGN                         | 3.0.1   |      800 | **42.0183 &pm; 9.0124** | 116.8675 &pm; 37.2534     |
 | DimeNetPP.make_crystal_model | 2.2.2   |      780 | 49.2113 &pm; 12.7431    | 124.7198 &pm; 38.4492     |
 | Megnet.make_crystal_model    | 2.2.2   |     1000 | 56.5205 &pm; 10.8723    | 136.3116 &pm; 31.2617     |
 | PAiNN.make_crystal_model     | 2.2.2   |      800 | 50.5886 &pm; 9.9009     | 117.7118 &pm; 33.4786     |
@@ -188,11 +188,12 @@ Materials Project dataset from Matbench with 132752 crystal structures and their
 | model                        | kgcnn   |   epochs | MAE [eV/atom]          | RMSE [eV/atom]         |
 |:-----------------------------|:--------|---------:|:-----------------------|:-----------------------|
 | CGCNN.make_crystal_model     | 2.1.1   |     1000 | 0.0369 &pm; 0.0003     | 0.0873 &pm; 0.0026     |
+| coGN                         | 3.0.1   |      800 | **0.0169 &pm; 0.0002** | **0.0484 &pm; 0.0043** |
 | DimeNetPP.make_crystal_model | 2.1.1   |      780 | 0.0233 &pm; 0.0005     | 0.0644 &pm; 0.0020     |
 | MEGAN                        | 2.1.1   |      800 | 0.0397 &pm; 0.0009     | 0.0902 &pm; 0.0041     |
 | Megnet.make_crystal_model    | 2.1.0   |     1000 | 0.0247 &pm; 0.0006     | 0.0639 &pm; 0.0028     |
 | PAiNN.make_crystal_model     | 2.1.1   |      800 | 0.0244 &pm; 0.0002     | 0.0568 &pm; 0.0032     |
-| Schnet.make_crystal_model    | 2.1.1   |      800 | **0.0215 &pm; 0.0003** | **0.0525 &pm; 0.0030** |
+| Schnet.make_crystal_model    | 2.1.1   |      800 | 0.0215 &pm; 0.0003     | 0.0525 &pm; 0.0030     |
 
 #### MutagenicityDataset
 

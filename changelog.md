@@ -2,14 +2,14 @@ v3.0.1
 
 * Removed deprecated molecules.
 * Fix error in ``kgcnn.data.transform.scaler.serial``
-* Fix error in ``QMDataset`` for if attributes have been chosen. Now `set_attributes` does not cause an error.
+* Fix error in ``QMDataset`` if attributes have been chosen. Now `set_attributes` does not cause an error.
 * Fix error in ``QMDataset`` with labels without SDF file.
 * Fix error in ``kgcnn.layers.conv.GraphSageNodeLayer`` .
 * Add ``reverse_edge_indices`` option to `GraphDict.from_networkx` . Fixed error in connection with `kgcnn.crystal` .
-* Started with ``kgcnn.io.file`` . Experimental.
+* Started with ``kgcnn.io.file`` . Experimental. Will get more updates.
 * Fix error with `StandardLabelScaler` inheritance.
 * Added workflow notebook examples. 
-* 
+* Fix error in import ``kgcnn.crystal.periodic_table`` to now properly include package data.
 
 
 v3.0.0
