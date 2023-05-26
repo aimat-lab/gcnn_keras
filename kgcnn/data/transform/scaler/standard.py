@@ -440,6 +440,10 @@ class StandardLabelScaler(StandardScalerSklearnBase):
 
     """
 
+    def __init__(self, **kwargs):
+        super(StandardLabelScaler, self).__init__(**kwargs)
+        # self._sklearn_auto_wrap_output_keys = {}
+
     def _validate_input(self, y, x):
         if x is not None and y is None:
             raise ValueError(
