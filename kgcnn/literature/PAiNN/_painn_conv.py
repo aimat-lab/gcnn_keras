@@ -325,7 +325,7 @@ class SplitEmbedding(GraphBaseLayer):
             raise ValueError("Can not split tensor at axis <= 1.")
 
     def call(self, inputs, **kwargs):
-        r"""Forward pass: Split embeddings across feature dimension e.g. `axis=-1`..
+        r"""Forward pass: Split embeddings across feature dimension e.g. `axis=-1` .
 
         Args:
             inputs (tf.RaggedTensor): Embeddings of shape (batch, [N], F)

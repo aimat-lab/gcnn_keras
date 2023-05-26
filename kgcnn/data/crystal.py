@@ -257,7 +257,7 @@ class CrystalDataset(MemoryGraphDataset):
 
         return self
 
-    def set_representation(self, pre_processor: CrystalPreprocessor, reset_graphs: bool = False):
+    def set_representation(self, pre_processor: Union[CrystalPreprocessor, dict], reset_graphs: bool = False):
         r"""Build a graph representation for this dataset using :obj:`kgcnn.crystal` .
 
         Args:
