@@ -526,7 +526,7 @@ hyper = {
                         "learning_rate": {
                             "class_name": "kgcnn>KerasPolynomialDecaySchedule",
                             "config": {
-                                "dataset_size": 106.201, "batch_size": 64, "epochs": 800,
+                                "dataset_size": 509, "batch_size": 64, "epochs": 800,
                                 "lr_start": 0.0005, "lr_stop": 1.0e-05
                             }
                         }

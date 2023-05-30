@@ -442,7 +442,8 @@ class StandardLabelScaler(StandardScalerSklearnBase):
 
     def __init__(self, **kwargs):
         super(StandardLabelScaler, self).__init__(**kwargs)
-        # self._sklearn_auto_wrap_output_keys = {}
+        for m in ["transform", "fit_transform"]:
+            setattr(self, m, getattr(self,  "unwrapped_"+m))
 
     def _validate_input(self, y, x):
         if x is not None and y is None:
@@ -499,7 +500,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         return super(StandardLabelScaler, self).partial_fit(X=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
-    def fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, copy=None, **fit_params):
+    def unwrapped_fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, copy=None, **fit_params):
         r"""Perform fit and standardization by centering and scaling.
 
         Args:
@@ -518,7 +519,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         return self.transform(y=y, X=X, copy=copy, atomic_number=atomic_number)
 
     # noinspection PyPep8Naming
-    def transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):
+    def unwrapped_transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):
         r"""Perform standardization by centering and scaling.
 
         Args:
