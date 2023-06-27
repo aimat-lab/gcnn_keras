@@ -29,7 +29,11 @@ def _check_for_inner_shape(array_list: List[np.ndarray]) -> Union[None, tuple, l
 
 
 class RaggedTensorNumpyFile:
-    """Class representing a NumPy '.npz' file to store a ragged tensor on disk."""
+    """Class representing a NumPy '.npz' file to store a ragged tensor on disk.
+
+    For the moment only ragged tensors of ragged rank of one are supported. However, arbitrary ragged tensors can be
+    supported in principle.
+    """
 
     _device = '/cpu:0'
 
@@ -61,12 +65,15 @@ class RaggedTensorNumpyFile:
         Returns:
             None.
         """
+        # We use tensorflow functions to ensure an eager ragged tensor.
         if not isinstance(ragged_array, tf.RaggedTensor):
             with tf.device(self._device):
                 ragged_array = tf.ragged.constant(ragged_array, inner_shape=_check_for_inner_shape(ragged_array))
         assert ragged_array.ragged_rank == 1, "Only support for ragged_rank=1 at the moment."
         values = np.array(ragged_array.values)
         row_splits = np.array(ragged_array.row_splits)
+        # Since the shape array can not have nones, we convert nones to 0.
+        # Not ideal, but could make an extra shape array to indicate ragged dimensions.
         shape = np.array([x if x is not None else 0 for x in ragged_array.shape], dtype="uint64")
         ragged_rank = np.array(ragged_array.ragged_rank)
         rank = np.array(len(shape))
@@ -89,6 +96,7 @@ class RaggedTensorNumpyFile:
         Returns:
             tf.RaggedTensor: Ragged tensor form file.
         """
+        # Here only ragged rank one loading is supported.
         data = np.load(self.file_path)
         values = data.get("values")
         row_splits = data.get("row_splits")
@@ -99,14 +107,37 @@ class RaggedTensorNumpyFile:
         return np.split(values, row_splits[1:-1])
 
     def __getitem__(self, item):
-        raise NotImplementedError("Not implemented for file reference item load.")
+        """Get single item from the ragged tensor on file.
+
+        Args:
+            item (int): Index of the item to get.
+        """
+        assert isinstance(item, int), "Only single index is supported, no slicing."
+        # NOTE: At the moment mmap is not supported for NPZ files.
+        with np.load(self.file_path, mmap_mode="r") as data:
+            row_splits = np.array(data.get("row_splits"))
+            out_data = np.array(data["values"][row_splits[item]:row_splits[item + 1]])
+        return out_data
 
     def exists(self):
+        """Check if file for path information of this class exists."""
         return os.path.exists(self.file_path)
+
+    def __len__(self):
+        """Length of the tensor on file."""
+        data = np.load(self.file_path)
+        row_splits = data.get("row_splits")
+        num_row_splits = int(row_splits.shape[0])
+        # length is num_row_splits - 1
+        return num_row_splits-1
 
 
 class RaggedTensorHDFile:
-    """Class representing a HDF '.hdf5' file to store a ragged tensor on disk."""
+    """Class representing an HDF '.hdf5' file to store a ragged tensor on disk.
+
+    For the moment only ragged tensors of ragged rank of one are supported. However, arbitrary ragged tensors can be
+    supported in principle.
+    """
 
     _device = '/cpu:0'
 
@@ -138,12 +169,15 @@ class RaggedTensorHDFile:
         Returns:
             None.
         """
+        # We use tensorflow functions to ensure an eager ragged tensor.
         if not isinstance(ragged_array, tf.RaggedTensor):
             with tf.device(self._device):
                 ragged_array = tf.ragged.constant(ragged_array, inner_shape=_check_for_inner_shape(ragged_array))
         assert ragged_array.ragged_rank == 1, "Only support for ragged_rank=1 at the moment."
         values = np.array(ragged_array.values)
         row_splits = np.array(ragged_array.row_splits)
+        # Since the shape array can not have nones, we convert nones to 0.
+        # Not ideal, but could make an extra shape array to indicate ragged dimensions.
         shape = np.array([x if x is not None else 0 for x in ragged_array.shape], dtype="uint64")
         ragged_rank = np.array(ragged_array.ragged_rank)
         rank = np.array(len(shape))
@@ -175,12 +209,26 @@ class RaggedTensorHDFile:
         return out
 
     def __getitem__(self, item: int):
+        """Get single item from the ragged tensor on file.
+
+        Args:
+            item (int): Index of the item to get.
+        """
+        assert isinstance(item, int), "Only single index is supported, no slicing."
         with h5py.File(self.file_path, "r") as file:
             row_splits = file["row_splits"]
             out_data = np.array(file["values"][row_splits[item]:row_splits[item+1]])
         return out_data
 
     def append(self, item):
+        """Append single item to ragged tensor.
+
+        Args:
+            item (np.ndarray, tf.Tensor): Item to append.
+
+        Returns:
+            None.
+        """
         with h5py.File(self.file_path, "r+") as file:
             file["values"].resize(
                 file["values"].shape[0] + len(item), axis=0
@@ -194,6 +242,14 @@ class RaggedTensorHDFile:
             file["values"][split_last:split_last+len_last] = item
 
     def append_multiple(self, items: list):
+        """Append multiple items to ragged tensor.
+
+        Args:
+            items (list): List of items to append. Must match in shape.
+
+        Returns:
+            None.
+        """
         new_values = np.concatenate(items, axis=0)
         new_len = len(items)
         new_splits = np.cumsum([len(x) for x in items])
@@ -209,10 +265,12 @@ class RaggedTensorHDFile:
             file["values"][split_last:+split_last+new_splits[-1]] = new_values
 
     def __len__(self):
+        """Length of the tensor on file."""
         with h5py.File(self.file_path, "r") as file:
             num_row_splits = int(file["row_splits"].shape[0])
         # length is num_row_splits - 1
         return num_row_splits-1
 
     def exists(self):
+        """Check if file for path information of this class exists."""
         return os.path.exists(self.file_path)

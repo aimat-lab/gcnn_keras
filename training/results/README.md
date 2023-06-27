@@ -86,14 +86,14 @@ Lipophilicity (MoleculeNet) consists of 4200 compounds as smiles. Graph labels f
 
 Materials Project dataset from Matbench with 636 crystal structures and their corresponding Exfoliation energy (meV/atom). We use a random 5-fold cross-validation. 
 
-| model                        | kgcnn   |   epochs | MAE [meV/atom]          | RMSE [meV/atom]           |
-|:-----------------------------|:--------|---------:|:------------------------|:--------------------------|
-| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 42.6352 &pm; 9.6715     | **112.4714 &pm; 37.9213** |
-| coGN                         | 3.0.1   |      800 | **42.0183 &pm; 9.0124** | 116.8675 &pm; 37.2534     |
-| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 49.2113 &pm; 12.7431    | 124.7198 &pm; 38.4492     |
-| Megnet.make_crystal_model    | 2.2.2   |     1000 | 56.5205 &pm; 10.8723    | 136.3116 &pm; 31.2617     |
-| PAiNN.make_crystal_model     | 2.2.2   |      800 | 50.5886 &pm; 9.9009     | 117.7118 &pm; 33.4786     |
-| Schnet.make_crystal_model    | 2.2.2   |      800 | 48.0629 &pm; 10.6137    | 121.6861 &pm; 36.7492     |
+| model                        | kgcnn   |   epochs | MAE [meV/atom]           | RMSE [meV/atom]           |
+|:-----------------------------|:--------|---------:|:-------------------------|:--------------------------|
+| CGCNN.make_crystal_model     | 2.2.2   |     1000 | 42.6352 &pm; 9.6715      | 112.4714 &pm; 37.9213     |
+| coGN                         | 3.0.2   |      800 | **39.4277 &pm; 10.5046** | **111.8743 &pm; 39.3128** |
+| DimeNetPP.make_crystal_model | 2.2.2   |      780 | 49.2113 &pm; 12.7431     | 124.7198 &pm; 38.4492     |
+| Megnet.make_crystal_model    | 2.2.2   |     1000 | 56.5205 &pm; 10.8723     | 136.3116 &pm; 31.2617     |
+| PAiNN.make_crystal_model     | 2.2.2   |      800 | 50.5886 &pm; 9.9009      | 117.7118 &pm; 33.4786     |
+| Schnet.make_crystal_model    | 2.2.2   |      800 | 48.0629 &pm; 10.6137     | 121.6861 &pm; 36.7492     |
 
 #### MatProjectPhononsDataset
 
