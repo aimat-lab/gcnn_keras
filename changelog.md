@@ -1,6 +1,7 @@
 v3.0.2
 
-* Fixed 
+* Added ``add_eps`` to `PAiNNUpdate` layer as option.
+* Rework ``data.transform.scaler.standard`` to hopefully now fix all errors with the scalers.
 
 
 v3.0.1

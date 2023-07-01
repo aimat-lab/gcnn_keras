@@ -11,37 +11,31 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class StandardScalerSklearnBase(StandardScalerSklearn):
-    r"""Base standard scaler of :obj:`sklearn` with added functionality to save and load weights of this scaler similar
-    to keras layers and objects.
+class _StandardScalerSklearnMixin:
+    r"""Mixin class for scaler of :obj:`sklearn` with added functionality to save and load weights of a scaler
+    similar to keras layers and objects.
 
-    .. code-block:: python
+    .. note::
 
-        import numpy as np
-        from kgcnn.data.transform.scaler.standard import StandardScalerSklearnBase
-        data = np.random.rand(5).reshape((5,1))
-        scaler = StandardScalerSklearnBase()
-        scaler.fit(X=data)
-        print(scaler.get_weights())
-        print(scaler.get_config())
+        This class is only meant to add functionality. Scaler is accessed via :obj:`_scaler_reference` property.
 
     """
     _attributes_list_sklearn = ["n_features_in_", "mean_", "scale_", "var_", "feature_names_in_", "n_samples_seen_"]
 
-    def __init__(self, *, copy=True, with_mean=True, with_std=True):
-        super(StandardScalerSklearnBase, self).__init__(copy=copy, with_mean=with_mean, with_std=with_std)
+    def __init__(self):
+        self._scaler_reference = None
 
     def get_scaling(self):
         """Get scale of shape (1, n_properties)."""
-        if not hasattr(self, "scale_"):
+        if not hasattr(self._scaler_reference, "scale_"):
             return
-        scale = np.array(self.scale_)
+        scale = np.array(self._scaler_reference.scale_)
         scale = np.expand_dims(scale, axis=0)
         return scale
 
     def get_config(self) -> dict:
         """Get configuration for scaler."""
-        config = super(StandardScalerSklearnBase, self).get_params()
+        config = self._scaler_reference.get_params()
         return config
 
     def set_config(self, config: dict):
@@ -50,14 +44,14 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         Args:
             config (dict): Config dictionary.
         """
-        self.set_params(**config)
+        self._scaler_reference.set_params(**config)
 
     def get_weights(self) -> dict:
         """Get weights for this scaler after fit."""
         weight_dict = dict()
         for x in self._attributes_list_sklearn:
-            if hasattr(self, x):
-                value = getattr(self, x)
+            if hasattr(self._scaler_reference, x):
+                value = getattr(self._scaler_reference, x)
                 value_update = {x: np.array(value).tolist()} if value is not None else {x: value}
                 weight_dict.update(value_update)
         return weight_dict
@@ -70,7 +64,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         """
         for item, value in weights.items():
             if item in self._attributes_list_sklearn:
-                setattr(self, item, np.array(value))
+                setattr(self._scaler_reference, item, np.array(value))
             else:
                 module_logger.warning("`StandardScaler` got unknown weight '%s'." % item)
 
@@ -130,7 +124,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         Returns:
             self.
         """
-        return super(StandardScalerSklearnBase, self).fit(
+        return self._scaler_reference.fit(
             [item[X] for item in dataset],
             # We can ignore y here. None is default for sklearn StandardScaler.
             # y=None
@@ -156,7 +150,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = super(StandardScalerSklearnBase, self).transform(
+        out = self._scaler_reference.transform(
             [graph[X] for graph in dataset],
             copy=copy,
         )
@@ -183,7 +177,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = super(StandardScalerSklearnBase, self).inverse_transform(
+        out = self._scaler_reference.inverse_transform(
             [graph[X] for graph in dataset],
             copy=copy,
         )
@@ -216,7 +210,7 @@ class StandardScalerSklearnBase(StandardScalerSklearn):
         return self.transform_dataset(dataset=dataset, X=X, copy=copy, copy_dataset=copy_dataset)
 
 
-class StandardScaler(StandardScalerSklearnBase):
+class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
     r"""Standard scaler that inherits from :obj:`sklearn.preprocessing.StandardScaler` .
     Included unused kwarg 'atomic_number' to be compatible with some material oriented scaler.
 
@@ -237,6 +231,9 @@ class StandardScaler(StandardScalerSklearnBase):
         print(new_scaler.inverse_transform(scaler.transform(X=data)))
 
     """
+    def __init__(self, *, copy=True, with_mean=True, with_std=True):
+        super(StandardScaler, self).__init__(copy=copy, with_mean=with_mean, with_std=with_std)
+        self._scaler_reference = self
 
     # noinspection PyPep8Naming
     def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
@@ -416,8 +413,8 @@ class StandardScaler(StandardScalerSklearnBase):
         return self.transform_dataset(dataset=dataset, X=X, copy=copy, copy_dataset=copy_dataset)
 
 
-class StandardLabelScaler(StandardScalerSklearnBase):
-    r"""Standard scaler for labels that inherits from :obj:`sklearn.preprocessing.StandardScaler` .
+class StandardLabelScaler(_StandardScalerSklearnMixin):
+    r"""Standard scaler for labels that has a member of :obj:`sklearn.preprocessing.StandardScaler` .
     Included unused kwarg 'atomic_number' to be compatible with some material oriented scaler.
     Uses `y` argument for scaling labels and `X` is ignored.
 
@@ -440,10 +437,9 @@ class StandardLabelScaler(StandardScalerSklearnBase):
 
     """
 
-    def __init__(self, **kwargs):
-        super(StandardLabelScaler, self).__init__(**kwargs)
-        for m in ["transform", "fit_transform"]:
-            setattr(self, m, getattr(self,  "unwrapped_"+m))
+    def __init__(self, *, copy=True, with_mean=True, with_std=True):
+        super(StandardLabelScaler, self).__init__()
+        self._scaler_reference = StandardScalerSklearn(copy=copy, with_mean=with_mean, with_std=with_std)
 
     def _validate_input(self, y, x):
         if x is not None and y is None:
@@ -470,8 +466,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         """
         # fit() of sklearn uses reset and partial fit. Just adding y in place of X.
         self._validate_input(y, X)
-        self._reset()
-        return super(StandardLabelScaler, self).partial_fit(X=y, sample_weight=sample_weight)
+        return self._scaler_reference.fit(X=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
     def partial_fit(self, y: np.ndarray, X=None, sample_weight=None, atomic_number=None):
@@ -497,10 +492,10 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         # Can not request kwargs after argument X, y here.
         # Just changing order of x,y here.
         self._validate_input(y, X)
-        return super(StandardLabelScaler, self).partial_fit(X=y, sample_weight=sample_weight)
+        return self._scaler_reference.partial_fit(X=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
-    def unwrapped_fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, copy=None, **fit_params):
+    def fit_transform(self, y: np.ndarray, *, X=None, atomic_number=None, copy=None, **fit_params):
         r"""Perform fit and standardization by centering and scaling.
 
         Args:
@@ -519,7 +514,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
         return self.transform(y=y, X=X, copy=copy, atomic_number=atomic_number)
 
     # noinspection PyPep8Naming
-    def unwrapped_transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):
+    def transform(self, y: np.ndarray, *, X=None, copy=None, atomic_number=None):
         r"""Perform standardization by centering and scaling.
 
         Args:
@@ -533,7 +528,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
             y_tr (np.ndarray): Transformed array of shape (n_samples, n_labels).
         """
         # Just changing order of x,y here.
-        return super(StandardLabelScaler, self).transform(y, copy=copy)
+        return self._scaler_reference.transform(y, copy=copy)
 
     # noinspection PyPep8Naming
     def inverse_transform(self, y: np.ndarray = None, *, X=None, copy: bool = None, atomic_number=None):
@@ -550,7 +545,7 @@ class StandardLabelScaler(StandardScalerSklearnBase):
             y_tr (np.ndarray): Transformed array of shape (n_samples, n_labels).
         """
         # Just changing order of x,y here.
-        return super(StandardLabelScaler, self).inverse_transform(y, copy=copy)
+        return self._scaler_reference.inverse_transform(y, copy=copy)
 
     # Similar functions that work on dataset plus property names.
     # noinspection PyPep8Naming
