@@ -141,6 +141,7 @@ class PAiNNUpdate(GraphBaseLayer):
         bias_constraint: Bias constrains. Default is None.
         kernel_initializer: Initializer for kernels. Default is 'glorot_uniform'.
         bias_initializer: Initializer for bias. Default is 'zeros'.
+        add_eps: Whether to add eps in the norm.
     """
 
     def __init__(self, units,
@@ -153,11 +154,13 @@ class PAiNNUpdate(GraphBaseLayer):
                  bias_constraint=None,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
+                 add_eps: bool = False,
                  **kwargs):
         """Initialize Layer."""
         super(PAiNNUpdate, self).__init__(**kwargs)
         self.units = units
         self.use_bias = use_bias
+        self.add_eps = add_eps
 
         kernel_args = {"kernel_regularizer": kernel_regularizer, "activity_regularizer": activity_regularizer,
                        "bias_regularizer": bias_regularizer, "kernel_constraint": kernel_constraint,
@@ -170,7 +173,7 @@ class PAiNNUpdate(GraphBaseLayer):
         self.lay_a = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
 
         self.lay_scalar_prod = ScalarProduct(axis=2)
-        self.lay_norm = EuclideanNorm(axis=2)
+        self.lay_norm = EuclideanNorm(axis=2, add_eps=self.add_eps)
         self.lay_concat = LazyConcatenate(axis=-1)
         self.lay_split = SplitEmbedding(3, axis=-1)
 
@@ -216,7 +219,7 @@ class PAiNNUpdate(GraphBaseLayer):
     def get_config(self):
         """Update layer config."""
         config = super(PAiNNUpdate, self).get_config()
-        config.update({"units": self.units})
+        config.update({"units": self.units, "add_eps": self.add_eps})
         config_dense = self.lay_dense1.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation", "use_bias"]:
