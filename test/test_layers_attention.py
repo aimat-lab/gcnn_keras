@@ -10,6 +10,8 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.attention import PoolingLocalEdgesAttention
 from kgcnn.layers.attention import AttentionHeadGAT, MultiHeadGATV2Layer
 
+print("Test is using:", tf.__version__)
+
 
 class TestPoolingLocalEdgesAttention(unittest.TestCase):
 
