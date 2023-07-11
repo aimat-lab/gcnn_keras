@@ -115,31 +115,11 @@ class ActivationEmbedding(GraphBaseLayer):
             activity_regularizer: Regularizer function applied to the output of the layer (its "activation").
         """
         super(ActivationEmbedding, self).__init__(**kwargs)
-        self._use_kgcnn_activ_layer = False
-        test_get_activation = tf.keras.activations.get(activation)
-        try:
-            if issubclass(test_get_activation, GraphBaseLayer):
-                self._use_kgcnn_activ_layer = True
-        except TypeError:
-            pass
-        if isinstance(test_get_activation, GraphBaseLayer):
-            self._use_kgcnn_activ_layer = True
-
-        if self._use_kgcnn_activ_layer:
-            self._layer_act_kgcnn = ks.utils.deserialize_keras_object(activation)
-            try:
-                if issubclass(self._layer_act_kgcnn, GraphBaseLayer):
-                    self._layer_act_kgcnn = self._layer_act_kgcnn()
-            except TypeError:
-                pass
-            self._layer_act = ks.layers.Activation(
-                activation="linear", activity_regularizer=activity_regularizer)
-        else:
-            self._layer_act = ks.layers.Activation(
-                activation=activation,
-                activity_regularizer=activity_regularizer
-            )
-            self._add_layer_config_to_self = {"_layer_act": "activation", }
+        self._layer_act = ks.layers.Activation(
+            activation=activation,
+            activity_regularizer=activity_regularizer
+        )
+        self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
         r"""Forward pass corresponding to keras :obj:`Activation` layer.
@@ -150,16 +130,11 @@ class ActivationEmbedding(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Output tensor with activation applied.
         """
-        if self._use_kgcnn_activ_layer:
-            inputs = self._layer_act_kgcnn(inputs, **kwargs)
         return self.map_values(self._layer_act, inputs, **kwargs)
 
     def get_config(self):
         """Get config of layer."""
         config = super(ActivationEmbedding, self).get_config()
-        if self._use_kgcnn_activ_layer:
-            act = ks.utils.serialize_keras_object(self._layer_act_kgcnn)
-            config.update({"activation": act})
         act_reg = ks.regularizers.serialize(self._layer_act.activity_regularizer)
         config.update({"activity_regularizer": act_reg})
         return config

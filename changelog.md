@@ -4,6 +4,7 @@ v3.0.2
 * Rework ``data.transform.scaler.standard`` to hopefully now fix all errors with the scalers.
 * BREAKING CHANGES: Refactored activation functions `kgcnn.ops.activ` and layers `kgcnn.layers.activ` that have trainable parameters, due to keras changes in 2.13.0. 
   Please check your config, since parameters are ignored in normal functions!
+  If for example "kgcnn>leaky_relu" you can not change the leak anymore. You must use a ``kgcnn.layers.activ`` for that.
 * 
 
 
