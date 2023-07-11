@@ -34,7 +34,7 @@ class leaky_softplus(tf.keras.layers.Layer):
     r"""Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
 
     def __init__(self, alpha: float = 0.05, **kwargs):
-        """Initialize with optionally learnable parameter.
+        """Initialize.
 
         Args:
             alpha (float, optional): Leak parameter alpha. Default is 0.05.
@@ -60,17 +60,19 @@ class leaky_relu(tf.keras.layers.Layer):
     r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)`."""
 
     def __init__(self, alpha: float = 0.05, **kwargs):
-        """Initialize with optionally learnable parameter.
+        """Initialize.
 
         Args:
             alpha (float, optional): Leak parameter alpha. Default is 0.05.
         """
         super(leaky_relu, self).__init__(**kwargs)
-        self.alpha = float(alpha)
+        self.alpha = alpha
+        print(self.alpha)
 
     def call(self, inputs, **kwargs):
         """Compute leaky_relu activation from inputs."""
         x = inputs
+        print(self.alpha)
         return tf.nn.leaky_relu(x, alpha=self.alpha)
         # return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
 

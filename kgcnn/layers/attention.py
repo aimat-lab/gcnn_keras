@@ -24,7 +24,7 @@ class AttentionHeadGAT(GraphBaseLayer):
         use_edge_features (bool): Append edge features to attention computation. Default is False.
         use_final_activation (bool): Whether to apply the final activation for the output.
         has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {}},
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
@@ -135,7 +135,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
         use_edge_features (bool): Append edge features to attention computation. Default is False.
         use_final_activation (bool): Whether to apply the final activation for the output.
         has_self_loops (bool): If the graph has self-loops. Not used here. Default is True.
-        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}},
+        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {}},
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
