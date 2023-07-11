@@ -67,12 +67,12 @@ class leaky_relu(tf.keras.layers.Layer):
         """
         super(leaky_relu, self).__init__(**kwargs)
         self.alpha = alpha
-        print(self.alpha)
+        print("ALPHA In INIT", self.alpha)
 
     def call(self, inputs, **kwargs):
         """Compute leaky_relu activation from inputs."""
         x = inputs
-        print(self.alpha)
+        print("ALPHA In CALL", self.alpha)
         return tf.nn.leaky_relu(x, alpha=self.alpha)
         # return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
 
