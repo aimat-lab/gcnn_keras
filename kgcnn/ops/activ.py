@@ -33,7 +33,7 @@ def softplus2(x):
 class leaky_softplus(tf.keras.layers.Layer):
     r"""Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
 
-    def __init__(self, alpha=0.05, **kwargs):
+    def __init__(self, alpha: float = 0.05, **kwargs):
         """Initialize with optionally learnable parameter.
 
         Args:
