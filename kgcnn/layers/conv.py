@@ -219,7 +219,7 @@ class GCN(GraphBaseLayer):
         pooling_method (str): Pooling method for summing edges. Default is 'segment_sum'.
         normalize_by_weights (bool): Normalize the pooled output by the sum of weights. Default is False.
             In this case the edge features are considered weights of dimension (...,1) and are summed for each node.
-        activation (str): Activation. Default is {"class_name": "kgcnn>leaky_relu", "config": {"alpha": 0.2}}.
+        activation (str): Activation. Default is 'kgcnn>leaky_relu'.
         use_bias (bool): Use bias. Default is True.
         kernel_regularizer: Kernel regularization. Default is None.
         bias_regularizer: Bias regularization. Default is None.
