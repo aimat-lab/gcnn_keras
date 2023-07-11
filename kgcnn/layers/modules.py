@@ -1,6 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.axis import get_positive_axis
+import kgcnn.layers.activ
 ks = tf.keras  # import tensorflow.keras as ks
 
 # There are limitations for RaggedTensor working with standard Keras layers, but which are successively reduced with

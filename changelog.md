@@ -2,6 +2,9 @@ v3.0.2
 
 * Added ``add_eps`` to `PAiNNUpdate` layer as option.
 * Rework ``data.transform.scaler.standard`` to hopefully now fix all errors with the scalers.
+* BREAKING CHANGES: Refactored activation functions `kgcnn.ops.activ` and layers `kgcnn.layers.activ` that have trainable parameters, due to keras changes in 2.13.0. 
+  Please check your config, since parameters are ignored in normal functions!
+* 
 
 
 v3.0.1

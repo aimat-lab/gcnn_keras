@@ -5,7 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LeakySoftplus')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_softplus')
 class LeakySoftplus(GraphBaseLayer):
     r"""Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
 
@@ -36,7 +36,7 @@ class LeakySoftplus(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LeakyRelu')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
 class LeakyRelu(GraphBaseLayer):
     r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)`."""
 
@@ -68,7 +68,7 @@ class LeakyRelu(GraphBaseLayer):
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='Swish')
+@tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
 class Swish(GraphBaseLayer):
     r"""Swish activation function. Computes :math:`x \; \text{sig}(\beta x)`,
     with :math:`\text{sig}(x) = 1/(1+e^{-x})`."""

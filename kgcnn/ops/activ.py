@@ -29,20 +29,12 @@ def softplus2(x):
     return ks.backend.relu(x) + ks.backend.log(0.5 * ks.backend.exp(-ks.backend.abs(x)) + 0.5)
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_softplus')
-def leaky_softplus(x, alpha: float = 0.05):
+def leaky_softplus(x, alpha: float = 0.2):
     r"""Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
     return ks.activations.softplus(x) * (1 - alpha) + alpha * x
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='leaky_relu')
-def leaky_relu(x, alpha: float = 0.05):
-    r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x, 0.05)`."""
-    return tf.nn.leaky_relu(x, alpha=alpha)
+leaky_relu = tf.nn.leaky_relu
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='swish')
-def swish(x):
-    r"""Swish activation function. Computes :math:`x \; \text{sig}(x)`,
-    with :math:`\text{sig}(x) = 1/(1+e^{-x})`."""
-    return x * tf.sigmoid(x)
+swish = tf.keras.activations.swish
