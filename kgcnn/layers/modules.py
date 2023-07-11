@@ -120,10 +120,10 @@ class ActivationEmbedding(GraphBaseLayer):
         try:
             if issubclass(test_get_activation, GraphBaseLayer):
                 self._use_kgcnn_activ_layer = True
-            if isinstance(test_get_activation, GraphBaseLayer):
-                self._use_kgcnn_activ_layer = True
         except TypeError:
             pass
+        if isinstance(test_get_activation, GraphBaseLayer):
+            self._use_kgcnn_activ_layer = True
 
         if self._use_kgcnn_activ_layer:
             self._layer_act_kgcnn = ks.utils.deserialize_keras_object(activation)
