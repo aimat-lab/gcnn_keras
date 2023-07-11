@@ -114,6 +114,7 @@ class ActivationEmbedding(GraphBaseLayer):
             activity_regularizer: Regularizer function applied to the output of the layer (its "activation").
         """
         super(ActivationEmbedding, self).__init__(**kwargs)
+        self._use_kgcnn_activ_layer = False
         test_get_activation = tf.keras.activations.get(activation)
         if isinstance(test_get_activation, type):
             if issubclass(test_get_activation, GraphBaseLayer):
