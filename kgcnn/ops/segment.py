@@ -44,7 +44,8 @@ def segment_ops_by_name(segment_name: str, data, segment_ids):
         pool = tf.math.segment_max(data, segment_ids)
     elif segment_name in ["segment_min", "min", "reduce_min"]:
         pool = tf.math.segment_min(data, segment_ids)
-    # softmax does not reduce tensor.
+    # softmax does not really reduce tensor.
+    # which is why it is not added to the list of segment operations for normal pooling.
     # elif segment_name in ["segment_softmax", "segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
     #     pool = segment_softmax(data, segment_ids)
     else:

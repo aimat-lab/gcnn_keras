@@ -117,12 +117,21 @@ class ActivationEmbedding(GraphBaseLayer):
         super(ActivationEmbedding, self).__init__(**kwargs)
         self._use_kgcnn_activ_layer = False
         test_get_activation = tf.keras.activations.get(activation)
-        if isinstance(test_get_activation, type):
+        try:
             if issubclass(test_get_activation, GraphBaseLayer):
                 self._use_kgcnn_activ_layer = True
+            if isinstance(test_get_activation, GraphBaseLayer):
+                self._use_kgcnn_activ_layer = True
+        except TypeError:
+            pass
 
         if self._use_kgcnn_activ_layer:
             self._layer_act_kgcnn = ks.utils.deserialize_keras_object(activation)
+            try:
+                if issubclass(self._layer_act_kgcnn, GraphBaseLayer):
+                    self._layer_act_kgcnn = self._layer_act_kgcnn()
+            except TypeError:
+                pass
             self._layer_act = ks.layers.Activation(
                 activation="linear", activity_regularizer=activity_regularizer)
         else:
