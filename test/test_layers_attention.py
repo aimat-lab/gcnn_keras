@@ -10,8 +10,6 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.attention import PoolingLocalEdgesAttention
 from kgcnn.layers.attention import AttentionHeadGAT, MultiHeadGATV2Layer
 
-print("Test is using:", tf.__version__)
-
 
 class TestPoolingLocalEdgesAttention(unittest.TestCase):
 
@@ -44,7 +42,7 @@ class TestPoolingLocalEdgesAttention(unittest.TestCase):
         self.assertTrue(np.abs(result[0] - 100.0 * 1/(np.exp(1)+1) ) < 1e-4)
 
     def test_attention_head(self):
-
+        print("Test is using:", tf.__version__)
         n = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
         edi = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
         ed = tf.ragged.constant(self.e1, ragged_rank=1, inner_shape=(1,))
