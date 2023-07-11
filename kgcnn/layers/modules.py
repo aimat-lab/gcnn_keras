@@ -115,10 +115,7 @@ class ActivationEmbedding(GraphBaseLayer):
             activity_regularizer: Regularizer function applied to the output of the layer (its "activation").
         """
         super(ActivationEmbedding, self).__init__(**kwargs)
-        self._layer_act = ks.layers.Activation(
-            activation=activation,
-            activity_regularizer=activity_regularizer
-        )
+        self._layer_act = ks.layers.Activation(activation=activation, activity_regularizer=activity_regularizer)
         self._add_layer_config_to_self = {"_layer_act": ["activation", "activity_regularizer"]}
 
     def call(self, inputs, **kwargs):
