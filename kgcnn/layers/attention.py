@@ -40,7 +40,7 @@ class AttentionHeadGAT(GraphBaseLayer):
                  use_edge_features=False,
                  use_final_activation=True,
                  has_self_loops=True,
-                 activation='kgcnn>leaky_relu',
+                 activation=None,
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -52,6 +52,8 @@ class AttentionHeadGAT(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGAT, self).__init__(**kwargs)
+        if activation is None:
+            activation = {"class_name": "kgcnn>leaky_relu", "config": {}}
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
@@ -151,7 +153,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
                  use_edge_features=False,
                  use_final_activation=True,
                  has_self_loops=True,
-                 activation='kgcnn>leaky_relu',
+                 activation=None,
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -163,6 +165,8 @@ class AttentionHeadGATV2(GraphBaseLayer):
                  **kwargs):
         """Initialize layer."""
         super(AttentionHeadGATV2, self).__init__(**kwargs)
+        if activation is None:
+            activation = {"class_name": "kgcnn>leaky_relu", "config": {}}
         self.use_edge_features = use_edge_features
         self.use_final_activation = use_final_activation
         self.has_self_loops = has_self_loops
