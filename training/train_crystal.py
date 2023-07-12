@@ -6,7 +6,7 @@ import os
 import argparse
 from kgcnn.data.utils import save_pickle_file, load_pickle_file
 from datetime import timedelta
-from tensorflow_addons import optimizers
+# from tensorflow_addons import optimizers
 from kgcnn.data.transform.scaler.standard import StandardLabelScaler
 from kgcnn.data.transform.scaler.molecule import QMGraphLabelScaler
 import kgcnn.training.schedule
@@ -26,9 +26,9 @@ parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter
                     default="hyper/hyper_mp_jdft2d.py")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="MatProjectJdft2dDataset")
-parser.add_argument("--model", required=False, help="Graph model to train.", default="coGN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_model")
+                    default="make_crystal_model")
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
                     default=None, nargs="+", type=int)
 parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
@@ -149,7 +149,7 @@ for current_fold, (train_index, test_index) in enumerate(train_test_indices):
         # directly log the original target values, but the scaled ones.
         mae_metric = ScaledMeanAbsoluteError(scaler_scale.shape, name="scaled_mean_absolute_error")
         rms_metric = ScaledRootMeanSquaredError(scaler_scale.shape, name="scaled_root_mean_squared_error")
-        if scaler.scale_ is not None:
+        if scaler_scale is not None:
             mae_metric.set_scale(scaler_scale)
             rms_metric.set_scale(scaler_scale)
         metrics = [mae_metric, rms_metric]

@@ -94,6 +94,9 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
                        "verbose": self.verbose, "steps_per_epoch": self.steps_per_epoch})
         return config
 
+    def from_config(self):
+        pass
+
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='CosineAnnealingLRScheduler')
 class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):

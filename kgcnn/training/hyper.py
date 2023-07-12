@@ -249,9 +249,9 @@ class HyperParameter:
             if callbacks is None:
                 callbacks = []
             for cb in hyper_fit["callbacks"]:
-                try:
+                if isinstance(cb, (str, dict)):
                     callbacks += [tf.keras.utils.deserialize_keras_object(cb)]
-                except:
+                else:
                     callbacks += [cb]
 
         out = {"batch_size": batch_size, "epochs": epochs, "validation_freq": validation_freq, "callbacks": callbacks}
