@@ -43,8 +43,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
         limit_only_max_neighbours (bool): Not used.
         numerical_tol  (float): Numerical tolerance for distance cut-off. Default is 1e-8.
-        super_cell_tol_factor (float): Tolerance to increase for search for neighbours. Default is 0.5.
         manual_super_cell_radius (float): Not used.
+        super_cell_tol_factor (float): Tolerance to increase for search for neighbours. Default is 0.5.
 
     Returns:
         list: [indices, images, dist]
