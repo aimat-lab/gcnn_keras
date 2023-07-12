@@ -25,7 +25,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         self.output_graph_as_dict = output_graph_as_dict
 
     def call(self, structure: Structure) -> MultiDiGraph:
-        """Should be implemented in a subclass.
+        r"""Should be implemented in a subclass.
 
         Args:
             structure (Structure): Crystal for which the graph representation should be calculated.
@@ -39,7 +39,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         raise NotImplementedError("Must be implemented in sub-classes.")
 
     def __call__(self, structure: Structure) -> Union[MultiDiGraph, GraphDict]:
-        """Should be implemented in a subclass.
+        r"""Function to process crystal structures. Executes :obj:`call` .
 
         Args:
             structure (Structure): Crystal for which the graph representation should be calculated.
