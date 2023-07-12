@@ -5,7 +5,7 @@ v3.0.2
 * BREAKING CHANGES: Refactored activation functions `kgcnn.ops.activ` and layers `kgcnn.layers.activ` that have trainable parameters, due to keras changes in 2.13.0. 
   Please check your config, since parameters are ignored in normal functions!
   If for example "kgcnn>leaky_relu" you can not change the leak anymore. You must use a ``kgcnn.layers.activ`` for that.
-* 
+* Rework ``kgcnn.graph.methods.range_neighbour_lattice`` to use pymatgen.
 
 
 v3.0.1

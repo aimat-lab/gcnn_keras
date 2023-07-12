@@ -8,8 +8,10 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
                             max_neighbours: Union[int, None] = None,
                             self_loops: bool = False,
                             exclusive: bool = True,
+                            limit_only_max_neighbours: bool = False,
                             numerical_tol: float = 1e-8,
-                            super_cell_tol_factor: float = 0.5,
+                            manual_super_cell_radius: float = None,
+                            super_cell_tol_factor: float = 0.25,
                             ) -> list:
     r"""Generate range connections for a primitive unit cell in a periodic lattice (vectorized).
 
@@ -39,8 +41,10 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         max_neighbours (int, optional): Maximum number of allowed neighbours for each central atom. Default is None.
         self_loops (bool, optional): Allow self-loops between the same central node. Defaults to False.
         exclusive (bool): Whether both distance and maximum neighbours must be fulfilled. Default is True.
+        limit_only_max_neighbours (bool): Not used.
         numerical_tol  (float): Numerical tolerance for distance cut-off. Default is 1e-8.
         super_cell_tol_factor (float): Tolerance to increase for search for neighbours. Default is 0.5.
+        manual_super_cell_radius (float): Not used.
 
     Returns:
         list: [indices, images, dist]
