@@ -135,10 +135,10 @@ def add_knn_bonds(graph: MultiDiGraph, k: int = 12, max_radius: float = 10.,
         MultiDiGraph: Graph with added edges.
     """
     lattice = _get_attr_from_graph(graph, "lattice_matrix", make_copy=True)
-    # if max_radius is None:
-    #     max_radius = _estimate_radius_from_density(lattice)
     frac_coords = np.array([data[1] for data in graph.nodes(data='frac_coords')])
     coords = frac_coords @ lattice
+    if max_radius is None:
+        max_radius = _estimate_nn_radius_from_density(k, coords, lattice, 0.1)
     # return coords, lattice
     index1, index2, offset_vectors, distances = find_points_in_spheres(
         coords,
@@ -625,7 +625,8 @@ def pairwise_diff(coords1: np.ndarray, coords2: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: Difference values of shape (..., n, m, 3)
     """
-
+    # This can be solved more elegantly with normal broadcasting
+    # TODO: Check if the same.
     def _reshape_at_axis(arr, axis, new_shape):
         # move reshape axis to last axis position, because np.reshape reshapes this first
         arr_tmp = np.moveaxis(arr, axis, -1)
@@ -752,3 +753,24 @@ def _get_attr_from_graph(graph: MultiDiGraph, attr_name: str, make_copy: bool = 
     else:
         raise AttributeError("Must attach attribute '%s' of crystal information to networkx graph." % attr_name)
     return out
+
+
+def _estimate_nn_radius_from_density(k: int, coordinates: np.ndarray, lattice: np.ndarray,
+                                     empirical_tol_factor: float = 0.0):
+    """Rough estimate of the expected radius to find N nearest neighbours.
+
+    Args:
+        k (int): Number of neighbours.
+        coordinates (np.ndarray): Coordinates array.
+        lattice (np.ndarray): Lattice matrix.
+        empirical_tol_factor (float): Tolerance factor for radius.
+
+    Returns:
+        float: estimated radius
+    """
+    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
+    density_unit_cell = len(coordinates) / volume_unit_cell
+    estimated_nn_volume = (k + len(coordinates)) / density_unit_cell
+    estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
+    estimated_nn_radius = estimated_nn_radius * (1.0 + empirical_tol_factor)
+    return estimated_nn_radius
