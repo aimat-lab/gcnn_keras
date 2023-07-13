@@ -67,7 +67,11 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
 
     # Determine the required size of super-cell
     if manual_super_cell_radius is not None:
-        radius = abs(manual_super_cell_radius)
+        if max_neighbours is None:
+            # Does not make sense to specify manual supercell in this case.
+            radius = max_distance
+        else:
+            radius = abs(manual_super_cell_radius)
     elif max_distance is None:
         radius = estimated_nn_radius
     elif max_neighbours is None:
