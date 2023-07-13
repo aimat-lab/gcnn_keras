@@ -98,10 +98,10 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         def reorder(order, *args):
             return [x[order] for x in args]
 
-        def filter_to_knn(c, k, *args):
+        def filter_to_knn(c, k, i1, i2, ov, dd):
             splits = np.cumsum(c)[:-1]
             out_split = []
-            for a in args:
+            for a in [i1, i2, ov, dd]:
                 a_split = np.split(a, splits)
                 out_split.append(np.concatenate([x[:k] for x in a_split], axis=0))
             return out_split
@@ -116,7 +116,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
             break
 
         unique_centers, counts = np.unique(index1, return_counts=True)
-        not_enough_nn = np.any(counts < max_neighbours)
+        not_enough_nn = np.any(counts < max_neighbours) if len(counts) > 0 else 0 < max_neighbours
         radius = radius * (1.0 + super_cell_tol_factor)
 
         # Case: knn.
