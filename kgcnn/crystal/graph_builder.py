@@ -770,7 +770,7 @@ def _estimate_nn_radius_from_density(k: int, coordinates: np.ndarray, lattice: n
     """
     volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
     density_unit_cell = len(coordinates) / volume_unit_cell
-    estimated_nn_volume = (k + len(coordinates)) / density_unit_cell
+    estimated_nn_volume = k/density_unit_cell  # + len(coordinates/density_unit_cell
     estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
     estimated_nn_radius = estimated_nn_radius * (1.0 + empirical_tol_factor)
     return estimated_nn_radius

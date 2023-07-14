@@ -59,7 +59,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
 
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
     if max_neighbours is not None:
-        estimated_nn_volume = (max_neighbours + len(coordinates)) / density_unit_cell
+        estimated_nn_volume = max_neighbours/density_unit_cell  # + len(coordinates)/ density_unit_cell
         estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
         estimated_nn_radius = estimated_nn_radius
     else:
