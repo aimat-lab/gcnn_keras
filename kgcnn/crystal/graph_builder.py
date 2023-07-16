@@ -548,9 +548,13 @@ def to_asymmetric_unit_graph(graph: MultiDiGraph) -> MultiDiGraph:
 
     asymmetric_mapping = np.array([node[1] for node in graph.nodes(data='asymmetric_mapping')])
     if None in asymmetric_mapping:
-        raise ValueError("Graph does not contain symmetry informations. \
-Make sure to create the graph with `structure_to_empty_graph` with the `symmetrize` \
-argument set to `True`.")
+        raise ValueError(
+            "".join([
+                "Graph does not contain symmetry information. ",
+                "Make sure to create the graph with `structure_to_empty_graph` ",
+                "with the `symmetrize` argument set to `True` ."
+            ])
+        )
     asu_node_indice, inv_asymmetric_mapping = np.unique(asymmetric_mapping, return_inverse=True)
 
     asu_graph = MultiDiGraph()
@@ -770,7 +774,27 @@ def _estimate_nn_radius_from_density(k: int, coordinates: np.ndarray, lattice: n
     """
     volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
     density_unit_cell = len(coordinates) / volume_unit_cell
-    estimated_nn_volume = k/density_unit_cell  # + len(coordinates/density_unit_cell
+    estimated_nn_volume = k / density_unit_cell  # + len(coordinates)/density_unit_cell
     estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
     estimated_nn_radius = estimated_nn_radius * (1.0 + empirical_tol_factor)
     return estimated_nn_radius
+
+
+def _get_geometric_properties_of_unit_cell(coordinates: np.ndarray, lattice: np.ndarray):
+    """Diameter of a 3D unit cell and other properties.
+
+    Args:
+        coordinates (np.ndarray): Coordinates array.
+        lattice (np.ndarray): Lattice matrix.
+
+    Returns:
+        tuple: (center_unit_cell, max_diameter_cell, volume_unit_cell, density_unit_cell)
+    """
+    # lattice_col = np.transpose(lattice)
+    lattice_row = lattice
+    center_unit_cell = np.sum(lattice_row, axis=0, keepdims=True) / 2  # (1, 3)
+    max_radius_cell = np.amax(np.sqrt(np.sum(np.square(lattice_row - center_unit_cell), axis=-1)))
+    max_diameter_cell = 2 * max_radius_cell
+    volume_unit_cell = np.sum(np.abs(np.cross(lattice[0], lattice[1]) * lattice[2]))
+    density_unit_cell = len(coordinates) / volume_unit_cell
+    return center_unit_cell[0], max_diameter_cell, volume_unit_cell, density_unit_cell
