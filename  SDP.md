@@ -8,3 +8,9 @@ Software Development Plan (SDP)
 * [ ] Add graph preprocessor from standard dictionary scheme also for ``crystal`` and `molecule` .
 * [ ] Rework and clean base layers.
 * [ ] Add a properly designed transformer layer in ``kgcnn.layers`` .
+* [ ] Add a loader for ``Graphlist`` apart from tensor files. Must change dataformat for standard save.
+* [ ] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .
+* [ ] Add ``JARVISDataset`` . There is already a (yet not fully) port for `kgcnn` .
+* [ ] Add a loader for ``Graphlist`` apart from tensor files. Must change dataformat for standard save.
+* [ ] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .
+* [ ] Add ``JARVISDataset`` . There is already a (yet not fully) port for `kgcnn` .
