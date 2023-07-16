@@ -59,14 +59,20 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
 
     # Estimated real-space radius for max_neighbours based on density and volume of a single unit cell.
     if max_neighbours is not None:
-        estimated_nn_volume = (max_neighbours + len(coordinates)) / density_unit_cell
+        estimated_nn_volume = max_neighbours/density_unit_cell  # + len(coordinates)/ density_unit_cell
         estimated_nn_radius = abs(float(np.cbrt(estimated_nn_volume / np.pi * 3 / 4)))
         estimated_nn_radius = estimated_nn_radius
     else:
         estimated_nn_radius = None
 
     # Determine the required size of super-cell
-    if max_distance is None:
+    if manual_super_cell_radius is not None:
+        if max_neighbours is None:
+            # Does not make sense to specify manual supercell in this case.
+            radius = max_distance
+        else:
+            radius = abs(manual_super_cell_radius)
+    elif max_distance is None:
         radius = estimated_nn_radius
     elif max_neighbours is None:
         radius = max_distance
@@ -74,7 +80,7 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         if exclusive:
             radius = min(max_distance, estimated_nn_radius)
         else:
-            radius = max_distance
+            radius = max(max_distance, estimated_nn_radius)
 
     _max_iter_nn_test = 100
     _iter_required = 0
@@ -98,12 +104,33 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
         def reorder(order, *args):
             return [x[order] for x in args]
 
-        def filter_to_knn(c, k, *args):
+        def limit_to(c, k, r, id1, id2, ov, dd, logical_reduce=None):
             splits = np.cumsum(c)[:-1]
+            id1_split = np.split(id1, splits)
+            id2_split = np.split(id2, splits)
+            ov_split = np.split(ov, splits)
+            dd_split = np.split(dd, splits)
+            mask_r, mask_k = None, None
+            if k is not None:
+                mask_k = []
+                for x in id1_split:
+                    mask_per_node = np.zeros((len(x)), dtype="bool")
+                    mask_per_node[:k] = True
+                    mask_k.append(mask_per_node)
+            if r is not None:
+                mask_r = []
+                for x in dd_split:
+                    mask_per_node = x <= r + + abs(numerical_tol)
+                    mask_r.append(mask_per_node)
+            if k is not None and r is not None:
+                mask = [logical_reduce(x1, x2) for x1, x2 in zip(mask_r, mask_k)]
+            elif k is None:
+                mask = mask_r
+            else:
+                mask = mask_k
             out_split = []
-            for a in args:
-                a_split = np.split(a, splits)
-                out_split.append(np.concatenate([x[:k] for x in a_split], axis=0))
+            for a in [id1_split, id2_split, ov_split, dd_split]:
+                out_split.append(np.concatenate([x[mask[i_node]] for i_node, x in enumerate(a)], axis=0))
             return out_split
 
         sort_index = np.argsort(distances, kind="stable")
@@ -116,24 +143,37 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
             break
 
         unique_centers, counts = np.unique(index1, return_counts=True)
-        not_enough_nn = np.any(counts < max_neighbours)
-        radius = radius * (1.0 + super_cell_tol_factor)
-
+        enough_nn = not (np.any(counts < max_neighbours) if len(counts) > 0 else 0 < max_neighbours)
         # Case: knn.
-        if max_distance is None or not exclusive:
-            if not_enough_nn:
+        if max_distance is None:
+            if not enough_nn:
+                radius = radius * (1.0 + super_cell_tol_factor)
                 continue
             else:
-                index1, index2, offset_vectors, distances = filter_to_knn(
-                    counts, max_neighbours, index1, index2, offset_vectors, distances)
+                index1, index2, offset_vectors, distances = limit_to(
+                    counts, max_neighbours, None, index1, index2, offset_vectors, distances)
                 break
 
+        enough_distance = radius >= max_distance
         # Case mixed both radius and knn.
         if exclusive:
-            index1, index2, offset_vectors, distances = filter_to_knn(
-                counts, max_neighbours, index1, index2, offset_vectors, distances)
-            break
-        break
+            if enough_nn or enough_distance:
+                index1, index2, offset_vectors, distances = limit_to(
+                    counts, max_neighbours, max_distance, index1, index2, offset_vectors, distances,
+                    logical_reduce=np.logical_and)
+                break
+            else:
+                radius = radius * (1.0 + super_cell_tol_factor)
+                continue
+        else:
+            if not enough_nn or not enough_distance:
+                radius = radius * (1.0 + super_cell_tol_factor)
+                continue
+            else:
+                index1, index2, offset_vectors, distances = limit_to(
+                    counts, max_neighbours, max_distance, index1, index2, offset_vectors, distances,
+                    logical_reduce=np.logical_or)
+                break
 
     if _iter_required + 1 >= _max_iter_nn_test:
         raise ValueError("Exceeded maximum number of allowed range extensions for neighbour calculation.")
@@ -142,6 +182,8 @@ def range_neighbour_lattice(coordinates: np.ndarray, lattice: np.ndarray,
     return [out_indices, offset_vectors, distances]
 
 
+# This is a python/numpy function to find neighbours in a periodic lattice.
+# The pymatgen version is preferred, since this version can get slow for very skew lattice matrices.
 def range_neighbour_lattice_python_vectorized(
         coordinates: np.ndarray, lattice: np.ndarray,
         max_distance: Union[float, None] = 4.0,
@@ -337,21 +379,23 @@ def range_neighbour_lattice_python_vectorized(
 
     # Select range connections based on distance cutoff and nearest neighbour limit. Uses masking.
     # Based on 'max_distance'.
-    if max_distance is None:
-        mask_distance = np.ones_like(dist_sort, dtype="bool")
-    else:
+    mask_distance, mask_neighbours = None, None
+    if max_distance is not None:
         mask_distance = dist_sort <= max_distance + abs(numerical_tol)
     # Based on 'max_neighbours'.
-    mask_neighbours = np.zeros_like(dist_sort, dtype="bool")
+    if max_neighbours is not None:
+        mask_neighbours = np.zeros_like(dist_sort, dtype="bool")
+        mask_neighbours[:, :max_neighbours] = True
+
     if max_neighbours is None:
-        max_neighbours = dist_sort.shape[-1]
-    mask_neighbours[:, :max_neighbours] = True
-
-    if exclusive:
-        mask = np.logical_and(mask_neighbours, mask_distance)
+        mask = mask_distance
+    elif max_distance is None:
+        mask = mask_neighbours
     else:
-        mask = np.logical_or(mask_neighbours, mask_distance)
-
+        if exclusive:
+            mask = np.logical_and(mask_neighbours, mask_distance)
+        else:
+            mask = np.logical_or(mask_neighbours, mask_distance)
     # Select nodes.
     out_dist = dist_sort[mask]
     out_images = dist_images_sort[mask]
