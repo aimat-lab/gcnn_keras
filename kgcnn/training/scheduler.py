@@ -94,8 +94,10 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
                        "verbose": self.verbose, "steps_per_epoch": self.steps_per_epoch})
         return config
 
-    def from_config(self):
-        pass
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='CosineAnnealingLRScheduler')
@@ -139,6 +141,11 @@ class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):
         config.update({"lr_start": self.lr_start, "epoch_max": self.epoch_max,
                        "lr_min": self.lr_min, "verbose": self.verbose})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLRScheduler')
@@ -192,6 +199,11 @@ class LinearWarmupExponentialLRScheduler(LinearWarmUpScheduler):
         config.update({"gamma": self.gamma, "lr_min": self.lr_min})
         return config
 
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
+
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
 class LinearWarmupExponentialLearningRateScheduler(LinearWarmUpScheduler):
@@ -242,6 +254,11 @@ class LinearWarmupExponentialLearningRateScheduler(LinearWarmUpScheduler):
         config = super(LinearWarmupExponentialLearningRateScheduler, self).get_config()
         config.update({"decay_lifetime": self.decay_lifetime, "lr_min": self.lr_min})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LinearLearningRateScheduler')
@@ -302,6 +319,11 @@ class LinearLearningRateScheduler(ks.callbacks.LearningRateScheduler):
                        "epo": self.epo, "epo_min": self.epo_min, "eps": self.eps})
         return config
 
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
+
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupLinearLearningRateScheduler')
 class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
@@ -361,3 +383,8 @@ class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
             "learning_rate_start": self.learning_rate_start, "learning_rate_stop": self.learning_rate_stop,
             "epo": self.epo, "eps": self.eps})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)

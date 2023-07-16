@@ -36,3 +36,8 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         """Get config for this class."""
         config = {"verbose": self.verbose}
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
