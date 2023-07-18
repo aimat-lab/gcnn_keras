@@ -11,8 +11,9 @@ class EnergyForceModel(ks.models.Model):
     r"""Force model that generates forces from any energy predicting model by taking the derivative with respect to
     the input coordinates.
 
-    For now the model has to cast to dense tensor for using :obj:`batch_jacobian` , however, this will likely support
-    ragged tensors in the future.
+    There are different options regarding the gradient.
+    For :obj:`use_batch_jacobian` the model has to cast to dense tensor for using :obj:`batch_jacobian` ,
+    however, this will likely support ragged tensors in the future.
 
     .. code-block:: python
 
@@ -49,7 +50,8 @@ class EnergyForceModel(ks.models.Model):
             output_as_dict=True,
             output_to_tensor=False,
             output_squeeze_states=True,
-            is_physical_force=True
+            is_physical_force=True,
+            use_batch_jacobian=True
         )
 
     """
@@ -63,6 +65,7 @@ class EnergyForceModel(ks.models.Model):
                  output_squeeze_states: bool = False,
                  nested_model_config: bool = True,
                  is_physical_force: bool = True,
+                 use_batch_jacobian: bool = True,
                  **kwargs):
         r"""Initialize :obj:`EnergyForceModel` with sub-model for energy prediction.
 
@@ -82,9 +85,12 @@ class EnergyForceModel(ks.models.Model):
             ragged_validate (bool): Whether to validate ragged tensor creation. Default is False.
             output_to_tensor (bool): Whether to cast the output to tensor or keep ragged output. Default is True
             output_squeeze_states (bool): Whether to squeeze states, which can be done for one energy value to remove
-                an axis of one.
+                an axis of one. Only set this to true if axis is one, i.e. only one energy state as target.
             nested_model_config (bool): Whether `config` has model config of the energy model. Default is True.
             is_physical_force (bool): Whether gradient of force, which is the negative gradient, is to be returned.
+            use_batch_jacobian (bool): Whether to used batch-wise Jacobian to compute forces. This could be desired,
+                if you use e.g. :obj:`GraphBatchNormalization` and have a batch dimension > 1. Otherwise, the energies
+                are computed a standard gradient of energies.
         """
         super(EnergyForceModel, self).__init__(self, **kwargs)
         if model_energy is None:
@@ -113,6 +119,7 @@ class EnergyForceModel(ks.models.Model):
         self.output_squeeze_states = output_squeeze_states
         self.is_physical_force = is_physical_force
         self.nested_model_config = nested_model_config
+        self.use_batch_jacobian = use_batch_jacobian
 
         # Layers.
         self.cast_coordinates = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
@@ -130,29 +137,45 @@ class EnergyForceModel(ks.models.Model):
         """
         x = inputs[self.coordinate_input]
         inputs_energy = [i for i in inputs]
-        # x is ragged tensor of shape (batch, [N], 3) with cartesian coordinates.
-        # `batch_jacobian` does not yet support ragged tensor input.
-        # Cast to masked tensor for coordinates only.
-        x_pad, x_mask = self.cast_coordinates(x, training=training, **kwargs)  # (batch, N, 3), (batch, N, 3)
-        with tf.GradientTape() as tape:
-            tape.watch(x_pad)
-            # Temporary solution for casting.
-            # Cast back to ragged tensor for model input.
-            x_pad_to_ragged = self._cast_coordinates_pad_to_ragged(x_pad, x_mask, self.ragged_validate)
-            inputs_energy[self.coordinate_input] = x_pad_to_ragged
-            # Predict energy.
-            # Energy must be tensor of shape (batch, states)
-            eng = self.energy_model(inputs_energy, training=training, **kwargs)
-        e_grad = tape.batch_jacobian(eng, x_pad)
-        e_grad = tf.transpose(e_grad, perm=[0, 2, 3, 1])
 
-        if self.is_physical_force:
-            e_grad = -e_grad
+        if self.use_batch_jacobian:
+            # x is ragged tensor of shape (batch, [N], 3) with cartesian coordinates.
+            # `batch_jacobian` does not yet support ragged tensor input.
+            # Cast to masked tensor for coordinates only.
+            x_pad, x_mask = self.cast_coordinates(x, training=training, **kwargs)  # (batch, N, 3), (batch, N, 3)
+            with tf.GradientTape() as tape:
+                tape.watch(x_pad)
+                # Temporary solution for casting.
+                # Cast back to ragged tensor for model input.
+                x_pad_to_ragged = self._cast_coordinates_pad_to_ragged(x_pad, x_mask, self.ragged_validate)
+                inputs_energy[self.coordinate_input] = x_pad_to_ragged
+                # Predict energy.
+                # Energy must be tensor of shape (batch, states)
+                eng = self.energy_model(inputs_energy, training=training, **kwargs)
+            e_grad = tape.batch_jacobian(eng, x_pad)
+            e_grad = tf.transpose(e_grad, perm=[0, 2, 3, 1])
+            if self.is_physical_force:
+                e_grad = -e_grad
+            if self.output_squeeze_states:
+                e_grad = tf.squeeze(e_grad, axis=-1)
+            if not self.output_to_tensor:
+                e_grad = self._cast_coordinates_pad_to_ragged(e_grad, x_mask, self.ragged_validate)
+        else:
+            with tf.GradientTape(persistent=True) as tape:
+                tape.watch(x.values)
+                eng = self.energy_model(inputs_energy, training=training, **kwargs)
+                eng_sum = tf.reduce_sum(eng, axis=0, keepdims=False)
+                e_grad = [eng_sum[i] for i in range(eng_sum.shape[-1])]
+            e_grad = [tf.expand_dims(tape.gradient(e_i, x.values), axis=-1) for e_i in e_grad]
+            e_grad = tf.concat(e_grad, axis=-1)
+            if self.is_physical_force:
+                e_grad = -e_grad
+            if self.output_squeeze_states:
+                e_grad = tf.squeeze(e_grad, axis=-1)
+            e_grad = tf.RaggedTensor.from_row_splits(e_grad, x.row_splits, validate=False)
+            if self.output_to_tensor:
+                e_grad = tf.RaggedTensor.to_tensor(e_grad)
 
-        if self.output_squeeze_states:
-            e_grad = tf.squeeze(e_grad, axis=-1)
-        if not self.output_to_tensor:
-            e_grad = self._cast_coordinates_pad_to_ragged(e_grad, x_mask, self.ragged_validate)
         if self.output_as_dict:
             return {"energy": eng, "force": e_grad}
         else:
@@ -185,6 +208,7 @@ class EnergyForceModel(ks.models.Model):
             "ragged_validate": self.ragged_validate,
             "output_to_tensor": self.output_to_tensor,
             "output_squeeze_states": self.output_squeeze_states,
-            "nested_model_config": self.nested_model_config
+            "nested_model_config": self.nested_model_config,
+            "use_batch_jacobian": self.use_batch_jacobian
         })
         return conf
