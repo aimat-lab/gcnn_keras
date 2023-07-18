@@ -32,7 +32,7 @@ setup(
         "click>=7.1.2",
         "brotli>=1.0.9",
         "pyxtal>=0.5.5",
-        "h5py"
+        "h5py>=3.9.0"
     ],
     extras_require={
         "openbabel": ["openbabel"],
