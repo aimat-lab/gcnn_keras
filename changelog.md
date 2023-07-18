@@ -6,6 +6,8 @@ v3.0.2
   Please check your config, since parameters are ignored in normal functions!
   If for example "kgcnn>leaky_relu" you can not change the leak anymore. You must use a ``kgcnn.layers.activ`` for that.
 * Rework ``kgcnn.graph.methods.range_neighbour_lattice`` to use pymatgen.
+* Added ``PolynomialDecayScheduler``
+* Added option for force model to use normal gradient and added as option ``use_batch_jacobian`` .
 
 
 v3.0.1
