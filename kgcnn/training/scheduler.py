@@ -388,3 +388,73 @@ class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
     def from_config(cls, config):
         """Make class instance from config."""
         return cls(**config)
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='PolynomialDecayScheduler')
+class PolynomialDecayScheduler(ks.callbacks.LearningRateScheduler):
+    r"""Callback for polynomial decay of the learning rate. This class inherits from
+    :obj:`ks.callbacks.LearningRateScheduler`.
+
+    Adapts :obj:`keras.optimizers.schedules.PolynomialDecay` to a scheduler with a function of epochs.
+
+    """
+
+    def __init__(self, initial_learning_rate, decay_epochs, end_learning_rate=0.0001, power=1.0, cycle=False,
+                 verbose: int = 0, eps: float = 1e-8):
+        """Set the parameters for the learning rate scheduler.
+
+        Args:
+            initial_learning_rate (float): The initial learning rate
+            decay_epochs (float): Must be positive. See the decay computation above.
+            end_learning_rate (float): The minimal end learning rate.
+            power (float): The power of the polynomial. Defaults to `1.0` .
+            cycle (bool): A boolean, whether it should cycle beyond decay_steps.
+            eps (float): Minimum learning rate. Default is 1e-08.
+            verbose (int): Verbosity. Default is 0.
+        """
+        super(PolynomialDecayScheduler, self).__init__(schedule=self.schedule_epoch_lr, verbose=verbose)
+        self.initial_learning_rate = initial_learning_rate
+        self.decay_epochs = decay_epochs
+        self.end_learning_rate = end_learning_rate
+        self.power = power
+        self.cycle = cycle
+        self.verbose = verbose
+        self.eps = eps
+
+    def schedule_epoch_lr(self, epoch, lr):
+        r"""Reduce the learning linearly.
+
+        Args:
+            epoch (int): Epoch index (integer, indexed from 0).
+            lr (float): Current learning rate. Not used.
+
+        Returns:
+            float: New learning rate.
+        """
+        if not self.cycle:
+            epoch = np.minimum(self.decay_epochs, epoch)
+            decay_epoch = self.decay_epochs
+        else:
+            decay_epoch = self.decay_epochs * np.ceil(epoch / self.decay_epochs)
+        pp = np.power(1 - epoch / decay_epoch, self.power)
+        new_lr = (self.initial_learning_rate - self.end_learning_rate) * pp + self.end_learning_rate
+        return max(float(new_lr), float(self.eps))
+
+    def get_config(self):
+        """Get config for this class."""
+        config = super(PolynomialDecayScheduler, self).get_config()
+        config.update({
+            "initial_learning_rate": self.initial_learning_rate,
+            "decay_epochs": self.decay_epochs,
+            "end_learning_rate": self.end_learning_rate,
+            "power": self.power,
+            "cycle": self.cycle,
+            "verbose": self.verbose,
+            "eps": self.eps
+        })
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        """Make class instance from config."""
+        return cls(**config)
