@@ -110,7 +110,7 @@ train_test_indices = [
     (train_index, test_index) for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels)]
 num_folds = len(train_test_indices)
 splits_done = 0
-
+time_list = []
 for current_fold, (train_index, test_index) in enumerate(train_test_indices):
 
     # Only do execute_splits out of the k-folds of cross-validation.
@@ -166,13 +166,13 @@ for current_fold, (train_index, test_index) in enumerate(train_test_indices):
     print(model.summary())
 
     # Start and time training
-    start = time.process_time()
+    start = time.time()
     hist = model.fit(x_train, y_train,
                      validation_data=(x_test, y_test),
                      **hyper.fit())
-    stop = time.process_time()
+    stop = time.time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
-
+    time_list.append(str(timedelta(seconds=stop - start)))
     # Get loss from history
     save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_fold}.pickle"))
 
@@ -212,4 +212,4 @@ hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
-                   filepath=filepath, file_name=f"score{postfix_file}.yaml")
+                   filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list)

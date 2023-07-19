@@ -195,11 +195,11 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
     y_test = dataset_test.tensor(labels_in_dataset)
 
     # Start and time training
-    start = time.process_time()
+    start = time.time()
     hist = model.fit(x_train, y_train,
                      validation_data=(x_test, y_test),
                      **hyper.fit())
-    stop = time.process_time()
+    stop = time.time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
 
     # Get loss from history

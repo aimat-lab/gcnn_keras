@@ -39,30 +39,27 @@ class GatherEmbedding(GraphBaseLayer):
 
     def __init__(self,
                  axis: int = 1,
-                 concat_axis: Union[int, None] = 2,
-                 split_axis: Union[int, None] = None,
+                 split_axis: Union[int, None] = 2,
                  split_indices: list = None,
-                 concat_indices: list = None,
+                 concat_axis: Union[int, None] = 2,
                  **kwargs):
         r"""Initialize layer.
 
         Args:
             axis (int): The axis to gather embeddings from. Default is 1.
-            concat_axis (int): The axis which concatenates embeddings. Default is 2.
-            split_axis (int): The axis to split the gathered embeddings. Default is None.
+            split_axis (int): The axis to split indices to gather embeddings. Default is None.
             split_indices (list): List of indices to split from gathered tensor. Default is None.
-            concat_indices (list): List of indices to concatenate from gathered tensor. Default is None.
+            concat_axis (int): The axis which concatenates embeddings. Default is 2.
         """
         super(GatherEmbedding, self).__init__(**kwargs)
         self.concat_axis = concat_axis
         self.axis = axis
         self.split_axis = split_axis
         self.split_indices = split_indices
-        self.concat_indices = concat_indices
         self.node_indexing = "sample"
 
-        if split_axis is not None and concat_axis is not None:
-            raise ValueError("Can not both split and concatenate new index axis. At least one must be `None`.")
+        if self.concat_axis is not None and self.split_axis is None:
+            raise ValueError("Can only concat `list` of gathered tensors. Require `split_axis` not None.")
 
     def build(self, input_shape):
         super(GatherEmbedding, self).build(input_shape)
@@ -70,38 +67,35 @@ class GatherEmbedding(GraphBaseLayer):
         if len(input_shape) != 2:
             print("Number of inputs for layer '%s' must be 2: `[nodes, indices]` ." % self.name)
 
-    def _disjoint_implementation(self, inputs, **kwargs):
+    def _is_disjoint_possible(self, inputs, **kwargs):
         # The primary case for aggregation of nodes from node feature list. Case from doc-string.
         # Possibly faster implementation via values and indices shifted by row-partition.
         # Equal to disjoint implementation. Only works for ragged_rank=1 and specific axis.
         if all([isinstance(x, tf.RaggedTensor) for x in inputs]):
             is_rank_one = all([x.ragged_rank == 1 for x in inputs])
             if is_rank_one and self.axis == 1 and self.concat_axis in [None, 2] and self.split_axis in [None, 2]:
-                node, node_part = inputs[0].values, inputs[0].row_splits
-                edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
-                disjoint_list = partition_row_indexing(edge_index, node_part, edge_part,
-                                                       partition_type_target="row_splits",
-                                                       partition_type_index="row_length",
-                                                       to_indexing='batch',
-                                                       from_indexing=self.node_indexing)
-                out = tf.gather(node, disjoint_list, axis=0)
-                # Option: Concat features.
-                if self.concat_axis == 2:
-                    if self.concat_indices is None and edge_index.shape[1] is None:
-                        raise ValueError("Cannot infer concat indices, please specify statically in `concat_indices` .")
-                    concat_indices = self.concat_indices if self.concat_indices else range(edge_index.shape[1])
-                    out = tf.concat([out[:, i] for i in concat_indices], axis=1)
-                    return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-                # Option: Split features.
-                if self.split_axis == 2:
-                    if self.split_indices is None and edge_index.shape[1] is None:
-                        raise ValueError("Cannot infer split indices, please specify statically in `split_indices` .")
-                    split_indices = self.split_indices if self.split_indices else range(edge_index.shape[1])
-                    return [tf.RaggedTensor.from_row_lengths(
-                        out[:, i], edge_part, validate=self.ragged_validate) for i in split_indices]
+                return True
+        return False
 
-                return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
-        return None
+    def _disjoint_implementation(self, inputs, **kwargs):
+        node, node_part = inputs[0].values, inputs[0].row_splits
+        edge_index, edge_part = inputs[1].values, inputs[1].row_lengths()
+        disjoint_list = partition_row_indexing(
+            edge_index, node_part, edge_part, partition_type_target="row_splits", partition_type_index="row_length",
+            to_indexing='batch', from_indexing=self.node_indexing
+        )
+        if self.split_axis == 2:
+            if self.split_indices is None and edge_index.shape[1] is None:
+                raise ValueError("Cannot infer split indices, please specify statically in `split_indices` .")
+            split_indices = self.split_indices if self.split_indices else range(edge_index.shape[1])
+            indices_list = [tf.gather(disjoint_list, i, axis=1) for i in split_indices]
+            out = [tf.gather(node, ix, axis=0) for ix in indices_list]
+            if self.concat_axis == 2:
+                out = tf.concat(out, axis=1)
+            return [tf.RaggedTensor.from_row_lengths(x, edge_part, validate=self.ragged_validate) for x in out]
+        else:
+            out = tf.gather(node, disjoint_list, axis=0)
+            return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -116,36 +110,33 @@ class GatherEmbedding(GraphBaseLayer):
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape `(batch, [M], 2*F)`
         """
         # Old disjoint implementation that could be faster.
-        out = self._disjoint_implementation(inputs, **kwargs)
-        if out is not None:
-            return out
+        if self._is_disjoint_possible(inputs, **kwargs):
+            return self._disjoint_implementation(inputs, **kwargs)
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
         # Works in tf.__version__ >= 2.4 !
-        out = tf.gather(inputs[0], inputs[1], batch_dims=1, axis=self.axis)
-
-        # Option: Concat features.
-        if self.concat_axis is not None:
-            if self.concat_indices is None and out.shape[self.concat_axis] is None:
-                raise ValueError("Cannot infer concat indices, please specify statically in `concat_indices` .")
-            concat_indices = self.concat_indices if self.concat_indices else range(out.shape[self.concat_axis])
-            out = tf.concat(
-                [tf.gather(out, i, axis=self.concat_axis) for i in concat_indices],
-                axis=self.concat_axis
-            )
         # Option: Split features.
+        nodes, indices = inputs
         if self.split_axis is not None:
-            if self.split_indices is None and out.shape[self.split_axis] is None:
+            if self.split_indices is None and indices.shape[self.split_axis] is None:
                 raise ValueError("Cannot infer split indices, please specify statically in `split_indices` .")
-            split_indices = self.split_indices if self.split_indices else range(out.shape[self.split_axis])
-            out = [tf.gather(out, i, axis=self.split_axis) for i in split_indices]
+            split_indices = self.split_indices if self.split_indices else range(indices.shape[self.split_axis])
+            indices_list = [tf.gather(nodes, i, axis=self.split_axis) for i in split_indices]
+            out = [tf.gather(nodes, ix, batch_dims=1, axis=self.axis) for ix in indices_list]
+            # Option: Concat features.
+            if self.concat_axis is not None:
+                out = tf.concat(out, axis=self.concat_axis)
+        else:
+            out = tf.gather(nodes, indices, batch_dims=1, axis=self.axis)
         return out
 
     def get_config(self):
         """Update layer config."""
         config = super(GatherEmbedding, self).get_config()
-        config.update({"concat_axis": self.concat_axis, "axis": self.axis, "split_axis": self.split_axis,
-                       "concat_indices": self.concat_indices, "split_indices": self.split_indices})
+        config.update({
+            "concat_axis": self.concat_axis, "axis": self.axis, "split_axis": self.split_axis,
+            "split_indices": self.split_indices
+        })
         return config
 
 

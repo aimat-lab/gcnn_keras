@@ -322,5 +322,4 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
             'num_heads': self.num_heads,
             'concat_heads': self.concat_heads
         })
-
         return config

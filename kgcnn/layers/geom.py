@@ -1021,7 +1021,13 @@ class FracToRealCoordinates(GraphBaseLayer):
         \vec{r} = \vec{f} \; \mathbf{A}
 
     Note that the definition of the lattice matrix has lattice vectors in rows, which is the default definition from
-    :obj:`pymatgen`.
+    :obj:`pymatgen` .
+
+    .. code-block:: python
+
+        from kgcnn.layers.geom import FracToRealCoordinates
+
+
     """
 
     def __init__(self, **kwargs):

@@ -116,11 +116,11 @@ for train_index, test_index in kf.split(X=np.arange(data_length)[:, None]):
     print(model.summary())
 
     # Run keras model-fit and take time for training.
-    start = time.process_time()
+    start = time.time()
     hist = model.fit(x_train, y_train,
                      validation_data=(x_test, y_test),
                      **hyper.fit())
-    stop = time.process_time()
+    stop = time.time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
 
     # Get loss from history

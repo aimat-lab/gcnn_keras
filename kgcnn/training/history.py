@@ -29,7 +29,8 @@ def save_history_score(
         model_class: str = "",
         execute_folds: Union[list, int, None] = None,
         multi_target_indices: Union[list, int, None] = None,
-        trajectory_name: str = None
+        trajectory_name: str = None,
+        time_list: list = None
 ):
     r"""Save fit results from fit histories to file.
 
@@ -43,11 +44,13 @@ def save_history_score(
         data_unit (str): Unit of the loss. Default is "".
         model_name (str): Name of the model. Default is "".
         file_name (str): File name base. Model name and dataset will be added to the name. Default is "".
+        model_version (str): Version of the model. Default is "".
         dataset_name (str): Name of the dataset which was fitted to. Default is "".
         model_class (str): Model class or generator. Default is "".
         execute_folds (list, int): Folds which where executed.
         multi_target_indices (list): List of indices for multi target training. Default is None.
         trajectory_name (str): Name of the trajectory if known. Default is None.
+        time_list (list): List of training time info.
 
     Returns:
         dict: Score which was saved to file.
@@ -101,6 +104,7 @@ def save_history_score(
     result_dict["number_histories"] = len(histories)
     result_dict["multi_target_indices"] = multi_target_indices
     result_dict["execute_folds"] = execute_folds
+    result_dict["time_list"] = time_list
     if trajectory_name:
         result_dict["trajectory_name"] = trajectory_name
 
