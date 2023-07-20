@@ -42,6 +42,7 @@ class GatherEmbedding(GraphBaseLayer):
                  split_axis: Union[int, None] = 2,
                  split_indices: list = None,
                  concat_axis: Union[int, None] = 2,
+                 allow_disjoint_implementation: bool = True,
                  **kwargs):
         r"""Initialize layer.
 
@@ -50,6 +51,7 @@ class GatherEmbedding(GraphBaseLayer):
             split_axis (int): The axis to split indices to gather embeddings. Default is None.
             split_indices (list): List of indices to split from gathered tensor. Default is None.
             concat_axis (int): The axis which concatenates embeddings. Default is 2.
+            allow_disjoint_implementation (bool): Whether to allow (preferred) disjoint implementation.
         """
         super(GatherEmbedding, self).__init__(**kwargs)
         self.concat_axis = concat_axis
@@ -57,6 +59,7 @@ class GatherEmbedding(GraphBaseLayer):
         self.split_axis = split_axis
         self.split_indices = split_indices
         self.node_indexing = "sample"
+        self.allow_disjoint_implementation = allow_disjoint_implementation
 
         if self.concat_axis is not None and self.split_axis is None:
             raise ValueError("Can only concat `list` of gathered tensors. Require `split_axis` not None.")
@@ -111,7 +114,7 @@ class GatherEmbedding(GraphBaseLayer):
             tf.RaggedTensor: Gathered node embeddings that match the number of edges of shape `(batch, [M], 2*F)`
         """
         # Old disjoint implementation that could be faster.
-        if self._is_disjoint_possible(inputs, **kwargs):
+        if self._is_disjoint_possible(inputs, **kwargs) and self.allow_disjoint_implementation:
             return self._disjoint_implementation(inputs, **kwargs)
 
         # For arbitrary gather from ragged tensor use tf.gather with batch_dims=1.
@@ -136,7 +139,7 @@ class GatherEmbedding(GraphBaseLayer):
         config = super(GatherEmbedding, self).get_config()
         config.update({
             "concat_axis": self.concat_axis, "axis": self.axis, "split_axis": self.split_axis,
-            "split_indices": self.split_indices
+            "split_indices": self.split_indices, "allow_disjoint_implementation": self.allow_disjoint_implementation
         })
         return config
 
