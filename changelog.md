@@ -8,6 +8,9 @@ v3.0.2
 * Rework ``kgcnn.graph.methods.range_neighbour_lattice`` to use pymatgen.
 * Added ``PolynomialDecayScheduler``
 * Added option for force model to use normal gradient and added as option ``use_batch_jacobian`` .
+* Reworked `kgcnn.layers.gather` to reduce/simplify code and speed up some models. 
+  The behaviour of `GatherNodes` has changed a little in that it first splits and then concatenates. The default parameters now have `split_axis` and `concat_axis` set to 2. `concat_indices` has been removed.
+* An error in layer `FracToRealCoordinates` has been fixed and improved speed.
 
 
 v3.0.1

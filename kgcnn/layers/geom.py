@@ -1025,8 +1025,39 @@ class FracToRealCoordinates(GraphBaseLayer):
 
     .. code-block:: python
 
+        import tensorflow as tf
         from kgcnn.layers.geom import FracToRealCoordinates
-
+        lattices = tf.constant([
+            [[ 4.10744499,  0.        , -1.51280847],
+            [-0.5571808 ,  4.06947833, -1.51280847],
+            [-0.00707463, -0.00810927,  6.31328315]],
+            [[ 4.2119145 ,  0.        ,  0.        ],
+            [-2.10595725,  3.64762496,  0.        ],
+            [ 0.        ,  0.        ,  5.75016544]]
+        ])
+        frac = tf.ragged.constant([
+            [[0.        , 0.        , 0.        ],
+            [0.38949211, 0.38949211, 0.77898422],
+            [0.61050789, 0.61050789, 0.22101578],
+            [0.75      , 0.25      , 0.5       ],
+            [0.25      , 0.75      , 0.5       ]],
+            [[0.        , 0.        , 0.        ],
+            [0.        , 0.        , 0.5       ],
+            [0.33333333, 0.66666667, 0.25      ],
+            [0.66666667, 0.33333333, 0.75      ]]
+        ], ragged_rank=1)
+        real = tf.ragged.constant([
+            [[ 0.        ,  0.        ,  0.        ],
+            [ 1.37728887,  1.57871271,  3.73949402],
+            [ 2.16590069,  2.48265635, -0.45182781],
+            [ 2.93775123,  1.01331495,  1.64383311],
+            [ 0.60543833,  3.04805411,  1.64383311]],
+            [[ 0.00000000,  0.00000000,  0.00000000],
+            [ 0.00000000,  0.00000000,  2.87508272],
+            [-2.10595727e-08,  2.43174999,  1.43754136],
+            [ 2.10595727,  1.21587497,  4.31262408]]
+            ], ragged_rank=1)
+        print(FracToRealCoordinates()([frac, lattices])-real)
 
     """
 
@@ -1054,5 +1085,8 @@ class FracToRealCoordinates(GraphBaseLayer):
         frac_coords = self.assert_ragged_input_rank(inputs[0], ragged_rank=1)
         lattice_matrices = inputs[1]
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
-        real_coords = tf.einsum('ij,ikj->ik', frac_coords.values, lattice_matrices_)
-        return tf.RaggedTensor.from_row_splits(real_coords, frac_coords.row_splits, validate=self.ragged_validate)
+        # frac_to_real = tf.einsum('ij,ijk->ik', frac_coords.values, lattice_matrices_)
+        frac_to_real_coords = ks.backend.batch_dot(frac_coords.values, lattice_matrices_)
+        # print(frac_to_real_coords-frac_to_real)
+        return tf.RaggedTensor.from_row_splits(
+            frac_to_real_coords, frac_coords.row_splits, validate=self.ragged_validate)

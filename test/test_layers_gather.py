@@ -39,7 +39,7 @@ class TestGather(unittest.TestCase):
         node = tf.ragged.constant(self.n1, ragged_rank=1, inner_shape=(1,))
         edgeind = tf.ragged.constant(self.ei1, ragged_rank=1, inner_shape=(2,))
 
-        gathered_nodes = GatherNodes(concat_axis=None)([node, edgeind])
+        gathered_nodes = GatherNodes(concat_axis=None, split_axis=None)([node, edgeind])
         np_gather = np.array(self.n1[1])[np.array(self.ei1[1])]
         test = np.sum(np.abs(np.array(gathered_nodes[1]) - np_gather)) < 1e-6
         self.assertTrue(test)
