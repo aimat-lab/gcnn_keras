@@ -92,6 +92,7 @@ class GatherEmbedding(GraphBaseLayer):
             out = [tf.gather(node, ix, axis=0) for ix in indices_list]
             if self.concat_axis == 2:
                 out = tf.concat(out, axis=1)
+                return tf.RaggedTensor.from_row_lengths(out, edge_part, validate=self.ragged_validate)
             return [tf.RaggedTensor.from_row_lengths(x, edge_part, validate=self.ragged_validate) for x in out]
         else:
             out = tf.gather(node, disjoint_list, axis=0)
