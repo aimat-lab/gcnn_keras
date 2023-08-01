@@ -1,3 +1,8 @@
+v3.1.0
+
+*
+
+
 v3.0.2
 
 * Added ``add_eps`` to `PAiNNUpdate` layer as option.
@@ -12,7 +17,6 @@ v3.0.2
   The behaviour of `GatherNodes` has changed a little in that it first splits and then concatenates. The default parameters now have `split_axis` and `concat_axis` set to 2. `concat_indices` has been removed.
   The default behaviour of the layer however stays the same.
 * An error in layer `FracToRealCoordinates` has been fixed and improved speed.
-* Added 
 
 
 v3.0.1
