@@ -1,9 +1,10 @@
 # import numpy as np
 import tensorflow as tf
+ks = tf.keras
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
-class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
+@ks.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
+class LearningRateLoggingCallback(ks.callbacks.Callback):
     """Callback logging the learning rate."""
 
     def __init__(self, verbose: int = 1):
@@ -28,9 +29,9 @@ class LearningRateLoggingCallback(tf.keras.callbacks.Callback):
         lr = self.model.optimizer.lr
         tf.summary.scalar('learning rate', data=lr, step=epoch)
         logs = logs or {}
-        logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
+        logs['lr'] = ks.backend.get_value(self.model.optimizer.lr)
         if self.verbose > 0:
-            print("\nEpoch %05d: Finished epoch with learning rate: %s.\n" % (epoch + 1, float(lr)))
+            print("\nEpoch %05d: Finished epoch with learning rate: %s.\n" % (epoch + 1, logs['lr']))
 
     def get_config(self):
         """Get config for this class."""
