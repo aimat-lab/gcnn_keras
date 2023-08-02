@@ -39,6 +39,8 @@ class SetMolBondIndices(GraphPreProcessorBase):
             node_symbol = [str(x) for x in node_symbol]
         mol = _mol_graph_interface()
         mol = mol.from_xyz(parse_list_to_xyz_str([node_symbol, node_coordinates.tolist()], number_coordinates=3))
+        if mol.mol is None:
+            return None, None
         idx, edge_num = mol.edge_number
         return idx, edge_num
 

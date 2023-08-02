@@ -309,15 +309,16 @@ class MolConverter:
         module_logger.warning("Failed conversion for xyz '%s'... ." % xyz_string[:20])
         return None
 
-    def xyz_to_mol(self, xyz_path: str, sdf_path: str):
+    def xyz_to_mol(self, xyz_path: str, sdf_path: str, charge: Union[list, int, None] = None):
         """Convert xyz info to structure file.
 
         Args:
             xyz_path:
             sdf_path:
+            charge:
 
         Returns:
-
+            list: List of mol blocks as string.
         """
         if openbabel_xyz_to_mol is None and rdkit_xyz_to_mol is None:
             raise ModuleNotFoundError("Can not convert XYZ to SDF format, missing package `OpenBabel` or `RDkit`.")
@@ -327,7 +328,7 @@ class MolConverter:
         for x in xyz_list:
             xyz_str = parse_list_to_xyz_str(x, number_coordinates=3)
             # No parallel conversion here, not necessary.
-            mol_str = self._single_xyz_to_mol(xyz_str, charge=0)
+            mol_str = self._single_xyz_to_mol(xyz_str, charge=charge)
             mol_list.append(mol_str)
         self._check_is_same_length(xyz_list, mol_list)
         if sdf_path is not None:
