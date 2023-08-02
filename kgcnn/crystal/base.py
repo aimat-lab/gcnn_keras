@@ -22,8 +22,12 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
     edge_attributes = []
     graph_attributes = []
 
-    def __init__(self, output_graph_as_dict: bool = False):
+    def __init__(self, output_graph_as_dict: bool = False,
+                 lattice: str = "graph_lattice", species: str = "node_number",
+                 coords: str = "node_coordinates", charge: str = "charge"):
         self.output_graph_as_dict = output_graph_as_dict
+        self._input_config = {
+            "lattice": lattice, "species": species, "charge": charge, "coords": coords}
 
     def call(self, structure: Structure) -> MultiDiGraph:
         r"""Should be implemented in a subclass.
@@ -53,10 +57,10 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         """
         if isinstance(structure, GraphDict):
             structure = pymatgen.core.structure.Structure(
-                lattice=structure.get("graph_lattice"),
-                species=structure.get("atomic_numbers"),
-                coords=structure.get("node_coordinates"),
-                charge=structure.get("charge"),
+                lattice=structure.get(self._input_config["lattice"]),
+                species=structure.get(self._input_config["species"]),
+                coords=structure.get(self._input_config["coords"]),
+                charge=structure.get(self._input_config["charge"]),
                 coords_are_cartesian=True
             )
         nxg = self.call(structure)
