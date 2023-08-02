@@ -81,6 +81,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         config = vars(self)
         config = {k: v for k, v in config.items() if not k.startswith("_")}
         config['preprocessor'] = self.__class__.__name__
+        config.update(self._input_config)
         return config
 
     def hash(self) -> str:
