@@ -7,6 +7,7 @@ import rdkit.Chem.Fragments
 import rdkit.Chem.rdMolDescriptors
 import rdkit.Chem.rdDetermineBonds
 import rdkit.RDLogger
+import rdkit.Chem.rdchem
 import logging
 from typing import Union
 
@@ -21,6 +22,7 @@ from kgcnn.molecule.base import MolGraphInterface
 logging.basicConfig()
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
+
 
 # Adjust RDLogger
 # We may have to intercept warnings from RDkit that are not critical.
@@ -51,6 +53,32 @@ class MolecularGraphRDKit(MolGraphInterface):
         print(mg.node_attributes(properties=["NumBonds", "GasteigerCharge"], encoder={}))
 
     """
+    _bond_types_name = {
+        'AROMATIC': rdkit.Chem.rdchem.BondType.AROMATIC, 'DATIVE': rdkit.Chem.rdchem.BondType.DATIVE,
+        'DATIVEL': rdkit.Chem.rdchem.BondType.DATIVEL, 'DATIVEONE': rdkit.Chem.rdchem.BondType.DATIVEONE,
+        'DATIVER': rdkit.Chem.rdchem.BondType.DATIVER, 'DOUBLE': rdkit.Chem.rdchem.BondType.DOUBLE,
+        'FIVEANDAHALF': rdkit.Chem.rdchem.BondType.FIVEANDAHALF,
+        'FOURANDAHALF': rdkit.Chem.rdchem.BondType.FOURANDAHALF, 'HEXTUPLE': rdkit.Chem.rdchem.BondType.HEXTUPLE,
+        'HYDROGEN': rdkit.Chem.rdchem.BondType.HYDROGEN, 'IONIC': rdkit.Chem.rdchem.BondType.IONIC,
+        'ONEANDAHALF': rdkit.Chem.rdchem.BondType.ONEANDAHALF, 'OTHER': rdkit.Chem.rdchem.BondType.OTHER,
+        'QUADRUPLE': rdkit.Chem.rdchem.BondType.QUADRUPLE, 'QUINTUPLE': rdkit.Chem.rdchem.BondType.QUINTUPLE,
+        'SINGLE': rdkit.Chem.rdchem.BondType.SINGLE, 'THREEANDAHALF': rdkit.Chem.rdchem.BondType.THREEANDAHALF,
+        'THREECENTER': rdkit.Chem.rdchem.BondType.THREECENTER, 'TRIPLE': rdkit.Chem.rdchem.BondType.TRIPLE,
+        'TWOANDAHALF': rdkit.Chem.rdchem.BondType.TWOANDAHALF, 'UNSPECIFIED': rdkit.Chem.rdchem.BondType.UNSPECIFIED,
+        'ZERO': rdkit.Chem.rdchem.BondType.ZERO}
+    _bond_types_values = {
+        0: rdkit.Chem.rdchem.BondType.UNSPECIFIED, 1: rdkit.Chem.rdchem.BondType.SINGLE,
+        2: rdkit.Chem.rdchem.BondType.DOUBLE, 3: rdkit.Chem.rdchem.BondType.TRIPLE,
+        4: rdkit.Chem.rdchem.BondType.QUADRUPLE, 5: rdkit.Chem.rdchem.BondType.QUINTUPLE,
+        6: rdkit.Chem.rdchem.BondType.HEXTUPLE, 7: rdkit.Chem.rdchem.BondType.ONEANDAHALF,
+        8: rdkit.Chem.rdchem.BondType.TWOANDAHALF, 9: rdkit.Chem.rdchem.BondType.THREEANDAHALF,
+        10: rdkit.Chem.rdchem.BondType.FOURANDAHALF, 11: rdkit.Chem.rdchem.BondType.FIVEANDAHALF,
+        12: rdkit.Chem.rdchem.BondType.AROMATIC, 13: rdkit.Chem.rdchem.BondType.IONIC,
+        14: rdkit.Chem.rdchem.BondType.HYDROGEN, 15: rdkit.Chem.rdchem.BondType.THREECENTER,
+        16: rdkit.Chem.rdchem.BondType.DATIVEONE, 17: rdkit.Chem.rdchem.BondType.DATIVE,
+        18: rdkit.Chem.rdchem.BondType.DATIVEL, 19: rdkit.Chem.rdchem.BondType.DATIVER,
+        20: rdkit.Chem.rdchem.BondType.OTHER, 21: rdkit.Chem.rdchem.BondType.ZERO}
+
     # Dictionary of predefined atom or node properties
     atom_fun_dict = {
         "NumBonds": lambda atom: len(atom.GetBonds()),
@@ -67,7 +95,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         "Isotope": lambda atom: atom.GetIsotope(),
         "TotalValence": lambda atom: atom.GetTotalValence(),
         "Mass": lambda atom: atom.GetMass(),
-        "MassScaled": lambda atom: float((atom.GetMass() - 10.812)/116.092),
+        "MassScaled": lambda atom: float((atom.GetMass() - 10.812) / 116.092),
         "IsInRing": lambda atom: atom.IsInRing(),
         "Hybridization": lambda atom: atom.GetHybridization(),
         "NoImplicit": lambda atom: atom.GetNoImplicit(),
@@ -337,6 +365,41 @@ class MolecularGraphRDKit(MolGraphInterface):
                 out_mol = None
                 continue
         self.mol = out_mol
+        return self
+
+    def from_table(self, atoms: Union[list, np.ndarray], bond_idx: Union[list, np.ndarray],
+                   bond_order: Union[list, np.ndarray], conformer: Union[list, np.ndarray] = None):
+        """
+
+        Args:
+            atoms:
+            bond_idx:
+            bond_order:
+            conformer:
+
+        Returns:
+            self.
+        """
+        m = rdkit.Chem.RWMol()
+        for a in atoms:
+            m.AddAtom(rdkit.Chem.rdchem.Atom(str(a)))
+        # We need undirected bond table.
+        bnd_idx, pos = np.unique(np.sort(np.array(bond_idx), axis=-1), axis=0, return_index=True)
+        bnd_type = np.array(bond_order)[pos]
+        # Add bonds.
+        for i, b in zip(bnd_idx, bnd_type):
+            m.AddBond(int(i[0]), int(i[1]), self._bond_types_values[int(b)])
+        rdkit.Chem.SanitizeMol(m)
+        if conformer is not None:
+            conf = rdkit.Chem.Conformer(m.GetNumAtoms())
+            for i in range(m.GetNumAtoms()):
+                conf.SetAtomPosition(i, (conformer[i][0], conformer[i][1], conformer[i][2]))
+            m.AddConformer(conf)
+            rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
+            rdkit.Chem.AssignStereochemistryFrom3D(m)
+        else:
+            rdkit.Chem.AssignStereochemistry(m)
+        self.mol = m
         return self
 
     def to_smiles(self, **kwargs):
