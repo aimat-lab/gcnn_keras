@@ -380,9 +380,11 @@ class MolecularGraphRDKit(MolGraphInterface):
         Returns:
             self.
         """
+        if isinstance(atoms, np.ndarray):
+            atoms = atoms.tolist()
         m = rdkit.Chem.RWMol()
         for a in atoms:
-            m.AddAtom(rdkit.Chem.rdchem.Atom(str(a)))
+            m.AddAtom(rdkit.Chem.rdchem.Atom(a))
         # We need undirected bond table.
         bnd_idx, pos = np.unique(np.sort(np.array(bond_idx), axis=-1), axis=0, return_index=True)
         bnd_type = np.array(bond_order)[pos]
