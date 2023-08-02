@@ -5,6 +5,7 @@ from kgcnn.molecule.io import read_mol_list_from_sdf_file, read_xyz_file, read_s
     parse_list_to_xyz_str
 from concurrent.futures import ThreadPoolExecutor  # , ProcessPoolExecutor
 from kgcnn.molecule.external.ballloon import BalloonInterface
+from typing import Union
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -58,24 +59,33 @@ try:
 
         return None
 
-    def rdkit_xyz_to_mol(xyz_string: str, charge = 0):
+    def rdkit_xyz_to_mol(xyz_string: str, charge: Union[int, list, None] = None):
         """Convert xyz-string to mol-string.
 
-        The order of atoms in the list should be the same as output. Uses openbabel for conversion.
+        The order of atoms in the list should be the same as output.
 
         Args:
             xyz_string (str): Convert the xyz string to mol-string
+            charge (int, list): Possible charges of the molecule.
 
         Returns:
             str: Mol-string. Generates bond information in addition to coordinates from xyz-string.
         """
-        try:
-            raw_mol = rdkit.Chem.MolFromXYZBlock(xyz_string)
-            out_mol = rdkit.Chem.Mol(raw_mol)
-            # rdkit.Chem.rdDetermineBonds.DetermineConnectivity(out_mol, charge=charge)
-            rdkit.Chem.rdDetermineBonds.DetermineBonds(out_mol, charge=charge)
-        except:
-            out_mol = None
+        if charge is None:
+            charge = [0, 1, -1, 2, -2]
+        if isinstance(charge, int):
+            charge = [charge]
+        out_mol = None
+        for c in charge:
+            try:
+                raw_mol = rdkit.Chem.MolFromXYZBlock(xyz_string)
+                out_mol = rdkit.Chem.Mol(raw_mol)
+                # rdkit.Chem.rdDetermineBonds.DetermineConnectivity(out_mol, charge=charge)
+                rdkit.Chem.rdDetermineBonds.DetermineBonds(out_mol, charge=c)
+                break
+            except:
+                out_mol = None
+                continue
         if out_mol is not None:
             return rdkit.Chem.MolToMolBlock(out_mol)
         return None
@@ -139,7 +149,7 @@ try:
         return None
 
 
-    def openbabel_xyz_to_mol(xyz_string: str, charge = 0, stop_logging: bool = False):
+    def openbabel_xyz_to_mol(xyz_string: str, charge: int = 0, stop_logging: bool = False):
         """Convert xyz-string to mol-string.
 
         The order of atoms in the list should be the same as output. Uses openbabel for conversion.

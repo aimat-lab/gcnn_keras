@@ -1,7 +1,7 @@
 Software Development Plan (SDP)
 
 * [ ] Add GemNet from original implementation.
-* [ ] Make flexible charge option in ``kgcnn.molecule.convert`` .
+* [x] Make flexible charge option in ``kgcnn.molecule.convert`` .
 * [ ] Test and improve code for ``kgcnn.crystal`` . 
 * [ ] Make pretty loop update in `kgcnn.datasets` .
 * [ ] Rework and simplify training scripts.

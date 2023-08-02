@@ -5,8 +5,10 @@ import rdkit.Chem.AllChem
 import rdkit.Chem.Descriptors
 import rdkit.Chem.Fragments
 import rdkit.Chem.rdMolDescriptors
+import rdkit.Chem.rdDetermineBonds
 import rdkit.RDLogger
 import logging
+from typing import Union
 
 # For this module please install rdkit. See: https://www.rdkit.org/docs/Install.html
 # or check https://pypi.org/project/rdkit-pypi/ via `pip install rdkit-pypi`
@@ -283,6 +285,7 @@ class MolecularGraphRDKit(MolGraphInterface):
 
         return self
 
+    # noinspection PyPep8Naming
     def from_mol_block(self, mol_block, sanitize: bool = True, keep_hs: bool = True, strictParsing: bool = True):
         r"""Set mol-instance from a mol-block string.
 
@@ -302,6 +305,38 @@ class MolecularGraphRDKit(MolGraphInterface):
         self.mol = rdkit.Chem.MolFromMolBlock(mol_block, removeHs=(not keep_hs), sanitize=sanitize,
                                               strictParsing=strictParsing)
 
+        return self
+
+    def from_xyz(self, xyz_string: str, charge: Union[list, int, None] = None):
+        """Setting mol-instance from an external xyz-string. Does not add hydrogen or makes conformers.
+
+        Args:
+            xyz_string (str): String of xyz block.
+            charge (int, list): Charge or possible charges of the molecule. Default is [0, 1, -1, 2, -2].
+
+        Returns:
+            self.
+        """
+        if xyz_string is None or len(xyz_string) == 0:
+            module_logger.error("Can not make mol-object for xyz string '%s'." % xyz_string)
+            return self
+        if charge is None:
+            charge = [0, 1, -1, 2, -2]
+        if isinstance(charge, int):
+            charge = [charge]
+        out_mol = None
+        for c in charge:
+            try:
+                raw_mol = rdkit.Chem.MolFromXYZBlock(xyz_string)
+                out_mol = rdkit.Chem.Mol(raw_mol)
+                # Can do this in a single call of determine Bonds.
+                # rdkit.Chem.rdDetermineBonds.DetermineConnectivity(out_mol, charge=charge)
+                rdkit.Chem.rdDetermineBonds.DetermineBonds(out_mol, charge=c)
+                break
+            except:
+                out_mol = None
+                continue
+        self.mol = out_mol
         return self
 
     def to_smiles(self, **kwargs):

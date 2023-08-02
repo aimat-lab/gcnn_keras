@@ -249,7 +249,7 @@ class MolecularGraphOpenBabel(MolGraphInterface):
         """Setting mol-instance from an external xyz-string. Does not add hydrogen or makes conformers.
 
         Args:
-            xyz_string:
+            xyz_string: String of xyz block.
 
         Returns:
             self
