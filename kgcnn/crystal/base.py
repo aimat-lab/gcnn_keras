@@ -1,5 +1,6 @@
 from hashlib import md5
 # import logging
+import pymatgen.core.structure
 from pymatgen.core.structure import Structure
 from typing import Callable, Union
 from networkx import MultiDiGraph
@@ -38,7 +39,7 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         """
         raise NotImplementedError("Must be implemented in sub-classes.")
 
-    def __call__(self, structure: Structure) -> Union[MultiDiGraph, GraphDict]:
+    def __call__(self, structure: Union[Structure, GraphDict]) -> Union[MultiDiGraph, GraphDict]:
         r"""Function to process crystal structures. Executes :obj:`call` .
 
         Args:
@@ -50,14 +51,22 @@ class CrystalPreprocessor(Callable[[Structure], MultiDiGraph]):
         Returns:
             MultiDiGraph: Graph representation of the crystal.
         """
+        if isinstance(structure, GraphDict):
+            structure = pymatgen.core.structure.Structure(
+                lattice=structure.get("graph_lattice"),
+                species=structure.get("atomic_numbers"),
+                coords=structure.get("node_coordinates"),
+                charge=structure.get("charge"),
+                coords_are_cartesian=True
+            )
+        nxg = self.call(structure)
         if self.output_graph_as_dict:
-            nxg = self.call(structure)
             g = GraphDict()
             g.from_networkx(
                 nxg, node_attributes=self.node_attributes, edge_attributes=self.edge_attributes,
                 graph_attributes=self.graph_attributes, reverse_edge_indices=True)
             return g
-        return self.call(structure)
+        return nxg
 
     def get_config(self) -> dict:
         """Returns a dictionary uniquely identifying the CrystalPreprocessor and its configuration.
