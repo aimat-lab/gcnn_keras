@@ -1,6 +1,8 @@
 v3.1.0
 
-*
+* Added flexible charge for ``rdkit_xyz_to_mol`` as e.g. list.
+* Added ``from_xyz`` to ``MolecularGraphRDKit`` .
+* Started additional ``kgcnn.molecule.preprocessor`` module for graph preprocessors.
 
 
 v3.0.2
