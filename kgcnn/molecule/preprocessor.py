@@ -138,7 +138,7 @@ class SetMolAttributes(GraphPreProcessorBase):
         else:
             node_symbol = [str(x) for x in node_symbol]
         mol = _mol_graph_interface()
-        mol.from_table(node_symbol, edge_indices, edge_number, conformer=node_coordinates)
+        mol.from_list(node_symbol, edge_indices, edge_number, conformer=node_coordinates)
         n_att = mol.node_attributes(nodes, encoder=encoder_nodes)
         _, e_att = mol.edge_attributes(edges, encoder=encoder_edges)
         g_att = mol.graph_attributes(graph, encoder=encoder_graph)

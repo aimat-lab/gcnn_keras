@@ -367,7 +367,7 @@ class MolecularGraphRDKit(MolGraphInterface):
         self.mol = out_mol
         return self
 
-    def from_table(self, atoms: Union[list, np.ndarray], bond_idx: Union[list, np.ndarray],
+    def from_list(self, atoms: Union[list, np.ndarray], bond_idx: Union[list, np.ndarray],
                    bond_order: Union[list, np.ndarray], conformer: Union[list, np.ndarray] = None):
         """
 
