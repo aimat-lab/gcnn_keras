@@ -163,7 +163,7 @@ class TestFracToRealCoordinates(unittest.TestCase):
             ], ragged_rank=1)
         out = FracToRealCoordinates()([frac, lattices])
         # print(out-real)
-        self.assertTrue(np.max(np.abs(out - real)) < 1e-5)
+        self.assertTrue(np.max(np.abs(out.values.numpy() - real.values.numpy())) < 1e-5)
 
 
 if __name__ == '__main__':
