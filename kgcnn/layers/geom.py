@@ -1010,7 +1010,7 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='FracToRealCoordinates')
 class FracToRealCoordinates(GraphBaseLayer):
-    r"""Layer to compute real-space coordinates from fractional coordinates and the lattice matrix.
+    r"""Layer to compute real-space coordinates from fractional coordinates with the lattice matrix.
 
     With lattice matrix :math:`\mathbf{A}` of a periodic lattice with lattice vectors
     :math:`\mathbf{A} = (\vec{a}_1 , \vec{a}_2 , \vec{a}_3)` and fractional coordinates
@@ -1087,6 +1087,65 @@ class FracToRealCoordinates(GraphBaseLayer):
         lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
         # frac_to_real = tf.einsum('ij,ijk->ik', frac_coords.values, lattice_matrices_)
         frac_to_real_coords = ks.backend.batch_dot(frac_coords.values, lattice_matrices_)
-        # print(frac_to_real_coords-frac_to_real)
         return tf.RaggedTensor.from_row_splits(
             frac_to_real_coords, frac_coords.row_splits, validate=self.ragged_validate)
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='RealToFracCoordinates')
+class RealToFracCoordinates(GraphBaseLayer):
+    r"""Layer to compute fractional coordinates from real-space coordinates with the lattice matrix.
+
+    With lattice matrix :math:`\mathbf{A}` of a periodic lattice with lattice vectors
+    :math:`\mathbf{A} = (\vec{a}_1 , \vec{a}_2 , \vec{a}_3)` and fractional coordinates
+    :math:`\vec{f} = (f_1, f_2, f_3)` the layer performs for each node and with a lattice matrix per sample:
+
+    .. math::
+
+        \vec{f} = \vec{r} \; \mathbf{A}^-1
+
+    Note that the definition of the lattice matrix has lattice vectors in rows, which is the default definition from
+    :obj:`pymatgen` .
+
+    """
+
+    def __init__(self, is_inverse_lattice_matrix: bool = False, **kwargs):
+        """Initialize layer.
+
+        Args:
+            is_inverse_lattice_matrix (bool): If the input is inverse lattice matrix. Default is False.
+        """
+        self.is_inverse_lattice_matrix = is_inverse_lattice_matrix
+        # self.gather_state = GatherState()
+        super(RealToFracCoordinates, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(RealToFracCoordinates, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        r"""Forward pass.
+
+        Args:
+            inputs: [frac_coordinates, lattice_matrix]
+
+                - real_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
+                - lattice_matrix (tf.Tensor): Lattice matrix of shape `(batch, 3, 3)`.
+
+        Returns:
+            tf.RaggedTensor: Fractional node coordinates of shape `(batch, [N], 3)`.
+        """
+        real_coordinates = self.assert_ragged_input_rank(inputs[0], ragged_rank=1)
+        inv_lattice_matrices = inputs[1]
+        if not self.is_inverse_lattice_matrix:
+            inv_lattice_matrices = tf.linalg.inv(inv_lattice_matrices)
+        inv_lattice_matrices_ = tf.repeat(inv_lattice_matrices, real_coordinates.row_lengths(), axis=0)
+        # frac_to_real = tf.einsum('ij,ijk->ik', frac_coords.values, lattice_matrices_)
+        real_to_frac_coords = ks.backend.batch_dot(real_coordinates.values, inv_lattice_matrices_)
+        return tf.RaggedTensor.from_row_splits(
+            real_to_frac_coords, real_coordinates.row_splits, validate=self.ragged_validate)
+
+    def get_config(self):
+        """Update config."""
+        config = super(RealToFracCoordinates, self).get_config()
+        config.update({"is_inverse_lattice_matrix": self.is_inverse_lattice_matrix})
+        return config
