@@ -10,7 +10,7 @@ from kgcnn.literature.coGN._embedding_layers._atom_embedding import AtomEmbeddin
 from kgcnn.literature.coGN._embedding_layers._edge_embedding import EdgeEmbedding, SinCosExpansion, GaussBasisExpansion
 from kgcnn.crystal.periodic_table.periodic_table import PeriodicTable
 from kgcnn.layers.mlp import MLP
-from kgcnn.layers.geom import FracToRealCoordinates
+from kgcnn.layers.geom import RealToFracCoordinates
 from kgcnn.model.force import EnergyForceModel
 from kgcnn.model.utils import update_model_kwargs
 from tensorflow.keras.layers import GRUCell, LSTMCell
@@ -251,7 +251,7 @@ def make_crystal_force_model(inner_model):
     outputs = force_model(force_model_inputs)
     # Since coordinates are fractional, force predictions are also fractional.
     # Convert fractional to real forces:
-    frac_to_real = FracToRealCoordinates()
+    frac_to_real = RealToFracCoordinates()
     outputs['force'] = frac_to_real([outputs['force'], lattice_matrix])
 
     return ks.models.Model(inputs=force_model_inputs, outputs=outputs)
