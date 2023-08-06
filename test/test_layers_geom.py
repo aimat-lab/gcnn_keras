@@ -7,6 +7,7 @@ from kgcnn.graph.methods import get_angle_indices
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, NodePosition
 from kgcnn.literature.DimeNetPP._dimenet_conv import SphericalBasisLayer
 from kgcnn.layers.geom import BesselBasisLayer
+from kgcnn.layers.geom import FracToRealCoordinates
 from kgcnn.layers.modules import LazySubtract
 
 
@@ -124,6 +125,45 @@ class TestBesselBasisLayer(unittest.TestCase):
         # print(np.max(np.abs(test1 - bessel[1])))
         self.assertTrue(np.max(np.abs(test0 - bessel[0])) < 1e-5)
         self.assertTrue(np.max(np.abs(test1 - bessel[1])) < 1e-5)
+
+
+class TestFracToRealCoordinates(unittest.TestCase):
+
+    def test_layer_works(self):
+
+        lattices = tf.constant([
+            [[ 4.10744499,  0.        , -1.51280847],
+            [-0.5571808 ,  4.06947833, -1.51280847],
+            [-0.00707463, -0.00810927,  6.31328315]],
+            [[ 4.2119145 ,  0.        ,  0.        ],
+            [-2.10595725,  3.64762496,  0.        ],
+            [ 0.        ,  0.        ,  5.75016544]]
+        ])
+        frac = tf.ragged.constant([
+            [[0.        , 0.        , 0.        ],
+            [0.38949211, 0.38949211, 0.77898422],
+            [0.61050789, 0.61050789, 0.22101578],
+            [0.75      , 0.25      , 0.5       ],
+            [0.25      , 0.75      , 0.5       ]],
+            [[0.        , 0.        , 0.        ],
+            [0.        , 0.        , 0.5       ],
+            [0.33333333, 0.66666667, 0.25      ],
+            [0.66666667, 0.33333333, 0.75      ]]
+        ], ragged_rank=1)
+        real = tf.ragged.constant([
+            [[ 0.        ,  0.        ,  0.        ],
+            [ 1.37728887,  1.57871271,  3.73949402],
+            [ 2.16590069,  2.48265635, -0.45182781],
+            [ 2.93775123,  1.01331495,  1.64383311],
+            [ 0.60543833,  3.04805411,  1.64383311]],
+            [[ 0.00000000,  0.00000000,  0.00000000],
+            [ 0.00000000,  0.00000000,  2.87508272],
+            [-2.10595727e-08,  2.43174999,  1.43754136],
+            [ 2.10595727,  1.21587497,  4.31262408]]
+            ], ragged_rank=1)
+        out = FracToRealCoordinates()([frac, lattices])
+        # print(out-real)
+        self.assertTrue(np.max(np.abs(out - real)) < 1e-5)
 
 
 if __name__ == '__main__':
