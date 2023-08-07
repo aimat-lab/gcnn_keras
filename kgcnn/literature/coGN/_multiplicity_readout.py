@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.segment import segment_ops_by_name
 from kgcnn.layers.modules import LazyMultiply
-from kgcnn.layers.pooling import PoolingEmbedding
+from kgcnn.layers.aggr import PoolingEmbedding
 
 
 class MultiplcityReadout(PoolingEmbedding):

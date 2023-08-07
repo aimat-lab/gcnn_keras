@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.pooling import PoolingLocalEdgesLSTM
+from kgcnn.layers.aggr import PoolingLocalEdgesLSTM
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.modules import LazyConcatenate
 

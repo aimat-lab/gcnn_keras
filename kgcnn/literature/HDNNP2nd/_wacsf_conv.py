@@ -3,7 +3,7 @@ import numpy as np
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesSelection, GatherNodesIngoing
 from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
-from kgcnn.layers.pooling import PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingLocalEdges
 from kgcnn.layers.modules import LazyMultiply, LazySubtract, ExpandDims
 
 ks = tf.keras

@@ -55,7 +55,7 @@ class PoolingLocalEdges(GraphBaseLayer):
                 - nodes (tf.RaggedTensor): Node features of shape (batch, [N], F)
                 - edges (tf.RaggedTensor): Edge or message features of shape (batch, [M], F)
                 - tensor_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
-
+    
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
@@ -102,7 +102,7 @@ PoolingLocalMessages = PoolingLocalEdges  # For now, they are synonyms
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='PoolingWeightedLocalEdges')
-class PoolingWeightedLocalEdges(PoolingLocalEdges):
+class PoolingWeightedLocalEdges(GraphBaseLayer):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
@@ -133,11 +133,13 @@ class PoolingWeightedLocalEdges(PoolingLocalEdges):
             is_sorted (bool): Whether node indices are sorted. Default is False.
             has_unconnected (bool): Whether graphs have unconnected nodes. Default is True.
         """
-        super(PoolingWeightedLocalEdges, self).__init__(
-            pooling_method=pooling_method, pooling_index=pooling_index, is_sorted=is_sorted,
-            has_unconnected=has_unconnected, **kwargs
-        )
+        super(PoolingWeightedLocalEdges, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
         self.normalize_by_weights = normalize_by_weights
+        self.pooling_index = pooling_index
+        self.node_indexing = "sample"
+        self.is_sorted = is_sorted
+        self.has_unconnected = has_unconnected
 
     def build(self, input_shape):
         """Build layer."""
@@ -158,7 +160,7 @@ class PoolingWeightedLocalEdges(PoolingLocalEdges):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node of shape (batch, [N], F)
         """
-        inputs = self.assert_ragged_input_rank(inputs)
+        self.assert_ragged_input_rank(inputs)
 
         nod, node_part = inputs[0].values, inputs[0].row_splits
         edge, _ = inputs[1].values, inputs[1].row_lengths()
@@ -195,7 +197,9 @@ class PoolingWeightedLocalEdges(PoolingLocalEdges):
     def get_config(self):
         """Update layer config."""
         config = super(PoolingWeightedLocalEdges, self).get_config()
-        config.update({"normalize_by_weights": self.normalize_by_weights})
+        config.update({"pooling_method": self.pooling_method, "normalize_by_weights": self.normalize_by_weights,
+                       "pooling_index": self.pooling_index, "is_sorted": self.is_sorted,
+                       "has_unconnected": self.has_unconnected})
         return config
 
 
@@ -228,7 +232,7 @@ class PoolingEmbedding(GraphBaseLayer):
 
         Args:
             inputs (tf.RaggedTensor): Embedding tensor of shape (batch, [N], F)
-
+    
         Returns:
             tf.Tensor: Pooled node features of shape (batch, F)
         """

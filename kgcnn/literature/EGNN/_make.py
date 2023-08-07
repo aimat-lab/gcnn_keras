@@ -4,7 +4,7 @@ from kgcnn.layers.geom import EuclideanNorm, NodePosition, EdgeDirectionNormaliz
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingNodes, PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingNodes, PoolingLocalEdges
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.norm import GraphLayerNormalization
 

@@ -96,7 +96,7 @@ Models can be set up in a functional way. Example message passing from fundament
 import tensorflow as tf
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.modules import Dense, LazyConcatenate  # ragged support
-from kgcnn.layers.pooling import PoolingLocalMessages, PoolingNodes
+from kgcnn.layers.aggr import PoolingLocalMessages, PoolingNodes
 
 ks = tf.keras
 

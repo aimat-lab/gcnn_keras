@@ -4,7 +4,7 @@ from ._mogat_conv import AttentiveHeadFP_, PoolingNodesAttentive_
 from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.modules import Dense, Dropout, OptionalInputEmbedding, LazyConcatenate
 from kgcnn.layers.attention import AttentionHeadGAT
-from kgcnn.layers.pooling import PoolingNodes, PoolingNodesAttention
+from kgcnn.layers.aggr import PoolingNodes, PoolingNodesAttention
 
 from kgcnn.layers.mlp import GraphMLP, MLP
 from kgcnn.model.utils import update_model_kwargs

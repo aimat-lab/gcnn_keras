@@ -1022,7 +1022,6 @@ class FracToRealCoordinates(GraphBaseLayer):
 
     Note that the definition of the lattice matrix has lattice vectors in rows, which is the default definition from
     :obj:`pymatgen` .
-
     """
 
     def __init__(self, **kwargs):
@@ -1069,7 +1068,6 @@ class RealToFracCoordinates(GraphBaseLayer):
 
     Note that the definition of the lattice matrix has lattice vectors in rows, which is the default definition from
     :obj:`pymatgen` .
-
     """
 
     def __init__(self, is_inverse_lattice_matrix: bool = False, **kwargs):

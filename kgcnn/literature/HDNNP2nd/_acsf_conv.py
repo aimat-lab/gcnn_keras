@@ -5,7 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection
 # from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
-from kgcnn.layers.pooling import RelationalPoolingLocalEdges
+from kgcnn.layers.aggr import RelationalPoolingLocalEdges
 # from kgcnn.layers.pooling import PoolingLocalEdges
 from kgcnn.layers.modules import LazyMultiply, LazySubtract
 # from kgcnn.layers.modules import ExpandDims

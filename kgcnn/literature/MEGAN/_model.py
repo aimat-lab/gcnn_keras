@@ -9,8 +9,8 @@ from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.modules import Activation, Dropout
 from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.attention import MultiHeadGATV2Layer
-from kgcnn.layers.pooling import PoolingLocalEdges
-from kgcnn.layers.pooling import PoolingWeightedNodes, PoolingNodes
+from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingWeightedNodes, PoolingNodes
 from kgcnn.literature.GNNExplain._xai._base import ImportanceExplanationMixin
 
 ks = tf.keras

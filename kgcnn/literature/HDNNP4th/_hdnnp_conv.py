@@ -6,7 +6,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import ExpandDims
 from kgcnn.layers.gather import GatherNodesSelection
 from kgcnn.layers.casting import ChangeTensorType
-from kgcnn.layers.pooling import PoolingGlobalEdges, PoolingNodes
+from kgcnn.layers.aggr import PoolingGlobalEdges, PoolingNodes
 
 ks = tf.keras
 

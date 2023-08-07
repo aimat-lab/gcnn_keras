@@ -5,7 +5,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding, Dense, Activation, ZerosLike
-from kgcnn.layers.pooling import PoolingNodes, PoolingEmbeddingAttention
+from kgcnn.layers.aggr import PoolingNodes, PoolingEmbeddingAttention
 from ._hamnet_conv import HamNaiveDynMessage, HamNetFingerprintGenerator, HamNetGRUUnion, HamNetNaiveUnion
 
 # import tensorflow.keras as ks

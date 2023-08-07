@@ -3,7 +3,7 @@ from ._dimenet_conv import DimNetInteractionPPBlock, DimNetOutputBlock, Embeddin
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.geom import NodeDistanceEuclidean, EdgeAngle, BesselBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import Dense, LazyConcatenate, LazyAdd, LazySubtract
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.aggr import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.mlp import MLP
 

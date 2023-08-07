@@ -4,7 +4,7 @@ from kgcnn.layers.attention import AttentionHeadGAT
 from kgcnn.layers.modules import LazyConcatenate, Dense, LazyAverage, Activation, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.aggr import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras

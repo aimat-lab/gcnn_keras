@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import Dense, LazyMultiply, LazyAdd
-from kgcnn.layers.pooling import PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.update import ResidualLayer

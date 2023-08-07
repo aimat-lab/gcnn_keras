@@ -4,7 +4,7 @@ from kgcnn.layers.modules import LazyConcatenate
 from ._wacsf_conv import wACSFAng, wACSFRad
 from ._acsf_conv import ACSFG2, ACSFG4, ACSFConstNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingNodes
+from kgcnn.layers.aggr import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.mlp import RelationalMLP
 from kgcnn.layers.norm import GraphBatchNormalization

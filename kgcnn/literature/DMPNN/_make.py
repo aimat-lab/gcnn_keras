@@ -4,7 +4,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing, GatherState
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.pooling import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import PoolingLocalEdges, PoolingNodes
 from ._dmpnn_conv import DMPNNPPoolingEdgesDirected
 from kgcnn.model.utils import update_model_kwargs
 

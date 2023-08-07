@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection
-from kgcnn.layers.pooling import PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingLocalEdges
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MessagePassingBase')

@@ -2,7 +2,7 @@ import tensorflow as tf
 from ._cgcnn_conv import CGCNNLayer
 from kgcnn.layers.geom import DisplacementVectorsASU, DisplacementVectorsUnitCell, FracToRealCoordinates, \
     EuclideanNorm, GaussBasisLayer, NodePosition
-from kgcnn.layers.pooling import PoolingNodes, PoolingWeightedNodes
+from kgcnn.layers.aggr import PoolingNodes, PoolingWeightedNodes
 from kgcnn.layers.modules import OptionalInputEmbedding, LazySubtract, Dense
 from kgcnn.layers.mlp import MLP
 from kgcnn.model.utils import update_model_kwargs

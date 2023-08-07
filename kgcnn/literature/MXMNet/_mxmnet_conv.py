@@ -4,7 +4,7 @@ from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.modules import LazyAdd, Dense, LazyConcatenate, LazyMultiply
 from kgcnn.layers.update import ResidualLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection, GatherNodesOutgoing
-from kgcnn.layers.pooling import PoolingLocalMessages
+from kgcnn.layers.aggr import PoolingLocalMessages
 ks = tf.keras
 
 

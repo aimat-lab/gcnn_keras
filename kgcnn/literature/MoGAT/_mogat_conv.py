@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing, GatherState
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation
-from kgcnn.layers.pooling import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
+from kgcnn.layers.aggr import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentiveHeadFP_')
 class AttentiveHeadFP_(GraphBaseLayer):
