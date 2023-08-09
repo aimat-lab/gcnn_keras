@@ -46,14 +46,32 @@ class AggregateLocalEdges(GraphBaseLayer):
         """Build layer."""
         super(AggregateLocalEdges, self).build(input_shape)
 
-    def aggregate_single(self, target, values, index):
+    def aggregate_segments(self, target, values, index):
+        nod = target
+        dens = values
+        nodind = index
+        if not self.is_sorted:
+            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
+            nodind = tf.gather(nodind, node_order, axis=0)
+            dens = tf.gather(dens, node_order, axis=0)
+
+        # Pooling via e.g. segment_sum
+        out = segment_ops_by_name(self.pooling_method, dens, nodind)
+
+        # If not unsort_segment operation need a scatter here.
         if self.has_unconnected:
-            target_shape = tf.concat([tf.shape(target)[:1], tf.shape(values)[1:]], axis=0)
-            pass
-        if self.is_sorted:
-            pass
-        else:
-            pass
+            out = tf.concat([
+                out,
+                tf.zeros(tf.concat([tf.shape(nod)[:1]-tf.shape(out)[:1], tf.shape(out)[1:]], axis=0), dtype=out.dtype)
+            ], axis=0)
+            # out = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
+            #                     tf.concat([tf.shape(nod)[:1], tf.shape(out)[1:]], axis=0))
+        return out
+
+    def aggregate_scatter(self, target, values, index):
+        target_shape = tf.concat([tf.shape(target)[:1], tf.shape(values)[1:]], axis=0)
+        return tensor_scatter_nd_ops_by_name(
+            self.pooling_method, tf.zeros(target_shape, dtype=values.dtype), index, values)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -84,19 +102,8 @@ class AggregateLocalEdges(GraphBaseLayer):
         )
 
         nodind = shiftind[:, self.pooling_index]  # Pick index eg. ingoing
-        dens = edge
-        if not self.is_sorted:
-            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
-            nodind = tf.gather(nodind, node_order, axis=0)
-            dens = tf.gather(dens, node_order, axis=0)
 
-        # Pooling via e.g. segment_sum
-        out = segment_ops_by_name(self.pooling_method, dens, nodind)
-
-        # If not unsort_segment operation need a scatter here.
-        if self.has_unconnected:
-            out = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(out)[0]), axis=-1), out,
-                                tf.concat([tf.shape(nod)[:1], tf.shape(out)[1:]], axis=0))
+        out = self.aggregate_segments(nod, edge, nodind)
 
         return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
 

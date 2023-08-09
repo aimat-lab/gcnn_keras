@@ -356,7 +356,9 @@ class RelationalMLP(MLP):
 
         # Override dense list with RelationalDense layer.
         self.mlp_dense_layer_list = [RelationalDense(
-            **self._conf_mlp_dense_layer_kwargs[i], **self._conf_relational_kwargs) for i in range(self._depth)]
+            # **self._conf_mlp_dense_layer_kwargs[i],
+            **self._get_conf_for_keys(self._key_list_dense, "dense", i),
+            **self._conf_relational_kwargs) for i in range(self._depth)]
 
     def build(self, input_shape):
         """Build layer."""
