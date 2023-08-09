@@ -5,7 +5,7 @@ from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.modules import Dense, LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import PoolingSet2SetEncoder
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer, ShiftPeriodicLattice
@@ -93,7 +93,7 @@ def make_model(inputs: list = None,
             form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingSet2SetEncoder` layer.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`, `PoolingLocalEdges` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`, `AggregateLocalEdges` layers.
         edge_mlp (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge matrix.
         use_set2set (bool): Whether to use :obj:`PoolingSet2SetEncoder` layer.
         node_dim (int): Dimension of hidden node embedding.
@@ -147,7 +147,7 @@ def make_model(inputs: list = None,
         m_in = MatMulMessages()([edge_net_in, n_in])
         m_out = MatMulMessages()([edge_net_out, n_out])
         eu = LazyConcatenate(axis=-1)([m_in, m_out])
-        eu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
+        eu = AggregateLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
 
     n = LazyConcatenate(axis=-1)([n0, n])
@@ -247,7 +247,7 @@ def make_crystal_model(inputs: list = None,
             form edges with a gauss distance basis given edge indices. Expansion uses `gauss_args`.
         gauss_args (dict): Dictionary of layer arguments unpacked in :obj:`GaussBasisLayer` layer.
         set2set_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingSet2SetEncoder` layer.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`, `PoolingLocalEdges` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`, `AggregateLocalEdges` layers.
         edge_mlp (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge matrix.
         use_set2set (bool): Whether to use :obj:`PoolingSet2SetEncoder` layer.
         node_dim (int): Dimension of hidden node embedding.
@@ -306,7 +306,7 @@ def make_crystal_model(inputs: list = None,
         m_in = MatMulMessages()([edge_net_in, n_in])
         m_out = MatMulMessages()([edge_net_out, n_out])
         eu = LazyConcatenate(axis=-1)([m_in, m_out])
-        eu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
+        eu = AggregateLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connections
         n = gru([n, eu])
 
     n = LazyConcatenate(axis=-1)([n0, n])

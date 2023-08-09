@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.ops.axis import get_positive_axis
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.modules import LazyAdd, LazyMultiply, Dense, LazyConcatenate, ExpandDims
 from kgcnn.layers.geom import EuclideanNorm, ScalarProduct
 from kgcnn.layers.gather import GatherNodesOutgoing
@@ -56,8 +56,8 @@ class PAiNNconv(GraphBaseLayer):
         self.lay_w = Dense(units=self.units * 3, activation='linear', use_bias=self.use_bias, **kernel_args)
 
         self.lay_split = SplitEmbedding(3, axis=-1)
-        self.lay_sum = PoolingLocalEdges(pooling_method=conv_pool)
-        self.lay_sum_v = PoolingLocalEdges(pooling_method=conv_pool)
+        self.lay_sum = AggregateLocalEdges(pooling_method=conv_pool)
+        self.lay_sum_v = AggregateLocalEdges(pooling_method=conv_pool)
         self.gather_n = GatherNodesOutgoing()
         self.gather_v = GatherNodesOutgoing()
         self.lay_mult = LazyMultiply()

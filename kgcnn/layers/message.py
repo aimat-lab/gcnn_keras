@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='MessagePassingBase')
@@ -10,7 +10,7 @@ class MessagePassingBase(GraphBaseLayer):
     r"""Base layer for Message passing type networks. This is a general frame to implement custom message and
     update functions. The idea is to create a subclass of :obj:`MessagePassingBase` and then just implement the methods
     :obj:`message_function` and :obj:`update_nodes`. The pooling or aggregating is handled by built-in
-    :obj:`PoolingLocalEdges`.
+    :obj:`AggregateLocalEdges`.
 
     Alternatively also :obj:`aggregate_message` could be overwritten.
     The original message passing scheme was proposed by `NMPNN <http://arxiv.org/abs/1704.01212>`_ .
@@ -25,7 +25,7 @@ class MessagePassingBase(GraphBaseLayer):
         super(MessagePassingBase, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.lay_gather = GatherEmbeddingSelection([0, 1])
-        self.lay_pool_default = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.lay_pool_default = AggregateLocalEdges(pooling_method=self.pooling_method)
 
     def message_function(self, inputs, **kwargs):
         r"""Defines the message function, i.e. a method the generates a message from node and edge embeddings at a
@@ -46,7 +46,7 @@ class MessagePassingBase(GraphBaseLayer):
             "A method to generate messages must be implemented in sub-class of `MessagePassingBase`.")
 
     def aggregate_message(self, inputs, **kwargs):
-        r"""Pre-defined message aggregation that uses :obj:`PoolingLocalEdges`.
+        r"""Pre-defined message aggregation that uses :obj:`AggregateLocalEdges`.
 
         Args:
             inputs: [nodes, edges, edge_index]

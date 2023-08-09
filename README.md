@@ -96,7 +96,7 @@ Models can be set up in a functional way. Example message passing from fundament
 import tensorflow as tf
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.modules import Dense, LazyConcatenate  # ragged support
-from kgcnn.layers.aggr import PoolingLocalMessages, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalMessages, PoolingNodes
 
 ks = tf.keras
 
@@ -105,7 +105,7 @@ ei = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ra
 
 n_in_out = GatherNodes()([n, ei])
 node_messages = Dense(10, activation='relu')(n_in_out)
-node_updates = PoolingLocalMessages()([n, node_messages, ei])
+node_updates = AggregateLocalMessages()([n, node_messages, ei])
 n_node_updates = LazyConcatenate(axis=-1)([n, node_updates])
 n_embedding = Dense(1)(n_node_updates)
 g_embedding = PoolingNodes()(n_embedding)
@@ -181,7 +181,7 @@ original implementations (with proper licencing).
 <a name="data"></a>
 # Data
 
-How to construct ragged tensors is shown [above](#implementation-details-input). 
+How to construct ragged tensors is shown [above](#implementation-details). 
 Moreover, some data handling classes are given in `kgcnn.data`.
 
 #### Graph dictionary

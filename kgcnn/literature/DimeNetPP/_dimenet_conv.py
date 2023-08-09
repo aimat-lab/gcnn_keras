@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import Dense, LazyMultiply, LazyAdd
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.update import ResidualLayer
@@ -94,7 +94,7 @@ class DimNetInteractionPPBlock(GraphBaseLayer):
         self.lay_mult2 = LazyMultiply()
 
         self.lay_gather = GatherNodesOutgoing()  # Are edges here
-        self.lay_pool = PoolingLocalEdges(pooling_method=pooling_method)
+        self.lay_pool = AggregateLocalEdges(pooling_method=pooling_method)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -212,7 +212,7 @@ class DimNetOutputBlock(GraphBaseLayer):
         self.dense_mlp = GraphMLP([out_emb_size] * num_dense, activation=activation,
                                   kernel_initializer=kernel_initializer, use_bias=use_bias, **kernel_args)
         self.dimnet_mult = LazyMultiply()
-        self.pool = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.pool = AggregateLocalEdges(pooling_method=self.pooling_method)
         self.dense_final = Dense(num_targets, use_bias=False, kernel_initializer=output_kernel_initializer,
                                  **kernel_args)
 

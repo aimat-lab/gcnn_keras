@@ -9,7 +9,7 @@ from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.modules import Activation, Dropout
 from kgcnn.layers.modules import LazyConcatenate, LazyAverage
 from kgcnn.layers.attention import MultiHeadGATV2Layer
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.aggr import PoolingWeightedNodes, PoolingNodes
 from kgcnn.literature.GNNExplain._xai._base import ImportanceExplanationMixin
 
@@ -178,8 +178,8 @@ class MEGAN(ks.models.Model, ImportanceExplanationMixin):
         self.lay_act_importance = Activation(activation=self.importance_activation)
         self.lay_concat_alphas = LazyConcatenate(axis=-1)
 
-        self.lay_pool_edges_in = PoolingLocalEdges(pooling_method='mean', pooling_index=0)
-        self.lay_pool_edges_out = PoolingLocalEdges(pooling_method='mean', pooling_index=1)
+        self.lay_pool_edges_in = AggregateLocalEdges(pooling_method='mean', pooling_index=0)
+        self.lay_pool_edges_out = AggregateLocalEdges(pooling_method='mean', pooling_index=1)
         self.lay_average = LazyAverage()
 
         # ~ NODE IMPORTANCES

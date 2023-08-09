@@ -2,7 +2,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.modules import Dense, LazyConcatenate
 from kgcnn.layers.gather import GatherNodes, GatherState
-from kgcnn.layers.aggr import PoolingLocalEdges, PoolingGlobalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges, PoolingGlobalEdges, PoolingNodes
 ks = tf.keras
 
 
@@ -58,7 +58,7 @@ class MEGnetBlock(GraphBaseLayer):
         self.lay_phi_n = Dense(units=self.node_embed[0], activation=activation, **kernel_args)
         self.lay_phi_n_1 = Dense(units=self.node_embed[1], activation=activation, **kernel_args)
         self.lay_phi_n_2 = Dense(units=self.node_embed[2], activation='linear', **kernel_args)
-        self.lay_esum = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.lay_esum = AggregateLocalEdges(pooling_method=self.pooling_method)
         self.lay_gather_un = GatherState()
         self.lay_conc_nu = LazyConcatenate(axis=-1)
         # Edge

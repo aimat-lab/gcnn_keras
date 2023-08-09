@@ -3,7 +3,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
 from kgcnn.layers.set2set import PoolingSet2SetEncoder
 from kgcnn.model.utils import update_model_kwargs
 
@@ -84,7 +84,7 @@ def make_model(inputs: list = None,
         edge_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge updates.
         node_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for node updates.
         set2set_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingSet2SetEncoder` layer.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalEdges`, :obj:`PoolingNodes`
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`AggregateLocalEdges`, :obj:`PoolingNodes`
             layer.
         use_set2set (bool): Whether to use :obj:`PoolingSet2SetEncoder` layer.
         verbose (int): Level of verbosity.
@@ -124,7 +124,7 @@ def make_model(inputs: list = None,
 
         eu = GraphMLP(**edge_mlp_args)(eu)
         # Pool message
-        nu = PoolingLocalEdges(**pooling_args)(
+        nu = AggregateLocalEdges(**pooling_args)(
             [n, eu, edi])  # Summing for each node connection
         # Add environment
         nu = LazyConcatenate(axis=-1)(

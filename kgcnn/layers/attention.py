@@ -260,7 +260,7 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
         self.lay_concat_alphas = LazyConcatenate(axis=-2)
         self.lay_concat_embeddings = LazyConcatenate(axis=-2)
         self.lay_pool_attention = PoolingLocalEdgesAttention()
-        # self.lay_pool = PoolingLocalEdges()
+        # self.lay_pool = AggregateLocalEdges()
 
         if self.concat_heads:
             self.lay_combine_heads = LazyConcatenate(axis=-1)

@@ -3,7 +3,7 @@ import numpy as np
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesSelection, GatherNodesIngoing
 from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.modules import LazyMultiply, LazySubtract, ExpandDims
 
 ks = tf.keras
@@ -132,7 +132,7 @@ class wACSFRad(GraphBaseLayer):
         self.layer_gather_in = GatherNodesIngoing()
         self.layer_exp_dims = ExpandDims(axis=2)
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
-        self.pool_sum = PoolingLocalEdges(pooling_method="sum")
+        self.pool_sum = AggregateLocalEdges(pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
         self.param_initializer = ks.initializers.deserialize(param_initializer)
@@ -252,7 +252,7 @@ class wACSFAng(GraphBaseLayer):
         self.lazy_mult = LazyMultiply()
         self.layer_pos = NodePosition(selection_index=[0, 1, 2])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
-        self.pool_sum = PoolingLocalEdges(pooling_method="sum")
+        self.pool_sum = AggregateLocalEdges(pooling_method="sum")
         self.lazy_sub = LazySubtract()
         self.layer_gather_in = GatherNodesIngoing()
         self.layer_gather_1 = GatherNodesSelection(selection_index=1)

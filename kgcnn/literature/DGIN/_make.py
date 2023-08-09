@@ -4,7 +4,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing, GatherState
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
 from ._dgin_conv import DMPNNPPoolingEdgesDirected, GIN_D
 from kgcnn.model.utils import update_model_kwargs
 
@@ -95,7 +95,7 @@ def make_model(name: str = None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
-            :obj:`PoolingLocalEdges` layers.
+            :obj:`AggregateLocalEdges` layers.
         edge_initialize (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for first edge embedding.
         edge_dense (dict): Dictionary of layer arguments unpacked in :obj:`Dense` layer for edge embedding.
         edge_activation (dict): Edge Activation after skip connection.
@@ -159,7 +159,7 @@ def make_model(name: str = None,
             h = Dropout(**dropoutDMPNN)(h)
 
     # equation 4 & 5
-    m_v = PoolingLocalEdges(**pooling_args)([n, h, edi])
+    m_v = AggregateLocalEdges(**pooling_args)([n, h, edi])
     m_v = LazyConcatenate(axis=-1)([n, m_v]) # 
     # equation 5b: hv = Dense(**node_dense)(mv) removed based on the paper
 

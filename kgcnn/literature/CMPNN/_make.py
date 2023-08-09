@@ -5,7 +5,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAdd, Dropout, \
     OptionalInputEmbedding, LazySubtract, LazyMultiply
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
@@ -93,7 +93,7 @@ def make_model(name: str = None,
         verbose (int): Level for print information.
         dropout (dict): Dictionary of layer arguments unpacked in :obj:`Dropout`.
         pooling_kwargs (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes`,
-            :obj:`PoolingLocalEdges` layers.
+            :obj:`AggregateLocalEdges` layers.
         use_final_gru (bool): Whether to use GRU for final readout.
         pooling_gru (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodesGRU`.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
@@ -127,8 +127,8 @@ def make_model(name: str = None,
     he = he0
     for i in range(depth - 1):
         # Node message/update
-        m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
-        m_max = PoolingLocalEdges(pooling_method="segment_max")([h, he, edi])
+        m_pool = AggregateLocalEdges(**pooling_kwargs)([h, he, edi])
+        m_max = AggregateLocalEdges(pooling_method="segment_max")([h, he, edi])
         m = LazyMultiply()([m_pool, m_max])
         # In paper there is a potential COMMUNICATE() here but in reference code just add() operation.
         h = LazyAdd()([h, m])
@@ -144,8 +144,8 @@ def make_model(name: str = None,
             he = Dropout(**dropout)(he)
 
     # Last step
-    m_pool = PoolingLocalEdges(**pooling_kwargs)([h, he, edi])
-    m_max = PoolingLocalEdges(pooling_method="segment_max")([h, he, edi])
+    m_pool = AggregateLocalEdges(**pooling_kwargs)([h, he, edi])
+    m_max = AggregateLocalEdges(pooling_method="segment_max")([h, he, edi])
     m = LazyMultiply()([m_pool, m_max])
     h_final = LazyConcatenate()([m, h, h0])
     h_final = Dense(**node_dense)(h_final)

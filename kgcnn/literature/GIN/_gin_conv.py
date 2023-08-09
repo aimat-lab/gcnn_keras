@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.modules import LazyAdd, Activation
 
 
@@ -39,7 +39,7 @@ class GIN(GraphBaseLayer):
 
         # Layers
         self.lay_gather = GatherNodesOutgoing()
-        self.lay_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.lay_pool = AggregateLocalEdges(pooling_method=self.pooling_method)
         self.lay_add = LazyAdd()
 
         # Epsilon with trainable as optional and default zeros initialized.
@@ -118,7 +118,7 @@ class GINE(GraphBaseLayer):
 
         # Layers
         self.layer_gather = GatherNodesOutgoing()
-        self.layer_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.layer_pool = AggregateLocalEdges(pooling_method=self.pooling_method)
         self.layer_add = LazyAdd()
         self.layer_act = Activation(activation=activation,
                                     activity_regularizer=activity_regularizer)

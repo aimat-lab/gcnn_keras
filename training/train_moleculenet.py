@@ -23,7 +23,7 @@ from kgcnn.utils.devices import set_devices_gpu
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="MoGAT")
+parser.add_argument("--model", required=False, help="Graph model to train.", default="GAT")
 parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
                     default="ESOLDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
@@ -80,6 +80,7 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
+time_list = []
 history_list, test_indices_list, model, hist, x_test, y_test, scaler = [], [], None, None, None, None, None
 for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
 
@@ -126,6 +127,7 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
                      )
     stop = time.time()
     print("Print Time for training: %s" % str(timedelta(seconds=stop - start)))
+    time_list.append(str(timedelta(seconds=stop - start)))
 
     # Get loss from history.
     history_list.append(hist)
@@ -172,4 +174,4 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
                    model_class=make_function,
                    model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
-                   filepath=filepath, file_name=f"score{postfix_file}.yaml")
+                   filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list)

@@ -3,7 +3,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import Dense, Activation, LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes, PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingNodes, AggregateLocalEdges
 from ._topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
 from kgcnn.model.utils import update_model_kwargs
 
@@ -73,7 +73,7 @@ def make_model(inputs: list = None,
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
         input_embedding (dict): Dictionary of embedding arguments for nodes etc. unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
-        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalEdges` layers.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`AggregateLocalEdges` layers.
         gather_args (dict): Dictionary of layer arguments unpacked in :obj:`GatherNodesOutgoing` layers.
         top_k_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingTopK` layers.
         use_reconnect (bool): Whether to use :math:`A^2` between pooling.
@@ -115,7 +115,7 @@ def make_model(inputs: list = None,
         # GCN layer
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
         eu = Dense(**hidden_dim)(eu)
-        nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
+        nu = AggregateLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         n = Activation(activation=activation)(nu)
 
         if use_reconnect:
@@ -140,7 +140,7 @@ def make_model(inputs: list = None,
         # GCN
         eu = GatherNodesOutgoing(**gather_args)([n, edi])
         eu = Dense(**hidden_dim)(eu)
-        nu = PoolingLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
+        nu = AggregateLocalEdges(**pooling_args)([n, eu, edi])  # Summing for each node connection
         n = Activation(activation=activation)(nu)
 
         ui_graph = [n, ed, edi]

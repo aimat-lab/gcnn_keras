@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherEdgesPairs
-from kgcnn.layers.aggr import PoolingLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
 from kgcnn.layers.modules import LazySubtract,LazyAdd
 
 
@@ -16,7 +16,7 @@ class DMPNNPPoolingEdgesDirected(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         super(DMPNNPPoolingEdgesDirected, self).__init__(**kwargs)
-        self.pool_edge_1 = PoolingLocalEdges(pooling_method="sum")
+        self.pool_edge_1 = AggregateLocalEdges(pooling_method="sum")
         self.gather_edges = GatherNodesOutgoing()
         self.gather_pairs = GatherEdgesPairs()
         self.subtract_layer = LazySubtract()
@@ -78,7 +78,7 @@ class GIN_D(GraphBaseLayer):
 
         # Layers
         self.lay_gather = GatherNodesOutgoing()
-        self.lay_pool = PoolingLocalEdges(pooling_method=self.pooling_method)
+        self.lay_pool = AggregateLocalEdges(pooling_method=self.pooling_method)
         self.lay_add = LazyAdd()
 
         # Epsilon with trainable as optional and default zeros initialized.

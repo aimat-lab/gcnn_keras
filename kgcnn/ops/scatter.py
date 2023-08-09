@@ -1,6 +1,12 @@
 import tensorflow as tf
 
 
+def tensor_scatter_nd_mean(tensor, indices, updates, name=None):
+    values_added = tf.tensor_scatter_nd_add(tensor, indices, updates, name=name)
+    values_count = tf.tensor_scatter_nd_add(tf.ones_like(tensor), indices, tf.ones_like(updates))
+    return values_added/values_count
+
+
 @tf.function
 def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=None):
     """Scatter operation chosen by name that pick tensor_scatter_nd functions.
@@ -21,6 +27,8 @@ def tensor_scatter_nd_ops_by_name(segment_name, tensor, indices, updates, name=N
         pool = tf.tensor_scatter_nd_max(tensor, indices, updates, name=name)
     elif segment_name in ["segment_min", "min", "reduce_min"]:
         pool = tf.tensor_scatter_nd_min(tensor, indices, updates, name=name)
+    elif segment_name in ["segment_mean", "mean", "reduce_mean"]:
+        pool = tensor_scatter_nd_mean(tensor, indices, updates, name=name)
     else:
         raise TypeError("Unknown pooling, choose: 'mean', 'sum', ...")
     return pool

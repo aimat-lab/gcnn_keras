@@ -4,7 +4,7 @@ from kgcnn.layers.geom import EuclideanNorm, NodePosition, EdgeDirectionNormaliz
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding, LazyConcatenate, LazyMultiply, LazySubtract
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes, PoolingLocalEdges
+from kgcnn.layers.aggr import PoolingNodes, AggregateLocalEdges
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.norm import GraphLayerNormalization
 
@@ -167,11 +167,11 @@ def make_model(name: str = None,
         if coord_mlp_kwargs:
             m_ij_weights = GraphMLP(**coord_mlp_kwargs)(m_ij)
             x_trans = LazyMultiply()([m_ij_weights, diff_x])
-            agg = PoolingLocalEdges(**pooling_coord_kwargs)([h, x_trans, edi])
+            agg = AggregateLocalEdges(**pooling_coord_kwargs)([h, x_trans, edi])
             x = LazyAdd()([x, agg])
 
         # Node model
-        m_i = PoolingLocalEdges(**pooling_edge_kwargs)([h, m_ij, edi])
+        m_i = AggregateLocalEdges(**pooling_edge_kwargs)([h, m_ij, edi])
         if node_mlp_kwargs:
             m_i = LazyConcatenate()([h, m_i])
             if use_node_attributes:
