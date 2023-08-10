@@ -190,7 +190,7 @@ def spherical_bessel_jn(r, n):
 
     Args:
         r (np.ndarray): Argument
-        n (np.ndarray): Order.
+        n (np.ndarray, int): Order.
 
     Returns:
         np.array: Values of the spherical Bessel function
