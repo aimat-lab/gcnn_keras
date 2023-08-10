@@ -9,6 +9,16 @@ ks = tf.keras
 def merge_models(model_list: list,
                  merge_type: str = "concat",
                  output_mlp: dict = None):
+    r"""Merge a list of models by combining their output.
+
+    Args:
+        model_list (list): List of graph models.
+        merge_type (str): How to merge the output.
+        output_mlp (dict): Kwargs of the final MLP after the models' output.
+
+    Returns:
+        :obj:`tf.keras.models.Model`
+    """
     if output_mlp:
         if isinstance(output_mlp, dict):
             output_mlp = MLP(**output_mlp)
