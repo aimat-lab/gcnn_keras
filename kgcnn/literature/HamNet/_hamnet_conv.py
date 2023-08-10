@@ -1,7 +1,7 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherState, GatherEmbeddingSelection
-from kgcnn.layers.aggr import PoolingLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
+from kgcnn.layers.aggr import AggregateLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, Dense, Dropout, LazyConcatenate, Activation
 from kgcnn.layers.update import GRUUpdate
 
@@ -480,7 +480,7 @@ class HamNaiveDynMessage(GraphBaseLayer):
         self.dense_attend = Dense(units=units, use_bias=use_bias, activation=activation, **kernel_args)
         self.dense_align = Dense(1, activation="linear", use_bias=use_bias, **kernel_args)
         self.dense_e = Dense(units=units_edge, activation=activation, use_bias=use_bias, **kernel_args)
-        self.pool_attention = PoolingLocalEdgesAttention()
+        self.pool_attention = AggregateLocalEdgesAttention()
         self.final_activ = Activation(activation=activation_last,
                                       activity_regularizer=activity_regularizer)
 

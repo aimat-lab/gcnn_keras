@@ -5,7 +5,7 @@ from kgcnn.layers.modules import LazyConcatenate, Dense, Activation
 from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import GraphMLP
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodes
-from kgcnn.layers.aggr import PoolingLocalMessages, PoolingLocalEdgesLSTM, AggregateWeightedLocalEdges
+from kgcnn.layers.aggr import PoolingLocalMessages, AggregateLocalEdgesLSTM, AggregateWeightedLocalEdges
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='GraphSageNodeLayer')
@@ -60,7 +60,7 @@ class GraphSageNodeLayer(GraphBaseLayer):
         self.pooling_args = {"pooling_method": pooling_method}
         if self.pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             # We do not allow full access to all parameters for the LSTM here for simplification.
-            self.pooling = PoolingLocalEdgesLSTM(pooling_method=pooling_method, units=units)
+            self.pooling = AggregateLocalEdgesLSTM(pooling_method=pooling_method, units=units)
         else:
             self.pooling = PoolingLocalMessages(pooling_method=pooling_method)
         self.normalize_nodes = GraphLayerNormalization(axis=-1)

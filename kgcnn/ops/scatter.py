@@ -1,6 +1,11 @@
 import tensorflow as tf
 
 
+supported_scatter_modes = (
+        "scatter_add", "add", "scatter_sum", "sum", "scatter_max", "max", "scatter_min", "min", "scatter_mean", "mean"
+    )
+
+
 def tensor_scatter_nd_mean(tensor, indices, updates, name=None):
     """Tensor scatter with mean updates.
 
@@ -35,13 +40,13 @@ def tensor_scatter_nd_ops_by_name(scatter_name, tensor, indices, updates, name=N
     Returns:
         tf.Tensor: Updates scattered into tensor with different update rules.
     """
-    if scatter_name in ["segment_sum", "sum", "reduce_sum", "add", "scatter_add"]:
+    if scatter_name in ["scatter_add", "add", "scatter_sum", "sum"]:
         pool = tf.tensor_scatter_nd_add(tensor, indices, updates, name=name)
-    elif scatter_name in ["segment_max", "max", "reduce_max", "scatter_max"]:
+    elif scatter_name in ["scatter_max", "max"]:
         pool = tf.tensor_scatter_nd_max(tensor, indices, updates, name=name)
-    elif scatter_name in ["segment_min", "min", "reduce_min", "scatter_min"]:
+    elif scatter_name in ["scatter_min", "min"]:
         pool = tf.tensor_scatter_nd_min(tensor, indices, updates, name=name)
-    elif scatter_name in ["segment_mean", "mean", "reduce_mean", "scatter_mean"]:
+    elif scatter_name in ["scatter_mean", "mean"]:
         pool = tensor_scatter_nd_mean(tensor, indices, updates, name=name)
     else:
         raise TypeError("Unknown pooling, choose: 'mean', 'sum', ...")

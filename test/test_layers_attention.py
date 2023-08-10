@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.attention import PoolingLocalEdgesAttention
+from kgcnn.layers.attention import AggregateLocalEdgesAttention
 from kgcnn.layers.attention import AttentionHeadGAT, MultiHeadGATV2Layer
 
 
@@ -32,7 +32,7 @@ class TestPoolingLocalEdgesAttention(unittest.TestCase):
 
     def test_attention_pooling(self):
 
-        layer = PoolingLocalEdgesAttention()
+        layer = AggregateLocalEdgesAttention()
         result = layer([tf.RaggedTensor.from_row_lengths(np.array([[1.0],[1.0]]), np.array([1,1])),
                        tf.RaggedTensor.from_row_lengths(np.array([[100.0],[0.0],[100.0],[0.0]]),np.array([2,2])),
                        tf.RaggedTensor.from_row_lengths(np.array([[0.0],[1.0],[0.0],[1.0]]), np.array([2,2])),

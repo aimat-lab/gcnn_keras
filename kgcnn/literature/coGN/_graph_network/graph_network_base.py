@@ -4,7 +4,7 @@ from kgcnn.layers.aggr import (
     PoolingEmbeddingAttention,
     PoolingGlobalEdges,
     AggregateLocalEdges,
-    PoolingLocalEdgesAttention,
+    AggregateLocalEdgesAttention,
     PoolingNodes,
 )
 from copy import copy
@@ -56,7 +56,7 @@ class GraphNetworkBase(GraphBaseLayer):
 
         if isinstance(self.aggregate_edges_local_, str):
             if self.aggregate_edges_local_ in self.attention_strings:
-                self.lay_pool_edges_local = PoolingLocalEdgesAttention()
+                self.lay_pool_edges_local = AggregateLocalEdgesAttention()
             else:
                 self.lay_pool_edges_local = AggregateLocalEdges(
                     pooling_method=self.aggregate_edges_local_

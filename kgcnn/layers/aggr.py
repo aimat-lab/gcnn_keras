@@ -1,8 +1,8 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.partition import partition_row_indexing
-from kgcnn.ops.segment import segment_ops_by_name, segment_softmax
-from kgcnn.ops.scatter import tensor_scatter_nd_ops_by_name
+from kgcnn.ops.segment import segment_ops_by_name, segment_softmax, pad_segments
+from kgcnn.ops.scatter import tensor_scatter_nd_ops_by_name, supported_scatter_modes
 
 ks = tf.keras
 
@@ -41,7 +41,6 @@ class AggregateLocalEdges(GraphBaseLayer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         self.node_indexing = "sample"
-        self._use_scatter = False
 
     def build(self, input_shape):
         """Build layer."""
@@ -58,7 +57,7 @@ class AggregateLocalEdges(GraphBaseLayer):
 
     def _aggregate(self, nodes, edges, receive_indices):
         # Aggregate via scatter ops.
-        if self._use_scatter:
+        if not self.is_sorted and self.pooling_method in supported_scatter_modes:
             return tensor_scatter_nd_ops_by_name(
                 self.pooling_method,
                 tf.zeros(tf.concat([tf.shape(nodes)[:1], tf.shape(edges)[1:]], axis=0), dtype=edges.dtype),
@@ -132,7 +131,6 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
 
         In addition to aggregating edge embeddings a weight tensor must be supplied that scales each edge before
         pooling. Must broadcast.
-
     """
 
     def __init__(self,
@@ -187,13 +185,13 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
             to_indexing='batch', from_indexing=self.node_indexing
         )
         receive_indices = disjoint_indices[:, self.pooling_index]  # Pick index eg. ingoing
-        edges_weighted = edges*weights
+        edges_weighted = edges * weights
 
         out = self._aggregate(nodes, edges_weighted, receive_indices)
 
         if self.normalize_by_weights:
             norm = tensor_scatter_nd_ops_by_name(
-                "sum", tf.zeros(tf.concat([tf.shape(nodes)[:1], tf.shape(edges)[1:]], axis=0), dtype=edges.dtype),
+                "add", tf.zeros(tf.concat([tf.shape(nodes)[:1], tf.shape(edges)[1:]], axis=0), dtype=edges.dtype),
                 tf.expand_dims(receive_indices, axis=-1), weights
             )
             # We could also optionally add tf.eps here.
@@ -214,8 +212,8 @@ PoolingWeightedLocalMessages = AggregateWeightedLocalEdges
 AggregateWeightedLocalMessages = AggregateWeightedLocalEdges
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesLSTM')
-class PoolingLocalEdgesLSTM(AggregateLocalEdges):
+@ks.utils.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesLSTM')
+class AggregateLocalEdgesLSTM(AggregateLocalEdges):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
     The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
@@ -306,7 +304,7 @@ class PoolingLocalEdgesLSTM(AggregateLocalEdges):
             is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
             has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         """
-        super(PoolingLocalEdgesLSTM, self).__init__(
+        super(AggregateLocalEdgesLSTM, self).__init__(
             pooling_method=pooling_method, pooling_index=pooling_index, is_sorted=is_sorted,
             has_unconnected=has_unconnected, **kwargs)
         self.node_indexing = "sample"
@@ -326,7 +324,7 @@ class PoolingLocalEdgesLSTM(AggregateLocalEdges):
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingLocalEdgesLSTM, self).build(input_shape)
+        super(AggregateLocalEdgesLSTM, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -343,40 +341,33 @@ class PoolingLocalEdgesLSTM(AggregateLocalEdges):
         """
         inputs = self.assert_ragged_input_rank(inputs)
 
-        nod, node_part = inputs[0].values, inputs[0].row_splits
-        edge, _ = inputs[1].values, inputs[1].row_lengths()
-        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
+        nodes, node_part = inputs[0].values, inputs[0].row_splits
+        edges, _ = inputs[1].values, inputs[1].row_lengths()
+        edge_indices, edge_part = inputs[2].values, inputs[2].row_lengths()
 
-        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
-                                          partition_type_target="row_splits",
-                                          partition_type_index="row_length",
-                                          to_indexing='batch',
-                                          from_indexing=self.node_indexing)
+        disjoint_indices = partition_row_indexing(
+            edge_indices, node_part, edge_part,
+            partition_type_target="row_splits", partition_type_index="row_length",
+            to_indexing='batch', from_indexing=self.node_indexing
+        )
 
-        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
-        dens = edge
+        receive_indices = disjoint_indices[:, self.pooling_index]
+
         if not self.is_sorted:
-            # Sort edge indices
-            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
-            nodind = tf.gather(nodind, node_order, axis=0)
-            dens = tf.gather(dens, node_order, axis=0)
+            receive_indices, edges = self._sort_by(receive_indices, edges)
 
-        # Pooling via LSTM
-        # we make a ragged input
-        ragged_lstm_input = tf.RaggedTensor.from_value_rowids(dens, nodind)
-        get = self.lstm_unit(ragged_lstm_input)
+        # aggregate via LSTM, we make a ragged input.
+        ragged_lstm_input = tf.RaggedTensor.from_value_rowids(edges, receive_indices)
+        out = self.lstm_unit(ragged_lstm_input)
 
         if self.has_unconnected:
-            # Need to fill tensor since the maximum node may not be also in pooled
-            # Does not happen if all nodes are also connected
-            get = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
-                                tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
+            out = pad_segments(out, tf.shape(nodes)[0])
 
-        return tf.RaggedTensor.from_row_splits(get, node_part, validate=self.ragged_validate)
+        return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingLocalEdgesLSTM, self).get_config()
+        config = super(AggregateLocalEdgesLSTM, self).get_config()
         conf_lstm = self.lstm_unit.get_config()
         lstm_param = ["activation", "recurrent_activation", "use_bias", "kernel_initializer", "recurrent_initializer",
                       "bias_initializer", "unit_forget_bias", "kernel_regularizer", "recurrent_regularizer",
@@ -388,13 +379,16 @@ class PoolingLocalEdgesLSTM(AggregateLocalEdges):
         return config
 
 
-PoolingLocalMessagesLSTM = PoolingLocalEdgesLSTM  # For now, they are synonyms
+PoolingLocalMessagesLSTM = AggregateLocalEdgesLSTM  # For now, they are synonyms
+PoolingLocalEdgesLSTM = AggregateLocalEdgesLSTM
+AggregateLocalMessagesLSTM = AggregateLocalEdgesLSTM
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingLocalEdgesAttention')
-class PoolingLocalEdgesAttention(GraphBaseLayer):
-    r"""Pooling or aggregation of all edges or edge-like features per node,
-    corresponding to node assigned by edge indices.
+@ks.utils.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesAttention')
+class AggregateLocalEdgesAttention(AggregateLocalEdges):
+    r"""Pooling or aggregation of all edges or edge-like features per node, corresponding to node
+    assigned by edge indices.
+
     Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
     The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
     attention coefficients :math:`a_{ij}` .
@@ -406,10 +400,10 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
     but can be changed by pooling_index.
     Important: ID's for segment-operation and for pooling of edges are taken from edge-index-tensor.
     They are sorted for faster pooling from tensor_index[:, :, pooling_index].
-
     """
 
-    def __init__(self, pooling_index: int = 0,
+    def __init__(self,
+                 pooling_index: int = 0,
                  is_sorted: bool = False,
                  has_unconnected: bool = True,
                  **kwargs):
@@ -420,15 +414,16 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
             is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
             has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         """
-        super(PoolingLocalEdgesAttention, self).__init__(**kwargs)
-        self.pooling_index = pooling_index
-        self.node_indexing = "sample"
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
+        super(AggregateLocalEdgesAttention, self).__init__(
+            pooling_method="attention", pooling_index=pooling_index, is_sorted=is_sorted,
+            has_unconnected=has_unconnected, **kwargs)
+        if self.pooling_method not in ["attention"]:
+            raise ValueError(
+                "Warning: Aggregate method expected 'attention' but got '%s'." % self.pooling_method)
 
     def build(self, input_shape):
         """Build layer."""
-        super(PoolingLocalEdgesAttention, self).build(input_shape)
+        super(AggregateLocalEdgesAttention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -444,59 +439,51 @@ class PoolingLocalEdgesAttention(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Embedding tensor of pooled edge attentions for each node of shape (batch, [N], F)
         """
-        # Need ragged input but can be generalized in the future.
-        inputs = self.assert_ragged_input_rank(inputs)
-        # We cast to values here
-        nod, node_part = inputs[0].values, inputs[0].row_lengths()
-        edge = inputs[1].values
+        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+
+        nodes, node_part = inputs[0].values, inputs[0].row_lengths()
+        edges = inputs[1].values
         attention = inputs[2].values
-        edgeind, edge_part = inputs[3].values, inputs[3].row_lengths()
+        edge_indices, edge_part = inputs[3].values, inputs[3].row_lengths()
 
-        shiftind = partition_row_indexing(edgeind, node_part, edge_part, partition_type_target="row_length",
-                                          partition_type_index="row_length", to_indexing='batch',
-                                          from_indexing=self.node_indexing)
+        disjoint_indices = partition_row_indexing(
+            edge_indices, node_part, edge_part, partition_type_target="row_length",
+            partition_type_index="row_length", to_indexing='batch', from_indexing=self.node_indexing
+        )
 
-        nodind = shiftind[:, self.pooling_index]  # Pick first index eg. ingoing
-        dens = edge
-        ats = attention
+        receive_indices = disjoint_indices[:, self.pooling_index]
+
         if not self.is_sorted:
-            # Sort edgeindices
-            node_order = tf.argsort(nodind, axis=0, direction='ASCENDING', stable=True)
-            nodind = tf.gather(nodind, node_order, axis=0)
-            dens = tf.gather(dens, node_order, axis=0)
-            ats = tf.gather(ats, node_order, axis=0)
+            receive_indices, edges, attention = self._sort_by(receive_indices, edges, attention)
 
         # Apply segmented softmax
-        ats = segment_softmax(ats, nodind)
-        get = dens * ats
-        get = tf.math.segment_sum(get, nodind)
+        alpha = segment_softmax(attention, receive_indices)
+        edges_attended = edges * alpha
+        out = tf.math.segment_sum(edges_attended, receive_indices)
 
         if self.has_unconnected:
-            # Need to fill tensor since the maximum node may not be also in pooled
-            # Does not happen if all nodes are also connected
-            get = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(get)[0]), axis=-1), get,
-                                tf.concat([tf.shape(nod)[:1], tf.shape(get)[1:]], axis=0))
+            out = pad_segments(out, tf.shape(nodes)[0])
 
-        out = tf.RaggedTensor.from_row_lengths(get, node_part, validate=self.ragged_validate)
-        return out
+        return tf.RaggedTensor.from_row_lengths(out, node_part, validate=self.ragged_validate)
 
     def get_config(self):
         """Update layer config."""
-        config = super(PoolingLocalEdgesAttention, self).get_config()
-        config.update({"pooling_index": self.pooling_index, "is_sorted": self.is_sorted,
-                       "has_unconnected": self.has_unconnected})
+        config = super(AggregateLocalEdgesAttention, self).get_config()
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='RelationalPoolingLocalEdges')
-class RelationalPoolingLocalEdges(GraphBaseLayer):
+PoolingLocalEdgesAttention = AggregateLocalEdgesAttention
+AggregateLocalMessagesAttention = AggregateLocalEdgesAttention
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='RelationalAggregateLocalEdges')
+class RelationalAggregateLocalEdges(AggregateLocalEdges):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node, per relation,
     corresponding to the receiving node, which is defined by edge indices.
 
     Apply e.g. sum or mean on edges with same target ID taken from the (edge) index tensor, that has a list of
     all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
     receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
-
     """
 
     def __init__(self, num_relations: int,
@@ -514,17 +501,14 @@ class RelationalPoolingLocalEdges(GraphBaseLayer):
             is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
             has_unconnected (bool): If unconnected nodes are allowed. Default is True.
         """
-        super(RelationalPoolingLocalEdges, self).__init__(**kwargs)
+        super(RelationalAggregateLocalEdges, self).__init__(
+            pooling_method=pooling_method, pooling_index=pooling_index, is_sorted=is_sorted,
+            has_unconnected=has_unconnected, **kwargs)
         self.num_relations = num_relations
-        self.pooling_method = pooling_method
-        self.pooling_index = pooling_index
-        self.node_indexing = "sample"
-        self.is_sorted = is_sorted
-        self.has_unconnected = has_unconnected
 
     def build(self, input_shape):
         """Build layer."""
-        super(RelationalPoolingLocalEdges, self).build(input_shape)
+        super(RelationalAggregateLocalEdges, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -540,95 +524,41 @@ class RelationalPoolingLocalEdges(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Pooled feature tensor of pooled edge features for each node.
         """
-        # Need ragged input but can be generalized in the future.
         inputs = self.assert_ragged_input_rank(inputs)
 
-        nod, node_part = inputs[0].values, inputs[0].row_splits
-        edge, _ = inputs[1].values, inputs[1].row_lengths()
-        edgeind, edge_part = inputs[2].values, inputs[2].row_lengths()
-        edge_rel, _ = inputs[3].values, inputs[3].row_lengths()
+        nodes, node_part = inputs[0].values, inputs[0].row_splits
+        edges, _ = inputs[1].values, inputs[1].row_lengths()
+        edge_indices, edge_part = inputs[2].values, inputs[2].row_lengths()
+        edge_relations, _ = inputs[3].values, inputs[3].row_lengths()
 
-        shiftind = partition_row_indexing(edgeind, node_part, edge_part,
-                                          partition_type_target="row_splits",
-                                          partition_type_index="row_length",
-                                          to_indexing='batch',
-                                          from_indexing=self.node_indexing)
+        disjoint_indices = partition_row_indexing(
+            edge_indices, node_part, edge_part,
+            partition_type_target="row_splits", partition_type_index="row_length",
+            to_indexing='batch', from_indexing=self.node_indexing
+        )
 
-        indices = shiftind[:, self.pooling_index]  # Pick index eg. ingoing
-        relations = tf.cast(edge_rel, indices.dtype)
-        scatter_indices = tf.concat([tf.expand_dims(indices, axis=-1), tf.expand_dims(relations, axis=-1)], axis=-1)
+        receive_indices = disjoint_indices[:, self.pooling_index]  # Pick index eg. ingoing
+        relations = tf.cast(edge_relations, receive_indices.dtype)
+        scatter_indices = tf.concat(
+            [tf.expand_dims(receive_indices, axis=-1), tf.expand_dims(relations, axis=-1)], axis=-1)
         out_tensor = tf.zeros(tf.concat(
-            [tf.shape(nod)[:1], tf.constant([self.num_relations], dtype=tf.shape(nod).dtype),
-             tf.shape(edge)[1:]], axis=0))
+            [tf.shape(nodes)[:1], tf.constant([self.num_relations], dtype=tf.shape(nodes).dtype),
+             tf.shape(edges)[1:]], axis=0))
 
-        # Pooling via scatter_nd
-        out = tensor_scatter_nd_ops_by_name(self.pooling_method, out_tensor, scatter_indices, edge)
+        # Pooling via scatter
+        out = tensor_scatter_nd_ops_by_name(self.pooling_method, out_tensor, scatter_indices, edges)
 
         return tf.RaggedTensor.from_row_splits(out, node_part, validate=self.ragged_validate)
 
     def get_config(self):
         """Update layer config."""
-        config = super(RelationalPoolingLocalEdges, self).get_config()
-        config.update({"pooling_method": self.pooling_method, "pooling_index": self.pooling_index,
-                       "num_relations": self.num_relations, "is_sorted": self.is_sorted,
-                       "has_unconnected": self.has_unconnected})
+        config = super(RelationalAggregateLocalEdges, self).get_config()
+        config.update({"num_relations": self.num_relations})
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbeddingAttention')
-class PoolingEmbeddingAttention(GraphBaseLayer):
-    r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
-    ::obj`tf.Tensor` .
-
-    Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i` .
-    The attention is computed via: :math:`\alpha_i = \text{softmax}_i(a_i)` from the attention
-    coefficients :math:`a_i` .
-    The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W [s || n_i])` and
-    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
-    In summary, :math:`s =  \sum_i \text{softmax}_j(a_i) n_i` is computed by the layer.
-
-    """
-
-    def __init__(self, **kwargs):
-        """Initialize layer."""
-        super(PoolingEmbeddingAttention, self).__init__(**kwargs)
-        self.node_indexing = "sample"
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(PoolingEmbeddingAttention, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        """Forward pass.
-
-        Args:
-            inputs: [nodes, attention]
-
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [N], 1)
-
-        Returns:
-            tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
-        """
-        # Need ragged input but can be generalized in the future.
-        inputs = self.assert_ragged_input_rank(inputs)
-        # We cast to values here
-        nod, batchi, target_len = inputs[0].values, inputs[0].value_rowids(), inputs[0].row_lengths()
-        ats = inputs[1].values
-
-        ats = segment_softmax(ats, batchi)
-        get = nod * ats
-        out = tf.math.segment_sum(get, batchi)
-
-        return out
-
-    def get_config(self):
-        """Update layer config."""
-        config = super(PoolingEmbeddingAttention, self).get_config()
-        return config
-
-
-PoolingNodesAttention = PoolingEmbeddingAttention
+RelationalPoolingLocalEdges = RelationalAggregateLocalEdges
+RelationalAggregateLocalMessages = RelationalAggregateLocalEdges
 
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbedding')
@@ -738,3 +668,58 @@ class PoolingWeightedEmbedding(GraphBaseLayer):
 
 PoolingWeightedNodes = PoolingWeightedEmbedding
 PoolingWeightedGlobalEdges = PoolingWeightedEmbedding
+
+
+@ks.utils.register_keras_serializable(package='kgcnn', name='PoolingEmbeddingAttention')
+class PoolingEmbeddingAttention(GraphBaseLayer):
+    r"""Polling all embeddings of edges or nodes per batch to obtain a graph level embedding in form of a
+    ::obj`tf.Tensor` .
+
+    Uses attention for pooling. i.e. :math:`s =  \sum_j \alpha_{i} n_i` .
+    The attention is computed via: :math:`\alpha_i = \text{softmax}_i(a_i)` from the attention
+    coefficients :math:`a_i` .
+    The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W [s || n_i])` and
+    are passed to this layer as input. Thereby this layer has no weights and only does pooling.
+    In summary, :math:`s =  \sum_i \text{softmax}_j(a_i) n_i` is computed by the layer.
+    """
+
+    def __init__(self, **kwargs):
+        """Initialize layer."""
+        super(PoolingEmbeddingAttention, self).__init__(**kwargs)
+        self.node_indexing = "sample"
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(PoolingEmbeddingAttention, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+        """Forward pass.
+
+        Args:
+            inputs: [nodes, attention]
+
+                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
+                - attention (tf.RaggedTensor): Attention coefficients of shape (batch, [N], 1)
+
+        Returns:
+            tf.Tensor: Embedding tensor of pooled node of shape (batch, F)
+        """
+        # Need ragged input but can be generalized in the future.
+        inputs = self.assert_ragged_input_rank(inputs)
+        # We cast to values here
+        nod, batchi, target_len = inputs[0].values, inputs[0].value_rowids(), inputs[0].row_lengths()
+        ats = inputs[1].values
+
+        ats = segment_softmax(ats, batchi)
+        get = nod * ats
+        out = tf.math.segment_sum(get, batchi)
+
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(PoolingEmbeddingAttention, self).get_config()
+        return config
+
+
+PoolingNodesAttention = PoolingEmbeddingAttention

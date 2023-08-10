@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 
-from kgcnn.layers.aggr import PoolingLocalEdgesLSTM
+from kgcnn.layers.aggr import AggregateLocalEdgesLSTM
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.modules import LazyConcatenate
 
@@ -34,7 +34,7 @@ class TestPoolingLocalEdgesLSTM(unittest.TestCase):
 
         ns = GatherNodes()([n, edi])
         messages = LazyConcatenate(axis=-1)([ed, ns])
-        out = PoolingLocalEdgesLSTM(units=3)([n, messages, edi])
+        out = AggregateLocalEdgesLSTM(units=3)([n, messages, edi])
         print(out[0].shape)
         self.assertTrue(np.all(np.array(out[0].shape) == np.array([8,3])))
 

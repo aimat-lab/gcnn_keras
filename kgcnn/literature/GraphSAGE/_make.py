@@ -4,7 +4,7 @@ from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes, PoolingLocalMessages, PoolingLocalEdgesLSTM
+from kgcnn.layers.aggr import PoolingNodes, PoolingLocalMessages, AggregateLocalEdgesLSTM
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras
@@ -112,7 +112,7 @@ def make_model(inputs: list = None,
         eu = GraphMLP(**edge_mlp_args)(eu)
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
-            nu = PoolingLocalEdgesLSTM(**pooling_args)([n, eu, edi])
+            nu = AggregateLocalEdgesLSTM(**pooling_args)([n, eu, edi])
         else:
             nu = PoolingLocalMessages(**pooling_args)([n, eu, edi])  # Summing for each node connection
 

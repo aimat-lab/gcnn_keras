@@ -5,7 +5,7 @@ from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesSelection
 # from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.geom import NodeDistanceEuclidean, NodePosition
-from kgcnn.layers.aggr import RelationalPoolingLocalEdges
+from kgcnn.layers.aggr import RelationalAggregateLocalEdges
 # from kgcnn.layers.pooling import AggregateLocalEdges
 from kgcnn.layers.modules import LazyMultiply, LazySubtract
 # from kgcnn.layers.modules import ExpandDims
@@ -97,7 +97,7 @@ class ACSFG2(GraphBaseLayer):
         self.layer_pos = NodePosition()
         self.layer_gather = GatherNodesSelection([0, 1])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
-        self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.num_relations, pooling_method="sum")
+        self.pool_sum = RelationalAggregateLocalEdges(num_relations=self.num_relations, pooling_method="sum")
 
         # We can do this in init since weights do not depend on input shape.
         self.param_initializer = ks.initializers.deserialize(param_initializer)
@@ -343,7 +343,7 @@ class ACSFG4(GraphBaseLayer):
         self.lazy_mult = LazyMultiply()
         self.layer_pos = NodePosition(selection_index=[0, 1, 2])
         self.layer_dist = NodeDistanceEuclidean(add_eps=add_eps)
-        self.pool_sum = RelationalPoolingLocalEdges(num_relations=self.num_relations, pooling_method="sum")
+        self.pool_sum = RelationalAggregateLocalEdges(num_relations=self.num_relations, pooling_method="sum")
         self.lazy_sub = LazySubtract()
         self.layer_gather = GatherNodesSelection(selection_index=[0, 1, 2])
 

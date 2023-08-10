@@ -3,7 +3,7 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAverage
-from kgcnn.layers.aggr import PoolingLocalEdgesAttention
+from kgcnn.layers.aggr import AggregateLocalEdgesAttention
 
 
 @tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
@@ -67,7 +67,7 @@ class AttentionHeadGAT(GraphBaseLayer):
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = LazyConcatenate(axis=-1)
-        self.lay_pool_attention = PoolingLocalEdgesAttention()
+        self.lay_pool_attention = AggregateLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
 
@@ -179,7 +179,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
         self.lay_concat = LazyConcatenate(axis=-1)
-        self.lay_pool_attention = PoolingLocalEdgesAttention()
+        self.lay_pool_attention = AggregateLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
 
@@ -259,7 +259,7 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
 
         self.lay_concat_alphas = LazyConcatenate(axis=-2)
         self.lay_concat_embeddings = LazyConcatenate(axis=-2)
-        self.lay_pool_attention = PoolingLocalEdgesAttention()
+        self.lay_pool_attention = AggregateLocalEdgesAttention()
         # self.lay_pool = AggregateLocalEdges()
 
         if self.concat_heads:
