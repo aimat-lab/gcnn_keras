@@ -4,7 +4,7 @@ from ._schnet_conv import SchNetInteraction
 from kgcnn.layers.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes
+from ...layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras

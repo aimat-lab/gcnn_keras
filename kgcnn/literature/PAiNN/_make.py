@@ -6,7 +6,7 @@ from kgcnn.layers.geom import NodeDistanceEuclidean, BesselBasisLayer, EdgeDirec
     NodePosition, ShiftPeriodicLattice
 from kgcnn.layers.modules import LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes
+from ...layers.pooling import PoolingNodes
 from kgcnn.layers.norm import GraphLayerNormalization, GraphBatchNormalization
 from kgcnn.model.utils import update_model_kwargs
 

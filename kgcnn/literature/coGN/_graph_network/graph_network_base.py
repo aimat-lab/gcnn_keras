@@ -1,12 +1,10 @@
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherEmbeddingSelection
 from kgcnn.layers.aggr import (
-    PoolingEmbeddingAttention,
-    PoolingGlobalEdges,
     AggregateLocalEdges,
     AggregateLocalEdgesAttention,
-    PoolingNodes,
 )
+from kgcnn.layers.pooling import PoolingNodes, PoolingGlobalEdges, PoolingEmbeddingAttention
 from copy import copy
 
 

@@ -1,7 +1,8 @@
 import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.layers.gather import GatherState, GatherEmbeddingSelection
-from kgcnn.layers.aggr import AggregateLocalEdgesAttention, PoolingNodes, PoolingNodesAttention
+from kgcnn.layers.aggr import AggregateLocalEdgesAttention
+from kgcnn.layers.pooling import PoolingNodes, PoolingNodesAttention
 from kgcnn.layers.modules import LazySubtract, Dense, Dropout, LazyConcatenate, Activation
 from kgcnn.layers.update import GRUUpdate
 

@@ -3,10 +3,10 @@ import tensorflow as tf
 from kgcnn.layers.base import GraphBaseLayer
 from kgcnn.ops.segment import segment_ops_by_name
 from kgcnn.layers.modules import LazyMultiply
-from kgcnn.layers.aggr import PoolingEmbedding
+from kgcnn.layers.pooling import PoolingEmbedding
 
 
-class MultiplcityReadout(PoolingEmbedding):
+class MultiplicityReadout(PoolingEmbedding):
     """MultiplicityReadout layer for asymmetric unit crystal graph representations."""
 
     def __init__(self, pooling_method="mean", **kwargs):

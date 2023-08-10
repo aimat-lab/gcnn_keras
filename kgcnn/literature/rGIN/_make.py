@@ -3,7 +3,7 @@ from kgcnn.layers.casting import ChangeTensorType
 from ._rgin_conv import rGIN
 from kgcnn.layers.modules import Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes
+from ...layers.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 
 ks = tf.keras

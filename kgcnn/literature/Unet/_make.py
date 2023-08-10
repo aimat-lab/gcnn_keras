@@ -3,7 +3,8 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherNodesOutgoing
 from kgcnn.layers.modules import Dense, Activation, LazyAdd, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import PoolingNodes, AggregateLocalEdges
+from kgcnn.layers.aggr import AggregateLocalEdges
+from ...layers.pooling import PoolingNodes
 from ._topk import PoolingTopK, UnPoolingTopK, AdjacencyPower
 from kgcnn.model.utils import update_model_kwargs
 

@@ -96,7 +96,8 @@ Models can be set up in a functional way. Example message passing from fundament
 import tensorflow as tf
 from kgcnn.layers.gather import GatherNodes
 from kgcnn.layers.modules import Dense, LazyConcatenate  # ragged support
-from kgcnn.layers.aggr import AggregateLocalMessages, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalMessages
+from kgcnn.layers.pooling import PoolingNodes
 
 ks = tf.keras
 
@@ -105,7 +106,7 @@ ei = ks.layers.Input(shape=(None, 2), name='edge_index_input', dtype="int64", ra
 
 n_in_out = GatherNodes()([n, ei])
 node_messages = Dense(10, activation='relu')(n_in_out)
-node_updates = AggregateLocalMessages()([n, node_messages, ei])
+node_updates = AggregateLocalMessages(is_sorted=False)([n, node_messages, ei])
 n_node_updates = LazyConcatenate(axis=-1)([n, node_updates])
 n_embedding = Dense(1)(n_node_updates)
 g_embedding = PoolingNodes()(n_embedding)

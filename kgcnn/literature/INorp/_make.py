@@ -3,7 +3,8 @@ from kgcnn.layers.casting import ChangeTensorType
 from kgcnn.layers.gather import GatherState, GatherNodesIngoing, GatherNodesOutgoing
 from kgcnn.layers.modules import LazyConcatenate, Dense, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges
+from kgcnn.layers.pooling import PoolingNodes
 from kgcnn.layers.set2set import PoolingSet2SetEncoder
 from kgcnn.model.utils import update_model_kwargs
 

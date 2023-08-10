@@ -5,7 +5,8 @@ from kgcnn.layers.update import GRUUpdate
 from kgcnn.layers.gather import GatherNodesOutgoing, GatherNodesIngoing
 from kgcnn.layers.modules import Dense, LazyConcatenate, OptionalInputEmbedding
 from kgcnn.layers.mlp import GraphMLP, MLP
-from kgcnn.layers.aggr import AggregateLocalEdges, PoolingNodes
+from kgcnn.layers.aggr import AggregateLocalEdges
+from ...layers.pooling import PoolingNodes
 from kgcnn.layers.set2set import PoolingSet2SetEncoder
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers.geom import NodePosition, NodeDistanceEuclidean, GaussBasisLayer, ShiftPeriodicLattice
