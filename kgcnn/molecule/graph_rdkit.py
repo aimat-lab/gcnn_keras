@@ -391,12 +391,13 @@ class MolecularGraphRDKit(MolGraphInterface):
         # Add bonds.
         for i, b in zip(bnd_idx, bnd_type):
             m.AddBond(int(i[0]), int(i[1]), self._bond_types_values[int(b)])
-        rdkit.Chem.SanitizeMol(m)
         if conformer is not None:
             conf = rdkit.Chem.Conformer(m.GetNumAtoms())
             for i in range(m.GetNumAtoms()):
                 conf.SetAtomPosition(i, (conformer[i][0], conformer[i][1], conformer[i][2]))
             m.AddConformer(conf)
+        rdkit.Chem.SanitizeMol(m)
+        if conformer is not None:
             rdkit.Chem.AssignAtomChiralTagsFromStructure(m)
             rdkit.Chem.AssignStereochemistryFrom3D(m)
         else:

@@ -25,13 +25,14 @@ def segment_softmax(data, segment_ids, normalize: bool = True):
 
 
 @tf.function
-def segment_ops_by_name(segment_name: str, data, segment_ids):
+def segment_ops_by_name(segment_name: str, data, segment_ids, max_id=None):
     """Segment operation chosen by string identifier.
 
     Args:
         segment_name (str): Name of the segment operation.
         data (tf.Tensor): Data tensor that has sorted segments.
         segment_ids (tf.Tensor): IDs of the segments.
+        max_id (tf.Tensor): Max ID if the maximum ID is not in the segment_ids. Default is None.
 
     Returns:
         tf.Tensor: reduced segment data with method by segment_name.
@@ -46,8 +47,18 @@ def segment_ops_by_name(segment_name: str, data, segment_ids):
         pool = tf.math.segment_min(data, segment_ids)
     # softmax does not really reduce tensor.
     # which is why it is not added to the list of segment operations for normal pooling.
-    # elif segment_name in ["segment_softmax", "segment_soft_max", "softmax", "soft_max", "reduce_softmax"]:
-    #     pool = segment_softmax(data, segment_ids)
     else:
         raise TypeError("Unknown segment operation, choose: 'segment_mean', 'segment_sum', ...")
+
+    if max_id is not None:
+        missing_num = tf.expand_dims(max_id, axis=0) - tf.shape(pool)[:1]
+        # out = tf.pad(out,
+        # tf.concat([tf.constant([0], dtype=missing_num), missing_num], axis=0)),
+        # )
+        pool = tf.concat([
+            pool,
+            tf.zeros(tf.concat([missing_num, tf.shape(pool)[1:]], axis=0), dtype=pool.dtype)
+        ], axis=0)
+        # out = tf.scatter_nd(ks.backend.expand_dims(tf.range(tf.shape(pool)[0]), axis=-1), pool,
+        #                     tf.concat([tf.expand_dims(max_id, axis=0), tf.shape(pool)[1:]], axis=0))
     return pool

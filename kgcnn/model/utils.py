@@ -39,33 +39,6 @@ def get_model_class(module_name: str, class_name: str):
     return make_model
 
 
-def generate_embedding(inputs, input_shape: list, embedding_args: dict, embedding_rank: int = 1, **kwargs):
-    r"""Deprecated in favour of :obj:`kgcnn.layers.modules.OptionalInputEmbedding`. Optional embedding for tensor input.
-
-    If there is no feature dimension, an embedding layer can be used.
-    If the input tensor has without batch dimension the shape of e.g. `(None, F)` and `F` is the feature dimension,
-    no embedding layer is required. However, for shape `(None, )` an embedding with `output_dim` assures a vector
-    representation.
-
-    Args:
-        inputs (tf.Tensor): Input tensor to make embedding for.
-        input_shape (list, tuple): Shape of input without batch dimension. Either (None, F) or (None, ).
-        embedding_args (dict): Arguments for embedding layer which will be unpacked in layer constructor.
-        embedding_rank (int): The rank of the input which requires embedding. Default is 1.
-
-    Returns:
-        tf.Tensor: Tensor embedding dependent on the input shape.
-    """
-    if len(kwargs) > 0:
-        module_logger.warning("Unknown embedding kwargs {0}. Will be reserved for future versions.".format(kwargs))
-
-    if len(input_shape) == embedding_rank:
-        n = ks.layers.Embedding(**embedding_args)(inputs)
-    else:
-        n = inputs
-    return n
-
-
 def update_model_kwargs_logic(default_kwargs: dict = None, user_kwargs: dict = None,
                               update_recursive: Union[int, float] = inf):
     r"""Make model kwargs dictionary with updated default values. This is essentially a nested version of update()
@@ -140,3 +113,42 @@ def update_model_kwargs(model_default, update_recursive=inf):
         return update_wrapper
 
     return model_update_decorator
+
+
+def change_attributes_in_all_layers(model, attributes_to_change=None, layer_type=None):
+    r"""Utility/helper function to change the attributes from a dictionary in all layers of a model of a certain type.
+
+    .. warning::
+
+        This function can change attributes but can cause problems for built models. Also take care which attributes
+        you are changing, especially if they include weights. Always check model behaviour after applying this function.
+
+    Args:
+        model (tf.keras.models.Model): Model to modify.
+        attributes_to_change (dict): Dictionary of attributes to change in all layers of a specific type.
+        layer_type: Class type of the layer to change. Default is None.
+
+    Returns:
+        tf.keras.models.Model: Model which has layers with changed attributes.
+    """
+    if model.built:
+        module_logger.warning("Model '%s' has already been built. Set `built=False` and continue." % model.name)
+        model.built = False
+    if attributes_to_change is None:
+        attributes_to_change = {}
+    all_layers = model._flatten_layers(include_self=False, recursive=True)
+    for x in all_layers:
+        if layer_type is not None:
+            if not isinstance(x, layer_type):
+                continue
+        changed_attributes = False
+        for key, value in attributes_to_change.items():
+            if hasattr(x, key):
+                setattr(x, key, value)
+                changed_attributes = True
+        if changed_attributes:
+            if x.built:
+                module_logger.warning(
+                    "Layer '%s' in model has already been built. Set `built=False` and continue." % x.name)
+                x.built = False
+    return model

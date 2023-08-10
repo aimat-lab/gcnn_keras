@@ -3,6 +3,9 @@ v3.1.0
 * Added flexible charge for ``rdkit_xyz_to_mol`` as e.g. list.
 * Added ``from_xyz`` to ``MolecularGraphRDKit`` .
 * Started additional ``kgcnn.molecule.preprocessor`` module for graph preprocessors.
+* BREAKING CHANGES: Renamed module ``kgcnn.layers.pooling`` to ``kgcnn.layers.aggr`` for better compatibility.
+However, kept legacy pooling module and all old ALIAS.
+* Repair bug in ``RelationalMLP`` .
 
 
 v3.0.2
@@ -19,6 +22,8 @@ v3.0.2
   The behaviour of `GatherNodes` has changed a little in that it first splits and then concatenates. The default parameters now have `split_axis` and `concat_axis` set to 2. `concat_indices` has been removed.
   The default behaviour of the layer however stays the same.
 * An error in layer `FracToRealCoordinates` has been fixed and improved speed.
+* Removed deprecated ``kgcnn.model.utils.generate_embedding`` .
+* 
 
 
 v3.0.1
