@@ -119,13 +119,9 @@ PoolingLocalMessages = AggregateLocalEdges
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='AggregateWeightedLocalEdges')
 class AggregateWeightedLocalEdges(AggregateLocalEdges):
-    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
-    corresponding to the receiving node, which is defined by edge indices.
-    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
+    r"""This class inherits from :obj:`AggregateLocalEdges` for aggregating weighted edges.
 
-    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index-tensor, that has a list of
-    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
-    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index` .
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
 
     .. note::
 
@@ -214,13 +210,13 @@ AggregateWeightedLocalMessages = AggregateWeightedLocalEdges
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesLSTM')
 class AggregateLocalEdgesLSTM(AggregateLocalEdges):
-    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
-    corresponding to the receiving node, which is defined by edge indices.
-    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
+    r"""This class inherits from :obj:`AggregateLocalEdges` for aggregating edges via a LSTM.
 
-    Apply LSTM on edges with same target ID taken from the (edge) index_tensor, that has a list of all connections
-    as :math:`(i, j)` . In the default definition for this layer index :math:`i` is expected ot be the  receiving or
-    target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index` .
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
+
+    .. note::
+
+        Apply LSTM on edges with same target ID taken from the (edge) index_tensor. Uses keras LSTM layer internally.
     """
 
     def __init__(self,
@@ -386,8 +382,9 @@ AggregateLocalMessagesLSTM = AggregateLocalEdgesLSTM
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='AggregateLocalEdgesAttention')
 class AggregateLocalEdgesAttention(AggregateLocalEdges):
-    r"""Pooling or aggregation of all edges or edge-like features per node, corresponding to node
-    assigned by edge indices.
+    r"""This class inherits from :obj:`AggregateLocalEdges` for aggregating edges via attention weights.
+
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
 
     Uses attention for pooling. i.e. :math:`n_i =  \sum_j \alpha_{ij} e_{ij}`
     The attention is computed via: :math:`\alpha_ij = \text{softmax}_j (a_{ij})` from the
@@ -395,11 +392,6 @@ class AggregateLocalEdgesAttention(AggregateLocalEdges):
     The attention coefficients must be computed beforehand by edge features or by :math:`\sigma( W n_i || W n_j)` and
     are passed to this layer as input. Thereby this layer has no weights and only does pooling.
     In summary, :math:`n_i = \sum_j \text{softmax}_j (a_{ij}) e_{ij}` is computed by the layer.
-
-    An edge is defined by index tuple :math:`(i, j)` with :math:`i` being the receiving node in the default definition,
-    but can be changed by pooling_index.
-    Important: ID's for segment-operation and for pooling of edges are taken from edge-index-tensor.
-    They are sorted for faster pooling from tensor_index[:, :, pooling_index].
     """
 
     def __init__(self,
@@ -478,12 +470,16 @@ AggregateLocalMessagesAttention = AggregateLocalEdgesAttention
 
 @ks.utils.register_keras_serializable(package='kgcnn', name='RelationalAggregateLocalEdges')
 class RelationalAggregateLocalEdges(AggregateLocalEdges):
-    r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node, per relation,
+    r"""This class inherits from :obj:`AggregateLocalEdges` for aggregating relational edges.
+
+    Please check the documentation of :obj:`AggregateLocalEdges` for more information.
+
+    The main aggregation or pooling layer to collect all edges or edge-like embeddings per node, per relation,
     corresponding to the receiving node, which is defined by edge indices.
 
-    Apply e.g. sum or mean on edges with same target ID taken from the (edge) index tensor, that has a list of
-    all connections as :math:`(i, j)`. In the default definition for this layer index :math:`i` is expected ot be the
-    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index`.
+    .. note::
+
+        An edge relation tensor must be provided which specifies the relation for each edge.
     """
 
     def __init__(self, num_relations: int,
@@ -559,5 +555,3 @@ class RelationalAggregateLocalEdges(AggregateLocalEdges):
 
 RelationalPoolingLocalEdges = RelationalAggregateLocalEdges
 RelationalAggregateLocalMessages = RelationalAggregateLocalEdges
-
-
