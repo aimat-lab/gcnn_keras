@@ -11,14 +11,20 @@ ks = tf.keras
 class AggregateLocalEdges(GraphBaseLayer):
     r"""The main aggregation or pooling layer to collect all edges or edge-like embeddings per node,
     corresponding to the receiving node, which is defined by edge indices.
-    The term pooling is here used as aggregating rather than reducing the graph as in graph pooling.
 
     Apply e.g. sum or mean on edges with same target ID taken from the (edge) index tensor, that has a list of
     all connections as :math:`(i, j)` . In the default definition for this layer index :math:`i` is expected ot be the
-    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index` .
+    receiving or target node (in standard case of directed edges). This can be changed by setting :obj:`pooling_index` ,
+    i.e. `index_tensor[:, :, pooling_index]` to get the indices to aggregate the edges with.
 
-    Note: index_tensor[:, :, pooling_index] is sorted for the subsequent segment-operation.
+    .. note::
 
+         You can choose whether to use scatter or segment operation by 'scatter_sum' or 'segment_sum'. If leaving it up
+         to the layer just specify 'sum'. Note that for segment operation, the indices should be sorted. If
+         `is_sorted` is set to `False` , indices are always sorted by default which will cost performance. If
+         `is_sorted` is `True` segment operation are usually most efficient. Note that some layers in
+         :obj:`kgcnn.layers.aggr` , that inherit from this layer, only support segment or scatter operation for
+         aggregation. Having sorted indices with `is_sorted` to `True` is therefore favourable.
     """
 
     def __init__(self,
@@ -57,7 +63,14 @@ class AggregateLocalEdges(GraphBaseLayer):
 
     def _aggregate(self, nodes, edges, receive_indices):
         # Aggregate via scatter ops.
-        if not self.is_sorted and self.pooling_method in supported_scatter_modes:
+        if "scatter" in self.pooling_method:
+            _use_scatter = True
+        elif not self.is_sorted and self.pooling_method in supported_scatter_modes:
+            _use_scatter = True
+        else:
+            _use_scatter = False
+
+        if _use_scatter:
             return tensor_scatter_nd_ops_by_name(
                 self.pooling_method,
                 tf.zeros(tf.concat([tf.shape(nodes)[:1], tf.shape(edges)[1:]], axis=0), dtype=edges.dtype),
