@@ -248,7 +248,7 @@ class ScalarProduct(GraphBaseLayer):
         self.axis = axis
 
     @staticmethod
-    def _scalar_product(inputs: list, axis: int, **kwargs):
+    def _scalar_product(inputs: list, axis: int):
         """Compute scalar product.
 
         Args:
@@ -1101,7 +1101,6 @@ class RealToFracCoordinates(GraphBaseLayer):
         if not self.is_inverse_lattice_matrix:
             inv_lattice_matrices = tf.linalg.inv(inv_lattice_matrices)
         inv_lattice_matrices_ = tf.repeat(inv_lattice_matrices, real_coordinates.row_lengths(), axis=0)
-        # frac_to_real = tf.einsum('ij,ijk->ik', frac_coords.values, lattice_matrices_)
         real_to_frac_coords = ks.backend.batch_dot(real_coordinates.values, inv_lattice_matrices_)
         return tf.RaggedTensor.from_row_splits(
             real_to_frac_coords, real_coordinates.row_splits, validate=self.ragged_validate)

@@ -253,7 +253,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
     # Similar functions that work on dataset plus property names.
     # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], y: List[str] = None, X: str = None,
+    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], y: List[str], X: str,
                     atomic_number: str = None, sample_weight: str = None,  **fit_params):
         r"""Fit to dataset with relevant `X` , `y` information.
 
@@ -280,7 +280,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
     # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None, y: List[str] = None, atomic_number: str = None, copy: bool = True,
+                          y: List[str], X: str, atomic_number: str = None, copy: bool = True,
                           copy_dataset: bool = False,
                           ) -> List[Dict[str, np.ndarray]]:
         r"""Transform dataset with relevant `X` , `y` information.
@@ -313,7 +313,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
     # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  y: List[str] = None, X: str = None, atomic_number: str = None, copy: bool = True,
+                                  y: List[str], X: str, atomic_number: str = None, copy: bool = True,
                                   copy_dataset: bool = False,
                                   ) -> List[Dict[str, np.ndarray]]:
         r"""Inverse transform dataset with relevant `X` , `y` information.
@@ -346,7 +346,7 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
 
     # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              y: List[str] = None, X: str = None,
+                              y: List[str], X: str,
                               atomic_number: str = None, sample_weight: str = None, copy: bool = True,
                               copy_dataset: bool = False,
                               **fit_params) -> List[Dict[str, np.ndarray]]:
