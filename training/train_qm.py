@@ -41,13 +41,11 @@ tf.keras.utils.set_random_seed(args["seed"])
 # Assigning GPU.
 set_devices_gpu(args["gpu"])
 
-
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(
     hyper_info=args["hyper"], hyper_category=args["category"],
     model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"])
 hyper.verify()
-
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `QM9Dataset`
