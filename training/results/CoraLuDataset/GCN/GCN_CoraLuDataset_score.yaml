@@ -11,7 +11,7 @@ categorical_accuracy:
 - 0.9916935563087463
 - 0.9944623708724976
 data_unit: ''
-date_time: '2023-08-30 15:07:02'
+date_time: '2023-08-30 15:17:03'
 epochs:
 - 300
 - 300

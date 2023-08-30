@@ -23,7 +23,7 @@ from kgcnn.utils.devices import set_devices_gpu
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_cora_lu.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -32,16 +32,16 @@ parser.add_argument("--seed", required=False, help="Set random seed.", default=4
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Assigning GPU.
-set_devices_gpu(args["gpu"])
-
 # Set seed.
 np.random.seed(args["seed"])
 tf.random.set_seed(args["seed"])
 tf.keras.utils.set_random_seed(args["seed"])
 
+# Assigning GPU.
+set_devices_gpu(args["gpu"])
+
 # A class `HyperParameter` is used to expose and verify hyperparameter.
-# The hyperparameter is stored as a dictionary with section 'model', 'data' and 'training'.
+# The hyperparameter is stored as a dictionary with section 'model', 'dataset' and 'training'.
 hyper = HyperParameter(
     hyper_info=args["hyper"], hyper_category=args["category"],
     model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"])

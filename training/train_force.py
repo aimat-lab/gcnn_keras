@@ -12,7 +12,7 @@ import kgcnn.training.scheduler
 from kgcnn.training.history import save_history_score
 from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
-from kgcnn.model.utils import get_model_class
+from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, RaggedScaledMeanAbsoluteError
@@ -24,44 +24,32 @@ from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
-parser.add_argument("--model", required=False, help="Name of graph model to train.", default="Schnet")
-parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MD17RevisedDataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17_revised.py")
-parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="EnergyForceModel")
-parser.add_argument("--module", required=False, help="Name of the module for model.",
-                    default="kgcnn.model.force")
-parser.add_argument("--gpu", required=False, help="GPU index used for training.",
-                    default=None, nargs="+", type=int)
-parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
-                    default=None, nargs="+", type=int)
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.make_crystal_model")
+parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
+parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
+parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
+parser.add_argument("--module", required=False, help="Name of the module for model.", default=None )
+parser.add_argument("--gpu", required=False, help="GPU index used for training.", default=None, nargs="+", type=int)
+parser.add_argument("--fold", required=False, help="Split or fold indices to run.", default=None, nargs="+", type=int)
+parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Main parameter about model, dataset, and hyper-parameter
-model_name = args["model"]
-dataset_name = args["dataset"]
-hyper_path = args["hyper"]
-make_function = args["make"]
-gpu_to_use = args["gpu"]
-execute_folds = args["fold"]
-model_module = args["module"]
+# Set seed.
+np.random.seed(args["seed"])
+tf.random.set_seed(args["seed"])
+tf.keras.utils.set_random_seed(args["seed"])
 
 # Assigning GPU.
-set_devices_gpu(gpu_to_use)
+set_devices_gpu(args["gpu"])
 
 # HyperParameter is used to store and verify hyperparameter.
-hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name,
-                       model_module=model_module)
+hyper = HyperParameter(
+    hyper_info=args["hyper"], hyper_category=args["category"],
+    model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"], model_module=args["module"])
 hyper.verify()
-
-# Model Selection to load a model definition from a module in kgcnn.literature
-try:
-    make_model = get_model_class(model_name, make_function)
-except (ModuleNotFoundError, AttributeError):
-    make_model = get_model_class(hyper["model"]["module_name"], hyper["model"]["class_name"])
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # However, the construction must be fully defined in the data section of the hyperparameter,
@@ -74,29 +62,19 @@ dataset = deserialize_dataset(hyper["data"]["dataset"])
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
 # Example 'edge_indices' or 'node_attributes'. This couples the keras model to the dataset.
-if "nested_model_config" in hyper["model"]["config"]:
-    # This is for Model containing the config within config.
-    model_config = hyper["model"]["config"]["model_energy"]["config"]
-else:
-    model_config = hyper["model"]["config"]
-dataset.assert_valid_model_input(model_config["inputs"])
+dataset.assert_valid_model_input(hyper["model"]["config"]["inputs"])
 
 # Filter the dataset for invalid graphs. At the moment invalid graphs are graphs which do not have the property set,
 # which is required by the model's input layers, or if a tensor-like property has zero length.
-dataset.clean(model_config["inputs"])
+dataset.clean(hyper["model"]["config"]["inputs"])
 data_length = len(dataset)  # Length of the cleaned dataset.
 
-# For ForceDataset, train on energy and force output, also the atomic number is required
-# to properly pre-scale extensive quantities like total energy.
-# The name of coordinates, atoms, force and energy graph property must be provided in hyperparameter.
-target_names = hyper["training"]["target_property_names"]
-
 # Check that energy has at least one feature dimensions for e.g. multiple states.
-energy = dataset.get(target_names["energy"])
+energy = dataset.get("energy")
 energy = np.array(energy)  # can handle energy as numpy array.
 if len(energy.shape) <= 1:
     energy = np.expand_dims(energy, axis=-1)
-dataset.set(target_names["energy"], energy.tolist())
+dataset.set("energy", energy.tolist())
 
 # Training on multiple targets for regression. This can is often required to train on orbital energies of ground
 # or excited state or energies and enthalpies etc.
@@ -133,6 +111,7 @@ if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
 history_list, test_indices_list = [], []
+train_indices_all, test_indices_all = [], []
 model, hist, x_test, scaler = None, None, None, None
 for i, (train_index, test_index) in enumerate(train_test_indices):
 
@@ -144,7 +123,7 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.
-    model = make_model(**hyper["model"]["config"])
+    model = deserialize_model(hyper["model"])
 
     # First select training and test graphs from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
@@ -157,7 +136,7 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         print("Using `EnergyForceExtensiveLabelScaler`.")
 
         # Atomic number force and energy argument here!
-        scaler_io = {"X": target_names["atomic_number"], "y": [target_names["energy"], target_names["force"]]}
+        scaler_io = {"X": "atomic_number", "y": ["energy", "force"]}
 
         scaler = EnergyForceExtensiveLabelScaler(**hyper["training"]["scaler"]["config"])
         scaler.fit_dataset(dataset_train, **scaler_io)
@@ -178,8 +157,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         metrics = None
 
     # Convert dataset to tensor information for model.
-    x_train = dataset_train.tensor(model_config["inputs"])
-    x_test = dataset_test.tensor(model_config["inputs"])
+    x_train = dataset_train.tensor(model["config"]["inputs"])
+    x_test = dataset_test.tensor(model["config"]["inputs"])
 
     # Compile model with optimizer and loss
     model.compile(
@@ -189,8 +168,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Convert targets into tensors.
     labels_in_dataset = {
-        "energy": {"name": target_names["energy"], "ragged": False},
-        "force": {"name": target_names["force"], "shape": (None, 3), "ragged": True}
+        "energy": {"name": "energy", "ragged": False},
+        "force": {"name": "force", "shape": (None, 3), "ragged": True}
     }
     y_train = dataset_train.tensor(labels_in_dataset)
     y_test = dataset_test.tensor(labels_in_dataset)
@@ -250,6 +229,8 @@ hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                   model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
+                   model_class=make_function,
+                   multi_target_indices=multi_target_indices,
+                   execute_folds=execute_folds,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml",
                    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None))
