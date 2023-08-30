@@ -15,7 +15,7 @@ hyper = {
                     "config": {
                         "name": "SchnetEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                         ],
@@ -38,9 +38,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -65,6 +62,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
                                   "node_coordinates": "R"}}
                 ]
@@ -92,7 +92,7 @@ hyper = {
                     "config": {
                         "name": "PAiNNEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                         ],
@@ -108,9 +108,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -146,6 +143,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
                                   "node_coordinates": "R"}}
                 ]
@@ -172,7 +172,7 @@ hyper = {
                     "class_name": "make_model",
                     "config": {
                         "name": "DimeNetPPEnergy",
-                        "inputs": [{"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                                    {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
@@ -195,9 +195,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 10, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -233,6 +230,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
                                   "node_coordinates": "R"}},
                     {"map_list": {"method": "set_angle", "node_coordinates": "R"}}
@@ -261,7 +261,7 @@ hyper = {
                     "class_name": "make_model",
                     "config": {
                         "name": "NMPNEnergy",
-                        "inputs": [{"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                         "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
@@ -281,9 +281,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -308,6 +305,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
                                   "node_coordinates": "R"}}
                 ]
@@ -336,7 +336,7 @@ hyper = {
                     "config": {
                         "name": "MegnetEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "z", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                             {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
@@ -360,9 +360,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -387,6 +384,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "principal_moments_of_inertia", "node_mass": "z", "node_coordinates": "R"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
                                   "node_coordinates": "R"}}
@@ -415,7 +415,7 @@ hyper = {
                     "module_name": "kgcnn.literature.MXMNet",
                     "config": {
                         "name": "MXMNetEnergy",
-                        "inputs": [{"shape": (None,), "name": "z", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": (None,), "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 3), "name": "R", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
@@ -449,9 +449,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -476,6 +473,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     # we have to make edges via range cutoff.
                     {"map_list": {"method": "set_range", "max_distance": 2.0, "max_neighbours": 1000,
                                   "node_coordinates": "R", "range_indices": "edge_indices",
@@ -550,9 +550,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "E", "force": "F", "atomic_number": "z",
-                "coordinates": "R"},
             "train_test_indices": {"train": "train", "test": "test"},
             "fit": {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -577,6 +574,9 @@ hyper = {
                     "trajectory_name": "aspirin_ccsd"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "E", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "F", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "z", "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "atomic_charge_representation", "node_number": "z"}},
                     {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000,
                                   "node_coordinates": "R"}}

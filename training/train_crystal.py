@@ -109,7 +109,10 @@ train_test_indices = [
 num_folds = len(train_test_indices)
 splits_done = 0
 time_list = []
+train_indices_all, test_indices_all = [], []
 for current_fold, (train_index, test_index) in enumerate(train_test_indices):
+    test_indices_all.append(test_index)
+    train_indices_all.append(train_index)
 
     # Only do execute_splits out of the k-folds of cross-validation.
     if execute_folds:
@@ -211,5 +214,5 @@ hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                    model_class=hyper.model_class, multi_target_indices=multi_target_indices,
-                   execute_folds=execute_folds,
+                   execute_folds=execute_folds,seed=args["seed"],
                    filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list)

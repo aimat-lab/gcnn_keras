@@ -114,6 +114,8 @@ history_list, test_indices_list = [], []
 train_indices_all, test_indices_all = [], []
 model, hist, x_test, scaler = None, None, None, None
 for i, (train_index, test_index) in enumerate(train_test_indices):
+    test_indices_all.append(test_index)
+    train_indices_all.append(train_index)
 
     # Only do execute_splits out of the k-folds of cross-validation.
     if execute_folds:
@@ -215,7 +217,8 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{hyper.model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file}.npz"), *train_indices_all)
 
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
@@ -231,6 +234,6 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                    model_class=hyper.model_class,
                    multi_target_indices=multi_target_indices,
-                   execute_folds=execute_folds,
+                   execute_folds=execute_folds,seed=args["seed"],
                    filepath=filepath, file_name=f"score{postfix_file}.yaml",
                    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None))
