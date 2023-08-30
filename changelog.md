@@ -7,7 +7,9 @@ v3.1.0
 However, kept legacy pooling module and all old ALIAS.
 * Repair bug in ``RelationalMLP`` .
 * `HyperParameter` is not verified on initialize anymore, just call `hyper.verify()`.
-* Moved losses from `kgcnn.metrics.loss` into separate modul ``kgcnn.losses`` to be more compatible with keas.
+* Moved losses from `kgcnn.metrics.loss` into separate modul ``kgcnn.losses`` to be more compatible with keras.
+* Reworked training scripts especially to simplify command line arguments and strengthen hyperparameter.
+* Started with potential keras-core port. Not yet tested or supported. 
 
 
 v3.0.2

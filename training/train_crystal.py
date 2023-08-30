@@ -24,7 +24,7 @@ from kgcnn.utils.devices import set_devices_gpu
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
-                    default="hyper/hyper_cora.py")
+                    default="hyper/hyper_mp_jdft2d.py")
 parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.make_crystal_model")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)

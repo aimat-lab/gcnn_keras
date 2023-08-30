@@ -197,17 +197,17 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
         true_y = dataset_test.tensor(labels_in_dataset)
 
         predicted_y = scaler.inverse_transform(
-            y=(predicted_y["energy"], predicted_y["force"]), X=dataset_test.get(target_names["atomic_number"]))
+            y=(predicted_y["energy"], predicted_y["force"]), X=dataset_test.get("atomic_number"))
 
     plot_predict_true(np.array(predicted_y[0]), np.array(true_y["energy"]),
                       filepath=filepath, data_unit=label_units,
-                      model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                      model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png")
 
     plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
                       np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
                       filepath=filepath, data_unit=label_units,
-                      model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                      model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict_force{postfix_file}_fold_{splits_done}.png")
 
     # Save keras-model to output-folder.
@@ -215,21 +215,21 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
 
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
+                     model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Save hyperparameter again, which were used for this fit.
-hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
+hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
-                   model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                   model_class=make_function,
+                   model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+                   model_class=hyper.model_class,
                    multi_target_indices=multi_target_indices,
                    execute_folds=execute_folds,
                    filepath=filepath, file_name=f"score{postfix_file}.yaml",

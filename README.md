@@ -13,7 +13,14 @@
   <img src="https://github.com/aimat-lab/gcnn_keras/blob/master/docs/source/_static/icon.svg" height="80"/>
 </p>
 
-A set of layers for graph convolutions in TensorFlow Keras that use RaggedTensors.
+A set of layers for graph convolutions in Keras.
+
+> [!IMPORTANT]  
+> The versions of kgcnn<=3.1.0 were focused on ragged tensors of tensorflow. With keras as multi backend framework, 
+> we plan to port kgcnn to keras-core for version kgcnn==4.0.0. 
+> This means kgcnn models and layers can be used with tensorflow, jax and pytorch as backend in the future.
+> This means however, that layers and tensor representation will change. However, the workflow, weights and frontend behaviour should remain the same.
+> We will try to make kgcnn also more compatible with e.g. PytorchGeometric.
 
 [General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
  | [Literature](#literature) | [Data](#data)  | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)
