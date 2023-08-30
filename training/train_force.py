@@ -107,6 +107,7 @@ postfix_file = hyper["info"]["postfix_file"]
 
 # Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
+execute_folds = args["fold"]
 if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
@@ -234,6 +235,6 @@ save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                    model_class=hyper.model_class,
                    multi_target_indices=multi_target_indices,
-                   execute_folds=execute_folds,seed=args["seed"],
+                   execute_folds=execute_folds, seed=args["seed"],
                    filepath=filepath, file_name=f"score{postfix_file}.yaml",
                    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None))

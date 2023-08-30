@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 import matplotlib as mpl
 # mpl.use('Agg')
 import time
@@ -13,44 +14,40 @@ from kgcnn.training.history import save_history_score
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
-from kgcnn.model.utils import get_model_class
+from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
 from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a QMDataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
-parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="QM7Dataset")
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_qm7.py")
-parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_model")
-parser.add_argument("--gpu", required=False, help="GPU index used for training.",
-                    default=None, nargs="+", type=int)
-parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
-                    default=None, nargs="+", type=int)
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GAT")
+parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
+parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
+parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
+parser.add_argument("--gpu", required=False, help="GPU index used for training.", default=None, nargs="+", type=int)
+parser.add_argument("--fold", required=False, help="Split or fold indices to run.", default=None, nargs="+", type=int)
+parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Main parameter about model, dataset, and hyper-parameter
-model_name = args["model"]
-dataset_name = args["dataset"]
-hyper_path = args["hyper"]
-make_function = args["make"]
-gpu_to_use = args["gpu"]
-execute_folds = args["fold"]
+# Set seed.
+np.random.seed(args["seed"])
+tf.random.set_seed(args["seed"])
+tf.keras.utils.set_random_seed(args["seed"])
 
 # Assigning GPU.
-set_devices_gpu(gpu_to_use)
+set_devices_gpu(args["gpu"])
+
 
 # HyperParameter is used to store and verify hyperparameter.
-hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
+hyper = HyperParameter(
+    hyper_info=args["hyper"], hyper_category=args["category"],
+    model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"])
 hyper.verify()
 
-# Model Selection to load a model definition from a module in kgcnn.literature
-make_model = get_model_class(model_name, make_function)
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `QM9Dataset`
@@ -107,13 +104,16 @@ else:
 
 # Training on splits. Since training on QM datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
+execute_folds = args["fold"]
 if "execute_folds" in hyper["training"]:
     execute_folds = hyper["training"]["execute_folds"]
 splits_done = 0
-history_list, test_indices_list = [], []
+history_list = []
 model, hist, x_test, y_test, scaler, atoms_test = None, None, None, None, None, None
-
+train_indices_all, test_indices_all = [], []
 for i, (train_index, test_index) in enumerate(train_test_indices):
+    test_indices_all.append(test_index)
+    train_indices_all.append(train_index)
 
     # Only do execute_splits out of the k-folds of cross-validation.
     if execute_folds:
@@ -123,7 +123,7 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.
-    model = make_model(**hyper["model"]["config"])
+    model = deserialize_model(hyper["model"])
 
     # First select training and test graphs from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
@@ -170,7 +170,6 @@ for i, (train_index, test_index) in enumerate(train_test_indices):
 
     # Get loss from history
     history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
     splits_done = splits_done + 1
 
 # Make output directory
@@ -180,7 +179,7 @@ postfix_file = hyper["info"]["postfix_file"]
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
+                     model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Plot prediction
@@ -193,20 +192,22 @@ if scaler:
 
 plot_predict_true(predicted_y, true_y,
                   filepath=filepath, data_unit=label_units,
-                  model_name=model_name, dataset_name=dataset_name, target_names=label_names,
+                  model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                   file_name=f"predict{postfix_file}.png")
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, f"model{postfix_file}"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file}.npz"), *train_indices_all)
 
 # Save hyperparameter again, which were used for this fit.
-hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
+hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
-                   model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                   model_class=make_function, multi_target_indices=multi_target_indices, execute_folds=execute_folds,
+                   model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+                   model_class=hyper.model_class, multi_target_indices=multi_target_indices,
+                   execute_folds=execute_folds, seed=args["seed"],
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")

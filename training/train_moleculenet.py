@@ -79,7 +79,7 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 time_list = []
-history_list, test_indices_list, model, hist, x_test, y_test, scaler = [], [], None, None, None, None, None
+history_list, model, hist, x_test, y_test, scaler = [], None, None, None, None, None
 train_indices_all, test_indices_all = [], []
 for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
     test_indices_all.append(test_index)
@@ -132,7 +132,6 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
 
     # Get loss from history.
     history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
 
 # Make output directory. This can further be adapted in hyperparameter.
 filepath = hyper.results_file_path()

@@ -6,6 +6,11 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
                 "nested_model_config": True,
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
@@ -86,6 +91,11 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.PAiNN",
@@ -167,6 +177,10 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "module_name": "kgcnn.literature.DimeNetPP",
                     "class_name": "make_model",
@@ -256,6 +270,9 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "module_name": "kgcnn.literature.NMPN",
                     "class_name": "make_model",
@@ -330,6 +347,12 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "R", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
+                ],
                 "model_energy": {
                     "module_name": "kgcnn.literature.Megnet",
                     "class_name": "make_model",
@@ -410,6 +433,13 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": (None,), "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "R", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.MXMNet",
@@ -512,6 +542,10 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "R", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "module_name": "kgcnn.literature.EGNN",
                     "class_name": "make_model",
