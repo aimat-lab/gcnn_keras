@@ -34,9 +34,11 @@ print("Input of argparse:", args)
 
 # Assigning GPU.
 set_devices_gpu(args["gpu"])
-# Set seed.
-tf.random.set_seed(args["seed"])
 
+# Set seed.
+np.random.seed(args["seed"])
+tf.random.set_seed(args["seed"])
+tf.keras.utils.set_random_seed(args["seed"])
 
 # A class `HyperParameter` is used to expose and verify hyperparameter.
 # The hyperparameter is stored as a dictionary with section 'model', 'data' and 'training'.
