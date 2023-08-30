@@ -26,7 +26,7 @@ from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
                     default="hyper/hyper_md17_revised.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.make_crystal_model")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
