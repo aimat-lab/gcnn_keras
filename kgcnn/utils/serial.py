@@ -45,7 +45,7 @@ def deserialize(obj_dict: dict) -> Any:
         obj = obj_class(**config)
     except ModuleNotFoundError:
         raise NotImplementedError(
-            "Unknown identifier %s, which is not in modules in kgcnn" % class_name)
+            "Unknown identifier '%s', which is not in modules in kgcnn." % class_name)
 
     if hasattr(obj, "set_weights") and "weights" in obj_dict:
         obj.set_weights(obj_dict["weights"])

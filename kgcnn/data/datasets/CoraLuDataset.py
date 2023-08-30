@@ -60,15 +60,15 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
         filepath = os.path.join(self.data_main_dir, self.data_directory_name, self.unpack_directory_name, "cora")
 
         ids = np.loadtxt(os.path.join(filepath, "cora.cites"))
-        ids = np.array(ids, np.int)
+        ids = np.array(ids, dtype="int64")
         open_file = open(os.path.join(filepath, "cora.content"), "r")
         lines = open_file.readlines()
         labels = [x.strip().split('\t')[-1] for x in lines]
         nodes = [x.strip().split('\t')[0:-1] for x in lines]
-        nodes = np.array([[int(y) for y in x] for x in nodes], dtype=np.int)
+        nodes = np.array([[int(y) for y in x] for x in nodes], dtype="int64")
         open_file.close()
         # Match edge_indices not with ids but with edge_indices in nodes
-        node_map = np.zeros(np.max(nodes[:, 0]) + 1, dtype=np.int)
+        node_map = np.zeros(np.max(nodes[:, 0]) + 1, dtype="int64")
         idx_new = np.arange(len(nodes))
         node_map[nodes[:, 0]] = idx_new
         indexlist = node_map[ids]
@@ -86,9 +86,9 @@ class CoraLuDataset(DownloadDataset, MemoryGraphDataset):
                                'Neural_Networks': 6}
         self.class_label_mapping = class_label_mapping
 
-        label_id = np.array([class_label_mapping[x] for x in labels], dtype=np.int)
+        label_id = np.array([class_label_mapping[x] for x in labels], dtype="int")
         labels = np.expand_dims(label_id, axis=-1)
-        labels = np.array(labels == np.arange(7), dtype=np.float)
+        labels = np.array(labels == np.arange(7), dtype="float")
 
         self.assign_property("node_attributes", [nodes[:, 1:]])
         self.assign_property("edge_indices", [indices])

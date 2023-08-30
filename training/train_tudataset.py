@@ -46,6 +46,7 @@ set_devices_gpu(gpu_to_use)
 # A class `HyperParameter` is used to expose and verify hyperparameter.
 # The hyperparameter, a dictionary with section 'model', 'data' and 'training'.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
+hyper.verify()
 
 # With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
 # At the moment there is a `make_model()` function in each module that sets up a keras model within the functional API

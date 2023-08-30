@@ -223,7 +223,12 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
             raise ValueError("`EnergyForceExtensiveLabelScaler` requires 'y' argument, but got 'None'.")
         if force is not None:
             self._use_separate_input_arguments = True
-            energy, forces = y, force
+            if len(force) == len(y):
+                energy, forces = y, force
+            elif len(y) == 2:
+                energy, forces = y[0], force
+            else:
+                raise ValueError("Energy and forces do not match.")
         else:
             self._use_separate_input_arguments = False
             energy, forces = y

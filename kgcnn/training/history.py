@@ -30,6 +30,7 @@ def save_history_score(
         execute_folds: Union[list, int, None] = None,
         multi_target_indices: Union[list, int, None] = None,
         trajectory_name: str = None,
+        seed: int = None,
         time_list: list = None
 ):
     r"""Save fit results from fit histories to file.
@@ -50,6 +51,7 @@ def save_history_score(
         execute_folds (list, int): Folds which where executed.
         multi_target_indices (list): List of indices for multi target training. Default is None.
         trajectory_name (str): Name of the trajectory if known. Default is None.
+        seed (int): Random seed to log. Default is None.
         time_list (list): List of training time info.
 
     Returns:
@@ -105,10 +107,11 @@ def save_history_score(
     result_dict["multi_target_indices"] = multi_target_indices
     result_dict["execute_folds"] = execute_folds
     result_dict["time_list"] = time_list
+    result_dict["seed"] = seed
     if trajectory_name:
         result_dict["trajectory_name"] = trajectory_name
 
     if filepath is not None:
-        save_yaml_file(result_dict, os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))
+        save_yaml_file(result_dict, os.path.join(filepath, "%s_%s_%s" % (model_name, dataset_name, file_name)))
 
     return result_dict

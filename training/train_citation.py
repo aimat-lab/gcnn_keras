@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 import os
 import time
+import tensorflow as tf
 from tensorflow_addons import optimizers
 from datetime import timedelta
 import kgcnn.training.schedule
@@ -13,47 +14,40 @@ from sklearn.model_selection import KFold
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.training.hyper import HyperParameter
 from kgcnn.data.serial import deserialize as deserialize_dataset
-from kgcnn.model.utils import get_model_class
+from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.utils.devices import set_devices_gpu
 
-# Input arguments from command line with default values from example.
-# From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
-# for training and model setup.
+# Input arguments from command line.
+# From command line, one must specify hyperparameter config file and optionally a category.
+# Model and dataset information are optional.
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
-parser.add_argument("--model", required=False, help="Graph model to train.", default="GIN")
-parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="CoraDataset")
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_cora.py")
-parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_model")
-parser.add_argument("--gpu", required=False, help="GPU index used for training.",
-                    default=None, nargs="+", type=int)
+parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
+                    default="hyper/hyper_cora_lu.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
+parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
+parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
+parser.add_argument("--gpu", required=False, help="GPU index used for training.", default=None, nargs="+", type=int)
+parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
-# Get name for model, dataset, and path to a hyperparameter file.
-model_name = args["model"]
-dataset_name = args["dataset"]
-hyper_path = args["hyper"]
-make_function = args["make"]
-gpu_to_use = args["gpu"]
-
 # Assigning GPU.
-set_devices_gpu(gpu_to_use)
+set_devices_gpu(args["gpu"])
+# Set seed.
+tf.random.set_seed(args["seed"])
 
-# A class `HyperSelection` is used to expose and verify hyperparameter.
-# The hyperparameter are stored as a dictionary with section 'model', 'data' and 'training'.
-hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
 
-# With `ModelSelection` a model definition from a module in kgcnn.literature can be loaded.
-# At the moment there is a `make_model()` function in each module that sets up a keras model within the functional API
-# of tensorflow-keras.
-make_model = get_model_class(model_name, make_function)
+# A class `HyperParameter` is used to expose and verify hyperparameter.
+# The hyperparameter is stored as a dictionary with section 'model', 'data' and 'training'.
+hyper = HyperParameter(
+    hyper_info=args["hyper"], hyper_category=args["category"],
+    model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"])
+hyper.verify()
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `CoraLuDataset`
-dataset = deserialize_dataset(hyper["data"]["dataset"])
+dataset = deserialize_dataset(hyper["dataset"])
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.
@@ -81,12 +75,12 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
-history_list, test_indices_list, model, hist = [], [], None, None
+history_list, train_indices_all, test_indices_all, model, hist = [], [], [], None, None
 for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
 
     # Make the model for current split using model kwargs from hyperparameter.
     # They are always updated on top of the models default kwargs.
-    model = make_model(**hyper["model"]["config"])
+    model = deserialize_model(hyper["model"])
 
     # For semi-supervised learning with keras, revert to mask to hide nodes during training and for validation.
     val_mask = np.zeros_like(labels[0][:, 0])
@@ -104,17 +98,19 @@ for train_index, test_index in kf.split(X=np.arange(len(labels[0]))[:, None]):
 
     # Run keras model-fit and take time for training.
     start = time.time()
-    hist = model.fit(x_train, y_train,
-                     validation_data=(x_train, y_train, val_mask),
-                     sample_weight=train_mask,  # Hide validation data!
-                     **hyper.fit(epochs=100, validation_freq=10)
-                     )
+    hist = model.fit(
+        x_train, y_train,
+        validation_data=(x_train, y_train, val_mask),
+        sample_weight=train_mask,  # Hide validation data!
+        **hyper.fit(epochs=100, validation_freq=10)
+    )
     stop = time.time()
     print("Print Time for training: ", stop - start)
 
     # Get loss from history
     history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
+    test_indices_all.append(test_index)
+    train_indices_all.append(train_index)
 
 # Make output directory. This can further be changed in hyperparameter.
 filepath = hyper.results_file_path()
@@ -122,21 +118,22 @@ postfix_file = hyper["info"]["postfix_file"]
 
 # Plot training- and test-loss vs epochs for all splits.
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=model_name, data_unit="", dataset_name=dataset_name, filepath=filepath,
+                     model_name=hyper.model_name, data_unit="", dataset_name=hyper.dataset_class, filepath=filepath,
                      file_name=f"loss{postfix_file}.png")
 
 # Save keras-model to output-folder.
 model.save(os.path.join(filepath, f"model{postfix_file}"))
 
 # Save original data indices of the splits.
-np.savez(os.path.join(filepath, f"{model_name}_kfold_splits{postfix_file}.npz"), test_indices_list)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
+np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file}.npz"), *train_indices_all)
 
 # Save hyperparameter again, which were used for this fit.
-hyper.save(os.path.join(filepath, f"{model_name}_hyper{postfix_file}.json"))
+hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
 save_history_score(history_list, loss_name=None, val_loss_name=None,
-                   model_name=model_name, data_unit=data_unit, dataset_name=dataset_name,
-                   model_class=make_function,
+                   model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+                   model_class=hyper.model_class, seed=args["seed"],
                    filepath=filepath, file_name=f"score{postfix_file}.yaml")

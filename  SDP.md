@@ -5,8 +5,8 @@ Software Development Plan (SDP)
 * [ ] Test and improve code for ``kgcnn.crystal`` . 
 * [ ] Make pretty loop update in `kgcnn.datasets` .
 * [ ] Rework and simplify training scripts.
-* [ ] Add graph preprocessor from standard dictionary scheme also for ``crystal`` and `molecule` .
-* [ ] Rework and clean base layers.
+* [x] Add graph preprocessor from standard dictionary scheme also for ``crystal`` and `molecule` .
+* [x] Rework and clean base layers.
 * [ ] Add a properly designed transformer layer in ``kgcnn.layers`` .
 * [ ] Add a loader for ``Graphlist`` apart from tensor files. Must change dataformat for standard save.
 * [ ] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .

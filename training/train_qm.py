@@ -47,6 +47,7 @@ set_devices_gpu(gpu_to_use)
 
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
+hyper.verify()
 
 # Model Selection to load a model definition from a module in kgcnn.literature
 make_model = get_model_class(model_name, make_function)

@@ -6,6 +6,8 @@ v3.1.0
 * BREAKING CHANGES: Renamed module ``kgcnn.layers.pooling`` to ``kgcnn.layers.aggr`` for better compatibility.
 However, kept legacy pooling module and all old ALIAS.
 * Repair bug in ``RelationalMLP`` .
+* `HyperParameter` is not verified on initialize anymore, just call `hyper.verify()`.
+* Moved losses from `kgcnn.metrics.loss` into separate modul ``kgcnn.losses`` to be more compatible with keas.
 
 
 v3.0.2

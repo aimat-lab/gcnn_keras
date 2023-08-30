@@ -22,13 +22,12 @@ from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on a CrystalDataset.')
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_mp_jdft2d.py")
-parser.add_argument("--dataset", required=False, help="Name of the dataset or leave empty for custom dataset.",
-                    default="MatProjectJdft2dDataset")
-parser.add_argument("--model", required=False, help="Graph model to train.", default="Schnet")
-parser.add_argument("--make", required=False, help="Name of the make function or class for model.",
-                    default="make_crystal_model")
+parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
+                    default="hyper/hyper_cora.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GIN")
+parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
+parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
+parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
 parser.add_argument("--gpu", required=False, help="GPU index used for training.",
                     default=None, nargs="+", type=int)
 parser.add_argument("--fold", required=False, help="Split or fold indices to run.",
@@ -49,6 +48,7 @@ set_devices_gpu(gpu_to_use)
 
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name)
+hyper.verify()
 
 # Model Selection to load a model definition from a module in kgcnn.literature
 make_model = get_model_class(model_name, make_function)

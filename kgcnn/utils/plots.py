@@ -77,7 +77,7 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
                     )
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.title(dataset_name + " training curve for " + model_name)
+    plt.title("%s training curve for %s" % (dataset_name, model_name))
     plt.legend(loc='upper right', fontsize='small')
     if filepath is not None:
         plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))

@@ -34,7 +34,7 @@ def get_model_class(module_name: str, class_name: str):
     try:
         make_model = getattr(importlib.import_module(module_name), class_name)
     except ModuleNotFoundError:
-        raise NotImplementedError("Unknown model identifier %s for a model in kgcnn.literature." % class_name)
+        raise NotImplementedError("Unknown model identifier '%s' for a model in kgcnn.literature." % class_name)
 
     return make_model
 
@@ -132,7 +132,7 @@ def change_attributes_in_all_layers(model, attributes_to_change=None, layer_type
         tf.keras.models.Model: Model which has layers with changed attributes.
     """
     if model.built:
-        module_logger.warning("Model '%s' has already been built. Set `built=False` and continue." % model.name)
+        module_logger.warning("Model '%s' has already been built. Will set `built=False` and continue." % model.name)
         model.built = False
     if attributes_to_change is None:
         attributes_to_change = {}
@@ -149,6 +149,6 @@ def change_attributes_in_all_layers(model, attributes_to_change=None, layer_type
         if changed_attributes:
             if x.built:
                 module_logger.warning(
-                    "Layer '%s' in model has already been built. Set `built=False` and continue." % x.name)
+                    "Layer '%s' in model has already been built. Will set `built=False` and continue." % x.name)
                 x.built = False
     return model

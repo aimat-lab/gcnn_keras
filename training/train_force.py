@@ -18,7 +18,7 @@ from kgcnn.training.hyper import HyperParameter
 from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, RaggedScaledMeanAbsoluteError
 from kgcnn.utils.devices import set_devices_gpu
 from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
-from kgcnn.metrics.loss import RaggedMeanAbsoluteError
+from kgcnn.losses import RaggedMeanAbsoluteError
 from kgcnn.data.utils import ragged_tensor_from_nested_numpy
 
 
@@ -55,6 +55,7 @@ set_devices_gpu(gpu_to_use)
 # HyperParameter is used to store and verify hyperparameter.
 hyper = HyperParameter(hyper_path, model_name=model_name, model_class=make_function, dataset_name=dataset_name,
                        model_module=model_module)
+hyper.verify()
 
 # Model Selection to load a model definition from a module in kgcnn.literature
 try:
