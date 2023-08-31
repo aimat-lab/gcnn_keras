@@ -90,9 +90,9 @@ def make_model(inputs: list = None,
     n, e, disjoint_indices, batch = CastBatchGraphListToPyGDisjoint()(model_inputs)
 
     # Embedding, if no feature dimension
-    if len(inputs[0]['shape']) < 1:
+    if len(inputs[0]['shape']) < 2:
         n = Embedding(**input_node_embedding)(n)
-    if len(inputs[1]['shape']) < 1:
+    if len(inputs[1]['shape']) < 2:
         e = Embedding(**input_edge_embedding)(e)
 
     # Model

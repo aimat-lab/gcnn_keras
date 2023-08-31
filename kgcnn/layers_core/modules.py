@@ -35,9 +35,7 @@ class Embedding(ks.layers.Layer):
         )
 
     def call(self, inputs):
-        if self.use_embedding:
-            inputs = ops.take(self.embeddings, inputs)
-        return inputs
+        return ops.take(self.embeddings, inputs)
 
     def get_config(self):
         return super(Embedding, self).get_config()

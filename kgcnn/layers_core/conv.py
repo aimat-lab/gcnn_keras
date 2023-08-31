@@ -1,7 +1,7 @@
 from keras_core.layers import Layer, Dense, Activation
-from keras_core import ops
-from kgcnn.layers.aggr import AggregateWeightedLocalEdges
-from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
+from kgcnn.layers_core.gather import GatherNodesOutgoing
+# from keras_core import ops
 
 
 class GCN(Layer):
@@ -85,6 +85,7 @@ class GCN(Layer):
         node, edges, edge_index = inputs
         no = self.lay_dense(node, **kwargs)
         no = self.lay_gather([no, edge_index], **kwargs)
+        print(no)
         nu = self.lay_pool([node, no, edge_index, edges], **kwargs)  # Summing for each node connection
         out = self.lay_act(nu, **kwargs)
         return out

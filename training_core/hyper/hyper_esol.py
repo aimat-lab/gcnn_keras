@@ -2,15 +2,16 @@ hyper = {
     "GCN": {
         "model": {
             "class_name": "make_model",
-            "module_name": "kgcnn.literature.GCN",
+            "module_name": "kgcnn.literature_core.GCN",
             "config": {
                 "name": "GCN",
-                "inputs": [
-                    {"shape": [None, 41], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                    "edge": {"input_dim": 10, "output_dim": 64}},
+                "inputs": [{"shape": (None, 41), "name": "node_attributes", "dtype": "float32"},
+                           {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
+                           {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+                           {"shape": (), "name": "graph_size", "dtype": "int64"},
+                           {"shape": (), "name": "edge_count", "dtype": "int64"}],
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
                 "depth": 5, "verbose": 10,
                 "output_embedding": "graph",
@@ -25,11 +26,9 @@ hyper = {
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
-                    {
-                        "class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
-                        "verbose": 0}
-                    }
+                    # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                    # "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
+                    # "verbose": 0}}
                 ]
             },
             "compile": {

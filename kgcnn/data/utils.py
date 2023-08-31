@@ -157,17 +157,18 @@ def ragged_tensor_from_nested_numpy(numpy_list: list, dtype: str = None, row_spl
         np.concatenate(numpy_list, axis=0, dtype=dtype), np.array([len(x) for x in numpy_list], dtype=row_splits_dtype))
 
 
-def pad_np_array_list_batch_dim(values: list):
+def pad_np_array_list_batch_dim(values: list, dtype: str = None):
     r"""Pad a list of numpy arrays along first dimension.
 
     Args:
         values (list): List of :obj:`np.ndarray` .
+        dtype (str): Data type of values tensor. Defaults to None.
 
     Returns:
         tuple: Padded and mask :obj:`np.ndarray` of values.
     """
     max_shape = np.amax([x.shape for x in values], axis=0)
-    final_shape = np.concatenate([np.array([len(values)]), max_shape])
+    final_shape = np.concatenate([np.array([len(values)], dtype="int64"), np.array(max_shape, dtype="int64")])
     padded = np.zeros(final_shape, dtype=values[0].dtype)
     mask = np.zeros(final_shape, dtype="bool")
     for i, x in enumerate(values):
@@ -175,4 +176,6 @@ def pad_np_array_list_batch_dim(values: list):
         index = [i] + [slice(0, int(j)) for j in x.shape]
         padded[tuple(index)] = x
         mask[tuple(index)] = True
+    if dtype is not None:
+        padded = padded.astype(dtype=dtype)
     return padded, mask

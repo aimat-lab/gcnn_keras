@@ -11,7 +11,8 @@ class GatherNodes(Layer):
 
     def call(self, inputs, **kwargs):
         x, index = inputs
-        gathered = [x[i] for i in self.split_indices]
+        print(ops.take(x, ops.take(index, 0, axis=0), axis=0))
+        gathered = [ops.take(x, ops.take(index, i, axis=0), axis=0) for i in self.split_indices]
         if self.concat_axis is not None:
             gathered = ops.concatenate(gathered, axis=self.concat_axis)
         return gathered
@@ -20,7 +21,7 @@ class GatherNodes(Layer):
 class GatherNodesOutgoing(GatherNodes):
 
     def __init__(self, **kwargs):
-        super(GatherNodes, self).__init__(split_indices=1, concat_axis=None, **kwargs)
+        super(GatherNodesOutgoing, self).__init__(split_indices=(1, ), concat_axis=None, **kwargs)
 
     def call(self, inputs, **kwargs):
         return super(GatherNodesOutgoing, self).call(inputs, **kwargs)[0]

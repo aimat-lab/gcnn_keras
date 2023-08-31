@@ -7,7 +7,8 @@ import os
 from typing import Union, List, Callable, Dict, Optional
 # from collections.abc import MutableSequence
 
-from kgcnn.data.utils import save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy
+from kgcnn.data.utils import (
+    save_pickle_file, load_pickle_file, ragged_tensor_from_nested_numpy, pad_np_array_list_batch_dim)
 from kgcnn.graph.base import GraphDict
 
 # Module logger
@@ -189,7 +190,7 @@ class MemoryGraphList(list):
         if is_ragged:
             return ragged_tensor_from_nested_numpy(props, dtype=dtype)
         else:
-            return tf.constant(np.array(props), dtype=dtype)
+            return pad_np_array_list_batch_dim(props, dtype=dtype)[0]
 
     def tensor(self, items: Union[list, Dict], make_copy=True):
         r"""Make tensor objects from multiple graph properties in list.
