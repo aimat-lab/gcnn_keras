@@ -58,6 +58,7 @@ class EnergyForceModel(ks.models.Model):
 
     def __init__(self,
                  model_energy=None,
+                 inputs: dict = None,
                  coordinate_input: Union[int, str] = 1,
                  output_as_dict: bool = True,
                  ragged_validate: bool = False,
@@ -80,6 +81,7 @@ class EnergyForceModel(ks.models.Model):
 
         Args:
             model_energy (dict): Keras model for energy prediction. Can also be a serialization dict.
+            inputs (dict, list): List or Dict of inputs for the force model.
             coordinate_input (str, int): Index or key where to find coordinate tensor in model input.
             output_as_dict (bool): Whether to return energy and force as list or as dict. Default is True.
             ragged_validate (bool): Whether to validate ragged tensor creation. Default is False.
@@ -95,7 +97,6 @@ class EnergyForceModel(ks.models.Model):
         super(EnergyForceModel, self).__init__(self, **kwargs)
         if model_energy is None:
             raise ValueError("Require valid model in `model_energy` for force prediction.")
-
         # Input for model_energy.
         self._model_energy = model_energy
 
@@ -120,6 +121,9 @@ class EnergyForceModel(ks.models.Model):
         self.is_physical_force = is_physical_force
         self.nested_model_config = nested_model_config
         self.use_batch_jacobian = use_batch_jacobian
+
+        # We can try to infer the model inputs from energy model, if not given explicit.
+        self._inputs_to_force_model = inputs
 
         # Layers.
         self.cast_coordinates = ChangeTensorType(input_tensor_type="ragged", output_tensor_type="mask")
@@ -209,6 +213,7 @@ class EnergyForceModel(ks.models.Model):
             "output_to_tensor": self.output_to_tensor,
             "output_squeeze_states": self.output_squeeze_states,
             "nested_model_config": self.nested_model_config,
-            "use_batch_jacobian": self.use_batch_jacobian
+            "use_batch_jacobian": self.use_batch_jacobian,
+            "inputs": self._inputs_to_force_model
         })
         return conf

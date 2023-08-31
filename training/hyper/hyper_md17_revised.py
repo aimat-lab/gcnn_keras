@@ -9,13 +9,18 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.Schnet",
                     "config": {
                         "name": "SchnetEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                         ],
@@ -38,9 +43,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -65,6 +67,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
                                   "node_coordinates": "coords"}}
                 ]
@@ -73,7 +79,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "PAiNN.EnergyForceModel": {
@@ -86,13 +92,18 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
+                ],
                 "model_energy": {
                     "module_name": "kgcnn.literature.PAiNN",
                     "class_name": "make_model",
                     "config": {
                         "name": "PAiNNEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}
                         ],
@@ -108,9 +119,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -146,6 +154,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 10000,
                                   "node_coordinates": "coords"}}
                 ]
@@ -154,7 +166,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "DimeNetPP.EnergyForceModel": {
@@ -167,12 +179,16 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.DimeNetPP",
                     "config": {
                         "name": "DimeNetPPEnergy",
-                        "inputs": [{"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                                    {"shape": [None, 2], "name": "angle_indices", "dtype": "int64", "ragged": True}],
@@ -194,9 +210,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 10, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -232,6 +245,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 5, "max_neighbours": 1000,
                                   "node_coordinates": "coords"}},
                     {"map_list": {"method": "set_angle", "node_coordinates": "coords"}}
@@ -242,7 +259,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "NMPN.EnergyForceModel": {
@@ -255,12 +272,15 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
+                           {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.NMPN",
                     "config": {
                         "name": "NMPNEnergy",
-                        "inputs": [{"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True}],
                         "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
@@ -280,9 +300,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -307,6 +324,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
                                   "node_coordinates": "coords"}}
                 ]
@@ -316,7 +337,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "Megnet.EnergyForceModel": {
@@ -329,13 +350,19 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [
+                    {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
+                    {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
+                    {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
+                ],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.Megnet",
                     "config": {
                         "name": "MegnetEnergy",
                         "inputs": [
-                            {"shape": [None], "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                            {"shape": [None], "name": "atomic_number", "dtype": "float32", "ragged": True},
                             {"shape": [None, 3], "name": "coords", "dtype": "float32", "ragged": True},
                             {"shape": [None, 2], "name": "range_indices", "dtype": "int64", "ragged": True},
                             {"shape": [3], "name": "graph_inertia", "dtype": "float32", "ragged": False}
@@ -359,9 +386,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 32, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -386,6 +410,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "principal_moments_of_inertia", "node_mass": "nuclear_charges",
                                   "node_coordinates": "coords"}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 1000,
@@ -397,7 +425,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "MXMNet.EnergyForceModel": {
@@ -410,12 +438,19 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": (None,), "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_1", "dtype": "int64", "ragged": True},
+                           {"shape": [None, 2], "name": "angle_indices_2", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.MXMNet",
                     "config": {
                         "name": "MXMNetEnergy",
-                        "inputs": [{"shape": (None,), "name": "nuclear_charges", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": (None,), "name": "atomic_number", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 1), "name": "edge_weights", "dtype": "float32", "ragged": True},
                                    {"shape": (None, 2), "name": "edge_indices", "dtype": "int64", "ragged": True},
@@ -449,9 +484,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 128, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -476,6 +508,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     # we have to make edges via range cutoff.
                     {"map_list": {"method": "set_range", "max_distance": 3.0, "max_neighbours": 1000,
                                   "node_coordinates": "coords", "range_indices": "edge_indices",
@@ -499,7 +535,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "EGNN.EnergyForceModel": {
@@ -512,12 +548,16 @@ hyper = {
                 "output_to_tensor": False,
                 "output_squeeze_states": True,
                 "coordinate_input": 1,
+                "inputs": [{"shape": (None, 15), "name": "atomic_number", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
+                           {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
+                           {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
                 "model_energy": {
                     "class_name": "make_model",
                     "module_name": "kgcnn.literature.EGNN",
                     "config": {
                         "name": "EGNNEnergy",
-                        "inputs": [{"shape": (None, 15), "name": "node_attributes", "dtype": "float32", "ragged": True},
+                        "inputs": [{"shape": (None, 15), "name": "atomic_number", "dtype": "float32", "ragged": True},
                                {"shape": (None, 3), "name": "coords", "dtype": "float32", "ragged": True},
                                {"shape": (None, 2), "name": "range_indices", "dtype": "int64", "ragged": True},
                                {"shape": (None, 1), "name": "range_attributes", "dtype": "int64", "ragged": True}],
@@ -550,9 +590,6 @@ hyper = {
             }
         },
         "training": {
-            "target_property_names": {
-                "energy": "energies", "force": "forces", "atomic_number": "nuclear_charges",
-                "coordinates": "coords"},
             "train_test_indices": {"train": "train", "test": "test", "split_index": [1, 2, 3, 4, 5]},
             "fit": {
                 "batch_size": 96, "epochs": 1000, "validation_freq": 1, "verbose": 2,
@@ -577,6 +614,10 @@ hyper = {
                     "trajectory_name": "aspirin"
                 },
                 "methods": [
+                    {"rename_property_on_graphs": {"old_property_name": "energies", "new_property_name": "energy"}},
+                    {"rename_property_on_graphs": {"old_property_name": "forces", "new_property_name": "force"}},
+                    {"rename_property_on_graphs": {"old_property_name": "nuclear_charges",
+                                                   "new_property_name": "atomic_number"}},
                     {"map_list": {"method": "atomic_charge_representation", "node_number": "nuclear_charges"}},
                     {"map_list": {"method": "set_range", "max_distance": 10, "max_neighbours": 10000,
                                   "node_coordinates": "coords"}}
@@ -587,7 +628,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
 }

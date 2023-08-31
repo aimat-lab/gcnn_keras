@@ -78,7 +78,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "PAiNN.EnergyForceModel": {
@@ -164,7 +164,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "DimeNetPP.EnergyForceModel": {
@@ -257,7 +257,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "NMPN.EnergyForceModel": {
@@ -334,7 +334,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "Megnet.EnergyForceModel": {
@@ -420,7 +420,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "MXMNet.EnergyForceModel": {
@@ -529,7 +529,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
     "EGNN.EnergyForceModel": {
@@ -621,7 +621,7 @@ hyper = {
         "info": {
             "postfix": "",
             "postfix_file": "_aspirin_ccsd",
-            "kgcnn_version": "2.2.2"
+            "kgcnn_version": "3.1.0"
         }
     },
 }
