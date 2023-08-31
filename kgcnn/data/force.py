@@ -69,7 +69,7 @@ class ForceDataset(QMDataset):
         self._verify_data_directory()
         if self.file_name_force_xyz is None:
             return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + "_force.xyz")
-        elif isinstance(self.file_name_force_xyz, (str, os.path.Path)):
+        elif isinstance(self.file_name_force_xyz, (str, os.PathLike)):
             return os.path.join(self.data_directory, self.file_name_xyz)
         elif isinstance(self.file_name_force_xyz, (list, tuple)):
             return [os.path.join(self.data_directory, x) for x in self.file_name_force_xyz]
@@ -99,7 +99,7 @@ class ForceDataset(QMDataset):
         if not isinstance(file_path_forces, (list, tuple)):
             file_path_forces = [file_path_forces]
         if not isinstance(file_column_name_force, (list, tuple)):
-            file_column_name_forces = [file_column_name_force]
+            file_column_name_force = [file_column_name_force]
         for f, c in zip(file_path_forces, file_column_name_force):
             if not os.path.exists(f):
                 xyz_list = self.collect_files_in_file_directory(
@@ -162,5 +162,7 @@ class ForceDataset(QMDataset):
         if not isinstance(file_path_forces, (list, tuple)):
             file_path_forces = [file_path_forces]
         for i, x in enumerate(file_path_forces):
-            self.read_in_memory_xyz(x, atomic_coordinates="force_" % i, atomic_number=None, atomic_symbol=None)
+            self.read_in_memory_xyz(x, atomic_coordinates=str(os.path.basename(x)),
+                                    # We do not want to change atomic information but only read xyz.
+                                    atomic_number=None, atomic_symbol=None)
         return self
