@@ -51,7 +51,7 @@ hyper.verify()
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `PROTEINSDataset`
-dataset = deserialize_dataset(hyper["data"]["dataset"])
+dataset = deserialize_dataset(hyper["dataset"])
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.

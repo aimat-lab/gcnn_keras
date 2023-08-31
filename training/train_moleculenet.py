@@ -27,7 +27,7 @@ from kgcnn.utils.devices import set_devices_gpu
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GAT")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -54,7 +54,7 @@ hyper.verify()
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
 # Those sub-classed classes are named after the dataset like e.g. `ESOLDataset`
-dataset = deserialize_dataset(hyper["data"]["dataset"])
+dataset = deserialize_dataset(hyper["dataset"])
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
 # The name of the keras `Input` layer of the model is directly connected to property of the dataset.

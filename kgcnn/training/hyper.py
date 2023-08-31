@@ -120,13 +120,14 @@ class HyperParameter:
         if "dataset" in self._hyper["data"] and "dataset" not in self._hyper:
             warning_msg("Hyperparameter should have separate dataset category from kgcnn>=3.1.0 .")
             self._hyper["dataset"] = deepcopy(self._hyper["data"]["dataset"])
+            self._hyper["data"].pop("dataset")
 
         # Errors if missmatch is found between class definition and information in hyper-dictionary.
         # In principle all information regarding model and dataset can be stored in hyper-dictionary.
-        if "class_name" in self._hyper["data"]["dataset"] and self._dataset_class is not None:
-            if self._dataset_class != self._hyper["data"]["dataset"]["class_name"]:
+        if "class_name" in self._hyper["dataset"] and self._dataset_class is not None:
+            if self._dataset_class != self._hyper["dataset"]["class_name"]:
                 error_msg("Dataset '%s' does not agree with hyperparameter '%s'." % (
-                    self._dataset_class, self._hyper["data"]["dataset"]["class_name"]))
+                    self._dataset_class, self._hyper["dataset"]["class_name"]))
         if "class_name" in self._hyper["model"] and self._model_class is not None:
             if self._hyper["model"]["class_name"] != self._model_class:
                 error_msg("Model generation '%s' does not agree with hyperparameter '%s'." % (
