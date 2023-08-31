@@ -171,9 +171,9 @@ class QMDataset(MemoryGraphDataset):
         return self
 
     def read_in_memory_xyz(self, file_path: str = None,
-                           atomic_coordinates: str = "node_coordinates",
-                           atomic_symbol: str = "node_symbol",
-                           atomic_number: str = "node_number"
+                           atomic_coordinates: Union[str, None] = "node_coordinates",
+                           atomic_symbol: Union[str, None] = "node_symbol",
+                           atomic_number: Union[str, None] = "node_number"
                            ):
         """Read XYZ-file with geometric information into memory.
 

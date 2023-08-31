@@ -23,7 +23,7 @@ class ForceDataset(QMDataset):
             ├── file_name.csv
             ├── file_name.xyz
             ├── file_name.sdf
-            ├── file_name_forces.xyz
+            ├── file_name_force.xyz
             ├── ...
             └── dataset_name.kgcnn.pickle
 
@@ -76,7 +76,7 @@ class ForceDataset(QMDataset):
         else:
             raise TypeError("Wrong type for `file_name_force_xyz` : '%s'." % self.file_name_force_xyz)
 
-    def prepare_data(self, overwrite: bool = False, file_column_name: str = None, file_column_name_forces: str = None,
+    def prepare_data(self, overwrite: bool = False, file_column_name: str = None, file_column_name_force: str = None,
                      make_sdf: bool = True):
         r"""Pre-computation of molecular structure information in a sdf-file from a xyz-file or a folder of xyz-files.
 
@@ -86,7 +86,7 @@ class ForceDataset(QMDataset):
             overwrite (bool): Overwrite existing database SDF file. Default is False.
             file_column_name (str): Name of the column in csv file with list of xyz-files located in file_directory.
                 This is for the positions only.
-            file_column_name_forces (str, list): Column name of xyz files for forces in file directory.
+            file_column_name_force (str, list): Column name of xyz files for forces in file directory.
             make_sdf (bool): Whether to try to make a sdf file from xyz information via `RDKit` and `OpenBabel`.
 
         Returns:
@@ -98,9 +98,9 @@ class ForceDataset(QMDataset):
         file_path_forces = self.file_path_force_xyz
         if not isinstance(file_path_forces, (list, tuple)):
             file_path_forces = [file_path_forces]
-        if not isinstance(file_column_name_forces, (list, tuple)):
-            file_column_name_forces = [file_column_name_forces]
-        for f, c in zip(file_path_forces, file_column_name_forces):
+        if not isinstance(file_column_name_force, (list, tuple)):
+            file_column_name_forces = [file_column_name_force]
+        for f, c in zip(file_path_forces, file_column_name_force):
             if not os.path.exists(f):
                 xyz_list = self.collect_files_in_file_directory(
                     file_column_name=c, table_file_path=None,
@@ -161,6 +161,6 @@ class ForceDataset(QMDataset):
         file_path_forces = self.file_path_force_xyz
         if not isinstance(file_path_forces, (list, tuple)):
             file_path_forces = [file_path_forces]
-        for x in file_path_forces:
-            self.read_in_memory_xyz(x)
+        for i, x in enumerate(file_path_forces):
+            self.read_in_memory_xyz(x, atomic_coordinates="force_" % i, atomic_number=None, atomic_symbol=None)
         return self
