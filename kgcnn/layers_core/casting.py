@@ -11,9 +11,13 @@ class CastBatchGraphListToPyGDisjoint(Layer):
     batched tensors are preferred.
     """
 
-    def __init__(self, reverse_indices: bool = True, **kwargs):
+    def __init__(self, reverse_indices: bool = True, batch_dtype: str = "int64",
+                 batch_info: str = "lengths", **kwargs):
         super(CastBatchGraphListToPyGDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
+        self.batch_dtype = batch_dtype
+        self.batch_info = batch_info
+        assert batch_info in ["lengths", "mask"], "Wrong format for batch information tensor to expect in call()."
 
     def build(self, input_shape):
         return super(CastBatchGraphListToPyGDisjoint, self).build(input_shape)
@@ -46,16 +50,39 @@ class CastBatchGraphListToPyGDisjoint(Layer):
 
         # Case 1: Padded node and edges tensors but with batch dimension at axis 0.
         if all_tensor and len(inputs) == 5:
-            nodes, edges, edge_indices, node_len, edge_len = inputs
-            node_mask = ops.repeat(ops.expand_dims(ops.arange(
-                ops.shape(nodes[1])), axis=0), ops.shape(node_len)[0], axis=0) < ops.expand_dims(node_len, axis=-1)
-            edge_mask = ops.repeat(ops.expand_dims(ops.arange(
-                ops.shape(nodes[1])), axis=0), ops.shape(node_len)[0], axis=0) < ops.expand_dims(node_len, axis=-1)
-            edge_indices_flatten = edge_indices[ops.cast(edge_mask, dtype="bool")]
-            nodes_flatten = nodes[ops.cast(node_mask, dtype="bool")]
-            edges_flatten = edges[ops.cast(edge_mask, dtype="bool")]
+            if self.batch_info == "lengths":
+                nodes, edges, edge_indices, node_len, edge_len = inputs
+                node_len = ops.cast(node_len, dtype=self.batch_dtype)
+                edge_len = ops.cast(edge_len, dtype=self.batch_dtype)
+                node_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=self.batch_dtype), axis=0),
+                                       ops.shape(node_len)[0], axis=0) < ops.expand_dims(node_len, axis=-1)
+                edge_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edges)[1], dtype=self.batch_dtype), axis=0),
+                                       ops.shape(edge_len)[0], axis=0) < ops.expand_dims(edge_len, axis=-1)
+                edge_indices_flatten = edge_indices[edge_mask]
+                nodes_flatten = nodes[node_mask]
+                edges_flatten = edges[edge_mask]
+            elif self.batch_info == "mask":
+                nodes, edges, edge_indices, node_mask, edge_mask = inputs
+                edge_indices_flatten = edge_indices[ops.cast(edge_mask, dtype="bool")]
+                nodes_flatten = nodes[ops.cast(node_mask, dtype="bool")]
+                edges_flatten = edges[ops.cast(edge_mask, dtype="bool")]
+                node_len = ops.sum(ops.cast(node_mask, dtype=self.batch_dtype), axis=1)
+                edge_len = ops.sum(ops.cast(edge_mask, dtype=self.batch_dtype), axis=1)
+            else:
+                raise NotImplementedError("Unknown batch information '%s'." % b)
 
-        # Case 2: Ragged Tensor input.
+        # Case 2: Fixed sized graphs without batch information.
+        elif all_tensor and len(inputs) == 3:
+            nodes, edges, edge_indices = inputs
+            n_shape, e_shape, ei_shape = ops.shape(nodes), ops.shape(edges), ops.shape(edge_indices)
+            nodes_flatten = ops.reshape(nodes, ops.concatenate([[n_shape[0] * n_shape[1]], n_shape[2:]]))
+            edges_flatten = ops.reshape(edges, ops.concatenate([[e_shape[0] * e_shape[1]], e_shape[2:]]))
+            edge_indices_flatten = ops.reshape(
+                edge_indices, ops.concatenate([[ei_shape[0] * ei_shape[1]], ei_shape[2:]]))
+            node_len = ops.repeat(ops.cast([n_shape[1]], dtype=self.batch_dtype), n_shape[0])
+            edge_len = ops.repeat(ops.cast([ei_shape[1]], dtype=self.batch_dtype), ei_shape[0])
+
+        # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core.
 
         # Unknown input raises an error.

@@ -28,7 +28,6 @@ class ForceDataset(QMDataset):
             └── dataset_name.kgcnn.pickle
 
     Additionally, forces xyz information can be read in with this class.
-
     """
 
     def __init__(self, data_directory: str = None, dataset_name: str = None, file_name: str = None,
