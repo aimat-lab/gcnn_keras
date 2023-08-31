@@ -170,11 +170,18 @@ class QMDataset(MemoryGraphDataset):
             converter.xyz_to_mol(self.file_path_xyz, self.file_path_mol)
         return self
 
-    def read_in_memory_xyz(self, file_path: str = None):
+    def read_in_memory_xyz(self, file_path: str = None,
+                           atomic_coordinates: str = "node_coordinates",
+                           atomic_symbol: str = "node_symbol",
+                           atomic_number: str = "node_number"
+                           ):
         """Read XYZ-file with geometric information into memory.
 
         Args:
             file_path (str): Filepath to xyz file.
+            atomic_coordinates (str): Name of graph property of atomic coordinates. Default is "node_coordinates".
+            atomic_symbol (str): Name of graph property of atomic symbol. Default is "node_symbol".
+            atomic_number (str): Name of graph property of atomic number. Default is "node_number".
 
         Returns:
             self
@@ -183,8 +190,9 @@ class QMDataset(MemoryGraphDataset):
         symbol = [np.array(x[0]) for x in xyz_list]
         coord = [np.array(x[1], dtype="float")[:, :3] for x in xyz_list]
         nodes = [np.array([self._global_proton_dict[x] for x in y[0]], dtype="int") for y in xyz_list]
-        for key, value in {"node_coordinates": coord, "node_symbol": symbol, "node_number": nodes}.items():
-            self.assign_property(key, value)
+        for key, value in zip([atomic_coordinates, atomic_symbol, atomic_number], [coord, symbol, nodes]):
+            if key is not None:
+                self.assign_property(key, value)
         return self
 
     def set_attributes(self,
