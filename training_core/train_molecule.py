@@ -3,12 +3,13 @@ import keras_core as ks
 import numpy as np
 import argparse
 import time
+import kgcnn.training_core.scheduler
 from datetime import timedelta
 from kgcnn.training_core.history import save_history_score
 from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler as StandardLabelScaler
-from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
+from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter

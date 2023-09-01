@@ -6,7 +6,8 @@ from copy import deepcopy
 from kgcnn.metrics_core.utils import merge_metrics
 from kgcnn.data.utils import load_hyper_file, save_json_file
 from keras_core.saving.serialization_lib import deserialize_keras_object
-
+import keras_core.metrics
+import keras_core.losses
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)

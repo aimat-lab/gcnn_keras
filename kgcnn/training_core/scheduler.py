@@ -88,7 +88,6 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
             if self.verbose > 0:
                 print("{0}/{1}: Warmup-step increase lr to {2}.".format(batch, self.steps_per_epoch, lr))
             self.model.optimizer.learning_rate = lr
-            # ks.backend.set_value(self.model.optimizer.lr, ks.backend.get_value(lr))
 
     def get_config(self):
         """Get config for this class."""

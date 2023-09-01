@@ -9,16 +9,7 @@ global_normalization_args = {
         "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
         "moving_variance_initializer"
     ],
-    "GraphBatchNormalization": [
-        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
-        "moving_variance_initializer"
-    ],
     "LayerNormalization": [
-        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ],
-    "GraphLayerNormalization": [
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint"
     ],
@@ -33,17 +24,9 @@ global_normalization_args = {
     ],
     "GroupNormalization": [
         "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint"]
-    ,
-    "GraphGroupNormalization": [
-        "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ]
+    ],
 }
-
-GraphBatchNormalization = BatchNormalization
-GraphLayerNormalization = LayerNormalization
-GraphGroupNormalization = GroupNormalization
 
 
 class GraphNormalization(Layer):

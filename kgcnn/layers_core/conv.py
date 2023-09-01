@@ -42,7 +42,7 @@ class GCN(Layer):
                  units,
                  pooling_method='sum',
                  normalize_by_weights=False,
-                 activation='relu',
+                 activation='kgcnn>leaky_relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -68,6 +68,13 @@ class GCN(Layer):
         self.layer_dense = Dense(units=self.units, activation='linear', **kernel_args)
         self.layer_pool = AggregateWeightedLocalEdges(**pool_args)
         self.layer_act = Activation(activation)
+
+    # def build(self, input_shape):
+    #     self.layer_dense.build(input_shape[0])
+    #     dense_output_shape = self.layer_dense.compute_output_shape(input_shape[0])
+    #     self.layer_gather.build([dense_output_shape, input_shape[2]])
+    #     self.layer_pool.build([])
+    #     self.layer_act.build()
 
     def call(self, inputs, **kwargs):
         """Forward pass.

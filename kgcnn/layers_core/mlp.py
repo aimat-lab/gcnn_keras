@@ -1,6 +1,8 @@
 import keras_core as ks
 from keras_core.layers import Dense, Layer, Activation, Dropout
+from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, Normalization
 from kgcnn.layers_core.norm import global_normalization_args
+from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalization
 
 
 class MLPBase(Layer):
@@ -189,9 +191,8 @@ class MLPBase(Layer):
 
         # Fix synonyms for normalization layer.
         replace_norm_identifier = [
-            ("batch", "BatchNormalization"), ("graph_batch", "GraphBatchNormalization"),
-            ("layer", "LayerNormalization"), ("graph_layer", "GraphLayerNormalization"),
-            ("graph", "GraphNormalization"), ("graph_instance", "GraphInstanceNormalization")
+            ("batch", "BatchNormalization"), ("layer", "LayerNormalization"), ("group", "GroupNormalization"),
+            ("graph", "GraphNormalization"), ("graph_instance", "GraphInstanceNormalization"),
         ]
         for i, x in enumerate(mlp_kwargs["normalization_technique"]):
             for key_rep, key in replace_norm_identifier:
@@ -253,13 +254,12 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
         norm_classes = {
+            # "Normalization": Normalization,
             "BatchNormalization": BatchNormalization,
-            "GraphBatchNormalization": GraphBatchNormalization,
+            "GroupNormalization": GroupNormalization,
             "LayerNormalization": LayerNormalization,
-            "GraphLayerNormalization": GraphLayerNormalization,
             "GraphNormalization": GraphNormalization,
             "GraphInstanceNormalization": GraphInstanceNormalization
-            "InstanceNormalization": InstanceNormalization
         }
         if not self._supress_dense:
             self.mlp_dense_layer_list = [
