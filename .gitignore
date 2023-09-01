@@ -5,6 +5,9 @@
 /training/results/*/*/*.npz
 /training/results/*/*/scaler*.npz
 /training/results/*/*/*.pickle
+/training_core/results/*/*/*.npz
+/training_core/results/*/*/scaler*.npz
+/training_core/results/*/*/*.pickle
 /develop/
 build
 dist
