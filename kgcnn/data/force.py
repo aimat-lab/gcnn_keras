@@ -69,7 +69,7 @@ class ForceDataset(QMDataset):
         if self.file_name_force_xyz is None:
             return os.path.join(self.data_directory, os.path.splitext(self.file_name)[0] + "_force.xyz")
         elif isinstance(self.file_name_force_xyz, (str, os.PathLike)):
-            return os.path.join(self.data_directory, self.file_name_xyz)
+            return os.path.join(self.data_directory, self.file_name_force_xyz)
         elif isinstance(self.file_name_force_xyz, (list, tuple)):
             return [os.path.join(self.data_directory, x) for x in self.file_name_force_xyz]
         else:
