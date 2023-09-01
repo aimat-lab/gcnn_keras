@@ -1,18 +1,17 @@
 import os
 import keras_core as ks
-import logging
 import numpy as np
 import argparse
 import time
 from datetime import timedelta
-from kgcnn.training.history import save_history_score
-from kgcnn.metrics.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
+from kgcnn.training_core.history import save_history_score
+from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler as StandardLabelScaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
-from kgcnn.training.hyper import HyperParameter
+from kgcnn.training_core.hyper import HyperParameter
 from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line with default values from example.

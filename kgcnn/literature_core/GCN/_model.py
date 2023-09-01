@@ -1,9 +1,11 @@
 import keras_core as ks
-from keras_core.layers import Dense
+from keras_core.layers import Dense, Activation
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import CastBatchGraphListToPyGDisjoint
 from kgcnn.layers_core.conv import GCN
-from kgcnn.layers_core.mlp import MLP
+# from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.gather import GatherNodesOutgoing, GatherNodes
+from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 
@@ -97,17 +99,24 @@ def make_model(inputs: list = None,
 
     # Model
     n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
+
     for i in range(0, depth):
-        n = GCN(**gcn_args)([n, e, disjoint_indices])
+        # n = GCN(**gcn_args)([n, e, disjoint_indices])
+        no = Dense(gcn_args["units"])(n)
+        no = GatherNodesOutgoing()([no, disjoint_indices])
+        nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
+        n = Activation(gcn_args["activation"])(nu)
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()(n)  # will return tensor
-        out = MLP(**output_mlp)(out)
+        out = PoolingNodes()([n, batch])  # will return tensor
     elif output_embedding == "node":
-        out = MLP(**output_mlp)(n)
+        out = n
     else:
         raise ValueError("Unsupported output embedding for `GCN`")
+
+    # out = MLP(**output_mlp)(n)
+    out = Dense(1, activation="linear")(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out)
     model.__kgcnn_model_version__ = __kgcnn_model_version__

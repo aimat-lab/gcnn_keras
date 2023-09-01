@@ -1,7 +1,7 @@
 from keras_core.layers import Layer, Dense, Activation
 from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
 from kgcnn.layers_core.gather import GatherNodesOutgoing
-# from keras_core import ops
+from keras_core import ops
 
 
 class GCN(Layer):
@@ -42,7 +42,7 @@ class GCN(Layer):
                  units,
                  pooling_method='sum',
                  normalize_by_weights=False,
-                 activation='kgcnn>leaky_relu',
+                 activation='relu',
                  use_bias=True,
                  kernel_regularizer=None,
                  bias_regularizer=None,
@@ -64,10 +64,10 @@ class GCN(Layer):
         pool_args = {"pooling_method": pooling_method, "normalize_by_weights": normalize_by_weights}
 
         # Layers
-        self.lay_gather = GatherNodesOutgoing()
-        self.lay_dense = Dense(units=self.units, activation='linear', **kernel_args)
-        self.lay_pool = AggregateWeightedLocalEdges(**pool_args)
-        self.lay_act = Activation(activation)
+        self.layer_gather = GatherNodesOutgoing()
+        self.layer_dense = Dense(units=self.units, activation='linear', **kernel_args)
+        self.layer_pool = AggregateWeightedLocalEdges(**pool_args)
+        self.layer_act = Activation(activation)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -83,11 +83,10 @@ class GCN(Layer):
             tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
         """
         node, edges, edge_index = inputs
-        no = self.lay_dense(node, **kwargs)
-        no = self.lay_gather([no, edge_index], **kwargs)
-        print(no)
-        nu = self.lay_pool([node, no, edge_index, edges], **kwargs)  # Summing for each node connection
-        out = self.lay_act(nu, **kwargs)
+        no = self.layer_dense(node, **kwargs)
+        no = self.layer_gather([no, edge_index], **kwargs)
+        nu = self.layer_pool([node, no, edge_index, edges], **kwargs)  # Summing for each node connection
+        out = self.layer_act(nu, **kwargs)
         return out
 
     def get_config(self):
@@ -95,10 +94,10 @@ class GCN(Layer):
         config = super(GCN, self).get_config()
         config.update({"normalize_by_weights": self.normalize_by_weights,
                        "pooling_method": self.pooling_method, "units": self.units})
-        conf_dense = self.lay_dense.get_config()
+        conf_dense = self.layer_dense.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias"]:
             config.update({x: conf_dense[x]})
-        conf_act = self.lay_act.get_config()
+        conf_act = self.layer_act.get_config()
         config.update({"activation": conf_act["activation"]})
         return config

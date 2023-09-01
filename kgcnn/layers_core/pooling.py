@@ -13,4 +13,5 @@ class PoolingNodes(Layer):
         if not isinstance(inputs, list):
             return ops.sum(inputs, axis=0)
         x, batch = inputs
-        return ops.scatter(batch, x, shape=ops.concatenate([[ops.max(batch)], ops.shape(x)[1:]], axis=0))
+        # return ops.scatter(batch, x, shape=ops.concatenate([[ops.max(batch)], ops.shape(x)[1:]], axis=0))
+        return ops.segment_sum(x, batch, sorted=True)

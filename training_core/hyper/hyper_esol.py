@@ -26,29 +26,29 @@ hyper = {
                 "validation_freq": 10,
                 "verbose": 2,
                 "callbacks": [
-                    # {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
-                    # "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
-                    # "verbose": 0}}
+                    {"class_name": "kgcnn>LinearLearningRateScheduler", "config": {
+                        "learning_rate_start": 1e-03, "learning_rate_stop": 5e-05, "epo_min": 250, "epo": 800,
+                        "verbose": 0}}
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
-                "loss": "mean_absolute_error"
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
+                "loss": "mean_absolute_error", "jit_compile": False
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
+        "dataset": {
+            "class_name": "ESOLDataset",
+            "module_name": "kgcnn.data.datasets.ESOLDataset",
+            "config": {},
+            "methods": [
+                {"set_attributes": {}},
+                {"map_list": {"method": "normalize_edge_weights_sym"}}
+            ]
+        },
         "data": {
-            "dataset": {
-                "class_name": "ESOLDataset",
-                "module_name": "kgcnn.data.datasets.ESOLDataset",
-                "config": {},
-                "methods": [
-                    {"set_attributes": {}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
-                ]
-            },
             "data_unit": "mol/L"
         },
         "info": {

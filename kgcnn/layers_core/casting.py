@@ -11,11 +11,12 @@ class CastBatchGraphListToPyGDisjoint(Layer):
     batched tensors are preferred.
     """
 
-    def __init__(self, reverse_indices: bool = True, batch_dtype: str = "int64",
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
                  batch_info: str = "lengths", **kwargs):
         super(CastBatchGraphListToPyGDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
-        self.batch_dtype = batch_dtype
+        self.dtype_index = dtype_index
+        self.dtype_batch = dtype_batch
         self.batch_info = batch_info
         assert batch_info in ["lengths", "mask"], "Wrong format for batch information tensor to expect in call()."
 
@@ -52,11 +53,11 @@ class CastBatchGraphListToPyGDisjoint(Layer):
         if all_tensor and len(inputs) == 5:
             if self.batch_info == "lengths":
                 nodes, edges, edge_indices, node_len, edge_len = inputs
-                node_len = ops.cast(node_len, dtype=self.batch_dtype)
-                edge_len = ops.cast(edge_len, dtype=self.batch_dtype)
-                node_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=self.batch_dtype), axis=0),
+                node_len = ops.cast(node_len, dtype=self.dtype_batch)
+                edge_len = ops.cast(edge_len, dtype=self.dtype_batch)
+                node_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=self.dtype_batch), axis=0),
                                        ops.shape(node_len)[0], axis=0) < ops.expand_dims(node_len, axis=-1)
-                edge_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edges)[1], dtype=self.batch_dtype), axis=0),
+                edge_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edges)[1], dtype=self.dtype_batch), axis=0),
                                        ops.shape(edge_len)[0], axis=0) < ops.expand_dims(edge_len, axis=-1)
                 edge_indices_flatten = edge_indices[edge_mask]
                 nodes_flatten = nodes[node_mask]
@@ -66,10 +67,10 @@ class CastBatchGraphListToPyGDisjoint(Layer):
                 edge_indices_flatten = edge_indices[ops.cast(edge_mask, dtype="bool")]
                 nodes_flatten = nodes[ops.cast(node_mask, dtype="bool")]
                 edges_flatten = edges[ops.cast(edge_mask, dtype="bool")]
-                node_len = ops.sum(ops.cast(node_mask, dtype=self.batch_dtype), axis=1)
-                edge_len = ops.sum(ops.cast(edge_mask, dtype=self.batch_dtype), axis=1)
+                node_len = ops.sum(ops.cast(node_mask, dtype=self.dtype_batch), axis=1)
+                edge_len = ops.sum(ops.cast(edge_mask, dtype=self.dtype_batch), axis=1)
             else:
-                raise NotImplementedError("Unknown batch information '%s'." % b)
+                raise NotImplementedError("Unknown batch information '%s'." % self.batch_info)
 
         # Case 2: Fixed sized graphs without batch information.
         elif all_tensor and len(inputs) == 3:
@@ -79,8 +80,8 @@ class CastBatchGraphListToPyGDisjoint(Layer):
             edges_flatten = ops.reshape(edges, ops.concatenate([[e_shape[0] * e_shape[1]], e_shape[2:]]))
             edge_indices_flatten = ops.reshape(
                 edge_indices, ops.concatenate([[ei_shape[0] * ei_shape[1]], ei_shape[2:]]))
-            node_len = ops.repeat(ops.cast([n_shape[1]], dtype=self.batch_dtype), n_shape[0])
-            edge_len = ops.repeat(ops.cast([ei_shape[1]], dtype=self.batch_dtype), ei_shape[0])
+            node_len = ops.repeat(ops.cast([n_shape[1]], dtype=self.dtype_batch), n_shape[0])
+            edge_len = ops.repeat(ops.cast([ei_shape[1]], dtype=self.dtype_batch), ei_shape[0])
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core.
@@ -93,7 +94,9 @@ class CastBatchGraphListToPyGDisjoint(Layer):
         node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
         offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
         offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
-        batch = ops.repeat(ops.arange(ops.shape(node_len)[0]), node_len)
+        batch = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len)
+        if self.dtype_index is not None:
+            edge_indices_flatten = ops.cast(edge_indices_flatten, dtype=self.dtype_index)
         disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
         disjoint_indices = ops.transpose(disjoint_indices)
 

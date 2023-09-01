@@ -70,7 +70,9 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
         )
 
 
-CastBatchedGraphsToPyGDisjointTest().test_correctness_lengths()
-CastBatchedGraphsToPyGDisjointTest().test_correctness_mask()
-CastBatchedGraphsToPyGDisjointTest().test_correctness_equal_size()
-CastBatchedGraphsToPyGDisjointTest().test_basics()
+if __name__ == "__main__":
+    CastBatchedGraphsToPyGDisjointTest().test_correctness_lengths()
+    CastBatchedGraphsToPyGDisjointTest().test_correctness_mask()
+    CastBatchedGraphsToPyGDisjointTest().test_correctness_equal_size()
+    CastBatchedGraphsToPyGDisjointTest().test_basics()
+    print("Tests passed.")

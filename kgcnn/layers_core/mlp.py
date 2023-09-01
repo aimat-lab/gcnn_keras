@@ -253,12 +253,13 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
         norm_classes = {
-            "BatchNormalization": ks.layers.BatchNormalization,
+            "BatchNormalization": BatchNormalization,
             "GraphBatchNormalization": GraphBatchNormalization,
-            "LayerNormalization": ks.layers.LayerNormalization,
+            "LayerNormalization": LayerNormalization,
             "GraphLayerNormalization": GraphLayerNormalization,
             "GraphNormalization": GraphNormalization,
             "GraphInstanceNormalization": GraphInstanceNormalization
+            "InstanceNormalization": InstanceNormalization
         }
         if not self._supress_dense:
             self.mlp_dense_layer_list = [
@@ -293,7 +294,11 @@ class MLP(MLPBase):
         Returns:
             tf.Tensor: MLP forward pass.
         """
-        x = inputs
+        if isinstance(inputs, list):
+            x, batch = inputs
+        else:
+            x = inputs
+
         for i in range(self._depth):
             x = self.mlp_dense_layer_list[i](x, **kwargs)
             if self._conf_use_dropout[i]:
@@ -313,71 +318,71 @@ class MLP(MLPBase):
 GraphMLP = MLP
 
 
-class RelationalMLP(MLP):
-    r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
-
-    .. note::
-
-        Please see layer arguments of :obj:`MLPBase` for configuration!
-
-    This layer adds normalization and dropout for normal tensor input. Please, see keras
-    `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
-    :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
-
-    Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
-    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
-    or 'GraphNormalization' .
-
-    """
-
-    _supress_dense = True
-
-    def __init__(self, units, num_relations: int, num_bases: int = None, num_blocks: int = None, **kwargs):
-        """Initialize MLP. See MLPBase."""
-        super(RelationalMLP, self).__init__(units=units, **kwargs)
-        self._conf_num_relations = num_relations
-        self._conf_num_bases = num_bases
-        self._conf_num_blocks = num_blocks
-        self._conf_relational_kwargs = {
-            "num_relations": self._conf_num_relations, "num_bases": self._conf_num_bases,
-            "num_blocks": self._conf_num_blocks
-        }
-
-        # Override dense list with RelationalDense layer.
-        self.mlp_dense_layer_list = [RelationalDense(
-            # **self._conf_mlp_dense_layer_kwargs[i],
-            **self._get_conf_for_keys(self._key_list_dense, "dense", i),
-            **self._conf_relational_kwargs) for i in range(self._depth)]
-
-    def build(self, input_shape):
-        """Build layer."""
-        super(RelationalMLP, self).build(input_shape)
-
-    def call(self, inputs, **kwargs):
-        r"""Forward pass.
-
-        Args:
-            inputs: [features, relation]
-
-                - features (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not `None`.
-                - relation (tf.Tensor, tf.RaggedTensor): Input tensor with last relation information.
-
-        Returns:
-            tf.Tensor: MLP forward pass.
-        """
-        x, relations = inputs
-        for i in range(self._depth):
-            x = self.mlp_dense_layer_list[i]([x, relations], **kwargs)
-            if self._conf_use_dropout[i]:
-                x = self.mlp_dropout_layer_list[i](x, **kwargs)
-            if self._conf_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
-            x = self.mlp_activation_layer_list[i](x, **kwargs)
-        out = x
-        return out
-
-    def get_config(self):
-        """Update config."""
-        config = super(RelationalMLP, self).get_config()
-        config.update(self._conf_relational_kwargs)
-        return config
+# class RelationalMLP(MLP):
+#     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
+#
+#     .. note::
+#
+#         Please see layer arguments of :obj:`MLPBase` for configuration!
+#
+#     This layer adds normalization and dropout for normal tensor input. Please, see keras
+#     `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
+#     :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
+#
+#     Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
+#     either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
+#     or 'GraphNormalization' .
+#
+#     """
+#
+#     _supress_dense = True
+#
+#     def __init__(self, units, num_relations: int, num_bases: int = None, num_blocks: int = None, **kwargs):
+#         """Initialize MLP. See MLPBase."""
+#         super(RelationalMLP, self).__init__(units=units, **kwargs)
+#         self._conf_num_relations = num_relations
+#         self._conf_num_bases = num_bases
+#         self._conf_num_blocks = num_blocks
+#         self._conf_relational_kwargs = {
+#             "num_relations": self._conf_num_relations, "num_bases": self._conf_num_bases,
+#             "num_blocks": self._conf_num_blocks
+#         }
+#
+#         # Override dense list with RelationalDense layer.
+#         self.mlp_dense_layer_list = [RelationalDense(
+#             # **self._conf_mlp_dense_layer_kwargs[i],
+#             **self._get_conf_for_keys(self._key_list_dense, "dense", i),
+#             **self._conf_relational_kwargs) for i in range(self._depth)]
+#
+#     def build(self, input_shape):
+#         """Build layer."""
+#         super(RelationalMLP, self).build(input_shape)
+#
+#     def call(self, inputs, **kwargs):
+#         r"""Forward pass.
+#
+#         Args:
+#             inputs: [features, relation]
+#
+#                 - features (tf.Tensor, tf.RaggedTensor): Input tensor with last dimension not `None`.
+#                 - relation (tf.Tensor, tf.RaggedTensor): Input tensor with last relation information.
+#
+#         Returns:
+#             tf.Tensor: MLP forward pass.
+#         """
+#         x, relations = inputs
+#         for i in range(self._depth):
+#             x = self.mlp_dense_layer_list[i]([x, relations], **kwargs)
+#             if self._conf_use_dropout[i]:
+#                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
+#             if self._conf_use_normalization[i]:
+#                 x = self.mlp_norm_layer_list[i](x, **kwargs)
+#             x = self.mlp_activation_layer_list[i](x, **kwargs)
+#         out = x
+#         return out
+#
+#     def get_config(self):
+#         """Update config."""
+#         config = super(RelationalMLP, self).get_config()
+#         config.update(self._conf_relational_kwargs)
+#         return config
