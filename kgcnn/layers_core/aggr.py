@@ -11,6 +11,14 @@ class Aggregate(Layer):
         self.axis = axis
         if axis != 0:
             raise NotImplementedError
+        
+    def build(self, input_shape):
+        super(Aggregate, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 3
+        x_shape, _, dim_size = input_shape
+        return tuple(list(dim_size) + list(x_shape[1:]))
 
     def call(self, inputs, **kwargs):
         x, index, dim_size = inputs
@@ -30,9 +38,13 @@ class AggregateLocalEdges(Layer):
     def build(self, input_shape):
         self.to_aggregate.build((input_shape[0], input_shape[1][1:], input_shape[0][:1]))
 
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 3
+        node_shape, edges_shape, edge_index_shape = input_shape
+        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape[:1]])
+
     def call(self, inputs, **kwargs):
         n, edges, edge_index = inputs
-        # For test only sum scatter, no segment operation etc.
         return self.to_aggregate([edges, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
 
 
@@ -46,6 +58,11 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
 
     def build(self, input_shape):
         self.to_aggregate.build((input_shape[0], input_shape[1][1:], input_shape[0][:1]))
+
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 4
+        node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
+        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape[:1]])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index, weights = inputs

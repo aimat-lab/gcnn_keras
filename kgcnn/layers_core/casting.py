@@ -40,12 +40,14 @@ class CastBatchGraphListToPyGDisjoint(Layer):
 
 
         Returns:
-            list: List of graph tensors in PyG format that is `[node_attr, edge_attr, edge_index, batch]` .
+            list: `[node_attr, edge_attr, edge_index, batch, node_count, edge_count]` .
 
                 - node_attr (Tensor): Represents node attributes or coordinates of shape `(batch*N, F, ...)` ,
                 - edge_attr (Tensor): Represents edge attributes of shape `(batch*M, F, ...)` and
                 - edge_index (Tensor): Represents the index table of shape `(2, batch*M)` for directed edges.
                 - batch (Tensor): The ID-tensor to assign each node to its respective batch of shape `(batch*N)` .
+                - node_count (Tensor): Tensor with the number of nodes in each graph of shape `(batch, )` .
+                - edge_count (Tensor): Tensor with the number of edges in each graph of shape `(batch, )` .
         """
         all_tensor = all([ops.is_tensor(x) for x in inputs])
 
@@ -103,7 +105,7 @@ class CastBatchGraphListToPyGDisjoint(Layer):
         if self.reverse_indices:
             disjoint_indices = ops.flip(disjoint_indices, axis=0)
 
-        return [nodes_flatten, edges_flatten, disjoint_indices, batch]
+        return [nodes_flatten, edges_flatten, disjoint_indices, batch, node_len, edge_len]
 
     def get_config(self):
         """Get config dictionary for this layer."""

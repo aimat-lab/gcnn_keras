@@ -13,7 +13,6 @@ from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter
-from kgcnn.utils.devices import set_devices_gpu
 
 # Input arguments from command line with default values from example.
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
@@ -34,9 +33,6 @@ print("Input of argparse:", args)
 # Set seed.
 np.random.seed(args["seed"])
 ks.utils.set_random_seed(args["seed"])
-
-# Assigning GPU.
-set_devices_gpu(args["gpu"])
 
 # A class `HyperParameter` is used to expose and verify hyperparameter.
 # The hyperparameter is stored as a dictionary with section 'model', 'dataset' and 'training'.

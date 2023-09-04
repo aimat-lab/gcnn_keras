@@ -4,10 +4,17 @@ from keras_core import ops
 
 
 global_normalization_args = {
+    "UnitNormalization": [
+        "axis"
+    ],
     "BatchNormalization": [
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
         "moving_variance_initializer"
+    ],
+    "GroupNormalization": [
+        "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint"
     ],
     "LayerNormalization": [
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
@@ -21,10 +28,6 @@ global_normalization_args = {
     "GraphInstanceNormalization": [
         "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint", "alpha_regularizer"
-    ],
-    "GroupNormalization": [
-        "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint"
     ],
 }
 
@@ -97,7 +100,7 @@ class GraphNormalization(Layer):
         """
         super(GraphNormalization, self).__init__(**kwargs)
         self.epsilon = epsilon
-        self._eps = epsilon # (epsilon, dtype=self.dtype)
+        self._eps = ops.convert_to_tensor(epsilon, dtype=self.dtype)
         self.center = center
         self.mean_shift = mean_shift
         self.scale = scale

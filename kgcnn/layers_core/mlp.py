@@ -1,6 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense, Layer, Activation, Dropout
-from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, Normalization
+from keras_core.layers import (LayerNormalization, GroupNormalization, BatchNormalization, Normalization,
+                               UnitNormalization)
 from kgcnn.layers_core.norm import global_normalization_args
 from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalization
 
@@ -8,7 +9,7 @@ from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalizatio
 class MLPBase(Layer):
     r"""Base class for multilayer perceptron that consist of multiple feed-forward networks.
 
-    This base class simply manages layer arguments for :obj:`MLP`. They contain arguments for :obj:`Dense`,
+    This base class simply manages layer arguments for :obj:`MLP`. They contain arguments for :obj:`Dense` ,
     :obj:`Dropout` and :obj:`BatchNormalization` or :obj:`LayerNormalization` or :obj:`GraphNormalization`
     since MLP is made up of stacked :obj:`Dense` layers with optional normalization and
     dropout to improve stability or regularization. Here, a list in place of arguments must be provided that applies
@@ -18,7 +19,7 @@ class MLPBase(Layer):
     Hence, this base class holds arguments for batch-normalization which should be applied between kernel
     and activation. And dropout after the kernel output and before normalization.
 
-    This base class does not initialize any sub-layers or implements :obj:`call`, only for managing arguments.
+    This base class does not initialize any sub-layers or implements :obj:`call` , only for managing arguments.
     The actual :obj:`MLP` layer inherits from this class.
     """
 
@@ -193,6 +194,7 @@ class MLPBase(Layer):
         replace_norm_identifier = [
             ("batch", "BatchNormalization"), ("layer", "LayerNormalization"), ("group", "GroupNormalization"),
             ("graph", "GraphNormalization"), ("graph_instance", "GraphInstanceNormalization"),
+            ("unit_norm", "UnitNormalization"), ("norm", "Normalization")
         ]
         for i, x in enumerate(mlp_kwargs["normalization_technique"]):
             for key_rep, key in replace_norm_identifier:
@@ -254,12 +256,22 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
         norm_classes = {
-            # "Normalization": Normalization,
+            "Normalization": Normalization,
+            "UnitNormalization": UnitNormalization,
             "BatchNormalization": BatchNormalization,
             "GroupNormalization": GroupNormalization,
             "LayerNormalization": LayerNormalization,
             "GraphNormalization": GraphNormalization,
             "GraphInstanceNormalization": GraphInstanceNormalization
+        }
+        requires_batch_classes = {
+            "Normalization": False,
+            "UnitNormalization": False,
+            "BatchNormalization": False,
+            "GroupNormalization": False,
+            "LayerNormalization": False,
+            "GraphNormalization": True,
+            "GraphInstanceNormalization": True
         }
         if not self._supress_dense:
             self.mlp_dense_layer_list = [
@@ -280,31 +292,46 @@ class MLP(MLPBase):
                 **self._get_conf_for_keys(self._key_dict_norm[self._conf_normalization_technique[i]], "norm", i)
             ) if self._conf_use_normalization[i] else None for i in range(self._depth)
         ]
+        self._norm_requires_batch_info = [
+            requires_batch_classes[self._conf_normalization_technique[i]] if self._conf_use_normalization[
+                i] else None for i in range(self._depth)
+        ]
 
     def build(self, input_shape):
         """Build layer."""
-        super(MLP, self).build(input_shape)
+        x_shape, batch = (input_shape[0], input_shape[1:]) if isinstance(input_shape, list) else (input_shape, [])
+        for i in range(self._depth):
+            self.mlp_dense_layer_list[i].build(x_shape)
+            x_shape = self.mlp_dense_layer_list[i].compute_output_shape(x_shape)
+            if self._conf_use_dropout[i]:
+                self.mlp_dropout_layer_list[i].build(x_shape)
+            if self._conf_use_normalization[i]:
+                if self._norm_requires_batch_info[i]:
+                    self.mlp_norm_layer_list[i].build([x_shape] + batch)
+                else:
+                    self.mlp_norm_layer_list[i].build(x_shape)
+            self.mlp_activation_layer_list[i].build(x_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
 
         Args:
-            inputs (tf.Tensor): Input tensor with last dimension not `None`.
+            inputs (tf.Tensor): Input tensor with last dimension not `None` .
 
         Returns:
             tf.Tensor: MLP forward pass.
         """
-        if isinstance(inputs, list):
-            x, batch = inputs
-        else:
-            x = inputs
+        x, batch = (inputs[0], inputs[1]) if isinstance(inputs, list) else (inputs, [])
 
         for i in range(self._depth):
             x = self.mlp_dense_layer_list[i](x, **kwargs)
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
             if self._conf_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
+                if self._norm_requires_batch_info[i]:
+                    x = self.mlp_norm_layer_list[i]([x]+batch, **kwargs)
+                else:
+                    x = self.mlp_norm_layer_list[i](x, **kwargs)
             x = self.mlp_activation_layer_list[i](x, **kwargs)
         out = x
         return out
@@ -313,9 +340,6 @@ class MLP(MLPBase):
         """Update config."""
         config = super(MLP, self).get_config()
         return config
-
-
-GraphMLP = MLP
 
 
 # class RelationalMLP(MLP):

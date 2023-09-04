@@ -69,12 +69,16 @@ class GCN(Layer):
         self.layer_pool = AggregateWeightedLocalEdges(**pool_args)
         self.layer_act = Activation(activation)
 
-    # def build(self, input_shape):
-    #     self.layer_dense.build(input_shape[0])
-    #     dense_output_shape = self.layer_dense.compute_output_shape(input_shape[0])
-    #     self.layer_gather.build([dense_output_shape, input_shape[2]])
-    #     self.layer_pool.build([])
-    #     self.layer_act.build()
+    def build(self, input_shape):
+        assert isinstance(input_shape, list), "Require list input"
+        self.layer_dense.build(input_shape[0])
+        dense_shape = self.layer_dense.compute_output_shape(input_shape[0])
+        self.layer_gather.build([dense_shape, input_shape[2]])
+        gather_shape = self.layer_gather.compute_output_shape([dense_shape, input_shape[2]])
+        self.layer_pool.build([input_shape[0], gather_shape, input_shape[2], input_shape[1]])
+        pool_shape = self.layer_pool.compute_output_shape(
+            [input_shape[0], gather_shape, input_shape[2], input_shape[1]])
+        self.layer_act.build(pool_shape)
 
     def call(self, inputs, **kwargs):
         """Forward pass.
