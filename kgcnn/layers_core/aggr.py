@@ -30,13 +30,15 @@ class Aggregate(Layer):
 
 class AggregateLocalEdges(Layer):
 
-    def __init__(self, pooling_method="sum", pooling_index: int = 1, **kwargs):
+    def __init__(self, pooling_method="scatter_sum", pooling_index: int = 1, **kwargs):
         super(AggregateLocalEdges, self).__init__(**kwargs)
         self.pooling_index = pooling_index
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
-        self.to_aggregate.build((input_shape[0], input_shape[1][1:], input_shape[0][:1]))
+        assert len(input_shape) == 3
+        node_shape, edges_shape, edge_index_shape = input_shape
+        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape[:1]))
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
@@ -50,14 +52,18 @@ class AggregateLocalEdges(Layer):
 
 class AggregateWeightedLocalEdges(AggregateLocalEdges):
 
-    def __init__(self, pooling_method="sum", pooling_index: int = 1, normalize_by_weights=False, **kwargs):
+    def __init__(self, pooling_method="scatter_sum", pooling_index: int = 1, normalize_by_weights=False, **kwargs):
         super(AggregateWeightedLocalEdges, self).__init__(**kwargs)
         self.normalize_by_weights = normalize_by_weights
         self.pooling_index = pooling_index
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
+        self.to_aggregate_weights = Aggregate(pooling_method="scatter_sum")
 
     def build(self, input_shape):
-        self.to_aggregate.build((input_shape[0], input_shape[1][1:], input_shape[0][:1]))
+        assert len(input_shape) == 4
+        node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
+        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape[:1]))
+        self.to_aggregate_weights.build((weights_shape, edge_index_shape[1:], node_shape[:1]))
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
@@ -67,14 +73,11 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
     def call(self, inputs, **kwargs):
         n, edges, edge_index, weights = inputs
         edges = edges*weights
-        # For test only sum scatter, no segment operation etc.
+
         out = self.to_aggregate([edges, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
 
-        # if self.normalize_by_weights:
-        #     norm = tensor_scatter_nd_ops_by_name(
-        #         "add", tf.zeros(tf.concat([tf.shape(nodes)[:1], tf.shape(edges)[1:]], axis=0), dtype=edges.dtype),
-        #         tf.expand_dims(receive_indices, axis=-1), weights
-        #     )
-        #     # We could also optionally add tf.eps here.
-        #     out = tf.math.divide_no_nan(out, norm)
+        if self.normalize_by_weights:
+            norm = self.to_aggregate_weights([
+                weights, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
+            out = out/norm
         return out
