@@ -89,7 +89,7 @@ def make_model(inputs: list = None,
 
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    n, e, disjoint_indices, batch, node_len, edge_len = CastBatchGraphListToPyGDisjoint()(model_inputs)
+    n, e, disjoint_indices, batch, ptr = CastBatchGraphListToPyGDisjoint()(model_inputs)
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:
@@ -110,7 +110,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([n, batch])  # will return tensor
+        out = PoolingNodes()([n, ptr])  # will return tensor
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n

@@ -1,7 +1,6 @@
 import keras_core as ks
 from keras_core.layers import Dense, Layer, Activation, Dropout
-from keras_core.layers import (LayerNormalization, GroupNormalization, BatchNormalization, Normalization,
-                               UnitNormalization)
+from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, UnitNormalization
 from kgcnn.layers_core.norm import global_normalization_args
 from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalization
 
@@ -256,7 +255,6 @@ class MLP(MLPBase):
         """Initialize MLP. See MLPBase."""
         super(MLP, self).__init__(units=units, **kwargs)
         norm_classes = {
-            "Normalization": Normalization,
             "UnitNormalization": UnitNormalization,
             "BatchNormalization": BatchNormalization,
             "GroupNormalization": GroupNormalization,
@@ -265,7 +263,6 @@ class MLP(MLPBase):
             "GraphInstanceNormalization": GraphInstanceNormalization
         }
         requires_batch_classes = {
-            "Normalization": False,
             "UnitNormalization": False,
             "BatchNormalization": False,
             "GroupNormalization": False,
@@ -321,7 +318,7 @@ class MLP(MLPBase):
         Returns:
             tf.Tensor: MLP forward pass.
         """
-        x, batch = (inputs[0], inputs[1]) if isinstance(inputs, list) else (inputs, [])
+        x, batch = (inputs[0], inputs[1:]) if isinstance(inputs, list) else (inputs, [])
 
         for i in range(self._depth):
             x = self.mlp_dense_layer_list[i](x, **kwargs)

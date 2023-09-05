@@ -1,5 +1,5 @@
 import keras_core as ks
-from keras_core.layers import Layer, BatchNormalization, LayerNormalization, GroupNormalization
+from keras_core.layers import Layer
 from keras_core import ops
 
 
@@ -7,28 +7,28 @@ global_normalization_args = {
     "UnitNormalization": [
         "axis"
     ],
-    "BatchNormalization": [
+    "BatchNormalization": (
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
         "moving_variance_initializer"
-    ],
-    "GroupNormalization": [
+    ),
+    "GroupNormalization": (
         "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ],
-    "LayerNormalization": [
+    ),
+    "LayerNormalization": (
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ],
-    "GraphNormalization": [
+    ),
+    "GraphNormalization": (
         "mean_shift", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer",
         "beta_regularizer", "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint",
         "alpha_regularizer"
-    ],
-    "GraphInstanceNormalization": [
+    ),
+    "GraphInstanceNormalization": (
         "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint", "alpha_regularizer"
-    ],
+    ),
 }
 
 
@@ -67,7 +67,6 @@ class GraphNormalization(Layer):
 
     .. code-block:: python
 
-        import tensorflow as tf
         from kgcnn.layers.norm import GraphNormalization
         layer = GraphNormalization()
     """
@@ -121,7 +120,7 @@ class GraphNormalization(Layer):
     def build(self, input_shape):
         """Build layer."""
         super(GraphNormalization, self).build(input_shape)
-        param_shape = [x if x is not None else 1 for x in input_shape[2:]]
+        param_shape = [x if x is not None else 1 for x in input_shape[1:]]
         if self.scale:
             self.gamma = self.add_weight(
                 name="gamma",
@@ -154,39 +153,48 @@ class GraphNormalization(Layer):
 
         self.built = True
 
-    def _ragged_mean_std(self, inputs):
-        values, batch = inputs
-        row_ids = batch
-        row_lengths = ops.segment_sum(ops.ones_like(row_ids), row_ids)
+    def _ragged_mean_std(self, inputs: list):
+        if isinstance(inputs, list):
+            values, lengths = inputs
+        else:
+            values = inputs
+            lengths = ops.cast(ops.shape(values)[:1], dtype="in32")
         if values.dtype in ("float16", "bfloat16") and self.dtype == "float32":
             values = ops.cast(values, "float32")
-        mean = ops.segment_sum("mean", values, row_ids)/row_lengths
+        row_ids = ops.expand_dims(ops.repeat(ops.arange(ops.shape(lengths)[0], dtype="int32"), lengths), axis=-1)
+        shape_ = ops.concatenate([ops.shape(lengths)[:1], ops.shape(values)[1:]])
+        counts_ = ops.scatter(row_ids, ops.ones_like(values), shape=shape_)
+
+        mean = ops.scatter(row_ids, values, shape=shape_)/counts_
         if self.mean_shift:
             mean = mean * ops.expand_dims(self.alpha, axis=0)
-        mean = ops.repeat(mean, row_lengths, axis=0)
+        mean = ops.repeat(mean, lengths, axis=0)
         diff = values - mean
         # Not sure whether to stop gradients for variance if alpha ist used.
         square_diff = ops.square(diff)  # values - tf.stop_gradient(mean)
-        variance = ops.segment_sum("mean", square_diff, row_ids)/row_lengths
+        variance = ops.scatter(row_ids, square_diff, shape=shape_)/counts_
         std = ops.sqrt(variance + self._eps)
-        std = ops.repeat(std, inputs.row_lengths(), axis=0)
+        std = ops.repeat(std, lengths, axis=0)
         return mean, std, diff / std
 
     def call(self, inputs, **kwargs):
         """Forward pass.
 
         Args:
-            inputs (tf.RaggedTensor, tf.Tensor): Node or edge embeddings of shape (batch, [M], F, ...)
+            inputs (list): `[values, graph_size]` .
+
+                - values (Tensor): Tensor to normalize of shape `(None, F, ...)` .
+                - graph_size (Tensor, optional): Size of each graph for nodes in disjoint batch of shape `(batch, )` .
 
         Returns:
-            tf.RaggedTensor: Normalized ragged tensor of identical shape (batch, [M], F, ...)
+            Tensor: Normalized tensor of identical shape (None, F, ...)
         """
         mean, std, new_values = self._ragged_mean_std(inputs)
         # Recomputing diff.
         if self.scale:
             new_values = new_values * ops.expand_dims(self.gamma, axis=0)
         if self.center:
-            new_values = new_values + self.beta
+            new_values = new_values + ops.expand_dims(self.beta, axis=0)
         return new_values
 
     def get_config(self):
@@ -234,7 +242,6 @@ class GraphInstanceNormalization(GraphNormalization):
 
     .. code-block:: python
 
-        import tensorflow as tf
         from kgcnn.layers.norm import GraphInstanceNormalization
         layer = GraphInstanceNormalization()
     """

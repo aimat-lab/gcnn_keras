@@ -20,7 +20,7 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
     def test_correctness_lengths(self):
 
         layer = CastBatchGraphListToPyGDisjoint()
-        node_attr, edge_attr, edge_index, batch, _, _ = layer(
+        node_attr, edge_attr, edge_index, batch, _ = layer(
             [self.nodes, self.edges,
              ops.cast(self.edge_indices, dtype="int64"),
              self.node_len, self.edge_len
@@ -33,7 +33,7 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
     def test_correctness_mask(self):
 
         layer = CastBatchGraphListToPyGDisjoint(reverse_indices=False, batch_info="mask")
-        node_attr, edge_attr, edge_index, batch, _, _ = layer(
+        node_attr, edge_attr, edge_index, batch, _ = layer(
             [self.nodes, self.edges, ops.cast(self.edge_indices, dtype="int64"), self.node_mask, self.edge_mask],
         )
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
@@ -44,7 +44,7 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
     def test_correctness_equal_size(self):
 
         layer = CastBatchGraphListToPyGDisjoint(reverse_indices=False)
-        node_attr, edge_attr, edge_index, batch, _, _ = layer(
+        node_attr, edge_attr, edge_index, batch, _ = layer(
             [self.nodes, self.edges, ops.cast(self.edge_indices, dtype="int64")]
         )
         self.assertAllClose(node_attr, [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
@@ -60,7 +60,7 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
             init_kwargs={
             },
             input_shape=[(2, 2, 2), (2, 4, 3), (2, 4, 2), (2, ), (2, )],
-            expected_output_shape=[(4, 2), (8, 3), (2, 8), (4,), (2, ), (2, )],
+            expected_output_shape=[(4, 2), (8, 3), (2, 8), (4,), (2, )],
             expected_num_trainable_weights=0,
             expected_num_non_trainable_weights=0,
             expected_num_seed_generators=0,
