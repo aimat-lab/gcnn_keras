@@ -14,3 +14,7 @@ def scatter_max(indices, values, shape):
 def scatter_mean(indices, values, shape):
     counts = tf.scatter_nd(indices, tf.ones_like(values), shape)
     return tf.scatter_nd(indices, values, shape)/counts
+
+
+def scatter_sum(indices, values, shape):
+    return tf.scatter_nd(indices, values, shape)

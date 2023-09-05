@@ -1,16 +1,31 @@
+import keras_core as ks
+import keras_core.saving
 from keras_core.layers import Layer
 from keras_core import ops
+from kgcnn.ops_core.scatter import scatter_min, scatter_mean, scatter_max, scatter_sum
 
 
-# @keras_core.saving.register_keras_serializable()
+@ks.saving.register_keras_serializable(package='kgcnn', name='Aggregate')
 class Aggregate(Layer):
 
-    def __init__(self, pooling_method: str = "sum", axis=0, **kwargs):
+    def __init__(self, pooling_method: str = "scatter_sum", axis=0, **kwargs):
         super(Aggregate, self).__init__(**kwargs)
         self.pooling_method = pooling_method
         self.axis = axis
         if axis != 0:
             raise NotImplementedError
+        pooling_by_name = {
+            "scatter_sum": scatter_sum,
+            "scatter_mean": scatter_mean,
+            "scatter_max": scatter_max,
+            "scatter_min": scatter_min,
+            "segment_sum": None,
+            "segment_mean": None,
+            "segment_max": None,
+            "segment_min": None
+        }
+        self._pool_method = pooling_by_name[pooling_method]
+        self._use_scatter = "scatter" in pooling_method
         
     def build(self, input_shape):
         super(Aggregate, self).build(input_shape)
@@ -22,10 +37,11 @@ class Aggregate(Layer):
 
     def call(self, inputs, **kwargs):
         x, index, dim_size = inputs
-        # For test only sum scatter, no segment operation no other poolings etc.
-        # will add all poolings here.
         shape = ops.concatenate([dim_size, ops.shape(x)[1:]])
-        return ops.scatter(ops.expand_dims(index, axis=-1), x, shape=shape)
+        if self._use_scatter:
+            return self._pool_method(ops.expand_dims(index, axis=-1), x, shape=shape)
+        else:
+            raise NotImplementedError
 
 
 class AggregateLocalEdges(Layer):

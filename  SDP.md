@@ -12,4 +12,4 @@ Software Development Plan (SDP)
 * [ ] Make a ``tf_dataset()`` function to return a generator dataset from `Graphlist` .
 * [ ] Add ``JARVISDataset`` . There is already a (yet not fully) port for `kgcnn` .
 * [ ] Add package wide Logger Level to change. 
-* [ ] Training scripts need all seed for maximum reproducibility.
+* [x] Training scripts need all seed for maximum reproducibility.
