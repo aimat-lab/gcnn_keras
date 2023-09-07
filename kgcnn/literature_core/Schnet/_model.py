@@ -39,7 +39,7 @@ model_default = {
     "make_distance": True,
     "expand_distance": True,
     "interaction_args": {"units": 128, "use_bias": True,
-                         "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"},
+                         "activation": "kgcnn>shifted_softplus", "cfconv_pool": "scatter_sum"},
     "node_pooling_args": {"pooling_method": "sum"},
     "depth": 4,
     "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4},

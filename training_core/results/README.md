@@ -16,5 +16,5 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 
 | model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GCN     | 3.1.0   |      800 | **0.4741 &pm; 0.0188** | **0.6946 &pm; 0.0351** |
+| GCN     | 3.1.0   |      800 | **0.4675 &pm; 0.0089** | **0.6769 &pm; 0.0206** |
 
