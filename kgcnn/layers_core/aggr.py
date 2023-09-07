@@ -2,7 +2,7 @@ import keras_core as ks
 import keras_core.saving
 from keras_core.layers import Layer
 from keras_core import ops
-from kgcnn.ops_core.scatter import scatter_min, scatter_mean, scatter_max, scatter_sum
+from kgcnn.ops_core.scatter import scatter_reduce_min, scatter_reduce_mean, scatter_reduce_max, scatter_reduce_sum
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Aggregate')
@@ -15,10 +15,10 @@ class Aggregate(Layer):
         if axis != 0:
             raise NotImplementedError()
         pooling_by_name = {
-            "scatter_sum": scatter_sum,
-            "scatter_mean": scatter_mean,
-            "scatter_max": scatter_max,
-            "scatter_min": scatter_min,
+            "scatter_sum": scatter_reduce_sum,
+            "scatter_mean": scatter_reduce_mean,
+            "scatter_max": scatter_reduce_max,
+            "scatter_min": scatter_reduce_min,
             "segment_sum": None,
             "segment_mean": None,
             "segment_max": None,

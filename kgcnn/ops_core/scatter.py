@@ -6,7 +6,7 @@ from keras_core.ops.operation import Operation
 
 class ScatterMax(Operation):
     def call(self, indices, values, shape):
-        return kgcnn_backend.scatter_max(indices, values, shape)
+        return kgcnn_backend.scatter_reduce_max(indices, values, shape)
 
     def compute_output_spec(self, indices, values, shape):
         return KerasTensor(shape, dtype=values.dtype)
@@ -15,12 +15,12 @@ class ScatterMax(Operation):
 def scatter_max(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMax().symbolic_call(indices, values, shape)
-    return kgcnn_backend.scatter_max(indices, values, shape)
+    return kgcnn_backend.scatter_reduce_max(indices, values, shape)
 
 
 class ScatterMin(Operation):
     def call(self, indices, values, shape):
-        return kgcnn_backend.scatter_min(indices, values, shape)
+        return kgcnn_backend.scatter_reduce_min(indices, values, shape)
 
     def compute_output_spec(self, indices, values, shape):
         return KerasTensor(shape, dtype=values.dtype)
@@ -29,12 +29,12 @@ class ScatterMin(Operation):
 def scatter_min(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMin().symbolic_call(indices, values, shape)
-    return kgcnn_backend.scatter_min(indices, values, shape)
+    return kgcnn_backend.scatter_reduce_min(indices, values, shape)
 
 
 class ScatterMean(Operation):
     def call(self, indices, values, shape):
-        return kgcnn_backend.scatter_mean(indices, values, shape)
+        return kgcnn_backend.scatter_reduce_mean(indices, values, shape)
 
     def compute_output_spec(self, indices, values, shape):
         return KerasTensor(shape, dtype=values.dtype)
@@ -43,12 +43,12 @@ class ScatterMean(Operation):
 def scatter_mean(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMean().symbolic_call(indices, values, shape)
-    return kgcnn_backend.scatter_mean(indices, values, shape)
+    return kgcnn_backend.scatter_reduce_mean(indices, values, shape)
 
 
 class ScatterSum(Operation):
     def call(self, indices, values, shape):
-        return kgcnn_backend.scatter_sum(indices, values, shape)
+        return kgcnn_backend.scatter_reduce_sum(indices, values, shape)
 
     def compute_output_spec(self, indices, values, shape):
         return KerasTensor(shape, dtype=values.dtype)
@@ -57,4 +57,4 @@ class ScatterSum(Operation):
 def scatter_sum(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterSum().symbolic_call(indices, values, shape)
-    return kgcnn_backend.scatter_sum(indices, values, shape)
+    return kgcnn_backend.scatter_reduce_sum(indices, values, shape)
