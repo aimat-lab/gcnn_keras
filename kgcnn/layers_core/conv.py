@@ -40,7 +40,7 @@ class GCN(Layer):
 
     def __init__(self,
                  units,
-                 pooling_method='sum',
+                 pooling_method='scatter_sum',
                  normalize_by_weights=False,
                  activation='kgcnn>leaky_relu',
                  use_bias=True,
@@ -79,6 +79,7 @@ class GCN(Layer):
         pool_shape = self.layer_pool.compute_output_shape(
             [input_shape[0], gather_shape, input_shape[2], input_shape[1]])
         self.layer_act.build(pool_shape)
+        self.built = True
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -86,12 +87,12 @@ class GCN(Layer):
         Args:
             inputs: [nodes, edges, edge_index]
 
-                - nodes (tf.RaggedTensor): Node embeddings of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge or message embeddings of shape (batch, [M], F)
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape (batch, [M], 2)
+                - nodes (Tensor): Node embeddings of shape `(None, F)`
+                - edges (Tensor): Edge or message embeddings of shape `(None, F)`
+                - edge_index (Tensor): Edge indices referring to nodes of shape `(2, None)`
 
         Returns:
-            tf.RaggedTensor: Node embeddings of shape (batch, [N], F)
+            Tensor: Node embeddings of shape `(None, F)`
         """
         node, edges, edge_index = inputs
         no = self.layer_dense(node, **kwargs)
@@ -108,7 +109,8 @@ class GCN(Layer):
         conf_dense = self.layer_dense.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "use_bias"]:
-            config.update({x: conf_dense[x]})
+            if x in conf_dense:
+                config.update({x: conf_dense[x]})
         conf_act = self.layer_act.get_config()
         config.update({"activation": conf_act["activation"]})
         return config

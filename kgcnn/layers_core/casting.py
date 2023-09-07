@@ -30,11 +30,11 @@ class CastBatchGraphListToPyGDisjoint(Layer):
             inputs (list): List of `[nodes, edges, edge_indices, nodes_in_batch, edges_in_batch]` ,
 
                 - nodes (Tensor): Node features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
-                    where N denotes the number of nodes.
+                  where N denotes the number of nodes.
                 - edges (Tensor): edge features are represented by a keras tensor of shape `(batch, M, F, ...)` ,
-                    where M denotes the number of edges.
+                  where M denotes the number of edges.
                 - edge_indices (Tensor): Edge indices have shape `(batch, M, 2)` with the indices of directed
-                    edges at last axis for each edge corresponding to `edges` .
+                  edges at last axis for each edge corresponding to `edges` .
                 - nodes_in_batch (Tensor, optional):
                 - edges_in_batch (Tensor, optional):
 
@@ -66,13 +66,13 @@ class CastBatchGraphListToPyGDisjoint(Layer):
         # Case 2: Fixed sized graphs without batch information.
         elif all_tensor and len(inputs) == 3:
             nodes, edges, edge_indices = inputs
-            n_shape, e_shape, ei_shape = ops.shape(nodes), ops.shape(edges), ops.shape(edge_indices)
-            nodes_flatten = ops.reshape(nodes, ops.concatenate([[n_shape[0] * n_shape[1]], n_shape[2:]]))
-            edges_flatten = ops.reshape(edges, ops.concatenate([[e_shape[0] * e_shape[1]], e_shape[2:]]))
-            edge_indices_flatten = ops.reshape(
-                edge_indices, ops.concatenate([[ei_shape[0] * ei_shape[1]], ei_shape[2:]]))
-            node_len = ops.repeat(ops.cast([n_shape[1]], dtype=self.dtype_batch), n_shape[0])
-            edge_len = ops.repeat(ops.cast([ei_shape[1]], dtype=self.dtype_batch), ei_shape[0])
+            print(ops.shape(nodes))
+            nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
+            edges_flatten = ops.reshape(edges, [-1] + list(ops.shape(edges)[2:]))
+            edge_indices_flatten = ops.reshape(edge_indices, [-1] + list(ops.shape(edge_indices)[2:]))
+            node_len = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=self.dtype_batch), ops.shape(nodes)[0])
+            edge_len = ops.repeat(ops.cast([ops.shape(edge_indices)[1]], dtype=self.dtype_batch),
+                                  ops.shape(edge_indices)[0])
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core.

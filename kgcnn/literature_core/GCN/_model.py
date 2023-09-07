@@ -1,4 +1,5 @@
 import keras_core as ks
+import keras_core.backend
 from keras_core.layers import Dense, Activation
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import CastBatchGraphListToPyGDisjoint
@@ -8,14 +9,17 @@ from kgcnn.layers_core.gather import GatherNodesOutgoing, GatherNodes
 from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
+from keras_core.backend import backend as backend_to_use
 
 # Keep track of model version from commit date in literature.
 __kgcnn_model_version__ = "2023.09.30"
 
 # Supported backends
-__kgcnn_model_backend_supported__ = ["tensorflow", "pytorch", "jax"]
+__kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
+if backend_to_use() not in __kgcnn_model_backend_supported__:
+    raise NotImplementedError("Backend '%s' for model 'GCN' is not supported." % backend_to_use())
 
-# Implementation of GCN in `tf.keras` from paper:
+# Implementation of GCN in `keras` from paper:
 # Semi-Supervised Classification with Graph Convolutional Networks
 # by Thomas N. Kipf, Max Welling
 # https://arxiv.org/abs/1609.02907
@@ -56,19 +60,21 @@ def make_model(inputs: list = None,
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_weights, edge_indices, ]`
+        list: `[node_attributes, edge_weights, edge_indices, node_counts, edge_counts]`
 
-            - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, None, F)` or `(batch, None)`
+            - node_attributes (Tensor): Node attributes of shape `(batch, N, F)` or `(batch, N)`
               using an embedding layer.
-            - edge_weights (tf.RaggedTensor): Edge weights of shape `(batch, None, 1)`, that are entries of a scaled
+            - edge_weights (Tensor): Edge weights of shape `(batch, M, 1)` , that are entries of a scaled
               adjacency matrix.
-            - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, None, 2)`.
+            - edge_indices (Tensor): Index list for edges of shape `(batch, M, 2)` .
+            - node_counts(Tensor, optional): Nodes in graph if not same sized graphs of shape `(batch, )` .
+            - edge_counts(Tensor, optional): Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
-        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
-        inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
+        inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
         input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -76,12 +82,12 @@ def make_model(inputs: list = None,
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
 
     Returns:
-        :obj:`tf.keras.models.Model`
+        :obj:`ks.models.Model`
     """
     if inputs[1]['shape'][-1] != 1:
         raise ValueError("No edge features available for GCN, only edge weights of pre-scaled adjacency matrix, \
@@ -102,7 +108,7 @@ def make_model(inputs: list = None,
 
     for i in range(0, depth):
         # n = GCN(**gcn_args)([n, e, disjoint_indices])
-        # Equivalent in single steps.
+        # # Equivalent as:
         no = Dense(gcn_args["units"], activation="linear")(n)
         no = GatherNodesOutgoing()([no, disjoint_indices])
         nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
@@ -118,6 +124,6 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for `GCN` .")
 
-    model = ks.models.Model(inputs=model_inputs, outputs=out)
+    model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __kgcnn_model_version__
     return model

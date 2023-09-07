@@ -308,6 +308,7 @@ class MLP(MLPBase):
                 else:
                     self.mlp_norm_layer_list[i].build(x_shape)
             self.mlp_activation_layer_list[i].build(x_shape)
+        self.built = True
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.

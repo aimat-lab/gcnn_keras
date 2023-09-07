@@ -13,7 +13,7 @@ class Aggregate(Layer):
         self.pooling_method = pooling_method
         self.axis = axis
         if axis != 0:
-            raise NotImplementedError
+            raise NotImplementedError()
         pooling_by_name = {
             "scatter_sum": scatter_sum,
             "scatter_mean": scatter_mean,
@@ -33,15 +33,15 @@ class Aggregate(Layer):
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
         x_shape, _, dim_size = input_shape
-        return tuple(list(dim_size) + list(x_shape[1:]))
+        return tuple(list(dim_size[:1]) + list(x_shape[1:]))
 
     def call(self, inputs, **kwargs):
-        x, index, dim_size = inputs
-        shape = ops.concatenate([dim_size, ops.shape(x)[1:]])
+        x, index, reference = inputs
+        shape = ops.shape(reference)[:1] + ops.shape(x)[1:]
         if self._use_scatter:
             return self._pool_method(ops.expand_dims(index, axis=-1), x, shape=shape)
         else:
-            raise NotImplementedError
+            raise NotImplementedError()
 
 
 class AggregateLocalEdges(Layer):
@@ -54,16 +54,17 @@ class AggregateLocalEdges(Layer):
     def build(self, input_shape):
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = input_shape
-        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape[:1]))
+        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+        self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
         node_shape, edges_shape, edge_index_shape = input_shape
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape[:1]])
+        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index = inputs
-        return self.to_aggregate([edges, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
+        return self.to_aggregate([edges, edge_index[self.pooling_index], n])
 
 
 class AggregateWeightedLocalEdges(AggregateLocalEdges):
@@ -78,22 +79,22 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
     def build(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
-        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape[:1]))
-        self.to_aggregate_weights.build((weights_shape, edge_index_shape[1:], node_shape[:1]))
+        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+        self.to_aggregate_weights.build((weights_shape, edge_index_shape[1:], node_shape))
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
         node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
-        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape[:1]])
+        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
 
     def call(self, inputs, **kwargs):
         n, edges, edge_index, weights = inputs
         edges = edges*weights
 
-        out = self.to_aggregate([edges, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
+        out = self.to_aggregate([edges, edge_index[self.pooling_index], n])
 
         if self.normalize_by_weights:
             norm = self.to_aggregate_weights([
-                weights, edge_index[self.pooling_index], ops.cast(ops.shape(n)[:1], dtype="int64")])
+                weights, edge_index[self.pooling_index], n])
             out = out/norm
         return out

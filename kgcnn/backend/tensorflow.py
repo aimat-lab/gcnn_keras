@@ -17,4 +17,4 @@ def scatter_mean(indices, values, shape):
 
 
 def scatter_sum(indices, values, shape):
-    return tf.scatter_nd(indices, values, shape)
+    return tf.scatter_nd(indices, values, tf.cast(shape, dtype="int64"))
