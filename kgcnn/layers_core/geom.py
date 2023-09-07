@@ -48,6 +48,9 @@ class NodePosition(Layer):
         """Build layer."""
         super(NodePosition, self).build(input_shape)
 
+    def compute_output_shape(self, input_shape):
+        return self.layer_gather.compute_output_shape(input_shape)
+
     def call(self, inputs, **kwargs):
         r"""Forward pass of :obj:`NodePosition`.
 
@@ -127,7 +130,7 @@ class EuclideanNorm(Layer):
 
         ||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}
 
-    Vector based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension `D`.
+    Vector based edge or node coordinates are defined by `(N, ..., D)` with last dimension `D`.
     You can choose to collapse or keep this dimension with :obj:`keepdims` and to optionally invert the resulting norm
     with :obj:`invert_norm` layer arguments.
     """
@@ -155,6 +158,12 @@ class EuclideanNorm(Layer):
         """Build layer."""
         super(EuclideanNorm, self).build(input_shape)
         self.axis = get_positive_axis(self.axis, len(input_shape))
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        input_shape = list(input_shape)
+
+        return
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
@@ -294,6 +303,8 @@ class NodeDistanceEuclidean(Layer):
     def build(self, input_shape):
         """Build layer."""
         super(NodeDistanceEuclidean, self).build(input_shape)
+        self.layer_subtract.build(input_shape)
+        self.layer_euclidean_norm.build(self.layer_subtract.compute_output_shape(input_shape))
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -409,7 +420,8 @@ class VectorAngle(Layer):
         v1, v2 = inputs[0], inputs[1]
         x = ops.sum(v1 * v2, axis=-1)
         y = ops.cross(v1, v2)
-        y = tf.norm(y, axis=-1)
+        # y = ops.norm(y, axis=-1)
+        y = ops.sqrt(ops.sum(ops.square(y), axis=-1))
         angle = ops.arctan2(y, x)
         out = ops.expand_dims(angle, axis=-1)
         return out

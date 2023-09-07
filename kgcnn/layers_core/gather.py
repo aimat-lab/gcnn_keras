@@ -21,12 +21,15 @@ class GatherNodes(Layer):
 
     def build(self, input_shape):
         xs = self._compute_gathered_shape(input_shape)
-        self._concat.build(xs)
+        if self.concat_axis is not None:
+            self._concat.build(xs)
         self.built = True
 
     def compute_output_shape(self, input_shape):
         xs = self._compute_gathered_shape(input_shape)
-        return self._concat.compute_output_shape(xs)
+        if self.concat_axis is not None:
+            xs = self._concat.compute_output_shape(xs)
+        return xs
 
     def call(self, inputs, **kwargs):
         x, index = inputs
