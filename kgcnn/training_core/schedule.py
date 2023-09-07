@@ -1,7 +1,7 @@
 import keras_core as ks
-# from keras_core import ops
 import keras_core.saving
 import keras_core.optimizers.schedules.learning_rate_schedule
+# from keras_core import ops
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialDecay')

@@ -24,8 +24,7 @@ class LearningRateLoggingCallback(ks.callbacks.Callback):
         Returns:
             None.
         """
-        lr = self.model.optimizer.lr
-        # tf.summary.scalar('learning rate', data=lr, step=epoch)
+        lr = self.model.optimizer.learning_rate
         logs = logs or {}
         logs['lr'] = float(ks.backend.convert_to_numpy(self.model.optimizer.learning_rate))
         if self.verbose > 0:
