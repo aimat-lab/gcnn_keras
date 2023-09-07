@@ -2,7 +2,7 @@ import numpy as np
 
 from keras_core import ops
 from keras_core import testing
-from kgcnn.layers_core.casting import CastBatchGraphListToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint
 
 
 class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
@@ -19,26 +19,26 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
 
     def test_correctness_lengths(self):
 
-        layer = CastBatchGraphListToPyGDisjoint()
-        node_attr, edge_attr, edge_index, batch, _ = layer(
+        layer = CastBatchedGraphIndicesToPyGDisjoint()
+        node_attr, edge_index, batch, _, _ = layer(
             [self.nodes, self.edges,
              ops.cast(self.edge_indices, dtype="int64"),
              self.node_len, self.edge_len
              ])
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
-        self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
+        # self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
         self.assertAllClose(edge_index, [[0, 1, 2, 1], [0, 1, 1, 2]])
         self.assertAllClose(batch, [0, 1, 1])
 
     def test_correctness_equal_size(self):
 
-        layer = CastBatchGraphListToPyGDisjoint(reverse_indices=False)
-        node_attr, edge_attr, edge_index, batch, _ = layer(
+        layer = CastBatchedGraphIndicesToPyGDisjoint(reverse_indices=False)
+        node_attr, edge_index, batch, _, _ = layer(
             [self.nodes, self.edges, ops.cast(self.edge_indices, dtype="int64")]
         )
         self.assertAllClose(node_attr, [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
-        self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0],
-                                        [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [-1.0, 1.0, 1.0]])
+        # self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0],
+        #                                 [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [-1.0, 1.0, 1.0]])
         self.assertAllClose(edge_index, [[0, 0, 1, 1, 2, 2, 3, 3], [0, 1, 0, 1, 2, 3, 2, 3]])
         self.assertAllClose(batch, [0, 0, 1, 1])
 

@@ -56,3 +56,23 @@ class GatherNodesOutgoing(Layer):
     def call(self, inputs, **kwargs):
         x, index = inputs
         return ops.take(x, index[self.selection_index], axis=0)
+
+
+class GatherState(Layer):
+
+    def __init__(self, selection_index: int = 1, **kwargs):
+        super(GatherState, self).__init__(**kwargs)
+        self.selection_index = selection_index
+
+    def build(self, input_shape):
+        return super(GatherState, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 2
+        state_shape, _ = list(input_shape[0]),  list(input_shape[1])
+        return tuple([None] + state_shape[1:])
+
+    def call(self, inputs, **kwargs):
+        env, target_len = inputs
+        out = ops.repeat(env, target_len, axis=0)
+        return out

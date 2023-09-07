@@ -1,12 +1,9 @@
 import keras_core as ks
-import keras_core.backend
-from keras_core.layers import Dense, Activation
+from keras_core.layers import Dense
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchGraphListToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint, CastBatchedGraphAttributesToPyGDisjoint
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
-from kgcnn.layers_core.gather import GatherNodesOutgoing, GatherNodes
-from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
@@ -27,11 +24,14 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 
 model_default = {
     "name": "GCN",
-    "inputs": [{"shape": (None,), "name": "node_attributes", "dtype": "float32"},
-               {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
-               {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-               {"shape": (), "name": "node_num", "dtype": "int64"},
-               {"shape": (), "name": "edge_num", "dtype": "int64"}],
+    "inputs": [
+        {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {"shape": (), "name": "node_num", "dtype": "int64"},
+        {"shape": (), "name": "edge_num", "dtype": "int64"}
+    ],
+    "cast_indices_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
     "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
@@ -46,6 +46,7 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
+               cast_indices_kwargs: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                depth: int = None,
@@ -75,6 +76,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
+        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToPyGDisjoint` .
         input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -95,7 +97,10 @@ def make_model(inputs: list = None,
 
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    n, e, disjoint_indices, batch, ptr = CastBatchGraphListToPyGDisjoint()(model_inputs)
+    batched_nodes, batched_edges, batched_indices, count_nodes, count_edges = model_inputs
+    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToPyGDisjoint(**cast_indices_kwargs)([
+        batched_nodes, batched_indices, count_nodes, count_edges])
+    e, _ = CastBatchedGraphAttributesToPyGDisjoint()([batched_edges, count_edges])
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:
@@ -108,6 +113,7 @@ def make_model(inputs: list = None,
 
     for i in range(0, depth):
         n = GCN(**gcn_args)([n, e, disjoint_indices])
+
         # # Equivalent as:
         # no = Dense(gcn_args["units"], activation="linear")(n)
         # no = GatherNodesOutgoing()([no, disjoint_indices])
@@ -116,7 +122,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([n, ptr])  # will return tensor
+        out = PoolingNodes()([n, count_nodes])  # will return tensor
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":
         out = n
