@@ -107,12 +107,12 @@ def make_model(inputs: list = None,
     n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
 
     for i in range(0, depth):
-        # n = GCN(**gcn_args)([n, e, disjoint_indices])
+        n = GCN(**gcn_args)([n, e, disjoint_indices])
         # # Equivalent as:
-        no = Dense(gcn_args["units"], activation="linear")(n)
-        no = GatherNodesOutgoing()([no, disjoint_indices])
-        nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
-        n = Activation(gcn_args["activation"])(nu)
+        # no = Dense(gcn_args["units"], activation="linear")(n)
+        # no = GatherNodesOutgoing()([no, disjoint_indices])
+        # nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
+        # n = Activation(gcn_args["activation"])(nu)
 
     # Output embedding choice
     if output_embedding == "graph":

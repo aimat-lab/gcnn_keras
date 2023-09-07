@@ -12,7 +12,7 @@ class ScatterMax(Operation):
         return KerasTensor(shape, dtype=values.dtype)
 
 
-def scatter_max(indices, values, shape):
+def scatter_reduce_max(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMax().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_max(indices, values, shape)
@@ -26,7 +26,7 @@ class ScatterMin(Operation):
         return KerasTensor(shape, dtype=values.dtype)
 
 
-def scatter_min(indices, values, shape):
+def scatter_reduce_min(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMin().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_min(indices, values, shape)
@@ -40,7 +40,7 @@ class ScatterMean(Operation):
         return KerasTensor(shape, dtype=values.dtype)
 
 
-def scatter_mean(indices, values, shape):
+def scatter_reduce_mean(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterMean().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_mean(indices, values, shape)
@@ -54,7 +54,7 @@ class ScatterSum(Operation):
         return KerasTensor(shape, dtype=values.dtype)
 
 
-def scatter_sum(indices, values, shape):
+def scatter_reduce_sum(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
         return ScatterSum().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_sum(indices, values, shape)
