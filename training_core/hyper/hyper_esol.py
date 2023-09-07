@@ -66,7 +66,7 @@ hyper = {
             "config": {
                 "name": "Schnet",
                 "inputs": [
-                    {"shape": [None], "name": "node_number", "dtype": "float32"},
+                    {"shape": [None], "name": "node_number", "dtype": "int32"},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
                     {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
                     {"shape": (), "name": "graph_size", "dtype": "int64"},
@@ -75,13 +75,14 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
-                               "activation": ['kgcnn>shifted_softplus', "linear"]},
+                               "activation": ["kgcnn>shifted_softplus", "linear"]},
                 'last_mlp': {"use_bias": [True, True], "units": [128, 64],
-                             "activation": ['kgcnn>shifted_softplus', 'kgcnn>shifted_softplus']},
+                             "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
                 "interaction_args": {
-                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus", "cfconv_pool": "sum"
+                    "units": 128, "use_bias": True, "activation": "kgcnn>shifted_softplus",
+                    "cfconv_pool": "scatter_sum"
                 },
-                "node_pooling_args": {"pooling_method": "sum"},
+                "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
                 "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10
             }
@@ -100,7 +101,7 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 0.0005}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
                 "loss": "mean_absolute_error"
             }
         },

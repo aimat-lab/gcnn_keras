@@ -13,7 +13,7 @@ def shifted_softplus(x):
     Returns:
         tf.Tensor: Output tensor computed as :math:`\log(e^{x}+1) - \log(2)`.
     """
-    return ks.activations.softplus(x) - ops.log(2.0)
+    return ks.activations.softplus(x) - ops.log(ops.convert_to_tensor(2.0, dtype=x.dtype))
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='softplus2')

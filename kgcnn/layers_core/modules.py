@@ -38,7 +38,7 @@ class Embedding(ks.layers.Layer):
         super(Embedding, self).build(input_shape)
 
     def call(self, inputs):
-        return ops.take(self.embeddings, inputs)
+        return ops.take(self.embeddings, inputs, axis=0)
 
     def get_config(self):
         return super(Embedding, self).get_config()

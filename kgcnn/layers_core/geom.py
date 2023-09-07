@@ -156,14 +156,16 @@ class EuclideanNorm(Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(EuclideanNorm, self).build(input_shape)
         self.axis = get_positive_axis(self.axis, len(input_shape))
         self.built = True
 
     def compute_output_shape(self, input_shape):
         input_shape = list(input_shape)
-
-        return
+        if self.keepdims:
+            input_shape[self.axis] = 1
+        else:
+            input_shape.pop(self.axis)
+        return list(input_shape)
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
@@ -241,11 +243,11 @@ class ScalarProduct(Layer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(ScalarProduct, self).build(input_shape)
         axis = get_positive_axis(self.axis, len(input_shape[0]))
         axis2 = get_positive_axis(self.axis, len(input_shape[1]))
         assert axis2 == axis, "Axis parameter must match on the two input vectors for scalar product."
         self.axis = axis
+        self.built = True
 
     @staticmethod
     def _scalar_product(inputs: list, axis: int):
@@ -298,13 +300,13 @@ class NodeDistanceEuclidean(Layer):
         r"""Initialize layer instance of :obj:`NodeDistanceEuclidean`. """
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
         self.layer_subtract = Subtract()
-        self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True, add_eps=add_eps, no_nan=no_nan)
+        self.layer_euclidean_norm = EuclideanNorm(axis=-1, keepdims=True, add_eps=add_eps, no_nan=no_nan)
 
     def build(self, input_shape):
         """Build layer."""
-        super(NodeDistanceEuclidean, self).build(input_shape)
         self.layer_subtract.build(input_shape)
-        self.layer_euclidean_norm.build(self.layer_subtract.compute_output_shape(input_shape))
+        difference_shape = self.layer_subtract.compute_output_shape(input_shape)
+        self.layer_euclidean_norm.build(difference_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -754,7 +756,7 @@ class BesselBasisLayer(Layer):
         self.envelope_type = str(envelope_type)
 
         if self.envelope_type not in ["poly"]:
-            raise ValueError("Unknown envelope type '%s' in `BesselBasisLayer`." % self.envelope_type)
+            raise ValueError("Unknown envelope type '%s' in `BesselBasisLayer` ." % self.envelope_type)
 
         # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):

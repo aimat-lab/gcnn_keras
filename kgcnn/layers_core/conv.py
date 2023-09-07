@@ -2,6 +2,7 @@ from keras_core.layers import Layer, Dense, Activation, Add, Multiply
 from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges, AggregateLocalEdges
 from kgcnn.layers_core.gather import GatherNodesOutgoing
 from keras_core import ops
+from kgcnn.ops_core.activ import shifted_softplus
 
 
 class GCN(Layer):
@@ -136,9 +137,9 @@ class SchNetCFconv(Layer):
     """
 
     def __init__(self, units,
-                 cfconv_pool='scatter_sum',
+                 cfconv_pool="scatter_sum",
                  use_bias=True,
-                 activation='shifted_softplus',
+                 activation="kgcnn>shifted_softplus",
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -221,7 +222,7 @@ class SchNetInteraction(Layer):
                  units=128,
                  cfconv_pool='scatter_sum',
                  use_bias=True,
-                 activation='shifted_softplus',
+                 activation='kgcnn>shifted_softplus',
                  kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,

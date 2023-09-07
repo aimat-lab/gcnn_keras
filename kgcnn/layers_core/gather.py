@@ -44,12 +44,31 @@ class GatherNodes(Layer):
 
 class GatherNodesOutgoing(Layer):
 
-    def __init__(self, selection_index: int = 1, **kwargs):
+    def __init__(self, selection_index: int = 0, **kwargs):
         super(GatherNodesOutgoing, self).__init__(**kwargs)
         self.selection_index = selection_index
 
     def build(self, input_shape):
         return super(GatherNodesOutgoing, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 2
+        x_shape, indices_shape = list(input_shape[0]),  list(input_shape[1])
+        return tuple(indices_shape[1:] + x_shape[1:])
+
+    def call(self, inputs, **kwargs):
+        x, index = inputs
+        return ops.take(x, index[self.selection_index], axis=0)
+
+
+class GatherNodesIngoing(Layer):
+
+    def __init__(self, selection_index: int = 1, **kwargs):
+        super(GatherNodesIngoing, self).__init__(**kwargs)
+        self.selection_index = selection_index
+
+    def build(self, input_shape):
+        return super(GatherNodesIngoing, self).build(input_shape)
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
