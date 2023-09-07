@@ -20,7 +20,7 @@ from kgcnn.training_core.hyper import HyperParameter
 parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -150,6 +150,9 @@ plot_predict_true(predicted_y, true_y,
 
 # Save last keras-model to output-folder.
 model.save(os.path.join(filepath, f"model{postfix_file}.keras"))
+
+# Save last keras-model to output-folder.
+model.save_spec(os.path.join(filepath, f"model{postfix_file}_weights.npz"))
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
