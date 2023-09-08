@@ -20,6 +20,7 @@ class GatherNodes(Layer):
         return xs
 
     def build(self, input_shape):
+        # We could call build on concatenate layer.
         xs = self._compute_gathered_shape(input_shape)
         if self.concat_axis is not None:
             self._concat.build(xs)
@@ -49,7 +50,7 @@ class GatherNodesOutgoing(Layer):
         self.selection_index = selection_index
 
     def build(self, input_shape):
-        return super(GatherNodesOutgoing, self).build(input_shape)
+        super(GatherNodesOutgoing, self).build(input_shape)
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
@@ -68,7 +69,7 @@ class GatherNodesIngoing(Layer):
         self.selection_index = selection_index
 
     def build(self, input_shape):
-        return super(GatherNodesIngoing, self).build(input_shape)
+        super(GatherNodesIngoing, self).build(input_shape)
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2
@@ -87,7 +88,7 @@ class GatherState(Layer):
         self.selection_index = selection_index
 
     def build(self, input_shape):
-        return super(GatherState, self).build(input_shape)
+        super(GatherState, self).build(input_shape)
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 2

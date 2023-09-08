@@ -29,8 +29,9 @@ class Aggregate(Layer):
         self._use_scatter = "scatter" in pooling_method
         
     def build(self, input_shape):
+        # Nothing to build here. No sub-layers.
         super(Aggregate, self).build(input_shape)
-
+        
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
         x_shape, _, dim_size = input_shape
@@ -82,6 +83,7 @@ class AggregateWeightedLocalEdges(AggregateLocalEdges):
         node_shape, edges_shape, edge_index_shape, weights_shape = input_shape
         self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
         self.to_aggregate_weights.build((weights_shape, edge_index_shape[1:], node_shape))
+        self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4
@@ -135,6 +137,7 @@ class AggregateLocalEdgesAttention(Layer):
         assert len(input_shape) == 4
         node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
         self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+        self.built = True
 
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 4

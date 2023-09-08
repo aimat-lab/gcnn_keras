@@ -16,9 +16,9 @@ class CastBatchedGraphIndicesToPyGDisjoint(Layer):
         self.reverse_indices = reverse_indices
         self.dtype_index = dtype_index
         self.dtype_batch = dtype_batch
-
+        
     def build(self, input_shape):
-        return super(CastBatchedGraphIndicesToPyGDisjoint, self).build(input_shape)
+        super(CastBatchedGraphIndicesToPyGDisjoint, self).build(input_shape)
 
     def call(self, inputs: list, **kwargs):
         """Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
@@ -105,7 +105,7 @@ class CastBatchedGraphAttributesToPyGDisjoint(Layer):
         self.dtype_batch = dtype_batch
 
     def build(self, input_shape):
-        return super(CastBatchedGraphAttributesToPyGDisjoint, self).build(input_shape)
+        super(CastBatchedGraphAttributesToPyGDisjoint, self).build(input_shape)
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
