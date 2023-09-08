@@ -8,6 +8,7 @@ from kgcnn import __kgcnn_version__
 import keras_core as ks
 import keras_core.callbacks
 from keras_core.backend import backend
+from kgcnn.utils_core.devices import check_device_cuda
 
 
 def load_history_list(file_path, folds):
@@ -113,6 +114,7 @@ def save_history_score(
     result_dict["seed"] = seed
     result_dict["backend"] = backend()
     result_dict["OS"] = "%s_%s" % (os.name, sys.platform)
+    result_dict.update(check_device_cuda())
     if trajectory_name:
         result_dict["trajectory_name"] = trajectory_name
 
