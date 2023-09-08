@@ -392,9 +392,8 @@ class MoleculeNetDataset(MemoryGraphDataset):
             'node_symbol': lambda mg, ds: mg.node_symbol,
             'node_number': lambda mg, ds: mg.node_number,
             'edge_indices': lambda mg, ds: mg.edge_number[0],
-            'edge_count': lambda mg, ds: len(mg.edge_number[0]),
             'edge_number': lambda mg, ds: np.array(mg.edge_number[1], dtype='int'),
-            'graph_size': lambda mg, ds: len(mg.node_number)
+            'size_graph': lambda mg, ds: len(mg.node_number),
         }
         if has_conformers:
             callbacks.update({'node_coordinates': lambda mg, ds: mg.node_coordinates})

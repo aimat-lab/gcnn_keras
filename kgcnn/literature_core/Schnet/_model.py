@@ -31,8 +31,8 @@ model_default = {
         {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
         {"shape": (None, 3), "name": "node_coordinates", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-        {"shape": (), "name": "node_num", "dtype": "int64"},
-        {"shape": (), "name": "edge_num", "dtype": "int64"}
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_indices_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
@@ -75,9 +75,10 @@ def make_model(inputs: list = None,
     Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default` .
 
     Inputs:
-        list: `[node_attributes, edge_distance, edge_indices]`
-        or `[node_attributes, node_coordinates, edge_indices]` if :obj:`make_distance=True` and
-        :obj:`expand_distance=True` to compute edge distances from node coordinates within the model.
+        list: `[node_attributes, edge_distance, edge_indices, total_nodes, total_edges]`
+        or `[node_attributes, node_coordinates, edge_indices, total_nodes, total_edges]`
+        if :obj:`make_distance=True` and :obj:`expand_distance=True`
+        to compute edge distances from node coordinates within the model.
 
             - node_attributes (tf.RaggedTensor): Node attributes of shape `(batch, N, F)` or `(batch, N)`
               using an embedding layer.
@@ -86,6 +87,8 @@ def make_model(inputs: list = None,
               with model argument :obj:`expand_distance=True` and the numeric distance between nodes.
             - edge_indices (tf.RaggedTensor): Index list for edges of shape `(batch, M, 2)`.
             - node_coordinates (tf.RaggedTensor): Node (atomic) coordinates of shape `(batch, None, 3)`.
+            - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
+            - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
         Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.

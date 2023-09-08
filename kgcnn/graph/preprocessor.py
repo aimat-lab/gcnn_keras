@@ -553,3 +553,28 @@ class ShiftToUnitCell(GraphPreProcessorBase):
         if node_coordinates is None or graph_lattice is None:
             return None
         return shift_coordinates_to_unit_cell(coordinates=node_coordinates, lattice=graph_lattice)
+
+
+class CountNodesAndEdges(GraphPreProcessorBase):
+    r""".
+
+    Args:
+        node_attributes (str):
+        edge_indices (str):
+        count_node (str):
+        count_edge (str):
+    """
+
+    def __init__(self, *, total_nodes: str = "total_nodes", total_edges: str = "total_edges",
+                 count_nodes: str = "node_attributes", count_edges: str = "edge_indices",
+                 name="count_nodes_and_edges", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self._to_obtain.update({"count_nodes": count_nodes, "count_edges": count_edges})
+        self._to_assign = [total_nodes, total_edges]
+        self._config_kwargs.update({"total_nodes": total_nodes, "total_edges": total_edges,
+                                    "count_nodes": count_nodes, "count_edges": count_edges})
+
+    def call(self, *, count_nodes: np.ndarray, count_edges: np.ndarray):
+        total_nodes = len(count_nodes) if count_nodes is not None else None
+        total_edges = len(count_edges) if count_edges is not None else None
+        return total_nodes, total_edges

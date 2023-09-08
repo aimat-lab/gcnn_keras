@@ -9,8 +9,8 @@ hyper = {
                     {"shape": (None, 41), "name": "node_attributes", "dtype": "float32"},
                     {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
                     {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-                    {"shape": (), "name": "graph_size", "dtype": "int64"},
-                    {"shape": (), "name": "edge_count", "dtype": "int64"}
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
@@ -47,7 +47,8 @@ hyper = {
             "config": {},
             "methods": [
                 {"set_attributes": {}},
-                {"map_list": {"method": "normalize_edge_weights_sym"}}
+                {"map_list": {"method": "normalize_edge_weights_sym"}},
+                {"map_list": {"method": "count_nodes_and_edges"}},
             ]
         },
         "data": {
@@ -69,8 +70,8 @@ hyper = {
                     {"shape": [None], "name": "node_number", "dtype": "int32"},
                     {"shape": [None, 3], "name": "node_coordinates", "dtype": "float32"},
                     {"shape": [None, 2], "name": "range_indices", "dtype": "int64"},
-                    {"shape": (), "name": "graph_size", "dtype": "int64"},
-                    {"shape": (), "name": "edge_count", "dtype": "int64"}
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
@@ -112,7 +113,9 @@ hyper = {
             "config": {},
             "methods": [
                 {"set_attributes": {}},
-                {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}}
+                {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}},
+                {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
+                              "count_edges": "range_indices"}},
             ]
         },
         "info": {

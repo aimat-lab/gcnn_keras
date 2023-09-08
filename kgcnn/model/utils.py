@@ -102,8 +102,7 @@ def update_model_kwargs(model_default, update_recursive=inf):
             # Logging of updated values.
             if 'verbose' in updated_kwargs:
                 module_logger.setLevel(updated_kwargs["verbose"])
-            module_logger.info("Updated model kwargs:")
-            module_logger.info(updated_kwargs)
+            module_logger.info("Updated model kwargs: '%s'." % updated_kwargs)
 
             if len(args) > 0:
                 module_logger.error("Can only update kwargs, not %s" % args)

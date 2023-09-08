@@ -28,8 +28,8 @@ model_default = {
         {"shape": (None,), "name": "node_attributes", "dtype": "float32"},
         {"shape": (None, 1), "name": "edge_weights", "dtype": "float32"},
         {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-        {"shape": (), "name": "node_num", "dtype": "int64"},
-        {"shape": (), "name": "edge_num", "dtype": "int64"}
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_indices_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
@@ -61,15 +61,15 @@ def make_model(inputs: list = None,
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 
     Inputs:
-        list: `[node_attributes, edge_weights, edge_indices, node_counts, edge_counts]`
+        list: `[node_attributes, edge_weights, edge_indices, total_nodes, total_edges]`
 
             - node_attributes (Tensor): Node attributes of shape `(batch, N, F)` or `(batch, N)`
               using an embedding layer.
             - edge_weights (Tensor): Edge weights of shape `(batch, M, 1)` , that are entries of a scaled
               adjacency matrix.
             - edge_indices (Tensor): Index list for edges of shape `(batch, M, 2)` .
-            - node_counts(Tensor, optional): Nodes in graph if not same sized graphs of shape `(batch, )` .
-            - edge_counts(Tensor, optional): Edges in graph if not same sized graphs of shape `(batch, )` .
+            - total_nodes(Tensor, optional): Number of Nodes in graph if not same sized graphs of shape `(batch, )` .
+            - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
         Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
