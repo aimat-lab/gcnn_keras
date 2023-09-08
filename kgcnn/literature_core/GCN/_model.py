@@ -55,8 +55,7 @@ def make_model(inputs: list = None,
                verbose: int = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
-               output_mlp: dict = None
-               ):
+               output_mlp: dict = None):
     r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 

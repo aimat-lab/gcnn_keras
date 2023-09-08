@@ -53,7 +53,7 @@ model_default = {
 }
 
 
-@update_model_kwargs(model_default)
+@update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
                cast_indices_kwargs: dict = None,
                input_node_embedding: dict = None,
@@ -154,7 +154,7 @@ def make_model(inputs: list = None,
         if use_output_mlp:
             out = MLP(**output_mlp)([out, count_nodes])
     else:
-        raise ValueError("Unsupported output embedding for mode `SchNet`")
+        raise ValueError("Unsupported output embedding for mode `SchNet` .")
 
     model = ks.models.Model(inputs=model_inputs, outputs=out)
 

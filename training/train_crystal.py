@@ -110,6 +110,7 @@ num_folds = len(train_test_indices)
 splits_done = 0
 time_list = []
 train_indices_all, test_indices_all = [], []
+
 for current_fold, (train_index, test_index) in enumerate(train_test_indices):
     test_indices_all.append(test_index)
     train_indices_all.append(train_index)

@@ -13,6 +13,7 @@ from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter
+from kgcnn.utils_core.devices import check_device_cuda
 
 # Input arguments from command line with default values from example.
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
@@ -29,6 +30,9 @@ parser.add_argument("--fold", required=False, help="Split or fold indices to run
 parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
 args = vars(parser.parse_args())
 print("Input of argparse:", args)
+
+# Check for gpu
+check_device_cuda()
 
 # Set seed.
 np.random.seed(args["seed"])
