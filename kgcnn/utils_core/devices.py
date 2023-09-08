@@ -16,12 +16,15 @@ def check_device_cuda():
             physical_device_name = [
                 tf.config.experimental.get_device_details(x) for x in physical_device_list]
         else:
-            physical_device_name = None
+            physical_device_name = []
         logical_device_list = tf.config.experimental.list_logical_devices("GPU")
         if physical_device_name:
-            memory_info = [tf.config.experimental.get_memory_info(x.name) for x in physical_device_list]
+            try:
+                memory_info = [tf.config.experimental.get_memory_info(x.name) for x in physical_device_list]
+            except (TypeError, ValueError):
+                memory_info = []
         else:
-            memory_info = None
+            memory_info = []
 
     elif backend() == "torch":
         import torch
@@ -34,17 +37,11 @@ def check_device_cuda():
     else:
         raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
 
-    out_info = "".join([
-        "GPU: Device information:\n",
-        "GPU: Cuda available: %s" % cuda_is_available,
-        "GPU: Physical GPUs: %s" % physical_device_name,
-        "GPU: ID of (logical) GPUs: %s" % logical_device_list,
-        "GPU: Memory info: %s" % memory_info
-    ])
-    module_logger.info(out_info)
-    return {
+    out_info = {
         "cuda_available": "%s" % cuda_is_available,
         "cuda_device_name": "%s" % physical_device_name,
         "cuda_device_id": "%s" % logical_device_list,
         "cuda_device_memory": "%s" % memory_info,
     }
+    module_logger.info("GPU: Device information: %s." % out_info)
+    return out_info
