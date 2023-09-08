@@ -111,7 +111,7 @@ class AggregateLocalEdgesAttention(Layer):
     """
 
     def __init__(self,
-                 pooling_method="scatter_reduce_softmax",
+                 pooling_method="scatter_sum",
                  pooling_index: int = 1,
                  is_sorted: bool = False,
                  has_unconnected: bool = True,
@@ -129,15 +129,17 @@ class AggregateLocalEdgesAttention(Layer):
         self.pooling_index = pooling_index
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
-        pooling_by_name = {
-            "scatter_softmax": scatter_reduce_softmax,
-        }
-        self._pool_method = pooling_by_name[pooling_method]
-        self._use_scatter = "scatter" in pooling_method
+        self.to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
-        """Build layer."""
-        super(AggregateLocalEdgesAttention, self).build(input_shape)
+        assert len(input_shape) == 4
+        node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
+        self.to_aggregate.build((edges_shape, edge_index_shape[1:], node_shape))
+
+    def compute_output_shape(self, input_shape):
+        assert len(input_shape) == 4
+        node_shape, edges_shape, attention_shape, edge_index_shape = input_shape
+        return self.to_aggregate.compute_output_shape([edges_shape, edge_index_shape[1:], node_shape])
 
     def call(self, inputs, **kwargs):
         """Forward pass.
@@ -155,11 +157,10 @@ class AggregateLocalEdgesAttention(Layer):
         """
         reference, x, attention, disjoint_indices = inputs
         receive_indices = disjoint_indices[self.pooling_index]
-        shape = ops.shape(reference)[:1] + ops.shape(x)[1:]
-        if self._use_scatter:
-            return self._pool_method(ops.expand_dims(receive_indices, axis=-1), x, attention, shape=shape)
-        else:
-            raise NotImplementedError()
+        shape_attention = ops.shape(reference)[:1] + ops.shape(attention)[1:]
+        a = scatter_reduce_softmax(ops.expand_dims(receive_indices, axis=-1), attention, shape=shape_attention)
+        x = x * ops.broadcast_to(a, ops.shape(x))
+        return self.to_aggregate([x, receive_indices, reference])
 
     def get_config(self):
         """Update layer config."""
