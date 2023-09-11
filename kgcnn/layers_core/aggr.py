@@ -30,7 +30,7 @@ class Aggregate(Layer):
         
     def build(self, input_shape):
         # Nothing to build here. No sub-layers.
-        super(Aggregate, self).build(input_shape)
+        self.built = True
         
     def compute_output_shape(self, input_shape):
         assert len(input_shape) == 3
@@ -41,7 +41,7 @@ class Aggregate(Layer):
         x, index, reference = inputs
         shape = ops.shape(reference)[:1] + ops.shape(x)[1:]
         if self._use_scatter:
-            return self._pool_method(ops.expand_dims(index, axis=-1), x, shape=shape)
+            return self._pool_method(index, x, shape=shape)
         else:
             raise NotImplementedError()
 

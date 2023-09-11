@@ -35,7 +35,7 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss": "mean_absolute_error", "jit_compile": True
+                "loss": "mean_absolute_error"
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},

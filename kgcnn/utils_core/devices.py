@@ -6,7 +6,7 @@ module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-def check_device_cuda():
+def check_device():
 
     if backend() == "tensorflow":
         import tensorflow as tf
@@ -33,6 +33,13 @@ def check_device_cuda():
         logical_device_list = [x for x in range(torch.cuda.device_count())]
         memory_info = [{"allocated": round(torch.cuda.memory_allocated(i)/1024**3, 1),
                         "cached": round(torch.cuda.memory_reserved(i)/1024**3, 1)} for i in logical_device_list]
+    elif backend() == "jax":
+        import jax
+        jax_devices = jax.devices()
+        cuda_is_available = any([x.device_kind == "gpu" for x in jax_devices])
+        physical_device_name = [x for x in jax_devices]
+        logical_device_list = [x.id for x in jax_devices]
+        memory_info = [x.memory_stats() for x in jax_devices]
 
     else:
         raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")

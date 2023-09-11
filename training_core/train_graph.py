@@ -13,7 +13,7 @@ from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter
-from kgcnn.utils_core.devices import check_device_cuda
+from kgcnn.utils_core.devices import check_device
 
 # Input arguments from command line with default values from example.
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
@@ -32,7 +32,7 @@ args = vars(parser.parse_args())
 print("Input of argparse:", args)
 
 # Check for gpu
-check_device_cuda()
+check_device()
 
 # Set seed.
 np.random.seed(args["seed"])
@@ -112,7 +112,7 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
     # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
     model.summary()
-
+    print(model._jit_compile)
     # Run keras model-fit and take time for training.
     start = time.time()
     hist = model.fit(x_train, y_train,

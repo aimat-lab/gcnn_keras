@@ -1,5 +1,6 @@
 from keras_core.layers import Layer
 from keras_core import ops
+from keras_core.backend import backend
 
 
 class CastBatchedGraphIndicesToPyGDisjoint(Layer):
@@ -16,9 +17,15 @@ class CastBatchedGraphIndicesToPyGDisjoint(Layer):
         self.reverse_indices = reverse_indices
         self.dtype_index = dtype_index
         self.dtype_batch = dtype_batch
+        # self.supports_jit = supports_jit
         
     def build(self, input_shape):
         super(CastBatchedGraphIndicesToPyGDisjoint, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        return [tuple([None] + list(input_shape[0][2:])),
+                tuple(list(reversed(input_shape[1][2:])) + [None]),
+                (None,), (None,), (None,)]
 
     def call(self, inputs: list, **kwargs):
         """Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
@@ -28,10 +35,10 @@ class CastBatchedGraphIndicesToPyGDisjoint(Layer):
 
                 - nodes (Tensor): Node features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
                   where N denotes the number of nodes.
-                - edge_indices (Tensor): Edge index list have shape `(batch, M, 2)` with the indices of directed
+                - edge_indices (Tensor): Edge index list have shape `(batch, M, 2)` with the indices of M directed
                   edges at last axis for each edge corresponding to `edges` .
-                - nodes_in_batch (Tensor, optional):
-                - edges_in_batch (Tensor, optional):
+                - nodes_in_batch (Tensor):
+                - edges_in_batch (Tensor):
 
 
         Returns:
@@ -44,8 +51,7 @@ class CastBatchedGraphIndicesToPyGDisjoint(Layer):
         """
         all_tensor = all([ops.is_tensor(x) for x in inputs])
 
-        # Case 1: Padded node and edges tensors but with batch dimension at axis 0.
-        if all_tensor and len(inputs) == 4:
+        if all_tensor:
             nodes, edge_indices, node_len, edge_len = inputs
             node_len = ops.cast(node_len, dtype=self.dtype_batch)
             edge_len = ops.cast(edge_len, dtype=self.dtype_batch)
@@ -58,14 +64,11 @@ class CastBatchedGraphIndicesToPyGDisjoint(Layer):
             edge_indices_flatten = edge_indices[edge_mask]
             nodes_flatten = nodes[node_mask]
 
-        # Case 2: Fixed sized graphs without batch information.
-        elif all_tensor and len(inputs) == 2:
-            nodes, edges, edge_indices = inputs
-            nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
-            edge_indices_flatten = ops.reshape(edge_indices, [-1] + list(ops.shape(edge_indices)[2:]))
-            node_len = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=self.dtype_batch), ops.shape(nodes)[0])
-            edge_len = ops.repeat(ops.cast([ops.shape(edge_indices)[1]], dtype=self.dtype_batch),
-                                  ops.shape(edge_indices)[0])
+        # nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
+        # edge_indices_flatten = ops.reshape(edge_indices, [-1] + list(ops.shape(edge_indices)[2:]))
+        # node_len = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=self.dtype_batch), ops.shape(nodes)[0])
+        # edge_len = ops.repeat(ops.cast([ops.shape(edge_indices)[1]], dtype=self.dtype_batch),
+        #                       ops.shape(edge_indices)[0])
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core.
@@ -103,9 +106,13 @@ class CastBatchedGraphAttributesToPyGDisjoint(Layer):
         super(CastBatchedGraphAttributesToPyGDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
         self.dtype_batch = dtype_batch
+        self.supports_jit = False
 
     def build(self, input_shape):
         super(CastBatchedGraphAttributesToPyGDisjoint, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        return [tuple([None] + list(input_shape[0][2:])), (None,)]
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
@@ -124,18 +131,12 @@ class CastBatchedGraphAttributesToPyGDisjoint(Layer):
                 - counts_in_batch (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
         # Case 1: Padded node and edges tensors but with batch dimension at axis 0.
-        if isinstance(inputs, list):
+        if all([ops.is_tensor(x) for x in inputs]):
             nodes, node_len = inputs
             node_len = ops.cast(node_len, dtype=self.dtype_batch)
             node_mask = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=self.dtype_batch), axis=0),
                                    ops.shape(node_len)[0], axis=0) < ops.expand_dims(node_len, axis=-1)
             nodes_flatten = nodes[node_mask]
-
-        # Case 2: Fixed sized graphs without batch information.
-        elif ops.is_tensor(inputs):
-            nodes = inputs
-            nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
-            node_len = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=self.dtype_batch), ops.shape(nodes)[0])
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core.
