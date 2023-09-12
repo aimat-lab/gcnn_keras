@@ -210,14 +210,15 @@ class CastBatchedGraphAttributesToDisjoint(Layer):
         if not self.padded_disjoint:
             nodes_flatten = nodes[node_mask]
             node_mask_flatten = None
+            nodes_id = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len)
         else:
             nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
             node_len = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=self.dtype_batch), ops.shape(nodes)[0])
             node_mask_flatten = ops.reshape(node_mask, [-1])
             nodes_flatten = pad_left(nodes_flatten)
             node_len = cat_one(node_len)
-
-        nodes_id = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len)
+            nodes_id = repeat_static_length(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len,
+                                            total_repeat_length=ops.shape(nodes_flatten)[0])
 
         if self.padded_disjoint:
             nodes_id = ops.where(node_mask_flatten, nodes_id, ops.convert_to_tensor(0, dtype=self.dtype_batch))
