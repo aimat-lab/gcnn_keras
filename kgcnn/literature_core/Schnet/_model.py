@@ -1,6 +1,6 @@
 import keras_core as ks
 from keras_core.layers import Dense
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint, CastBatchedGraphAttributesToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint
 from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
@@ -95,7 +95,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToPyGDisjoint` .
+        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of embedding arguments for nodes etc.
             unpacked in :obj:`Embedding` layers.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
@@ -120,7 +120,7 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_x, batched_indices, count_nodes, count_edges = model_inputs
-    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToPyGDisjoint(**cast_indices_kwargs)(
+    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToDisjoint(**cast_indices_kwargs)(
         [batched_nodes, batched_indices, count_nodes, count_edges])
 
     # Optional Embedding.
@@ -128,11 +128,11 @@ def make_model(inputs: list = None,
         n = Embedding(**input_node_embedding)(n)
 
     if make_distance:
-        x, _ = CastBatchedGraphAttributesToPyGDisjoint()([batched_x, count_nodes])
+        x, _ = CastBatchedGraphAttributesToDisjoint()([batched_x, count_nodes])
         pos1, pos2 = NodePosition()([x, disjoint_indices])
         ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
-        ed, _ = CastBatchedGraphAttributesToPyGDisjoint()([batched_x, count_edges])
+        ed, _ = CastBatchedGraphAttributesToDisjoint()([batched_x, count_edges])
 
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)

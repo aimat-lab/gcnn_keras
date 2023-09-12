@@ -1,7 +1,7 @@
 import keras_core as ks
 from kgcnn.layers.attention import AttentionHeadGAT
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint, CastBatchedGraphAttributesToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint
 from keras_core.layers import Concatenate, Dense, Average, Activation
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -81,7 +81,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToPyGDisjoint` .
+        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGAT` layer.
@@ -102,9 +102,9 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_edges, batched_indices, count_nodes, count_edges = model_inputs
-    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToPyGDisjoint(**cast_indices_kwargs)([
+    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToDisjoint(**cast_indices_kwargs)([
         batched_nodes, batched_indices, count_nodes, count_edges])
-    ed, _ = CastBatchedGraphAttributesToPyGDisjoint()([batched_edges, count_edges])
+    ed, _ = CastBatchedGraphAttributesToDisjoint()([batched_edges, count_edges])
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:

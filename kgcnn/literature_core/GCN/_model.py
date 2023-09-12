@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint, CastBatchedGraphAttributesToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastDisjointToGraphLabels
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -34,7 +34,7 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
-    "cast_indices_kwargs": {},
+    "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
     "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
@@ -49,7 +49,7 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
-               cast_indices_kwargs: dict = None,
+               cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                depth: int = None,
@@ -78,7 +78,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
-        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToPyGDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -99,10 +99,9 @@ def make_model(inputs: list = None,
 
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_edges, batched_indices, count_nodes, count_edges = model_inputs
-    n, disjoint_indices, _, _, _ = CastBatchedGraphIndicesToPyGDisjoint(**cast_indices_kwargs)([
-        batched_nodes, batched_indices, count_nodes, count_edges])
-    e, _ = CastBatchedGraphAttributesToPyGDisjoint()([batched_edges, count_edges])
+    batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
+    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges, e = CastBatchedGraphIndicesToDisjoint(
+        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges, batched_edges])
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:
@@ -124,8 +123,9 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([n, count_nodes])  # will return tensor
+        out = PoolingNodes()([count_nodes, n, disjoint_indices])  # will return tensor
         out = MLP(**output_mlp)(out)
+        out = CastDisjointToGraphLabels(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
         out = n
         out = MLP(**output_mlp)(out)

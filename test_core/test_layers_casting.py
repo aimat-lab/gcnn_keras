@@ -2,7 +2,7 @@ import numpy as np
 
 from keras_core import ops
 from keras_core import testing
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToPyGDisjoint, CastBatchedGraphAttributesToPyGDisjoint
+from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint
 
 
 class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
@@ -19,15 +19,28 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
 
     def test_correctness(self):
 
-        layer = CastBatchedGraphIndicesToPyGDisjoint()
-        node_attr, edge_index, batch, _, _ = layer(
+        layer = CastBatchedGraphIndicesToDisjoint()
+        node_attr, edge_index, node_count, _, _, _, edge_attr = layer(
             [self.nodes, ops.cast(self.edge_indices, dtype="int64"),
-             self.node_len, self.edge_len
+             self.node_len, self.edge_len, self.edges
              ])
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
-        # self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
+        self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
         self.assertAllClose(edge_index, [[0, 1, 2, 1], [0, 1, 1, 2]])
-        self.assertAllClose(batch, [0, 1, 1])
+        self.assertAllClose(node_count, [0, 1, 1])
+
+    def test_correctness_padding(self):
+
+        layer = CastBatchedGraphIndicesToDisjoint(padded_disjoint=True)
+        node_attr, edge_index, batch_node, batch_edge, node_count, edge_count, edge_attr = layer(
+            [self.nodes, ops.cast(self.edge_indices, dtype="int64"),
+             self.node_len, self.edge_len, self.edges
+             ])
+        self.assertAllClose(node_attr, [[0.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
+        self.assertAllClose(edge_attr, [[0.0, 0.0, 0.0],[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0],
+            [1.0, 1.0, 1.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [-1.0, 1.0, 1.0]])
+        self.assertAllClose(edge_index, [[0, 1, 0, 0, 0, 3, 4, 3, 0], [0, 1, 0, 0, 0, 3, 3, 4, 0]])
+        self.assertAllClose(node_count, [1, 2, 2])
 
 
 class TestCastBatchedGraphAttributesToPyGDisjoint(testing.TestCase):
@@ -44,14 +57,15 @@ class TestCastBatchedGraphAttributesToPyGDisjoint(testing.TestCase):
 
     def test_correctness(self):
 
-        layer = CastBatchedGraphAttributesToPyGDisjoint()
-        node_attr, _ = layer(
+        layer = CastBatchedGraphAttributesToDisjoint()
+        node_attr, _, _ = layer(
             [self.nodes, self.node_len])
         self.assertAllClose(node_attr, [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]])
 
 
-
 if __name__ == "__main__":
+
     CastBatchedGraphsToPyGDisjointTest().test_correctness()
+    CastBatchedGraphsToPyGDisjointTest().test_correctness_padding()
     TestCastBatchedGraphAttributesToPyGDisjoint().test_correctness()
     print("Tests passed.")

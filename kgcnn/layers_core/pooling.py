@@ -19,8 +19,5 @@ class PoolingNodes(Layer):
         return tuple(list(input_shape[1][:1]) + list(input_shape[0][1:]))
 
     def call(self, inputs, **kwargs):
-        if not isinstance(inputs, list):
-            raise NotImplementedError()
-        x, lengths = inputs
-        batch = ops.repeat(ops.arange(ops.shape(lengths)[0], dtype="int64"), lengths)
+        lengths, x, batch = inputs
         return self._to_aggregate([x, batch, lengths])
