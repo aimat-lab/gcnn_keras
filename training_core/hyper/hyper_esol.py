@@ -12,6 +12,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}
                 ],
+                "cast_disjoint_kwargs": {"padded_disjoint": True},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},

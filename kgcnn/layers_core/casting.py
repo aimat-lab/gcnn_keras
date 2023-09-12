@@ -14,8 +14,7 @@ def cat_one(t):
 class CastBatchedGraphIndicesToDisjoint(Layer):
     """Cast batched node and edge tensors to a (single) disjoint graph representation of Pytorch Geometric (PyG).
     For PyG a batch of graphs is represented by single graph which contains disjoint sub-graphs,
-    and the batch information is passed as batch ID tensor: `nodes_id` or `edge_id` .
-
+    and the batch information is passed as batch ID tensor: `nodes_id` and `edge_id` .
 
     Keras layers can pass unstacked tensors without batch dimension, however, for model input and output
     batched tensors is currently built in the framework.
@@ -238,17 +237,16 @@ class CastDisjointToGraphLabels(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        return [tuple([None] + list(input_shape[0][2:])), (None,)]
+        if self.padded_disjoint:
+            if input_shape[0] is not None:
+                return tuple([input_shape[0]-1] + list(input_shape[1:]))
+        return input_shape
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): List of `[attr, counts_in_batch]` ,
-
-                - attr (Tensor): Features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
-                  where N denotes the number of nodes or edges.
-                - counts_in_batch (Tensor):
+            inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` .
 
         Returns:
             Tensor: Graph labels of shape `(batch, ...)` .

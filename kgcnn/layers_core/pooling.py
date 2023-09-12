@@ -12,12 +12,12 @@ class PoolingNodes(Layer):
         self._to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
-        self._to_aggregate.build([input_shape[0], (None, ), input_shape[1]])
+        self._to_aggregate.build([input_shape[1], input_shape[2], input_shape[0]])
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        return tuple(list(input_shape[1][:1]) + list(input_shape[0][1:]))
+        return self._to_aggregate.compute_output_shape([input_shape[1], input_shape[2], input_shape[0]])
 
     def call(self, inputs, **kwargs):
-        lengths, x, batch = inputs
-        return self._to_aggregate([x, batch, lengths])
+        reference, x, idx = inputs
+        return self._to_aggregate([x, idx, reference])

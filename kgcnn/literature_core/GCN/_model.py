@@ -123,7 +123,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([count_nodes, n, disjoint_indices])  # will return tensor
+        out = PoolingNodes()([count_nodes, n, node_id])  # will return tensor
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphLabels(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
