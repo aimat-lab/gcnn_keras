@@ -21,3 +21,7 @@ def scatter_reduce_mean(indices, values, shape):
     counts = jnp.zeros(shape, values.dtype)
     counts.at[indices].add(jnp.ones_like(values))
     return zeros.at[indices].add(values)/counts
+
+
+def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None):
+    return jnp.repeat(x, repeats=repeats, axis=axis, total_repeat_length=total_repeat_length)

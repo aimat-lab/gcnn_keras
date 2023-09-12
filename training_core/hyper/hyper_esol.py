@@ -16,7 +16,7 @@ hyper = {
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
-                "depth": 5, "verbose": 10,
+                "depth": 0, "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
                                "activation": ["relu", "relu", "linear"]},

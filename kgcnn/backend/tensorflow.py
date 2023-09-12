@@ -34,3 +34,7 @@ def scatter_reduce_softmax(indices, values, shape):
     values_exp_sum = tf.scatter_nd(indices, values_exp, tf.cast(shape, dtype="int64"))
     values_exp_sum = tf.gather(values_exp_sum, indices, axis=0)
     return values_exp / values_exp_sum
+
+
+def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None):
+    return tf.repeat(x, repeats=repeats, axis=axis)
