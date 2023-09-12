@@ -138,7 +138,6 @@ def make_model(inputs: list = None,
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)
 
-    print(n, ed, disjoint_indices)
     # Model
     n = Dense(interaction_args["units"], activation='linear')(n)
     for i in range(0, depth):

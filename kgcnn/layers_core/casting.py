@@ -34,12 +34,12 @@ class CastBatchedGraphIndicesToDisjoint(Layer):
     def build(self, input_shape):
         self.built = True
 
-    def compute_output_shape(self, input_shape):
-        out_shape = [tuple([None] + list(input_shape[0][2:])), tuple(list(reversed(input_shape[1][2:])) + [None]),
-            (None, ), (None, ), (None, ), (None, )]
-        if len(input_shape) == 5:
-            out_shape = out_shape + [tuple([None] + list(input_shape[4][2:]))]
-        return out_shape
+    # def compute_output_shape(self, input_shape):
+    #     out_shape = [tuple([None] + list(input_shape[0][2:])), tuple(list(reversed(input_shape[1][2:])) + [None]),
+    #         (None, ), (None, ), (None, ), (None, )]
+    #     if len(input_shape) == 5:
+    #         out_shape = out_shape + [tuple([None] + list(input_shape[4][2:]))]
+    #     return out_shape
 
     def call(self, inputs: list, **kwargs):
         """Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
@@ -217,10 +217,9 @@ class CastBatchedGraphAttributesToDisjoint(Layer):
             node_mask_flatten = ops.reshape(node_mask, [-1])
             nodes_flatten = pad_left(nodes_flatten)
             node_len = cat_one(node_len)
+            node_mask_flatten = pad_left(node_mask_flatten)
             nodes_id = repeat_static_length(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len,
                                             total_repeat_length=ops.shape(nodes_flatten)[0])
-
-        if self.padded_disjoint:
             nodes_id = ops.where(node_mask_flatten, nodes_id, ops.convert_to_tensor(0, dtype=self.dtype_batch))
 
         return [nodes_flatten, nodes_id, node_len]
