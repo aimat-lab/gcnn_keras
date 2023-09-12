@@ -119,19 +119,23 @@ class CastBatchedGraphIndicesToDisjoint(Layer):
         if self.dtype_index is not None:
             edge_indices_flatten = ops.cast(edge_indices_flatten, dtype=self.dtype_index)
 
-        nodes_id = repeat_static_length(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len,
-                                        total_repeat_length=ops.shape(node_mask_flatten)[0])
-        edges_id = repeat_static_length(ops.arange(ops.shape(edge_len)[0], dtype=self.dtype_batch), edge_len,
-                                        total_repeat_length=ops.shape(edge_mask_flatten)[0])
+        node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
 
         if self.padded_disjoint:
+            nodes_id = repeat_static_length(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len,
+                                            total_repeat_length=ops.shape(nodes_flatten)[0])
+            edges_id = repeat_static_length(ops.arange(ops.shape(edge_len)[0], dtype=self.dtype_batch), edge_len,
+                                            total_repeat_length=ops.shape(edge_indices_flatten)[0])
             nodes_id = ops.where(node_mask_flatten, nodes_id, ops.convert_to_tensor(0, dtype=self.dtype_batch))
             edges_id = ops.where(edge_mask_flatten, edges_id, ops.convert_to_tensor(0, dtype=self.dtype_batch))
+            offset_edge_indices = ops.expand_dims(
+                repeat_static_length(node_splits[:-1], edge_len, total_repeat_length=ops.shape(edge_indices_flatten)[0])
+                , axis=-1)
+        else:
+            nodes_id = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=self.dtype_batch), node_len)
+            edges_id = ops.repeat(ops.arange(ops.shape(edge_len)[0], dtype=self.dtype_batch), edge_len)
+            offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
 
-        node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
-        offset_edge_indices = ops.expand_dims(
-            repeat_static_length(node_splits[:-1], edge_len, total_repeat_length=ops.shape(edge_indices_flatten)[0])
-            , axis=-1)
         offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
 
         disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
@@ -172,7 +176,7 @@ class CastBatchedGraphAttributesToDisjoint(Layer):
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        return [tuple([None] + list(input_shape[0][2:])), (None,)]
+        return [tuple([None] + list(input_shape[0][2:])), (None,), (None,)]
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.

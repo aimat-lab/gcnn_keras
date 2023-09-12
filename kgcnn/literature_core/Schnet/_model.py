@@ -1,6 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint
+from kgcnn.layers_core.casting import (
+    CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint, CastDisjointToGraphLabels)
 from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
@@ -34,7 +35,7 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
-    "cast_indices_kwargs": {},
+    "cast_disjoint_kwargs": {},
     "input_node_embedding": {"input_dim": 95, "output_dim": 64},
     "make_distance": True,
     "expand_distance": True,
@@ -55,7 +56,7 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
-               cast_indices_kwargs: dict = None,
+               cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,
                make_distance: bool = None,
                expand_distance: bool = None,
@@ -119,40 +120,42 @@ def make_model(inputs: list = None,
     """
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_x, batched_indices, count_nodes, count_edges = model_inputs
-    n, disjoint_indices, batch, _, _ = CastBatchedGraphIndicesToDisjoint(**cast_indices_kwargs)(
-        [batched_nodes, batched_indices, count_nodes, count_edges])
+    batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs
+    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges = CastBatchedGraphIndicesToDisjoint(
+        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
 
     # Optional Embedding.
     if len(inputs[0]['shape']) < 2:
         n = Embedding(**input_node_embedding)(n)
 
     if make_distance:
-        x, _ = CastBatchedGraphAttributesToDisjoint()([batched_x, count_nodes])
+        x, _, _ = CastBatchedGraphAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
         pos1, pos2 = NodePosition()([x, disjoint_indices])
         ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
-        ed, _ = CastBatchedGraphAttributesToDisjoint()([batched_x, count_edges])
+        ed, _, _ = CastBatchedGraphAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
 
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)
 
+    print(n, ed, disjoint_indices)
     # Model
     n = Dense(interaction_args["units"], activation='linear')(n)
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, disjoint_indices])
 
-    n = MLP(**last_mlp)([n, count_nodes])
+    n = MLP(**last_mlp)(n)
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)([n, count_nodes])
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, node_id])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
+        out = CastDisjointToGraphLabels(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
-            out = MLP(**output_mlp)([out, count_nodes])
+            out = MLP(**output_mlp)(out)
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet` .")
 

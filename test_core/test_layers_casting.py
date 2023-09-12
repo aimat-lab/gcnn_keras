@@ -5,7 +5,7 @@ from keras_core import testing
 from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastBatchedGraphAttributesToDisjoint
 
 
-class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
+class CastBatchedGraphsToDisjointTest(testing.TestCase):
 
     nodes = np.array([[[0.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]])
     edges = np.array([[[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0]],
@@ -43,7 +43,7 @@ class CastBatchedGraphsToPyGDisjointTest(testing.TestCase):
         self.assertAllClose(node_count, [1, 2, 2])
 
 
-class TestCastBatchedGraphAttributesToPyGDisjoint(testing.TestCase):
+class TestCastBatchedGraphAttributesToDisjoint(testing.TestCase):
 
     nodes = np.array([[[0.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]])
     edges = np.array([[[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0]],
@@ -65,7 +65,7 @@ class TestCastBatchedGraphAttributesToPyGDisjoint(testing.TestCase):
 
 if __name__ == "__main__":
 
-    CastBatchedGraphsToPyGDisjointTest().test_correctness()
-    CastBatchedGraphsToPyGDisjointTest().test_correctness_padding()
-    TestCastBatchedGraphAttributesToPyGDisjoint().test_correctness()
+    CastBatchedGraphsToDisjointTest().test_correctness()
+    CastBatchedGraphsToDisjointTest().test_correctness_padding()
+    TestCastBatchedGraphAttributesToDisjoint().test_correctness()
     print("Tests passed.")

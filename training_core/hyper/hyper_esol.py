@@ -74,6 +74,7 @@ hyper = {
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_ranges", "dtype": "int64"}
                 ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
                 "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "output_embedding": "graph",
                 'output_mlp': {"use_bias": [True, True], "units": [64, 1],
