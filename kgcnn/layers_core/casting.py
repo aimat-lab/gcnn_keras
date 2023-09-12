@@ -34,12 +34,12 @@ class CastBatchedGraphIndicesToDisjoint(Layer):
     def build(self, input_shape):
         self.built = True
 
-    # def compute_output_shape(self, input_shape):
-    #     out_shape = [tuple([None] + list(input_shape[0][2:])), tuple(list(reversed(input_shape[1][2:])) + [None]),
-    #         (None, ), (None, ), (None, ), (None, )]
-    #     if len(input_shape) == 5:
-    #         out_shape = out_shape + [tuple([None] + list(input_shape[4][2:]))]
-    #     return out_shape
+    def compute_output_shape(self, input_shape):
+        out_shape = [tuple([None] + list(input_shape[0][2:])), tuple(list(reversed(input_shape[1][2:])) + [None]),
+            (None, ), (None, ), (None, ), (None, )]
+        if len(input_shape) == 5:
+            out_shape = out_shape + [tuple([None] + list(input_shape[4][2:]))]
+        return out_shape
 
     def call(self, inputs: list, **kwargs):
         """Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
