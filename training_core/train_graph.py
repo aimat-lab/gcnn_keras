@@ -112,7 +112,7 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
     # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
     model.summary()
-    print(model._jit_compile)
+    print("Compiled with jit: %s." % model._jit_compile)
     # Run keras model-fit and take time for training.
     start = time.time()
     hist = model.fit(x_train, y_train,
