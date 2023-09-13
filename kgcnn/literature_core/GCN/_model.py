@@ -7,9 +7,9 @@ from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
-from keras_core.layers import Activation
-from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
-from kgcnn.layers_core.gather import GatherNodesOutgoing
+# from keras_core.layers import Activation
+# from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
+# from kgcnn.layers_core.gather import GatherNodesOutgoing
 
 # Keep track of model version from commit date in literature.
 __kgcnn_model_version__ = "2023.09.30"
@@ -113,13 +113,13 @@ def make_model(inputs: list = None,
     n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
 
     for i in range(0, depth):
-        # n = GCN(**gcn_args)([n, e, disjoint_indices])
+        n = GCN(**gcn_args)([n, e, disjoint_indices])
 
         # # Equivalent as:
-        no = Dense(gcn_args["units"], activation="linear")(n)
-        no = GatherNodesOutgoing()([no, disjoint_indices])
-        nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
-        n = Activation(gcn_args["activation"])(nu)
+        # no = Dense(gcn_args["units"], activation="linear")(n)
+        # no = GatherNodesOutgoing()([no, disjoint_indices])
+        # nu = AggregateWeightedLocalEdges()([n, no, disjoint_indices, e])
+        # n = Activation(gcn_args["activation"])(nu)
 
     # Output embedding choice
     if output_embedding == "graph":

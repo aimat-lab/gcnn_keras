@@ -62,9 +62,9 @@ class CastBatchedIndicesToDisjoint(Layer):
             out_i = tuple(list(reversed(in_i[2:])) + [
                 in_i[0]*in_i[1]+1 if in_i[0] is not None and in_i[1] is not None else None])
             out_gn = (None, ) if out_n[0] is None else out_n[:1]
-            out_ge = (None, ) if out_i[0] is None else out_i[:1]
+            out_ge = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
             out_id_n = (None, ) if out_n[0] is None else out_n[:1]
-            out_id_e = (None, ) if out_i[0] is None else out_i[:1]
+            out_id_e = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
             out_size_n = (in_size_n[0]+1, ) if in_size_n[0] is not None else (None, )
             out_size_e = (in_size_e[0]+1, ) if in_size_e[0] is not None else (None, )
 
@@ -207,8 +207,27 @@ class CastBatchedAttributesToDisjoint(Layer):
     def build(self, input_shape):
         self.built = True
 
+    def compute_output_spec(self, inputs_spec):
+        """Compute output spec as possible."""
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        dtype_batch = inputs_spec[1].dtype if self.dtype_batch is None else self.dtype_batch
+        output_dtypes = [inputs_spec[0].dtype, dtype_batch, dtype_batch, dtype_batch]
+        output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
+        return output_spec
+
     def compute_output_shape(self, input_shape):
-        return [tuple([None] + list(input_shape[0][2:])), (None,), (None,)]
+        in_n, in_size_n = input_shape
+        if not self.padded_disjoint:
+            out_n = tuple([None] + list(in_n[2:]))
+            out_gn, out_id_n = (None,), (None,)
+            out_size_n = in_size_n
+        else:
+            out_n = tuple(
+                [in_n[0] * in_n[1] + 1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
+            out_gn = (None,) if out_n[0] is None else out_n[:1]
+            out_id_n = (None,) if out_n[0] is None else out_n[:1]
+            out_size_n = (in_size_n[0] + 1,) if in_size_n[0] is not None else (None,)
+        return out_n, out_gn, out_id_n, out_size_n
 
     def call(self, inputs: list, **kwargs):
         """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
