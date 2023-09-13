@@ -11,13 +11,13 @@ def check_device():
     if backend() == "tensorflow":
         import tensorflow as tf
         cuda_is_available = tf.test.is_built_with_gpu_support() and tf.test.is_built_with_cuda()
-        physical_device_list = tf.config.list_physical_devices("GPU")
+        physical_device_list = tf.config.list_physical_devices()
         if physical_device_list:
             physical_device_name = [
                 tf.config.experimental.get_device_details(x) for x in physical_device_list]
         else:
             physical_device_name = []
-        logical_device_list = tf.config.experimental.list_logical_devices("GPU")
+        logical_device_list = tf.config.experimental.list_logical_devices()
         if physical_device_name:
             try:
                 memory_info = [tf.config.experimental.get_memory_info(x.name) for x in physical_device_list]
