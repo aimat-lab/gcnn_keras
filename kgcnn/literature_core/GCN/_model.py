@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedGraphIndicesToDisjoint, CastDisjointToGraphLabels
+from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastDisjointToGraph
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -78,7 +78,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`ks.layers.Input`. Order must match model definition.
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedGraphIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of embedding arguments unpacked in :obj:`Embedding` layers.
         depth (int): Number of graph embedding units or depth of the network.
@@ -100,7 +100,7 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges, e = CastBatchedGraphIndicesToDisjoint(
+    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges, e = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges, batched_edges])
 
     # Embedding, if no feature dimension
@@ -125,7 +125,7 @@ def make_model(inputs: list = None,
     if output_embedding == "graph":
         out = PoolingNodes()([count_nodes, n, node_id])  # will return tensor
         out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraphLabels(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
         out = n
         out = MLP(**output_mlp)(out)
