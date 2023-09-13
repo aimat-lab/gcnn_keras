@@ -23,5 +23,20 @@ def scatter_reduce_mean(indices, values, shape):
     return zeros.at[indices].add(values)/counts
 
 
+def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
+
+    if normalize:
+        zeros_min = jnp.full(shape, values.dtype.min, values.dtype)
+        data_segment_max = zeros_min.at[indices].max(values)
+        data_max = data_segment_max[indices]
+        values = values - data_max
+
+    values_exp = jnp.exp(values)
+    values_exp_sum = jnp.zeros(shape, values.dtype)
+    values_exp_sum.at[indices].add(values_exp)
+    values_exp_sum = values_exp_sum[indices]
+    return values_exp / values_exp_sum
+
+
 def repeat_static_length(x, repeats, axis=None, total_repeat_length: int = None):
     return jnp.repeat(x, repeats=repeats, axis=axis, total_repeat_length=total_repeat_length)
