@@ -4,22 +4,6 @@ from keras_core import ops
 
 
 global_normalization_args = {
-    "UnitNormalization": [
-        "axis"
-    ],
-    "BatchNormalization": (
-        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
-        "moving_variance_initializer"
-    ),
-    "GroupNormalization": (
-        "groups", "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ),
-    "LayerNormalization": (
-        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
-        "gamma_regularizer", "beta_constraint", "gamma_constraint"
-    ),
     "GraphNormalization": (
         "mean_shift", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer",
         "beta_regularizer", "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint",
