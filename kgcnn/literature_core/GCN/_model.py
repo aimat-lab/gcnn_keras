@@ -1,12 +1,13 @@
 import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastDisjointToGraph
+from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastDisjointToGraph, CastBatchedAttributesToDisjoint
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
+
 # from keras_core.layers import Activation
 # from kgcnn.layers_core.aggr import AggregateWeightedLocalEdges
 # from kgcnn.layers_core.gather import GatherNodesOutgoing
@@ -100,8 +101,9 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
-    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges, e = CastBatchedIndicesToDisjoint(
-        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges, batched_edges])
+    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+    e, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:
@@ -123,7 +125,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([count_nodes, n, node_id])  # will return tensor
+        out = PoolingNodes()([count_nodes, n, batch_id_node])  # will return tensor
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":

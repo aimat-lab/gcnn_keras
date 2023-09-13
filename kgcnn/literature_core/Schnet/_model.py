@@ -121,7 +121,7 @@ def make_model(inputs: list = None,
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_x, batched_indices, total_nodes, total_edges = model_inputs
-    n, disjoint_indices, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
         **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
 
     # Optional Embedding.
@@ -129,11 +129,11 @@ def make_model(inputs: list = None,
         n = Embedding(**input_node_embedding)(n)
 
     if make_distance:
-        x, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
+        x, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_nodes])
         pos1, pos2 = NodePosition()([x, disjoint_indices])
         ed = NodeDistanceEuclidean()([pos1, pos2])
     else:
-        ed, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
+        ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_x, total_edges])
 
     if expand_distance:
         ed = GaussBasisLayer(**gauss_args)(ed)
@@ -147,7 +147,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**node_pooling_args)([count_nodes, n, node_id])
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
         out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
@@ -159,7 +159,6 @@ def make_model(inputs: list = None,
         raise ValueError("Unsupported output embedding for mode `SchNet` .")
 
     model = ks.models.Model(inputs=model_inputs, outputs=out)
-
     model.__kgcnn_model_version__ = __model_version__
     return model
 
