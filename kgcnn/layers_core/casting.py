@@ -174,9 +174,8 @@ class CastBatchedIndicesToDisjoint(Layer):
             disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
             edge_mask_flatten = ops.expand_dims(edge_mask_flatten, axis=-1)
             disjoint_indices = ops.where(edge_mask_flatten, disjoint_indices, 0)
-
-            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, keepdims=True), node_len], axis=0)
-            edge_len = ops.concatenate([ops.sum(edge_len_flat[1:] - edge_len, keepdims=True), edge_len], axis=0)
+            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, axis=0, keepdims=True), node_len], axis=0)
+            edge_len = ops.concatenate([ops.sum(edge_len_flat[1:] - edge_len, axis=0, keepdims=True), edge_len], axis=0)
 
         # Transpose edge indices.
         disjoint_indices = ops.transpose(disjoint_indices)
@@ -285,7 +284,7 @@ class CastBatchedAttributesToDisjoint(Layer):
                 total_repeat_length=ops.shape(nodes_flatten)[0])
             graph_id_node = ops.where(node_mask_flatten, graph_id, 0)
             node_id = ops.where(node_mask_flatten, node_id, 0)
-            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, keepdims=True), node_len], axis=0)
+            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, axis=0, keepdims=True), node_len], axis=0)
 
         return [nodes_flatten, graph_id_node, node_id, node_len]
 

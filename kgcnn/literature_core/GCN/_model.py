@@ -41,6 +41,7 @@ model_default = {
     "gcn_args": {"units": 100, "use_bias": True, "activation": "relu", "pooling_method": "sum"},
     "depth": 3,
     "verbose": 10,
+    "node_pooling_args": {"pooling_method": "scatter_sum"},
     "output_embedding": "graph",
     "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
@@ -57,6 +58,7 @@ def make_model(inputs: list = None,
                gcn_args: dict = None,
                name: str = None,
                verbose: int = None,
+               node_pooling_args: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
                output_mlp: dict = None):
@@ -86,6 +88,7 @@ def make_model(inputs: list = None,
         gcn_args (dict): Dictionary of layer arguments unpacked in :obj:`GCN` convolutional layer.
         name (str): Name of the model.
         verbose (int): Level of print output.
+        node_pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
         output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
@@ -113,7 +116,6 @@ def make_model(inputs: list = None,
 
     # Model
     n = Dense(gcn_args["units"], use_bias=True, activation='linear')(n)  # Map to units
-
     for i in range(0, depth):
         n = GCN(**gcn_args)([n, e, disjoint_indices])
 
@@ -125,7 +127,7 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == "graph":
-        out = PoolingNodes()([count_nodes, n, batch_id_node])  # will return tensor
+        out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])  # will return tensor
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
