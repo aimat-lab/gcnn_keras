@@ -46,9 +46,9 @@ def check_device():
 
     out_info = {
         "cuda_available": "%s" % cuda_is_available,
-        "cuda_device_name": "%s" % physical_device_name,
-        "cuda_device_id": "%s" % logical_device_list,
-        "cuda_device_memory": "%s" % memory_info,
+        "device_name": "%s" % physical_device_name,
+        "device_id": "%s" % logical_device_list,
+        "device_memory": "%s" % memory_info,
     }
     module_logger.info("GPU: Device information: %s." % out_info)
     return out_info

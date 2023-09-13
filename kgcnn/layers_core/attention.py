@@ -1,11 +1,11 @@
-import keras_core as ks
+# import keras_core as ks
 from kgcnn.layers_core.gather import GatherNodesIngoing, GatherNodesOutgoing
 from keras_core.layers import Dense, Concatenate, Activation, Average, Layer
 from kgcnn.layers_core.aggr import AggregateLocalEdgesAttention
 from keras_core import ops
 
 
-class AttentionHeadGAT(Layer):
+class AttentionHeadGAT(Layer):  # noqa
     r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`__ .
 
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
@@ -115,7 +115,7 @@ class AttentionHeadGAT(Layer):
         return config
 
 
-class AttentionHeadGATV2(Layer):
+class AttentionHeadGATV2(Layer):  # noqa
     r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`__ .
 
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
@@ -228,7 +228,7 @@ class AttentionHeadGATV2(Layer):
         return config
 
 
-class MultiHeadGATV2Layer(AttentionHeadGATV2):
+class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
 
     def __init__(self,
                  units: int,

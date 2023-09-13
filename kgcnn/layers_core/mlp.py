@@ -23,7 +23,7 @@ global_normalization_args = {
 }
 
 
-class MLPBase(Layer):
+class MLPBase(Layer):  # noqa
     r"""Base class for multilayer perceptron that consist of multiple feed-forward networks.
 
     This base class simply manages layer arguments for :obj:`MLP`. They contain arguments for :obj:`Dense` ,
@@ -249,7 +249,7 @@ class MLPBase(Layer):
         return config
 
 
-class MLP(MLPBase):
+class MLP(MLPBase):  # noqa
     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.
 
     .. note::
@@ -259,11 +259,6 @@ class MLP(MLPBase):
     This layer adds normalization and dropout for normal tensor input. Please, see keras
     `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
     :obj:`Dense`, :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
-
-    Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
-    either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
-    or 'GraphNormalization' .
-
     """
 
     # If child classes want to replace layers.
@@ -348,11 +343,6 @@ class MLP(MLPBase):
 #     This layer adds normalization and dropout for normal tensor input. Please, see keras
 #     `documentation <https://www.tensorflow.org/api_docs/python/tf>`_ of
 #     :obj:`Dropout`, :obj:`BatchNormalization` and :obj:`LayerNormalization` for more information.
-#
-#     Additionally, graph oriented normalization is supported. You can choose :obj:`normalization_technique` to be
-#     either 'BatchNormalization', 'LayerNormalization', 'GraphLayerNormalization', or 'GraphBatchNormalization'
-#     or 'GraphNormalization' .
-#
 #     """
 #
 #     _supress_dense = True

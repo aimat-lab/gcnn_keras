@@ -7,7 +7,7 @@ from kgcnn.ops_core.scatter import (
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Aggregate')
-class Aggregate(Layer):
+class Aggregate(Layer):  # noqa
 
     def __init__(self, pooling_method: str = "scatter_sum", axis=0, **kwargs):
         super(Aggregate, self).__init__(**kwargs)
