@@ -65,7 +65,7 @@ def leaky_relu(x, alpha: float = 0.05):
     Returns:
          tf.Tensor: Output tensor.
     """
-    return ks.activations.leaky_relu(x, alpha=alpha)
+    return ks.activations.leaky_relu(x, negative_slope=alpha)
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='swish')

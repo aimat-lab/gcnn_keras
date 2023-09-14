@@ -28,13 +28,13 @@ def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
     if normalize:
         zeros_min = jnp.full(shape, values.dtype.min, values.dtype)
         data_segment_max = zeros_min.at[indices].max(values)
-        data_max = data_segment_max[indices]
+        data_max = jnp.take(data_segment_max, indices, axis=0)
         values = values - data_max
 
     values_exp = jnp.exp(values)
-    values_exp_sum = jnp.zeros(shape, values.dtype)
-    values_exp_sum.at[indices].add(values_exp)
-    values_exp_sum = values_exp_sum[indices]
+    zeros = jnp.zeros(shape, values.dtype)
+    values_exp_sum = zeros.at[indices].add(values_exp)
+    values_exp_sum = jnp.take(values_exp_sum, indices, axis=0)
     return values_exp / values_exp_sum
 
 

@@ -113,10 +113,12 @@ class AggregateLocalEdgesAttention(Layer):
     """
 
     def __init__(self,
+                 softmax_method="scatter_softmax",
                  pooling_method="scatter_sum",
                  pooling_index: int = 1,
                  is_sorted: bool = False,
                  has_unconnected: bool = True,
+                 normalize: bool = False,
                  **kwargs):
         """Initialize layer.
 
@@ -131,6 +133,7 @@ class AggregateLocalEdgesAttention(Layer):
         self.pooling_index = pooling_index
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
+        self.normalize = normalize
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
@@ -153,7 +156,7 @@ class AggregateLocalEdgesAttention(Layer):
                 - nodes (Tensor): Node embeddings of shape (N, F)
                 - edges (Tensor): Edge or message embeddings of shape (M, F)
                 - attention (Tensor): Attention coefficients of shape (M, 1)
-                - edge_indices (Tensor): Edge indices referring to nodes of shape (M, 2)
+                - edge_indices (Tensor): Edge indices referring to nodes of shape (2, M)
 
         Returns:
             Tensor: Embedding tensor of aggregated edge attentions for each node of shape (N, F)
@@ -161,7 +164,7 @@ class AggregateLocalEdgesAttention(Layer):
         reference, x, attention, disjoint_indices = inputs
         receive_indices = disjoint_indices[self.pooling_index]
         shape_attention = ops.shape(reference)[:1] + ops.shape(attention)[1:]
-        a = scatter_reduce_softmax(ops.expand_dims(receive_indices, axis=-1), attention, shape=shape_attention)
+        a = scatter_reduce_softmax(receive_indices, attention, shape=shape_attention, normalize=self.normalize)
         x = x * ops.broadcast_to(a, ops.shape(x))
         return self.to_aggregate([x, receive_indices, reference])
 

@@ -29,16 +29,17 @@ def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
     indices_scatter = torch.unsqueeze(indices, dim=-1)
 
     if normalize:
-        zeros_min = torch.zeros(*shape, values.dtype.limits[0], dtype=values.dtype)
+        zeros_min = torch.zeros(*shape, dtype=values.dtype, device=values.device)
         data_segment_max = zeros_min.scatter_reduce(
             0, torch.broadcast_to(indices_scatter, values.shape), values, reduce='amax', include_self=False)
-        data_max = data_segment_max[indices]
+        data_max = torch.index_select(data_segment_max, dim=0, index=indices)
         values = values - data_max
 
     values_exp = torch.exp(values)
-    values_exp_sum = torch.zeros(*shape, values.dtype, device=values.device)
-    values_exp_sum.scatter_reduce(0, torch.broadcast_to(indices_scatter, values.shape), values_exp, reduce='sum')
-    values_exp_sum = values_exp_sum[indices]
+    zeros = torch.zeros(*shape, dtype=values.dtype, device=values.device)
+    values_exp_sum = zeros.scatter_reduce(
+        0, torch.broadcast_to(indices_scatter, values_exp.shape), values_exp, reduce='sum', include_self=True)
+    values_exp_sum = torch.index_select(values_exp_sum, dim=0, index=indices)
     return values_exp / values_exp_sum
 
 

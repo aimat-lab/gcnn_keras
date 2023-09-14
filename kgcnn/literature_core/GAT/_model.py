@@ -1,12 +1,13 @@
 import keras_core as ks
-from kgcnn.layers.attention import AttentionHeadGAT
+from kgcnn.layers_core.attention import AttentionHeadGAT
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint
+from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraph
 from keras_core.layers import Concatenate, Dense, Average, Activation
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
+from kgcnn.ops_core.activ import *
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
@@ -22,6 +23,7 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 # by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
 # https://arxiv.org/abs/1710.10903
 
+
 model_default = {
     "name": "GAT",
     "inputs": [
@@ -31,6 +33,7 @@ model_default = {
         {"shape": (), "name": "total_nodes", "dtype": "int64"},
         {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
+    "cast_disjoint_kwargs": {},
     "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
     "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
@@ -48,7 +51,7 @@ model_default = {
 
 @update_model_kwargs(model_default, update_recursive=0)
 def make_model(inputs: list = None,
-               cast_indices_kwargs: dict = None,
+               cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
                attention_args: dict = None,
@@ -81,7 +84,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGAT` layer.
@@ -101,10 +104,10 @@ def make_model(inputs: list = None,
     """
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
-    batched_nodes, batched_edges, batched_indices, count_nodes, count_edges = model_inputs
-    n, disjoint_indices, batch, _, _ = CastBatchedIndicesToDisjoint(**cast_indices_kwargs)([
-        batched_nodes, batched_indices, count_nodes, count_edges])
-    ed, _ = CastBatchedAttributesToDisjoint()([batched_edges, count_edges])
+    batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
+    n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
+        **cast_disjoint_kwargs)([batched_nodes, batched_indices, total_nodes, total_edges])
+    ed, _, _, _ = CastBatchedAttributesToDisjoint(**cast_disjoint_kwargs)([batched_edges, total_edges])
 
     # Embedding, if no feature dimension
     if len(inputs[0]['shape']) < 2:
@@ -125,8 +128,9 @@ def make_model(inputs: list = None,
 
     # Output embedding choice
     if output_embedding == 'graph':
-        out = PoolingNodes(**pooling_nodes_args)([n, count_nodes])
+        out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)
+        out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         out = MLP(**output_mlp)(n)
     else:

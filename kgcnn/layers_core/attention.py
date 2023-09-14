@@ -111,7 +111,8 @@ class AttentionHeadGAT(Layer):  # noqa
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_sub[x]})
+            if x in conf_sub:
+                config.update({x: conf_sub[x]})
         return config
 
 
@@ -224,7 +225,8 @@ class AttentionHeadGATV2(Layer):  # noqa
         conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_sub[x]})
+            if x in conf_sub:
+                config.update({x: conf_sub[x]})
         return config
 
 

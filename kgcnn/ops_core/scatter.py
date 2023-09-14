@@ -61,14 +61,19 @@ def scatter_reduce_sum(indices, values, shape):
 
 
 class ScatterSoftmax(Operation):
+
+    def __init__(self, normalize: bool = False):
+        super().__init__()
+        self.normalize = normalize
+
     def call(self, indices, values, shape):
-        return kgcnn_backend.scatter_reduce_softmax(indices, values, shape)
+        return kgcnn_backend.scatter_reduce_softmax(indices, values, shape, normalize=self.normalize)
 
     def compute_output_spec(self, indices, values, shape):
         return KerasTensor(shape, dtype=values.dtype)
 
 
-def scatter_reduce_softmax(indices, values, shape):
+def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterSoftmax().symbolic_call(indices, values, shape)
-    return kgcnn_backend.scatter_reduce_softmax(indices, values, shape)
+        return ScatterSoftmax(normalize=normalize).symbolic_call(indices, values, shape)
+    return kgcnn_backend.scatter_reduce_softmax(indices, values, shape, normalize=normalize)
