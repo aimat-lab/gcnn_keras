@@ -38,8 +38,6 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "mean_absolute_error"
             },
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "dataset": {
@@ -48,6 +46,7 @@ hyper = {
             "config": {},
             "methods": [
                 {"set_attributes": {}},
+                {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
                 {"map_list": {"method": "normalize_edge_weights_sym"}},
                 {"map_list": {"method": "count_nodes_and_edges"}},
             ]
@@ -91,8 +90,6 @@ hyper = {
             }
         },
         "training": {
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
@@ -115,6 +112,7 @@ hyper = {
             "config": {},
             "methods": [
                 {"set_attributes": {}},
+                {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
                 {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 10000}},
                 {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
                               "count_edges": "range_indices"}},
