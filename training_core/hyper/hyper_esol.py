@@ -167,8 +167,6 @@ hyper = {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
                 "loss": "mean_absolute_error"
             },
-            "cross_validation": {"class_name": "KFold",
-                                 "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
             "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
         },
         "data": {
@@ -179,6 +177,7 @@ hyper = {
                 "methods": [
                     {"set_attributes": {}},
                     {"map_list": {"method": "count_nodes_and_edges"}},
+                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}}
                 ]
             },
             "data_unit": "mol/L"

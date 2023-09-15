@@ -20,6 +20,9 @@ def load_history_list(file_path, folds):
     return history_list
 
 
+load_time_list = load_history_list
+
+
 def save_history_score(
         histories: list,
         filepath: str = None,

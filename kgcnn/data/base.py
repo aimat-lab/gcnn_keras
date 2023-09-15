@@ -120,7 +120,9 @@ class MemoryGraphList(list):
             return MemoryGraphList([super(MemoryGraphList, self).__getitem__(int(i)) for i in item])
         if isinstance(item, np.ndarray):
             return MemoryGraphList([super(MemoryGraphList, self).__getitem__(int(i)) for i in item])
-        raise TypeError("Unsupported type for `MemoryGraphList` items.")
+        if isinstance(item, (np.uint8, np.int32, np.int64)):
+            return super(MemoryGraphList, self).__getitem__(int(item))
+        raise TypeError("Unsupported type '%s' for `MemoryGraphList` items." % type(item))
 
     def __setitem__(self, key, value):
         if not isinstance(value, GraphDict):
@@ -673,7 +675,8 @@ class MemoryGraphDataset(MemoryGraphList):
         out_indices = []
 
         if split_index is None:
-            split_index = np.amax(np.concatenate(self.obtain_property(train), axis=0))+1
+            max_index = np.amax(np.concatenate(self.obtain_property(train), axis=0))
+            split_index = [i for i in range(max_index+1)]
         if not isinstance(split_index, (list, tuple)):
             split_index_list: List[int] = [split_index]
         else:
@@ -737,8 +740,8 @@ class MemoryGraphDataset(MemoryGraphList):
         self.file_directory = file_directory
         return self
 
-    def get_multi_target_indices(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
-                                 data_unit: str = None):
+    def get_multi_target_labels(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
+                                data_unit: str = None):
 
         labels = np.array(self.obtain_property(graph_labels))
         label_names = self.label_names if hasattr(self, "label_names") else None
@@ -768,7 +771,7 @@ class MemoryGraphDataset(MemoryGraphList):
         for fold, (train_index, test_index) in enumerate(kf.split(np.expand_dims(np.arange(len(self)), axis=-1))):
             for i in train_index:
                 self[i].set(train, list(self[i].get(train)) + [fold])
-            for i in test:
+            for i in test_index:
                 self[i].set(test, list(self[i].get(test)) + [fold])
 
 

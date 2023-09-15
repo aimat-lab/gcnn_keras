@@ -5,7 +5,7 @@ import argparse
 import time
 import kgcnn.training_core.scheduler
 from datetime import timedelta
-from kgcnn.training_core.history import save_history_score, load_history_list
+from kgcnn.training_core.history import save_history_score, load_history_list, load_time_list
 from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.preprocessing import StandardScaler as StandardLabelScaler
 from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
@@ -65,7 +65,7 @@ postfix_file = hyper["info"]["postfix_file"]
 
 # Always train on `graph_labels`.
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
-labels, label_names, label_units = dataset.get_multi_target_indices(
+labels, label_names, label_units = dataset.get_multi_target_labels(
     "graph_labels",
     hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper["training"] else None,
     data_unit=hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else None
@@ -74,10 +74,9 @@ labels, label_names, label_units = dataset.get_multi_target_indices(
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-time_list, history_list = [], []
 model, hist, x_test, y_test, scaler, current_split = None, None, None, None, None, None
 train_indices_all, test_indices_all = [], []
-for current_split, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
+for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
     # Keep list of train/test indices.
     test_indices_all.append(test_index)
@@ -123,19 +122,21 @@ for current_split, (train_index, test_index) in enumerate(kf.split(X=np.zeros((d
     # The metrics from this script is added to the hyperparameter entry for metrics.
     model.compile(**hyper.compile(metrics=metrics))
     model.summary()
-    print(" Compiled with jit: %s" % model._jit_compile)
+    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
     # Run keras model-fit and take time for training.
     start = time.time()
-    hist = model.fit(x_train, y_train,
-                     validation_data=(x_test, y_test),
-                     **hyper.fit()
-                     )
+    hist = model.fit(
+        x_train, y_train,
+        validation_data=(x_test, y_test),
+        **hyper.fit()
+    )
     stop = time.time()
     print("Print Time for training: %s" % str(timedelta(seconds=stop - start)))
-    time_list.append(str(timedelta(seconds=stop - start)))
 
     # Save history for this fold.
     save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
+    save_pickle_file(str(timedelta(seconds=stop - start)),
+                     os.path.join(filepath, f"time{postfix_file}_fold_{current_split}.pickle"))
 
 # Plot training- and test-loss vs epochs for all splits.
 history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split+1)
@@ -174,6 +175,7 @@ np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file
 hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
+time_list = load_time_list(os.path.join(filepath, f"time{postfix_file}_fold_(i).pickle"), current_split+1)
 save_history_score(history_list, loss_name=None, val_loss_name=None,
                    model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                    model_class=hyper.model_class,
