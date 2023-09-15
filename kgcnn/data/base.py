@@ -1,8 +1,8 @@
 import logging
 import numpy as np
-import tensorflow as tf
 import pandas as pd
 import os
+from sklearn.model_selection import KFold
 # import typing as t
 from typing import Union, List, Callable, Dict, Optional
 # from collections.abc import MutableSequence
@@ -705,10 +705,10 @@ class MemoryGraphDataset(MemoryGraphList):
           dataset belongs to that part of the split (train / test)
         - The property is a list containing integer split indices, where each split index present within
           that list implies that the corresponding dataset element is part of that particular split.
-          In this case the ``split_index`` parameter may also be a list of split indices that specifies
+          In this case the `split_index` parameter may also be a list of split indices that specify
           for which of these split indices the train test index split is to be returned by this method.
 
-        The return value of this method is a list with the same length as the ``split_index`` parameter,
+        The return value of this method is a list with the same length as the `split_index` parameter,
         which by default will be 1.
 
         Args:
@@ -807,6 +807,18 @@ class MemoryGraphDataset(MemoryGraphList):
                 label_units = [label_units[i] for i in multi_target_indices]
         self.info("Labels '%s' in '%s' have shape '%s'." % (label_names, label_units, labels.shape))
         return labels, label_names, label_units
+
+    def set_train_test_indices_k_fold(self, n_splits: int = 5, shuffle: bool = False, random_state: int = None,
+                                      train: str = "train", test: str = "test"):
+        kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+        for x in self:
+            x.set(train, [])
+            x.set(test, [])
+        for fold, (train_index, test_index) in enumerate(kf.split(np.expand_dims(np.arange(len(self)), axis=0))):
+            for i in train_index:
+                self[i].set(train, list(self[i].get(train)) + [fold])
+            for i in train_index:
+                self[i].set(test, list(self[i].get(test)) + [fold])
 
 
 MemoryGeometricGraphDataset = MemoryGraphDataset

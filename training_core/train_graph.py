@@ -7,7 +7,6 @@ import kgcnn.training_core.scheduler
 from datetime import timedelta
 from kgcnn.training_core.history import save_history_score, load_history_list
 from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
-from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler as StandardLabelScaler
 from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
@@ -71,10 +70,6 @@ labels, label_names, label_units = dataset.get_multi_target_indices(
     hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper["training"] else None,
     data_unit=hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else None
 )
-
-# Cross-validation via random KFold split form `sklearn.model_selection`. Other validation schemes could include
-# stratified k-fold cross-validation for `MoleculeNetDataset` but is not implemented yet.
-kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
@@ -143,7 +138,7 @@ for current_split, (train_index, test_index) in enumerate(kf.split(X=np.zeros((d
     save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
 
 # Plot training- and test-loss vs epochs for all splits.
-history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split)
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split+1)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
