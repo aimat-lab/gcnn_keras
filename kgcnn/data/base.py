@@ -691,7 +691,7 @@ class MemoryGraphDataset(MemoryGraphList):
                                train: str = "train",
                                test: str = "test",
                                valid: Optional[str] = None,
-                               split_index: Union[int, list] = 1,
+                               split_index: Union[int, list] = None,
                                shuffle: bool = False,
                                seed: int = None
                                ) -> List[List[np.ndarray]]:
@@ -709,7 +709,7 @@ class MemoryGraphDataset(MemoryGraphList):
           for which of these split indices the train test index split is to be returned by this method.
 
         The return value of this method is a list with the same length as the `split_index` parameter,
-        which by default will be 1.
+        which by default will be None.
 
         Args:
             train (str): Name of graph property that has train split assignment. Defaults to 'train'.
@@ -723,6 +723,9 @@ class MemoryGraphDataset(MemoryGraphList):
             list: List of tuples (or triples) of train, test, (validation) split indices.
         """
         out_indices = []
+
+        if split_index is None:
+            split_index = np.amax(np.concatenate(self.obtain_property(train), axis=0))+1
         if not isinstance(split_index, (list, tuple)):
             split_index_list: List[int] = [split_index]
         else:

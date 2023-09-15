@@ -1,3 +1,8 @@
+v4.0.0
+
+* 
+
+
 v3.1.0
 
 * Added flexible charge for ``rdkit_xyz_to_mol`` as e.g. list.
