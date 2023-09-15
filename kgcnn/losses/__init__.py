@@ -1,4 +1,4 @@
-from ._loss import (
+from .losses import (
     RaggedMeanAbsoluteError,
     BinaryCrossentropyNoNaN
 )
