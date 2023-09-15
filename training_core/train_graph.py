@@ -74,7 +74,7 @@ labels, label_names, label_units = dataset.get_multi_target_labels(
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-model, hist, x_test, y_test, scaler, current_split = None, None, None, None, None, None
+model, scaler, current_split = None, None, None
 train_indices_all, test_indices_all = [], []
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
@@ -138,27 +138,28 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     save_pickle_file(str(timedelta(seconds=stop - start)),
                      os.path.join(filepath, f"time{postfix_file}_fold_{current_split}.pickle"))
 
+    # Plot prediction for the last split.
+    predicted_y = model.predict(x_test)
+    true_y = y_test
+
+    # Predictions must be rescaled to original values.
+    if scaler:
+        predicted_y = scaler.inverse_transform(predicted_y)
+        true_y = scaler.inverse_transform(true_y)
+
+    # Plotting the prediction vs. true test targets for last split. Note for classification this is also done but
+    # can be ignored.
+    plot_predict_true(predicted_y, true_y,
+                      filepath=filepath, data_unit=label_units,
+                      model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
+                      file_name=f"predict{postfix_file}_fold_{current_split}.png", show_fig=False)
+
+
 # Plot training- and test-loss vs epochs for all splits.
 history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split+1)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
-
-# Plot prediction for the last split.
-predicted_y = model.predict(x_test)
-true_y = y_test
-
-# Predictions must be rescaled to original values.
-if scaler:
-    predicted_y = scaler.inverse_transform(predicted_y)
-    true_y = scaler.inverse_transform(true_y)
-
-# Plotting the prediction vs. true test targets for last split. Note for classification this is also done but
-# can be ignored.
-plot_predict_true(predicted_y, true_y, target_names=label_names,
-                  filepath=filepath, data_unit=label_units,
-                  model_name=hyper.model_name, dataset_name=hyper.dataset_class,
-                  file_name=f"predict{postfix_file}.png")
 
 # Save last keras-model to output-folder.
 model.save(os.path.join(filepath, f"model{postfix_file}.keras"))
