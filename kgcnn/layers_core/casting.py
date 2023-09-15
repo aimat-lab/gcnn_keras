@@ -2,6 +2,7 @@ import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops_core.core import repeat_static_length
+from kgcnn.ops_core.scatter import scatter_reduce_sum
 # from keras_core.backend import backend
 
 
@@ -331,5 +332,49 @@ class CastDisjointToGraphState(Layer):
     def get_config(self):
         """Get config dictionary for this layer."""
         config = super(CastDisjointToGraphState, self).get_config()
+        config.update({"dtype_batch": self.dtype_batch})
+        return config
+
+
+
+class CastDisjointToBatchedAttributes(Layer):
+
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, **kwargs):
+        super(CastDisjointToBatchedAttributes, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_batch = dtype_batch
+        self.padded_disjoint = padded_disjoint
+        self.supports_jit = padded_disjoint
+        self.dtype_index = dtype_index
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs: list, **kwargs):
+        """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+
+        Args:
+            inputs (list): List of `[target, attr, graph_id_attr, attr_id]` ,
+
+                - attr (Tensor): Features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
+                  where N denotes the number of nodes or edges.
+                - total_attr (Tensor):
+
+        Returns:
+            Tensor:
+        """
+        target, attr, graph_id_attr, attr_id = inputs
+
+        output_shape = [ops.shape(target)[0]*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
+        indices = graph_id_attr*ops.cast(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+            attr_id, dtype=graph_id_attr.dtype)
+        out = scatter_reduce_sum(indices, attr, output_shape)
+        out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+        return out
+
+    def get_config(self):
+        """Get config dictionary for this layer."""
+        config = super(CastDisjointToBatchedAttributes, self).get_config()
         config.update({"dtype_batch": self.dtype_batch})
         return config

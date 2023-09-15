@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
-from kgcnn.layers_core.casting import (
-    CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraphState)
+from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
+                                       CastDisjointToGraphState, CastDisjointToBatchedAttributes)
 from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
@@ -155,6 +155,10 @@ def make_model(inputs: list = None,
         out = n
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
+        if output_to_tensor:
+            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+        else:
+            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet` .")
 

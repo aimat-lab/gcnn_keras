@@ -1,7 +1,8 @@
 import keras_core as ks
 from kgcnn.layers_core.attention import AttentionHeadGAT
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraphState
+from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
+                                       CastDisjointToGraphState, CastDisjointToBatchedAttributes)
 from keras_core.layers import Concatenate, Dense, Average, Activation
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -133,6 +134,10 @@ def make_model(inputs: list = None,
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         out = MLP(**output_mlp)(n)
+        if output_to_tensor:
+            out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
+        else:
+            out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     else:
         raise ValueError("Unsupported output embedding for `GAT` .")
 

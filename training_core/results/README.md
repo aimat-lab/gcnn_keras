@@ -10,11 +10,21 @@ due to their file size.
 To show overall best test error run ``python3 summary.py --min_max True``.
 If not noted otherwise, we use a (fixed) random k-fold split for validation errors.
 
+#### CoraLuDataset
+
+Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
+
+| model   | kgcnn   |   epochs | Categorical accuracy   |
+|:--------|:--------|---------:|:-----------------------|
+| GAT     | 4.0.0   |      250 | **0.8464 &pm; 0.0105** |
+
 #### ESOLDataset
 
 ESOL consists of 1128 compounds as smiles and their corresponding water solubility in log10(mol/L). We use random 5-fold cross-validation. 
 
 | model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GCN     | 3.1.0   |      800 | **0.5044 &pm; 0.0275** | **0.7076 &pm; 0.0352** |
+| GAT     | 4.0.0   |      500 | 0.4749 &pm; 0.0249     | 0.6816 &pm; 0.0781     |
+| GCN     | 3.1.0   |      800 | **0.4459 &pm; 0.0180** | **0.6326 &pm; 0.0403** |
+| Schnet  | 3.1.0   |      800 | 0.4616 &pm; 0.0220     | 0.6553 &pm; 0.0388     |
 

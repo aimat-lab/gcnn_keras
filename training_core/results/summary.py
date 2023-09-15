@@ -12,17 +12,17 @@ print("Input of argparse:", args)
 show_min_max = args["min_max"]
 
 benchmark_datasets = {
-    # "CoraLuDataset": {
-    #     "general_info": [
-    #         "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
-    #         "Here we use random 5-fold cross-validation on nodes. ",
-    #     ],
-    #     "targets": [
-    #         {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
-    #         {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
-    #          "is_min_max": True},
-    #     ]
-    # },
+    "CoraLuDataset": {
+        "general_info": [
+            "Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. ",
+            "Here we use random 5-fold cross-validation on nodes. ",
+        ],
+        "targets": [
+            {"metric": "val_categorical_accuracy", "name": "Categorical accuracy", "find_best": "max"},
+            {"metric": "max_val_categorical_accuracy", "name": "*Max. Categorical accuracy*", "find_best": "max",
+             "is_min_max": True},
+        ]
+    },
     # "CoraDataset": {
     #     "general_info": [
     #         "Cora Dataset of 19793 publications and 8710 sparse node attributes and 70 node classes. ",
