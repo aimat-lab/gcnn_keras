@@ -174,8 +174,8 @@ hyper = {
                 "config": {},
                 "methods": [
                     {"set_attributes": {}},
+                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}},
                     {"map_list": {"method": "count_nodes_and_edges"}},
-                    {"set_train_test_indices_k_fold": {"n_splits": 5, "random_state": 42, "shuffle": True}}
                 ]
             },
             "data_unit": "mol/L"

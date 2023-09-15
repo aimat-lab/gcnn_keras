@@ -1,7 +1,7 @@
 import keras_core as ks
 from kgcnn.layers_core.attention import AttentionHeadGAT
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraph
+from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraphState
 from keras_core.layers import Concatenate, Dense, Average, Activation
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -130,7 +130,7 @@ def make_model(inputs: list = None,
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         out = MLP(**output_mlp)(n)
     else:

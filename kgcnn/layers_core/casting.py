@@ -295,11 +295,11 @@ class CastBatchedAttributesToDisjoint(Layer):
         return config
 
 
-class CastDisjointToGraph(Layer):
+class CastDisjointToGraphState(Layer):
 
     def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
                  padded_disjoint: bool = False, **kwargs):
-        super(CastDisjointToGraph, self).__init__(**kwargs)
+        super(CastDisjointToGraphState, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
         self.dtype_batch = dtype_batch
         self.dtype_index = dtype_index
@@ -330,6 +330,6 @@ class CastDisjointToGraph(Layer):
 
     def get_config(self):
         """Get config dictionary for this layer."""
-        config = super(CastDisjointToGraph, self).get_config()
+        config = super(CastDisjointToGraphState, self).get_config()
         config.update({"dtype_batch": self.dtype_batch})
         return config

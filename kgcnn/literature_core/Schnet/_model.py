@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers_core.casting import (
-    CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraph)
+    CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint, CastDisjointToGraphState)
 from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
@@ -150,7 +150,7 @@ def make_model(inputs: list = None,
         out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])
         if use_output_mlp:
             out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:

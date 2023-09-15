@@ -1,7 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Dense
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastDisjointToGraph, CastBatchedAttributesToDisjoint
+from kgcnn.layers_core.casting import CastBatchedIndicesToDisjoint, CastDisjointToGraphState, CastBatchedAttributesToDisjoint
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -129,7 +129,7 @@ def make_model(inputs: list = None,
     if output_embedding == "graph":
         out = PoolingNodes(**node_pooling_args)([count_nodes, n, batch_id_node])  # will return tensor
         out = MLP(**output_mlp)(out)
-        out = CastDisjointToGraph(**cast_disjoint_kwargs)(out)
+        out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
         out = n
         out = MLP(**output_mlp)(out)
