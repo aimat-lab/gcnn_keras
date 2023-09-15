@@ -5,7 +5,7 @@ import argparse
 import time
 import kgcnn.training_core.scheduler
 from datetime import timedelta
-from kgcnn.training_core.history import save_history_score
+from kgcnn.training_core.history import save_history_score, load_history_list
 from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler as StandardLabelScaler
@@ -14,11 +14,12 @@ from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter
 from kgcnn.utils_core.devices import check_device
+from kgcnn.data.utils import save_pickle_file
 
 # Input arguments from command line with default values from example.
 # From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
 # for training and model setup.
-parser = argparse.ArgumentParser(description='Train a GNN on a Molecule dataset.')
+parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
 parser.add_argument("--category", required=False, help="Graph model to train.", default="GAT")
@@ -59,11 +60,17 @@ dataset.assert_valid_model_input(hyper["model"]["config"]["inputs"])
 dataset.clean(hyper["model"]["config"]["inputs"])
 data_length = len(dataset)  # Length of the cleaned dataset.
 
-# For `MoleculeNetDataset`, always train on `graph_labels`.
+# Make output directory. This can further be adapted in hyperparameter.
+filepath = hyper.results_file_path()
+postfix_file = hyper["info"]["postfix_file"]
+
+# Always train on `graph_labels`.
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
-labels = np.array(dataset.obtain_property("graph_labels"))
-if len(labels.shape) <= 1:
-    labels = np.expand_dims(labels, axis=-1)
+labels, label_names, label_units = dataset.get_multi_target_indices(
+    "graph_labels",
+    hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper["training"] else None,
+    data_unit=hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else None
+)
 
 # Cross-validation via random KFold split form `sklearn.model_selection`. Other validation schemes could include
 # stratified k-fold cross-validation for `MoleculeNetDataset` but is not implemented yet.
@@ -71,12 +78,21 @@ kf = KFold(**hyper["training"]["cross_validation"]["config"])
 
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
-time_list = []
-history_list, model, hist, x_test, y_test, scaler = [], None, None, None, None, None
+execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
+time_list, history_list = [], []
+model, hist, x_test, y_test, scaler, current_split = None, None, None, None, None, None
 train_indices_all, test_indices_all = [], []
-for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
+for current_split, (train_index, test_index) in enumerate(kf.split(X=np.zeros((data_length, 1)), y=labels)):
+
+    # Keep list of train/test indices.
     test_indices_all.append(test_index)
     train_indices_all.append(train_index)
+
+    # Only do execute_splits out of the k-folds of cross-validation.
+    if execute_folds:
+        if current_split not in execute_folds:
+            continue
+    print("Running training on split: '%s'." % current_split)
 
     # First select training and test graphs or molecules from indices, then convert them into tensorflow tensor
     # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
@@ -123,17 +139,13 @@ for train_index, test_index in kf.split(X=np.zeros((data_length, 1)), y=labels):
     print("Print Time for training: %s" % str(timedelta(seconds=stop - start)))
     time_list.append(str(timedelta(seconds=stop - start)))
 
-    # Get loss from history.
-    history_list.append(hist)
-
-# Make output directory. This can further be adapted in hyperparameter.
-filepath = hyper.results_file_path()
-postfix_file = hyper["info"]["postfix_file"]
+    # Save history for this fold.
+    save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
 
 # Plot training- and test-loss vs epochs for all splits.
-data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+                     model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Plot prediction for the last split.
@@ -147,8 +159,8 @@ if scaler:
 
 # Plotting the prediction vs. true test targets for last split. Note for classification this is also done but
 # can be ignored.
-plot_predict_true(predicted_y, true_y,
-                  filepath=filepath, data_unit=data_unit,
+plot_predict_true(predicted_y, true_y, target_names=label_names,
+                  filepath=filepath, data_unit=label_units,
                   model_name=hyper.model_name, dataset_name=hyper.dataset_class,
                   file_name=f"predict{postfix_file}.png")
 
@@ -168,7 +180,7 @@ hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"
 
 # Save score of fit result for as text file.
 save_history_score(history_list, loss_name=None, val_loss_name=None,
-                   model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+                   model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                    model_class=hyper.model_class,
                    model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
                    filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list,

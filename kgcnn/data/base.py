@@ -786,5 +786,27 @@ class MemoryGraphDataset(MemoryGraphList):
         self.file_directory = file_directory
         return self
 
+    def get_multi_target_indices(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
+                                 data_unit: str = None):
+
+        labels = np.array(self.obtain_property(graph_labels))
+        label_names = self.label_names if hasattr(self, "label_names") else None
+        label_units = self.label_units if hasattr(self, "label_units") else None
+        if data_unit is not None:
+            label_units = data_unit
+        if len(labels.shape) <= 1:
+            labels = np.expand_dims(labels, axis=-1)
+
+        # Training on multiple targets for regression. This can is often required to train on orbital energies of ground
+        # or excited state or energies and enthalpies etc.
+        if multi_target_indices is not None:
+            labels = labels[:, multi_target_indices]
+            if label_names is not None:
+                label_names = [label_names[i] for i in multi_target_indices]
+            if label_units is not None:
+                label_units = [label_units[i] for i in multi_target_indices]
+        self.info("Labels '%s' in '%s' have shape '%s'." % (label_names, label_units, labels.shape))
+        return labels, label_names, label_units
+
 
 MemoryGeometricGraphDataset = MemoryGraphDataset
