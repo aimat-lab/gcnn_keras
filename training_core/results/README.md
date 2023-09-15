@@ -17,6 +17,7 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 | model   | kgcnn   |   epochs | Categorical accuracy   |
 |:--------|:--------|---------:|:-----------------------|
 | GAT     | 4.0.0   |      250 | **0.8464 &pm; 0.0105** |
+| GCN     | 4.0.0   |      300 | 0.8109 &pm; 0.0064     |
 
 #### ESOLDataset
 
