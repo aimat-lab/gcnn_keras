@@ -15,6 +15,7 @@ However, kept legacy pooling module and all old ALIAS.
 * Moved losses from `kgcnn.metrics.loss` into separate modul ``kgcnn.losses`` to be more compatible with keras.
 * Reworked training scripts especially to simplify command line arguments and strengthen hyperparameter.
 * Started with potential keras-core port. Not yet tested or supported. 
+* Removed ``get_split_indices`` to make the graph indexing more consistent.
 
 
 v3.0.2
