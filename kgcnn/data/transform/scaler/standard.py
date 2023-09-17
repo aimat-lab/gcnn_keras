@@ -33,6 +33,14 @@ class _StandardScalerSklearnMixin:
         scale = np.expand_dims(scale, axis=0)
         return scale
 
+    def get_mean_shift(self):
+        """Get scale of shape (1, n_properties)."""
+        if not hasattr(self._scaler_reference, "mean_"):
+            return
+        mean = np.array(self._scaler_reference.mean_)
+        mean = np.expand_dims(mean, axis=0)
+        return mean
+
     def get_config(self) -> dict:
         """Get configuration for scaler."""
         config = self._scaler_reference.get_params()

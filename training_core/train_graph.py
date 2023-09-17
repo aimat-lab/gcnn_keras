@@ -3,11 +3,10 @@ import keras_core as ks
 import numpy as np
 import argparse
 import time
-import kgcnn.training_core.scheduler
+import kgcnn.training_core.scheduler  # noqa
 from datetime import timedelta
 from kgcnn.training_core.history import save_history_score, load_history_list, load_time_list
-from kgcnn.metrics_core.metrics import ScaledMeanAbsoluteError, ScaledRootMeanSquaredError
-from sklearn.preprocessing import StandardScaler as StandardLabelScaler
+from kgcnn.data.transform.scaler.serial import deserialize
 from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
@@ -21,7 +20,7 @@ from kgcnn.data.utils import save_pickle_file
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_esol.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GAT")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -63,9 +62,9 @@ data_length = len(dataset)  # Length of the cleaned dataset.
 filepath = hyper.results_file_path()
 postfix_file = hyper["info"]["postfix_file"]
 
-# Always train on `graph_labels`.
+# Always train on `graph_labels` .
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
-labels, label_names, label_units = dataset.get_multi_target_labels(
+label_names, label_units = dataset.set_multi_target_labels(
     "graph_labels",
     hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper["training"] else None,
     data_unit=hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else None
@@ -74,7 +73,7 @@ labels, label_names, label_units = dataset.get_multi_target_labels(
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-model, scaler, current_split = None, None, None
+model, current_split = None, None
 train_indices_all, test_indices_all = [], []
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
@@ -88,41 +87,30 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
             continue
     print("Running training on split: '%s'." % current_split)
 
-    # First select training and test graphs or molecules from indices, then convert them into tensorflow tensor
-    # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
-    # kwargs of the keras `Input` layers ('name' and 'ragged').
-    x_train, y_train = dataset[train_index].tensor(hyper["model"]["config"]["inputs"]), labels[train_index]
-    x_test, y_test = dataset[test_index].tensor(hyper["model"]["config"]["inputs"]), labels[test_index]
-
-    # Normalize training and test targets via a sklearn `StandardScaler`. No other scaler are used at the moment.
-    # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
-    if "scaler" in hyper["training"]:
-        print("Using StandardScaler.")
-        scaler = StandardLabelScaler(**hyper["training"]["scaler"]["config"])
-        y_train = scaler.fit_transform(y_train)
-        y_test = scaler.transform(y_test)
-
-        # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
-        # directly log the original target values, but the scaled ones.
-        mae_metric = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-        rms_metric = ScaledRootMeanSquaredError((1, 1), name="scaled_root_mean_squared_error")
-        if scaler.scale_ is not None:
-            mae_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-            rms_metric.set_scale(np.expand_dims(scaler.scale_, axis=0))
-        metrics = [mae_metric, rms_metric]
-    else:
-        print("Not using StandardScaler.")
-        metrics = None
+    dataset_train, dataset_test = dataset[train_index], dataset[test_index]
 
     # Make the model for current split using model kwargs from hyperparameter.
-    # They are always updated on top of the models default kwargs.
     model = deserialize_model(hyper["model"])
 
     # Compile model with optimizer and loss from hyperparameter.
     # The metrics from this script is added to the hyperparameter entry for metrics.
-    model.compile(**hyper.compile(metrics=metrics))
+    model.compile(**hyper.compile())
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
+
+    # Normalize training and test targets via a transform.
+    # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
+    if "scaler" in hyper["training"]:
+        print("Using Scaler to adjust output scale of model.")
+        scaler = deserialize(hyper["training"]["scaler"])
+        scaler.fit_dataset(dataset_train, y="graph_labels")
+        model.set_scale(scaler)
+
+    x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
+    y_train = np.array(dataset_train.get("graph_labels"))
+    x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
+    y_test = np.array(dataset_test.get("graph_labels"))
+
     # Run keras model-fit and take time for training.
     start = time.time()
     hist = model.fit(
@@ -131,7 +119,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         **hyper.fit()
     )
     stop = time.time()
-    print("Print Time for training: %s" % str(timedelta(seconds=stop - start)))
+    print("Print Time for training: '%s'." % str(timedelta(seconds=stop - start)))
 
     # Save history for this fold.
     save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
@@ -141,11 +129,6 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     # Plot prediction for the last split.
     predicted_y = model.predict(x_test)
     true_y = y_test
-
-    # Predictions must be rescaled to original values.
-    if scaler:
-        predicted_y = scaler.inverse_transform(predicted_y)
-        true_y = scaler.inverse_transform(true_y)
 
     # Plotting the prediction vs. true test targets for last split. Note for classification this is also done but
     # can be ignored.

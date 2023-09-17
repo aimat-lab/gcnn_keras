@@ -1,4 +1,6 @@
 import keras_core as ks
+from typing import Union
+from keras_core import ops
 
 
 class StandardLabelScaler(ks.layers.Layer):  # noqa
@@ -19,9 +21,9 @@ class StandardLabelScaler(ks.layers.Layer):  # noqa
             self._add_weights_for_scaling()
 
     def _add_weights_for_scaling(self):
-        self.scale_ = self.add_weight(shape=self.scaling_shape, initializer="ones", trainable=self._weights_trainable,
+        self.scale_ = self.add_weight(shape=self._scaling_shape, initializer="ones", trainable=self._weights_trainable,
                                       dtype=self.dtype_scale)
-        self.mean_ = self.add_weight(shape=self.scaling_shape, initializer="zeros", trainable=self._weights_trainable,
+        self.mean_ = self.add_weight(shape=self._scaling_shape, initializer="zeros", trainable=self._weights_trainable,
                                       dtype=self.dtype_scale)
 
     def build(self, input_shape):
@@ -44,7 +46,7 @@ class StandardLabelScaler(ks.layers.Layer):  # noqa
         Returns:
             Tensor: Statically re-scaled input tensor.
         """
-        return inputs*self.scale_ + self._mean
+        return ops.cast(inputs, dtype=self.dtype_scale)*self.scale_ + self.mean_
 
     def get_config(self):
         """Update config for `NodePosition`."""
@@ -53,4 +55,8 @@ class StandardLabelScaler(ks.layers.Layer):  # noqa
         return config
 
     def set_scale(self, scaler):
-        self.set_weights([scaler.get_scaling(), scaler.mean_])
+        self.set_weights([scaler.get_scaling(), scaler.get_mean_shift()])
+
+
+def get(scale_layer: Union[dict, str]):
+    return StandardLabelScaler

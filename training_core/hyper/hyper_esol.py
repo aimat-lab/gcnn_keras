@@ -20,6 +20,7 @@ hyper = {
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
                                "activation": ["relu", "relu", "linear"]},
+                "output_scaling": {"name": "StandardLabelScaler"},
             }
         },
         "training": {
@@ -36,9 +37,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
+                            {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
             },
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
+            "scaler": {"class_name": "StandardLabelScaler", "module_name": "kgcnn.data.transform.scaler.standard",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "dataset": {
             "class_name": "ESOLDataset",
@@ -86,11 +90,13 @@ hyper = {
                 },
                 "node_pooling_args": {"pooling_method": "scatter_sum"},
                 "depth": 4,
-                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10
+                "gauss_args": {"bins": 20, "distance": 4, "offset": 0.0, "sigma": 0.4}, "verbose": 10,
+                "output_scaling": {"name": "StandardLabelScaler"}
             }
         },
         "training": {
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}},
+            "scaler": {"class_name": "StandardLabelScaler", "module_name": "kgcnn.data.transform.scaler.standard",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}},
             "fit": {
                 "batch_size": 32, "epochs": 800, "validation_freq": 10, "verbose": 2,
                 "callbacks": [
@@ -102,7 +108,9 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
+                            {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
             }
         },
         "data": {},
@@ -148,7 +156,8 @@ hyper = {
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [64, 32, 1],
-                               "activation": ["relu", "relu", "linear"]}
+                               "activation": ["relu", "relu", "linear"]},
+                "output_scaling": {"name": "StandardLabelScaler"},
             }
         },
         "training": {
@@ -163,9 +172,12 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
+                            {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
             },
-            "scaler": {"class_name": "StandardScaler", "config": {"with_std": True, "with_mean": True, "copy": True}}
+            "scaler": {"class_name": "StandardLabelScaler", "module_name": "kgcnn.data.transform.scaler.standard",
+                       "config": {"with_std": True, "with_mean": True, "copy": True}},
         },
         "data": {
             "dataset": {

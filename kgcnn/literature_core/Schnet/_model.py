@@ -6,6 +6,7 @@ from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.scale import get as get_scaler
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
@@ -49,6 +50,7 @@ model_default = {
                  "activation": ["kgcnn>shifted_softplus", "kgcnn>shifted_softplus"]},
     "output_embedding": "graph", "output_to_tensor": True,
     "use_output_mlp": True,
+    "output_scaling": None,
     "output_mlp": {"use_bias": [True, True], "units": [64, 1],
                    "activation": ["kgcnn>shifted_softplus", "linear"]}
 }
@@ -70,7 +72,8 @@ def make_model(inputs: list = None,
                output_embedding: str = None,
                use_output_mlp: bool = None,
                output_to_tensor: bool = None,
-               output_mlp: dict = None
+               output_mlp: dict = None,
+               output_scaling: dict = None
                ):
     r"""Make `SchNet <https://arxiv.org/abs/1706.08566>`__ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.Schnet.model_default` .
@@ -114,6 +117,7 @@ def make_model(inputs: list = None,
         output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
+        output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
 
     Returns:
         :obj:`ks.models.Model`
@@ -162,8 +166,18 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for mode `SchNet` .")
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
     model = ks.models.Model(inputs=model_inputs, outputs=out)
+
     model.__kgcnn_model_version__ = __model_version__
+
+    def set_scale(*args, **kwargs):
+        scaler.set_scale(*args, **kwargs)
+    setattr(model, "set_scale", set_scale)
+
     return model
 
 

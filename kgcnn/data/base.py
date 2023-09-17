@@ -740,7 +740,7 @@ class MemoryGraphDataset(MemoryGraphList):
         self.file_directory = file_directory
         return self
 
-    def get_multi_target_labels(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
+    def set_multi_target_labels(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
                                 data_unit: str = None):
 
         labels = np.array(self.obtain_property(graph_labels))
@@ -760,7 +760,8 @@ class MemoryGraphDataset(MemoryGraphList):
             if label_units is not None:
                 label_units = [label_units[i] for i in multi_target_indices]
         self.info("Labels '%s' in '%s' have shape '%s'." % (label_names, label_units, labels.shape))
-        return labels, label_names, label_units
+        self.assign_property("graph_labels", [x for x in labels])
+        return label_names, label_units
 
     def set_train_test_indices_k_fold(self, n_splits: int = 5, shuffle: bool = False, random_state: int = None,
                                       train: str = "train", test: str = "test"):
