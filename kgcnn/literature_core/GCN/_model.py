@@ -5,6 +5,7 @@ from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatched
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
 from kgcnn.layers_core.conv import GCN
 from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.scale import get as get_scaler
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
