@@ -99,7 +99,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_indices_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of embedding arguments for nodes etc.
             unpacked in :obj:`Embedding` layers.
         make_distance (bool): Whether input is distance or coordinates at in place of edges.
@@ -170,13 +170,14 @@ def make_model(inputs: list = None,
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
         out = scaler(out)
 
-    model = ks.models.Model(inputs=model_inputs, outputs=out)
+    model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
 
     model.__kgcnn_model_version__ = __model_version__
 
-    def set_scale(*args, **kwargs):
-        scaler.set_scale(*args, **kwargs)
-    setattr(model, "set_scale", set_scale)
+    if output_scaling is not None:
+        def set_scale(*args, **kwargs):
+            scaler.set_scale(*args, **kwargs)
+        setattr(model, "set_scale", set_scale)
 
     return model
 

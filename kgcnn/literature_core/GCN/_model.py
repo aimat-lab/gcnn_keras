@@ -46,7 +46,8 @@ model_default = {
     "output_embedding": "graph",
     "output_to_tensor": True,
     "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
-                   "activation": ["relu", "relu", "sigmoid"]}
+                   "activation": ["relu", "relu", "sigmoid"]},
+    "output_scaling": None,
 }
 
 
@@ -62,7 +63,8 @@ def make_model(inputs: list = None,
                node_pooling_args: dict = None,
                output_embedding: str = None,
                output_to_tensor: bool = None,
-               output_mlp: dict = None):
+               output_mlp: dict = None,
+               output_scaling: dict = None):
     r"""Make `GCN <https://arxiv.org/abs/1609.02907>`_ graph network via functional API.
     Default parameters can be found in :obj:`kgcnn.literature.GCN.model_default`.
 
@@ -94,6 +96,7 @@ def make_model(inputs: list = None,
         output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
+        output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
 
     Returns:
         :obj:`ks.models.Model`
@@ -141,6 +144,15 @@ def make_model(inputs: list = None,
     else:
         raise ValueError("Unsupported output embedding for `GCN` .")
 
+    if output_scaling is not None:
+        scaler = get_scaler(output_scaling["name"])(**output_scaling)
+        out = scaler(out)
+
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
     model.__kgcnn_model_version__ = __kgcnn_model_version__
+
+    if output_scaling is not None:
+        def set_scale(*args, **kwargs):
+            scaler.set_scale(*args, **kwargs)
+        setattr(model, "set_scale", set_scale)
     return model
