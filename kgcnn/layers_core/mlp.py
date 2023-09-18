@@ -1,7 +1,8 @@
 import keras_core as ks
 from keras_core.layers import Dense, Layer, Activation, Dropout
 from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, UnitNormalization
-
+from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalization
+from kgcnn.layers_core.norm import global_normalization_args as global_normalization_args_graph
 
 global_normalization_args = {
     "UnitNormalization": (
@@ -21,6 +22,7 @@ global_normalization_args = {
         "gamma_regularizer", "beta_constraint", "gamma_constraint"
     )
 }
+global_normalization_args.update(global_normalization_args_graph)
 
 
 class MLPBase(Layer):  # noqa
@@ -293,17 +295,22 @@ class MLP(MLPBase):  # noqa
                 **self._get_conf_for_keys(self._key_dict_norm[self._conf_normalization_technique[i]], "norm", i)
             ) if self._conf_use_normalization[i] else None for i in range(self._depth)
         ]
+        self.is_graph_norm_layer = [
+            "Graph" in self._conf_normalization_technique[i] if self._conf_use_normalization[i] else False for i in
+            range(self._depth)
+        ]
 
     def build(self, input_shape):
         """Build layer."""
-        x_shape, _ = (input_shape[0], input_shape[1:]) if isinstance(input_shape, list) else (input_shape, [])
+        x_shape, x_graph = (input_shape[0], input_shape[1:]) if isinstance(input_shape, list) else (input_shape, [])
         for i in range(self._depth):
             self.mlp_dense_layer_list[i].build(x_shape)
             x_shape = self.mlp_dense_layer_list[i].compute_output_shape(x_shape)
             if self._conf_use_dropout[i]:
                 self.mlp_dropout_layer_list[i].build(x_shape)
             if self._conf_use_normalization[i]:
-                self.mlp_norm_layer_list[i].build(x_shape)
+                norm_shape = x_shape if not self.is_graph_norm_layer[i] else [x_shape] + x_graph
+                self.mlp_norm_layer_list[i].build(norm_shape)
             self.mlp_activation_layer_list[i].build(x_shape)
         self.built = True
 
@@ -323,7 +330,10 @@ class MLP(MLPBase):  # noqa
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
             if self._conf_use_normalization[i]:
-                x = self.mlp_norm_layer_list[i](x, **kwargs)
+                if self.is_graph_norm_layer:
+                    x = self.mlp_norm_layer_list[i]([x]+batch, **kwargs)
+                else:
+                    x = self.mlp_norm_layer_list[i](x, **kwargs)
             x = self.mlp_activation_layer_list[i](x, **kwargs)
         out = x
         return out
@@ -336,7 +346,6 @@ class MLP(MLPBase):  # noqa
 
 # Need to fix for normalizations.
 GraphMLP = MLP
-
 
 # class RelationalMLP(MLP):
 #     r"""Multilayer perceptron that consist of multiple :obj:`Dense` layers.

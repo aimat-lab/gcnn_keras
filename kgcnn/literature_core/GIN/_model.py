@@ -115,7 +115,7 @@ def make_model(inputs: list = None,
     list_embeddings = [n]
     for i in range(0, depth):
         n = GIN(**gin_args)([n, disjoint_indices])
-        n = GraphMLP(**gin_mlp)(n)
+        n = GraphMLP(**gin_mlp)([n, batch_id_node, count_nodes])
         list_embeddings.append(n)
 
     # Output embedding choice
@@ -126,9 +126,8 @@ def make_model(inputs: list = None,
         out = ks.layers.Add()(out)
         out = MLP(**output_mlp)(out)
     elif output_embedding == "node":  # Node labeling
-        out = n
-        out = GraphMLP(**last_mlp)(out)
-        out = GraphMLP(**output_mlp)(out)
+        out = GraphMLP(**last_mlp)([n, batch_id_node, count_nodes])
+        out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
@@ -251,7 +250,7 @@ def make_model_edge(inputs: list = None,
     list_embeddings = [n]
     for i in range(0, depth):
         n = GINE(**gin_args)([n, disjoint_indices, ed])
-        n = GraphMLP(**gin_mlp)(n)
+        n = GraphMLP(**gin_mlp)([n, batch_id_node, count_nodes])
         list_embeddings.append(n)
 
     # Output embedding choice
@@ -263,9 +262,8 @@ def make_model_edge(inputs: list = None,
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":  # Node labeling
-        out = n
-        out = GraphMLP(**last_mlp)(out)
-        out = GraphMLP(**output_mlp)(out)
+        out = GraphMLP(**last_mlp)([n, batch_id_node, count_nodes])
+        out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:

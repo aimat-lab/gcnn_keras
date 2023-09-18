@@ -2,7 +2,7 @@ import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops_core.scatter import scatter_reduce_sum
-
+from keras_core.layers import LayerNormalization as GraphLayerNormalization
 
 global_normalization_args = {
     "GraphNormalization": (

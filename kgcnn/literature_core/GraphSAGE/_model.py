@@ -4,7 +4,7 @@ from keras_core.layers import Concatenate
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
-from kgcnn.layers_core.norm import GraphNormalization
+from kgcnn.layers_core.norm import GraphLayerNormalization
 from kgcnn.layers_core.mlp import MLP, GraphMLP
 from kgcnn.layers_core.aggr import AggregateLocalEdgesLSTM, AggregateLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
@@ -30,9 +30,11 @@ if backend_to_use() not in __kgcnn_model_backend_supported__:
 model_default = {
     'name': "GraphSAGE",
     'inputs': [
-        {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
-               {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
-               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}
+        {"shape": (None, ), "name": "node_attributes", "dtype": "float32"},
+        {"shape": (None, ), "name": "edge_attributes", "dtype": "float32"},
+        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
+        {"shape": (), "name": "total_nodes", "dtype": "int64"},
+        {"shape": (), "name": "total_edges", "dtype": "int64"}
     ],
     "cast_disjoint_kwargs": {},
     "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
@@ -90,7 +92,7 @@ def make_model(inputs: list = None,
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-                cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
         node_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for node updates.
@@ -131,7 +133,7 @@ def make_model(inputs: list = None,
         if use_edge_features:
             eu = Concatenate(**concat_args)([eu, ed])
 
-        eu = GraphMLP(**edge_mlp_args)(eu)
+        eu = GraphMLP(**edge_mlp_args)([eu, batch_id_edge, count_edges])
 
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
@@ -141,9 +143,9 @@ def make_model(inputs: list = None,
 
         nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
 
-        n = GraphMLP(**node_mlp_args)(nu)
-        # n = GraphNormalization()([n, batch_id_node, count_nodes])  # Normalize
-        n = ks.layers.LayerNormalization()(n)
+        n = GraphMLP(**node_mlp_args)([nu, batch_id_node, count_nodes])
+
+        n = GraphLayerNormalization()(n)
 
     # Regression layer on output
     if output_embedding == 'graph':
@@ -152,7 +154,7 @@ def make_model(inputs: list = None,
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
 
     elif output_embedding == 'node':
-        out = GraphMLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:

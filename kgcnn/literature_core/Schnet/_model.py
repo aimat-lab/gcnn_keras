@@ -5,7 +5,7 @@ from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatched
 from kgcnn.layers_core.conv import SchNetInteraction
 from kgcnn.layers_core.geom import NodeDistanceEuclidean, GaussBasisLayer, NodePosition, ShiftPeriodicLattice
 from kgcnn.layers_core.modules import Embedding
-from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.mlp import MLP, GraphMLP
 from kgcnn.layers_core.scale import get as get_scaler
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -147,7 +147,7 @@ def make_model(inputs: list = None,
     for i in range(0, depth):
         n = SchNetInteraction(**interaction_args)([n, ed, disjoint_indices])
 
-    n = MLP(**last_mlp)(n)
+    n = GraphMLP(**last_mlp)([n, batch_id_node, count_nodes])
 
     # Output embedding choice
     if output_embedding == 'graph':
@@ -158,7 +158,7 @@ def make_model(inputs: list = None,
     elif output_embedding == 'node':
         out = n
         if use_output_mlp:
-            out = MLP(**output_mlp)(out)
+            out = GraphMLP(**output_mlp)([out, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:

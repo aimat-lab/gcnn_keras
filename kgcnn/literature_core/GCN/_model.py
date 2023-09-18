@@ -4,7 +4,7 @@ from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
 from kgcnn.layers_core.conv import GCN
-from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.mlp import MLP, GraphMLP
 from kgcnn.layers_core.scale import get as get_scaler
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -136,8 +136,7 @@ def make_model(inputs: list = None,
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
     elif output_embedding == "node":
-        out = n
-        out = MLP(**output_mlp)(out)
+        out = GraphMLP(**output_mlp)([n, batch_id_node, count_nodes])
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
