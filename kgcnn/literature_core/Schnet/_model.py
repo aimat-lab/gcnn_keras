@@ -12,12 +12,12 @@ from kgcnn.model.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023.09.07"
+__model_version__ = "2023-09-07"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'GCN' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'Schnet' is not supported." % backend_to_use())
 
 # Implementation of Schnet in `keras` from paper:
 # by Kristof T. Schütt, Pieter-Jan Kindermans, Huziel E. Sauceda, Stefan Chmiela,

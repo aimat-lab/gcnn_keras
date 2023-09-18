@@ -1,67 +1,68 @@
 import keras_core as ks
-from kgcnn.layers_core.attention import AttentionHeadGAT
+from kgcnn.layers.gather import GatherNodesOutgoing
+from keras_core.layers import Concatenate
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
-from keras_core.layers import Concatenate, Dense, Average, Activation
+from kgcnn.layers_core.norm import GraphLayerNormalization
 from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.aggr import AggregateLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers_core.scale import get as get_scaler
 from keras_core.backend import backend as backend_to_use
-from kgcnn.ops_core.activ import *
 
 # Keep track of model version from commit date in literature.
 # To be updated if model is changed in a significant way.
-__model_version__ = "2023-09-08"
+__model_version__ = "2023-09-18"
 
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'GAT' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'GraphSAGE' is not supported." % backend_to_use())
 
-# Implementation of GAT in `keras` from paper:
-# Graph Attention Networks
-# by Petar Veličković, Guillem Cucurull, Arantxa Casanova, Adriana Romero, Pietro Liò, Yoshua Bengio (2018)
-# https://arxiv.org/abs/1710.10903
+# Implementation of GraphSAGE in `keras` from paper:
+# Inductive Representation Learning on Large Graphs
+# by William L. Hamilton and Rex Ying and Jure Leskovec
+# http://arxiv.org/abs/1706.02216
 
 
 model_default = {
-    "name": "GAT",
-    "inputs": [
-        {"shape": (None, ), "name": "node_attributes", "dtype": "float32"},
-        {"shape": (None, ), "name": "edge_attributes", "dtype": "float32"},
-        {"shape": (None, 2), "name": "edge_indices", "dtype": "int64"},
-        {"shape": (), "name": "total_nodes", "dtype": "int64"},
-        {"shape": (), "name": "total_edges", "dtype": "int64"}
+    'name': "GraphSAGE",
+    'inputs': [
+        {'shape': (None,), 'name': "node_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None,), 'name': "edge_attributes", 'dtype': 'float32', 'ragged': True},
+               {'shape': (None, 2), 'name': "edge_indices", 'dtype': 'int64', 'ragged': True}
     ],
     "cast_disjoint_kwargs": {},
     "input_node_embedding":  {"input_dim": 95, "output_dim": 64},
     "input_edge_embedding": {"input_dim": 5, "output_dim": 64},
-    "attention_args": {"units": 32, "use_final_activation": False, "use_edge_features": True,
-                       "has_self_loops": True, "activation": "kgcnn>leaky_relu", "use_bias": True},
-    "pooling_nodes_args": {"pooling_method": "scatter_mean"},
-    "depth": 3, "attention_heads_num": 5,
-    "attention_heads_concat": False,
-    "verbose": 10,
-    "output_embedding": "graph",
-    "output_to_tensor": True,
-    "output_mlp": {"use_bias": [True, True, False], "units": [25, 10, 1],
-                   "activation": ["relu", "relu", "sigmoid"]},
+    'node_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+    'edge_mlp_args': {"units": [100, 50], "use_bias": True, "activation": ['relu', "linear"]},
+    'pooling_args': {'pooling_method': "scatter_mean"}, 'gather_args': {},
+    'concat_args': {"axis": -1},
+    'use_edge_features': True, 'pooling_nodes_args': {'pooling_method': "scatter_mean"},
+    'depth': 3, 'verbose': 10,
+    'output_embedding': 'graph', "output_to_tensor": True,
+    'output_mlp': {"use_bias": [True, True, False], "units": [25, 10, 1],
+                   "activation": ['relu', 'relu', 'sigmoid']},
     "output_scaling": None,
 }
 
 
-@update_model_kwargs(model_default, update_recursive=0)
+@update_model_kwargs(model_default)
 def make_model(inputs: list = None,
                cast_disjoint_kwargs: dict = None,
                input_node_embedding: dict = None,
                input_edge_embedding: dict = None,
-               attention_args: dict = None,
+               node_mlp_args: dict = None,
+               edge_mlp_args: dict = None,
+               pooling_args: dict = None,
                pooling_nodes_args: dict = None,
+               gather_args: dict = None,
+               concat_args: dict = None,
+               use_edge_features: bool = None,
                depth: int = None,
-               attention_heads_num: int = None,
-               attention_heads_concat: bool = None,
                name: str = None,
                verbose: int = None,
                output_embedding: str = None,
@@ -69,8 +70,9 @@ def make_model(inputs: list = None,
                output_mlp: dict = None,
                output_scaling: dict = None
                ):
-    r"""Make `GAT <https://arxiv.org/abs/1710.10903>`_ graph network via functional API.
-    Default parameters can be found in :obj:`kgcnn.literature.GAT.model_default`.
+    r"""Make `GraphSAGE <http://arxiv.org/abs/1706.02216>`__ graph network via functional API.
+
+    Default parameters can be found in :obj:`kgcnn.literature.GraphSAGE.model_default` .
 
     Inputs:
         list: `[node_attributes, edge_attributes, edge_indices, total_nodes, total_edges]`
@@ -84,28 +86,31 @@ def make_model(inputs: list = None,
             - total_edges(Tensor, optional): Number of Edges in graph if not same sized graphs of shape `(batch, )` .
 
     Outputs:
-        Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
+        tf.Tensor: Graph embeddings of shape `(batch, L)` if :obj:`output_embedding="graph"`.
 
     Args:
         inputs (list): List of dictionaries unpacked in :obj:`tf.keras.layers.Input`. Order must match model definition.
-        cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
+                cast_disjoint_kwargs (dict): Dictionary of arguments for :obj:`CastBatchedIndicesToDisjoint` .
         input_node_embedding (dict): Dictionary of arguments for nodes unpacked in :obj:`Embedding` layers.
         input_edge_embedding (dict): Dictionary of arguments for edge unpacked in :obj:`Embedding` layers.
-        attention_args (dict): Dictionary of layer arguments unpacked in :obj:`AttentionHeadGAT` layer.
+        node_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for node updates.
+        edge_mlp_args (dict): Dictionary of layer arguments unpacked in :obj:`MLP` layer for edge updates.
+        pooling_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingLocalMessages` layer.
         pooling_nodes_args (dict): Dictionary of layer arguments unpacked in :obj:`PoolingNodes` layer.
+        gather_args (dict): Dictionary of layer arguments unpacked in :obj:`GatherNodes` layer.
+        concat_args (dict): Dictionary of layer arguments unpacked in :obj:`Concatenate` layer.
+        use_edge_features (bool): Whether to add edge features in message step.
         depth (int): Number of graph embedding units or depth of the network.
-        attention_heads_num (int): Number of attention heads to use.
-        attention_heads_concat (bool): Whether to concat attention heads, or simply average heads.
         name (str): Name of the model.
         verbose (int): Level of print output.
         output_embedding (str): Main embedding task for graph network. Either "node", "edge" or "graph".
-        output_to_tensor (bool): Whether to cast model output to :obj:`tf.Tensor`.
+        output_to_tensor (bool): Whether to cast model output to :obj:`Tensor`.
         output_mlp (dict): Dictionary of layer arguments unpacked in the final classification :obj:`MLP` layer block.
             Defines number of model outputs and activation.
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
 
     Returns:
-        :obj:`tf.keras.models.Model`
+        :obj:`ks.models.Model`
     """
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]
@@ -120,30 +125,40 @@ def make_model(inputs: list = None,
     if len(inputs[1]['shape']) < 2:
         ed = Embedding(**input_edge_embedding)(ed)
 
-    # Model
-    nk = Dense(units=attention_args["units"], activation="linear")(n)
     for i in range(0, depth):
-        heads = [AttentionHeadGAT(**attention_args)([nk, ed, disjoint_indices]) for _ in range(attention_heads_num)]
-        if attention_heads_concat:
-            nk = Concatenate(axis=-1)(heads)
-        else:
-            nk = Average()(heads)
-            nk = Activation(activation=attention_args["activation"])(nk)
-    n = nk
 
-    # Output embedding choice
+        eu = GatherNodesOutgoing(**gather_args)([n, disjoint_indices])
+        if use_edge_features:
+            eu = Concatenate(**concat_args)([eu, ed])
+
+        eu = MLP(**edge_mlp_args)(eu)
+
+        # Pool message
+        if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
+            nu = AggregateLocalEdgesLSTM(**pooling_args)([n, eu, disjoint_indices])
+        else:
+            nu = AggregateLocalEdges(**pooling_args)([n, eu, disjoint_indices])  # Summing for each node connection
+
+        nu = Concatenate(**concat_args)([n, nu])  # LazyConcatenate node features with new edge updates
+
+        n = MLP(**node_mlp_args)(nu)
+        n = GraphLayerNormalization()(n)  # Normalize
+
+    # Regression layer on output
     if output_embedding == 'graph':
         out = PoolingNodes(**pooling_nodes_args)([count_nodes, n, batch_id_node])
         out = MLP(**output_mlp)(out)
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+
     elif output_embedding == 'node':
         out = MLP(**output_mlp)(n)
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
             out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
+
     else:
-        raise ValueError("Unsupported output embedding for `GAT` .")
+        raise ValueError("Unsupported output embedding for `GraphSAGE`")
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
@@ -156,4 +171,5 @@ def make_model(inputs: list = None,
         def set_scale(*args, **kwargs):
             scaler.set_scale(*args, **kwargs)
         setattr(model, "set_scale", set_scale)
+
     return model

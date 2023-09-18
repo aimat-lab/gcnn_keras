@@ -366,11 +366,19 @@ class CastDisjointToBatchedAttributes(Layer):
         """
         target, attr, graph_id_attr, attr_id = inputs
 
-        output_shape = [ops.shape(target)[0]*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
-        indices = graph_id_attr*ops.cast(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
-            attr_id, dtype=graph_id_attr.dtype)
-        out = scatter_reduce_sum(indices, attr, output_shape)
-        out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+        if not self.padded_disjoint:
+            output_shape = [ops.shape(target)[0]*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr*ops.cast(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+                attr_id, dtype=graph_id_attr.dtype)
+            out = scatter_reduce_sum(indices, attr, output_shape)
+            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+        else:
+            output_shape = [(ops.shape(target)[0]+1)*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr * ops.cast(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+                attr_id, dtype=graph_id_attr.dtype)
+            out = scatter_reduce_sum(indices, attr, output_shape)
+            out = out[ops.shape(target)[1]:]
+            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
         return out
 
     def get_config(self):

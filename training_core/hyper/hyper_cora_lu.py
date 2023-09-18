@@ -2,19 +2,22 @@ hyper = {
     "GATv2": {
         "model": {
             "class_name": "make_model",
-            "module_name": "kgcnn.literature.GATv2",
+            "module_name": "kgcnn.literature_core.GATv2",
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 32, "use_bias": True, "use_edge_features": True,
+                    {"shape": [None, 1433], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
+                "attention_args": {"units": 32, "use_bias": True, "use_edge_features": True, "activation": "relu",
                                    "use_final_activation": False, "has_self_loops": True},
-                "pooling_nodes_args": {"pooling_method": "mean"},
+                "pooling_nodes_args": {"pooling_method": "scatter_mean"},
                 "depth": 3, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
@@ -36,9 +39,9 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", "AUC"]
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -52,14 +55,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GAT": {
@@ -105,7 +109,7 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config":{"name": "auc"}}]
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
