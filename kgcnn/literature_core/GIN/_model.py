@@ -7,6 +7,7 @@ from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatched
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers_core.scale import get as get_scaler
+from kgcnn.layers_core.conv import GIN, GINE
 from keras_core.backend import backend as backend_to_use
 from kgcnn.ops_core.activ import *
 
