@@ -109,7 +109,10 @@ hyper = {
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
+                "weighted_metrics": [
+                    "categorical_accuracy",
+                    {"class_name": "AUC", "config": {"name": "auc"}}
+                ]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -256,7 +259,7 @@ hyper = {
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
                     {"map_list": {"method": "normalize_edge_weights_sym"}},
-                    {"map_list": {"method": "count_nodes_and_edges"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
         },

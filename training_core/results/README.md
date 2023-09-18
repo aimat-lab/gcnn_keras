@@ -14,11 +14,12 @@ If not noted otherwise, we use a (fixed) random k-fold split for validation erro
 
 Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attributes and 7 node classes. Here we use random 5-fold cross-validation on nodes. 
 
-| model   | kgcnn   |   epochs | Categorical accuracy   |
-|:--------|:--------|---------:|:-----------------------|
-| GAT     | 4.0.0   |      250 | **0.8464 &pm; 0.0105** |
-| GATv2   | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
-| GCN     | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
+| model     | kgcnn   |   epochs | Categorical accuracy   |
+|:----------|:--------|---------:|:-----------------------|
+| GAT       | 4.0.0   |      250 | **0.8464 &pm; 0.0105** |
+| GATv2     | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
+| GCN       | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
+| GraphSAGE | 4.0.0   |      500 | 0.8231 &pm; 0.0184     |
 
 #### ESOLDataset
 

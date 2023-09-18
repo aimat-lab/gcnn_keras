@@ -1,12 +1,12 @@
 import keras_core as ks
-from kgcnn.layers.gather import GatherNodesOutgoing
+from kgcnn.layers_core.gather import GatherNodesOutgoing
 from keras_core.layers import Concatenate
 from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
-from kgcnn.layers_core.norm import GraphLayerNormalization
+from kgcnn.layers_core.norm import GraphNormalization
 from kgcnn.layers_core.mlp import MLP
-from kgcnn.layers_core.aggr import AggregateLocalEdges
+from kgcnn.layers_core.aggr import AggregateLocalEdgesLSTM, AggregateLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
 from kgcnn.layers_core.scale import get as get_scaler
@@ -136,13 +136,14 @@ def make_model(inputs: list = None,
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             nu = AggregateLocalEdgesLSTM(**pooling_args)([n, eu, disjoint_indices])
+            nu = n
         else:
             nu = AggregateLocalEdges(**pooling_args)([n, eu, disjoint_indices])  # Summing for each node connection
 
-        nu = Concatenate(**concat_args)([n, nu])  # LazyConcatenate node features with new edge updates
+        nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
 
         n = MLP(**node_mlp_args)(nu)
-        n = GraphLayerNormalization()(n)  # Normalize
+        n = GraphNormalization()([n, batch_id_node, count_nodes])  # Normalize
 
     # Regression layer on output
     if output_embedding == 'graph':

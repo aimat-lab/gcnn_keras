@@ -1,6 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
+from kgcnn.ops_core.scatter import scatter_reduce_sum
 
 
 global_normalization_args = {
@@ -102,9 +103,7 @@ class GraphNormalization(Layer):
         self.beta = None
 
     def build(self, input_shape):
-        """Build layer."""
-        super(GraphNormalization, self).build(input_shape)
-        param_shape = [x if x is not None else 1 for x in input_shape[1:]]
+        param_shape = [x if x is not None else 1 for x in input_shape[0]]
         if self.scale:
             self.gamma = self.add_weight(
                 name="gamma",
@@ -138,34 +137,31 @@ class GraphNormalization(Layer):
         self.built = True
 
     def _ragged_mean_std(self, inputs: list):
-        if isinstance(inputs, list):
-            values, lengths = inputs
-        else:
-            values = inputs
-            lengths = ops.cast(ops.shape(values)[:1], dtype="in32")
+        values, row_ids, lengths = inputs
+
         if values.dtype in ("float16", "bfloat16") and self.dtype == "float32":
             values = ops.cast(values, "float32")
-        row_ids = ops.expand_dims(ops.repeat(ops.arange(ops.shape(lengths)[0], dtype="int32"), lengths), axis=-1)
-        shape_ = ops.concatenate([ops.shape(lengths)[:1], ops.shape(values)[1:]])
-        counts_ = ops.scatter(row_ids, ops.ones_like(values), shape=shape_)
 
-        mean = ops.scatter(row_ids, values, shape=shape_)/counts_
+        shape_ = ops.shape(lengths)[:1] + ops.shape(values)[1:]
+        counts_ = scatter_reduce_sum(row_ids, ops.ones_like(values), shape=shape_)
+
+        mean = scatter_reduce_sum(row_ids, values, shape=shape_)/counts_
         if self.mean_shift:
-            mean = mean * ops.expand_dims(self.alpha, axis=0)
-        mean = ops.repeat(mean, lengths, axis=0)
+            mean = mean * self.alpha
+        mean = ops.take(mean, row_ids, axis=0)
         diff = values - mean
         # Not sure whether to stop gradients for variance if alpha ist used.
         square_diff = ops.square(diff)  # values - tf.stop_gradient(mean)
-        variance = ops.scatter(row_ids, square_diff, shape=shape_)/counts_
+        variance = scatter_reduce_sum(row_ids, square_diff, shape=shape_)/counts_
         std = ops.sqrt(variance + self._eps)
-        std = ops.repeat(std, lengths, axis=0)
+        std = ops.take(std, row_ids, axis=0)
         return mean, std, diff / std
 
     def call(self, inputs, **kwargs):
         """Forward pass.
 
         Args:
-            inputs (list): `[values, graph_size]` .
+            inputs (list): `[values, graph_id, reference]` .
 
                 - values (Tensor): Tensor to normalize of shape `(None, F, ...)` .
                 - graph_size (Tensor, optional): Size of each graph for nodes in disjoint batch of shape `(batch, )` .
@@ -176,9 +172,9 @@ class GraphNormalization(Layer):
         mean, std, new_values = self._ragged_mean_std(inputs)
         # Recomputing diff.
         if self.scale:
-            new_values = new_values * ops.expand_dims(self.gamma, axis=0)
+            new_values = new_values * self.gamma
         if self.center:
-            new_values = new_values + ops.expand_dims(self.beta, axis=0)
+            new_values = new_values + self.beta
         return new_values
 
     def get_config(self):

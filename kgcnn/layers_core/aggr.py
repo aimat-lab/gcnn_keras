@@ -172,3 +172,144 @@ class AggregateLocalEdgesAttention(Layer):
         """Update layer config."""
         config = super(AggregateLocalEdgesAttention, self).get_config()
         return config
+
+
+class AggregateLocalEdgesLSTM(Layer):
+
+    def __init__(self,
+                 units: int,
+                 max_edges_per_node: int,
+                 pooling_method="LSTM",
+                 pooling_index=1,
+                 activation='tanh', recurrent_activation='sigmoid',
+                 use_bias=True, kernel_initializer='glorot_uniform',
+                 recurrent_initializer='orthogonal',
+                 bias_initializer='zeros', unit_forget_bias=True,
+                 kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None,
+                 activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None,
+                 bias_constraint=None, dropout=0.0, recurrent_dropout=0.0,
+                 return_sequences=False, return_state=False, go_backwards=False, stateful=False,
+                 time_major=False, unroll=False,
+                 **kwargs):
+        """Initialize layer.
+
+        Args:
+            units (int): Units for LSTM cell.
+            pooling_method (str): Pooling method. Default is 'LSTM', is ignored.
+            pooling_index (int): Index to pick ID's for pooling edge-like embeddings. Default is 1.
+            activation: Activation function to use.
+                Default: hyperbolic tangent (`tanh`). If you pass `None`, no activation
+                is applied (ie. "linear" activation: `a(x) = x`).
+            recurrent_activation: Activation function to use for the recurrent step.
+                Default: sigmoid (`sigmoid`). If you pass `None`, no activation is
+                applied (ie. "linear" activation: `a(x) = x`).
+            use_bias: Boolean (default `True`), whether the layer uses a bias vector.
+            kernel_initializer: Initializer for the `kernel` weights matrix, used for
+                the linear transformation of the inputs. Default: `glorot_uniform`.
+                recurrent_initializer: Initializer for the `recurrent_kernel` weights
+                matrix, used for the linear transformation of the recurrent state.
+                Default: `orthogonal`.
+            bias_initializer: Initializer for the bias vector. Default: `zeros`.
+                unit_forget_bias: Boolean (default `True`). If True, add 1 to the bias of
+                the forget gate at initialization. Setting it to true will also force
+                `bias_initializer="zeros"`. This is recommended in [Jozefowicz et
+                al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
+            kernel_regularizer: Regularizer function applied to the `kernel` weights
+                matrix. Default: `None`.
+            recurrent_regularizer: Regularizer function applied to the
+                `recurrent_kernel` weights matrix. Default: `None`.
+                bias_regularizer: Regularizer function applied to the bias vector. Default:
+                `None`.
+            activity_regularizer: Regularizer function applied to the output of the
+                layer (its "activation"). Default: `None`.
+            kernel_constraint: Constraint function applied to the `kernel` weights
+                matrix. Default: `None`.
+            recurrent_constraint: Constraint function applied to the `recurrent_kernel`
+                weights matrix. Default: `None`.
+            bias_constraint: Constraint function applied to the bias vector. Default:
+                `None`.
+            dropout: Float between 0 and 1. Fraction of the units to drop for the linear
+                transformation of the inputs. Default: 0.
+                recurrent_dropout: Float between 0 and 1. Fraction of the units to drop for
+                the linear transformation of the recurrent state. Default: 0.
+            return_sequences: Boolean. Whether to return the last output. in the output
+                sequence, or the full sequence. Default: `False`.
+            return_state: Boolean. Whether to return the last state in addition to the
+                output. Default: `False`.
+            go_backwards: Boolean (default `False`). If True, process the input sequence
+                backwards and return the reversed sequence.
+            stateful: Boolean (default `False`). If True, the last state for each sample
+                at index i in a batch will be used as initial state for the sample of
+                index i in the following batch.
+            time_major: The shape format of the `inputs` and `outputs` tensors.
+                If True, the inputs and outputs will be in shape
+                `[timesteps, batch, feature]`, whereas in the False case, it will be
+                `[batch, timesteps, feature]`. Using `time_major = True` is a bit more
+                efficient because it avoids transposes at the beginning and end of the
+                RNN calculation. However, most TensorFlow data is batch-major, so by
+                default this function accepts input and emits output in batch-major
+                form.
+            unroll: Boolean (default `False`). If True, the network will be unrolled,
+                else a symbolic loop will be used. Unrolling can speed-up a RNN, although
+                it tends to be more memory-intensive. Unrolling is only suitable for short
+                sequences.
+        """
+        super(AggregateLocalEdgesLSTM, self).__init__(**kwargs)
+        self.pooling_method = pooling_method
+        self.pooling_index = pooling_index
+        self.lstm_unit = ks.layers.LSTM(
+            units=units, activation=activation, recurrent_activation=recurrent_activation, use_bias=use_bias,
+            kernel_initializer=kernel_initializer, recurrent_initializer=recurrent_initializer,
+            bias_initializer=bias_initializer, unit_forget_bias=unit_forget_bias, kernel_regularizer=kernel_regularizer,
+            recurrent_regularizer=recurrent_regularizer, bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer, kernel_constraint=kernel_constraint,
+            recurrent_constraint=recurrent_constraint, bias_constraint=bias_constraint, dropout=dropout,
+            recurrent_dropout=recurrent_dropout, return_sequences=return_sequences, return_state=return_state,
+            go_backwards=go_backwards, stateful=stateful, time_major=time_major, unroll=unroll
+        )
+        if self.pooling_method not in ["LSTM", "lstm"]:
+            raise ValueError(
+                "Aggregate method does not match layer, expected 'LSTM' but got '%s'." % self.pooling_method)
+        self.max_edges_per_node = max_edges_per_node
+
+    def build(self, input_shape):
+        """Build layer."""
+        super(AggregateLocalEdgesLSTM, self).build(input_shape)
+
+    def call(self, inputs, **kwargs):
+
+        n, edges, disjoint_indices, edge_id = inputs
+        receive_indices = disjoint_indices[self.pooling_index]
+
+        dim_n = ops.shape(n)[0]
+        dim_e_per_n = self.max_edges_per_node if self.max_edges_per_node is not None else 2*dim_n+1
+        indices = receive_indices * ops.convert_to_tensor(dim_e_per_n, dtype=receive_indices.dtype) + ops.cast(
+            edge_id, dtype=receive_indices.dtype)
+        lstm_input = scatter_reduce_sum(
+            indices, edges,
+            shape=tuple([dim_n*dim_e_per_n] + list(ops.shape(edges)[1:]))
+        )
+        lst_mask = ops.cast(scatter_reduce_sum(
+            indices, ops.ones(ops.shape(edges)[:1], dtype=ks.backend.floatx()),
+            shape=tuple([dim_n*dim_e_per_n])
+        ), dtype="bool")
+
+        lstm_input = ops.reshape(lstm_input, tuple([dim_n, dim_e_per_n] + list(ops.shape(edges)[1:])))
+        lstm_mask = ops.reshape(lst_mask, tuple([dim_n, dim_e_per_n]))
+
+        out = self.lstm_unit(lstm_input, mask=lstm_mask)
+        return out
+
+    def get_config(self):
+        """Update layer config."""
+        config = super(AggregateLocalEdgesLSTM, self).get_config()
+        conf_lstm = self.lstm_unit.get_config()
+        lstm_param = ["activation", "recurrent_activation", "use_bias", "kernel_initializer", "recurrent_initializer",
+                      "bias_initializer", "unit_forget_bias", "kernel_regularizer", "recurrent_regularizer",
+                      "bias_regularizer", "activity_regularizer", "kernel_constraint", "recurrent_constraint",
+                      "bias_constraint", "dropout", "recurrent_dropout", "implementation", "return_sequences",
+                      "return_state", "go_backwards", "stateful", "time_major", "unroll"]
+        for x in lstm_param:
+            if x in conf_lstm:
+                config.update({x: conf_lstm[x]})
+        return config
