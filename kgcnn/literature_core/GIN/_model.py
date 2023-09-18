@@ -99,7 +99,7 @@ def make_model(inputs: list = None,
         :obj:`tf.keras.models.Model`
     """
     # Make input
-    assert len(inputs) == 2
+    assert len(inputs) == 4
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_indices, total_nodes, total_edges = model_inputs
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(
@@ -230,7 +230,7 @@ def make_model_edge(inputs: list = None,
         :obj:`ks.models.Model`
     """
     # Make input
-    assert len(inputs) == 3
+    assert len(inputs) == 5
     model_inputs = [ks.layers.Input(**x) for x in inputs]
     batched_nodes, batched_edges, batched_indices, total_nodes, total_edges = model_inputs
     n, disjoint_indices, batch_id_node, batch_id_edge, node_id, edge_id, count_nodes, count_edges = CastBatchedIndicesToDisjoint(

@@ -1,7 +1,8 @@
 import keras_core as ks
 from keras_core.layers import Dense, Layer, Activation, Dropout
 from keras_core.layers import LayerNormalization, GroupNormalization, BatchNormalization, UnitNormalization
-from kgcnn.layers_core.norm import GraphNormalization, GraphInstanceNormalization
+from kgcnn.layers_core.norm import (GraphNormalization, GraphInstanceNormalization,
+                                    GraphBatchNormalization, GraphLayerNormalization)
 from kgcnn.layers_core.norm import global_normalization_args as global_normalization_args_graph
 
 global_normalization_args = {
@@ -214,7 +215,8 @@ class MLPBase(Layer):  # noqa
         replace_norm_identifier = [
             ("batch", "BatchNormalization"), ("layer", "LayerNormalization"), ("group", "GroupNormalization"),
             ("graph", "GraphNormalization"), ("graph_instance", "GraphInstanceNormalization"),
-            ("unit_norm", "UnitNormalization"), ("norm", "Normalization")
+            ("unit_norm", "UnitNormalization"), ("norm", "Normalization"), ("graph_layer", "GraphLayerNormalization"),
+            ("graph_batch", "GraphBatchNormalization")
         ]
         for i, x in enumerate(mlp_kwargs["normalization_technique"]):
             for key_rep, key in replace_norm_identifier:
@@ -275,6 +277,10 @@ class MLP(MLPBase):  # noqa
             "BatchNormalization": BatchNormalization,
             "GroupNormalization": GroupNormalization,
             "LayerNormalization": LayerNormalization,
+            "GraphNormalization": GraphNormalization,
+            "GraphInstanceNormalization": GraphInstanceNormalization,
+            "GraphLayerNormalization": GraphLayerNormalization,
+            "GraphBatchNormalization": GraphBatchNormalization,
         }
         if not self._supress_dense:
             self.mlp_dense_layer_list = [
@@ -330,7 +336,7 @@ class MLP(MLPBase):  # noqa
             if self._conf_use_dropout[i]:
                 x = self.mlp_dropout_layer_list[i](x, **kwargs)
             if self._conf_use_normalization[i]:
-                if self.is_graph_norm_layer:
+                if self.is_graph_norm_layer[i]:
                     x = self.mlp_norm_layer_list[i]([x]+batch, **kwargs)
                 else:
                     x = self.mlp_norm_layer_list[i](x, **kwargs)

@@ -2,7 +2,8 @@ import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops_core.scatter import scatter_reduce_sum
-from keras_core.layers import LayerNormalization as GraphLayerNormalization
+from keras_core.layers import LayerNormalization as _LayerNormalization
+from keras_core.layers import BatchNormalization as _BatchNormalization
 
 global_normalization_args = {
     "GraphNormalization": (
@@ -14,7 +15,20 @@ global_normalization_args = {
         "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "alpha_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "alpha_constraint", "gamma_constraint", "alpha_regularizer"
     ),
+    "GraphBatchNormalization": (
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
+        "moving_variance_initializer"
+    ),
+    "GraphLayerNormalization": (
+        "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
+        "gamma_regularizer", "beta_constraint", "gamma_constraint"
+    ),
 }
+
+
+GraphBatchNormalization = _BatchNormalization
+GraphLayerNormalization = _LayerNormalization
 
 
 class GraphNormalization(Layer):

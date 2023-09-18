@@ -140,7 +140,6 @@ hyper = {
                 "name": "GAT",
                 "inputs": [
                     {"shape": [None, 41], "name": "node_attributes", "dtype": "float32"},
-                    {"shape": [None, 11], "name": "edge_attributes", "dtype": "float32"},
                     {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
                     {"shape": (), "name": "total_nodes", "dtype": "int64"},
                     {"shape": (), "name": "total_edges", "dtype": "int64"}

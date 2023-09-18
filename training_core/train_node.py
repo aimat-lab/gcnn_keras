@@ -20,7 +20,7 @@ from kgcnn.utils_core.devices import check_device
 parser = argparse.ArgumentParser(description='Train a GNN on a Citation dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
                     default="hyper/hyper_cora_lu.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="GraphSAGE")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GIN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
