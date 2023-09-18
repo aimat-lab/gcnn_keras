@@ -1,6 +1,7 @@
 import keras_core as ks
 from keras_core.layers import Layer
 from keras_core import ops
+from keras_core.layers.input_spec import InputSpec
 from kgcnn.ops_core.scatter import scatter_reduce_sum
 from keras_core.layers import LayerNormalization as _LayerNormalization
 from keras_core.layers import BatchNormalization as _BatchNormalization
@@ -26,9 +27,49 @@ global_normalization_args = {
     ),
 }
 
+# GraphLayerNormalization = _LayerNormalization
+# GraphBatchNormalization = _BatchNormalization
 
-GraphBatchNormalization = _BatchNormalization
-GraphLayerNormalization = _LayerNormalization
+
+class GraphLayerNormalization(_LayerNormalization):
+
+    def __init__(self, **kwargs):
+        super(GraphLayerNormalization, self).__init__(**kwargs)
+
+    def compute_output_shape(self, input_shape):
+        return super(GraphLayerNormalization, self).compute_output_shape(input_shape[0])
+
+    def build(self, input_shape):
+        super(GraphLayerNormalization, self).build(input_shape[0])
+
+    def call(self, inputs):
+        return super(GraphLayerNormalization, self).call(inputs[0])
+
+    def get_config(self):
+        return super(GraphLayerNormalization, self).get_config()
+
+
+class GraphBatchNormalization(_BatchNormalization):
+
+    def __init__(self, **kwargs):
+        super(GraphBatchNormalization, self).__init__(**kwargs)
+
+    def compute_output_shape(self, input_shape):
+        return super(GraphBatchNormalization, self).compute_output_shape(input_shape[0])
+
+    def build(self, input_shape):
+        super(GraphBatchNormalization, self).build(input_shape[0])
+        self.input_spec = [
+            InputSpec(ndim=len(input_shape[0]), axes={self.axis: input_shape[0][self.axis]}),
+            InputSpec(ndim=len(input_shape[1])),
+            InputSpec(ndim=len(input_shape[2])),
+        ]
+
+    def call(self, inputs, **kwargs):
+        return super(GraphBatchNormalization, self).call(inputs[0])
+
+    def get_config(self):
+        return super(GraphBatchNormalization, self).get_config()
 
 
 class GraphNormalization(Layer):

@@ -145,7 +145,7 @@ def make_model(inputs: list = None,
 
         n = GraphMLP(**node_mlp_args)([nu, batch_id_node, count_nodes])
 
-        n = GraphLayerNormalization()(n)
+        n = GraphLayerNormalization()([n, batch_id_node, count_nodes])
 
     # Regression layer on output
     if output_embedding == 'graph':
