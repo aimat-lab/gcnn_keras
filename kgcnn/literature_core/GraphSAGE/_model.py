@@ -136,7 +136,6 @@ def make_model(inputs: list = None,
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
             nu = AggregateLocalEdgesLSTM(**pooling_args)([n, eu, disjoint_indices])
-            nu = n
         else:
             nu = AggregateLocalEdges(**pooling_args)([n, eu, disjoint_indices])  # Summing for each node connection
 
