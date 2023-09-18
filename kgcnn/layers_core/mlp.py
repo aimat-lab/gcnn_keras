@@ -166,6 +166,7 @@ class MLPBase(Layer):  # noqa
         self._key_list += self._key_list_act + self._key_list_dense + self._key_list_norm_all + self._key_list_dropout
         self._key_list += self._key_list_use
         self._key_list = list(set(self._key_list))
+
         # Dictionary of kwargs for MLP.
         mlp_kwargs = {key: local_kw[key] for key in self._key_list}
 
@@ -331,6 +332,10 @@ class MLP(MLPBase):  # noqa
         """Update config."""
         config = super(MLP, self).get_config()
         return config
+
+
+# Need to fix for normalizations.
+GraphMLP = MLP
 
 
 # class RelationalMLP(MLP):

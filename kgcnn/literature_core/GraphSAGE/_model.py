@@ -5,7 +5,7 @@ from kgcnn.layers_core.modules import Embedding
 from kgcnn.layers_core.casting import (CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint,
                                        CastDisjointToGraphState, CastDisjointToBatchedAttributes)
 from kgcnn.layers_core.norm import GraphNormalization
-from kgcnn.layers_core.mlp import MLP
+from kgcnn.layers_core.mlp import MLP, GraphMLP
 from kgcnn.layers_core.aggr import AggregateLocalEdgesLSTM, AggregateLocalEdges
 from kgcnn.layers_core.pooling import PoolingNodes
 from kgcnn.model.utils import update_model_kwargs
@@ -131,7 +131,7 @@ def make_model(inputs: list = None,
         if use_edge_features:
             eu = Concatenate(**concat_args)([eu, ed])
 
-        eu = MLP(**edge_mlp_args)(eu)
+        eu = GraphMLP(**edge_mlp_args)(eu)
 
         # Pool message
         if pooling_args['pooling_method'] in ["LSTM", "lstm"]:
@@ -141,8 +141,9 @@ def make_model(inputs: list = None,
 
         nu = Concatenate(**concat_args)([n, nu])  # Concatenate node features with new edge updates
 
-        n = MLP(**node_mlp_args)(nu)
-        n = GraphNormalization()([n, batch_id_node, count_nodes])  # Normalize
+        n = GraphMLP(**node_mlp_args)(nu)
+        # n = GraphNormalization()([n, batch_id_node, count_nodes])  # Normalize
+        n = ks.layers.LayerNormalization()(n)
 
     # Regression layer on output
     if output_embedding == 'graph':
@@ -151,7 +152,7 @@ def make_model(inputs: list = None,
         out = CastDisjointToGraphState(**cast_disjoint_kwargs)(out)
 
     elif output_embedding == 'node':
-        out = MLP(**output_mlp)(n)
+        out = GraphMLP(**output_mlp)(n)
         if output_to_tensor:
             out = CastDisjointToBatchedAttributes(**cast_disjoint_kwargs)([batched_nodes, out, batch_id_node, node_id])
         else:
