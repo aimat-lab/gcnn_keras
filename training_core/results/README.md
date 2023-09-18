@@ -17,7 +17,8 @@ Cora Dataset after Lu et al. (2003) of 2708 publications and 1433 sparse attribu
 | model   | kgcnn   |   epochs | Categorical accuracy   |
 |:--------|:--------|---------:|:-----------------------|
 | GAT     | 4.0.0   |      250 | **0.8464 &pm; 0.0105** |
-| GCN     | 4.0.0   |      300 | 0.8109 &pm; 0.0064     |
+| GATv2   | 4.0.0   |      250 | 0.8331 &pm; 0.0104     |
+| GCN     | 4.0.0   |      300 | 0.8072 &pm; 0.0109     |
 
 #### ESOLDataset
 
@@ -25,7 +26,7 @@ ESOL consists of 1128 compounds as smiles and their corresponding water solubili
 
 | model   | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
 |:--------|:--------|---------:|:-----------------------|:-----------------------|
-| GAT     | 4.0.0   |      500 | 0.4749 &pm; 0.0249     | 0.6816 &pm; 0.0781     |
-| GCN     | 3.1.0   |      800 | **0.4459 &pm; 0.0180** | **0.6326 &pm; 0.0403** |
-| Schnet  | 3.1.0   |      800 | 0.4616 &pm; 0.0220     | 0.6553 &pm; 0.0388     |
+| GAT     | 4.0.0   |      500 | 0.4826 &pm; 0.0255     | 0.6903 &pm; 0.0705     |
+| GCN     | 4.0.0   |      800 | **0.4623 &pm; 0.0224** | **0.6567 &pm; 0.0456** |
+| Schnet  | 4.0.0   |      800 | 0.4678 &pm; 0.0227     | 0.6662 &pm; 0.0629     |
 
