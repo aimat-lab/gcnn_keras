@@ -4,7 +4,7 @@ Software Development Plan (SDP)
 * [x] Make flexible charge option in ``kgcnn.molecule.convert`` .
 * [ ] Test and improve code for ``kgcnn.crystal`` . 
 * [ ] Make pretty loop update in `kgcnn.datasets` .
-* [ ] Rework and simplify training scripts.
+* [x] Rework and simplify training scripts.
 * [x] Add graph preprocessor from standard dictionary scheme also for ``crystal`` and `molecule` .
 * [x] Rework and clean base layers.
 * [ ] Add a properly designed transformer layer in ``kgcnn.layers`` .

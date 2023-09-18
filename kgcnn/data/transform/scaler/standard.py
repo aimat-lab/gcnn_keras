@@ -24,6 +24,8 @@ class _StandardScalerSklearnMixin:
 
     def __init__(self):
         self._scaler_reference = None
+        self._x_name = None
+        self._sample_weight_name = None
 
     def get_scaling(self):
         """Get scale of shape (1, n_properties)."""
@@ -117,31 +119,25 @@ class _StandardScalerSklearnMixin:
 
     # Similar functions that work on dataset plus property names.
     # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                    X: str = None,
-                    y: str = None,
-                    sample_weight: str = None):
+    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]]):
         r"""Fit to dataset with relevant `X` , `y` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
 
         Returns:
             self.
         """
         return self._scaler_reference.fit(
-            [item[X] for item in dataset],
+            [item[self._x_name] for item in dataset],
             # We can ignore y here. None is default for sklearn StandardScaler.
             # y=None
-            sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None
+            sample_weight=[
+                item[self._sample_weight_name] for item in dataset] if self._sample_weight_name is not None else None
         )
 
     # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None,
                           copy: bool = True,
                           copy_dataset: bool = False,
                           ) -> List[Dict[str, np.ndarray]]:
@@ -149,7 +145,6 @@ class _StandardScalerSklearnMixin:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -159,16 +154,15 @@ class _StandardScalerSklearnMixin:
         if copy_dataset:
             dataset = dataset.copy()
         out = self._scaler_reference.transform(
-            [graph[X] for graph in dataset],
+            [graph[self._x_name] for graph in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[X] = out_value
+            graph[self._x_name] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  X: str = None,
                                   copy: bool = True,
                                   copy_dataset: bool = False,
                                   ) -> List[Dict[str, np.ndarray]]:
@@ -176,7 +170,6 @@ class _StandardScalerSklearnMixin:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -186,18 +179,15 @@ class _StandardScalerSklearnMixin:
         if copy_dataset:
             dataset = dataset.copy()
         out = self._scaler_reference.inverse_transform(
-            [graph[X] for graph in dataset],
+            [graph[self._x_name] for graph in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[X] = out_value
+            graph[self._x_name] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              X: str = None,
-                              y: str = None,
-                              sample_weight: str = None,
                               copy: bool = True,
                               copy_dataset: bool = False
                               ) -> List[Dict[str, np.ndarray]]:
@@ -205,21 +195,18 @@ class _StandardScalerSklearnMixin:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
         Returns:
             dataset: Transformed dataset.
         """
-        self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
-        return self.transform_dataset(dataset=dataset, X=X, copy=copy, copy_dataset=copy_dataset)
+        self.fit_dataset(dataset=dataset)
+        return self.transform_dataset(dataset=dataset, copy=copy, copy_dataset=copy_dataset)
 
 
-class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
-    r"""Standard scaler that inherits from :obj:`sklearn.preprocessing.StandardScaler` .
+class StandardScaler(_StandardScalerSklearnMixin):
+    r"""Standard scaler that uses obj:`sklearn.preprocessing.StandardScaler` .
     Included unused kwarg 'atomic_number' to be compatible with some material oriented scaler.
 
     .. code-block:: python
@@ -239,9 +226,13 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         print(new_scaler.inverse_transform(scaler.transform(X=data)))
 
     """
-    def __init__(self, *, copy=True, with_mean=True, with_std=True):
-        super(StandardScaler, self).__init__(copy=copy, with_mean=with_mean, with_std=with_std)
-        self._scaler_reference = self
+    # noinspection PyPep8Naming
+    def __init__(self, *, X: str = "graph_attributes", sample_weight: str = None,
+                 copy=True, with_mean=True, with_std=True):
+        super(StandardScaler, self).__init__()
+        self._scaler_reference = StandardScalerSklearn(copy=copy, with_mean=with_mean, with_std=with_std)
+        self._x_name = X
+        self._sample_weight_name = sample_weight
 
     # noinspection PyPep8Naming
     def fit(self, X, *, y=None, sample_weight=None, atomic_number=None):
@@ -258,7 +249,7 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         Returns:
             self: Fitted scaler.
         """
-        return super(StandardScaler, self).fit(X=X, y=y, sample_weight=sample_weight)
+        return self._scaler_reference.fit(X=X, y=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
     def partial_fit(self, X, y=None, sample_weight=None, atomic_number=None):
@@ -283,7 +274,7 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         """
         # For partial fit internally uses args and not kwargs.
         # Can not request kwargs after argument X here.
-        return super(StandardScaler, self).partial_fit(X=X, y=y, sample_weight=sample_weight)
+        return self._scaler_reference.partial_fit(X=X, y=y, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
     def fit_transform(self, X, *, y=None, atomic_number=None, **fit_params):
@@ -299,7 +290,7 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         Returns:
             X_tr (np.ndarray): Transformed array of shape (n_samples, n_features).
         """
-        return super(StandardScaler, self).fit_transform(X=X, y=y, **fit_params)
+        return self._scaler_reference.fit_transform(X=X, y=y, **fit_params)
 
     # noinspection PyPep8Naming
     def transform(self, X, *, copy=None, atomic_number=None):
@@ -314,7 +305,7 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         Returns:
             X_tr (np.ndarray): Transformed array of shape (n_samples, n_features).
         """
-        return super(StandardScaler, self).transform(X=X, copy=copy)
+        return self._scaler_reference.transform(X=X, copy=copy)
 
     # noinspection PyPep8Naming
     def inverse_transform(self, X, *, copy: bool = None, atomic_number=None):
@@ -329,96 +320,12 @@ class StandardScaler(StandardScalerSklearn, _StandardScalerSklearnMixin):
         Returns:
             X_tr (np.ndarray): Transformed array of shape (n_samples, n_features).
         """
-        return super(StandardScaler, self).inverse_transform(X=X, copy=copy)
+        return self._scaler_reference.inverse_transform(X=X, copy=copy)
 
-    # Similar functions that work on dataset plus property names.
-    # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                    X: str = None, *,
-                    y: str = None,
-                    atomic_number: str = None, sample_weight: str = None):
-        r"""Fit to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            atomic_number (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-
-        Returns:
-            self.
-        """
-        return super(StandardScaler, self).fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
-
-    # noinspection PyPep8Naming
-    def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None, *,
-                          atomic_number: str = None,
-                          copy: bool = True,
-                          copy_dataset: bool = False,
-                          ) -> List[Dict[str, np.ndarray]]:
-        r"""Transform dataset with relevant `X` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            atomic_number (str): Not used.
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        return super(StandardScaler, self).transform_dataset(dataset=dataset, X=X, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  X: str = None, *,
-                                  atomic_number: str = None,
-                                  copy: bool = True,
-                                  copy_dataset: bool = False,
-                                  ) -> List[Dict[str, np.ndarray]]:
-        r"""Inverse transform dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            atomic_number (str): Not used.
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Inverse-transformed dataset.
-        """
-        return super(StandardScaler, self).inverse_transform_dataset(
-            dataset=dataset, X=X, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              X: str = None, *,
-                              y: str = None,
-                              atomic_number: str = None,
-                              sample_weight: str = None,
-                              copy: bool = True,
-                              copy_dataset: bool = False
-                              ) -> List[Dict[str, np.ndarray]]:
-        r"""Fit and transform to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            atomic_number (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        self.fit_dataset(dataset=dataset, X=X, y=y, sample_weight=sample_weight)
-        return self.transform_dataset(dataset=dataset, X=X, copy=copy, copy_dataset=copy_dataset)
+    def get_config(self) -> dict:
+        config = super(StandardScaler, self).get_config()
+        config.update({"X": self._x_name})
+        return config
 
 
 class StandardLabelScaler(_StandardScalerSklearnMixin):
@@ -445,9 +352,11 @@ class StandardLabelScaler(_StandardScalerSklearnMixin):
 
     """
 
-    def __init__(self, *, copy=True, with_mean=True, with_std=True):
+    def __init__(self, *, y: str = "graph_labels", sample_weight: str = None, copy=True, with_mean=True, with_std=True):
         super(StandardLabelScaler, self).__init__()
         self._scaler_reference = StandardScalerSklearn(copy=copy, with_mean=with_mean, with_std=with_std)
+        self._x_name = y
+        self._sample_weight_name = sample_weight
 
     def _validate_input(self, y, x):
         if x is not None and y is None:
@@ -555,101 +464,7 @@ class StandardLabelScaler(_StandardScalerSklearnMixin):
         # Just changing order of x,y here.
         return self._scaler_reference.inverse_transform(y, copy=copy)
 
-    # Similar functions that work on dataset plus property names.
-    # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                    y: str = None, *,
-                    X: str = None,
-                    atomic_number: str = None,
-                    sample_weight: str = None):
-        r"""Fit to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used.
-            atomic_number (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-
-        Returns:
-            self.
-        """
-        # Just changing order of x,y here.
-        return super(StandardLabelScaler, self).fit_dataset(dataset=dataset, X=y, y=None, sample_weight=sample_weight)
-
-    # noinspection PyPep8Naming
-    def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          y: str = None, *,
-                          X: str = None,
-                          atomic_number: str = None,
-                          copy: bool = True,
-                          copy_dataset: bool = False,
-                          ) -> List[Dict[str, np.ndarray]]:
-        r"""Transform dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used.
-            atomic_number (str): Not used.
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        # Just changing order of x,y here.
-        return super(StandardLabelScaler, self).transform_dataset(
-            dataset=dataset, X=y, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  y: str = None, *,
-                                  X: str = None,
-                                  atomic_number: str = None,
-                                  copy: bool = True,
-                                  copy_dataset: bool = False,
-                                  ) -> List[Dict[str, np.ndarray]]:
-        r"""Inverse transform dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used.
-            atomic_number (str): Not used.
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Inverse-transformed dataset.
-        """
-        return super(StandardLabelScaler, self).inverse_transform_dataset(
-            dataset=dataset, X=y, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              y: str = None, *,
-                              X: str = None,
-                              atomic_number: str = None,
-                              sample_weight: str = None,
-                              copy: bool = True,
-                              copy_dataset: bool = False
-                              ) -> List[Dict[str, np.ndarray]]:
-        r"""Fit and transform to dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_properties".
-            X (str): Not used.
-            atomic_number (str): Not used.
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        # Uses the functions of this class.
-        self.fit_dataset(dataset=dataset, y=y, X=X, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform_dataset(
-            dataset=dataset, y=y, X=X, atomic_number=atomic_number, copy=copy, copy_dataset=copy_dataset)
+    def get_config(self) -> dict:
+        config = super(StandardLabelScaler, self).get_config()
+        config.update({"y": self._x_name})
+        return config

@@ -103,7 +103,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     if "scaler" in hyper["training"]:
         print("Using Scaler to adjust output scale of model.")
         scaler = deserialize(hyper["training"]["scaler"])
-        scaler.fit_dataset(dataset_train, y="graph_labels")
+        scaler.fit_dataset(dataset_train)
         model.set_scale(scaler)
 
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])

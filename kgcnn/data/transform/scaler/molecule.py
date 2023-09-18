@@ -46,8 +46,11 @@ class ExtensiveMolecularScalerBase:
         self._fit_atom_selection_mask = None
         self._fit_atom_selection = None
         self.scale_ = None
+        self._molecular_property = None
+        self._atomic_number = None
+        self._sample_weight = None
 
-    def fit(self, molecular_property, atomic_number, sample_weight=None):
+    def _fit(self, molecular_property, atomic_number, sample_weight=None):
         r"""Fit atomic number to the molecular properties.
 
         Args:
@@ -85,7 +88,7 @@ class ExtensiveMolecularScalerBase:
             self.scale_ = np.ones(diff.shape[1:], dtype="float")
         return self
 
-    def predict(self, atomic_number):
+    def _predict(self, atomic_number):
         """Predict the offset form atomic numbers. Requires :obj:`fit()` called previously.
 
         Args:
@@ -114,7 +117,7 @@ class ExtensiveMolecularScalerBase:
         molecular_property = np.array(molecular_property)
         if len(molecular_property.shape) <= 1:
             molecular_property = np.expand_dims(molecular_property, axis=-1)
-        predict_prop = self.predict(atomic_number)
+        predict_prop = self._predict(atomic_number)
         if len(predict_prop.shape) <= 1:
             predict_prop = np.expand_dims(predict_prop, axis=-1)
         mae = np.mean(np.abs(molecular_property - predict_prop), axis=0)
@@ -130,7 +133,7 @@ class ExtensiveMolecularScalerBase:
         plt.show()
         return fig
 
-    def transform(self, molecular_property, atomic_number, copy=True):
+    def _transform(self, molecular_property, atomic_number, copy=True):
         """Transform any atomic number list with matching properties based on previous fit with sequential std-scaling.
 
         Args:
@@ -142,16 +145,16 @@ class ExtensiveMolecularScalerBase:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
         if copy:
-            molecular_property = molecular_property - self.predict(atomic_number)
+            molecular_property = molecular_property - self._predict(atomic_number)
             if self._standardize_scale:
                 molecular_property = molecular_property / np.expand_dims(self.scale_, axis=0)
         else:
-            molecular_property -= self.predict(atomic_number)
+            molecular_property -= self._predict(atomic_number)
             if self._standardize_scale:
                 molecular_property /= np.expand_dims(self.scale_, axis=0)
         return molecular_property
 
-    def fit_transform(self, molecular_property, atomic_number, copy=True, sample_weight=None):
+    def _fit_transform(self, molecular_property, atomic_number, copy=True, sample_weight=None):
         """Combine fit and transform methods in one call.
 
         Args:
@@ -163,10 +166,10 @@ class ExtensiveMolecularScalerBase:
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        self.fit(molecular_property=molecular_property, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform(molecular_property=molecular_property, atomic_number=atomic_number, copy=copy)
+        self._fit(molecular_property=molecular_property, atomic_number=atomic_number, sample_weight=sample_weight)
+        return self._transform(molecular_property=molecular_property, atomic_number=atomic_number, copy=copy)
 
-    def inverse_transform(self, molecular_property: np.ndarray, atomic_number: List[np.ndarray],
+    def _inverse_transform(self, molecular_property: np.ndarray, atomic_number: List[np.ndarray],
                           copy: bool = True) -> np.ndarray:
         """Reverse the transform method to original properties without offset removed and scaled to original units.
 
@@ -181,11 +184,11 @@ class ExtensiveMolecularScalerBase:
         if copy:
             if self._standardize_scale:
                 molecular_property = molecular_property * np.expand_dims(self.scale_, axis=0)
-            molecular_property = molecular_property + self.predict(atomic_number)
+            molecular_property = molecular_property + self._predict(atomic_number)
         else:
             if self._standardize_scale:
                 molecular_property *= np.expand_dims(self.scale_, axis=0)
-            molecular_property += self.predict(atomic_number)
+            molecular_property += self._predict(atomic_number)
         return molecular_property
 
     def get_config(self):
@@ -277,36 +280,30 @@ class ExtensiveMolecularScalerBase:
 
     # Similar functions that work on dataset plus property names.
     # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                    molecular_property: str, atomic_number: str, sample_weight: str = None):
+    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]]):
         r"""Fit to dataset with relevant `X` , `y` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            molecular_property (str): Name of molecular property information in dataset. For example "energy".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
 
         Returns:
             self.
         """
-        return self.fit(
-            molecular_property=np.array([item[molecular_property] for item in dataset]),
-            atomic_number=[item[atomic_number] for item in dataset],
-            sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None
+        return self._fit(
+            molecular_property=np.array([item[self._molecular_property] for item in dataset]),
+            atomic_number=[item[self._atomic_number] for item in dataset],
+            sample_weight=[item[self._sample_weight] for item in dataset] if self._sample_weight is not None else None
         )
 
     # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          molecular_property: str, atomic_number: str, copy: bool = True,
+                          copy: bool = True,
                           copy_dataset: bool = False,
                           ) -> List[Dict[str, np.ndarray]]:
         r"""Transform dataset with relevant `X` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            molecular_property (str): Name of molecular property information in dataset. For example "energy".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -315,26 +312,24 @@ class ExtensiveMolecularScalerBase:
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = self.transform(
-            molecular_property=np.array([item[molecular_property] for item in dataset]),
-            atomic_number=[item[atomic_number] for item in dataset],
+        out = self._transform(
+            molecular_property=np.array([item[self._molecular_property] for item in dataset]),
+            atomic_number=[item[self._atomic_number] for item in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[molecular_property] = out_value
+            graph[self._molecular_property] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  molecular_property: str, atomic_number: str, copy: bool = True,
+                                  copy: bool = True,
                                   copy_dataset: bool = False,
                                   ) -> List[Dict[str, np.ndarray]]:
         r"""Inverse transform dataset with relevant `X` , `y` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            molecular_property (str): Name of molecular property information in dataset. For example "energy".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -343,37 +338,32 @@ class ExtensiveMolecularScalerBase:
         """
         if copy_dataset:
             dataset = dataset.copy()
-        out = self.inverse_transform(
-            molecular_property=np.array([item[molecular_property] for item in dataset]),
-            atomic_number=[item[atomic_number] for item in dataset],
+        out = self._inverse_transform(
+            molecular_property=np.array([item[self._molecular_property] for item in dataset]),
+            atomic_number=[item[self._atomic_number] for item in dataset],
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[molecular_property] = out_value
+            graph[self._molecular_property] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              molecular_property: str, atomic_number: str,
-                              sample_weight: str = None, copy: bool = True, copy_dataset: bool = False
+                              copy: bool = True,
+                              copy_dataset: bool = False
                               ) -> List[Dict[str, np.ndarray]]:
         r"""Fit and transform to dataset with relevant `X` , `y` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            molecular_property (str): Name of molecular property information in dataset. For example "energy".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
         Returns:
             dataset: Transformed dataset.
         """
-        self.fit_dataset(dataset=dataset, molecular_property=molecular_property, atomic_number=atomic_number,
-                         sample_weight=sample_weight)
-        return self.transform_dataset(dataset=dataset, molecular_property=molecular_property,
-                                      atomic_number=atomic_number, copy=copy, copy_dataset=copy_dataset)
+        self.fit_dataset(dataset=dataset)
+        return self.transform_dataset(dataset=dataset, copy=copy, copy_dataset=copy_dataset)
 
 
 class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
@@ -417,7 +407,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         Returns:
             self.
         """
-        return super(ExtensiveMolecularScaler, self).fit(
+        return super(ExtensiveMolecularScaler, self)._fit(
             molecular_property=X, atomic_number=atomic_number, sample_weight=sample_weight)
 
     # noinspection PyPep8Naming
@@ -433,7 +423,7 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         Returns:
             np.ndarray: Transformed atomic properties fitted. Shape is `(n_samples, n_properties)`.
         """
-        return super(ExtensiveMolecularScaler, self).transform(
+        return super(ExtensiveMolecularScaler, self)._transform(
             molecular_property=X, atomic_number=atomic_number, copy=copy)
 
     # noinspection PyPep8Naming
@@ -467,90 +457,8 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
             np.ndarray: Original atomic properties. Shape is `(n_samples, n_properties)`.
         """
 
-        return super(ExtensiveMolecularScaler, self).inverse_transform(
+        return super(ExtensiveMolecularScaler, self)._inverse_transform(
             molecular_property=X, atomic_number=atomic_number, copy=copy)
-
-    # Similar functions that work on dataset plus property names.
-    # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], X: str = None, *, y: str = None,
-                    atomic_number: str = None, sample_weight: str = None):
-        r"""Fit to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-
-        Returns:
-            self.
-        """
-        return super(ExtensiveMolecularScaler, self).fit_dataset(
-            dataset=dataset, molecular_property=X, atomic_number=atomic_number, sample_weight=sample_weight)
-
-    # noinspection PyPep8Naming
-    def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          X: str = None, *, atomic_number: str = None, copy: bool = True,
-                          copy_dataset: bool = False,
-                          ) -> List[Dict[str, np.ndarray]]:
-        r"""Transform dataset with relevant `X` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        return super(ExtensiveMolecularScaler, self).transform_dataset(
-            dataset=dataset, molecular_property=X, atomic_number=atomic_number, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  X: str = None, *, atomic_number: str = None, copy: bool = True,
-                                  copy_dataset: bool = False,
-                                  ) -> List[Dict[str, np.ndarray]]:
-        r"""Inverse transform dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Inverse-transformed dataset.
-        """
-        return super(ExtensiveMolecularScaler, self).inverse_transform_dataset(
-            dataset=dataset, molecular_property=X, atomic_number=atomic_number, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              X: str = None, *, y: str = None, atomic_number: str = None,
-                              sample_weight: str = None, copy: bool = True, copy_dataset: bool = False
-                              ) -> List[Dict[str, np.ndarray]]:
-        r"""Fit and transform to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            X (str): Name of X information in dataset. For example "graph_properties".
-            y (str): Not used.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        self.fit_dataset(dataset=dataset, X=X, y=y, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform_dataset(dataset=dataset, X=X, atomic_number=atomic_number,
-                                      copy=copy, copy_dataset=copy_dataset)
 
 
 class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
@@ -578,6 +486,8 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         print(scaler.inverse_transform(X=mol_num, y=scaler.transform(X=mol_num, y=data)))
 
     """
+    def __init__(self, **kwargs):
+        super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
 
     def _assert_has_y(self, y):
         if y is None:
@@ -601,7 +511,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         """
         self._assert_has_y(y)
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).fit(
+        return super(ExtensiveMolecularLabelScaler, self)._fit(
             molecular_property=y, sample_weight=sample_weight, atomic_number=atomic_number)
 
     # noinspection PyPep8Naming
@@ -621,7 +531,7 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         """
         self._assert_has_y(y)
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).transform(
+        return super(ExtensiveMolecularLabelScaler, self)._transform(
             molecular_property=y, atomic_number=atomic_number, copy=copy)
 
     # noinspection PyPep8Naming
@@ -660,99 +570,8 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         """
         self._assert_has_y(y)
         atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).inverse_transform(
+        return super(ExtensiveMolecularLabelScaler, self)._inverse_transform(
             molecular_property=y, atomic_number=atomic_number, copy=copy)
-
-    # Similar functions that work on dataset plus property names.
-    # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]], y: str = None, *, X: str = None,
-                    atomic_number: str = None, sample_weight: str = None):
-        r"""Fit to dataset with relevant `X` , `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used. Optional atomic number information, if `atomic_number` is not set.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-
-        Returns:
-            self.
-        """
-        # Just changing order of x,y here.
-        atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).fit_dataset(
-            dataset=dataset, molecular_property=y, atomic_number=atomic_number, sample_weight=sample_weight)
-
-    # noinspection PyPep8Naming
-    def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          y: str = None, *, X: str = None, atomic_number: str = None, copy: bool = True,
-                          copy_dataset: bool = False,
-                          ) -> List[Dict[str, np.ndarray]]:
-        r"""Transform dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used. Optional atomic number information, if `atomic_number` is not set.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        # Just changing order of x,y here.
-        atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).transform_dataset(
-            dataset=dataset, molecular_property=y, atomic_number=atomic_number, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  y: str = None, *, X: str = None,
-                                  atomic_number: str = None, copy: bool = True,
-                                  copy_dataset: bool = False,
-                                  ) -> List[Dict[str, np.ndarray]]:
-        r"""Inverse transform dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_labels".
-            X (str): Not used. Optional atomic number information, if `atomic_number` is not set.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Inverse-transformed dataset.
-        """
-        atomic_number = atomic_number if atomic_number else X
-        return super(ExtensiveMolecularLabelScaler, self).inverse_transform_dataset(
-            dataset=dataset, molecular_property=y, atomic_number=atomic_number, copy_dataset=copy_dataset, copy=copy)
-
-    # noinspection PyPep8Naming
-    def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              y: str = None, *, X: str = None, atomic_number: str = None,
-                              sample_weight: str = None, copy: bool = True, copy_dataset: bool = False
-                              ) -> List[Dict[str, np.ndarray]]:
-        r"""Fit and transform to dataset with relevant `y` information.
-
-        Args:
-            dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_properties".
-            X (str): Not used. Optional atomic number information, if `atomic_number` is not set.
-            atomic_number (str): Name of atomic number information in dataset. For example "atomic number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
-            copy (bool): Whether to copy data for transformation. Default is True.
-            copy_dataset (bool): Whether to copy full dataset. Default is False.
-
-        Returns:
-            dataset: Transformed dataset.
-        """
-        # Uses the functions of this class.
-        self.fit_dataset(dataset=dataset, y=y, X=X, atomic_number=atomic_number, sample_weight=sample_weight)
-        return self.transform_dataset(
-            dataset=dataset, y=y, X=X, atomic_number=atomic_number, copy=copy, copy_dataset=copy_dataset)
 
 
 class QMGraphLabelScaler:
