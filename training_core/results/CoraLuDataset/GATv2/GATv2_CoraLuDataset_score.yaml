@@ -14,7 +14,7 @@ categorical_accuracy:
 - 0.9870789051055908
 cuda_available: 'False'
 data_unit: ''
-date_time: '2023-09-18 09:37:06'
+date_time: '2023-09-18 19:56:24'
 device_id: '[LogicalDevice(name=''/device:CPU:0'', device_type=''CPU'')]'
 device_memory: '[]'
 device_name: '[{}]'

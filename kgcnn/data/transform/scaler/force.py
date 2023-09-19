@@ -1,17 +1,17 @@
 import numpy as np
 import logging
 from typing import Union, List, Dict, Tuple
-from kgcnn.data.transform.scaler.molecule import ExtensiveMolecularScalerBase
+from kgcnn.data.transform.scaler.molecule import _ExtensiveMolecularScalerBase
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
+class EnergyForceExtensiveLabelScaler(_ExtensiveMolecularScalerBase):
     r"""Extensive scaler for scaling jointly energy, forces.
 
-    Inherits from :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` but makes use of `X` , `y` , as
+    Inherits from :obj:`kgcnn.scaler.mol._ExtensiveMolecularScalerBase` but makes use of `X` , `y` , as
     `atomic_number` and (`energy` , `force` ).
     In contrast to :obj:`kgcnn.scaler.mol.ExtensiveMolecularLabelScaler` which uses only
     `y` as `energy` .
@@ -50,11 +50,11 @@ class EnergyForceExtensiveLabelScaler(ExtensiveMolecularScalerBase):
     """
 
     def __init__(self, standardize_coordinates: bool = False, **kwargs):
-        r"""Initialize layer with arguments for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` .
+        r"""Initialize layer with arguments for :obj:`kgcnn.scaler.mol._ExtensiveMolecularScalerBase` .
 
         Args:
             standardize_coordinates (bool): Whether to standardize coordinates. Must always be False.
-            kwargs: Kwargs for :obj:`kgcnn.scaler.mol.ExtensiveMolecularScalerBase` parent class.
+            kwargs: Kwargs for :obj:`kgcnn.scaler.mol._ExtensiveMolecularScalerBase` parent class.
                 See docs for this class.
         """
         super(EnergyForceExtensiveLabelScaler, self).__init__(**kwargs)

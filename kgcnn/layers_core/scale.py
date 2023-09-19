@@ -44,18 +44,9 @@ class StandardLabelScaler(ks.layers.Layer):  # noqa
         return input_shape
 
     def call(self, inputs, **kwargs):
-        r"""Forward pass of :obj:`StandardLabelScaler` .
-
-        Args:
-            inputs (Tensor): Input tensor.
-
-        Returns:
-            Tensor: Statically re-scaled input tensor.
-        """
         return ops.cast(inputs, dtype=self.dtype_scale)*self.scale_ + self.mean_
 
     def get_config(self):
-        """Update config for `NodePosition`."""
         config = super(StandardLabelScaler, self).get_config()
         config.update({})
         return config
@@ -117,7 +108,6 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
         return ops.cast(inputs, dtype=self.dtype_scale)*self.scale_ + extensive_energies
 
     def get_config(self):
-        """Update config for `NodePosition`."""
         config = super(ExtensiveMolecularLabelScaler, self).get_config()
         config.update({})
         return config
@@ -126,5 +116,9 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
         self.set_weights([scaler._fit_atom_selection_mask, scaler.get_scaling(), scaler.self.ridge.coef_])
 
 
-def get(scale_layer: Union[dict, str]):
-    return StandardLabelScaler
+def get(scale_name: str):
+    scaler_reference = {
+        "StandardLabelScaler": StandardLabelScaler,
+        "ExtensiveMolecularLabelScaler": ExtensiveMolecularLabelScaler
+    }
+    return scaler_reference[scale_name]

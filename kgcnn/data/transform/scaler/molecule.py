@@ -7,24 +7,9 @@ from kgcnn.data.utils import save_json_file, load_json_file
 from kgcnn.data.transform.scaler.serial import deserialize
 
 
-class ExtensiveMolecularScalerBase:
-    """Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
+class _ExtensiveMolecularScalerBase:
+    """Scaler base class for extensive properties like energy to remove a simple linear behaviour with additive atom
     contributions.
-
-    .. code-block:: python
-
-        import numpy as np
-        from kgcnn.scaler.mol import ExtensiveMolecularScalerBase
-        data = np.random.rand(5).reshape((5,1))
-        mol_num = [np.array([6, 1, 1, 1, 1]), np.array([7, 1, 1, 1]),
-            np.array([6, 6, 1, 1, 1, 1]), np.array([6, 6, 1, 1]), np.array([6, 6, 1, 1, 1, 1, 1, 1])
-        ]
-        scaler = ExtensiveMolecularScalerBase()
-        scaler.fit(data, atomic_number=mol_num)
-        print(scaler.get_weights())
-        print(scaler.get_config())
-        scaler._plot_predict(data, mol_num)  # For debugging.
-
     """
 
     _attributes_list_sklearn = ["n_features_in_", "coef_", "intercept_", "n_iter_", "feature_names_in_"]
@@ -170,7 +155,7 @@ class ExtensiveMolecularScalerBase:
         return self._transform(molecular_property=molecular_property, atomic_number=atomic_number, copy=copy)
 
     def _inverse_transform(self, molecular_property: np.ndarray, atomic_number: List[np.ndarray],
-                          copy: bool = True) -> np.ndarray:
+                           copy: bool = True) -> np.ndarray:
         """Reverse the transform method to original properties without offset removed and scaled to original units.
 
         Args:
@@ -191,7 +176,7 @@ class ExtensiveMolecularScalerBase:
             molecular_property += self._predict(atomic_number)
         return molecular_property
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """Get configuration for scaler."""
         config = {}
         config.update(self.ridge.get_params())
@@ -366,7 +351,7 @@ class ExtensiveMolecularScalerBase:
         return self.transform_dataset(dataset=dataset, copy=copy, copy_dataset=copy_dataset)
 
 
-class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
+class ExtensiveMolecularScaler(_ExtensiveMolecularScalerBase):
     r"""Scaler for extensive properties like energy to remove a simple linear behaviour with additive atom
     contributions. Interface is designed after scikit-learn scaler. Internally Ridge regression ist used.
     Only the atomic number is used as extensive scaler. This could be further improved by also taking bonds and
@@ -393,6 +378,13 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         print(scaler.inverse_transform(scaler.transform(X=data, atomic_number=mol_num), atomic_number=mol_num))
 
     """
+    # noinspection PyPep8Naming
+    def __init__(self, X: str = "graph_attributes", atomic_number: str = "atomic_number", sample_weight: str = None,
+                 **kwargs):
+        super(ExtensiveMolecularScaler, self).__init__(**kwargs)
+        self._molecular_property = X
+        self._atomic_number = atomic_number
+        self._sample_weight = sample_weight
 
     # noinspection PyPep8Naming
     def fit(self, X, *, y: Union[None, np.ndarray] = None, sample_weight=None, atomic_number=None):
@@ -460,8 +452,20 @@ class ExtensiveMolecularScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularScaler, self)._inverse_transform(
             molecular_property=X, atomic_number=atomic_number, copy=copy)
 
+    def get_config(self):
+        config = super(ExtensiveMolecularScaler, self).get_config()
+        config.update({"X": self._molecular_property, "atomic_number": self._atomic_number,
+                       "sample_weight": self._sample_weight})
+        return config
 
-class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
+    def set_config(self, config):
+        super(ExtensiveMolecularScaler, self).set_config(config)
+        self._molecular_property = config["X"]
+        self._atomic_number = config["atomic_number"]
+        self._sample_weight = config["sample_weight"]
+
+
+class ExtensiveMolecularLabelScaler(_ExtensiveMolecularScalerBase):
     r"""Equivalent of :obj:`ExtensiveMolecularScaler` for labels, which uses the `y` argument for labels.
     For `X` the atomic numbers can be passed.
 
@@ -486,8 +490,13 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         print(scaler.inverse_transform(X=mol_num, y=scaler.transform(X=mol_num, y=data)))
 
     """
-    def __init__(self, **kwargs):
+    # noinspection PyPep8Naming
+    def __init__(self, y: str = "graph_labels", atomic_number: str = "atomic_number", sample_weight: str = None,
+                 **kwargs):
         super(ExtensiveMolecularLabelScaler, self).__init__(**kwargs)
+        self._molecular_property = y
+        self._atomic_number = atomic_number
+        self._sample_weight = sample_weight
 
     def _assert_has_y(self, y):
         if y is None:
@@ -573,6 +582,18 @@ class ExtensiveMolecularLabelScaler(ExtensiveMolecularScalerBase):
         return super(ExtensiveMolecularLabelScaler, self)._inverse_transform(
             molecular_property=y, atomic_number=atomic_number, copy=copy)
 
+    def get_config(self):
+        config = super(ExtensiveMolecularLabelScaler, self).get_config()
+        config.update({"y": self._molecular_property, "atomic_number": self._atomic_number,
+                       "sample_weight": self._sample_weight})
+        return config
+
+    def set_config(self, config):
+        super(ExtensiveMolecularLabelScaler, self).set_config(config)
+        self._molecular_property = config["y"]
+        self._atomic_number = config["atomic_number"]
+        self._sample_weight = config["sample_weight"]
+
 
 class QMGraphLabelScaler:
     r"""A scaler that scales QM targets differently. For now, the main difference is that intensive and extensive
@@ -610,7 +631,9 @@ class QMGraphLabelScaler:
 
     """
 
-    def __init__(self, scaler: list):
+    # noinspection PyPep8Naming
+    def __init__(self, scaler: list, y: str = "graph_labels", X: str = None, atomic_number: str = "atomic_number",
+                 sample_weight: str = None):
 
         if not isinstance(scaler, list):
             raise TypeError("Scaler information for `QMGraphLabelScaler` must be list, got '%s'." % scaler)
@@ -624,6 +647,10 @@ class QMGraphLabelScaler:
                 self.scaler_list.append(deserialize(x))
             else:
                 raise ValueError("Unsupported scaler type '%s'." % x)
+        self._n_X = X
+        self._n_y = y
+        self._n_atomic_number = atomic_number
+        self._n_sample_weight = sample_weight
 
     # noinspection PyPep8Naming
     def fit_transform(self, y: Union[np.ndarray, List[np.ndarray]] = None,
@@ -780,6 +807,8 @@ class QMGraphLabelScaler:
             {"class_name": type(x).__name__, "module_name": type(x).__module__,
              "config": x.get_config()} for x in self.scaler_list]
         }
+        config.update({"X": self._n_X, "y": self._n_y, "atomic_number": self._n_atomic_number,
+                       "sample_weight": self._n_sample_weight})
         return config
 
     def set_config(self, config):
@@ -791,6 +820,10 @@ class QMGraphLabelScaler:
         scaler_conf = config["scaler"]
         for i, x in enumerate(scaler_conf):
             self.scaler_list[i].set_config(x["config"])
+        self._n_X = config["X"]
+        self._n_y = config["y"]
+        self._n_atomic_number = config["atomic_number"]
+        self._n_sample_weight = config["sample_weight"]
         return self
 
     def save(self, file_path: str):
@@ -819,34 +852,27 @@ class QMGraphLabelScaler:
 
     # Similar functions that work on dataset plus property names.
     # noinspection PyPep8Naming
-    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                    y: str, *,
-                    X: str = None,
-                    atomic_number: str = None,
-                    sample_weight: str = None):
+    def fit_dataset(self, dataset: List[Dict[str, np.ndarray]]):
         r"""Fit to dataset with relevant `X` , `y` information.
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of label information in dataset. For example "graph_labels".
-            X (str): Optional X information in dataset. For example "atomic_number".
-            atomic_number (list): Name of atomic number information in dataset. For example "atomic_number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
+
 
         Returns:
             self.
         """
         return self.fit(
-            y=[item[y] for item in dataset],
-            X=[item[X] for item in dataset] if X is not None else None,
-            atomic_number=[item[atomic_number] for item in dataset] if atomic_number is not None else None,
-            sample_weight=[item[sample_weight] for item in dataset] if sample_weight is not None else None
+            y=[item[self._n_y] for item in dataset],
+            X=[item[self._n_X] for item in dataset] if self._n_X is not None else None,
+            atomic_number=[
+                item[self._n_atomic_number] for item in dataset] if self._n_atomic_number is not None else None,
+            sample_weight=[
+                item[self._n_sample_weight] for item in dataset] if self._n_sample_weight is not None else None
         )
 
     # noinspection PyPep8Naming
     def transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                          y: str, *,
-                          X: str = None, atomic_number: str = None,
                           copy: bool = True,
                           copy_dataset: bool = False,
                           ) -> List[Dict[str, np.ndarray]]:
@@ -854,9 +880,6 @@ class QMGraphLabelScaler:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_properties".
-            X (str): Optional X information in dataset. For example "atomic_number".
-            atomic_number (list): Name of atomic number information in dataset. For example "atomic_number".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -866,20 +889,18 @@ class QMGraphLabelScaler:
         if copy_dataset:
             dataset = dataset.copy()
         out = self.transform(
-            y=[graph[y] for graph in dataset],
-            X=[item[X] for item in dataset] if X is not None else None,
-            atomic_number=[item[atomic_number] for item in dataset] if atomic_number is not None else None,
+            y=[graph[self._n_y] for graph in dataset],
+            X=[item[self._n_X] for item in dataset] if self._n_X is not None else None,
+            atomic_number=[
+                item[self._n_atomic_number] for item in dataset] if self._n_atomic_number is not None else None,
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[y] = out_value
+            graph[self._n_y] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def inverse_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                                  y: str = None, *,
-                                  X: str = None,
-                                  atomic_number: str = None,
                                   copy: bool = True,
                                   copy_dataset: bool = False,
                                   ) -> List[Dict[str, np.ndarray]]:
@@ -887,9 +908,6 @@ class QMGraphLabelScaler:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_properties".
-            X (str): Optional X information in dataset. For example "atomic_number".
-            atomic_number (list): Name of atomic number information in dataset. For example "atomic_number".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
@@ -899,20 +917,18 @@ class QMGraphLabelScaler:
         if copy_dataset:
             dataset = dataset.copy()
         out = self.inverse_transform(
-            y=[graph[y] for graph in dataset],
-            X=[item[X] for item in dataset] if X is not None else None,
-            atomic_number=[item[atomic_number] for item in dataset] if atomic_number is not None else None,
+            y=[graph[self._n_y] for graph in dataset],
+            X=[item[self._n_X] for item in dataset] if self._n_X is not None else None,
+            atomic_number=[
+                item[self._n_atomic_number] for item in dataset] if self._n_atomic_number is not None else None,
             copy=copy,
         )
         for graph, out_value in zip(dataset, out):
-            graph[y] = out_value
+            graph[self._n_y] = out_value
         return dataset
 
     # noinspection PyPep8Naming
     def fit_transform_dataset(self, dataset: List[Dict[str, np.ndarray]],
-                              y: str = None, *,
-                              X: str = None, atomic_number: str = None,
-                              sample_weight: str = None,
                               copy: bool = True,
                               copy_dataset: bool = False
                               ) -> List[Dict[str, np.ndarray]]:
@@ -920,16 +936,12 @@ class QMGraphLabelScaler:
 
         Args:
             dataset (list): Dataset of type `List[Dict]` with dictionary of numpy arrays.
-            y (str): Name of y information in dataset. For example "graph_properties".
-            X (str): Optional X information in dataset. For example "atomic_number".
-            atomic_number (list): Name of atomic number information in dataset. For example "atomic_number".
-            sample_weight (str): Name of sample weight information in dataset. For example "sample_weight".
             copy (bool): Whether to copy data for transformation. Default is True.
             copy_dataset (bool): Whether to copy full dataset. Default is False.
 
         Returns:
             dataset: Transformed dataset.
         """
-        self.fit_dataset(dataset=dataset, y=y, X=X, atomic_number=atomic_number, sample_weight=sample_weight)
+        self.fit_dataset(dataset=dataset)
         return self.transform_dataset(
-            dataset=dataset, y=y, X=X, atomic_number=atomic_number, copy=copy, copy_dataset=copy_dataset)
+            dataset=dataset, copy=copy, copy_dataset=copy_dataset)
