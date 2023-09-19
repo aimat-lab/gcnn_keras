@@ -26,7 +26,7 @@ hyper = {
                 "output_embedding": "graph",
                 "use_output_mlp": False,
                 "output_mlp": None,
-                "output_scaling": {"name": "StandardLabelScaler"}
+                "output_scaling": {"name": "ExtensiveMolecularLabelScaler"}
             }
         },
         "training": {
@@ -41,13 +41,15 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
-                "loss": "mean_absolute_error"
+                "loss": "mean_absolute_error",
+                "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
+                            {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
             },
-            "scaler": {"class_name": "QMGraphLabelScaler", "config": {
-                "scaler": [{"class_name": "ExtensiveMolecularScaler",
-                            "config": {}}
-                           ]
-            }},
+            # "scaler": {"class_name": "QMGraphLabelScaler", "config": {
+            #     "scaler": [{"class_name": "ExtensiveMolecularScaler", "config": {}}],
+            #     "atomic_number": "node_number"
+            # }},
+            "scaler": {"class_name": "ExtensiveMolecularLabelScaler", "config": {"atomic_number": "node_number"}},
             "multi_target_indices": [11]  # 10, 11, 12, 13 = 'U0', 'U', 'H', 'G' or combination
         },
         "data": {
@@ -59,7 +61,8 @@ hyper = {
                     {"set_train_test_indices_k_fold": {"n_splits": 10, "random_state": 42, "shuffle": True}},
                     {"map_list": {"method": "set_range", "max_distance": 4, "max_neighbours": 30}},
                     {"map_list": {"method": "count_nodes_and_edges", "total_edges": "total_ranges",
-                                  "count_edges": "range_indices"}},
+                                  "count_edges": "range_indices", "count_nodes": "node_number",
+                                  "total_nodes": "total_nodes"}},
                 ]
             },
         },

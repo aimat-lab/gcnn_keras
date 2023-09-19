@@ -694,11 +694,11 @@ class QMGraphLabelScaler:
         if copy:
             out_labels = []
             for i, x in enumerate(self.scaler_list):
-                out_labels.append(x.transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy))
+                out_labels.append(x.transform([d[i:i + 1] for d in labels], atomic_number=atomic_number, copy=copy))
             out_labels = np.concatenate(out_labels, axis=-1)
         else:
             for i, x in enumerate(self.scaler_list):
-                x.transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy)
+                x.transform([d[i:i + 1] for d in labels], atomic_number=atomic_number, copy=copy)
             out_labels = labels
         return out_labels
 
@@ -721,7 +721,7 @@ class QMGraphLabelScaler:
         labels, atomic_number = self._check_input(atomic_number, X, y)
 
         for i, x in enumerate(self.scaler_list):
-            x.fit(labels[:, i:i + 1], atomic_number=atomic_number, sample_weight=sample_weight)
+            x.fit([d[i:i + 1] for d in labels], atomic_number=atomic_number, sample_weight=sample_weight)
 
         return self
 
@@ -746,11 +746,11 @@ class QMGraphLabelScaler:
         if copy:
             out_labels = []
             for i, x in enumerate(self.scaler_list):
-                out_labels.append(x.inverse_transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy))
+                out_labels.append(x.inverse_transform([d[i:i + 1] for d in labels], atomic_number=atomic_number, copy=copy))
             out_labels = np.concatenate(out_labels, axis=-1)
         else:
             for i, x in enumerate(self.scaler_list):
-                x.inverse_transform(labels[:, i:i + 1], atomic_number=atomic_number, copy=copy)
+                x.inverse_transform([d[i:i + 1] for d in labels], atomic_number=atomic_number, copy=copy)
             out_labels = labels
 
         return out_labels
@@ -761,7 +761,7 @@ class QMGraphLabelScaler:
         graph_labels = X if (y is None and node_number is not None) else y
         node_number = node_number if node_number is not None else X
         assert len(node_number) == len(graph_labels), "`QMGraphLabelScaler` input length does not match."
-        assert graph_labels.shape[-1] == len(self.scaler_list), "`QMGraphLabelScaler` got wrong number of labels."
+        assert len(graph_labels[0]) == len(self.scaler_list), "`QMGraphLabelScaler` got wrong number of labels."
         return graph_labels, node_number
 
     @property

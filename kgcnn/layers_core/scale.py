@@ -1,5 +1,6 @@
 import keras_core as ks
 from typing import Union
+import numpy as np
 from keras_core import ops
 
 
@@ -92,20 +93,20 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
     def build(self, input_shape):
         if self._scaling_shape is None:
             if input_shape is None:
-                raise ValueError("Can not build scale and mean weights if `input_shape` not known.")
-            self._scaling_shape = tuple([1 if i is None else i for i in input_shape])
+                raise ValueError("Can not build scale and mean weights if `input_shape` and `scaling_shape` not known.")
+            self._scaling_shape = tuple([1 if i is None else i for i in input_shape[0]])
             self._add_weights_for_scaling()
 
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        return input_shape
+        return input_shape[0]
 
     def call(self, inputs, **kwargs):
         graph, nodes = inputs
         energy_per_node = ops.take(self.ridge_kernel_, nodes, axis=0)
         extensive_energies = ops.sum(energy_per_node, axis=1)
-        return ops.cast(inputs, dtype=self.dtype_scale)*self.scale_ + extensive_energies
+        return ops.cast(graph, dtype=self.dtype_scale)*self.scale_ + extensive_energies
 
     def get_config(self):
         config = super(ExtensiveMolecularLabelScaler, self).get_config()
@@ -113,7 +114,53 @@ class ExtensiveMolecularLabelScaler(ks.layers.Layer):  # noqa
         return config
 
     def set_scale(self, scaler):
-        self.set_weights([scaler._fit_atom_selection_mask, scaler.get_scaling(), scaler.self.ridge.coef_])
+        ridge_kernel = np.transpose(np.array(scaler.ridge.coef_))
+        pos = np.sort(np.array(scaler._fit_atom_selection))
+        mask = np.array(scaler._fit_atom_selection_mask)
+        shape = tuple([int(self.max_atomic_number)] + list(ridge_kernel.shape[1:]))
+        layer_kernel = np.zeros(shape)
+        layer_kernel[pos] = ridge_kernel
+        layer_kernel[0] = 0.  # Make sure 0 is always 0.
+        self.set_weights([mask, scaler.get_scaling(), layer_kernel])
+
+
+class QMGraphLabelScaler(ks.layers.Layer):  # noqa
+
+    max_atomic_number = 95
+
+    def __init__(self, scaler_list: list = None, name="QMGraphLabelScaler", **kwargs):
+        r"""Initialize layer instance of :obj:`StandardLabelScaler` .
+
+        Args:
+            scaler_list (list): List of scaler
+        """
+        super(QMGraphLabelScaler, self).__init__(**kwargs)
+        self._scaler_list = scaler_list
+        self.name = name
+        self.extensive = True
+
+    def build(self, input_shape):
+        for scaler in self._scaler_list:
+            if scaler.extensive:
+                scaler.build(input_shape)
+            else:
+                scaler.build(input_shape[0])
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[0]
+
+    def call(self, inputs, **kwargs):
+        return inputs
+
+    def get_config(self):
+        config = super(QMGraphLabelScaler, self).get_config()
+        config.update({})
+        return config
+
+    def set_scale(self, scaler):
+        for s in self._scaler_list:
+            s.set_scale(scaler)
 
 
 def get(scale_name: str):

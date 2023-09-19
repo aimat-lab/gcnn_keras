@@ -19,7 +19,7 @@ from kgcnn.data.utils import save_pickle_file
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
-                    default="hyper/hyper_esol.py")
+                    default="hyper/hyper_qm9_energies.py")
 parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
@@ -98,12 +98,13 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
 
-    # Normalize training and test targets via a transform.
+    # Adapt output-scale via a transform.
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     if "scaler" in hyper["training"]:
         print("Using Scaler to adjust output scale of model.")
         scaler = deserialize(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
+        # Model requires to have a set_scale methode that accepts a scaler class.
         model.set_scale(scaler)
 
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])

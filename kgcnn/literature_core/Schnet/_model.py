@@ -168,7 +168,11 @@ def make_model(inputs: list = None,
 
     if output_scaling is not None:
         scaler = get_scaler(output_scaling["name"])(**output_scaling)
-        out = scaler(out)
+        if scaler.extensive:
+            # Node information must be numbers, or we need an additional input.
+            out = scaler([out, batched_nodes])
+        else:
+            out = scaler(out)
 
     model = ks.models.Model(inputs=model_inputs, outputs=out, name=name)
 
