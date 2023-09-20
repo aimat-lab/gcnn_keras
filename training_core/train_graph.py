@@ -105,7 +105,12 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         scaler = deserialize(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
         # Model requires to have a set_scale methode that accepts a scaler class.
-        model.set_scale(scaler)
+        if hasattr(model, "set_scaler"):
+            model.set_scale(scaler)
+        else:
+            assert np.all(np.isclose(scaler.get_scaling(), 1.)), "Change scaling is not supported."
+            scaler.transform(dataset_train)
+            scaler.transform(dataset_test)
 
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
     y_train = np.array(dataset_train.get("graph_labels"))
@@ -138,18 +143,18 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict{postfix_file}_fold_{current_split}.png", show_fig=False)
 
+    # Save last keras-model to output-folder.
+    model.save(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.keras"))
+
+    # Save last keras-model to output-folder.
+    model.save_weights(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.weights.h5"))
+
 
 # Plot training- and test-loss vs epochs for all splits.
 history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split+1)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
-
-# Save last keras-model to output-folder.
-model.save(os.path.join(filepath, f"model{postfix_file}.keras"))
-
-# Save last keras-model to output-folder.
-model.save_weights(os.path.join(filepath, f"model{postfix_file}.weights.h5"))
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)

@@ -18,7 +18,7 @@ __model_version__ = "2023-09-18"
 # Supported backends
 __kgcnn_model_backend_supported__ = ["tensorflow", "torch", "jax"]
 if backend_to_use() not in __kgcnn_model_backend_supported__:
-    raise NotImplementedError("Backend '%s' for model 'GATv2' is not supported." % backend_to_use())
+    raise NotImplementedError("Backend '%s' for model 'GIN' is not supported." % backend_to_use())
 
 # Implementation of GIN in `keras` from paper:
 # How Powerful are Graph Neural Networks?

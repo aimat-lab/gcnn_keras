@@ -41,7 +41,7 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 0.0005}},
-                "loss": "mean_absolute_error",
+                "loss": {"class_name": "kgcnn>MeanAbsoluteError", "config": {"dtype": "float64"}},
                 "metrics": [{"class_name": "MeanAbsoluteError", "config": {"dtype": "float64"}},
                             {"class_name": "RootMeanSquaredError", "config": {"dtype": "float64"}}]
             },
