@@ -1,8 +1,10 @@
 import keras_core as ks
 import keras_core.metrics
 from keras_core import ops
+import keras_core.saving
 
 
+@ks.saving.register_keras_serializable(package='kgcnn', name='ScaledMeanAbsoluteError')
 class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
     """Metric for a scaled mean absolute error (MAE), which can undo a pre-scaling of the targets. Only intended as
     metric this allows to info the MAE with correct units or absolute values during fit."""
@@ -39,6 +41,7 @@ class ScaledMeanAbsoluteError(ks.metrics.MeanAbsoluteError):
         self.scale.assign(ops.cast(scale, dtype=scale.dtype))
 
 
+@ks.saving.register_keras_serializable(package='kgcnn', name='ScaledRootMeanSquaredError')
 class ScaledRootMeanSquaredError(ks.metrics.RootMeanSquaredError):
     """Metric for a scaled root mean squared error (RMSE), which can undo a pre-scaling of the targets.
     Only intended as metric this allows to info the MAE with correct units or absolute values during fit."""

@@ -5,6 +5,8 @@ import argparse
 import time
 import kgcnn.training_core.scheduler  # noqa
 from datetime import timedelta
+import kgcnn.losses_core.losses
+import kgcnn.metrics_core.metrics
 from kgcnn.training_core.history import save_history_score, load_history_list, load_time_list
 from kgcnn.data.transform.scaler.serial import deserialize
 from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
@@ -19,8 +21,8 @@ from kgcnn.data.utils import save_pickle_file
 # for training and model setup.
 parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
-                    default="hyper/hyper_qm9_energies.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet")
+                    default="hyper/hyper_esol.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
@@ -104,13 +106,23 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         print("Using Scaler to adjust output scale of model.")
         scaler = deserialize(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
-        # Model requires to have a set_scale methode that accepts a scaler class.
-        if hasattr(model, "set_scaler"):
+        if hasattr(model, "set_scale"):
             model.set_scale(scaler)
         else:
-            assert np.all(np.isclose(scaler.get_scaling(), 1.)), "Change scaling is not supported."
-            scaler.transform(dataset_train)
-            scaler.transform(dataset_test)
+            scaler.transform(dataset_train, copy_dataset=True, copy=True)
+            scaler.transform(dataset_test, copy_dataset=True, copy=True)
+            # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
+            # directly log the original target values, but the scaled ones.
+            scaler_scale = scaler.get_scaling()
+            for metric in model.metrics:
+                print(metric)
+                # Don't use scaled metrics if model has scale already.
+                if scaler_scale is not None:
+                    if hasattr(metric, "set_scale"):
+                        metric.set_scale(scaler_scale)
+
+        # Save scaler to file
+        scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
 
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
     y_train = np.array(dataset_train.get("graph_labels"))
@@ -133,6 +145,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
                      os.path.join(filepath, f"time{postfix_file}_fold_{current_split}.pickle"))
 
     # Plot prediction for the last split.
+    # Note that predicted values will not be rescaled.
     predicted_y = model.predict(x_test)
     true_y = y_test
 
