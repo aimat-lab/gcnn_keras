@@ -79,7 +79,6 @@ class EnergyForceModel(ks.models.Model):
             with torch.enable_grad():
                 x.requires_grad = True
                 eng = self.energy_model(inputs, training=training, **kwargs)
-                print(eng.requires_grad)
                 eng_sum = eng.sum(dim=0)
                 e_grad = torch.cat([
                     torch.unsqueeze(torch.autograd.grad(eng_sum[i], x, create_graph=True)[0], dim=-1) for i in
@@ -88,6 +87,14 @@ class EnergyForceModel(ks.models.Model):
                 e_grad = -e_grad
             if self.output_squeeze_states:
                 e_grad = torch.squeeze(e_grad, dim=-1)
+        elif backend() == "jax":
+            from jax import grad
+            import jax.numpy as jnp
+            e_grad = grad(self.energy_model, argnums=self.coordinate_input)(inputs)
+            if self.is_physical_force:
+                e_grad = -e_grad
+            if self.output_squeeze_states:
+                e_grad = jnp.squeeze(e_grad, axis=-1)
         else:
             raise NotImplementedError("Gradient not supported for backend '%s'." % backend())
 

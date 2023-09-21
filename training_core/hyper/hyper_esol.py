@@ -20,7 +20,7 @@ hyper = {
                 "output_embedding": "graph",
                 "output_mlp": {"use_bias": [True, True, False], "units": [140, 70, 1],
                                "activation": ["relu", "relu", "linear"]},
-                # "output_scaling": {"name": "StandardLabelScaler"},
+                "output_scaling": {"name": "StandardLabelScaler"},
             }
         },
         "training": {
@@ -37,7 +37,13 @@ hyper = {
             },
             "compile": {
                 "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
-                "loss": "mean_absolute_error",
+                "loss": {"class_name": "kgcnn>MeanAbsoluteError", "config": {"dtype": "float64"}},
+                "metrics": [
+                    {"class_name": "MeanAbsoluteError",
+                     "config": {"dtype": "float64", "name": "scaled_mean_absolute_error"}},
+                    {"class_name": "RootMeanSquaredError",
+                     "config": {"dtype": "float64", "name": "scaled_root_mean_squared_error"}}
+                ]
             },
             "scaler": {"class_name": "StandardLabelScaler", "module_name": "kgcnn.data.transform.scaler.standard",
                        "config": {"with_std": True, "with_mean": True, "copy": True}},

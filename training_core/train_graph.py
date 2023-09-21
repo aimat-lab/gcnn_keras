@@ -98,7 +98,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     scaled_metrics = None
     if "scaler" in hyper["training"]:
-        print("Using Scaler to adjust output scale of model.")
+        print("Using Scaler to adjust output scale.")
         scaler = deserialize_scaler(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
         if hasattr(model, "set_scale"):

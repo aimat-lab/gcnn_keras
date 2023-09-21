@@ -144,9 +144,12 @@ class MemoryGraphList(list):
         assert isinstance(other, MemoryGraphList), "Must add `MemoryGraphList` to self."
         return MemoryGraphList(super(MemoryGraphList, self).__add__(other))
 
-    def copy(self):
+    def copy(self, deep_copy: bool = False):
         """Copy data in the list."""
-        return MemoryGraphList([x.copy() for x in self])
+        if not deep_copy:
+            return MemoryGraphList([GraphDict(x) for x in self])
+        else:
+            return MemoryGraphList([x.copy() for x in self])
 
     def empty(self, length: int):
         """Create an empty list in place. Overwrites existing list.

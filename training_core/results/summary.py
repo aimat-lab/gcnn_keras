@@ -40,11 +40,11 @@ benchmark_datasets = {
             "We use random 5-fold cross-validation. "
         ],
         "targets": [
-            {"metric": "val_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
-            {"metric": "val_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
-            {"metric": "min_val_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
+            {"metric": "val_scaled_mean_absolute_error", "name": "MAE [log mol/L]", "find_best": "min"},
+            {"metric": "val_scaled_root_mean_squared_error", "name": "RMSE [log mol/L]", "find_best": "min"},
+            {"metric": "min_val_scaled_mean_absolute_error", "name": "*Min. MAE*", "find_best": "min",
              "is_min_max": True},
-            {"metric": "min_val_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
+            {"metric": "min_val_scaled_root_mean_squared_error", "name": "*Min. RMSE*", "find_best": "min",
              "is_min_max": True}
         ]
     },

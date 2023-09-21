@@ -19,7 +19,7 @@ def scatter_reduce_max(indices, values, shape):
 def scatter_reduce_mean(indices, values, shape):
     zeros = jnp.zeros(shape, values.dtype)
     counts = jnp.zeros(shape, values.dtype)
-    counts.at[indices].add(jnp.ones_like(values))
+    counts = counts.at[indices].add(jnp.ones_like(values))
     return zeros.at[indices].add(values)/counts
 
 
