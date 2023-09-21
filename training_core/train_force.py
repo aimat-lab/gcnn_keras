@@ -6,10 +6,11 @@ import keras_core as ks
 from datetime import timedelta
 import kgcnn.training_core.schedule
 import kgcnn.training_core.scheduler
+from kgcnn.data.utils import save_pickle_file
 from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
 from kgcnn.utils_core.devices import check_device
-from kgcnn.training_core.history import save_history_score
-from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
+from kgcnn.training_core.history import save_history_score, load_history_list, load_time_list
+from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models_core.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training_core.hyper import HyperParameter
@@ -77,10 +78,9 @@ postfix_file = hyper["info"]["postfix_file"]
 # Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
 # train on all splits for testing. Can be set via command line or hyperparameter.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-splits_done = 0
-history_list, test_indices_list = [], []
+splits_done, current_split = 0, None
 train_indices_all, test_indices_all = [], []
-model, hist, x_test, scaler = None, None, None, None
+model = None
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
     # Keep list of train/test indices.
@@ -162,28 +162,34 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     stop = time.time()
     print("Print Time for training: ", str(timedelta(seconds=stop - start)))
 
-    # Get loss from history
-    history_list.append(hist)
-    test_indices_list.append([train_index, test_index])
-    splits_done = splits_done + 1
+    # Save history for this fold.
+    save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
+    save_pickle_file(str(timedelta(seconds=stop - start)),
+                     os.path.join(filepath, f"time{postfix_file}_fold_{current_split}.pickle"))
 
     # Plot prediction
     predicted_y = model.predict(x_test, verbose=0)
     true_y = y_test
 
-    plot_predict_true(np.array(predicted_y[0]), np.array(true_y["energy"]),
+    plot_predict_true(np.array(predicted_y["energy"]), np.array(true_y["energy"]),
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png")
 
-    plot_predict_true(np.concatenate([np.array(f) for f in predicted_y[1]], axis=0),
+    plot_predict_true(np.concatenate([np.array(f) for f in predicted_y["force"]], axis=0),
                       np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
                       file_name=f"predict_force{postfix_file}_fold_{splits_done}.png")
 
-    # Save keras-model to output-folder.
-    model.save(os.path.join(filepath, f"model{postfix_file}_fold_{splits_done}"))
+    # Save last keras-model to output-folder.
+    model.save(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.keras"))
+
+    # Save last keras-model to output-folder.
+    model.save_weights(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.weights.h5"))
+
+    # Get loss from history
+    splits_done = splits_done + 1
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
@@ -191,6 +197,7 @@ np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file
 
 # Plot training- and test-loss vs epochs for all splits.
 data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split + 1)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
@@ -199,6 +206,7 @@ plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
 hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
+time_list = load_time_list(os.path.join(filepath, f"time{postfix_file}_fold_(i).pickle"), current_split + 1)
 save_history_score(
     history_list, loss_name=None, val_loss_name=None,
     model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
@@ -207,5 +215,6 @@ save_history_score(
         "training"] else None,
     execute_folds=execute_folds, seed=args["seed"],
     filepath=filepath, file_name=f"score{postfix_file}.yaml",
-    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None)
+    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None),
+    time_list=time_list
 )

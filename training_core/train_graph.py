@@ -192,6 +192,7 @@ save_history_score(
     model_class=hyper.model_class,
     multi_target_indices=hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper[
         "training"] else None,
+    execute_folds=execute_folds,
     model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
     filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list,
     seed=args["seed"]
