@@ -11,6 +11,7 @@
 /training_core/results/*/*/scaler*.npz
 /training_core/results/*/*/*.keras
 /training_core/results/*/*/*.pickle
+/training_core/results/*/*/scaler_*.json
 /training_core/results/*/*/*.png
 /training_core/results/*/*/*.weights.h5
 /develop/

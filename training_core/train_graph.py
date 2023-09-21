@@ -8,7 +8,7 @@ from datetime import timedelta
 import kgcnn.losses_core.losses
 import kgcnn.metrics_core.metrics
 from kgcnn.training_core.history import save_history_score, load_history_list, load_time_list
-from kgcnn.data.transform.scaler.serial import deserialize
+from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
 from kgcnn.utils_core.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.model.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
@@ -94,36 +94,44 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     # Make the model for current split using model kwargs from hyperparameter.
     model = deserialize_model(hyper["model"])
 
-    # Compile model with optimizer and loss from hyperparameter.
-    # The metrics from this script is added to the hyperparameter entry for metrics.
-    model.compile(**hyper.compile())
-    model.summary()
-    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
-
     # Adapt output-scale via a transform.
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
+    scaled_metrics = None
     if "scaler" in hyper["training"]:
         print("Using Scaler to adjust output scale of model.")
-        scaler = deserialize(hyper["training"]["scaler"])
+        scaler = deserialize_scaler(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
         if hasattr(model, "set_scale"):
+            print("Setting scale at model.")
             model.set_scale(scaler)
         else:
-            scaler.transform(dataset_train, copy_dataset=True, copy=True)
-            scaler.transform(dataset_test, copy_dataset=True, copy=True)
+            print("Transforming dataset.")
+            dataset_train = scaler.transform_dataset(dataset_train, copy_dataset=True, copy=True)
+            dataset_test = scaler.transform_dataset(dataset_test, copy_dataset=True, copy=True)
             # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
             # directly log the original target values, but the scaled ones.
             scaler_scale = scaler.get_scaling()
-            for metric in model.metrics:
-                print(metric)
-                # Don't use scaled metrics if model has scale already.
-                if scaler_scale is not None:
-                    if hasattr(metric, "set_scale"):
-                        metric.set_scale(scaler_scale)
+            mae_metric = kgcnn.metrics_core.metrics.ScaledMeanAbsoluteError(
+                scaler_scale.shape, name="scaled_mean_absolute_error")
+            rms_metric = kgcnn.metrics_core.metrics.ScaledRootMeanSquaredError(
+                scaler_scale.shape, name="scaled_root_mean_squared_error")
+            if scaler_scale is not None:
+                mae_metric.set_scale(scaler_scale)
+                rms_metric.set_scale(scaler_scale)
+            scaled_metrics = [mae_metric, rms_metric]
 
         # Save scaler to file
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
 
+    # Compile model with optimizer and loss from hyperparameter.
+    # The metrics from this script is added to the hyperparameter entry for metrics.
+    model.compile(**hyper.compile(metrics=scaled_metrics))
+
+    # Model summary
+    model.summary()
+    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
+
+    # Pick train/test data.
     x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
     y_train = np.array(dataset_train.get("graph_labels"))
     x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
@@ -162,9 +170,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     # Save last keras-model to output-folder.
     model.save_weights(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.weights.h5"))
 
-
 # Plot training- and test-loss vs epochs for all splits.
-history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split+1)
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split + 1)
 plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
                      model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
                      filepath=filepath, file_name=f"loss{postfix_file}.png")
@@ -178,10 +185,14 @@ np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file
 hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
-time_list = load_time_list(os.path.join(filepath, f"time{postfix_file}_fold_(i).pickle"), current_split+1)
-save_history_score(history_list, loss_name=None, val_loss_name=None,
-                   model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
-                   model_class=hyper.model_class,
-                   model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
-                   filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list,
-                   seed=args["seed"])
+time_list = load_time_list(os.path.join(filepath, f"time{postfix_file}_fold_(i).pickle"), current_split + 1)
+save_history_score(
+    history_list, loss_name=None, val_loss_name=None,
+    model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
+    model_class=hyper.model_class,
+    multi_target_indices=hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper[
+        "training"] else None,
+    model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
+    filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list,
+    seed=args["seed"]
+)
