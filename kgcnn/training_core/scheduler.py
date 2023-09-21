@@ -79,7 +79,7 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
             None
         """
         if self.__warming_up and self.steps_per_epoch is not None:
-            if not hasattr(self.model.optimizer, "lr"):
+            if not hasattr(self.model.optimizer, "learning_rate"):
                 raise ValueError('Optimizer must have a "lr" attribute.')
             lr = float(ks.backend.convert_to_numpy(self.model.optimizer.learning_rate))
             lr = lr + self.lr_start / self.epo_warmup / self.steps_per_epoch

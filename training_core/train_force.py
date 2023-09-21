@@ -19,7 +19,7 @@ from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
 # Input arguments from command line.
 parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
 parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_md17_revised.py")
+                    default="hyper/hyper_md17.py")
 parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
@@ -131,8 +131,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
 
     # Convert dataset to tensor information for model.
-    x_train = dataset_train.tensor(model["config"]["inputs"])
-    x_test = dataset_test.tensor(model["config"]["inputs"])
+    x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
+    x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
 
     # Compile model with optimizer and loss
     model.compile(**hyper.compile(
@@ -140,7 +140,9 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         metrics=scaled_metrics))
 
     model.predict(x_test)
-    print(model.summary())
+    # Model summary
+    model.summary()
+    print(" Compiled with jit: %s" % model._jit_compile)  # noqa
 
     # Convert targets into tensors.
     labels_in_dataset = {

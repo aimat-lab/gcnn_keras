@@ -20,6 +20,7 @@ class EnergyForceModel(ks.models.Model):
                  nested_model_config: bool = True,
                  is_physical_force: bool = True,
                  use_batch_jacobian: bool = True,
+                 name: str = None
                  ):
 
         super().__init__()
@@ -27,7 +28,7 @@ class EnergyForceModel(ks.models.Model):
             raise ValueError("Require valid model in `model_energy` for force prediction.")
         # Input for model_energy.
         self._model_energy = model_energy
-
+        self.name = name
         if isinstance(model_energy, ks.models.Model):
             # Ignoring module_name and class_name.
             self.energy_model = model_energy

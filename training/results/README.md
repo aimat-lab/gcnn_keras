@@ -213,3 +213,191 @@ Mutagenicity dataset from TUDataset for classification with 4337 graphs. The dat
 
 #### MUTAGDataset
 
+MUTAG dataset from TUDataset for classification with 188 graphs. We use random 5-fold cross-validation. 
+
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.0   |      200 | 0.8085 &pm; 0.1031     | 0.8471 &pm; 0.0890     |
+| CMPNN       | 2.1.0   |      600 | 0.7873 &pm; 0.0724     | 0.7811 &pm; 0.0762     |
+| DMPNN       | 2.1.0   |      300 | 0.8461 &pm; 0.0474     | 0.8686 &pm; 0.0480     |
+| GAT         | 2.1.0   |      500 | 0.8351 &pm; 0.0920     | 0.8779 &pm; 0.0854     |
+| GATv2       | 2.1.0   |      500 | 0.8144 &pm; 0.0757     | 0.8400 &pm; 0.0688     |
+| GIN         | 2.1.0   |      300 | **0.8512 &pm; 0.0485** | **0.8861 &pm; 0.0922** |
+| GraphSAGE   | 2.1.0   |      500 | 0.8193 &pm; 0.0445     | 0.8560 &pm; 0.0651     |
+| INorp       | 2.1.0   |      500 | 0.8407 &pm; 0.0829     | 0.8549 &pm; 0.0705     |
+| MEGAN       | 2.1.1   |      500 | 0.7977 &pm; 0.0663     | 0.8810 &pm; 0.0568     |
+
+#### FreeSolvDataset
+
+FreeSolv (MoleculeNet) consists of 642 compounds as smiles and their corresponding hydration free energy for small neutral molecules in water. We use a random 5-fold cross-validation. 
+
+| model               | kgcnn   |   epochs | MAE [log mol/L]        | RMSE [log mol/L]       |
+|:--------------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP         | 2.1.0   |      200 | 0.5853 &pm; 0.0519     | 1.0168 &pm; 0.1386     |
+| CMPNN               | 2.1.0   |      600 | 0.5319 &pm; 0.0655     | 0.9262 &pm; 0.1597     |
+| DimeNetPP           | 2.1.0   |      300 | 0.5791 &pm; 0.0649     | 0.9439 &pm; 0.1602     |
+| DMPNN               | 2.1.0   |      300 | 0.5305 &pm; 0.0474     | **0.9070 &pm; 0.1497** |
+| GAT                 | 2.1.0   |      500 | 0.5970 &pm; 0.0776     | 1.0107 &pm; 0.1554     |
+| GATv2               | 2.1.0   |      500 | 0.6390 &pm; 0.0467     | 1.1203 &pm; 0.1491     |
+| GCN                 | 2.1.0   |      800 | 0.7766 &pm; 0.0774     | 1.3245 &pm; 0.2008     |
+| GIN                 | 2.1.0   |      300 | 0.7161 &pm; 0.0492     | 1.1171 &pm; 0.1233     |
+| GIN.make_model_edge | 2.1.0   |      300 | 0.6285 &pm; 0.0588     | 1.0457 &pm; 0.1458     |
+| GraphSAGE           | 2.1.0   |      500 | 0.5667 &pm; 0.0577     | 0.9861 &pm; 0.1328     |
+| HamNet              | 2.1.0   |      400 | 0.6395 &pm; 0.0496     | 1.0508 &pm; 0.0827     |
+| INorp               | 2.1.0   |      500 | 0.6448 &pm; 0.0607     | 1.0911 &pm; 0.1530     |
+| MAT                 | 2.1.1   |      400 | 0.8477 &pm; 0.0488     | 1.2582 &pm; 0.0810     |
+| MEGAN               | 2.1.1   |      400 | 0.5689 &pm; 0.0735     | 0.9689 &pm; 0.1602     |
+| Megnet              | 2.1.0   |      800 | 0.9749 &pm; 0.0429     | 1.5328 &pm; 0.0862     |
+| NMPN                | 2.1.0   |      800 | 0.5733 &pm; 0.0392     | 0.9861 &pm; 0.0816     |
+| PAiNN               | 2.1.0   |      250 | **0.5128 &pm; 0.0565** | 0.9403 &pm; 0.1387     |
+| Schnet              | 2.1.0   |      800 | 0.5980 &pm; 0.0556     | 1.0614 &pm; 0.1531     |
+
+#### PROTEINSDataset
+
+TUDataset of proteins that are classified as enzymes or non-enzymes. Nodes represent the amino acids of the protein. We use random 5-fold cross-validation. 
+
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.0   |      200 | 0.7296 &pm; 0.0126     | 0.7967 &pm; 0.0264     |
+| CMPNN       | 2.1.0   |      600 | 0.7377 &pm; 0.0164     | 0.7532 &pm; 0.0174     |
+| DMPNN       | 2.1.0   |      300 | 0.7395 &pm; 0.0300     | **0.8038 &pm; 0.0365** |
+| GAT         | 2.1.0   |      500 | 0.7314 &pm; 0.0283     | 0.7884 &pm; 0.0404     |
+| GATv2       | 2.1.0   |      500 | 0.6999 &pm; 0.0266     | 0.7137 &pm; 0.0177     |
+| GIN         | 2.1.0   |      150 | 0.7098 &pm; 0.0357     | 0.7437 &pm; 0.0454     |
+| GraphSAGE   | 2.1.0   |      500 | 0.6937 &pm; 0.0273     | 0.7263 &pm; 0.0391     |
+| INorp       | 2.1.0   |      500 | 0.7242 &pm; 0.0359     | 0.7333 &pm; 0.0228     |
+| MEGAN       | 2.1.1   |      200 | **0.7449 &pm; 0.0222** | 0.8015 &pm; 0.0195     |
+
+#### Tox21MolNetDataset
+
+Tox21 (MoleculeNet) consists of 7831 compounds as smiles and 12 different targets relevant to drug toxicity. We use random 5-fold cross-validation. 
+
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               | BACC                   |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| AttentiveFP | 2.2.1   |       50 | 0.9352 &pm; 0.0022     | 0.8127 &pm; 0.0100     | 0.6872 &pm; 0.0096     |
+| CMPNN       | 2.2.1   |       30 | 0.9311 &pm; 0.0050     | 0.7769 &pm; 0.0344     | 0.6127 &pm; 0.0724     |
+| DMPNN       | 2.2.1   |       50 | **0.9385 &pm; 0.0015** | 0.8295 &pm; 0.0103     | 0.6906 &pm; 0.0069     |
+| GAT         | 2.2.1   |       50 | 0.9365 &pm; 0.0019     | 0.8309 &pm; 0.0053     | 0.6540 &pm; 0.0102     |
+| GATv2       | 2.2.1   |       50 | 0.9366 &pm; 0.0019     | 0.8305 &pm; 0.0051     | 0.6775 &pm; 0.0093     |
+| GIN         | 2.2.1   |       50 | 0.9358 &pm; 0.0031     | 0.8284 &pm; 0.0095     | 0.6986 &pm; 0.0129     |
+| GraphSAGE   | 2.2.1   |      100 | 0.9286 &pm; 0.0042     | 0.8092 &pm; 0.0079     | **0.7056 &pm; 0.0087** |
+| INorp       | 2.2.1   |       50 | 0.9335 &pm; 0.0032     | 0.8256 &pm; 0.0080     | 0.6854 &pm; 0.0119     |
+| MEGAN       | 2.2.1   |       50 | 0.9374 &pm; 0.0033     | **0.8389 &pm; 0.0094** | 0.6627 &pm; 0.0133     |
+| Schnet      | 2.2.1   |       50 | 0.9336 &pm; 0.0026     | 0.7856 &pm; 0.0054     | 0.6591 &pm; 0.0144     |
+
+#### ClinToxDataset
+
+ClinTox (MoleculeNet) consists of 1478 compounds as smiles and data of drugs approved by the FDA and those that have failed clinical trials for toxicity reasons. We use random 5-fold cross-validation. The first label 'approved' is chosen as target.
+
+| model       | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:------------|:--------|---------:|:-----------------------|:-----------------------|
+| AttentiveFP | 2.1.1   |       50 | 0.9372 &pm; 0.0095     | 0.8317 &pm; 0.0426     |
+| CMPNN       | 2.1.1   |       30 | 0.9365 &pm; 0.0216     | 0.8067 &pm; 0.0670     |
+| DMPNN       | 2.1.1   |       50 | 0.9385 &pm; 0.0146     | **0.8519 &pm; 0.0271** |
+| GAT         | 2.1.1   |       50 | 0.9338 &pm; 0.0164     | 0.8354 &pm; 0.0487     |
+| GATv2       | 2.1.1   |       50 | 0.9378 &pm; 0.0087     | 0.8331 &pm; 0.0663     |
+| GIN         | 2.1.1   |       50 | 0.9277 &pm; 0.0139     | 0.8244 &pm; 0.0478     |
+| GraphSAGE   | 2.1.1   |      100 | 0.9385 &pm; 0.0099     | 0.7795 &pm; 0.0744     |
+| INorp       | 2.1.1   |       50 | 0.9304 &pm; 0.0106     | 0.7826 &pm; 0.0573     |
+| MEGAN       | 2.1.1   |       50 | **0.9493 &pm; 0.0130** | 0.8394 &pm; 0.0608     |
+| Schnet      | 2.1.1   |       50 | 0.9318 &pm; 0.0078     | 0.6807 &pm; 0.0745     |
+
+#### QM7Dataset
+
+QM7 dataset is a subset of GDB-13. Molecules of up to 23 atoms (including 7 heavy atoms C, N, O, and S), totalling 7165 molecules. We use dataset-specific 5-fold cross-validation. The atomization energies are given in kcal/mol and are ranging from -800 to -2000 kcal/mol). 
+
+| model     | kgcnn   |   epochs | MAE [kcal/mol]         | RMSE [kcal/mol]        |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| DimeNetPP | 2.1.1   |      872 | 2.7266 &pm; 0.1022     | 6.1305 &pm; 0.9606     |
+| EGNN      | 2.1.1   |      800 | 1.6182 &pm; 0.1712     | 3.8677 &pm; 0.7640     |
+| HDNNP2nd  | 2.2.0   |      500 | 12.3555 &pm; 2.6972    | 25.6856 &pm; 11.3776   |
+| MEGAN     | 2.1.1   |      800 | 10.4494 &pm; 1.6076    | 11.5596 &pm; 1.5710    |
+| Megnet    | 2.1.1   |      800 | 1.4626 &pm; 0.0818     | 3.1522 &pm; 0.2409     |
+| MXMNet    | 2.1.1   |      900 | **1.1078 &pm; 0.0799** | **2.8693 &pm; 0.7399** |
+| NMPN      | 2.1.1   |      500 | 6.4698 &pm; 0.8256     | 35.0397 &pm; 4.3985    |
+| PAiNN     | 2.1.1   |      872 | 1.2715 &pm; 0.0235     | 4.4958 &pm; 1.8048     |
+| Schnet    | 2.1.1   |      800 | 2.5840 &pm; 0.3479     | 10.3788 &pm; 9.1047    |
+
+#### QM9Dataset
+
+QM9 dataset of 134k stable small organic molecules made up of C,H,O,N,F. Labels include geometric, energetic, electronic, and thermodynamic properties. We use a random 10-fold cross-validation, but not all splits are evaluated for cheaper evaluation. Test errors are MAE and for energies are given in [eV]. 
+
+| model     | kgcnn   |   epochs | HOMO [eV]              | LUMO [eV]              | U0 [eV]                | H [eV]                 | G [eV]                 |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| DimeNetPP | 2.1.0   |      600 | 0.0242 &pm; 0.0006     | 0.0209 &pm; 0.0002     | 0.0073 &pm; 0.0003     | **0.0073 &pm; 0.0003** | 0.0084 &pm; 0.0004     |
+| EGNN      | 2.1.1   |      800 | 0.0273 &pm; 0.0004     | 0.0226 &pm; 0.0011     | 0.0081 &pm; 0.0002     | 0.0090 &pm; 0.0004     | 0.0095 &pm; 0.0005     |
+| Megnet    | 2.1.0   |      800 | 0.0423 &pm; 0.0014     | 0.0354 &pm; 0.0008     | 0.0136 &pm; 0.0006     | 0.0135 &pm; 0.0001     | 0.0140 &pm; 0.0002     |
+| MXMNet    | 2.1.1   |      900 | **0.0238 &pm; 0.0012** | **0.0203 &pm; 0.0007** | **0.0067 &pm; 0.0001** | 0.0074 &pm; 0.0008     | **0.0079 &pm; 0.0008** |
+| NMPN      | 2.1.0   |      700 | 0.0627 &pm; 0.0013     | 0.0618 &pm; 0.0006     | 0.0385 &pm; 0.0011     | 0.0382 &pm; 0.0005     | 0.0365 &pm; 0.0005     |
+| PAiNN     | 2.1.0   |      872 | 0.0287 &pm; 0.0068     | 0.0230 &pm; 0.0005     | 0.0075 &pm; 0.0002     | 0.0075 &pm; 0.0003     | 0.0087 &pm; 0.0002     |
+| Schnet    | 2.1.0   |      800 | 0.0351 &pm; 0.0005     | 0.0293 &pm; 0.0006     | 0.0116 &pm; 0.0004     | 0.0117 &pm; 0.0004     | 0.0120 &pm; 0.0002     |
+
+#### SIDERDataset
+
+SIDER (MoleculeNet) consists of 1427 compounds as smiles and data for adverse drug reactions (ADR), grouped into 27 system organ classes. We use random 5-fold cross-validation.
+
+| model     | kgcnn   |   epochs | Accuracy               | AUC(ROC)               |
+|:----------|:--------|---------:|:-----------------------|:-----------------------|
+| CMPNN     | 2.1.0   |       30 | 0.7360 &pm; 0.0048     | 0.5729 &pm; 0.0303     |
+| DMPNN     | 2.1.0   |       50 | 0.6866 &pm; 0.1280     | 0.5942 &pm; 0.0508     |
+| GAT       | 2.1.0   |       50 | 0.7559 &pm; 0.0078     | 0.6064 &pm; 0.0209     |
+| GATv2     | 2.1.0   |       50 | 0.7515 &pm; 0.0066     | 0.6026 &pm; 0.0199     |
+| GIN       | 2.1.0   |       50 | 0.7438 &pm; 0.0075     | 0.6109 &pm; 0.0256     |
+| GraphSAGE | 2.1.0   |       30 | 0.7542 &pm; 0.0080     | 0.5946 &pm; 0.0151     |
+| INorp     | 2.1.0   |       50 | 0.7471 &pm; 0.0105     | 0.5836 &pm; 0.0211     |
+| MEGAN     | 2.1.1   |      150 | 0.7440 &pm; 0.0077     | **0.6186 &pm; 0.0160** |
+| Schnet    | 2.1.0   |       50 | **0.7581 &pm; 0.0037** | 0.6075 &pm; 0.0143     |
+
+#### MD17Dataset
+
+Energies and forces for molecular dynamics trajectories of eight organic molecules. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. Results are for the CCSD and CCSD(T) data in MD17. 
+
+| model                      | kgcnn   |   epochs | Aspirin             | Toluene             | Malonaldehyde       | Benzene             | Ethanol             |
+|:---------------------------|:--------|---------:|:--------------------|:--------------------|:--------------------|:--------------------|:--------------------|
+| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5366 &pm; nan** | **0.2380 &pm; nan** | **0.3653 &pm; nan** | 0.0861 &pm; nan     | **0.2221 &pm; nan** |
+| EGNN.EnergyForceModel      | 2.2.2   |     1000 | 1.8978 &pm; nan     | 0.9314 &pm; nan     | 0.9255 &pm; nan     | 0.3273 &pm; nan     | 0.5286 &pm; nan     |
+| Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.2431 &pm; nan     | 1.0476 &pm; nan     | 1.7242 &pm; nan     | 0.5225 &pm; nan     | 1.4967 &pm; nan     |
+| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.3700 &pm; nan     | 0.5998 &pm; nan     | 0.7752 &pm; nan     | 0.3669 &pm; nan     | 0.4451 &pm; nan     |
+| NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.1429 &pm; nan     | 0.6937 &pm; nan     | 0.6134 &pm; nan     | 0.4112 &pm; nan     | 0.3220 &pm; nan     |
+| PAiNN.EnergyForceModel     | 2.2.2   |     1000 | 0.8388 &pm; nan     | 0.2704 &pm; nan     | 0.7121 &pm; nan     | **0.0448 &pm; nan** | 0.5373 &pm; nan     |
+| Schnet.EnergyForceModel    | 2.2.2   |     1000 | 1.0816 &pm; nan     | 0.6011 &pm; nan     | 0.5777 &pm; nan     | 0.2924 &pm; nan     | 0.4020 &pm; nan     |
+
+#### MD17RevisedDataset
+
+Energies and forces for molecular dynamics trajectories. All geometries in A, energy labels in kcal/mol and force labels in kcal/mol/A. We use preset train-test split. Training on 1000 geometries, test on 500/1000 geometries. Errors are MAE for forces. 
+
+| model                      | kgcnn   |   epochs | Aspirin                | Toluene                | Malonaldehyde          | Benzene                | Ethanol                |
+|:---------------------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| DimeNetPP.EnergyForceModel | 2.2.0   |     1000 | **0.5605 &pm; 0.0201** | **0.2207 &pm; 0.0117** | **0.4053 &pm; 0.0107** | 0.0656 &pm; 0.0055     | **0.2447 &pm; 0.0135** |
+| EGNN.EnergyForceModel      | 2.2.2   |     1000 | 2.0576 &pm; 0.1748     | 0.8262 &pm; 0.0383     | 1.0048 &pm; 0.0401     | 0.3059 &pm; 0.0141     | 0.5360 &pm; 0.0365     |
+| Megnet.EnergyForceModel    | 2.2.0   |     1000 | 2.3214 &pm; 0.2942     | 3.8695 &pm; 5.2614     | 1.6904 &pm; 0.1626     | 0.5341 &pm; 0.0907     | 1.2936 &pm; 0.0536     |
+| MXMNet.EnergyForceModel    | 2.2.0   |     1000 | 1.8941 &pm; 0.0502     | 1.0880 &pm; 0.0628     | 1.2041 &pm; 0.0399     | 0.3573 &pm; 0.0302     | 0.6136 &pm; 0.0297     |
+| NMPN.EnergyForceModel      | 2.2.0   |     1000 | 1.0653 &pm; 0.0263     | 0.6971 &pm; 0.0772     | 0.6197 &pm; 0.0327     | 0.3596 &pm; 0.0401     | 0.3444 &pm; 0.0219     |
+| PAiNN.EnergyForceModel     | 2.2.2   |     1000 | 0.7901 &pm; 0.0062     | 0.2497 &pm; 0.0049     | 0.7496 &pm; 0.0109     | **0.0414 &pm; 0.0014** | 0.5676 &pm; 0.0215     |
+| Schnet.EnergyForceModel    | 2.2.2   |     1000 | 0.9862 &pm; 0.0095     | 0.5378 &pm; 0.0036     | 0.6461 &pm; 0.0093     | 0.2521 &pm; 0.0074     | 0.4270 &pm; 0.0115     |
+
+#### ISO17Dataset
+
+The database consist of 129 molecules each containing 5,000 conformational geometries, energies and forces with a resolution of 1 femtosecond in the molecular dynamics trajectories. The molecules were randomly drawn from the largest set of isomers in the QM9 dataset. 
+
+| model                   | kgcnn   |   epochs | Energy (test_within)   | Force (test_within)   |
+|:------------------------|:--------|---------:|:-----------------------|:----------------------|
+| Schnet.EnergyForceModel | 2.2.2   |     1000 | **0.0059 &pm; nan**    | **0.0132 &pm; nan**   |
+
+#### VgdMockDataset
+
+Synthetic classification dataset containing 100 small, randomly generated graphs, where half of them were seeded with a triangular subgraph motif, which is the explanation ground truth for the target class distinction.
+
+| model            | kgcnn   |   epochs | Categorical Accuracy   | Node AUC               | Edge AUC               |
+|:-----------------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| GCN_GnnExplainer | 2.2.1   |      100 | 0.8700 &pm; 0.1122     | 0.7621 &pm; 0.0357     | 0.6051 &pm; 0.0416     |
+| MEGAN            | 2.2.0   |      100 | **0.9400 &pm; 0.0490** | **0.8873 &pm; 0.0250** | **0.9518 &pm; 0.0241** |
+
+#### VgdRbMotifsDataset
+
+Synthetic graph regression dataset consisting of 5000 small, randomly generated graphs, where some of them are seeded with special red- or blue-dominated subgraph motifs, where blue motifs contribute negatively to a graph's overall target value and red motifs contribute positively. The explanation ground truth for this datasets consists of these motifs.
+
+| model   | kgcnn   |   epochs | MSE                    | Node AUC               | Edge AUC               |
+|:--------|:--------|---------:|:-----------------------|:-----------------------|:-----------------------|
+| MEGAN   | 2.2.0   |      100 | **0.2075 &pm; 0.0421** | **0.9051 &pm; 0.0130** | **0.8096 &pm; 0.0414** |
+

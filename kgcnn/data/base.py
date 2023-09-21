@@ -678,8 +678,8 @@ class MemoryGraphDataset(MemoryGraphList):
         out_indices = []
 
         if split_index is None:
-            max_index = np.amax(np.concatenate(self.obtain_property(train), axis=0))
-            split_index = [i for i in range(max_index+1)]
+            train_to_check = self.obtain_property(train)
+            split_index = np.sort(np.unique(np.concatenate([x for x in train_to_check if x is not None], axis=0)))
         if not isinstance(split_index, (list, tuple)):
             split_index_list: List[int] = [split_index]
         else:
