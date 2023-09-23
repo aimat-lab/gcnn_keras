@@ -12,6 +12,7 @@ dependencies:
   - pip>=20.1  # pip is needed as dependency
   - pandoc
   - pip:
+    - keras-core
     - jinja2==3.0.3
     - numpy
     - tensorflow-cpu

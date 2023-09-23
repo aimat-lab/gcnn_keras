@@ -7,14 +7,17 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   kgcnn.backend
    kgcnn.crystal
    kgcnn.data
    kgcnn.graph
+   kgcnn.initializers
    kgcnn.io
    kgcnn.layers
    kgcnn.literature
+   kgcnn.losses
    kgcnn.metrics
-   kgcnn.model
+   kgcnn.models
    kgcnn.molecule
    kgcnn.ops
    kgcnn.training

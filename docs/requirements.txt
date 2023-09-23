@@ -1,3 +1,4 @@
+keras-core
 sphinx==3.4.3
 sphinx_rtd_theme
 jinja2==3.0.0
