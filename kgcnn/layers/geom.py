@@ -11,13 +11,9 @@ from kgcnn.ops.axis import get_positive_axis
 class NodePosition(Layer):
     r"""Get node position for directed edges via node indices.
 
-    Directly calls :obj:`GatherNodesSelection` with provided index tensor.
+    Directly calls :obj:`GatherNodes` with provided index tensor.
     Returns separate node position tensor for each of the indices. Index selection must be provided
-    in the constructor. Defaults to first two indices of an edge. This layer simply implements:
-
-    .. code-block:: python
-
-        GatherNodesSelection([0,1])([position, indices])
+    in the constructor. Defaults to first two indices of an edge.
 
     A distance based edge is defined by two bond indices of the index list of shape `(batch, [M], 2)`
     with last dimension of incoming and outgoing node (message passing framework).

@@ -3,7 +3,7 @@ from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.core import repeat_static_length
 from kgcnn.ops.scatter import scatter_reduce_sum
-# from keras_core.backend import backend
+from keras_core.backend import is_keras_tensor as is_tensor
 
 
 def pad_left(t):
@@ -97,7 +97,7 @@ class CastBatchedIndicesToDisjoint(Layer):
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
-        all_tensor = all([ops.is_tensor(x) for x in inputs])
+        all_tensor = all([is_tensor(x) for x in inputs])
 
         nodes, edge_indices, node_len, edge_len = inputs
 
@@ -247,7 +247,7 @@ class CastBatchedAttributesToDisjoint(Layer):
                 - item_id (Tensor):
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        all_tensor = all([ops.is_tensor(x) for x in inputs])
+        all_tensor = all([is_tensor(x) for x in inputs])
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint

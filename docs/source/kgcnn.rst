@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   kgcnn.backend
    kgcnn.crystal
    kgcnn.data
    kgcnn.graph

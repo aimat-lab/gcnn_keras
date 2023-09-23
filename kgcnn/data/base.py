@@ -744,7 +744,17 @@ class MemoryGraphDataset(MemoryGraphList):
         return self
 
     def set_multi_target_labels(self, graph_labels: str = "graph_labels", multi_target_indices: list = None,
-                                data_unit: str = None):
+                                data_unit: Union[str, list] = None):
+        """Select multiple targets in labels.
+
+        Args:
+            graph_labels (str): Name of the property that holds multiple targets.
+            multi_target_indices (list): List of indices of targets to select.
+            data_unit (str, list): Optional list of data units for all labels in `graph_labels` .
+
+        Returns:
+            tuple: List of label names and label units for each target.
+        """
 
         labels = np.array(self.obtain_property(graph_labels))
         label_names = self.label_names if hasattr(self, "label_names") else None
@@ -768,6 +778,18 @@ class MemoryGraphDataset(MemoryGraphList):
 
     def set_train_test_indices_k_fold(self, n_splits: int = 5, shuffle: bool = False, random_state: int = None,
                                       train: str = "train", test: str = "test"):
+        """Helper function to set train/test indices for each graph in the list from a random k-fold cross-validation.
+
+        Args:
+            n_splits (int): Number of splits.
+            shuffle (bool): Whether to shuffle indices.
+            random_state (int): Random seed for split.
+            train (str): Property to assign train indices to.
+            test (str): Property to assign test indices to.
+
+        Returns:
+            None.
+        """
         kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
         for x in self:
             x.set(train, [])
