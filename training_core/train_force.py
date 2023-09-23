@@ -80,7 +80,7 @@ postfix_file = hyper["info"]["postfix_file"]
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
 splits_done, current_split = 0, None
 train_indices_all, test_indices_all = [], []
-model = None
+model, scaled_predictions = None, False
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
     # Keep list of train/test indices.
@@ -126,6 +126,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
                 mae_metric_energy.set_scale(scaler_scale)
                 mae_metric_force.set_scale(scaler_scale)
             scaled_metrics = {"energy": [mae_metric_energy], "force": [mae_metric_force]}
+            scaled_predictions = True
 
         # Save scaler to file
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
@@ -145,12 +146,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
 
     # Convert targets into tensors.
-    labels_in_dataset = {
-        "energy": {"name": "energy"},
-        "force": {"name": "force", "shape": (None, 3)}
-    }
-    y_train = dataset_train.tensor(labels_in_dataset)
-    y_test = dataset_test.tensor(labels_in_dataset)
+    y_train = dataset_train.tensor(hyper["model"]["config"]["outputs"])
+    y_test = dataset_test.tensor(hyper["model"]["config"]["outputs"])
 
     # Start and time training
     start = time.time()
@@ -174,13 +171,15 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     plot_predict_true(np.array(predicted_y["energy"]), np.array(true_y["energy"]),
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
-                      file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png")
+                      file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png",
+                      scaled_predictions=scaled_predictions)
 
     plot_predict_true(np.concatenate([np.array(f) for f in predicted_y["force"]], axis=0),
                       np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
-                      file_name=f"predict_force{postfix_file}_fold_{splits_done}.png")
+                      file_name=f"predict_force{postfix_file}_fold_{splits_done}.png",
+                      scaled_predictions=scaled_predictions)
 
     # Save last keras-model to output-folder.
     model.save(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.keras"))

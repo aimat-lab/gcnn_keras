@@ -43,7 +43,9 @@ hyper = {
                         "use_output_mlp": False,
                         "output_mlp": None
                     }
-                }
+                },
+                "outputs": {"energy": {"name": "energy", "shape": (1,)},
+                            "force": {"name": "force", "shape": (None, 3)}}
             }
         },
         "training": {

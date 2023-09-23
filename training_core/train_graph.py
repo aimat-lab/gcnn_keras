@@ -75,7 +75,7 @@ label_names, label_units = dataset.set_multi_target_labels(
 # Iterate over the cross-validation splits.
 # Indices for train-test splits are stored in 'test_indices_list'.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-model, current_split = None, None
+model, current_split, scaled_predictions = None, None, False
 train_indices_all, test_indices_all = [], []
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
@@ -119,6 +119,7 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
                 mae_metric.set_scale(scaler_scale)
                 rms_metric.set_scale(scaler_scale)
             scaled_metrics = [mae_metric, rms_metric]
+            scaled_predictions = True
 
         # Save scaler to file
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
@@ -162,7 +163,8 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     plot_predict_true(predicted_y, true_y,
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
-                      file_name=f"predict{postfix_file}_fold_{current_split}.png", show_fig=False)
+                      file_name=f"predict{postfix_file}_fold_{current_split}.png", show_fig=False,
+                      scaled_predictions=scaled_predictions)
 
     # Save last keras-model to output-folder.
     model.save(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.keras"))

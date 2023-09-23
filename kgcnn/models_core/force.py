@@ -20,7 +20,8 @@ class EnergyForceModel(ks.models.Model):
                  nested_model_config: bool = True,
                  is_physical_force: bool = True,
                  use_batch_jacobian: bool = True,
-                 name: str = None
+                 name: str = None,
+                 outputs: Union[dict, list] = None
                  ):
 
         super().__init__()
