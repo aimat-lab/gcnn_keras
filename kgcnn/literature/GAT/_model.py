@@ -105,7 +105,7 @@ def make_model(inputs: list = None,
         output_scaling (dict): Dictionary of layer arguments unpacked in scaling layers. Default is None.
 
     Returns:
-        :obj:`tf.keras.models.Model`
+        :obj:`ks.models.Model`
     """
     # Make input
     model_inputs = [ks.layers.Input(**x) for x in inputs]

@@ -3,7 +3,6 @@ from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.core import repeat_static_length
 from kgcnn.ops.scatter import scatter_reduce_sum
-from keras_core.backend import is_keras_tensor as is_tensor
 
 
 def pad_left(t):
@@ -97,14 +96,12 @@ class CastBatchedIndicesToDisjoint(Layer):
                 - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
                 - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
-        all_tensor = all([is_tensor(x) for x in inputs])
-
         nodes, edge_indices, node_len, edge_len = inputs
 
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
         # graph representation.
-        if not all_tensor:
+        if self._has_ragged_input:
             raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
 
         if self.dtype_batch is None:
@@ -196,10 +193,11 @@ class CastBatchedIndicesToDisjoint(Layer):
 class CastBatchedAttributesToDisjoint(Layer):
 
     def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
-                 padded_disjoint: bool = False, **kwargs):
+                 padded_disjoint: bool = False, ragged: bool = False, **kwargs):
         super(CastBatchedAttributesToDisjoint, self).__init__(**kwargs)
         self.reverse_indices = reverse_indices
         self.dtype_batch = dtype_batch
+        self._has_ragged_input = ragged
         self.padded_disjoint = padded_disjoint
         self.supports_jit = padded_disjoint
         self.dtype_index = dtype_index
@@ -247,12 +245,10 @@ class CastBatchedAttributesToDisjoint(Layer):
                 - item_id (Tensor):
                 - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        all_tensor = all([is_tensor(x) for x in inputs])
-
         # Case: Ragged Tensor input.
         # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
         # graph representation.
-        if not all_tensor:
+        if self._has_ragged_input:
             raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
 
         nodes, node_len = inputs
