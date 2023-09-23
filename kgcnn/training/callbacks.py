@@ -1,9 +1,7 @@
-# import numpy as np
-import tensorflow as tf
-ks = tf.keras
+import keras_core as ks
+import keras_core.callbacks
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='LearningRateLoggingCallback')
 class LearningRateLoggingCallback(ks.callbacks.Callback):
     """Callback logging the learning rate."""
 
@@ -26,10 +24,9 @@ class LearningRateLoggingCallback(ks.callbacks.Callback):
         Returns:
             None.
         """
-        lr = self.model.optimizer.lr
-        tf.summary.scalar('learning rate', data=lr, step=epoch)
+        lr = self.model.optimizer.learning_rate
         logs = logs or {}
-        logs['lr'] = ks.backend.get_value(self.model.optimizer.lr)
+        logs['lr'] = float(ks.backend.convert_to_numpy(self.model.optimizer.learning_rate))
         if self.verbose > 0:
             print("\nEpoch %05d: Finished epoch with learning rate: %s.\n" % (epoch + 1, logs['lr']))
 

@@ -1,64 +1,54 @@
-import tensorflow as tf
+from keras_core.backend import backend
 import logging
-from typing import Union
-
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
-def set_devices_gpu(gpu_ids_list: Union[list, int], restrict_memory: bool = True):
-    r"""Set the visible devices from a list of GPUs. Used to assign a process to a separate GPU.
+def check_device():
 
-    .. note::
+    if backend() == "tensorflow":
+        import tensorflow as tf
+        cuda_is_available = tf.test.is_built_with_gpu_support() and tf.test.is_built_with_cuda()
+        physical_device_list = tf.config.list_physical_devices()
+        if physical_device_list:
+            physical_device_name = [
+                tf.config.experimental.get_device_details(x) for x in physical_device_list]
+        else:
+            physical_device_name = []
+        logical_device_list = tf.config.experimental.list_logical_devices()
+        if physical_device_name:
+            try:
+                memory_info = [tf.config.experimental.get_memory_info(x.name) for x in physical_device_list]
+            except (TypeError, ValueError):
+                memory_info = []
+        else:
+            memory_info = []
 
-        Important is to restrict memory growth since a single tensorflow process will allocate almost all
-        GPU memory, so for example two fits can not run on same GPU.
+    elif backend() == "torch":
+        import torch
+        cuda_is_available = torch.cuda.is_available()
+        physical_device_name = [torch.cuda.get_device_name(x) for x in range(torch.cuda.device_count())]
+        logical_device_list = [x for x in range(torch.cuda.device_count())]
+        memory_info = [{"allocated": round(torch.cuda.memory_allocated(i)/1024**3, 1),
+                        "cached": round(torch.cuda.memory_reserved(i)/1024**3, 1)} for i in logical_device_list]
+    elif backend() == "jax":
+        import jax
+        jax_devices = jax.devices()
+        cuda_is_available = any([x.device_kind == "gpu" for x in jax_devices])
+        physical_device_name = [x for x in jax_devices]
+        logical_device_list = [x.id for x in jax_devices]
+        memory_info = [x.memory_stats() for x in jax_devices]
 
-    Args:
-        gpu_ids_list (list): Device list.
-        restrict_memory (bool): Whether to restrict memory growth. Default is True.
+    else:
+        raise NotImplementedError("Backend %s is not supported for `check_device_cuda` .")
 
-    Returns:
-        None.
-    """
-    if gpu_ids_list is None:
-        return
-
-    if isinstance(gpu_ids_list, int):
-        gpu_ids_list = [gpu_ids_list]
-
-    if len(gpu_ids_list) <= 0:
-        module_logger.info("No gpu to set")
-        return
-
-    if tf.test.is_built_with_gpu_support() is False and tf.test.is_built_with_cuda() is False:
-        module_logger.warning("No cuda support")
-        module_logger.warning("Can not set GPU")
-        return
-
-    try:
-        gpus = tf.config.list_physical_devices('GPU')
-    except:
-        module_logger.error("Can not get device list, do nothing.")
-        return
-
-    if isinstance(gpus, list):
-        if len(gpus) <= 0:
-            module_logger.warning("No devices found")
-            module_logger.warning("Can not set GPU")
-            return
-        try:
-            gpus_used = [gpus[i] for i in gpu_ids_list if 0 <= i < len(gpus)]
-            tf.config.set_visible_devices(gpus_used, 'GPU')
-            module_logger.info("Setting visible devices: %s" % gpus_used)
-            if restrict_memory:
-                for gpu in gpus_used:
-                    module_logger.info("Restrict Memory: %s" % gpu.name)
-                    tf.config.experimental.set_memory_growth(gpu, True)
-            logical_gpus = tf.config.experimental.list_logical_devices("GPU")
-            module_logger.info("Physical GPUS: %s, Logical GPUS: %s" % (len(gpus), len(logical_gpus)))
-        except RuntimeError as e:
-            # Visible devices must be set before GPUs have been initialized
-            print(e)
+    out_info = {
+        "cuda_available": "%s" % cuda_is_available,
+        "device_name": "%s" % physical_device_name,
+        "device_id": "%s" % logical_device_list,
+        "device_memory": "%s" % memory_info,
+    }
+    module_logger.info("GPU: Device information: %s." % out_info)
+    return out_info

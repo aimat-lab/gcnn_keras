@@ -6,11 +6,15 @@ hyper = {
             "config": {
                 "name": "GCN",
                 "inputs": [
-                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 95, "output_dim": 64},
-                                    "edge": {"input_dim": 10, "output_dim": 64}},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "gcn_args": {"units": 140, "use_bias": True, "activation": "relu"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
@@ -34,9 +38,9 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", "AUC"]
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config":{"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -50,14 +54,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GATv2": {
@@ -67,15 +72,18 @@ hyper = {
             "config": {
                 "name": "GATv2",
                 "inputs": [
-                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 5, "output_dim": 64}},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 64},
                 "attention_args": {"units": 140, "use_bias": True, "use_edge_features": True,
                                    "use_final_activation": False, "has_self_loops": True},
-                "pooling_nodes_args": {"pooling_method": "mean"},
+                "pooling_nodes_args": {"pooling_method": "scatter_mean"},
                 "depth": 5, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
@@ -97,9 +105,9 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 5e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", "AUC"]
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -113,14 +121,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}},
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GAT": {
@@ -130,15 +139,18 @@ hyper = {
             "config": {
                 "name": "GAT",
                 "inputs": [
-                        {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                        {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 5, "output_dim": 64}},
-                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True,
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 8, "output_dim": 64},
+                "attention_args": {"units": 70, "use_bias": True, "use_edge_features": True, "activation": "relu",
                                    "use_final_activation": False, "has_self_loops": True},
-                "pooling_nodes_args": {"pooling_method": "mean"},
+                "pooling_nodes_args": {"pooling_method": "scatter_mean"},
                 "depth": 1, "attention_heads_num": 10,
                 "attention_heads_concat": False, "verbose": 10,
                 "output_embedding": "node",
@@ -160,9 +172,9 @@ hyper = {
                 ]
             },
             "compile": {
-                "optimizer": {"class_name": "Adam", "config": {"lr": 1e-03}},
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-03}},
                 "loss": "categorical_crossentropy",
-                "weighted_metrics": ["categorical_accuracy", "AUC"]
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -176,14 +188,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GraphSAGE": {
@@ -193,18 +206,22 @@ hyper = {
             "config": {
                 "name": "GraphSAGE",
                 "inputs": [
-                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32", "ragged": True},
-                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {
-                    "node": {"input_dim": 95, "output_dim": 64},
-                    "edge": {"input_dim": 95, "output_dim": 64}},
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 1], "name": "edge_weights", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
+                "input_edge_embedding": {"input_dim": 25, "output_dim": 1},
                 "node_mlp_args": {"units": [70, 70], "use_bias": True, "activation": ["relu", "linear"]},
                 "edge_mlp_args": {"units": 70, "use_bias": True, "activation": "relu"},
-                "pooling_args": {"pooling_method": "segment_sum"}, "gather_args": {},
+                "pooling_args": {"pooling_method": "scatter_sum"},
+                "gather_args": {},
                 "concat_args": {"axis": -1},
                 "use_edge_features": False,
-                "pooling_nodes_args": {"pooling_method": "mean"},
+                "pooling_nodes_args": {"pooling_method": "scatter_mean"},
                 "depth": 3, "verbose": 10,
                 "output_embedding": "node",
                 "output_mlp": {"use_bias": [True, True, False], "units": [70, 70, 70],
@@ -217,8 +234,10 @@ hyper = {
                                "config": {"learning_rate_start": 0.5e-3, "learning_rate_stop": 1e-5,
                                    "epo_min": 400, "epo": 600, "verbose": 0}}]
             },
-            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 5e-3}},
-                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 5e-3}},
+                "loss": "categorical_crossentropy",
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -232,14 +251,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
     "GIN": {
@@ -248,9 +268,14 @@ hyper = {
             "module_name": "kgcnn.literature.GIN",
             "config": {
                 "name": "GIN",
-                "inputs": [{"shape": [None, 8710], "name": "node_attributes", "dtype": "float32", "ragged": True},
-                           {"shape": [None, 2], "name": "edge_indices", "dtype": "int64", "ragged": True}],
-                "input_embedding": {"node": {"input_dim": 96, "output_dim": 64}},
+                "inputs": [
+                    {"shape": [None, 8710], "name": "node_attributes", "dtype": "float32"},
+                    {"shape": [None, 2], "name": "edge_indices", "dtype": "int64"},
+                    {"shape": (), "name": "total_nodes", "dtype": "int64"},
+                    {"shape": (), "name": "total_edges", "dtype": "int64"}
+                ],
+                "cast_disjoint_kwargs": {"padded_disjoint": False},
+                "input_node_embedding": {"input_dim": 95, "output_dim": 64},
                 "depth": 4,
                 "dropout": 0.01,
                 "gin_mlp": {"units": [140, 140], "use_bias": True, "activation": ["relu", "linear"],
@@ -267,8 +292,10 @@ hyper = {
                                    "config": {"learning_rate_start": 1e-3, "learning_rate_stop": 1e-5,
                                        "epo_min": 600, "epo": 800, "verbose": 0}}]
             },
-            "compile": {"optimizer": {"class_name": "Adam", "config": {"lr": 1e-3}},
-                        "loss": "categorical_crossentropy", "weighted_metrics": ["categorical_accuracy", "AUC"]
+            "compile": {
+                "optimizer": {"class_name": "Adam", "config": {"learning_rate": 1e-3}},
+                "loss": "categorical_crossentropy",
+                "weighted_metrics": ["categorical_accuracy", {"class_name": "AUC", "config": {"name": "auc"}}]
             },
             "cross_validation": {"class_name": "KFold",
                                  "config": {"n_splits": 5, "random_state": 42, "shuffle": True}},
@@ -282,14 +309,15 @@ hyper = {
                 "methods": [
                     {"map_list": {"method": "make_undirected_edges"}},
                     {"map_list": {"method": "add_edge_self_loops"}},
-                    {"map_list": {"method": "normalize_edge_weights_sym"}}
+                    {"map_list": {"method": "normalize_edge_weights_sym"}},
+                    {"map_list": {"method": "count_nodes_and_edges"}}
                 ]
             },
         },
         "info": {
             "postfix": "",
             "postfix_file": "",
-            "kgcnn_version": "2.1.0"
+            "kgcnn_version": "4.0.0"
         }
     },
 }

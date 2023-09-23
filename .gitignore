@@ -7,13 +7,9 @@
 /training/results/*/*/*.pickle
 /training/results/*/*/*.png
 /training/results/*/*/scaler_*
-/training_core/results/*/*/*.npz
-/training_core/results/*/*/scaler*.npz
-/training_core/results/*/*/*.keras
-/training_core/results/*/*/*.pickle
-/training_core/results/*/*/scaler_*.json
-/training_core/results/*/*/*.png
-/training_core/results/*/*/*.weights.h5
+/training/results/*/*/*.keras
+/training/results/*/*/scaler_*.json
+/training/results/*/*/*.weights.h5
 /develop/
 build
 dist

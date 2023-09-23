@@ -1,11 +1,11 @@
-import numpy as np
-import tensorflow as tf
+import keras_core as ks
+import keras_core.saving
+import keras_core.optimizers.schedules.learning_rate_schedule
+# from keras_core import ops
 
-ks = tf.keras
 
-
-@ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialDecay')
-class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule):
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialDecay')
+class LinearWarmupExponentialDecay(ks.optimizers.schedules.learning_rate_schedule.LearningRateSchedule):
     r"""This schedule combines a linear warmup with an exponential decay.
     Combines :obj:` tf.optimizers.schedules.PolynomialDecay` with an actual increase during warmup
     and :obj:`tf.optimizers.schedules.ExponentialDecay` after.
@@ -36,9 +36,9 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
         super().__init__()
         self._input_config_settings = {"learning_rate": learning_rate, "warmup_steps": warmup_steps,
                                        "decay_steps": decay_steps, "decay_rate": decay_rate, "staircase": staircase}
-        self.warmup = tf.optimizers.schedules.PolynomialDecay(
+        self.warmup = ks.optimizers.schedules.PolynomialDecay(
             1 / warmup_steps, warmup_steps, end_learning_rate=1)
-        self.decay = tf.optimizers.schedules.ExponentialDecay(
+        self.decay = ks.optimizers.schedules.ExponentialDecay(
             learning_rate, decay_steps, decay_rate, staircase=staircase)
 
     def __call__(self, step):
@@ -67,9 +67,9 @@ class LinearWarmupExponentialDecay(tf.optimizers.schedules.LearningRateSchedule)
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='KerasPolynomialDecaySchedule')
+@ks.saving.register_keras_serializable(package='kgcnn', name='KerasPolynomialDecaySchedule')
 class KerasPolynomialDecaySchedule(ks.optimizers.schedules.PolynomialDecay):
-    r"""This schedule extends :obj:` tf.optimizers.schedules.PolynomialDecay` ."""
+    r"""This schedule inherits from :obj:` ks.optimizers.schedules.PolynomialDecay` ."""
 
     def __init__(self, dataset_size: int, batch_size: int, epochs: int, lr_start: float = 0.0005,
                  lr_stop: float = 1e-5):

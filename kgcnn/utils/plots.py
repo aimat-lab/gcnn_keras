@@ -1,7 +1,8 @@
+import os
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-import os
+import keras_core as ks
+import keras_core.callbacks
 
 
 def plot_train_test_loss(histories: list, loss_name: str = None,
@@ -28,7 +29,7 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
     Returns:
         matplotlib.pyplot.figure: Figure of the training curves.
     """
-    histories = [hist.history if isinstance(hist, tf.keras.callbacks.History) else hist for hist in histories]
+    histories = [hist.history if isinstance(hist, ks.callbacks.History) else hist for hist in histories]
     # We assume multiple fits as in KFold.
     if data_unit is None:
         data_unit = ""
@@ -88,7 +89,8 @@ def plot_train_test_loss(histories: list, loss_name: str = None,
 
 def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str = "",
                       filepath: str = None, file_name: str = "", dataset_name: str = "", target_names: list = None,
-                      figsize: list = None, dpi: float = None, show_fig: bool = False):
+                      figsize: list = None, dpi: float = None, show_fig: bool = False,
+                      scaled_predictions: bool = False):
     r"""Make a scatter plot of predicted versus actual targets. Not for k-splits.
 
     Args:
@@ -103,6 +105,7 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
         figsize (list): Size of the figure. Default is None.
         dpi (float): The resolution of the figure in dots-per-inch. Default is None.
         show_fig (bool): Whether to show figure. Default is True.
+        scaled_predictions (bool): Whether predictions had been standardized. Default is False.
 
     Returns:
         matplotlib.pyplot.figure: Figure of the scatter plot.
@@ -140,7 +143,10 @@ def plot_predict_true(y_predict, y_true, data_unit: list = None, model_name: str
     plt.plot(np.arange(*min_max, 0.05), np.arange(*min_max, 0.05), color='red')
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
-    plt.title("Prediction of " + model_name + " for " + dataset_name)
+    plot_title = "Prediction of %s for %s " % (model_name, dataset_name)
+    if scaled_predictions:
+        plot_title = "(SCALED!) " + plot_title
+    plt.title(plot_title)
     plt.legend(loc='upper left', fontsize='x-large')
     if filepath is not None:
         plt.savefig(os.path.join(filepath, model_name + "_" + dataset_name + "_" + file_name))

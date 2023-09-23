@@ -1,12 +1,13 @@
-import tensorflow as tf
 import os
 import logging
+import keras_core as ks
 from typing import Union
 from copy import deepcopy
 from kgcnn.metrics.utils import merge_metrics
 from kgcnn.data.utils import load_hyper_file, save_json_file
-
-ks = tf.keras
+from keras_core.saving.serialization_lib import deserialize_keras_object
+import keras_core.metrics
+import keras_core.losses
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
@@ -182,9 +183,11 @@ class HyperParameter:
                     try:
                         return get(m)
                     except ValueError:
-                        return ks.utils.deserialize_keras_object(m)
+                        return deserialize_keras_object(m)
                 else:  # Model outputs as dict.
                     return {key: nested_deserialize(value, get) for key, value in m.items()}
+            elif isinstance(m, str):
+                return get(m)
             return m
 
         # Optimizer
@@ -240,7 +243,7 @@ class HyperParameter:
                 callbacks = []
             for cb in hyper_fit["callbacks"]:
                 if isinstance(cb, (str, dict)):
-                    callbacks += [tf.keras.utils.deserialize_keras_object(cb)]
+                    callbacks += [deserialize_keras_object(cb)]
                 else:
                     callbacks += [cb]
 

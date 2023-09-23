@@ -1,10 +1,14 @@
 import numpy as np
 import os
+import sys
 from typing import Union
 from kgcnn.data.utils import save_yaml_file, load_pickle_file
 from datetime import datetime
-import tensorflow as tf
 from kgcnn import __kgcnn_version__
+import keras_core as ks
+import keras_core.callbacks
+from keras_core.backend import backend
+from kgcnn.utils_core.devices import check_device
 
 
 def load_history_list(file_path, folds):
@@ -14,6 +18,9 @@ def load_history_list(file_path, folds):
         if os.path.exists(file_path_i):
             history_list.append(load_pickle_file(file_path_i))
     return history_list
+
+
+load_time_list = load_history_list
 
 
 def save_history_score(
@@ -57,7 +64,7 @@ def save_history_score(
     Returns:
         dict: Score which was saved to file.
     """
-    histories = [hist.history if isinstance(hist, tf.keras.callbacks.History) else hist for hist in histories]
+    histories = [hist.history if isinstance(hist, ks.callbacks.History) else hist for hist in histories]
     # We assume multiple fits as in KFold.
     if data_unit is None:
         data_unit = ""
@@ -108,6 +115,9 @@ def save_history_score(
     result_dict["execute_folds"] = execute_folds
     result_dict["time_list"] = time_list
     result_dict["seed"] = seed
+    result_dict["backend"] = backend()
+    result_dict["OS"] = "%s_%s" % (os.name, sys.platform)
+    result_dict.update(check_device())
     if trajectory_name:
         result_dict["trajectory_name"] = trajectory_name
 

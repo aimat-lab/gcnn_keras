@@ -1,273 +1,388 @@
-import numpy as np
-import tensorflow as tf
-from typing import Union
-from kgcnn.ops.partition import partition_row_indexing
-from kgcnn.ops.ragged import partition_from_ragged_tensor_by_name
-from kgcnn.layers.base import GraphBaseLayer
-
-# import tensorflow.keras as ks
-ks = tf.keras
+import keras_core as ks
+from keras_core.layers import Layer
+from keras_core import ops
+from kgcnn.ops.core import repeat_static_length
+from kgcnn.ops.scatter import scatter_reduce_sum
+# from keras_core.backend import backend
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='ChangeTensorType')
-class ChangeTensorType(GraphBaseLayer):
-    r"""Layer to change the ragged tensor representation into tensor type information.
+def pad_left(t):
+    return ops.pad(t, [[1, 0]] + [[0, 0] for _ in range(len(ops.shape(t)) - 1)])
 
-    The tensor representation of :obj:`tf.RaggedTensor` is cast into similar :obj:`tf.Tensor` formats.
-    For example, the :obj:`RaggedTensor` has shape `(batch, None, F)`.
-    The dense tensor in case of equal sized graphs or zero padded graphs will have shape `(batch, N, F)`, with `N`
-    being the (maximum) number of nodes, or given shape otherwise.
 
-    For disjoint representation (one big graph with disconnected sub-graphs) the :obj:`tf.RaggedTensor` can be
-    split into a flattened value :obj:`tf.Tensor` of shape `(batch*[None], F)` and a partition :obj:`tf.Tensor` of
-    either 'row_length', 'row_splits' or 'value_rowids'.
-    This requires the :obj:`tf.RaggedTensor` to have a ragged rank of one.
+def cat_one(t):
+    return ops.concatenate([ops.convert_to_tensor([1], dtype=t.dtype), t], axis=0)
 
+
+class CastBatchedIndicesToDisjoint(Layer):
+    """Cast batched node and edge indices to a (single) disjoint graph representation of
+    `Pytorch Geometric (PyG) <>`__ .
+    For PyG a batch of graphs is represented by single graph which contains disjoint sub-graphs,
+    and the batch information is passed as batch ID tensor: `graph_id_node` and `graph_id_edge` .
+
+    Keras layers can pass unstacked tensors without batch dimension, however, for model input and output
+    batched tensors is currently built in the framework.
     """
 
-    def __init__(self,
-                 input_tensor_type: str = "RaggedTensor",
-                 output_tensor_type: str = "RaggedTensor",
-                 partition_type: str = "row_length",
-                 shape: Union[list, tuple, None] = None,
-                 default_value: Union[float, None, list] = None,
-                 boolean_mask: bool = False,
-                 **kwargs):
-        r"""Initialize layer.
-
-        Args:
-            input_tensor_type (str): Input type of the tensors for :obj:`call`. Default is "RaggedTensor".
-            output_tensor_type (str): Output type of the tensors for :obj:`call`. Default is "RaggedTensor".
-            partition_type (str): Partition tensor type. Default is "row_length".
-            shape (list, tuple): Defining shape for conversion to tensor. Default is None.
-            default_value (float, list): Default value for padding. Must broadcast. Default is None.
-            boolean_mask (bool): Whether mask for padded tensor should be boolean or the same type as tensor.
-
-        """
-        super(ChangeTensorType, self).__init__(**kwargs)
-        self.partition_type = partition_type
-        self.input_tensor_type = str(input_tensor_type)
-        self.output_tensor_type = str(output_tensor_type)
-        self.shape = shape
-        self.default_value = default_value
-        self.boolean_mask = boolean_mask
-
-        self._str_type_ragged = ["ragged", "RaggedTensor"]
-        self._str_type_tensor = ["Tensor", "tensor"]
-        self._str_type_mask = ["padded", "masked", "mask"]
-        self._str_type_partition = ["disjoint", "row_partition", "values_partition", "values"]
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, ragged: bool = False, **kwargs):
+        super(CastBatchedIndicesToDisjoint, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_index = dtype_index
+        self.dtype_batch = dtype_batch
+        self._has_ragged_input = ragged
+        self.padded_disjoint = padded_disjoint
+        self.supports_jit = padded_disjoint
 
     def build(self, input_shape):
         """Build layer."""
-        super(ChangeTensorType, self).build(input_shape)
+        # Not variables or sub-layers. Nothing to build.
+        self.built = True
 
-    def call(self, inputs, **kwargs):
-        r"""Forward pass.
+    def compute_output_spec(self, inputs_spec):
+        """Compute output spec as possible."""
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        dtype_batch = inputs_spec[2].dtype if self.dtype_batch is None else self.dtype_batch
+        dtype_index = inputs_spec[1].dtype if self.dtype_index is None else self.dtype_index
+        output_dtypes = [inputs_spec[0].dtype, dtype_index, dtype_batch, dtype_batch, dtype_batch, dtype_batch,
+                         dtype_batch, dtype_batch]
+        output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
+        return output_spec
+
+    def compute_output_shape(self, input_shape):
+        """Compute output shape as possible."""
+        in_n, in_i, in_size_n, in_size_e = input_shape
+
+        if not self.padded_disjoint:
+            out_n = tuple([None] + list(in_n[2:]))
+            out_i = tuple(list(reversed(in_i[2:])) + [None])
+            out_gn, out_ge, out_id_n, out_id_e = (None, ), (None, ), (None, ), (None, )
+            out_size_n, out_size_e = in_size_n, in_size_e
+        else:
+            out_n = tuple([in_n[0]*in_n[1]+1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
+            out_i = tuple(list(reversed(in_i[2:])) + [
+                in_i[0]*in_i[1]+1 if in_i[0] is not None and in_i[1] is not None else None])
+            out_gn = (None, ) if out_n[0] is None else out_n[:1]
+            out_ge = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
+            out_id_n = (None, ) if out_n[0] is None else out_n[:1]
+            out_id_e = (None, ) if out_i[-1] is None else tuple([out_i[-1]])
+            out_size_n = (in_size_n[0]+1, ) if in_size_n[0] is not None else (None, )
+            out_size_e = (in_size_e[0]+1, ) if in_size_e[0] is not None else (None, )
+
+        return out_n, out_i, out_gn, out_ge, out_id_n, out_id_e, out_size_n, out_size_e
+
+    def call(self, inputs: list, **kwargs):
+        """Changes node and edge indices into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (tf.RaggedTensor): Ragged tensor with `ragged_rank` of 1.
+            inputs (list): List of `[nodes, edges, edge_indices, nodes_in_batch, edges_in_batch]` ,
+
+                - nodes (Tensor): Node features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
+                  where N denotes the number of nodes.
+                - edge_indices (Tensor): Edge index list have shape `(batch, M, 2)` with the indices of M directed
+                  edges at last axis for each edge.
+                - total_nodes (Tensor):
+                - total_edges (Tensor):
+
 
         Returns:
-            tensor: Changed tensor type.
+            list: `[node_attr, edge_index, graph_id_node, graph_id_edge, node_id, edge_id, nodes_count, edges_count]`
+
+                - node_attr (Tensor): Represents node attributes or coordinates of shape `([N], F, ...)` ,
+                - edge_index (Tensor): Represents the index table of shape `(2, [M])` for directed edges.
+                - graph_id_node (Tensor):
+                - graph_id_edge (Tensor):
+                - nodes_id (Tensor): The ID-tensor to assign each node to its respective graph of shape `([N], )` .
+                - edges_id (Tensor): The ID-tensor to assign each edge to its respective batch of shape `([M], )` .
+                - nodes_count (Tensor): Tensor of number of nodes for each graph of shape `(batch, )` .
+                - edges_count (Tensor): Tensor of number of edges for each graph of shape `(batch, )` .
         """
-        if self.input_tensor_type in self._str_type_ragged:
+        all_tensor = all([ops.is_tensor(x) for x in inputs])
 
-            if self.output_tensor_type in self._str_type_ragged:
-                return inputs  # Nothing to do here.
-            if self.output_tensor_type in self._str_type_tensor:
-                return inputs.to_tensor(shape=self.shape, default_value=self.default_value)
-            elif self.output_tensor_type in self._str_type_mask:
-                padded = inputs.to_tensor(shape=self.shape, default_value=self.default_value)
-                mask_values = tf.ones_like(inputs.flat_values) if not self.boolean_mask else tf.ones(
-                    tf.shape(inputs.flat_values), dtype="bool")
-                mask = inputs.with_flat_values(mask_values).to_tensor(shape=self.shape)
-                return padded, mask
-            elif self.output_tensor_type in self._str_type_partition:
-                inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
-                return partition_from_ragged_tensor_by_name(inputs, self.partition_type)
+        nodes, edge_indices, node_len, edge_len = inputs
 
-        # Unsupported type conversion.
-        raise NotImplementedError(
-            "Unsupported conversion from '%s' to '%s'." % (self.input_tensor_type, self.output_tensor_type))
+        # Case: Ragged Tensor input.
+        # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
+        # graph representation.
+        if not all_tensor:
+            raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
+
+        if self.dtype_batch is None:
+            dtype_batch = node_len.dtype
+        else:
+            dtype_batch = self.dtype_batch
+            node_len = ops.cast(node_len, dtype=dtype_batch)
+            edge_len = ops.cast(edge_len, dtype=dtype_batch)
+
+        if self.dtype_index is not None:
+            edge_indices = ops.cast(edge_indices, dtype=self.dtype_index)
+
+        node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+                             ops.shape(node_len)[0], axis=0)
+        edge_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(edge_indices)[1], dtype=dtype_batch), axis=0),
+                             ops.shape(edge_len)[0], axis=0)
+        node_mask = node_id < ops.expand_dims(node_len, axis=-1)
+        edge_mask = edge_id < ops.expand_dims(edge_len, axis=-1)
+
+        if not self.padded_disjoint:
+            edge_indices_flatten = edge_indices[edge_mask]
+            nodes_flatten = nodes[node_mask]
+            node_id = node_id[node_mask]
+            edge_id = edge_id[edge_mask]
+            node_splits = ops.pad(ops.cumsum(node_len), [[1, 0]])
+            graph_id_node = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=dtype_batch), node_len)
+            graph_id_edge = ops.repeat(ops.arange(ops.shape(edge_len)[0], dtype=dtype_batch), edge_len)
+            offset_edge_indices = ops.expand_dims(ops.repeat(node_splits[:-1], edge_len), axis=-1)
+            offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
+            disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
+        else:
+            nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
+            edge_indices_flatten = ops.reshape(edge_indices, [-1] + list(ops.shape(edge_indices)[2:]))
+            node_len_flat = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=dtype_batch), ops.shape(nodes)[0])
+            edge_len_flat = ops.repeat(ops.cast([ops.shape(edge_indices)[1]], dtype=dtype_batch),
+                                       ops.shape(edge_indices)[0])
+            edge_mask_flatten = ops.reshape(edge_mask, [-1])
+            node_mask_flatten = ops.reshape(node_mask, [-1])
+            node_id = ops.reshape(node_id, [-1])
+            edge_id = ops.reshape(edge_id, [-1])
+
+            nodes_flatten = pad_left(nodes_flatten)
+            edge_indices_flatten = pad_left(edge_indices_flatten)
+            node_id = pad_left(node_id)
+            edge_id = pad_left(edge_id)
+            node_len_flat = cat_one(node_len_flat)
+            edge_len_flat = cat_one(edge_len_flat)
+            node_mask_flatten = pad_left(node_mask_flatten)
+            edge_mask_flatten = pad_left(edge_mask_flatten)
+
+            graph_id_node = repeat_static_length(
+                ops.arange(ops.shape(node_len_flat)[0], dtype=dtype_batch), node_len_flat,
+                total_repeat_length=ops.shape(nodes_flatten)[0])
+            graph_id_edge = repeat_static_length(
+                ops.arange(ops.shape(edge_len_flat)[0], dtype=dtype_batch), edge_len_flat,
+                total_repeat_length=ops.shape(edge_indices_flatten)[0])
+            graph_id_node = ops.where(node_mask_flatten, graph_id_node, 0)
+            graph_id_edge = ops.where(edge_mask_flatten, graph_id_edge, 0)
+
+            node_id = ops.where(node_mask_flatten, node_id, 0)
+            edge_id = ops.where(edge_mask_flatten, edge_id, 0)
+
+            node_splits = ops.pad(ops.cumsum(node_len_flat), [[1, 0]])
+            offset_edge_indices = repeat_static_length(
+                node_splits[:-1], edge_len_flat, total_repeat_length=ops.shape(edge_indices_flatten)[0])
+            offset_edge_indices = ops.expand_dims(offset_edge_indices, axis=-1)
+            offset_edge_indices = ops.broadcast_to(offset_edge_indices, ops.shape(edge_indices_flatten))
+            disjoint_indices = edge_indices_flatten + ops.cast(offset_edge_indices, edge_indices_flatten.dtype)
+            edge_mask_flatten = ops.expand_dims(edge_mask_flatten, axis=-1)
+            disjoint_indices = ops.where(edge_mask_flatten, disjoint_indices, 0)
+            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, axis=0, keepdims=True), node_len], axis=0)
+            edge_len = ops.concatenate([ops.sum(edge_len_flat[1:] - edge_len, axis=0, keepdims=True), edge_len], axis=0)
+
+        # Transpose edge indices.
+        disjoint_indices = ops.transpose(disjoint_indices)
+        if self.reverse_indices:
+            disjoint_indices = ops.flip(disjoint_indices, axis=0)
+
+        return [nodes_flatten, disjoint_indices, graph_id_node, graph_id_edge, node_id, edge_id, node_len, edge_len]
 
     def get_config(self):
-        """Update layer config."""
-        config = super(ChangeTensorType, self).get_config()
-        config.update({
-            "partition_type": self.partition_type,
-            "input_tensor_type": self.input_tensor_type,
-            "output_tensor_type": self.output_tensor_type,
-            "shape": self.shape, "default_value": self.default_value, "boolean_mask": self.boolean_mask
-        })
+        """Get config dictionary for this layer."""
+        config = super(CastBatchedIndicesToDisjoint, self).get_config()
+        config.update({"reverse_indices": self.reverse_indices, "dtype_batch": self.dtype_batch,
+                       "dtype_index": self.dtype_index})
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDenseAdjacency')
-class CastEdgeIndicesToDenseAdjacency(GraphBaseLayer):
-    r"""Layer to change the ragged tensor representation of edges of graphs into (dense) tensor type information of the
-    adjacency matrix.
+class CastBatchedAttributesToDisjoint(Layer):
 
-    In addition to the (featured) adjacency matrix, a mask can be returned. Note that the adjacency matrix is padded
-    and has possible extra dimensions to include edge feature information.
-
-    """
-
-    def __init__(self, n_max: int = None, return_mask: bool = True, use_node_tensor: bool = True, **kwargs):
-        r"""Initialize layer.
-
-        Args:
-            n_max (int): Defining maximum shape for padded adjacency matrix. Default is None.
-            default_value (float, list): Default value for padding. Must broadcast. Default is None.
-        """
-        super(CastEdgeIndicesToDenseAdjacency, self).__init__(**kwargs)
-        self.n_max = int(n_max) if n_max else None
-        self.return_mask = bool(return_mask)
-        self.use_node_tensor = use_node_tensor
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, **kwargs):
+        super(CastBatchedAttributesToDisjoint, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_batch = dtype_batch
+        self.padded_disjoint = padded_disjoint
+        self.supports_jit = padded_disjoint
+        self.dtype_index = dtype_index
 
     def build(self, input_shape):
-        """Build layer."""
-        super(CastEdgeIndicesToDenseAdjacency, self).build(input_shape)
+        self.built = True
 
-    # @tf.function
-    def call(self, inputs, **kwargs):
-        r"""Forward pass. The additional node information is optional but recommended for auto shape.
+    def compute_output_spec(self, inputs_spec):
+        """Compute output spec as possible."""
+        output_shape = self.compute_output_shape([x.shape for x in inputs_spec])
+        dtype_batch = inputs_spec[1].dtype if self.dtype_batch is None else self.dtype_batch
+        output_dtypes = [inputs_spec[0].dtype, dtype_batch, dtype_batch, dtype_batch]
+        output_spec = [ks.KerasTensor(s, dtype=d) for s, d in zip(output_shape, output_dtypes)]
+        return output_spec
+
+    def compute_output_shape(self, input_shape):
+        in_n, in_size_n = input_shape
+        if not self.padded_disjoint:
+            out_n = tuple([None] + list(in_n[2:]))
+            out_gn, out_id_n = (None,), (None,)
+            out_size_n = in_size_n
+        else:
+            out_n = tuple(
+                [in_n[0] * in_n[1] + 1 if in_n[0] is not None and in_n[1] is not None else None] + list(in_n[2:]))
+            out_gn = (None,) if out_n[0] is None else out_n[:1]
+            out_id_n = (None,) if out_n[0] is None else out_n[:1]
+            out_size_n = (in_size_n[0] + 1,) if in_size_n[0] is not None else (None,)
+        return out_n, out_gn, out_id_n, out_size_n
+
+    def call(self, inputs: list, **kwargs):
+        """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
 
         Args:
-            inputs (list): [nodes, edges, indices]
+            inputs (list): List of `[attr, total_attr]` ,
 
-                - nodes (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], ...)`
-                - edges (tf.RaggedTensor, tf.Tensor): Edge features of shape `(batch, [N], F)`
-                - indices (tf.RaggedTensor, tf.Tensor): Edge indices referring to nodes of shape `(batch, [N], 2)`.
+                - attr (Tensor): Features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
+                  where N denotes the number of nodes or edges.
+                - total_attr (Tensor):
 
         Returns:
-            tuple: Padded (batch) adjacency matrix of shape `(batch, N_max, N_max, F)` plus mask of shape
-                `(batch, N_max, N_max)`.
+            list: `[attr, graph_id, item_id, item_counts]` .
+
+                - attr (Tensor): Represents attributes or coordinates of shape `([N], F, ...)`
+                - graph_id (Tensor):
+                - item_id (Tensor):
+                - item_counts (Tensor): Tensor of lengths for each graph of shape `(batch, )` .
         """
-        if self.use_node_tensor:
-            nodes, edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
+        all_tensor = all([ops.is_tensor(x) for x in inputs])
+
+        # Case: Ragged Tensor input.
+        # As soon as ragged tensors are supported by Keras-Core. We will add this here to simply extract the disjoint
+        # graph representation.
+        if not all_tensor:
+            raise NotImplementedError("Ragged or sparse input is not supported yet for '%s'." % self.name)
+
+        nodes, node_len = inputs
+
+        if self.dtype_batch is None:
+            dtype_batch = node_len.dtype
         else:
-            edges, indices = self.assert_ragged_input_rank(inputs, ragged_rank=1)
-            nodes = None
+            dtype_batch = self.dtype_batch
+            node_len = ops.cast(node_len, dtype=dtype_batch)
 
-        indices_flatten = indices.values
-        edges_flatten = edges.values
-        indices_batch = tf.expand_dims(tf.cast(indices.value_rowids(), indices.values.dtype), axis=-1)
-        feature_shape_edges_static = edges.shape[2:]
-        feature_shape_edges = tf.cast(feature_shape_edges_static, dtype=indices.values.dtype)
+        node_id = ops.repeat(ops.expand_dims(ops.arange(ops.shape(nodes)[1], dtype=dtype_batch), axis=0),
+                             ops.shape(node_len)[0], axis=0)
+        node_mask = node_id < ops.expand_dims(node_len, axis=-1)
 
-        if self.n_max:
-            n_max = self.n_max
-            indices_okay = tf.math.reduce_all(indices.values < self.n_max, axis=-1)
-            indices_flatten = indices_flatten[indices_okay]
-            indices_batch = indices_batch[indices_okay]
-            edges_flatten = edges_flatten[indices_okay]
-            n_max_shape = tf.constant([n_max, n_max], dtype=indices.values.dtype)
+        if not self.padded_disjoint:
+            nodes_flatten = nodes[node_mask]
+            graph_id_node = ops.repeat(ops.arange(ops.shape(node_len)[0], dtype=dtype_batch), node_len)
+            node_id = node_id[node_mask]
         else:
-            if self.use_node_tensor:
-                n_max = tf.math.reduce_max(nodes.row_lengths())
-            else:
-                n_max = tf.math.reduce_max(indices.values) + 1
-            n_max_shape = tf.cast(tf.repeat(n_max, 2), dtype=indices.values.dtype)  # Shape of adjacency matrix
+            nodes_flatten = ops.reshape(nodes, [-1] + list(ops.shape(nodes)[2:]))
+            node_len_flat = ops.repeat(ops.cast([ops.shape(nodes)[1]], dtype=dtype_batch), ops.shape(nodes)[0])
+            node_mask_flatten = ops.reshape(node_mask, [-1])
+            node_id = ops.reshape(node_id, [-1])
+            nodes_flatten = pad_left(nodes_flatten)
+            node_id = pad_left(node_id)
+            node_len_flat = cat_one(node_len_flat)
+            node_mask_flatten = pad_left(node_mask_flatten)
+            graph_id = repeat_static_length(
+                ops.arange(ops.shape(node_len_flat)[0], dtype=self.dtype_batch), node_len_flat,
+                total_repeat_length=ops.shape(nodes_flatten)[0])
+            graph_id_node = ops.where(node_mask_flatten, graph_id, 0)
+            node_id = ops.where(node_mask_flatten, node_id, 0)
+            node_len = ops.concatenate([ops.sum(node_len_flat[1:] - node_len, axis=0, keepdims=True), node_len], axis=0)
 
-        scatter_indices = tf.concat([indices_batch, indices_flatten], axis=-1)
-
-        # Determine shape of output adjacency matrix.
-        batch_shape = tf.cast(tf.expand_dims(tf.shape(indices)[0], axis=-1), dtype=scatter_indices.dtype)
-        if len(feature_shape_edges_static) > 0:
-            shape_adj = tf.concat([batch_shape, n_max_shape, feature_shape_edges], axis=0)
-        else:
-            shape_adj = tf.concat([batch_shape, n_max_shape], axis=0)
-
-        adj = tf.scatter_nd(scatter_indices, edges_flatten, shape=shape_adj)
-
-        if self.return_mask:
-            mask_values = tf.ones(tf.shape(edges_flatten)[0], dtype=edges.dtype)
-            shape_mask = tf.concat([batch_shape, n_max_shape], axis=0)
-            mask = tf.scatter_nd(scatter_indices, mask_values, shape=shape_mask)
-        else:
-            mask = None
-
-        return adj, mask
+        return [nodes_flatten, graph_id_node, node_id, node_len]
 
     def get_config(self):
-        """Update layer config."""
-        config = super(CastEdgeIndicesToDenseAdjacency, self).get_config()
-        config.update({"n_max": self.n_max, "return_mask": self.return_mask, "use_node_tensor": self.use_node_tensor})
+        """Get config dictionary for this layer."""
+        config = super(CastBatchedAttributesToDisjoint, self).get_config()
+        config.update({"dtype_batch": self.dtype_batch})
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CastEdgeIndicesToDisjointSparseAdjacency')
-class CastEdgeIndicesToDisjointSparseAdjacency(GraphBaseLayer):
-    r"""Helper layer to cast a set of RaggedTensors forming a graph representation into a single SparseTensor, which
-    then can be regarded to be in disjoint representation. This means that the batch is represented as one big
-    adjacency matrix with disjoint sub-blocks.
+class CastDisjointToGraphState(Layer):
 
-    This includes edge indices and adjacency matrix entries. The Sparse tensor is simply the adjacency matrix.
-    """
-
-    def __init__(self, is_sorted: bool = False, **kwargs):
-        """Initialize layer.
-
-        Args:
-            is_sorted (bool): If the edge indices are sorted for first ingoing index. Default is False.
-        """
-        super(CastEdgeIndicesToDisjointSparseAdjacency, self).__init__(**kwargs)
-        self.node_indexing = "sample"
-        self.is_sorted = is_sorted
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, **kwargs):
+        super(CastDisjointToGraphState, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_batch = dtype_batch
+        self.dtype_index = dtype_index
+        self.supports_jit = True
+        self.padded_disjoint = padded_disjoint
 
     def build(self, input_shape):
-        """Build layer."""
-        super(CastEdgeIndicesToDisjointSparseAdjacency, self).build(input_shape)
+        self.built = True
 
-    def call(self, inputs, **kwargs):
-        """Forward pass.
+    def compute_output_shape(self, input_shape):
+        if self.padded_disjoint:
+            if input_shape[0] is not None:
+                return tuple([input_shape[0] - 1] + list(input_shape[1:]))
+        return input_shape
+
+    def call(self, inputs: list, **kwargs):
+        """Changes graph tensor from disjoint representation.
 
         Args:
-            inputs (list): [nodes, edges, edge_index]
-
-                - nodes (tf.RaggedTensor): Node feature tensor of shape (batch, [N], F)
-                - edges (tf.RaggedTensor): Edge feature ragged tensor of shape (batch, [M], 1)
-                - edge_index (tf.RaggedTensor): Ragged edge_indices referring to nodes of shape (batch, [M], 2)
+            inputs (Tensor): Graph labels from a disjoint representation of shape `(batch, ...)` .
 
         Returns:
-            tf.SparseTensor: Sparse disjoint matrix of shape (batch*[N],batch*[N])
+            Tensor: Graph labels of shape `(batch, ...)` .
         """
-        inputs = self.assert_ragged_input_rank(inputs)
-        nod, node_len = inputs[0].values, inputs[0].row_lengths()
-        edge, _ = inputs[1].values, inputs[1].row_lengths()
-        edge_index, edge_len = inputs[2].values, inputs[2].row_lengths()
+        if self.padded_disjoint:
+            return inputs[1:]
+        return inputs
 
-        # batch-wise indexing
-        edge_index = partition_row_indexing(
-            edge_index,
-            node_len, edge_len,
-            partition_type_target="row_length",
-            partition_type_index="row_length",
-            from_indexing=self.node_indexing,
-            to_indexing="batch"
-        )
-        indexlist = edge_index
-        valuelist = edge
+    def get_config(self):
+        """Get config dictionary for this layer."""
+        config = super(CastDisjointToGraphState, self).get_config()
+        config.update({"dtype_batch": self.dtype_batch})
+        return config
 
-        if not self.is_sorted:
-            # Sort per outgoing
-            batch_order = tf.argsort(indexlist[:, 1], axis=0, direction='ASCENDING')
-            indexlist = tf.gather(indexlist, batch_order, axis=0)
-            valuelist = tf.gather(valuelist, batch_order, axis=0)
-            # Sort per ingoing node
-            node_order = tf.argsort(indexlist[:, 0], axis=0, direction='ASCENDING', stable=True)
-            indexlist = tf.gather(indexlist, node_order, axis=0)
-            valuelist = tf.gather(valuelist, node_order, axis=0)
 
-        indexlist = tf.cast(indexlist, dtype=tf.int64)
-        dense_shape = tf.concat([tf.shape(nod)[0:1], tf.shape(nod)[0:1]], axis=0)
-        dense_shape = tf.cast(dense_shape, dtype=tf.int64)
-        out = tf.sparse.SparseTensor(indexlist, valuelist[:, 0], dense_shape)
 
+class CastDisjointToBatchedAttributes(Layer):
+
+    def __init__(self, reverse_indices: bool = True, dtype_batch: str = "int64", dtype_index=None,
+                 padded_disjoint: bool = False, **kwargs):
+        super(CastDisjointToBatchedAttributes, self).__init__(**kwargs)
+        self.reverse_indices = reverse_indices
+        self.dtype_batch = dtype_batch
+        self.padded_disjoint = padded_disjoint
+        self.supports_jit = padded_disjoint
+        self.dtype_index = dtype_index
+
+    def build(self, input_shape):
+        self.built = True
+
+    def call(self, inputs: list, **kwargs):
+        """Changes node or edge tensors into a Pytorch Geometric (PyG) compatible tensor format.
+
+        Args:
+            inputs (list): List of `[target, attr, graph_id_attr, attr_id]` ,
+
+                - attr (Tensor): Features are represented by a keras tensor of shape `(batch, N, F, ...)` ,
+                  where N denotes the number of nodes or edges.
+                - total_attr (Tensor):
+
+        Returns:
+            Tensor:
+        """
+        target, attr, graph_id_attr, attr_id = inputs
+
+        if not self.padded_disjoint:
+            output_shape = [ops.shape(target)[0]*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr*ops.convert_to_tensor(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+                attr_id, dtype=graph_id_attr.dtype)
+            out = scatter_reduce_sum(indices, attr, output_shape)
+            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
+        else:
+            output_shape = [(ops.shape(target)[0]+1)*ops.shape(target)[1]] + list(ops.shape(attr)[1:])
+            indices = graph_id_attr * ops.convert_to_tensor(ops.shape(target)[1], dtype=graph_id_attr.dtype) + ops.cast(
+                attr_id, dtype=graph_id_attr.dtype)
+            out = scatter_reduce_sum(indices, attr, output_shape)
+            out = out[ops.shape(target)[1]:]
+            out = ops.reshape(out, list(ops.shape(target)[:2]) + list(ops.shape(attr)[1:]))
         return out
 
     def get_config(self):
-        """Update layer config."""
-        config = super(CastEdgeIndicesToDisjointSparseAdjacency, self).get_config()
-        config.update({"is_sorted": self.is_sorted})
+        """Get config dictionary for this layer."""
+        config = super(CastDisjointToBatchedAttributes, self).get_config()
+        config.update({"dtype_batch": self.dtype_batch})
         return config

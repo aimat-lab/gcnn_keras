@@ -1,31 +1,31 @@
-import numpy as np
-import time
 import os
-import argparse
 import keras_core as ks
+import numpy as np
+import argparse
+import time
+import kgcnn.training.scheduler  # noqa
 from datetime import timedelta
-import kgcnn.training.schedule
-import kgcnn.training.scheduler
-from kgcnn.data.utils import save_pickle_file
-from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
-from kgcnn.utils.devices import check_device
+import kgcnn.losses.losses
+import kgcnn.metrics.metrics
 from kgcnn.training.history import save_history_score, load_history_list, load_time_list
+from kgcnn.data.transform.scaler.serial import deserialize as deserialize_scaler
 from kgcnn.utils.plots import plot_train_test_loss, plot_predict_true
 from kgcnn.models.serial import deserialize as deserialize_model
 from kgcnn.data.serial import deserialize as deserialize_dataset
 from kgcnn.training.hyper import HyperParameter
-from kgcnn.metrics.metrics import ScaledMeanAbsoluteError
-from kgcnn.data.transform.scaler.force import EnergyForceExtensiveLabelScaler
+from kgcnn.utils.devices import check_device
+from kgcnn.data.utils import save_pickle_file
 
-# Input arguments from command line.
-parser = argparse.ArgumentParser(description='Train a GNN on an Energy-Force Dataset.')
-parser.add_argument("--hyper", required=False, help="Filepath to hyper-parameter config file (.py or .json).",
-                    default="hyper/hyper_md17.py")
-parser.add_argument("--category", required=False, help="Graph model to train.", default="Schnet.EnergyForceModel")
+# Input arguments from command line with default values from example.
+# From command line, one can specify the model, dataset and the hyperparameter which contain all configuration
+# for training and model setup.
+parser = argparse.ArgumentParser(description='Train a GNN on a graph regression or classification task.')
+parser.add_argument("--hyper", required=False, help="Filepath to hyperparameter config file (.py or .json).",
+                    default="hyper/hyper_esol.py")
+parser.add_argument("--category", required=False, help="Graph model to train.", default="GCN")
 parser.add_argument("--model", required=False, help="Graph model to train.", default=None)
 parser.add_argument("--dataset", required=False, help="Name of the dataset.", default=None)
 parser.add_argument("--make", required=False, help="Name of the class for model.", default=None)
-parser.add_argument("--module", required=False, help="Name of the module for model.", default=None)
 parser.add_argument("--gpu", required=False, help="GPU index used for training.", default=None, nargs="+", type=int)
 parser.add_argument("--fold", required=False, help="Split or fold indices to run.", default=None, nargs="+", type=int)
 parser.add_argument("--seed", required=False, help="Set random seed.", default=42, type=int)
@@ -39,18 +39,15 @@ check_device()
 np.random.seed(args["seed"])
 ks.utils.set_random_seed(args["seed"])
 
-# HyperParameter is used to store and verify hyperparameter.
+# A class `HyperParameter` is used to expose and verify hyperparameter.
+# The hyperparameter is stored as a dictionary with section 'model', 'dataset' and 'training'.
 hyper = HyperParameter(
     hyper_info=args["hyper"], hyper_category=args["category"],
-    model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"], model_module=args["module"])
+    model_name=args["model"], model_class=args["make"], dataset_class=args["dataset"])
 hyper.verify()
 
 # Loading a specific per-defined dataset from a module in kgcnn.data.datasets.
-# However, the construction must be fully defined in the data section of the hyperparameter,
-# including all methods to run on the dataset. Information required in hyperparameter are for example 'file_path',
-# 'data_directory' etc.
-# Making a custom training script rather than configuring the dataset via hyperparameter can be
-# more convenient.
+# Those sub-classed classes are named after the dataset like e.g. `ESOLDataset`
 dataset = deserialize_dataset(hyper["dataset"])
 
 # Check if dataset has the required properties for model input. This includes a quick shape comparison.
@@ -63,24 +60,23 @@ dataset.assert_valid_model_input(hyper["model"]["config"]["inputs"])
 dataset.clean(hyper["model"]["config"]["inputs"])
 data_length = len(dataset)  # Length of the cleaned dataset.
 
-# Always train on `energy` .
+# Make output directory. This can further be adapted in hyperparameter.
+filepath = hyper.results_file_path()
+postfix_file = hyper["info"]["postfix_file"]
+
+# Always train on `graph_labels` .
 # Just making sure that the target is of shape `(N, #labels)`. This means output embedding is on graph level.
 label_names, label_units = dataset.set_multi_target_labels(
-    "energy",
+    "graph_labels",
     hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper["training"] else None,
     data_unit=hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else None
 )
 
-# Make output directory
-filepath = hyper.results_file_path()
-postfix_file = hyper["info"]["postfix_file"]
-
-# Training on splits. Since training on Force datasets can be expensive, there is a 'execute_splits' parameter to not
-# train on all splits for testing. Can be set via command line or hyperparameter.
+# Iterate over the cross-validation splits.
+# Indices for train-test splits are stored in 'test_indices_list'.
 execute_folds = args["fold"] if "execute_folds" not in hyper["training"] else hyper["training"]["execute_folds"]
-splits_done, current_split = 0, None
+model, current_split, scaled_predictions = None, None, False
 train_indices_all, test_indices_all = [], []
-model, scaled_predictions = None, False
 for current_split, (train_index, test_index) in enumerate(dataset.get_train_test_indices(train="train", test="test")):
 
     # Keep list of train/test indices.
@@ -93,21 +89,16 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
             continue
     print("Running training on split: '%s'." % current_split)
 
+    dataset_train, dataset_test = dataset[train_index], dataset[test_index]
+
     # Make the model for current split using model kwargs from hyperparameter.
     model = deserialize_model(hyper["model"])
 
-    # First select training and test graphs from indices, then convert them into tensorflow tensor
-    # representation. Which property of the dataset and whether the tensor will be ragged is retrieved from the
-    dataset_train, dataset_test = dataset[train_index], dataset[test_index]
-
-    # Normalize training and test targets.
-    # For Force datasets this training script uses the `EnergyForceExtensiveLabelScaler` class.
-    # Note that `EnergyForceExtensiveLabelScaler` uses both energy and forces for scaling.
     # Adapt output-scale via a transform.
     # Scaler is applied to target if 'scaler' appears in hyperparameter. Only use for regression.
     scaled_metrics = None
     if "scaler" in hyper["training"]:
-        print("Using Scaler to adjust output scale of model.")
+        print("Using Scaler to adjust output scale.")
         scaler = deserialize_scaler(hyper["training"]["scaler"])
         scaler.fit_dataset(dataset_train)
         if hasattr(model, "set_scale"):
@@ -120,36 +111,34 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
             # If scaler was used we add rescaled standard metrics to compile, since otherwise the keras history will not
             # directly log the original target values, but the scaled ones.
             scaler_scale = scaler.get_scaling()
-            mae_metric_energy = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
-            mae_metric_force = ScaledMeanAbsoluteError((1, 1), name="scaled_mean_absolute_error")
+            mae_metric = kgcnn.metrics_core.metrics.ScaledMeanAbsoluteError(
+                scaler_scale.shape, name="scaled_mean_absolute_error")
+            rms_metric = kgcnn.metrics_core.metrics.ScaledRootMeanSquaredError(
+                scaler_scale.shape, name="scaled_root_mean_squared_error")
             if scaler_scale is not None:
-                mae_metric_energy.set_scale(scaler_scale)
-                mae_metric_force.set_scale(scaler_scale)
-            scaled_metrics = {"energy": [mae_metric_energy], "force": [mae_metric_force]}
+                mae_metric.set_scale(scaler_scale)
+                rms_metric.set_scale(scaler_scale)
+            scaled_metrics = [mae_metric, rms_metric]
             scaled_predictions = True
 
         # Save scaler to file
         scaler.save(os.path.join(filepath, f"scaler{postfix_file}_fold_{current_split}"))
 
-    # Convert dataset to tensor information for model.
-    x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
-    x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
+    # Compile model with optimizer and loss from hyperparameter.
+    # The metrics from this script is added to the hyperparameter entry for metrics.
+    model.compile(**hyper.compile(metrics=scaled_metrics))
 
-    # Compile model with optimizer and loss
-    model.compile(**hyper.compile(
-        loss={"energy": "mean_absolute_error", "force": "mean_absolute_error"},
-        metrics=scaled_metrics))
-
-    model.predict(x_test)
     # Model summary
     model.summary()
     print(" Compiled with jit: %s" % model._jit_compile)  # noqa
 
-    # Convert targets into tensors.
-    y_train = dataset_train.tensor(hyper["model"]["config"]["outputs"])
-    y_test = dataset_test.tensor(hyper["model"]["config"]["outputs"])
+    # Pick train/test data.
+    x_train = dataset_train.tensor(hyper["model"]["config"]["inputs"])
+    y_train = np.array(dataset_train.get("graph_labels"))
+    x_test = dataset_test.tensor(hyper["model"]["config"]["inputs"])
+    y_test = np.array(dataset_test.get("graph_labels"))
 
-    # Start and time training
+    # Run keras model-fit and take time for training.
     start = time.time()
     hist = model.fit(
         x_train, y_train,
@@ -157,28 +146,24 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
         **hyper.fit()
     )
     stop = time.time()
-    print("Print Time for training: ", str(timedelta(seconds=stop - start)))
+    print("Print Time for training: '%s'." % str(timedelta(seconds=stop - start)))
 
     # Save history for this fold.
     save_pickle_file(hist.history, os.path.join(filepath, f"history{postfix_file}_fold_{current_split}.pickle"))
     save_pickle_file(str(timedelta(seconds=stop - start)),
                      os.path.join(filepath, f"time{postfix_file}_fold_{current_split}.pickle"))
 
-    # Plot prediction
-    predicted_y = model.predict(x_test, verbose=0)
+    # Plot prediction for the last split.
+    # Note that predicted values will not be rescaled.
+    predicted_y = model.predict(x_test)
     true_y = y_test
 
-    plot_predict_true(np.array(predicted_y["energy"]), np.array(true_y["energy"]),
+    # Plotting the prediction vs. true test targets for last split. Note for classification this is also done but
+    # can be ignored.
+    plot_predict_true(predicted_y, true_y,
                       filepath=filepath, data_unit=label_units,
                       model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
-                      file_name=f"predict_energy{postfix_file}_fold_{splits_done}.png",
-                      scaled_predictions=scaled_predictions)
-
-    plot_predict_true(np.concatenate([np.array(f) for f in predicted_y["force"]], axis=0),
-                      np.concatenate([np.array(f) for f in true_y["force"]], axis=0),
-                      filepath=filepath, data_unit=label_units,
-                      model_name=hyper.model_name, dataset_name=hyper.dataset_class, target_names=label_names,
-                      file_name=f"predict_force{postfix_file}_fold_{splits_done}.png",
+                      file_name=f"predict{postfix_file}_fold_{current_split}.png", show_fig=False,
                       scaled_predictions=scaled_predictions)
 
     # Save last keras-model to output-folder.
@@ -187,33 +172,30 @@ for current_split, (train_index, test_index) in enumerate(dataset.get_train_test
     # Save last keras-model to output-folder.
     model.save_weights(os.path.join(filepath, f"model{postfix_file}_fold_{current_split}.weights.h5"))
 
-    # Get loss from history
-    splits_done = splits_done + 1
+# Plot training- and test-loss vs epochs for all splits.
+history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split + 1)
+plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
+                     model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
+                     filepath=filepath, file_name=f"loss{postfix_file}.png")
 
 # Save original data indices of the splits.
 np.savez(os.path.join(filepath, f"{hyper.model_name}_test_indices_{postfix_file}.npz"), *test_indices_all)
 np.savez(os.path.join(filepath, f"{hyper.model_name}_train_indices_{postfix_file}.npz"), *train_indices_all)
 
-# Plot training- and test-loss vs epochs for all splits.
-data_unit = hyper["data"]["data_unit"] if "data_unit" in hyper["data"] else ""
-history_list = load_history_list(os.path.join(filepath, f"history{postfix_file}_fold_(i).pickle"), current_split + 1)
-plot_train_test_loss(history_list, loss_name=None, val_loss_name=None,
-                     model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
-                     filepath=filepath, file_name=f"loss{postfix_file}.png")
-
-# Save hyperparameter again, which were used for this fit.
+# Save hyperparameter again, which were used for this fit. Format is '.json'
+# If non-serialized parameters were in the hyperparameter config file, this operation may fail.
 hyper.save(os.path.join(filepath, f"{hyper.model_name}_hyper{postfix_file}.json"))
 
 # Save score of fit result for as text file.
 time_list = load_time_list(os.path.join(filepath, f"time{postfix_file}_fold_(i).pickle"), current_split + 1)
 save_history_score(
     history_list, loss_name=None, val_loss_name=None,
-    model_name=hyper.model_name, data_unit=data_unit, dataset_name=hyper.dataset_class,
+    model_name=hyper.model_name, data_unit=label_units, dataset_name=hyper.dataset_class,
     model_class=hyper.model_class,
     multi_target_indices=hyper["training"]["multi_target_indices"] if "multi_target_indices" in hyper[
         "training"] else None,
-    execute_folds=execute_folds, seed=args["seed"],
-    filepath=filepath, file_name=f"score{postfix_file}.yaml",
-    trajectory_name=(dataset.trajectory_name if hasattr(dataset, "trajectory_name") else None),
-    time_list=time_list
+    execute_folds=execute_folds,
+    model_version=model.__kgcnn_model_version__ if hasattr(model, "__kgcnn_model_version__") else "",
+    filepath=filepath, file_name=f"score{postfix_file}.yaml", time_list=time_list,
+    seed=args["seed"]
 )

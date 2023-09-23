@@ -1,17 +1,14 @@
 import math
 import numpy as np
 from typing import Union
-import tensorflow as tf
-from kgcnn.layers.base import GraphBaseLayer
-from kgcnn.layers.gather import GatherNodesSelection, GatherState
-from kgcnn.layers.modules import LazySubtract, LazyMultiply, LazyAdd
+import keras_core as ks
+from keras_core import ops
+from keras_core.layers import Layer, Subtract, Multiply, Add, Subtract
+from kgcnn.layers.gather import GatherNodes, GatherState
 from kgcnn.ops.axis import get_positive_axis
 
-ks = tf.keras
 
-
-@ks.utils.register_keras_serializable(package='kgcnn', name='NodePosition')
-class NodePosition(GraphBaseLayer):
+class NodePosition(Layer):
     r"""Get node position for directed edges via node indices.
 
     Directly calls :obj:`GatherNodesSelection` with provided index tensor.
@@ -28,8 +25,8 @@ class NodePosition(GraphBaseLayer):
 
     .. code-block:: python
 
-        position = tf.ragged.constant([[[0.0, -1.0, 0.0],[1.0, 1.0, 0.0]]], ragged_rank=1)
-        indices = tf.ragged.constant([[[0,1],[1,0]]], ragged_rank=1)
+        position = np.array([[0.0, -1.0, 0.0],[1.0, 1.0, 0.0]])
+        indices = np.array([[0,1],[1,0]])
         x_in, x_out = NodePosition()([position, indices])
         print(x_in - x_out)
     """
@@ -45,11 +42,14 @@ class NodePosition(GraphBaseLayer):
         if selection_index is None:
             selection_index = [0, 1]
         self.selection_index = selection_index
-        self.layer_gather = GatherNodesSelection(self.selection_index)
+        self.layer_gather = GatherNodes(self.selection_index, concat_axis=None)
 
     def build(self, input_shape):
         """Build layer."""
         super(NodePosition, self).build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        return self.layer_gather.compute_output_shape(input_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass of :obj:`NodePosition`.
@@ -57,8 +57,8 @@ class NodePosition(GraphBaseLayer):
         Args:
             inputs (list): [position, edge_index]
 
-                - position (tf.RaggedTensor): Node positions of shape `(batch, [N], 3)`.
-                - edge_index (tf.RaggedTensor): Edge indices referring to nodes of shape `(batch, [M], 2)`.
+                - position (Tensor): Node positions of shape `(N, 3)`.
+                - edge_index (Tensor): Edge indices referring to nodes of shape `(M, 2)`.
 
         Returns:
             list: List of node positions (ragged) tensors for each of the :obj:`selection_index`. Position tensors have
@@ -73,7 +73,7 @@ class NodePosition(GraphBaseLayer):
         return config
 
 
-class ShiftPeriodicLattice(GraphBaseLayer):
+class ShiftPeriodicLattice(Layer):
     r"""Shift position tensor by multiples of the lattice constant of a periodic lattice in 3D.
 
     Let an atom have position :math:`\vec{x}_0` in the unit cell and be in a periodic lattice with lattice vectors
@@ -101,30 +101,27 @@ class ShiftPeriodicLattice(GraphBaseLayer):
         """Forward pass.
 
         Args:
-            inputs (list): [position, edge_image, lattice]
+            inputs (list): `[position, edge_image, lattice, num_edges]`
 
-                - position (tf.RaggedTensor): Positions of shape `(batch, [M], 3)`
-                - edge_image (tf.RaggedTensor): Position in which image to shift of shape `(batch, [M], 3)`
+                - position (tf.RaggedTensor): Positions of shape `(M, 3)`
+                - edge_image (tf.RaggedTensor): Position in which image to shift of shape `(M, 3)`
                 - lattice (tf.tensor): Lattice vector matrix of shape `(batch, 3, 3)`
+                - num_edges (Tensor): Number of edges per graph of shape `(batch, )`
 
         Returns:
             tf.RaggedTensor: Gathered node position number of indices of shape `(batch, [M], 1)`
         """
-        inputs_ragged = self.assert_ragged_input_rank(inputs[:2])
-        lattice_rep = self.layer_state([inputs[2], inputs_ragged[1]], **kwargs)  # Should be (batch, None, 3, 3)
-        x = inputs_ragged[0]
-        ei = inputs_ragged[1]
-        x_val = x.values
+        x_val, ei, lattice, num_edges = inputs
+        lattice_rep = self.layer_state([lattice, num_edges], **kwargs)
         # 1. Implementation: Manual multiplication.
-        x_val = x_val + tf.reduce_sum(tf.cast(lattice_rep.values, dtype=x_val.dtype) * tf.expand_dims(
-            tf.cast(ei.values, dtype=x_val.dtype), axis=-1), axis=1)
+        x_val = x_val + ops.sum(ops.cast(lattice_rep, dtype=x_val.dtype) * ops.expand_dims(
+            ops.cast(ei, dtype=x_val.dtype), axis=-1), axis=1)
         # 2. Implementation: Matrix multiplication.
-        # xv = xv + ks.batch_dot(tf.cast(ei.values, dtype=x_val.dtype), tf.cast(lattice_rep.values, dtype=x_val.dtype))
-        return tf.RaggedTensor.from_row_splits(x_val, ei.row_splits, validate=self.ragged_validate)
+        # xv = xv + ks.batch_dot(tf.cast(ei, dtype=x_val.dtype), tf.cast(lattice_rep, dtype=x_val.dtype))
+        return x_val
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='EuclideanNorm')
-class EuclideanNorm(GraphBaseLayer):
+class EuclideanNorm(Layer):
     r"""Compute euclidean norm for edge or node vectors.
 
     This amounts for a specific :obj:`axis` along which to sum the coordinates:
@@ -133,7 +130,7 @@ class EuclideanNorm(GraphBaseLayer):
 
         ||\mathbf{x}||_2 = \sqrt{\sum_i x_i^2}
 
-    Vector based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension `D`.
+    Vector based edge or node coordinates are defined by `(N, ..., D)` with last dimension `D`.
     You can choose to collapse or keep this dimension with :obj:`keepdims` and to optionally invert the resulting norm
     with :obj:`invert_norm` layer arguments.
     """
@@ -159,8 +156,16 @@ class EuclideanNorm(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(EuclideanNorm, self).build(input_shape)
         self.axis = get_positive_axis(self.axis, len(input_shape))
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        input_shape = list(input_shape)
+        if self.keepdims:
+            input_shape[self.axis] = 1
+        else:
+            input_shape.pop(self.axis)
+        return list(input_shape)
 
     @staticmethod
     def _compute_euclidean_norm(inputs, axis: int = -1, keepdims: bool = False, invert_norm: bool = False,
@@ -178,18 +183,17 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.Tensor: Euclidean norm of inputs.
         """
-        out = tf.nn.relu(tf.reduce_sum(tf.square(inputs), axis=axis, keepdims=keepdims))
-        # Or just via tf.norm.
-        # out = tf.norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
+        out = ks.activations.relu(ops.sum(ops.square(inputs), axis=axis, keepdims=keepdims))
+        # Or just via norm function
+        # out = norm(inputs, ord='euclidean', axis=axis, keepdims=keepdims)
         if add_eps:
             out = out + ks.backend.epsilon()
         if not square_norm:
-            out = tf.sqrt(out)
+            out = ops.sqrt(out)
         if invert_norm:
+            out = 1/out
             if no_nan:
-                out = tf.math.divide_no_nan(tf.constant(1, dtype=out.dtype), out)
-            else:
-                out = 1 / out
+                out = ops.where(ops.isnan(out), ops.convert_to_tensor(1, dtype=out.dtype), out)
         return out
 
     def call(self, inputs, **kwargs):
@@ -201,9 +205,8 @@ class EuclideanNorm(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Euclidean norm computed for specific axis of shape `(batch, [N], ...)`
         """
-        return self.map_values(
-            self._compute_euclidean_norm, inputs,
-            axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
+        return self._compute_euclidean_norm(
+            inputs, axis=self.axis, keepdims=self.keepdims, invert_norm=self.invert_norm, add_eps=self.add_eps,
             no_nan=self.no_nan, square_norm=self.square_norm)
 
     def get_config(self):
@@ -214,8 +217,7 @@ class EuclideanNorm(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='ScalarProduct')
-class ScalarProduct(GraphBaseLayer):
+class ScalarProduct(Layer):
     r"""Compute geometric scalar product for edge or node coordinates.
 
     A distance based edge or node coordinates are defined by `(batch, [N], ..., D)` with last dimension D.
@@ -241,11 +243,11 @@ class ScalarProduct(GraphBaseLayer):
 
     def build(self, input_shape):
         """Build layer."""
-        super(ScalarProduct, self).build(input_shape)
         axis = get_positive_axis(self.axis, len(input_shape[0]))
         axis2 = get_positive_axis(self.axis, len(input_shape[1]))
         assert axis2 == axis, "Axis parameter must match on the two input vectors for scalar product."
         self.axis = axis
+        self.built = True
 
     @staticmethod
     def _scalar_product(inputs: list, axis: int):
@@ -258,7 +260,7 @@ class ScalarProduct(GraphBaseLayer):
         Returns:
             tf.Tensor: Scalr product of inputs.
         """
-        return tf.reduce_sum(inputs[0] * inputs[1], axis=axis)
+        return ops.sum(inputs[0] * inputs[1], axis=axis)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -266,13 +268,13 @@ class ScalarProduct(GraphBaseLayer):
         Args:
             inputs (list): [vec1, vec2]
 
-                - vec1 (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
-                - vec2 (tf.RaggedTensor): Positions of shape `(batch, [N], ..., D, ...)`
+                - vec1 (Tensor): Positions of shape `(None, ..., D, ...)`
+                - vec2 (Tensor): Positions of shape `(None, ..., D, ...)`
 
         Returns:
-            tf.RaggedTensor: Scalar product of shape `(batch, [N], ...)`
+            Tensor: Scalar product of shape `(None, ...)`
         """
-        return self.map_values(self._scalar_product, inputs, axis=self.axis)
+        return self._scalar_product(inputs, axis=self.axis)
 
     def get_config(self):
         """Update config."""
@@ -281,8 +283,7 @@ class ScalarProduct(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='NodeDistanceEuclidean')
-class NodeDistanceEuclidean(GraphBaseLayer):
+class NodeDistanceEuclidean(Layer):
     r"""Compute euclidean distance between two node coordinate tensors.
 
     Let :math:`\vec{x}_1` and :math:`\vec{x}_2` be the position of two nodes, then the output is given by:
@@ -298,12 +299,14 @@ class NodeDistanceEuclidean(GraphBaseLayer):
     def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
         r"""Initialize layer instance of :obj:`NodeDistanceEuclidean`. """
         super(NodeDistanceEuclidean, self).__init__(**kwargs)
-        self.layer_subtract = LazySubtract()
-        self.layer_euclidean_norm = EuclideanNorm(axis=2, keepdims=True, add_eps=add_eps, no_nan=no_nan)
+        self.layer_subtract = Subtract()
+        self.layer_euclidean_norm = EuclideanNorm(axis=-1, keepdims=True, add_eps=add_eps, no_nan=no_nan)
 
     def build(self, input_shape):
         """Build layer."""
-        super(NodeDistanceEuclidean, self).build(input_shape)
+        self.layer_subtract.build(input_shape)
+        difference_shape = self.layer_subtract.compute_output_shape(input_shape)
+        self.layer_euclidean_norm.build(difference_shape)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -327,8 +330,7 @@ class NodeDistanceEuclidean(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='EdgeDirectionNormalized')
-class EdgeDirectionNormalized(GraphBaseLayer):
+class EdgeDirectionNormalized(Layer):
     r"""Compute the normalized geometric direction between two point coordinates for e.g. a geometric edge.
 
     Let two points have position :math:`\vec{r}_{i}` and :math:`\vec{r}_{j}` for an edge :math:`e_{ij}`, then
@@ -345,10 +347,10 @@ class EdgeDirectionNormalized(GraphBaseLayer):
     def __init__(self, add_eps: bool = False, no_nan: bool = True, **kwargs):
         """Initialize layer."""
         super(EdgeDirectionNormalized, self).__init__(**kwargs)
-        self.layer_subtract = LazySubtract()
+        self.layer_subtract = Subtract()
         self.layer_euclidean_norm = EuclideanNorm(
             axis=2, keepdims=True, invert_norm=True, add_eps=add_eps, no_nan=no_nan)
-        self.layer_multiply = LazyMultiply()
+        self.layer_multiply = Multiply()
 
     def build(self, input_shape):
         """Build layer."""
@@ -378,8 +380,7 @@ class EdgeDirectionNormalized(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='VectorAngle')
-class VectorAngle(GraphBaseLayer):
+class VectorAngle(Layer):
     r"""Compute geometric angles between two vectors in euclidean space.
 
     The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` could be obtained from three points
@@ -419,11 +420,12 @@ class VectorAngle(GraphBaseLayer):
             tf.Tensor: Angle between inputs.
         """
         v1, v2 = inputs[0], inputs[1]
-        x = tf.reduce_sum(v1 * v2, axis=-1)
-        y = tf.linalg.cross(v1, v2)
-        y = tf.norm(y, axis=-1)
-        angle = tf.math.atan2(y, x)
-        out = tf.expand_dims(angle, axis=-1)
+        x = ops.sum(v1 * v2, axis=-1)
+        y = ops.cross(v1, v2)
+        # y = ops.norm(y, axis=-1)
+        y = ops.sqrt(ops.sum(ops.square(y), axis=-1))
+        angle = ops.arctan2(y, x)
+        out = ops.expand_dims(angle, axis=-1)
         return out
 
     def call(self, inputs, **kwargs):
@@ -438,7 +440,7 @@ class VectorAngle(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Calculated Angle between vector 1 and 2 of shape `(batch, [M], 1)`.
         """
-        return self.map_values(self._compute_vector_angle, inputs)
+        return self._compute_vector_angle(inputs)
 
     def get_config(self):
         """Update config."""
@@ -446,8 +448,7 @@ class VectorAngle(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='EdgeAngle')
-class EdgeAngle(GraphBaseLayer):
+class EdgeAngle(Layer):
     r"""Compute geometric angles between two vectors that represent an edge of a graph.
 
     The vectors :math:`\vec{v}_1` and :math:`\vec{v}_2` span an angles as:
@@ -470,12 +471,12 @@ class EdgeAngle(GraphBaseLayer):
     def __init__(self, vector_scale: list = None, **kwargs):
         """Initialize layer."""
         super(EdgeAngle, self).__init__(**kwargs)
-        self.layer_gather_vectors = GatherNodesSelection([0, 1])
+        self.layer_gather_vectors = GatherNodes([0, 1], concat_axis=None)
         self.layer_angle = VectorAngle()
         self.vector_scale = vector_scale
         if vector_scale:
             assert len(vector_scale) == 2, "Need scale for both vectors to compute angle."
-        self._tf_vec_scale = [tf.constant(x) for x in self.vector_scale] if self.vector_scale else None
+        self._const_vec_scale = [ops.convert_to_tensor(x) for x in self.vector_scale] if self.vector_scale else None
 
     def build(self, input_shape):
         """Build layer."""
@@ -483,7 +484,7 @@ class EdgeAngle(GraphBaseLayer):
 
     @staticmethod
     def _scale_vector(x, scale):
-        return x * tf.cast(scale, dtype=x.dtype)
+        return x * ops.cast(scale, dtype=x.dtype)
 
     def call(self, inputs, **kwargs):
         r"""Forward pass.
@@ -499,7 +500,7 @@ class EdgeAngle(GraphBaseLayer):
         """
         v1, v2 = self.layer_gather_vectors(inputs)
         if self.vector_scale:
-            v1, v2 = [self.map_values(self._scale_vector, x, scale=self._tf_vec_scale[i]) for i, x
+            v1, v2 = [self.map_values(self._scale_vector, x, scale=self._const_vec_scale[i]) for i, x
                       in enumerate([v1, v2])]
         return self.layer_angle([v1, v2])
 
@@ -510,8 +511,7 @@ class EdgeAngle(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='GaussBasisLayer')
-class GaussBasisLayer(GraphBaseLayer):
+class GaussBasisLayer(Layer):
     r"""Expand a distance into a Gaussian Basis, according to
     `Schuett et al. (2017) <https://arxiv.org/abs/1706.08566>`_.
 
@@ -564,10 +564,10 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Gaussian.
         """
-        gbs = tf.range(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
+        gbs = ops.arange(0, bins, 1, dtype=inputs.dtype) / float(bins) * distance
         out = inputs - offset
-        out = tf.square(out - gbs) * (gamma * (-1.0))
-        out = tf.exp(out)
+        out = ops.square(out - gbs) * (gamma * (-1.0))
+        out = ops.exp(out)
         return out
 
     def call(self, inputs, **kwargs):
@@ -581,8 +581,7 @@ class GaussBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], bins)`.
         """
-        return self.map_values(
-            self._compute_gauss_basis, inputs,
+        return self._compute_gauss_basis(inputs,
             offset=self.offset, gamma=self.gamma, bins=self.bins, distance=self.distance)
 
     def get_config(self):
@@ -592,9 +591,8 @@ class GaussBasisLayer(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='FourierBasisLayer')
-class PositionEncodingBasisLayer(GraphBaseLayer):
-    r"""Expand a distance into a Positional Encoding basis from `Transformer <https://arxiv.org/pdf/1706.03762.pdf>`_
+class PositionEncodingBasisLayer(Layer):
+    r"""Expand a distance into a Positional Encoding basis from `Transformer <https://arxiv.org/pdf/1706.03762.pdf>`__
     models, with :math:`\sin()` and :math:`\cos()` functions, which was slightly adapted for geometric distance
     information in edge features.
 
@@ -674,21 +672,20 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         Returns:
             tf.Tensor: Distance tensor expanded in Fourier basis.
         """
-        steps = tf.range(dim_half, dtype=inputs.dtype) / (dim_half - 1)
-        log_num = tf.constant(-math.log(num_mult), dtype=inputs.dtype)
-        log_wave = tf.constant(-math.log(wave_length_min), dtype=inputs.dtype)
-        freq = tf.exp(log_num * steps + log_wave)  # tf.exp is better than power.
-        scales = tf.cast(freq, dtype=inputs.dtype) * math.pi * 2.0
+        steps = ops.arange(dim_half, dtype=inputs.dtype) / (dim_half - 1)
+        log_num = ops.convert_to_tensor(-math.log(num_mult), dtype=inputs.dtype)
+        log_wave = ops.convert_to_tensor(-math.log(wave_length_min), dtype=inputs.dtype)
+        freq = ops.exp(log_num * steps + log_wave)  # tf.exp is better than power.
+        scales = ops.cast(freq, dtype=inputs.dtype) * math.pi * 2.0
         arg = inputs * scales
         if interleave_sin_cos:
-            out = tf.concat(
-                [tf.math.sin(tf.expand_dims(arg, axis=-1)), tf.math.cos(tf.expand_dims(arg, axis=-1))], axis=-1)
-            out = tf.reshape(
-                out, tf.concat([tf.shape(out)[:-2], tf.expand_dims(tf.shape(out)[-2] * 2, axis=-1)], axis=0))
+            out = ops.concatenate(
+                [ops.sin(ops.expand_dims(arg, axis=-1)), ops.cos(ops.expand_dims(arg, axis=-1))], axis=-1)
+            out = ops.reshape(out, ops.shape(out)[:-2] + [ops.shape(out)[-2] * 2])
         else:
-            out = tf.concat([tf.math.sin(arg), tf.math.cos(arg)], axis=-1)
+            out = ops.concatenate([ops.sin(arg), ops.cos(arg)], axis=-1)
         if include_frequencies:
-            out = tf.concat([out, freq], dim=-1)
+            out = ops.concatenate([out, freq], dim=-1)
         return out
 
     def call(self, inputs, **kwargs):
@@ -713,10 +710,9 @@ class PositionEncodingBasisLayer(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='BesselBasisLayer')
-class BesselBasisLayer(GraphBaseLayer):
+class BesselBasisLayer(Layer):
     r"""Expand a distance into a Bessel Basis with :math:`l=m=0`, according to
-    `Gasteiger et al. (2020) <https://arxiv.org/abs/2011.14115>`_.
+    `Gasteiger et al. (2020) <https://arxiv.org/abs/2011.14115>`__ .
 
     For :math:`l=m=0` the 2D spherical Fourier-Bessel simplifies to
     :math:`\Psi_{\text{RBF}}(d)=a j_0(\frac{z_{0,n}}{c}d)` with roots at :math:`z_{0,n} = n\pi`. With normalization
@@ -755,33 +751,32 @@ class BesselBasisLayer(GraphBaseLayer):
         # Layer variables
         self.num_radial = num_radial
         self.cutoff = cutoff
-        self.inv_cutoff = tf.constant(1 / cutoff, dtype=tf.float32)
+        self.inv_cutoff = ops.convert_to_tensor(1 / cutoff, dtype=self.dtype)
         self.envelope_exponent = envelope_exponent
         self.envelope_type = str(envelope_type)
 
         if self.envelope_type not in ["poly"]:
-            raise ValueError("Unknown envelope type '%s' in `BesselBasisLayer`." % self.envelope_type)
+            raise ValueError("Unknown envelope type '%s' in `BesselBasisLayer` ." % self.envelope_type)
 
         # Initialize frequencies at canonical positions.
         def freq_init(shape, dtype):
-            return tf.constant(np.pi * np.arange(1, shape + 1, dtype=np.float32), dtype=dtype)
+            return ops.convert_to_tensor(np.pi * np.arange(1, shape + 1, dtype=np.float64), dtype=dtype)
 
         self.frequencies = self.add_weight(name="frequencies", shape=self.num_radial,
-                                           dtype=tf.float32, initializer=freq_init, trainable=True)
+                                           dtype=self.dtype, initializer=freq_init, trainable=True)
 
-    @tf.function
     def envelope(self, inputs):
         p = self.envelope_exponent + 1
         a = -(p + 1) * (p + 2) / 2
         b = p * (p + 2)
         c = -p * (p + 1) / 2
         env_val = 1.0 / inputs + a * inputs ** (p - 1) + b * inputs ** p + c * inputs ** (p + 1)
-        return tf.where(inputs < 1, env_val, tf.zeros_like(inputs))
+        return ops.where(inputs < 1, env_val, ops.zeros_like(inputs))
 
     def expand_bessel_basis(self, inputs):
         d_scaled = inputs * self.inv_cutoff
         d_cutoff = self.envelope(d_scaled)
-        out = d_cutoff * tf.sin(self.frequencies * d_scaled)
+        out = d_cutoff * ops.sin(self.frequencies * d_scaled)
         return out
 
     def call(self, inputs, **kwargs):
@@ -795,7 +790,7 @@ class BesselBasisLayer(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Expanded distance. Shape is `(batch, [K], num_radial)`.
         """
-        return self.map_values(self.expand_bessel_basis, inputs)
+        return self.expand_bessel_basis(inputs)
 
     def get_config(self):
         """Update config."""
@@ -805,10 +800,9 @@ class BesselBasisLayer(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOffEnvelope')
-class CosCutOffEnvelope(GraphBaseLayer):
+class CosCutOffEnvelope(Layer):
     r"""Calculate cosine cutoff envelope according to
-    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
+    `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`__ .
 
     For edge-like distance :math:`R_{ij}` and cutoff radius :math:`R_c` the envelope :math:`f_c` is given by:
 
@@ -829,11 +823,11 @@ class CosCutOffEnvelope(GraphBaseLayer):
         self.cutoff = float(np.abs(cutoff)) if cutoff is not None else 1e8
 
     @staticmethod
-    def _compute_cutoff_envelope(inputs, cutoff):
+    def _compute_cutoff_envelope(fc, cutoff):
         """Implements the cutoff envelope."""
-        fc = tf.clip_by_value(inputs, -cutoff, cutoff)
-        fc = (tf.math.cos(fc * np.pi / cutoff) + 1) * 0.5
-        # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
+        fc = ops.clip(fc, -cutoff, cutoff)
+        fc = (ops.cos(fc * np.pi / cutoff) + 1) * 0.5
+        # fc = ops.where(ops.abs(inputs) < cutoff, fc, ops.zeros_like(fc))
         return fc
 
     def call(self, inputs, **kwargs):
@@ -847,7 +841,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff envelope of shape `(batch, [M], 1)`.
         """
-        return self.map_values(self._compute_cutoff_envelope, inputs, cutoff=self.cutoff)
+        return self._compute_cutoff_envelope(inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""
@@ -856,8 +850,7 @@ class CosCutOffEnvelope(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CosCutOff')
-class CosCutOff(GraphBaseLayer):
+class CosCutOff(Layer):
     r"""Apply cosine cutoff according to
     `Behler et al. (2011) <https://aip.scitation.org/doi/10.1063/1.3553717>`_.
 
@@ -881,8 +874,8 @@ class CosCutOff(GraphBaseLayer):
 
     @staticmethod
     def _compute_cutoff(inputs, cutoff):
-        fc = tf.clip_by_value(inputs, -cutoff, cutoff)
-        fc = (tf.math.cos(fc * np.pi / cutoff) + 1) * 0.5
+        fc = ops.clip(inputs, -cutoff, cutoff)
+        fc = (ops.cos(fc * np.pi / cutoff) + 1) * 0.5
         # fc = tf.where(tf.abs(inputs) < self.cutoff, fc, tf.zeros_like(fc))
         out = fc * inputs
         return out
@@ -898,7 +891,7 @@ class CosCutOff(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Cutoff applied to input of shape `(batch, [M], D)`.
         """
-        return self.map_values(self._compute_cutoff, inputs, cutoff=self.cutoff)
+        return self._compute_cutoff(inputs, cutoff=self.cutoff)
 
     def get_config(self):
         """Update config."""
@@ -907,8 +900,7 @@ class CosCutOff(GraphBaseLayer):
         return config
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsASU')
-class DisplacementVectorsASU(GraphBaseLayer):
+class DisplacementVectorsASU(Layer):
     """TODO: Add docs.
 
     """
@@ -928,40 +920,35 @@ class DisplacementVectorsASU(GraphBaseLayer):
         Args:
             inputs: [frac_coordinates, edge_indices, symmetry_ops]
 
-                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(batch, [N], 3)`.
-                - edge_indices (tf.RaggedTensor): Edge indices of shape `(batch, [M], 2)`.
-                - symmetry_ops (tf.RaggedTensor): Symmetry operations of shape `(batch, [M], 4, 4)`.
+                - frac_coordinates (tf.RaggedTensor): Fractional node coordinates of shape `(N, 3)`.
+                - edge_indices (tf.RaggedTensor): Edge indices of shape `(M, 2)`.
+                - symmetry_ops (tf.RaggedTensor): Symmetry operations of shape `(M, 4, 4)`.
 
         Returns:
-            tf.RaggedTensor: Displacement vector for edges of shape `(batch, [M], 3)`.
+            tf.RaggedTensor: Displacement vector for edges of shape `(M, 3)`.
         """
-        inputs = self.assert_ragged_input_rank(inputs, ragged_rank=1)
-
         frac_coords = inputs[0]
         edge_indices = inputs[1]
-        symmops = inputs[2].values
+        symmops = inputs[2]
+        cell_translations = inputs[3]
 
-        cell_translations = inputs[3].values
         in_frac_coords, out_frac_coords = self.gather_node_positions([frac_coords, edge_indices], **kwargs)
-        in_frac_coords = in_frac_coords.values
-        out_frac_coords = out_frac_coords.values
 
         # Affine Transformation
-        out_frac_coords_ = tf.concat(
-            [out_frac_coords, tf.expand_dims(tf.ones_like(out_frac_coords[:, 0]), axis=1)], axis=1)
+        out_frac_coords_ = ops.concatenate(
+            [out_frac_coords, ops.expand_dims(ops.ones_like(out_frac_coords[:, 0]), axis=1)], axis=1)
         affine_matrices = symmops
-        out_frac_coords = tf.einsum('ij,ikj->ik', out_frac_coords_, affine_matrices)[:, :-1]
-        out_frac_coords = out_frac_coords - tf.floor(out_frac_coords)  # All values should be in [0,1) interval
+        out_frac_coords = ops.einsum('ij,ikj->ik', out_frac_coords_, affine_matrices)[:, :-1]
+        out_frac_coords = out_frac_coords - ops.floor(out_frac_coords)  # All values should be in [0,1) interval
 
         # Cell translation
         out_frac_coords = out_frac_coords + cell_translations
 
         offset = in_frac_coords - out_frac_coords
-        return tf.RaggedTensor.from_row_splits(offset, edge_indices.row_splits, validate=self.ragged_validate)
+        return offset
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='DisplacementVectorsUnitCell')
-class DisplacementVectorsUnitCell(GraphBaseLayer):
+class DisplacementVectorsUnitCell(Layer):
     r"""Computes displacements vectors for edges that require the sending node to be displaced or translated
     into an image of the unit cell in a periodic system.
 
@@ -978,8 +965,8 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
     def __init__(self, **kwargs):
         """Initialize layer."""
         self.gather_node_positions = NodePosition()
-        self.lazy_add = LazyAdd()
-        self.lazy_sub = LazySubtract()
+        self.lazy_add = Add()
+        self.lazy_sub = Subtract()
         super(DisplacementVectorsUnitCell, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -1008,8 +995,7 @@ class DisplacementVectorsUnitCell(GraphBaseLayer):
         return offset
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='FracToRealCoordinates')
-class FracToRealCoordinates(GraphBaseLayer):
+class FracToRealCoordinates(Layer):
     r"""Layer to compute real-space coordinates from fractional coordinates with the lattice matrix.
 
     With lattice matrix :math:`\mathbf{A}` of a periodic lattice with lattice vectors
@@ -1026,8 +1012,8 @@ class FracToRealCoordinates(GraphBaseLayer):
 
     def __init__(self, **kwargs):
         """Initialize layer."""
-        self.gather_state = GatherState()
         super(FracToRealCoordinates, self).__init__(**kwargs)
+        self.gather_state = GatherState()
 
     def build(self, input_shape):
         """Build layer."""
@@ -1045,17 +1031,14 @@ class FracToRealCoordinates(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Real-space node coordinates of shape `(batch, [N], 3)`.
         """
-        frac_coords = self.assert_ragged_input_rank(inputs[0], ragged_rank=1)
-        lattice_matrices = inputs[1]
-        lattice_matrices_ = tf.repeat(lattice_matrices, frac_coords.row_lengths(), axis=0)
-        # frac_to_real = tf.einsum('ij,ijk->ik', frac_coords.values, lattice_matrices_)
-        frac_to_real_coords = ks.backend.batch_dot(frac_coords.values, lattice_matrices_)
-        return tf.RaggedTensor.from_row_splits(
-            frac_to_real_coords, frac_coords.row_splits, validate=self.ragged_validate)
+        frac_coords, lattice_matrices, row_lengths = inputs
+        lattice_matrices_ = ops.repeat(lattice_matrices, row_lengths, axis=0)
+        frac_to_real = ops.einsum('ij,ijk->ik', frac_coords, lattice_matrices_)
+        # frac_to_real_coords = ks.backend.batch_dot(frac_coords, lattice_matrices_)
+        return frac_to_real
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='RealToFracCoordinates')
-class RealToFracCoordinates(GraphBaseLayer):
+class RealToFracCoordinates(Layer):
     r"""Layer to compute fractional coordinates from real-space coordinates with the lattice matrix.
 
     With lattice matrix :math:`\mathbf{A}` of a periodic lattice with lattice vectors
@@ -1076,9 +1059,9 @@ class RealToFracCoordinates(GraphBaseLayer):
         Args:
             is_inverse_lattice_matrix (bool): If the input is inverse lattice matrix. Default is False.
         """
+        super(RealToFracCoordinates, self).__init__(**kwargs)
         self.is_inverse_lattice_matrix = is_inverse_lattice_matrix
         # self.gather_state = GatherState()
-        super(RealToFracCoordinates, self).__init__(**kwargs)
 
     def build(self, input_shape):
         """Build layer."""
@@ -1096,14 +1079,14 @@ class RealToFracCoordinates(GraphBaseLayer):
         Returns:
             tf.RaggedTensor: Fractional node coordinates of shape `(batch, [N], 3)`.
         """
-        real_coordinates = self.assert_ragged_input_rank(inputs[0], ragged_rank=1)
-        inv_lattice_matrices = inputs[1]
+        real_coordinates, inv_lattice_matrices, row_lengths = inputs
         if not self.is_inverse_lattice_matrix:
-            inv_lattice_matrices = tf.linalg.inv(inv_lattice_matrices)
-        inv_lattice_matrices_ = tf.repeat(inv_lattice_matrices, real_coordinates.row_lengths(), axis=0)
-        real_to_frac_coords = ks.backend.batch_dot(real_coordinates.values, inv_lattice_matrices_)
-        return tf.RaggedTensor.from_row_splits(
-            real_to_frac_coords, real_coordinates.row_splits, validate=self.ragged_validate)
+            # inv_lattice_matrices = tf.linalg.inv(inv_lattice_matrices)
+            raise NotImplementedError()
+        inv_lattice_matrices_ = ops.repeat(inv_lattice_matrices, row_lengths, axis=0)
+        # real_to_frac_coords = ks.backend.batch_dot(real_coordinates, inv_lattice_matrices_)
+        real_to_frac_coords = ops.einsum('ij,ijk->ik', real_coordinates, inv_lattice_matrices_)
+        return real_to_frac_coords
 
     def get_config(self):
         """Update config."""

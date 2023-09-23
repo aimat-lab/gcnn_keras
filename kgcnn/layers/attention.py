@@ -1,13 +1,11 @@
-import tensorflow as tf
-
-from kgcnn.layers.base import GraphBaseLayer
+# import keras_core as ks
 from kgcnn.layers.gather import GatherNodesIngoing, GatherNodesOutgoing
-from kgcnn.layers.modules import Dense, LazyConcatenate, Activation, LazyAverage
+from keras_core.layers import Dense, Concatenate, Activation, Average, Layer
 from kgcnn.layers.aggr import AggregateLocalEdgesAttention
+from keras_core import ops
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGAT')
-class AttentionHeadGAT(GraphBaseLayer):
+class AttentionHeadGAT(Layer):  # noqa
     r"""Computes the attention head according to `GAT <https://arxiv.org/abs/1710.10903>`__ .
 
     The attention coefficients are computed by :math:`a_{ij} = \sigma(a^T W n_i || W n_j)`,
@@ -66,7 +64,7 @@ class AttentionHeadGAT(GraphBaseLayer):
         self.lay_alpha = Dense(1, activation=activation, use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
-        self.lay_concat = LazyConcatenate(axis=-1)
+        self.lay_concat = Concatenate(axis=-1)
         self.lay_pool_attention = AggregateLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
@@ -113,12 +111,12 @@ class AttentionHeadGAT(GraphBaseLayer):
         conf_sub = self.lay_alpha.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_sub[x]})
+            if x in conf_sub:
+                config.update({x: conf_sub[x]})
         return config
 
 
-@tf.keras.utils.register_keras_serializable(package='kgcnn', name='AttentionHeadGATV2')
-class AttentionHeadGATV2(GraphBaseLayer):
+class AttentionHeadGATV2(Layer):  # noqa
     r"""Computes the modified attention head according to `GATv2 <https://arxiv.org/pdf/2105.14491.pdf>`__ .
 
     The attention coefficients are computed by :math:`a_{ij} = a^T \sigma( W [n_i || n_j] )`,
@@ -178,7 +176,7 @@ class AttentionHeadGATV2(GraphBaseLayer):
         self.lay_alpha = Dense(1, activation="linear", use_bias=False, **kernel_args)
         self.lay_gather_in = GatherNodesIngoing()
         self.lay_gather_out = GatherNodesOutgoing()
-        self.lay_concat = LazyConcatenate(axis=-1)
+        self.lay_concat = Concatenate(axis=-1)
         self.lay_pool_attention = AggregateLocalEdgesAttention()
         if self.use_final_activation:
             self.lay_final_activ = Activation(activation=activation)
@@ -227,11 +225,12 @@ class AttentionHeadGATV2(GraphBaseLayer):
         conf_sub = self.lay_alpha_activation.get_config()
         for x in ["kernel_regularizer", "activity_regularizer", "bias_regularizer", "kernel_constraint",
                   "bias_constraint", "kernel_initializer", "bias_initializer", "activation"]:
-            config.update({x: conf_sub[x]})
+            if x in conf_sub:
+                config.update({x: conf_sub[x]})
         return config
 
 
-class MultiHeadGATV2Layer(AttentionHeadGATV2):
+class MultiHeadGATV2Layer(AttentionHeadGATV2):  # noqa
 
     def __init__(self,
                  units: int,
@@ -257,15 +256,15 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
 
             self.head_layers.append((lay_linear, lay_alpha_activation, lay_alpha))
 
-        self.lay_concat_alphas = LazyConcatenate(axis=-2)
-        self.lay_concat_embeddings = LazyConcatenate(axis=-2)
+        self.lay_concat_alphas = Concatenate(axis=-2)
+        self.lay_concat_embeddings = Concatenate(axis=-2)
         self.lay_pool_attention = AggregateLocalEdgesAttention()
         # self.lay_pool = AggregateLocalEdges()
 
         if self.concat_heads:
-            self.lay_combine_heads = LazyConcatenate(axis=-1)
+            self.lay_combine_heads = Concatenate(axis=-1)
         else:
-            self.lay_combine_heads = LazyAverage()
+            self.lay_combine_heads = Average()
 
     def __call__(self, inputs, **kwargs):
         node, edge, edge_index = inputs
@@ -299,7 +298,7 @@ class MultiHeadGATV2Layer(AttentionHeadGATV2):
                 h_i = self.lay_final_activ(h_i, **kwargs)
 
             # a_ij after expand: ([batch], [M], 1, 1)
-            a_ij = tf.expand_dims(a_ij, axis=-2)
+            a_ij = ops.expand_dims(a_ij, axis=-2)
             a_ijs.append(a_ij)
 
             # h_i = tf.expand_dims(h_i, axis=-2)

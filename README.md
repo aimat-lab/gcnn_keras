@@ -29,8 +29,9 @@ A set of layers for graph convolutions in Keras.
 <a name="general"></a>
 # General
 
-The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models. 
-Some models are given as an example.
+The package in [kgcnn](kgcnn) contains several layer classes to build up graph convolution models in 
+Keras with Tensorflow, PyTorch or Jax as backend. 
+Some models are given as an example in literature.
 A [documentation](https://kgcnn.readthedocs.io/en/latest/index.html) is generated in [docs](docs).
 Focus of [kgcnn](kgcnn) is (batched) graph learning for molecules [kgcnn.molecule](kgcnn/molecule) and materials [kgcnn.crystal](kgcnn/crystal).
 If you want to get in contact, feel free to [discuss](https://github.com/aimat-lab/gcnn_keras/discussions). 
@@ -38,11 +39,8 @@ If you want to get in contact, feel free to [discuss](https://github.com/aimat-l
 <a name="requirements"></a>
 # Requirements
 
-
-Standard python package requirements are placed in the `setup.py` and are installed automatically ([kgcnn](https://github.com/aimat-lab/gcnn_keras) >=2.2). 
-Packages which must be installed manually for full functionality:
-
-* [openbabel](http://openbabel.org/wiki/Main_Page) >=3.0.1
+Standard python package requirements are placed in the `setup.py` and are installed automatically.
+However, you must make sure to install the GPU/TPU acceleration for the backend of your choice.
 
 <a name="installation"></a>
 # Installation

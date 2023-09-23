@@ -1,78 +1,63 @@
+OS: nt_win32
+backend: torch
+cuda_available: 'True'
 data_unit: ''
-date_time: '2023-02-24 11:16:50'
-energy_loss:
-- 0.0551685094833374
+date_time: '2023-09-23 18:06:43'
+device_id: '[0]'
+device_memory: '[{''allocated'': 0.0, ''cached'': 7.2}]'
+device_name: '[''NVIDIA GeForce GTX 1060 6GB'']'
 energy_scaled_mean_absolute_error:
-- 0.3599682152271271
+- 0.6620805859565735
 epochs:
 - 1000
 execute_folds: null
-force_loss:
-- 0.09626403450965881
 force_scaled_mean_absolute_error:
-- 0.628111720085144
-kgcnn_version: 2.2.2
+- 0.9776934385299683
+kgcnn_version: 4.0.0
+learning_rate:
+- 6.721010777255287e-06
 loss:
-- 4.772106647491455
-lr:
-- 6.721010777255287e-06
-max_energy_loss:
-- 8.361373901367188
+- 7.421228408813477
 max_energy_scaled_mean_absolute_error:
-- 54.5570182800293
-max_force_loss:
-- 3.5204243659973145
+- 44.137596130371094
 max_force_scaled_mean_absolute_error:
-- 22.970367431640625
-max_loss:
-- 175.33505249023438
-max_lr:
+- 23.12982177734375
+max_learning_rate:
 - 0.0010000000474974513
-max_val_energy_loss:
-- 16.09758949279785
+max_loss:
+- 175.07359313964844
 max_val_energy_scaled_mean_absolute_error:
-- 105.03491973876953
-max_val_force_loss:
-- 3.463212728500366
+- 99.35033416748047
 max_val_force_scaled_mean_absolute_error:
-- 22.597061157226562
+- 22.607444763183594
 max_val_loss:
-- 173.58229064941406
-min_energy_loss:
-- 0.054785072803497314
+- 174.02117919921875
 min_energy_scaled_mean_absolute_error:
-- 0.35746634006500244
-min_force_loss:
-- 0.0961744412779808
+- 0.5289925336837769
 min_force_scaled_mean_absolute_error:
-- 0.6275269985198975
-min_loss:
-- 4.769506931304932
-min_lr:
+- 0.9759277701377869
+min_learning_rate:
 - 6.721010777255287e-06
-min_val_energy_loss:
-- 0.06266266107559204
+min_loss:
+- 7.398296356201172
 min_val_energy_scaled_mean_absolute_error:
-- 0.40886661410331726
-min_val_force_loss:
-- 0.16551415622234344
+- 0.5913619995117188
 min_val_force_scaled_mean_absolute_error:
-- 1.079960823059082
+- 1.20387601852417
 min_val_loss:
-- 8.17313003540039
+- 9.16006851196289
 model_class: EnergyForceModel
 model_name: Schnet
 model_version: ''
 multi_target_indices: null
 number_histories: 1
+seed: 42
+time_list:
+- '0:54:44.886272'
 trajectory_name: aspirin_ccsd
-val_energy_loss:
-- 0.06318432092666626
 val_energy_scaled_mean_absolute_error:
-- 0.4122704863548279
-val_force_loss:
-- 0.16576185822486877
+- 0.7657562494277954
 val_force_scaled_mean_absolute_error:
-- 1.0815770626068115
+- 1.2044456005096436
 val_loss:
-- 8.185515403747559
+- 9.189851760864258

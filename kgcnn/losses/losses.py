@@ -1,26 +1,18 @@
-import tensorflow as tf
-ks = tf.keras
+import keras_core as ks
+from keras_core.losses import Loss
+from keras_core.losses import mean_absolute_error
+import keras_core.saving
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='BinaryCrossentropyNoNaN')
-class BinaryCrossentropyNoNaN(ks.losses.BinaryCrossentropy):
+@ks.saving.register_keras_serializable(package='kgcnn', name='MeanAbsoluteError')
+class MeanAbsoluteError(Loss):
 
-    def __init__(self, *args, **kwargs):
-        super(BinaryCrossentropyNoNaN, self).__init__(*args, **kwargs)
+    def __init__(self, reduction="sum_over_batch_size", name="mean_absolute_error", dtype=None):
+        super(MeanAbsoluteError, self).__init__(reduction=reduction, name=name, dtype=dtype)
 
     def call(self, y_true, y_pred):
-        is_nan = tf.math.is_nan(y_true)
-        y_pred = tf.where(is_nan, tf.zeros_like(y_pred), y_pred)
-        y_true = tf.where(is_nan, tf.zeros_like(y_true), y_true)
-        return super(BinaryCrossentropyNoNaN, self).call(y_true, y_pred)
+        return mean_absolute_error(y_true, y_pred)
 
-
-@ks.utils.register_keras_serializable(package="kgcnn", name="RaggedMeanAbsoluteError")
-class RaggedMeanAbsoluteError(ks.losses.Loss):
-
-    def __init__(self, *args, **kwargs):
-        super(RaggedMeanAbsoluteError, self).__init__(*args, **kwargs)
-
-    @tf.function
-    def call(self, y_true, y_pred):
-        return ks.backend.mean(tf.abs(y_pred.flat_values - y_true.flat_values), axis=-1)
+    def get_config(self):
+        config = super(MeanAbsoluteError, self).get_config()
+        return config

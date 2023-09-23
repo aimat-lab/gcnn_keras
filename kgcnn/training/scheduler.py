@@ -1,14 +1,16 @@
 import numpy as np
-import tensorflow as tf
 import math
 import logging
-ks = tf.keras
+import keras_core as ks
+import keras_core.callbacks
+import keras_core.saving
 
 logging.basicConfig()  # Module logger
 module_logger = logging.getLogger(__name__)
 module_logger.setLevel(logging.INFO)
 
 
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmUpScheduler')
 class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
     r"""Warmup scheduler that increases the learning rate over the first steps or epochs.
     Inherits from :obj:`ks.callbacks.LearningRateScheduler`. Note that the parameter :obj:`schedule` in the
@@ -77,15 +79,15 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
             None
         """
         if self.__warming_up and self.steps_per_epoch is not None:
-            if not hasattr(self.model.optimizer, "lr"):
+            if not hasattr(self.model.optimizer, "learning_rate"):
                 raise ValueError('Optimizer must have a "lr" attribute.')
-            lr = float(ks.backend.get_value(self.model.optimizer.lr))
+            lr = float(ks.backend.convert_to_numpy(self.model.optimizer.learning_rate))
             lr = lr + self.lr_start / self.epo_warmup / self.steps_per_epoch
             if batch > self.steps_per_epoch:
                 module_logger.warning("Found `batch` > `steps_per_epoch` during warmup.")
             if self.verbose > 0:
                 print("{0}/{1}: Warmup-step increase lr to {2}.".format(batch, self.steps_per_epoch, lr))
-            ks.backend.set_value(self.model.optimizer.lr, ks.backend.get_value(lr))
+            self.model.optimizer.learning_rate = lr
 
     def get_config(self):
         """Get config for this class."""
@@ -100,7 +102,7 @@ class LinearWarmUpScheduler(ks.callbacks.LearningRateScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='CosineAnnealingLRScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='CosineAnnealingLRScheduler')
 class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):
     r"""Callback for cosine learning rate (LR) schedule. This class inherits from
     :obj:`ks.callbacks.LearningRateScheduler` and applies :obj:`schedule_epoch_lr`.
@@ -148,7 +150,7 @@ class CosineAnnealingLRScheduler(ks.callbacks.LearningRateScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLRScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLRScheduler')
 class LinearWarmupExponentialLRScheduler(LinearWarmUpScheduler):
     r"""Callback for exponential learning rate schedule with warmup. This class inherits from
     :obj:`LinearWarmUpScheduler`, which inherits from :obj:`ks.callbacks.LearningRateScheduler`.
@@ -205,7 +207,7 @@ class LinearWarmupExponentialLRScheduler(LinearWarmUpScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupExponentialLearningRateScheduler')
 class LinearWarmupExponentialLearningRateScheduler(LinearWarmUpScheduler):
     r"""Callback for exponential learning rate schedule with warmup. This class inherits from
     :obj:`LinearWarmUpScheduler`, which inherits from :obj:`ks.callbacks.LearningRateScheduler`.
@@ -261,7 +263,7 @@ class LinearWarmupExponentialLearningRateScheduler(LinearWarmUpScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='LinearLearningRateScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearLearningRateScheduler')
 class LinearLearningRateScheduler(ks.callbacks.LearningRateScheduler):
     r"""Callback for linear change of the learning rate. This class inherits from
     :obj:`ks.callbacks.LearningRateScheduler`.
@@ -325,7 +327,7 @@ class LinearLearningRateScheduler(ks.callbacks.LearningRateScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='LinearWarmupLinearLearningRateScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='LinearWarmupLinearLearningRateScheduler')
 class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
     r"""Callback for linear change of the learning rate with warmup. This class inherits from
     :obj:`LinearWarmUpScheduler`, which inherits from :obj:`ks.callbacks.LearningRateScheduler`.
@@ -390,7 +392,7 @@ class LinearWarmupLinearLearningRateScheduler(LinearWarmUpScheduler):
         return cls(**config)
 
 
-@ks.utils.register_keras_serializable(package='kgcnn', name='PolynomialDecayScheduler')
+@ks.saving.register_keras_serializable(package='kgcnn', name='PolynomialDecayScheduler')
 class PolynomialDecayScheduler(ks.callbacks.LearningRateScheduler):
     r"""Callback for polynomial decay of the learning rate. This class inherits from
     :obj:`ks.callbacks.LearningRateScheduler`.
