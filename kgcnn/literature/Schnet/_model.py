@@ -8,7 +8,7 @@ from kgcnn.layers.modules import Embedding
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.scale import get as get_scaler
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.model.utils import update_model_kwargs
+from kgcnn.models.utils import update_model_kwargs
 from keras_core.backend import backend as backend_to_use
 
 # To be updated if model is changed in a significant way.

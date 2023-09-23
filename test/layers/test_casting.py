@@ -1,11 +1,11 @@
 import numpy as np
 from keras_core import ops
-from keras_core import testing
+from kgcnn.utils.tests import TestCase
 from kgcnn.layers.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint
 from kgcnn.utils.tests import compare_static_shapes
 
 
-class TestCastBatchedIndicesToDisjoint(testing.TestCase):
+class TestCastBatchedIndicesToDisjoint(TestCase):
 
     nodes = np.array([[[0.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]])
     edges = np.array([[[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0]],
@@ -57,7 +57,7 @@ class TestCastBatchedIndicesToDisjoint(testing.TestCase):
             self.assertTrue(compare_static_shapes(f, e), msg=f"Shape mismatch: {f} vs. {e}")
 
 
-class TestCastBatchedAttributesToDisjoint(testing.TestCase):
+class TestCastBatchedAttributesToDisjoint(TestCase):
 
     nodes = np.array([[[0.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [1.0, 1.0]]])
     edges = np.array([[[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0]],

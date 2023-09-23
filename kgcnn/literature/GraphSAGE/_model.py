@@ -8,7 +8,7 @@ from kgcnn.layers.norm import GraphLayerNormalization
 from kgcnn.layers.mlp import MLP, GraphMLP
 from kgcnn.layers.aggr import AggregateLocalEdgesLSTM, AggregateLocalEdges
 from kgcnn.layers.pooling import PoolingNodes
-from kgcnn.model.utils import update_model_kwargs
+from kgcnn.models.utils import update_model_kwargs
 from kgcnn.layers.scale import get as get_scaler
 from keras_core.backend import backend as backend_to_use
 

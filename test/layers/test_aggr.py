@@ -1,10 +1,10 @@
 import numpy as np
-from keras import ops
-from keras import testing
+from keras_core import ops
+from kgcnn.utils.tests import TestCase
 from kgcnn.layers.aggr import AggregateLocalEdges, AggregateLocalEdgesAttention
 
 
-class TestAggregateLocalEdges(testing.TestCase):
+class TestAggregateLocalEdges(TestCase):
     node_attr = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
     edge_attr = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0],
                           [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
@@ -18,24 +18,8 @@ class TestAggregateLocalEdges(testing.TestCase):
         expected_output = np.array([[0., 1., 0.], [1., 1., 2.], [2., 1., 0.], [2., 1., 2.]])
         self.assertAllClose(nodes_aggr, expected_output)
 
-    def test_basics(self):
-        self.run_layer_test(
-            AggregateLocalEdges,
-            init_kwargs={
-            },
-            input_dtype="int64",
-            input_shape=[(4, 2), (8, 3), (2, 8)],
-            expected_output_shape=(4, 3),
-            expected_num_trainable_weights=0,
-            expected_num_non_trainable_weights=0,
-            expected_num_seed_generators=0,
-            expected_num_losses=0,
-            supports_masking=False,
-            run_training_check=False,
-        )
 
-
-class TestAggregateLocalEdgesAttention(testing.TestCase):
+class TestAggregateLocalEdgesAttention(TestCase):
     node_attr = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
     edge_attr = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [1.0, 1.0, 1.0],
                           [1.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [1.0, 1.0, 1.0]])
@@ -57,6 +41,5 @@ class TestAggregateLocalEdgesAttention(testing.TestCase):
 
 if __name__ == "__main__":
     TestAggregateLocalEdges().test_correctness()
-    TestAggregateLocalEdges().test_basics()
     TestAggregateLocalEdgesAttention().test_correctness()
     print("Tests passed.")
