@@ -19,7 +19,7 @@ global_normalization_args = {
     "GraphBatchNormalization": (
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
         "gamma_regularizer", "beta_constraint", "gamma_constraint", "momentum", "moving_mean_initializer",
-        "moving_variance_initializer"
+        "moving_variance_initializer", "padded_disjoint"
     ),
     "GraphLayerNormalization": (
         "axis", "epsilon", "center", "scale", "beta_initializer", "gamma_initializer", "beta_regularizer",
@@ -51,8 +51,10 @@ class GraphLayerNormalization(_LayerNormalization):
 
 class GraphBatchNormalization(_BatchNormalization):
 
-    def __init__(self, **kwargs):
+    def __init__(self, padded_disjoint: bool = False, **kwargs):
         super(GraphBatchNormalization, self).__init__(**kwargs)
+        self.padded_disjoint = padded_disjoint
+        assert not self.padded_disjoint, "Not implemented error"
 
     def compute_output_shape(self, input_shape):
         return super(GraphBatchNormalization, self).compute_output_shape(input_shape[0])
@@ -69,7 +71,9 @@ class GraphBatchNormalization(_BatchNormalization):
         return super(GraphBatchNormalization, self).call(inputs[0])
 
     def get_config(self):
-        return super(GraphBatchNormalization, self).get_config()
+        config = super(GraphBatchNormalization, self).get_config()
+        config.update({"padded_disjoint": self.padded_disjoint})
+        return config
 
 
 class GraphNormalization(Layer):

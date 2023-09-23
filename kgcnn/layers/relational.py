@@ -18,9 +18,9 @@ class RelationalDense(GraphBaseLayer):
 
         \mathbf{x}'_r = \sigma (\mathbf{x}_r \mathbf{W}_r + \mathbf{b})
 
-    This has been proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ for graph networks.
+    This has been proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`__ for graph networks.
     Additionally, there are a set of regularization schemes to improve performance and reduce the number of learnable
-    parameters proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`_ .
+    parameters proposed by `Schlichtkrull et al. (2017) <https://arxiv.org/abs/1703.06103>`__ .
     Here, the following is implemented: basis-, block-diagonal-decomposition.
     With the basis decom-position, each :math:`\mathbf{W}_r` is defined as follows:
 
@@ -223,8 +223,8 @@ class RelationalDense(GraphBaseLayer):
         Args:
             inputs: [features, relations]
 
-                - features (tf.RaggedTensor, tf.Tensor): Feature tensor of shape `(batch, [N], F)` of dtype 'float'.
-                - relations (tf.RaggedTensor, tf.Tensor): Relation tensor of shape `(batch, [N])` of dtype 'int'.
+                - features (tf.RaggedTensor, tf.Tensor): Feature tensor of shape `(batch, [N], F)` of type 'float'.
+                - relations (tf.RaggedTensor, tf.Tensor): Relation tensor of shape `(batch, [N])` of type 'int'.
 
         Returns:
             tf.RaggedTensor: Processed feature tensor. Shape is `(batch, [N], units)` of dtype 'float'.

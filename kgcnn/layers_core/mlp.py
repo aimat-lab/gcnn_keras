@@ -79,6 +79,8 @@ class MLPBase(Layer):  # noqa
                  rate=None,
                  noise_shape=None,
                  seed=None,
+                 # Graph
+                 padded_disjoint: bool = False,
                  **kwargs):
         r"""Initialize with parameter for MLP layer that match :obj:`Dense` layer, including :obj:`Dropout` and
         :obj:`BatchNormalization` or :obj:`LayerNormalization` or :obj:`GraphNormalization` .
@@ -162,12 +164,15 @@ class MLPBase(Layer):  # noqa
         self._key_list_const = [
             "kernel_constraint", "bias_constraint", "beta_constraint", "gamma_constraint", "alpha_constraint"
         ]
+        self._key_list_general = [
+            "padded_disjoint"
+        ]
         self._key_dict_norm = global_normalization_args
 
         # Summarize all arguments.
         self._key_list = []
         self._key_list += self._key_list_act + self._key_list_dense + self._key_list_norm_all + self._key_list_dropout
-        self._key_list += self._key_list_use
+        self._key_list += self._key_list_use + self._key_list_general
         self._key_list = list(set(self._key_list))
 
         # Dictionary of kwargs for MLP.
