@@ -1,6 +1,6 @@
 import logging
 import keras_core as ks
-from kgcnn.model.utils import get_model_class
+from kgcnn.models.utils import get_model_class
 
 
 def deserialize(obj_dict: dict) -> ks.models.Model:

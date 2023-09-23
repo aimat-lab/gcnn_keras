@@ -5,7 +5,7 @@ from typing import Union
 from copy import deepcopy
 from kgcnn.metrics.utils import merge_metrics
 from kgcnn.data.utils import load_hyper_file, save_json_file
-from keras_core.saving.serialization_lib import deserialize_keras_object
+from keras_core.saving import deserialize_keras_object
 import keras_core.metrics
 import keras_core.losses
 

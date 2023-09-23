@@ -8,7 +8,7 @@ from kgcnn import __kgcnn_version__
 import keras_core as ks
 import keras_core.callbacks
 from keras_core.backend import backend
-from kgcnn.utils_core.devices import check_device
+from kgcnn.utils.devices import check_device
 
 
 def load_history_list(file_path, folds):
