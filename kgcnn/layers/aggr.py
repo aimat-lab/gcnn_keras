@@ -1,5 +1,5 @@
 import keras_core as ks
-import keras_core.saving
+# import keras_core.saving
 from keras_core.layers import Layer
 from keras_core import ops
 from kgcnn.ops.scatter import (
@@ -134,6 +134,7 @@ class AggregateLocalEdgesAttention(Layer):
         self.is_sorted = is_sorted
         self.has_unconnected = has_unconnected
         self.normalize = normalize
+        self.softmax_method = softmax_method
         self.to_aggregate = Aggregate(pooling_method=pooling_method)
 
     def build(self, input_shape):
@@ -289,13 +290,13 @@ class AggregateLocalEdgesLSTM(Layer):
             indices, edges,
             shape=tuple([dim_n*dim_e_per_n] + list(ops.shape(edges)[1:]))
         )
-        lst_mask = ops.cast(scatter_reduce_sum(
+        lstm_mask = ops.cast(scatter_reduce_sum(
             indices, ops.ones(ops.shape(edges)[:1], dtype=ks.backend.floatx()),
             shape=tuple([dim_n*dim_e_per_n])
         ), dtype="bool")
 
         lstm_input = ops.reshape(lstm_input, tuple([dim_n, dim_e_per_n] + list(ops.shape(edges)[1:])))
-        lstm_mask = ops.reshape(lst_mask, tuple([dim_n, dim_e_per_n]))
+        lstm_mask = ops.reshape(lstm_mask, tuple([dim_n, dim_e_per_n]))
 
         out = self.lstm_unit(lstm_input, mask=lstm_mask)
         return out

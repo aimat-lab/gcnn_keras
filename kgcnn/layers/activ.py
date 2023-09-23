@@ -1,11 +1,10 @@
 import numpy as np
 import keras_core as ks
-from kgcnn.layers.base import GraphBaseLayer
-import keras_core.saving
+# import keras_core.saving
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='LeakySoftplus')
-class LeakySoftplus(GraphBaseLayer):
+class LeakySoftplus(ks.layers.Layer):
     r"""Leaky softplus activation function similar to :obj:`tf.nn.leaky_relu` but smooth. """
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
@@ -18,16 +17,13 @@ class LeakySoftplus(GraphBaseLayer):
         super(LeakySoftplus, self).__init__(**kwargs)
         self._alpha_config = float(alpha)
         self._alpha_trainable = bool(trainable)
-        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=self._alpha_trainable)
+        self.alpha = self.add_weight(
+            shape=tuple(), initializer="zeros", dtype=self.dtype, trainable=self._alpha_trainable)
         self.set_weights([np.array(alpha)])
 
-    def _activ_implementation(self, inputs, **kwargs):
-        """Compute leaky_softplus activation from inputs."""
+    def call(self, inputs, *args, **kwargs):
         x = inputs
         return ks.activations.softplus(x) * (1 - self.alpha) + self.alpha * x
-
-    def call(self, inputs, *args, **kwargs):
-        return self.map_values(self._activ_implementation, inputs, **kwargs)
 
     def get_config(self):
         config = super(LeakySoftplus, self).get_config()
@@ -36,7 +32,7 @@ class LeakySoftplus(GraphBaseLayer):
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='LeakyRelu')
-class LeakyRelu(GraphBaseLayer):
+class LeakyRelu(ks.layers.Layer):
     r"""Leaky RELU function. Equivalent to :obj:`tf.nn.leaky_relu(x,alpha)`."""
 
     def __init__(self, alpha: float = 0.05, trainable: bool = False, **kwargs):
@@ -49,17 +45,14 @@ class LeakyRelu(GraphBaseLayer):
         super(LeakyRelu, self).__init__(**kwargs)
         self._alpha_config = float(alpha)
         self._alpha_trainable = bool(trainable)
-        self.alpha = self.add_weight(shape=None, dtype=self.dtype, trainable=self._alpha_trainable)
+        self.alpha = self.add_weight(
+            shape=tuple(), dtype=self.dtype, initializer="zeros", trainable=self._alpha_trainable)
         self.set_weights([np.array(alpha)])
 
-    def _activ_implementation(self, inputs, **kwargs):
-        """Compute leaky_relu activation from inputs."""
-        x = inputs
-        return tf.nn.leaky_relu(x, alpha=self.alpha)
-        # return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
-
     def call(self, inputs, *args, **kwargs):
-        return self.map_values(self._activ_implementation, inputs, **kwargs)
+        x = inputs
+        return ks.activations.leaky_relu(x, alpha=self.alpha)
+        # return tf.nn.relu(x) - tf.nn.relu(-x)*self.alpha
 
     def get_config(self):
         config = super(LeakyRelu, self).get_config()
@@ -68,7 +61,7 @@ class LeakyRelu(GraphBaseLayer):
 
 
 @ks.saving.register_keras_serializable(package='kgcnn', name='Swish')
-class Swish(GraphBaseLayer):
+class Swish(ks.layers.Layer):
     r"""Swish activation function. Computes :math:`x \; \text{sig}(\beta x)`,
     with :math:`\text{sig}(x) = 1/(1+e^{-x})`."""
 
@@ -82,16 +75,13 @@ class Swish(GraphBaseLayer):
         super(Swish, self).__init__(**kwargs)
         self._beta_config = float(beta)
         self._beta_trainable = bool(trainable)
-        self.beta = self.add_weight(shape=None, dtype=self.dtype, trainable=self._beta_trainable)
+        self.beta = self.add_weight(
+            shape=tuple(), dtype=self.dtype, initializer="ones", trainable=self._beta_trainable)
         self.set_weights([np.array(beta)])
 
-    def _activ_implementation(self, inputs, **kwargs):
-        """Compute swish activation from inputs."""
-        x = inputs
-        return x * tf.sigmoid(self.beta * x)
-
     def call(self, inputs, *args, **kwargs):
-        return self.map_values(self._activ_implementation, inputs, **kwargs)
+        x = inputs
+        return x * ks.activations.sigmoid(self.beta * x)
 
     def get_config(self):
         config = super(Swish, self).get_config()

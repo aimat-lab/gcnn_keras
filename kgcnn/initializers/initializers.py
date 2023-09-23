@@ -8,7 +8,7 @@ def _compute_fans(shape):
     Taken from original TensorFlow implementation and copied here for static reference.
 
     Args:
-        shape: Integer shape tuple or TF tensor shape.
+        shape: Integer shape tuple or tensor shape.
 
     Returns:
         A tuple of integer scalars (fan_in, fan_out).
@@ -36,7 +36,7 @@ class GlorotOrthogonal(ks.initializers.Orthogonal):
     r"""Combining Glorot variance and Orthogonal initializer.
 
     Generate a weight matrix with variance according to Glorot initialization.
-    Based on a random (semi-)orthogonal matrix neural networks
+    Based on a random (semi-) orthogonal matrix neural networks
     are expected to learn better when features are de-correlated.
 
     This is stated by e.g.:
@@ -49,7 +49,6 @@ class GlorotOrthogonal(ks.initializers.Orthogonal):
           by A. M. Saxe et al. (2013) `<https://arxiv.org/abs/1312.6120>`_ .
 
     This implementation has been borrowed and slightly modified from `DimeNetPP <https://arxiv.org/abs/2011.14115>`__ .
-
     """
 
     def __init__(self, gain=1.0, seed=None, scale=1.0, mode='fan_avg'):
@@ -102,7 +101,6 @@ class HeOrthogonal(ks.initializers.Orthogonal):
           by A. M. Saxe et al. (2013) `<https://arxiv.org/abs/1312.6120>`_ .
 
     This implementation has been borrowed and slightly modified from `GemNet <https://arxiv.org/abs/2106.08903>`__ .
-
     """
 
     def __init__(self, gain=1.0, seed=None, scale=1.0, mode='fan_in'):
