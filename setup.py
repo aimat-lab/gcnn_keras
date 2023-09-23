@@ -14,6 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/aimat-lab/gcnn_keras",
     install_requires=[
+        "keras-core",
         "numpy>=1.23.0",
         "scikit-learn>=1.1.3",
         "pandas>=1.5.2",
@@ -21,8 +22,6 @@ setup(
         "matplotlib>=3.6.0",
         "rdkit>=2022.9.2",
         "pymatgen>=2022.11.7",
-        "tensorflow>=2.9.0",
-        "tensorflow-addons>=0.18.0",
         "keras-tuner>=1.1.3",
         "requests>=2.28.1",
         "networkx>=2.8.8",

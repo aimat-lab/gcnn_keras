@@ -1,6 +1,6 @@
 import numpy as np
-from keras_core import ops
-from keras_core import testing
+from keras import ops
+from keras import testing
 from kgcnn.layers.casting import CastBatchedIndicesToDisjoint, CastBatchedAttributesToDisjoint
 from kgcnn.utils_core.tests import compare_static_shapes
 

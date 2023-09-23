@@ -17,7 +17,8 @@ A set of layers for graph convolutions in Keras.
 
 > [!IMPORTANT]  
 > The versions of kgcnn<=3.1.0 were focused on ragged tensors of tensorflow.
-> The current main branch is developped for Keras 3.0 . Please use last release of 3.1.0 for previous version of kgcnn.
+> The current main branch is developed for Keras 3.0 and kgcnn version 4.0. 
+> Please use last release of 3.1.0 for previous version of kgcnn.
 
 [General](#general) | [Requirements](#requirements) | [Installation](#installation) | [Documentation](#documentation) | [Implementation details](#implementation-details)
  | [Literature](#literature) | [Data](#data)  | [Datasets](#datasets) | [Training](#training) | [Issues](#issues) | [Citing](#citing) | [References](#references)
@@ -78,7 +79,7 @@ TODO
 <a name="literature"></a>
 # Literature
 The following models, proposed in literature, have a module in [literature](kgcnn/literature). The module usually exposes a `make_model` function
-to create a ``tf.keras.models.Model``, which features ragged tensor in- or output. The models can but must not be build completely from `kgcnn.layers` and can for example include
+to create a ``keras.models.Model``. The models can but must not be build completely from `kgcnn.layers` and can for example include
 original implementations (with proper licencing).
 
 * **[GCN](kgcnn/literature/GCN)**: [Semi-Supervised Classification with Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al. (2016)
@@ -89,6 +90,7 @@ original implementations (with proper licencing).
 
 <details>
 <summary> ... and many more <b>(click to expand)</b>.</summary>
+
 
 * **[GATv2](kgcnn/literature/GATv2)**: [How Attentive are Graph Attention Networks?](https://arxiv.org/abs/2105.14491) by Brody et al. (2021)
 
