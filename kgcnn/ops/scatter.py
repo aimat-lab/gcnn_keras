@@ -4,7 +4,7 @@ from kgcnn.backend import any_symbolic_tensors
 from keras_core import Operation
 
 
-class ScatterMax(Operation):
+class _ScatterMax(Operation):
     def call(self, indices, values, shape):
         return kgcnn_backend.scatter_reduce_max(indices, values, shape)
 
@@ -14,11 +14,11 @@ class ScatterMax(Operation):
 
 def scatter_reduce_max(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterMax().symbolic_call(indices, values, shape)
+        return _ScatterMax().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_max(indices, values, shape)
 
 
-class ScatterMin(Operation):
+class _ScatterMin(Operation):
     def call(self, indices, values, shape):
         return kgcnn_backend.scatter_reduce_min(indices, values, shape)
 
@@ -28,11 +28,11 @@ class ScatterMin(Operation):
 
 def scatter_reduce_min(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterMin().symbolic_call(indices, values, shape)
+        return _ScatterMin().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_min(indices, values, shape)
 
 
-class ScatterMean(Operation):
+class _ScatterMean(Operation):
     def call(self, indices, values, shape):
         return kgcnn_backend.scatter_reduce_mean(indices, values, shape)
 
@@ -42,11 +42,11 @@ class ScatterMean(Operation):
 
 def scatter_reduce_mean(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterMean().symbolic_call(indices, values, shape)
+        return _ScatterMean().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_mean(indices, values, shape)
 
 
-class ScatterSum(Operation):
+class _ScatterSum(Operation):
     def call(self, indices, values, shape):
         return kgcnn_backend.scatter_reduce_sum(indices, values, shape)
 
@@ -56,11 +56,11 @@ class ScatterSum(Operation):
 
 def scatter_reduce_sum(indices, values, shape):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterSum().symbolic_call(indices, values, shape)
+        return _ScatterSum().symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_sum(indices, values, shape)
 
 
-class ScatterSoftmax(Operation):
+class _ScatterSoftmax(Operation):
 
     def __init__(self, normalize: bool = False):
         super().__init__()
@@ -75,5 +75,5 @@ class ScatterSoftmax(Operation):
 
 def scatter_reduce_softmax(indices, values, shape, normalize: bool = False):
     if any_symbolic_tensors((indices, values, shape)):
-        return ScatterSoftmax(normalize=normalize).symbolic_call(indices, values, shape)
+        return _ScatterSoftmax(normalize=normalize).symbolic_call(indices, values, shape)
     return kgcnn_backend.scatter_reduce_softmax(indices, values, shape, normalize=normalize)

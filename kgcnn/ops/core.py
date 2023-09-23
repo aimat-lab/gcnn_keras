@@ -5,7 +5,7 @@ from kgcnn.backend import any_symbolic_tensors
 import kgcnn.backend as kgcnn_backend
 
 
-class RepeatStaticLength(Operation):
+class _RepeatStaticLength(Operation):
 
     def __init__(self, total_repeat_length: int, axis=None):
         super().__init__()
@@ -38,5 +38,5 @@ def repeat_static_length(x, repeats, total_repeat_length: int, axis=None):
         Output tensor.
     """
     if any_symbolic_tensors((x, repeats)):
-        return RepeatStaticLength(axis=axis, total_repeat_length=total_repeat_length).symbolic_call(x, repeats)
+        return _RepeatStaticLength(axis=axis, total_repeat_length=total_repeat_length).symbolic_call(x, repeats)
     return kgcnn_backend.repeat_static_length(x, repeats, axis=axis, total_repeat_length=total_repeat_length)
